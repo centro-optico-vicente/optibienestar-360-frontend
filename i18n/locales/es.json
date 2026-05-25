@@ -1,0 +1,13 @@
+{
+  "app": {
+    "name": "OptiSalud Plus",
+    "tagline": "Cuidamos lo que más amas"
+  },
+  "common": {
+    "loading": "Cargando…",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "back": "Volver"
+  }
+}

@@ -141,3 +141,10 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Claude Code local state (per-dev install)
+.claude/settings.local.json
+.claude/plugins/
+.claude/skills/
+.claude/cache/
+.mcp.local.json

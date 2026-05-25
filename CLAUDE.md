@@ -18,6 +18,8 @@ Para decisiones cross-stack (infraestructura, modelo de datos, contracts REST co
 | Cliente API y auth | [`.ai/specs/04-api-client.md`](.ai/specs/04-api-client.md) |
 | Sistema de permisos | [`.ai/specs/09-permissions.md`](.ai/specs/09-permissions.md) |
 | Playbooks (nueva página, form, tabla) | [`.ai/playbooks/`](.ai/playbooks/) |
+| Skills + MCP de Claude Code | [`.ai/skills.md`](.ai/skills.md) · [`.ai/playbooks/install-skills.md`](.ai/playbooks/install-skills.md) |
+| Agente Nuxt experto | [`.claude/agents/nuxt-expert.md`](.claude/agents/nuxt-expert.md) |
 
 ## Stack
 

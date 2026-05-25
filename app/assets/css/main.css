@@ -1,0 +1,70 @@
+@import 'tailwindcss';
+@import '@nuxt/ui';
+
+@theme static {
+  --font-sans: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+
+  /* Paleta heredada del landing OptiSalud Plus
+     Azul principal (#245E9E) — escala generada conservando el tono */
+  --color-prohealth-50:  #f0f6fc;
+  --color-prohealth-100: #dbeafe;
+  --color-prohealth-200: #b8d3f2;
+  --color-prohealth-300: #8db8e6;
+  --color-prohealth-400: #5d97d6;
+  --color-prohealth-500: #3a7cc2;
+  --color-prohealth-600: #245E9E;
+  --color-prohealth-700: #1e4d82;
+  --color-prohealth-800: #1b4068;
+  --color-prohealth-900: #1a3656;
+  --color-prohealth-950: #11223a;
+
+  /* Lime accent (#9FD537) */
+  --color-lime-50:  #f7fdec;
+  --color-lime-100: #ecfac8;
+  --color-lime-200: #d9f496;
+  --color-lime-300: #c1ea5d;
+  --color-lime-400: #aadc35;
+  --color-lime-500: #9FD537;
+  --color-lime-600: #74a01b;
+  --color-lime-700: #587a1a;
+  --color-lime-800: #47611c;
+  --color-lime-900: #3c521c;
+  --color-lime-950: #1f2d0a;
+
+  /* Cyan secondary (#1094C5) */
+  --color-cyan-50:  #ecfbff;
+  --color-cyan-100: #d4f3ff;
+  --color-cyan-200: #b1ebff;
+  --color-cyan-300: #7be0ff;
+  --color-cyan-400: #3dccf7;
+  --color-cyan-500: #14b0e0;
+  --color-cyan-600: #1094C5;
+  --color-cyan-700: #11729c;
+  --color-cyan-800: #155f80;
+  --color-cyan-900: #164f6b;
+  --color-cyan-950: #093247;
+}
+
+:root {
+  --ui-bg: white;
+  --ui-text: #11223a;
+}
+
+html, body, #__nuxt {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: var(--ui-text);
+  background: var(--ui-bg);
+}
+
+/* Utilidad: gradient hero ProHealth */
+.bg-hero-prohealth {
+  background:
+    radial-gradient(ellipse at top right, rgba(16, 148, 197, 0.35), transparent 60%),
+    linear-gradient(135deg, #245E9E 0%, #1094C5 100%);
+}

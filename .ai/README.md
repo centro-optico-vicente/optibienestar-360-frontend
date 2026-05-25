@@ -27,7 +27,8 @@ Esta carpeta contiene la documentación específica del frontend admin Nuxt 3. P
 │   ├── 07-forms.md
 │   ├── 08-tables.md
 │   ├── 09-permissions.md
-│   └── 10-design-system.md
+│   ├── 10-design-system.md
+│   └── 11-mcp-servers.md
 │
 ├── decisions/
 │   ├── 0001-nuxt-ui-tailwind.md
@@ -39,7 +40,8 @@ Esta carpeta contiene la documentación específica del frontend admin Nuxt 3. P
     ├── new-page.md
     ├── new-form.md
     ├── new-table.md
-    └── new-role-views.md
+    ├── new-role-views.md
+    └── install-skills.md
 ```
 
 ## Cómo navegarla
@@ -54,3 +56,5 @@ Esta carpeta contiene la documentación específica del frontend admin Nuxt 3. P
 | Cómo mostrar/ocultar por permiso | [`specs/09-permissions.md`](specs/09-permissions.md) |
 | Crear página/form/tabla | [`playbooks/`](playbooks/) |
 | Paleta de colores | [`context/design-tokens.md`](context/design-tokens.md) |
+| Skills y MCP de Claude Code | [`skills.md`](skills.md) + [`playbooks/install-skills.md`](playbooks/install-skills.md) |
+| MCP de Nuxt (post-bootstrap) | [`specs/11-mcp-servers.md`](specs/11-mcp-servers.md) |

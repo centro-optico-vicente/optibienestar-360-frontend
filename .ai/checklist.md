@@ -4,8 +4,9 @@
 
 ## FASE 0 — Bootstrap
 
-- [ ] [P0/C2] Crear estructura `.ai/` en este repo
-- [ ] [P1/C1] Instalar skills `nuxt-best-practices` + `tailwind-css` + `accessibility-a11y`
+- [x] [P0/C2] Crear estructura `.ai/` en este repo
+- [ ] [P1/C1] Instalar skills Claude Code: `ui-ux-pro-max` + `impeccable` (ver [`playbooks/install-skills.md`](playbooks/install-skills.md))
+- [ ] [P1/C1] (Opcional) Marketplace Anthropic: `web-app-testing` para FASE 5.12
 
 ## FASE 1 — Bootstrap frontend Nuxt 3
 
@@ -15,6 +16,7 @@
 - [ ] [P0/C2] Instalar Nuxt UI (`@nuxt/ui` + Tailwind autoincluido)
 - [ ] [P0/C2] Instalar módulos: `@pinia/nuxt`, `@vueuse/nuxt`, `@nuxtjs/i18n`, `@nuxt/icon`, `@nuxt/image`
 - [ ] [P0/C2] Configurar `nuxt.config.ts` con runtimeConfig (API_BASE_URL)
+- [ ] [P1/C1] Añadir `nuxt-mcp-dev` a `nuxt.config.ts` (dev-only) — ver [`specs/11-mcp-servers.md`](specs/11-mcp-servers.md)
 - [ ] [P0/C2] Tailwind paleta heredada del web (azul, lime) en `tailwind.config.ts`
 - [ ] [P0/C2] Importar Manrope desde Google Fonts
 - [ ] [P0/C2] `app.vue` + layout `default.vue` con header + sidebar + main
