@@ -1,34 +1,42 @@
 <script setup lang="ts">
-import type { UserRole } from '~/types/auth'
+import type { Permission } from '~/types/permissions'
 
 const auth = useAuthStore()
 const { logout } = useAuth()
+const { can } = usePermissions()
 
+// El menú es un ESPEJO de los permisos: cada ítem declara la llave que exige.
 interface NavItem {
   label: string
   to: string
   icon: string
-  roles?: UserRole[]
+  requires?: Permission | Permission[]
 }
 
 const allNav: NavItem[] = [
   { label: 'Panel', to: '/dashboard', icon: 'i-lucide-layout-dashboard' },
-  { label: 'Afiliados', to: '/dashboard/members', icon: 'i-lucide-users', roles: ['SYSTEM', 'ADMINISTRADOR', 'OPERADOR'] },
-  { label: 'Aliados', to: '/dashboard/allies', icon: 'i-lucide-handshake', roles: ['SYSTEM', 'ADMINISTRADOR'] },
-  { label: 'Planes', to: '/dashboard/plans', icon: 'i-lucide-package', roles: ['SYSTEM', 'ADMINISTRADOR'] },
-  { label: 'Pagos', to: '/dashboard/payments', icon: 'i-lucide-credit-card', roles: ['SYSTEM', 'ADMINISTRADOR', 'OPERADOR'] },
-  { label: 'Reportes', to: '/dashboard/reports', icon: 'i-lucide-bar-chart-3', roles: ['SYSTEM', 'ADMINISTRADOR'] },
+  { label: 'Afiliados', to: '/dashboard/members', icon: 'i-lucide-users', requires: 'MEMBER_VIEW_ALL' },
+  { label: 'Aliados', to: '/dashboard/allies', icon: 'i-lucide-handshake', requires: 'ALLY_VIEW_ALL' },
+  { label: 'Planes', to: '/dashboard/plans', icon: 'i-lucide-package', requires: 'PLAN_VIEW_ALL' },
+  { label: 'Membresías', to: '/dashboard/memberships', icon: 'i-lucide-badge-check', requires: 'MEMBERSHIP_VIEW_ALL' },
+  { label: 'Pagos', to: '/dashboard/payments', icon: 'i-lucide-credit-card', requires: 'PAYMENT_VIEW_ALL' },
+  { label: 'Promotores', to: '/dashboard/promoters', icon: 'i-lucide-megaphone', requires: 'PROMOTER_VIEW_ALL' },
+  { label: 'Comisiones', to: '/dashboard/commissions', icon: 'i-lucide-percent', requires: ['COMMISSION_VIEW_ALL', 'COMMISSION_VIEW_OWN'] },
+  { label: 'Usuarios', to: '/dashboard/users', icon: 'i-lucide-shield-user', requires: 'USER_VIEW_ALL' },
+  { label: 'Roles', to: '/dashboard/roles', icon: 'i-lucide-shield-check', requires: 'USER_CHANGE_ROLE' },
+  { label: 'Reportes', to: '/dashboard/reports', icon: 'i-lucide-bar-chart-3', requires: 'REPORT_VIEW_DASHBOARD' },
 ]
 
 const otherNav: NavItem[] = [
-  { label: 'Configuración', to: '/dashboard/settings', icon: 'i-lucide-settings' },
   { label: 'Cambiar contraseña', to: '/dashboard/change-password', icon: 'i-lucide-key-round' },
 ]
 
-const navItems = computed<NavItem[]>(() => {
-  const role = auth.role as UserRole | null
-  return allNav.filter(i => !i.roles || (role && i.roles.includes(role)))
-})
+const navItems = computed<NavItem[]>(() =>
+  allNav.filter((i) => {
+    if (!i.requires) return true
+    return Array.isArray(i.requires) ? i.requires.some(can) : can(i.requires)
+  }),
+)
 
 const isSidebarOpen = ref<boolean>(false)
 </script>
@@ -90,7 +98,7 @@ const isSidebarOpen = ref<boolean>(false)
           </span>
           <div class="min-w-0 flex-1">
             <p class="text-sm font-semibold text-prohealth-900 truncate">{{ auth.fullName }}</p>
-            <p class="text-xs text-prohealth-500 truncate">{{ auth.role }}</p>
+            <p class="text-xs text-prohealth-500 truncate">{{ auth.primaryRole }}</p>
           </div>
         </div>
         <UButton

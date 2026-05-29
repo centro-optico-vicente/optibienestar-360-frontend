@@ -7,8 +7,6 @@ definePageMeta({ layout: 'dashboard' })
 useSeoMeta({ title: 'Cambiar contraseña — OptiSalud Plus' })
 
 const { changePassword } = useAuth()
-const auth = useAuthStore()
-const router = useRouter()
 const toast = useToast()
 
 const schema = z
@@ -52,20 +50,21 @@ const onSubmit = async (event: FormSubmitEvent<Schema>): Promise<void> => {
   isSubmitting.value = true
   apiError.value = null
   try {
+    toast.add({
+      title: 'Contraseña actualizada',
+      description: 'Vuelve a iniciar sesión con tu nueva contraseña.',
+      color: 'success',
+      icon: 'i-lucide-check-circle',
+    })
+    // changePassword limpia la sesión y redirige a /login (el backend invalida los tokens).
     await changePassword({
       currentPassword: event.data.currentPassword,
       newPassword: event.data.newPassword,
     })
-    toast.add({
-      title: 'Contraseña actualizada',
-      description: 'Tu nueva contraseña ya está activa.',
-      color: 'success',
-      icon: 'i-lucide-check-circle',
-    })
-    await router.push('/dashboard')
   }
   catch (err: unknown) {
-    apiError.value = err instanceof Error ? err.message : 'No fue posible actualizar la contraseña'
+    const e = err as { message?: string }
+    apiError.value = e?.message || 'No fue posible actualizar la contraseña'
   }
   finally {
     isSubmitting.value = false
@@ -75,16 +74,6 @@ const onSubmit = async (event: FormSubmitEvent<Schema>): Promise<void> => {
 
 <template>
   <div class="max-w-2xl mx-auto">
-    <UAlert
-      v-if="auth.mustChangePassword"
-      color="warning"
-      variant="subtle"
-      icon="i-lucide-alert-triangle"
-      title="Cambio de contraseña obligatorio"
-      description="Tu contraseña actual es temporal. Defínela ahora para continuar usando el portal."
-      class="mb-6"
-    />
-
     <div class="bg-white rounded-2xl border border-prohealth-100 p-6 md:p-8">
       <div class="mb-6">
         <h1 class="text-xl md:text-2xl font-extrabold text-prohealth-900">
@@ -178,7 +167,7 @@ const onSubmit = async (event: FormSubmitEvent<Schema>): Promise<void> => {
             to="/dashboard"
             color="neutral"
             variant="ghost"
-            :disabled="auth.mustChangePassword || isSubmitting"
+            :disabled="isSubmitting"
           >
             Cancelar
           </UButton>

@@ -19,6 +19,15 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  // Portal light-only: fijamos el tema claro para que los tokens de Nuxt UI
+  // (p. ej. --ui-text-highlighted, que usa el texto de los inputs) no se inviertan
+  // a blanco cuando el SO está en modo oscuro. Sin esto, el texto del input queda
+  // blanco sobre el fondo blanco forzado en main.css.
+  colorMode: {
+    preference: 'light',
+    fallback: 'light',
+  },
+
   app: {
     head: {
       title: 'OptiSalud Plus',
