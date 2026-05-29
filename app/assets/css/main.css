@@ -45,9 +45,32 @@
   --color-cyan-950: #093247;
 }
 
+/* Portal light-only: forzamos TODO el set de tokens de Nuxt UI a tema claro en un
+   :root SIN @layer (gana sobre .light y .dark, y sobre cualquier valor 'dark'
+   persistido por @nuxtjs/color-mode en cookie/localStorage). Esto evita que el
+   texto de los inputs (que usa --ui-text-highlighted) se invierta a blanco y quede
+   invisible sobre el fondo blanco. Valores en la escala slate (neutral por defecto). */
 :root {
-  --ui-bg: white;
+  /* Fondos */
+  --ui-bg: #ffffff;
+  --ui-bg-muted: #f8fafc;
+  --ui-bg-elevated: #f1f5f9;
+  --ui-bg-accented: #e2e8f0;
+  --ui-bg-inverted: #11223a;
+
+  /* Texto */
+  --ui-text-dimmed: #94a3b8;
+  --ui-text-muted: #64748b;
+  --ui-text-toned: #475569;
   --ui-text: #11223a;
+  --ui-text-highlighted: #0b1626;
+  --ui-text-inverted: #ffffff;
+
+  /* Bordes */
+  --ui-border: #e2e8f0;
+  --ui-border-muted: #e2e8f0;
+  --ui-border-accented: #cbd5e1;
+  --ui-border-inverted: #11223a;
 }
 
 html, body, #__nuxt {

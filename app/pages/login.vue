@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
+import type { ApiError } from '~/types/auth'
 
 definePageMeta({ layout: 'auth' })
 
@@ -29,6 +30,10 @@ const state = reactive<Partial<LoginSchema>>({
 const isSubmitting = ref<boolean>(false)
 const showPassword = ref<boolean>(false)
 const apiError = ref<string | null>(null)
+const lockedUntil = ref<Date | null>(null)
+
+// Mientras la cuenta esté bloqueada (HTTP 423) deshabilitamos el botón.
+const isLocked = computed<boolean>(() => !!lockedUntil.value && lockedUntil.value > new Date())
 
 const onSubmit = async (event: FormSubmitEvent<LoginSchema>): Promise<void> => {
   isSubmitting.value = true
@@ -38,21 +43,20 @@ const onSubmit = async (event: FormSubmitEvent<LoginSchema>): Promise<void> => {
 
     toast.add({
       title: '¡Bienvenido!',
-      description: `Hola ${result.user.firstName || result.user.email}`,
+      description: `Hola ${result.user.fullName || result.user.email}`,
       color: 'success',
       icon: 'i-lucide-check-circle',
     })
-
-    if (result.mustChangePassword || result.user.mustChangePassword) {
-      await router.push('/dashboard/change-password')
-      return
-    }
 
     const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/dashboard'
     await router.push(redirect)
   }
   catch (err: unknown) {
-    apiError.value = err instanceof Error ? err.message : 'No fue posible iniciar sesión'
+    const e = err as ApiError
+    if (e?.status === 423 && e.problem?.lockedUntil) {
+      lockedUntil.value = new Date(e.problem.lockedUntil)
+    }
+    apiError.value = e?.message || 'No fue posible iniciar sesión'
   }
   finally {
     isSubmitting.value = false
@@ -132,6 +136,7 @@ const onSubmit = async (event: FormSubmitEvent<LoginSchema>): Promise<void> => {
         size="lg"
         color="primary"
         :loading="isSubmitting"
+        :disabled="isLocked"
         icon="i-lucide-log-in"
       >
         Ingresar

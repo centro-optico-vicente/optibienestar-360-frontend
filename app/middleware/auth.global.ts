@@ -14,13 +14,4 @@ export default defineNuxtRouteMiddleware((to) => {
   if (to.path === '/login' && isAuthed) {
     return navigateTo('/dashboard')
   }
-
-  if (
-    isAuthed
-    && auth.mustChangePassword
-    && to.path !== '/dashboard/change-password'
-    && to.path !== '/login'
-  ) {
-    return navigateTo('/dashboard/change-password')
-  }
 })

@@ -37,7 +37,7 @@ const activity: RecentActivity[] = [
   { id: 5, who: 'Soporte', what: 'Reintento de validación fallido', when: 'hace 2 h', status: 'error' },
 ]
 
-const statusColor: Record<RecentActivity['status'], string> = {
+const statusColor: Record<RecentActivity['status'], 'success' | 'warning' | 'error'> = {
   success: 'success',
   pending: 'warning',
   error: 'error',
@@ -57,7 +57,7 @@ const greeting = computed<string>(() => {
     <div class="flex flex-wrap items-end justify-between gap-4">
       <div>
         <h1 class="text-2xl md:text-3xl font-extrabold text-prohealth-900">
-          {{ greeting }}, {{ auth.user?.firstName || auth.user?.email }} 👋
+          {{ greeting }}, {{ auth.user?.fullName || auth.user?.email }} 👋
         </h1>
         <p class="text-sm text-prohealth-700/70 mt-1">
           Resumen del programa en tiempo real.
@@ -226,19 +226,15 @@ const greeting = computed<string>(() => {
             <dd class="font-semibold text-prohealth-900 truncate max-w-[60%]">{{ auth.user?.email }}</dd>
           </div>
           <div class="flex items-center justify-between">
-            <dt class="text-prohealth-500">Rol</dt>
-            <dd>
-              <UBadge color="primary" variant="subtle">{{ auth.role }}</UBadge>
-            </dd>
-          </div>
-          <div class="flex items-center justify-between">
-            <dt class="text-prohealth-500">Cambio de contraseña</dt>
-            <dd>
+            <dt class="text-prohealth-500">Roles</dt>
+            <dd class="flex flex-wrap gap-1 justify-end">
               <UBadge
-                :color="auth.mustChangePassword ? 'warning' : 'success'"
+                v-for="r in auth.roleNames"
+                :key="r"
+                color="primary"
                 variant="subtle"
               >
-                {{ auth.mustChangePassword ? 'Pendiente' : 'Al día' }}
+                {{ r }}
               </UBadge>
             </dd>
           </div>
