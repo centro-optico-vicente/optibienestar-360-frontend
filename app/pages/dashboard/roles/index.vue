@@ -1,12 +1,5 @@
 <script setup lang="ts">
-import { z } from 'zod'
-import type { FormSubmitEvent } from '@nuxt/ui'
-import type {
-  RoleCreateRequest,
-  RoleDto,
-  RoleUpdateRequest,
-} from '~/types/admin'
-import { toItems } from '~/types/admin'
+import type { PermissionDomainDto, RoleDto } from '~/types/admin'
 
 definePageMeta({
   layout: 'dashboard',
@@ -20,27 +13,25 @@ const rolesApi = useRoles()
 const { can } = usePermissions()
 const toast = useToast()
 
-// La gestión de roles se protege con USER_CHANGE_ROLE (único permiso de roles del seed).
+// La gestión de permisos por rol se protege con USER_CHANGE_ROLE.
 const canManage = computed(() => can('USER_CHANGE_ROLE'))
 
-const data = ref<RoleDto[]>([])
+const roles = ref<RoleDto[]>([])
+const domains = ref<PermissionDomainDto[]>([])
 const loading = ref(false)
-// El backend aún puede no exponer /v1/admin/roles → lo informamos sin romper la UI.
-const notAvailable = ref(false)
 
-const permissionOptions = ref<{ label: string, value: string }[]>([])
+// Total de permisos del catálogo (para mostrar "n/total" por rol).
+const totalPermissions = computed(() =>
+  domains.value.reduce((acc, d) => acc + d.permissions.length, 0),
+)
 
 async function loadRoles() {
   loading.value = true
-  notAvailable.value = false
   try {
-    const res = await rolesApi.list()
-    data.value = toItems(res)
+    roles.value = await rolesApi.list()
   }
-  catch (err) {
-    const e = err as { status?: number }
-    if (e?.status === 404) notAvailable.value = true
-    data.value = []
+  catch {
+    roles.value = []
   }
   finally {
     loading.value = false
@@ -49,128 +40,85 @@ async function loadRoles() {
 
 async function loadPermissions() {
   try {
-    const res = await rolesApi.permissions()
-    permissionOptions.value = toItems(res).map(p => ({
-      label: p.domain ? `${p.domain} · ${p.name}` : p.name,
-      value: p.uuid,
-    }))
+    domains.value = await rolesApi.permissions()
   }
   catch {
-    permissionOptions.value = []
+    domains.value = []
   }
 }
 
 onMounted(async () => {
-  await loadRoles()
-  if (!notAvailable.value) await loadPermissions()
+  await Promise.all([loadRoles(), loadPermissions()])
 })
 
-// ---- Formulario ----
+// ---- Edición de permisos por rol ----
 const formOpen = ref(false)
-const mode = ref<'create' | 'edit'>('create')
-const editingUuid = ref<string | null>(null)
 const isSubmitting = ref(false)
+const loadingPerms = ref(false)
+const editing = ref<RoleDto | null>(null)
+const selected = ref<string[]>([])
 
-interface FormState {
-  name: string
-  description: string
-  permissionIds: string[]
+function isChecked(uuid: string) {
+  return selected.value.includes(uuid)
 }
 
-const state = reactive<FormState>({ name: '', description: '', permissionIds: [] })
-
-const schema = z.object({
-  name: z.string().min(2, 'Mínimo 2 caracteres'),
-  description: z.string().optional(),
-  permissionIds: z.array(z.string()),
-})
-
-function resetForm() {
-  state.name = ''
-  state.description = ''
-  state.permissionIds = []
+function togglePermission(uuid: string, checked: boolean) {
+  if (checked) {
+    if (!selected.value.includes(uuid)) selected.value.push(uuid)
+  }
+  else {
+    selected.value = selected.value.filter(u => u !== uuid)
+  }
 }
 
-function openCreate() {
-  mode.value = 'create'
-  editingUuid.value = null
-  resetForm()
+function domainState(domain: PermissionDomainDto): boolean | 'indeterminate' {
+  const ids = domain.permissions.map(p => p.uuid)
+  const count = ids.filter(id => selected.value.includes(id)).length
+  if (count === 0) return false
+  if (count === ids.length) return true
+  return 'indeterminate'
+}
+
+function toggleDomain(domain: PermissionDomainDto, checked: boolean) {
+  const ids = domain.permissions.map(p => p.uuid)
+  if (checked) {
+    const set = new Set([...selected.value, ...ids])
+    selected.value = [...set]
+  }
+  else {
+    selected.value = selected.value.filter(u => !ids.includes(u))
+  }
+}
+
+async function openEdit(role: RoleDto) {
+  editing.value = role
+  selected.value = []
   formOpen.value = true
-}
-
-async function openEdit(r: RoleDto) {
-  mode.value = 'edit'
-  editingUuid.value = r.uuid
-  resetForm()
-  state.name = r.name
-  state.description = r.description ?? ''
-  // Cargar los permisos actuales del rol (detalle).
+  loadingPerms.value = true
   try {
-    const detail = await rolesApi.get(r.uuid)
-    state.permissionIds = (detail.permissions ?? []).map(p => p.uuid)
+    selected.value = await rolesApi.getRolePermissions(role.uuid)
   }
   catch {
-    state.permissionIds = []
+    selected.value = []
   }
-  formOpen.value = true
+  finally {
+    loadingPerms.value = false
+  }
 }
 
-async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
+async function onSave() {
+  if (!editing.value || selected.value.length === 0) return
   isSubmitting.value = true
   try {
-    if (mode.value === 'create') {
-      const body: RoleCreateRequest = {
-        name: state.name,
-        description: state.description || undefined,
-        permissionIds: state.permissionIds,
-      }
-      await rolesApi.create(body)
-      toast.add({ title: 'Rol creado', color: 'success', icon: 'i-lucide-check-circle' })
-    }
-    else if (editingUuid.value) {
-      const body: RoleUpdateRequest = {
-        name: state.name,
-        description: state.description || undefined,
-        permissionIds: state.permissionIds,
-      }
-      await rolesApi.update(editingUuid.value, body)
-      toast.add({ title: 'Rol actualizado', color: 'success', icon: 'i-lucide-check-circle' })
-    }
+    await rolesApi.updateRolePermissions(editing.value.uuid, selected.value)
+    toast.add({ title: 'Permisos actualizados', color: 'success', icon: 'i-lucide-check-circle' })
     formOpen.value = false
-    await loadRoles()
   }
   catch {
     // useApi ya notificó el error
   }
   finally {
     isSubmitting.value = false
-  }
-}
-
-// ---- Eliminar ----
-const deleteOpen = ref(false)
-const deleting = ref(false)
-const target = ref<RoleDto | null>(null)
-
-function openDelete(r: RoleDto) {
-  target.value = r
-  deleteOpen.value = true
-}
-
-async function confirmDelete() {
-  if (!target.value) return
-  deleting.value = true
-  try {
-    await rolesApi.remove(target.value.uuid)
-    toast.add({ title: 'Rol eliminado', color: 'success', icon: 'i-lucide-check-circle' })
-    deleteOpen.value = false
-    await loadRoles()
-  }
-  catch {
-    // toast por useApi
-  }
-  finally {
-    deleting.value = false
   }
 }
 </script>
@@ -180,35 +128,15 @@ async function confirmDelete() {
     <!-- Header -->
     <div class="flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-extrabold text-prohealth-900">Roles</h1>
+        <h1 class="text-2xl font-extrabold text-prohealth-900">Roles y permisos</h1>
         <p class="text-sm text-prohealth-700/70 mt-1">
-          Define los roles y los permisos (llaves) que otorga cada uno.
+          Los roles los define el sistema. Aquí ajustas los permisos (llaves) que otorga cada uno.
         </p>
       </div>
-      <UTooltip :text="canManage ? 'Crear un nuevo rol' : 'No tienes permiso para gestionar roles'">
-        <UButton
-          color="primary"
-          icon="i-lucide-shield-plus"
-          :disabled="!canManage || notAvailable"
-          @click="openCreate"
-        >
-          Nuevo rol
-        </UButton>
-      </UTooltip>
     </div>
 
-    <!-- Aviso: backend sin endpoints de roles -->
-    <UAlert
-      v-if="notAvailable"
-      color="warning"
-      variant="subtle"
-      icon="i-lucide-triangle-alert"
-      title="Gestión de roles no disponible todavía"
-      description="El backend aún no expone /v1/admin/roles ni /v1/admin/permissions. La pantalla está lista; funcionará en cuanto backend implemente esos endpoints."
-    />
-
-    <!-- Tabla -->
-    <div v-if="!notAvailable" class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
+    <!-- Tabla de roles -->
+    <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
@@ -219,19 +147,14 @@ async function confirmDelete() {
             </tr>
           </thead>
           <tbody class="divide-y divide-prohealth-100">
-            <tr v-if="loading">
-              <td colspan="3" class="px-5 py-10 text-center text-prohealth-500">
-                <UIcon name="i-lucide-loader-circle" class="w-5 h-5 animate-spin inline" />
-                Cargando…
-              </td>
-            </tr>
-            <tr v-else-if="data.length === 0">
+            <TableSkeleton v-if="loading" :rows="5" :cols="3" />
+            <tr v-else-if="roles.length === 0">
               <td colspan="3" class="px-5 py-12 text-center text-prohealth-500">
                 <UIcon name="i-lucide-shield" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
                 Sin roles
               </td>
             </tr>
-            <tr v-for="r in data" v-else :key="r.uuid" class="hover:bg-prohealth-50/50">
+            <tr v-for="r in roles" v-else :key="r.uuid" class="hover:bg-prohealth-50/50">
               <td class="px-5 py-3">
                 <UBadge color="primary" variant="subtle">{{ r.name }}</UBadge>
               </td>
@@ -240,24 +163,15 @@ async function confirmDelete() {
               </td>
               <td class="px-5 py-3">
                 <div class="flex items-center justify-end gap-1">
-                  <UTooltip :text="canManage ? 'Editar' : 'No tienes permiso'">
+                  <UTooltip :text="canManage ? 'Editar permisos' : 'No tienes permiso'">
                     <UButton
                       color="neutral"
                       variant="ghost"
-                      icon="i-lucide-pencil"
+                      icon="i-lucide-key-round"
                       size="sm"
+                      label="Permisos"
                       :disabled="!canManage"
                       @click="openEdit(r)"
-                    />
-                  </UTooltip>
-                  <UTooltip :text="canManage ? 'Eliminar' : 'No tienes permiso'">
-                    <UButton
-                      color="error"
-                      variant="ghost"
-                      icon="i-lucide-trash-2"
-                      size="sm"
-                      :disabled="!canManage"
-                      @click="openDelete(r)"
                     />
                   </UTooltip>
                 </div>
@@ -268,66 +182,85 @@ async function confirmDelete() {
       </div>
     </div>
 
-    <!-- Modal crear/editar -->
+    <!-- Modal editar permisos del rol -->
     <UModal
       v-model:open="formOpen"
-      :title="mode === 'create' ? 'Nuevo rol' : 'Editar rol'"
-      description="El nombre identifica el rol; los permisos son las acciones que habilita."
+      :title="`Permisos de ${editing?.name ?? ''}`"
+      description="Marca las llaves que otorga este rol. Debe tener al menos un permiso."
     >
       <template #body>
-        <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
-          <UFormField label="Nombre" name="name" required>
-            <UInput v-model="state.name" placeholder="Ej. OPERADOR" class="w-full" />
-          </UFormField>
+        <div v-if="loadingPerms" class="space-y-4 max-h-[60vh] overflow-hidden">
+          <div
+            v-for="i in 3"
+            :key="i"
+            class="rounded-xl border border-prohealth-100 overflow-hidden"
+          >
+            <div class="px-4 py-2.5 bg-prohealth-50/60 border-b border-prohealth-100">
+              <USkeleton class="h-4 w-40 rounded" />
+            </div>
+            <div class="p-3 grid sm:grid-cols-2 gap-3">
+              <USkeleton v-for="j in 4" :key="j" class="h-5 w-full rounded" />
+            </div>
+          </div>
+        </div>
 
-          <UFormField label="Descripción" name="description">
-            <UTextarea v-model="state.description" :rows="2" class="w-full" />
-          </UFormField>
+        <div v-else class="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+          <div
+            v-for="domain in domains"
+            :key="domain.uuid"
+            class="rounded-xl border border-prohealth-100 overflow-hidden"
+          >
+            <div class="flex items-center gap-2 px-4 py-2.5 bg-prohealth-50/60 border-b border-prohealth-100">
+              <UCheckbox
+                :model-value="domainState(domain)"
+                @update:model-value="(v: boolean | 'indeterminate') => toggleDomain(domain, v === true)"
+              />
+              <UIcon v-if="domain.icon" :name="domain.icon" class="w-4 h-4 text-prohealth-500" />
+              <span class="font-semibold text-prohealth-800">{{ domain.name }}</span>
+            </div>
+            <div class="p-3 grid sm:grid-cols-2 gap-2">
+              <label
+                v-for="p in domain.permissions"
+                :key="p.uuid"
+                class="flex items-start gap-2 rounded-lg px-2 py-1.5 hover:bg-prohealth-50/50 cursor-pointer"
+              >
+                <UCheckbox
+                  :model-value="isChecked(p.uuid)"
+                  @update:model-value="(v: boolean | 'indeterminate') => togglePermission(p.uuid, v === true)"
+                />
+                <span class="text-sm">
+                  <span class="font-medium text-prohealth-800">{{ p.name }}</span>
+                  <span v-if="p.description" class="block text-xs text-prohealth-500">{{ p.description }}</span>
+                </span>
+              </label>
+            </div>
+          </div>
 
-          <UFormField label="Permisos" name="permissionIds">
-            <USelectMenu
-              v-model="state.permissionIds"
-              :items="permissionOptions"
-              label-key="label"
-              value-key="value"
-              multiple
-              placeholder="Selecciona los permisos del rol"
-              class="w-full"
-            />
-            <template #help>
-              <span v-if="permissionOptions.length === 0" class="text-amber-600">
-                No se pudo cargar el catálogo de permisos (/v1/admin/permissions).
-              </span>
-            </template>
-          </UFormField>
+          <p v-if="domains.length === 0" class="text-sm text-amber-600">
+            No se pudo cargar el catálogo de permisos (/v1/admin/permissions).
+          </p>
+        </div>
 
-          <div class="flex items-center justify-end gap-3 pt-2">
+        <div class="flex items-center justify-between gap-3 pt-4 mt-2 border-t border-prohealth-100">
+          <span class="text-xs text-prohealth-500">
+            {{ selected.length }} / {{ totalPermissions }} permisos
+          </span>
+          <div class="flex items-center gap-3">
             <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="formOpen = false">
               Cancelar
             </UButton>
-            <UButton type="submit" color="primary" :loading="isSubmitting" icon="i-lucide-save">
-              {{ mode === 'create' ? 'Crear rol' : 'Guardar cambios' }}
-            </UButton>
+            <UTooltip :text="selected.length === 0 ? 'Selecciona al menos un permiso' : ''">
+              <UButton
+                color="primary"
+                icon="i-lucide-save"
+                :loading="isSubmitting"
+                :disabled="selected.length === 0 || loadingPerms"
+                @click="onSave"
+              >
+                Guardar permisos
+              </UButton>
+            </UTooltip>
           </div>
-        </UForm>
-      </template>
-    </UModal>
-
-    <!-- Modal confirmar eliminación -->
-    <UModal v-model:open="deleteOpen" title="Eliminar rol">
-      <template #body>
-        <p class="text-sm text-prohealth-700">
-          ¿Seguro que deseas eliminar el rol
-          <span class="font-semibold">{{ target?.name }}</span>?
-          Los usuarios que lo tengan asignado perderán esos permisos.
-        </p>
-        <div class="flex items-center justify-end gap-3 pt-5">
-          <UButton color="neutral" variant="ghost" :disabled="deleting" @click="deleteOpen = false">
-            Cancelar
-          </UButton>
-          <UButton color="error" :loading="deleting" icon="i-lucide-trash-2" @click="confirmDelete">
-            Eliminar
-          </UButton>
         </div>
       </template>
     </UModal>

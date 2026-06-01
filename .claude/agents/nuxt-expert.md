@@ -1487,6 +1487,8 @@ Antes de entregar cualquier código, verificar:
 | 🟢 **Refs tipados** | `ref<Type>()` |
 | 🟢 **Computed tipados** | `computed<Type>()` |
 | 🟢 **useFetch tipado** | `useFetch<Type>()` |
+| 🟡 **Tipo de documento** | SIEMPRE desde `useDocumentTypes()` (catálogo `/v1/admin/catalogs/document-types`), nunca lista fija. Ver `.ai/playbooks/new-form.md`. |
+| 🟡 **Selects de catálogo** | No hardcodear; usar `useCatalog()`/`usePublicCatalog()` y cachear con `useState` si es recurrente. |
 
 ---
 

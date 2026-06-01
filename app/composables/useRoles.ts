@@ -1,40 +1,42 @@
 import type {
-  Page,
-  PermissionDto,
-  RoleCreateRequest,
-  RoleDetailDto,
+  PermissionDomainDto,
   RoleDto,
-  RoleUpdateRequest,
 } from '~/types/admin'
 
 /**
- * Acceso a Roles y Permisos. ⚠️ Contrato REST ASUMIDO: el backend todavía no expone
- * estos endpoints (el OpenAPI actual solo tiene /v1/admin/users). Mientras no existan,
- * estas llamadas devolverán 404 y la UI lo informa con un mensaje claro.
- * En la UI se protege con el permiso USER_CHANGE_ROLE.
+ * Acceso a Roles y Permisos.
+ *
+ * Los roles son de **solo lectura** (los define el seed del backend): solo se listan.
+ * Lo editable son los permisos asignados a cada rol, vía
+ * `PUT /v1/admin/roles/{uuid}/permissions`. En la UI se protege con `USER_CHANGE_ROLE`.
+ *
+ * - `GET /v1/admin/roles` → `RoleDto[]` (array plano).
+ * - `GET /v1/admin/roles/{uuid}` → `RoleDto`.
+ * - `GET /v1/admin/roles/{uuid}/permissions` → `string[]` (UUIDs de permisos del rol).
+ * - `PUT /v1/admin/roles/{uuid}/permissions` → `{ permissionUuids: string[] }` (mín. 1).
+ * - `GET /v1/admin/permissions` → `PermissionDomainDto[]` (catálogo agrupado por dominio).
  */
 export const useRoles = () => {
   const list = () =>
-    useApi<Page<RoleDto> | RoleDto[]>('/v1/admin/roles', {
-      query: { page: 0, size: 100, sort: 'name,asc' },
-    })
+    useApi<RoleDto[]>('/v1/admin/roles')
 
   const get = (uuid: string) =>
-    useApi<RoleDetailDto>(`/v1/admin/roles/${uuid}`)
+    useApi<RoleDto>(`/v1/admin/roles/${uuid}`)
 
-  const create = (body: RoleCreateRequest) =>
-    useApi<RoleDto>('/v1/admin/roles', { method: 'POST', body })
+  /** UUIDs de los permisos actualmente asignados al rol. */
+  const getRolePermissions = (uuid: string) =>
+    useApi<string[]>(`/v1/admin/roles/${uuid}/permissions`)
 
-  const update = (uuid: string, body: RoleUpdateRequest) =>
-    useApi<RoleDto>(`/v1/admin/roles/${uuid}`, { method: 'PUT', body })
-
-  const remove = (uuid: string) =>
-    useApi<null>(`/v1/admin/roles/${uuid}`, { method: 'DELETE' })
-
-  const permissions = () =>
-    useApi<Page<PermissionDto> | PermissionDto[]>('/v1/admin/permissions', {
-      query: { page: 0, size: 200, sort: 'domain,asc' },
+  /** Reemplaza el conjunto de permisos del rol (requiere al menos 1). */
+  const updateRolePermissions = (uuid: string, permissionUuids: string[]) =>
+    useApi<string[]>(`/v1/admin/roles/${uuid}/permissions`, {
+      method: 'PUT',
+      body: { permissionUuids },
     })
 
-  return { list, get, create, update, remove, permissions }
+  /** Catálogo completo de permisos agrupado por dominio. */
+  const permissions = () =>
+    useApi<PermissionDomainDto[]>('/v1/admin/permissions')
+
+  return { list, get, getRolePermissions, updateRolePermissions, permissions }
 }

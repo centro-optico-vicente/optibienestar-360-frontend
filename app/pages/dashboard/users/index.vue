@@ -81,26 +81,14 @@ async function loadRoles() {
     roleOptions.value = toItems(res).map(r => ({ label: r.name, value: r.uuid }))
   }
   catch {
-    // El backend aún no expone /v1/admin/roles → derivamos de los usuarios cargados.
-    const seen = new Map<string, string>()
-    for (const u of data.value) {
-      for (const r of u.roles ?? []) seen.set(r.uuid, r.name)
-    }
-    roleOptions.value = [...seen].map(([value, label]) => ({ label, value }))
-    if (roleOptions.value.length === 0) {
-      toast.add({
-        title: 'No se pudieron cargar los roles',
-        description: 'El backend aún no expone /v1/admin/roles. Pídelo a backend para asignar roles.',
-        color: 'warning',
-        icon: 'i-lucide-triangle-alert',
-      })
-    }
+    // useApi ya notificó el error; sin roles no se puede asignar.
+    roleOptions.value = []
   }
 }
 
 onMounted(async () => {
   await load()
-  await loadRoles()
+  await Promise.all([loadRoles(), loadDocumentTypes()])
 })
 
 // ---- Formulario crear/editar ----
@@ -110,7 +98,9 @@ const editingUuid = ref<string | null>(null)
 const isSubmitting = ref(false)
 
 const STATUS_OPTIONS = ['ACTIVE', 'INACTIVE', 'SUSPENDED', 'PENDING']
-const DOCUMENT_OPTIONS = ['CC', 'CE', 'TI', 'PA', 'NIT']
+
+// Tipos de documento desde el catálogo real (/v1/admin/catalogs/document-types).
+const { options: documentTypeOptions, load: loadDocumentTypes } = useDocumentTypes()
 
 interface FormState {
   email: string
@@ -322,12 +312,7 @@ function formatDate(iso?: string | null): string {
             </tr>
           </thead>
           <tbody class="divide-y divide-prohealth-100">
-            <tr v-if="loading">
-              <td colspan="6" class="px-5 py-10 text-center text-prohealth-500">
-                <UIcon name="i-lucide-loader-circle" class="w-5 h-5 animate-spin inline" />
-                Cargando…
-              </td>
-            </tr>
+            <TableSkeleton v-if="loading" :rows="8" :cols="6" />
             <tr v-else-if="data.length === 0">
               <td colspan="6" class="px-5 py-12 text-center text-prohealth-500">
                 <UIcon name="i-lucide-users" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
@@ -443,7 +428,9 @@ function formatDate(iso?: string | null): string {
             <UFormField label="Tipo de documento" name="documentType">
               <USelectMenu
                 v-model="state.documentType"
-                :items="DOCUMENT_OPTIONS"
+                :items="documentTypeOptions"
+                label-key="label"
+                value-key="value"
                 placeholder="Selecciona"
                 class="w-full"
               />

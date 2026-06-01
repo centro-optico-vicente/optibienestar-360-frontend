@@ -1,4 +1,5 @@
 import type {
+  AuthUser,
   ChangePasswordRequest,
   LoginRequest,
   LoginResponse,
@@ -51,10 +52,55 @@ export const useAuth = () => {
     await router.push('/login')
   }
 
+  /**
+   * Refresca el perfil del usuario actual desde el backend y lo guarda en el store.
+   * Útil al cargar la app para reflejar cambios de datos/roles sin re-login.
+   * Nota: los permisos provienen del claim del accessToken, no de /v1/me.
+   */
+  const fetchMe = async (): Promise<AuthUser | null> => {
+    try {
+      const me = await useApi<AuthUser>('/v1/me', { silent: true })
+      store.setUser(me)
+      return me
+    }
+    catch {
+      return null
+    }
+  }
+
+  /** Cambia el idioma preferido del usuario (es | es-VE | en). */
+  const updateLocale = async (locale: string): Promise<void> => {
+    await useApi('/v1/me/locale', { method: 'POST', body: { locale }, silent: true })
+  }
+
+  /** Solicita el correo de recuperación de contraseña. */
+  const recoverPassword = async (email: string): Promise<void> => {
+    await useApi('/v1/auth/recover-password', {
+      method: 'POST',
+      body: { email },
+      skipAuth: true,
+      silent: true,
+    })
+  }
+
+  /** Establece una nueva contraseña usando el token recibido por correo. */
+  const resetPassword = async (token: string, newPassword: string): Promise<void> => {
+    await useApi('/v1/auth/reset-password', {
+      method: 'POST',
+      body: { token, newPassword },
+      skipAuth: true,
+      silent: true,
+    })
+  }
+
   return {
     login,
     logout,
     changePassword,
+    fetchMe,
+    updateLocale,
+    recoverPassword,
+    resetPassword,
     isAuthenticated: computed<boolean>(() => store.isAuthenticated),
     user: computed(() => store.user),
     roleNames: computed(() => store.roleNames),

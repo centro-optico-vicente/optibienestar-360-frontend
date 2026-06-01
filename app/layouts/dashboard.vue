@@ -1,16 +1,19 @@
 <script setup lang="ts">
 import type { Permission } from '~/types/permissions'
+import type { UserRole } from '~/types/auth'
 
 const auth = useAuthStore()
 const { logout } = useAuth()
-const { can } = usePermissions()
+const { can, hasAnyRole } = usePermissions()
 
 // El menú es un ESPEJO de los permisos: cada ítem declara la llave que exige.
+// Algunas áreas sin permiso dedicado (catálogos) se gatean por rol.
 interface NavItem {
   label: string
   to: string
   icon: string
   requires?: Permission | Permission[]
+  roles?: UserRole[]
 }
 
 const allNav: NavItem[] = [
@@ -24,6 +27,7 @@ const allNav: NavItem[] = [
   { label: 'Comisiones', to: '/dashboard/commissions', icon: 'i-lucide-percent', requires: ['COMMISSION_VIEW_ALL', 'COMMISSION_VIEW_OWN'] },
   { label: 'Usuarios', to: '/dashboard/users', icon: 'i-lucide-shield-user', requires: 'USER_VIEW_ALL' },
   { label: 'Roles', to: '/dashboard/roles', icon: 'i-lucide-shield-check', requires: 'USER_CHANGE_ROLE' },
+  { label: 'Catálogos', to: '/dashboard/catalogs', icon: 'i-lucide-database', roles: ['SYSTEM', 'ADMINISTRADOR'] },
   { label: 'Reportes', to: '/dashboard/reports', icon: 'i-lucide-bar-chart-3', requires: 'REPORT_VIEW_DASHBOARD' },
 ]
 
@@ -33,10 +37,17 @@ const otherNav: NavItem[] = [
 
 const navItems = computed<NavItem[]>(() =>
   allNav.filter((i) => {
+    if (i.roles?.length) return hasAnyRole(...i.roles)
     if (!i.requires) return true
     return Array.isArray(i.requires) ? i.requires.some(can) : can(i.requires)
   }),
 )
+
+// Mientras se hidrata/carga el perfil mostramos skeletons en el menú y el footer.
+const ready = ref<boolean>(false)
+onMounted(() => {
+  ready.value = true
+})
 
 const isSidebarOpen = ref<boolean>(false)
 </script>
@@ -61,7 +72,14 @@ const isSidebarOpen = ref<boolean>(false)
         <p class="px-3 text-xs font-semibold uppercase tracking-wider text-prohealth-400 mb-2">
           Menú principal
         </p>
-        <ul class="space-y-1">
+        <!-- Skeleton mientras carga el perfil/permisos -->
+        <ul v-if="!ready" class="space-y-1">
+          <li v-for="i in 8" :key="i" class="flex items-center gap-3 px-3 py-2.5">
+            <USkeleton class="w-5 h-5 rounded" />
+            <USkeleton class="h-4 rounded flex-1" :class="i % 2 ? 'max-w-28' : 'max-w-20'" />
+          </li>
+        </ul>
+        <ul v-else class="space-y-1">
           <li v-for="item in navItems" :key="item.to">
             <NuxtLink
               :to="item.to"
@@ -92,7 +110,14 @@ const isSidebarOpen = ref<boolean>(false)
       </nav>
 
       <div class="p-4 border-t border-prohealth-100">
-        <div class="flex items-center gap-3 mb-3">
+        <div v-if="!ready || !auth.user" class="flex items-center gap-3 mb-3">
+          <USkeleton class="w-9 h-9 rounded-full" />
+          <div class="min-w-0 flex-1 space-y-1.5">
+            <USkeleton class="h-3.5 w-28 rounded" />
+            <USkeleton class="h-3 w-20 rounded" />
+          </div>
+        </div>
+        <div v-else class="flex items-center gap-3 mb-3">
           <span class="w-9 h-9 rounded-full bg-prohealth-600 grid place-items-center text-white text-sm font-bold">
             {{ auth.initials }}
           </span>

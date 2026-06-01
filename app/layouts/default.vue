@@ -1,6 +1,5 @@
 <script setup lang="ts">
 const auth = useAuthStore()
-const route = useRoute()
 
 const navLinks = [
   { label: 'Inicio', to: '/' },
@@ -15,6 +14,14 @@ if (import.meta.client) {
     scrolled.value = window.scrollY > 24
   })
 }
+
+// Versión del backend para el footer (no bloqueante).
+const { get: getSystemInfo } = useSystemInfo()
+const version = ref<string>('')
+onMounted(async () => {
+  const info = await getSystemInfo().catch(() => null)
+  if (info) version.value = `v${info.version}`
+})
 </script>
 
 <template>
@@ -108,7 +115,7 @@ if (import.meta.client) {
       <div class="border-t border-white/10">
         <div class="max-w-7xl mx-auto px-6 lg:px-10 py-4 text-xs text-prohealth-200/60 flex flex-wrap items-center justify-between gap-2">
           <span>© {{ new Date().getFullYear() }} OptiSalud Plus. Todos los derechos reservados.</span>
-          <span class="opacity-70">Ruta: {{ route.path }}</span>
+          <span v-if="version" class="opacity-70">{{ version }}</span>
         </div>
       </div>
     </footer>

@@ -1,4 +1,4 @@
-const PUBLIC_ROUTES = new Set<string>(['/', '/login', '/recover-password'])
+const PUBLIC_ROUTES = new Set<string>(['/', '/login', '/recover-password', '/reset-password'])
 
 export default defineNuxtRouteMiddleware((to) => {
   const auth = useAuthStore()

@@ -131,6 +131,46 @@ async function submit() {
 }
 ```
 
+## Selects alimentados por catálogo (Tipo de documento, etc.)
+
+> **Regla:** los campos cuyo dominio vive en un catálogo del backend (`/v1/admin/catalogs/*`)
+> **NUNCA** se hardcodean. Se cargan dinámicamente para no desincronizarse del backend.
+
+### Tipo de documento → usar SIEMPRE `useDocumentTypes()`
+
+Cualquier campo "Tipo de documento" (alta de usuario, afiliado, aliado, etc.) debe tomar sus
+opciones de `app/composables/useDocumentTypes.ts`, que lee `GET /v1/admin/catalogs/document-types`,
+cachea con `useState` (una sola petición por sesión) y falla en silencio si no hay permiso.
+El **valor** guardado es el `code` (`V`, `E`, `J`, …), que es lo que espera el backend.
+
+```typescript
+// script setup
+const { options: documentTypeOptions, load: loadDocumentTypes } = useDocumentTypes()
+onMounted(loadDocumentTypes) // junto a las demás cargas (await Promise.all([...]))
+```
+
+```vue
+<UFormField label="Tipo de documento" name="documentType">
+  <USelectMenu
+    v-model="state.documentType"
+    :items="documentTypeOptions"
+    label-key="label"
+    value-key="value"
+    placeholder="Selecciona"
+    class="w-full"
+  />
+</UFormField>
+```
+
+❌ **Prohibido:** `const DOCUMENT_OPTIONS = ['V', 'E', 'J']` u otra lista fija de tipos de documento.
+
+### Otros catálogos (selects genéricos)
+
+Para selects de cualquier otro catálogo, usar el factory `useCatalog('/v1/admin/catalogs/<recurso>')`
+(o `usePublicCatalog('<recurso>')` en formularios públicos sin login) y mapear a
+`{ label, value }`. Si es un select recurrente en varias pantallas, encapsularlo en un composable
+cacheado con `useState` (mismo patrón que `useDocumentTypes`).
+
 ## Confirmación antes de destructive actions
 
 ```vue
@@ -149,6 +189,7 @@ async function submit() {
 
 ## Reglas
 
+- **Selects de catálogo nunca hardcodeados.** Tipo de documento → `useDocumentTypes()`; otros → `useCatalog()`/`usePublicCatalog()` (ver sección arriba).
 - **Validar formato en frontend, reglas de negocio en backend**
 - **Loading state explícito** (`isSubmitting` deshabilita el botón)
 - **Submit en Enter** funciona por default con `@submit.prevent`
