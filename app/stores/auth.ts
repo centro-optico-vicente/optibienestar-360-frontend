@@ -90,6 +90,12 @@ export const useAuthStore = defineStore('auth', {
       this.persist()
     },
 
+    /** Actualiza el perfil del usuario (p.ej. tras GET /v1/me) sin tocar los tokens. */
+    setUser(user: AuthUser): void {
+      this.user = user
+      this.persist()
+    },
+
     persist(): void {
       if (!import.meta.client) return
       if (this.accessToken) sessionStorage.setItem(ACCESS_KEY, this.accessToken)

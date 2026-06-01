@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { z } from 'zod'
+import type { FormSubmitEvent } from '@nuxt/ui'
+import type { ApiError } from '~/types/auth'
+
 definePageMeta({ layout: 'default' })
 
 useSeoMeta({
@@ -6,6 +10,55 @@ useSeoMeta({
   description:
     'Plan integral de salud con red de aliados, atención preferencial, carnet digital y cobertura familiar.',
 })
+
+// ---- Formulario de contacto (POST /v1/public/contact) ----
+const { send } = useContact()
+const toast = useToast()
+
+const contactSchema = z.object({
+  name: z.string().min(1, 'Requerido').max(150),
+  email: z.string().email('Email no válido').max(254),
+  phone: z.string().max(30).optional().or(z.literal('')),
+  subject: z.string().min(1, 'Requerido').max(200),
+  message: z.string().min(1, 'Requerido').max(2000),
+})
+type ContactSchema = z.infer<typeof contactSchema>
+
+const contact = reactive<Partial<ContactSchema>>({
+  name: '',
+  email: '',
+  phone: '',
+  subject: '',
+  message: '',
+})
+const contactSubmitting = ref(false)
+const contactSent = ref(false)
+
+async function onContactSubmit(event: FormSubmitEvent<ContactSchema>): Promise<void> {
+  contactSubmitting.value = true
+  try {
+    await send({
+      name: event.data.name,
+      email: event.data.email,
+      phone: event.data.phone || undefined,
+      subject: event.data.subject,
+      message: event.data.message,
+    })
+    contactSent.value = true
+    toast.add({ title: 'Mensaje enviado', description: 'Te contactaremos pronto.', color: 'success', icon: 'i-lucide-check-circle' })
+  }
+  catch (err: unknown) {
+    toast.add({
+      title: 'No se pudo enviar',
+      description: (err as ApiError)?.message || 'Inténtalo de nuevo más tarde.',
+      color: 'error',
+      icon: 'i-lucide-circle-alert',
+    })
+  }
+  finally {
+    contactSubmitting.value = false
+  }
+}
 
 interface Stat {
   value: string
@@ -173,8 +226,79 @@ const departments: Department[] = [
     </div>
   </section>
 
+  <!-- CONTACTO -->
+  <section id="contact" class="bg-prohealth-50/40 py-20">
+    <div class="max-w-5xl mx-auto px-6 lg:px-10 grid lg:grid-cols-2 gap-10 items-start">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-widest text-cyan-600 mb-3">
+          Contacto
+        </p>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-prohealth-900 leading-tight">
+          ¿Tienes preguntas? Escríbenos.
+        </h2>
+        <p class="mt-5 text-prohealth-700/80 max-w-md">
+          Completa el formulario y nuestro equipo te responderá a la brevedad.
+        </p>
+        <ul class="mt-6 space-y-3 text-sm text-prohealth-700">
+          <li class="flex items-center gap-2">
+            <UIcon name="i-lucide-mail" class="w-4 h-4 text-prohealth-500" /> info@optisaludplus.com
+          </li>
+          <li class="flex items-center gap-2">
+            <UIcon name="i-lucide-phone" class="w-4 h-4 text-prohealth-500" /> +58 412 000 0000
+          </li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-3xl border border-prohealth-100 p-6 md:p-8">
+        <UAlert
+          v-if="contactSent"
+          color="success"
+          variant="subtle"
+          icon="i-lucide-mail-check"
+          title="¡Gracias por contactarnos!"
+          description="Hemos recibido tu mensaje y te responderemos pronto."
+        />
+        <UForm
+          v-else
+          :schema="contactSchema"
+          :state="contact"
+          class="space-y-4"
+          @submit="onContactSubmit"
+        >
+          <div class="grid sm:grid-cols-2 gap-4">
+            <UFormField label="Nombre" name="name" required>
+              <UInput v-model="contact.name" class="w-full" />
+            </UFormField>
+            <UFormField label="Correo" name="email" required>
+              <UInput v-model="contact.email" type="email" class="w-full" />
+            </UFormField>
+          </div>
+          <UFormField label="Teléfono" name="phone">
+            <UInput v-model="contact.phone" class="w-full" />
+          </UFormField>
+          <UFormField label="Asunto" name="subject" required>
+            <UInput v-model="contact.subject" class="w-full" />
+          </UFormField>
+          <UFormField label="Mensaje" name="message" required>
+            <UTextarea v-model="contact.message" :rows="4" :maxlength="2000" class="w-full" />
+          </UFormField>
+          <UButton
+            type="submit"
+            block
+            size="lg"
+            color="primary"
+            :loading="contactSubmitting"
+            icon="i-lucide-send"
+          >
+            Enviar mensaje
+          </UButton>
+        </UForm>
+      </div>
+    </div>
+  </section>
+
   <!-- CTA -->
-  <section id="contact" class="bg-white py-20">
+  <section id="cta" class="bg-white py-20">
     <div class="max-w-5xl mx-auto px-6 lg:px-10">
       <div class="bg-hero-prohealth text-white rounded-3xl p-10 md:p-14 grid md:grid-cols-[1fr_auto] gap-6 items-center">
         <div>

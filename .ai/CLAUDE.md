@@ -55,3 +55,4 @@ Frontend multi-rol (Vue 3 + Nuxt 3) que sirve a admin, operador, aliados, afilia
 - [ADR 0002 Pinia state](decisions/0002-pinia-state.md)
 - [ADR 0003 SPA mode](decisions/0003-spa-mode.md)
 - [ADR 0004 Mobile-first](decisions/0004-mobile-first.md)
+- [ADR 0005 Selects alimentados por catálogo](decisions/0005-catalog-backed-selects.md)

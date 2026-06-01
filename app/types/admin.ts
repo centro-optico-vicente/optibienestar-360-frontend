@@ -1,6 +1,6 @@
 // Tipos de administración (Usuarios y Roles), alineados con el OpenAPI del backend.
-// Usuarios: contrato real (/v1/admin/users). Roles/Permisos: contrato REST asumido
-// (/v1/admin/roles, /v1/admin/permissions) que el backend aún debe exponer.
+// Usuarios: CRUD completo (/v1/admin/users). Roles: solo lectura + gestión de permisos
+// (/v1/admin/roles, /v1/admin/roles/{uuid}/permissions, /v1/admin/permissions).
 
 /** Página estándar de Spring Data (camelCase). */
 export interface Page<T> {
@@ -54,29 +54,31 @@ export interface AdminUpdateUserRequest {
   roleIds?: string[]
 }
 
-// --- Roles / Permisos (contrato REST asumido; backend pendiente) ---
+// --- Roles / Permisos ---
+// Los roles son de solo lectura (definidos por el seed del backend). Lo único editable
+// son los permisos asignados a cada rol, vía PUT /v1/admin/roles/{uuid}/permissions.
 
+/** Permiso individual (llave de acción). */
 export interface PermissionDto {
   uuid: string
   name: string
-  domain?: string
   description?: string
 }
 
-export interface RoleDetailDto extends RoleDto {
-  permissions?: PermissionDto[]
-}
-
-export interface RoleCreateRequest {
+/** Catálogo de permisos agrupado por dominio (GET /v1/admin/permissions). */
+export interface PermissionDomainDto {
+  uuid: string
+  code: string
   name: string
+  icon?: string
   description?: string
-  permissionIds: string[]
+  displayOrder: number
+  permissions: PermissionDto[]
 }
 
-export interface RoleUpdateRequest {
-  name?: string
-  description?: string
-  permissionIds?: string[]
+/** Body de PUT /v1/admin/roles/{uuid}/permissions (requiere al menos 1 permiso). */
+export interface UpdateRolePermissionsRequest {
+  permissionUuids: string[]
 }
 
 /** Normaliza una respuesta que puede venir como Page<T> o como T[] plano. */
