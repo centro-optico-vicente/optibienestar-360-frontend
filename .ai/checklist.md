@@ -1,111 +1,79 @@
-# Checklist frontend (subset del maestro)
+# Checklist operacional — OptiSalud Plus Frontend
 
-> Subset filtrado por tag `[F]` del [checklist maestro](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/checklist.md).
+> Subset del [checklist maestro](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/checklist.md) (tag `[F]`).
+>
+> **Propósito:** dashboard de progreso global. Los checkboxes canónicos viven en los archivos de fase y vista en [`checklists/`](checklists/).
+>
+> **Orden de ejecución por vista:** [`checklist-vertical.md`](checklist-vertical.md).
+>
+> **Mantener sincronizado:** al completar una tarea, marcar `- [x]` en el archivo correspondiente y actualizar la tabla de resumen aquí.
 
-## FASE 0 — Bootstrap
+---
 
-- [x] [P0/C2] Crear estructura `.ai/` en este repo
-- [ ] [P1/C1] Instalar skills Claude Code: `ui-ux-pro-max` + `impeccable` (ver [`playbooks/install-skills.md`](playbooks/install-skills.md))
-- [ ] [P1/C1] (Opcional) Marketplace Anthropic: `web-app-testing` para FASE 5.12
+## Cómo leer las etiquetas `[P/C]`
 
-## FASE 1 — Bootstrap frontend Nuxt 3
+### Prioridad (P)
 
-### Tarea 1.9 — Cimientos
+| Tag | Significado | Usar cuando… |
+|---|---|---|
+| **P0** | Blocker / crítico | El resto de la vista depende de esto |
+| **P1** | Alta | Desbloquea múltiples tareas o resuelve riesgo importante |
+| **P2** | Estándar | Trabajo normal del roadmap |
+| **P3** | Nice-to-have | Mejora pero no urgente |
 
-- [ ] [P0/C2] Inicializar Nuxt 3 (`npx nuxi init .`)
-- [ ] [P0/C2] Instalar Nuxt UI (`@nuxt/ui` + Tailwind autoincluido)
-- [ ] [P0/C2] Instalar módulos: `@pinia/nuxt`, `@vueuse/nuxt`, `@nuxtjs/i18n`, `@nuxt/icon`, `@nuxt/image`
-- [ ] [P0/C2] Configurar `nuxt.config.ts` con runtimeConfig (API_BASE_URL)
-- [ ] [P1/C1] Añadir `nuxt-mcp-dev` a `nuxt.config.ts` (dev-only) — ver [`specs/11-mcp-servers.md`](specs/11-mcp-servers.md)
-- [ ] [P0/C2] Tailwind paleta heredada del web (azul, lime) en `tailwind.config.ts`
-- [ ] [P0/C2] Importar Manrope desde Google Fonts
-- [ ] [P0/C2] `app.vue` + layout `default.vue` con header + sidebar + main
-- [ ] [P0/C2] Layout `auth.vue` sin sidebar
-- [ ] [P0/C2] Composable `useApi.ts` wrapper $fetch con interceptor JWT
-- [ ] [P0/C3] Composable `useAuth.ts` con login/logout/refresh + cookies httpOnly
-- [ ] [P0/C2] Store `auth.ts` (Pinia) con user, token, refreshToken, permissions
-- [ ] [P0/C2] Middleware `auth.global.ts` (redirect /login si no auth + refresh silencioso)
-- [ ] [P0/C2] Middleware `permission.ts` (verifica permission por ruta)
-- [ ] [P0/C2] Página `pages/login.vue` + `pages/recover-password.vue`
-- [ ] [P0/C2] Página placeholder `pages/index.vue` (redirect según rol)
-- [ ] [P0/C2] Configurar i18n con español default
-- [ ] [P0/C2] `Dockerfile` multi-stage (Nuxt build + Node Alpine runtime)
-- [ ] [P0/C2] GitHub Actions: build + push imagen Docker Hub `fenixcoreenterprises/optisalud-plus-frontend`
+### Complejidad (C)
 
-## FASE 5 — Vistas por módulo
+| Tag | Esfuerzo aprox. | Ejemplo |
+|---|---|---|
+| **C1** | < 30 min | Config, línea única, agregar dependencia |
+| **C2** | 30 min – 2 h | Una página/componente, patrón conocido, sin research |
+| **C3** | 2 h – 1 día | Multi-archivo, algo de investigación |
+| **C4** | 1–3 días | Cross-cutting, varios subsistemas |
+| **C5** | 3+ días | Arquitectural, decisiones importantes |
 
-### Tarea 5.2 — Auth + Users
+---
 
-- [ ] [P0/C2] Página `pages/login.vue` funcional con form + manejo errores
-- [ ] [P0/C2] Páginas `pages/recover-password.vue` + `pages/reset-password.vue`
-- [ ] [P0/C3] Página `pages/admin/users/index.vue` (listado + filtros) + `[id].vue` (detalle/edición)
-- [ ] [P0/C2] Composable `usePermissions()` + directiva `v-permission`
-- [ ] [P0/C2] Layout `dashboard.vue` con navegación condicional por rol
+## Fases de bootstrap
 
-### Tarea 5.3 — Aliados
+| Fase | Archivo | Tareas | Hechas | Pendientes | Estado |
+|---|---|---|---|---|---|
+| FASE 0 — Bootstrap | [fase-0-bootstrap.md](checklists/fase-0-bootstrap.md) | 3 | 1 | 2 | 🟡 En curso |
+| FASE 1 — Bootstrap Nuxt | [fase-1-bootstrap-frontend-nuxt.md](checklists/fase-1-bootstrap-frontend-nuxt.md) | 19 | 2 | 17 | 🟡 Docker/CI hechos |
 
-- [ ] [P0/C3] Página `pages/admin/allies/index.vue` (tabla + filtros + búsqueda)
-- [ ] [P0/C3] Página `pages/admin/allies/new.vue` + `[id].vue` (wizard multi-step)
-- [ ] [P0/C3] Página `pages/aliado/dashboard.vue` (vista del propio aliado)
+---
 
-### Tarea 5.4 — Afiliados
+## FASE 5 — Vistas por vertical
 
-- [ ] [P0/C3] Página `pages/admin/members/index.vue` (filtros)
-- [ ] [P0/C3] Página `pages/admin/members/new.vue` wizard
-- [ ] [P0/C3] Página `pages/admin/members/[id]/index.vue` (vista 360°)
-- [ ] [P0/C2] Página `pages/admin/members/[id]/medical-record.vue` (con permiso)
-- [ ] [P0/C2] Página `pages/afiliado/dashboard.vue` (carnet + familia + pagos)
+> Fuente de verdad: archivos `vertical-N-*.md`. Numeración alineada con el backend (ver [`checklist-vertical.md`](checklist-vertical.md)).
 
-### Tarea 5.5 — Planes y Membresías
+| # | Vista | Archivo | Tareas | Hechas | Pendientes | Estado |
+|---|---|---|---|---|---|---|
+| 1 | Seguridad y Autenticación | [vertical-1](checklists/vertical-1-seguridad-y-autenticacion.md) | 6 | 6 | 0 | ✅ Completa |
+| 2 | Catálogos | [vertical-2](checklists/vertical-2-catalogos.md) | 3 | 3 | 0 | ✅ Completa |
+| 3 | Aliados | [vertical-3](checklists/vertical-3-aliados.md) | 3 | 0 | 3 | 🔲 |
+| 4 | Afiliados y Familia | [vertical-4](checklists/vertical-4-afiliados-y-familia.md) | 5 | 0 | 5 | 🔲 |
+| 5 | Planes y Membresías | [vertical-5](checklists/vertical-5-planes-y-membresias.md) | 2 | 0 | 2 | 🔲 |
+| 6 | Pagos manuales | [vertical-6](checklists/vertical-6-pagos-manuales.md) | 4 | 0 | 4 | 🔲 |
+| 7 | Validador | [vertical-7](checklists/vertical-7-validador.md) | 4 | 0 | 4 | 🔲 |
+| 8 | Promotores, Comisiones y Referidos | [vertical-8](checklists/vertical-8-promotores-comisiones-referidos.md) | 4 | 0 | 4 | 🔲 |
+| 9 | Portal afiliado y Carnet digital | [vertical-9](checklists/vertical-9-notificaciones-y-carnet.md) | 5 | 0 | 5 | 🔲 |
+| 10 | Optimización, Reportes y QA | [vertical-10](checklists/vertical-10-optimizacion-reportes-hardening.md) | 6 | 0 | 6 | 🔲 |
+| **TOTAL FASE 5** | | | **42** | **9** | **33** | 🟡 21% |
 
-- [ ] [P0/C3] Página `pages/admin/plans/index.vue` + `new.vue`
-- [ ] [P0/C2] Vista detalle membresía en `pages/admin/members/[id]`
+---
 
-### Tarea 5.6 — Pagos
+## Notas operativas
 
-- [ ] [P0/C3] Página `pages/admin/payments/index.vue` (cola pendientes + filtros)
-- [ ] [P0/C3] Página `pages/admin/payments/[id].vue` (preview soporte + acciones)
-- [ ] [P0/C2] Modal "Registrar Pago" desde detalle membresía
-- [ ] [P0/C2] Listado en portal afiliado `pages/afiliado/payments.vue`
+- **Fuente de verdad de checkboxes:** archivos `checklists/` (fases y vistas).
+- **Al completar una tarea:** marcar `- [x]` en el archivo + actualizar la fila de la tabla arriba.
+- **Al agregar tareas nuevas:** añadir en el archivo de la vista + sumar al conteo.
+- **Conteo rápido:** `grep -c "^\- \[x\]" .ai/checklists/vertical-N-*.md`
+- **Sincronizar con hub:** actualizar [`context/current-state.md`](context/current-state.md) al cierre de cada sesión.
 
-### Tarea 5.7 — Promotores
+---
 
-- [ ] [P0/C3] Página `pages/admin/promoters/index.vue` + wizard
-- [ ] [P0/C3] Página `pages/admin/commissions/index.vue` (cierre ciclo)
-- [ ] [P0/C3] Página `pages/promotor/dashboard.vue`
-- [ ] [P0/C2] Página `pages/afiliado/referrals.vue`
+## Referencias
 
-### Tarea 5.8 — Validador
-
-- [ ] [P0/C3] Página `pages/aliado/validator.vue` (input cédula + resultado visual)
-- [ ] [P0/C2] Modal "Registrar Uso" (servicio + monto + notas)
-- [ ] [P0/C3] Página `pages/aliado/history.vue`
-- [ ] [P1/C2] Soporte lector código de barras / QR
-
-### Tarea 5.9 — Portal afiliado
-
-- [ ] [P0/C3] Página `pages/afiliado/index.vue` (dashboard: carnet + estado + accesos)
-- [ ] [P0/C3] Componente `<DigitalCard>` (tarjeta crédito + QR + status visual)
-- [ ] [P0/C2] Página `pages/afiliado/family.vue`
-- [ ] [P0/C2] Página `pages/afiliado/usage-history.vue`
-- [ ] [P1/C2] Botón "Compartir carnet" (download PDF/imagen)
-
-### Tarea 5.10 — Optimización
-
-- [ ] [P1/C2] Lazy loading componentes Nuxt pesados (`<LazyComponent>`)
-- [ ] [P1/C2] Virtualización tablas grandes
-
-### Tarea 5.11 — Reportes
-
-- [ ] [P1/C3] Página `pages/admin/dashboard.vue` con cards KPIs + gráficos (Chart.js o ECharts)
-- [ ] [P1/C3] Página `pages/admin/reports/index.vue`
-- [ ] [P2/C2] Filtros rango de fechas con date pickers
-
-### Tarea 5.12 — QA
-
-- [ ] [P1/C3] Tests E2E Playwright (flujos críticos: registro afiliado, pago, validador)
-
-## Notas
-
-- Sincronizar con [checklist maestro](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/checklist.md) tag `[F]`.
-- Actualizar [`context/current-state.md`](context/current-state.md) tras cada sesión.
+- [`checklist-vertical.md`](checklist-vertical.md) — dependencias entre vistas
+- [`context/current-state.md`](context/current-state.md) — estado real del código hoy
+- [Hub maestro checklist](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/checklist.md) — tag `[F]`
