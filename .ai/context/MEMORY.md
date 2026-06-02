@@ -1,6 +1,6 @@
 # Memoria navegable (frontend)
 
-> Para visión cross-stack, ver [hub maestro](../../../centro-optico-vicente/.ai/context/MEMORY.md).
+> Para visión cross-stack, ver [hub maestro](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/context/MEMORY.md).
 
 ## Situaciones comunes
 
@@ -26,7 +26,7 @@
 
 ### "Voy a hacer requests al backend"
 1. [`../specs/04-api-client.md`](../specs/04-api-client.md)
-2. Hub: [`06-integration.md`](../../../centro-optico-vicente/.ai/specs/06-integration.md)
+2. Hub: [`06-integration.md`](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/specs/06-integration.md)
 
 ### "Voy a tocar auth/login/refresh"
 1. [`../specs/05-auth-flow.md`](../specs/05-auth-flow.md)
@@ -34,7 +34,7 @@
 
 ### "Voy a agregar permisos a una página"
 1. [`../specs/09-permissions.md`](../specs/09-permissions.md)
-2. Lista permisos backend: [backend `05-roles-permissions.md`](../../../optisalud-plus-backend/.ai/specs/05-roles-permissions.md)
+2. Lista permisos backend: [backend `05-roles-permissions.md`](https://github.com/fenix-core/optisalud-plus-backend/blob/main/.ai/specs/05-roles-permissions.md)
 
 ### "Voy a estilizar algo"
 1. [`design-tokens.md`](design-tokens.md) — paleta

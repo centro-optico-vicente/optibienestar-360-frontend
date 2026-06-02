@@ -1,6 +1,6 @@
 # Design Tokens (paleta heredada del landing)
 
-> Compartidos con [`centro-optico-vicente-web`](../../../centro-optico-vicente-web/) para coherencia visual. Originalmente definidos en el HTML monolítico legacy.
+> Compartidos con [`centro-optico-vicente-web`](https://github.com/fenix-core/centro-optico-vicente-web) para coherencia visual. Originalmente definidos en el HTML monolítico legacy.
 
 ## Paleta
 
@@ -119,6 +119,6 @@ Mobile-first ([ADR 0004 local](../decisions/0004-mobile-first.md)):
 
 ## Referencias
 
-- Landing HTML original (referencia): `../../../centro-optico-vicente-web/src/index.html`
+- Landing HTML original (referencia): `https://github.com/fenix-core/centro-optico-vicente-web/blob/main/src/index.html`
 - Tailwind CSS: https://tailwindcss.com
 - Nuxt UI: https://ui.nuxt.com

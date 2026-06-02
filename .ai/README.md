@@ -1,6 +1,6 @@
 # `.ai/` — Contexto IA del frontend
 
-Esta carpeta contiene la documentación específica del frontend admin Nuxt 3. Para visión cross-stack, ver [hub maestro](../../centro-optico-vicente/.ai/).
+Esta carpeta contiene la documentación específica del frontend admin Nuxt 3. Para visión cross-stack, ver [hub maestro](https://github.com/fenix-core/centro-optico-vicente/tree/main/.ai).
 
 ## Estructura
 

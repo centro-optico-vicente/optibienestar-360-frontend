@@ -4,8 +4,8 @@
 
 ## Pre-requisitos
 
-- [ ] Rol ya creado en backend con sus permisos (ver [backend `playbooks/new-role.md`](../../../optisalud-plus-backend/.ai/playbooks/new-role.md))
-- [ ] Permisos documentados en [backend `05-roles-permissions.md`](../../../optisalud-plus-backend/.ai/specs/05-roles-permissions.md)
+- [ ] Rol ya creado en backend con sus permisos (ver [backend `playbooks/new-role.md`](https://github.com/fenix-core/optisalud-plus-backend/blob/main/.ai/playbooks/new-role.md))
+- [ ] Permisos documentados en [backend `05-roles-permissions.md`](https://github.com/fenix-core/optisalud-plus-backend/blob/main/.ai/specs/05-roles-permissions.md)
 
 ## Paso 1 — Decidir estructura de rutas
 
@@ -126,7 +126,7 @@ test('OPERADOR cannot access medical records', async ({ page }) => {
 
 - [ ] Actualizar [`../specs/09-permissions.md`](../specs/09-permissions.md) con el rol nuevo
 - [ ] Actualizar [`../specs/02-routing-layouts.md`](../specs/02-routing-layouts.md) si introduce rutas nuevas
-- [ ] Actualizar [hub `stakeholders.md`](../../../centro-optico-vicente/.ai/context/stakeholders.md) con el perfil
+- [ ] Actualizar [hub `stakeholders.md`](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/context/stakeholders.md) con el perfil
 - [ ] Marcar `[x]` en `../checklist.md`
 
 ## Checklist final

@@ -181,4 +181,4 @@ test('login redirects to /admin for ADMIN role', async () => {
 - [03-state-management.md](03-state-management.md)
 - [04-api-client.md](04-api-client.md)
 - [02-routing-layouts.md](02-routing-layouts.md)
-- [Hub `03-security.md`](../../../centro-optico-vicente/.ai/specs/03-security.md)
+- [Hub `03-security.md`](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/specs/03-security.md)

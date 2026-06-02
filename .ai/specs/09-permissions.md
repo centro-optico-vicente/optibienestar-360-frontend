@@ -167,7 +167,7 @@ const items = computed(() => {
 
 ## Permisos por rol (resumen)
 
-Ver detalle completo en [backend `05-roles-permissions.md`](../../../optisalud-plus-backend/.ai/specs/05-roles-permissions.md).
+Ver detalle completo en [backend `05-roles-permissions.md`](https://github.com/fenix-core/optisalud-plus-backend/blob/main/.ai/specs/05-roles-permissions.md).
 
 | Rol | Permisos clave |
 |---|---|
@@ -196,4 +196,4 @@ Cuando admin cambia el rol de un usuario:
 
 - [02-routing-layouts.md](02-routing-layouts.md)
 - [03-state-management.md](03-state-management.md)
-- [Backend `05-roles-permissions.md`](../../../optisalud-plus-backend/.ai/specs/05-roles-permissions.md)
+- [Backend `05-roles-permissions.md`](https://github.com/fenix-core/optisalud-plus-backend/blob/main/.ai/specs/05-roles-permissions.md)
