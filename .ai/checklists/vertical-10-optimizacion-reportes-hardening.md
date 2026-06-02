@@ -18,6 +18,10 @@
 
 - [ ] [P1/C3] Tests E2E Playwright (flujos críticos: registro afiliado, pago, validador)
 
+## Dependencias
+
+- [ ] [P1/C3] Migrar `@nuxt/ui` v3 → v4: bump del dep + guía de migración oficial + re-testear las vistas ya construidas (login, dashboard, users, roles, catalogs). Tailwind v4 (4.3.0) ya está → prerequisito cubierto. **Hacerlo antes** de construir los verticales 3–10 evita rework y habilita los componentes Pro (tablas/dashboards) gratis.
+
 ## Rendering (SSR)
 
 > Solicitado por el equipo: pasar de SPA a Universal Rendering. Hoy es SPA por decisión congelada ([ADR 0003](../decisions/0003-spa-mode.md)); migrar implica superseder ese ADR y rehacer el despliegue de [ADR 0006](../decisions/0006-ci-cd-docker-runtime-config.md).

@@ -5,141 +5,117 @@ Inventario de skills, plugins de Claude Code y servidores MCP que asisten la con
 > **Cómo instalarlos:** ver [`playbooks/install-skills.md`](playbooks/install-skills.md).
 > **MCP de Nuxt:** ver [`specs/11-mcp-servers.md`](specs/11-mcp-servers.md).
 >
-> **Disponibilidad:** 🟢 = disponible en el entorno Claude Code (o built-in) · 🟡 = a instalar (plugin externo / marketplace).
+> **Encaje:** 🟢 alto · 🟡 limitado/opcional · 🔴 no aplica a este repo.
 
 ---
 
-## 1. Skills UI/UX
+## 1. Instalados en el repo (`.claude/skills/`)
 
-Para las vistas pendientes (verticales 3–10 del [`checklist.md`](checklist.md)).
+> Inventariados en [`../skills-lock.json`](../skills-lock.json). No se versionan los SKILL.md (`.gitignore` ignora `.claude/skills/`), pero el lock sí documenta qué tiene cada dev.
 
-### 🟡 `ui-ux-pro-max` ([nextlevelbuilder/ui-ux-pro-max-skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill))
+### UI / diseño
 
-Generador de **design system** completo a partir de los requerimientos del proyecto (67 estilos UI, 161 paletas, 57 pairings de fuentes, guidelines UX). Soporta Vue/Nuxt.
+| Skill | Encaje | Para qué |
+|---|---|---|
+| `ui-ux-pro-max` | 🟢 | Design system: estilos, paletas, font pairings, guidelines UX, charts. |
+| `nuxt-ui` | 🟢 | Componentes `@nuxt/ui`. **Nota:** apunta a v4; el repo está en `@nuxt/ui ^3` (ver tarea de migración v4 en vertical-10). |
+| `web-design-guidelines` | 🟢 | Auditar UI contra Web Interface Guidelines + accesibilidad. |
 
-**Cuándo invocar:**
-- Antes de crear una vista nueva con identidad fuerte (carnet digital, dashboards).
-- Pedir un audit de coherencia visual cross-rol.
+### Vue / Nuxt — código
 
-**Restricción local:** la paleta heredada (`#245E9E`, `#9FD537`, `#1094C5`) ya está congelada — ver [`context/design-tokens.md`](context/design-tokens.md). Usar el skill para **expandir** (estados, neutros, semánticos), no para reemplazarla.
+| Skill | Encaje | Para qué |
+|---|---|---|
+| `vue-best-practices` | 🟢 | Composition API + `<script setup>` + TS + Pinia + Vite. |
+| `vue-debug-guides` | 🟢 | Debugging Vue 3, runtime/async, **SSR/hidratación** (útil para la migración SSR). |
+| `vue` | 🔴 | Renderer de `@json-render/vue` (UIs desde specs JSON). **El repo no usa json-render** → considerar desinstalar. |
 
-### 🟡 `impeccable` ([pbakaus/impeccable](https://github.com/pbakaus/impeccable))
+### Infra / deploy
 
-**Pulido y crítica** de diseño (23 comandos slash, 27 reglas anti-pattern).
+| Skill | Encaje | Para qué |
+|---|---|---|
+| `docker-expert` | 🟢 | Dockerfiles multi-stage, optimización/hardening de la imagen ([ADR 0006](decisions/0006-ci-cd-docker-runtime-config.md)). |
+| `docker-compose-orchestration` | 🟢 | Wiring del servicio frontend en el compose del hub. |
+| `github-actions-docs` | 🟢 | Mantener `.github/workflows/ci.yaml` y `publish.yaml`. |
+| `traefik` | 🟢 | Reverse proxy v3 del hub (labels, routers, TLS). |
+| `wrangler` | 🟡 | CLI de **Cloudflare Workers/Pages**. El deploy es **VPS Contabo + Docker + Traefik** (no Workers), y Cloudflare se usa solo para DNS/R2 → de poco uso salvo que se adopten Workers/Pages. El skill general `cloudflare` sería más apto para DNS/R2 si hiciera falta. |
 
-| Comando | Uso |
-|---|---|
-| `/audit <componente>` | Auditoría completa contra reglas |
-| `/polish <componente>` | Refina espaciado, jerarquía, motion |
-| `/critique <componente>` | Crítica con razonamiento |
-| `/animate <componente>` | Añade motion design coherente |
-| `/bolder` · `/quieter` | Ajusta peso visual |
+### Otros
 
-**Cuándo invocar:** tras crear un componente Nuxt UI; en PRs con cambios de UI; pasada de QA visual pre-release.
+| Skill | Encaje | Para qué |
+|---|---|---|
+| `tailwind` | 🟡 | Cubre Tailwind v4 **browser-runtime (HyperFrames)**; aquí Tailwind es **build-time vía Nuxt UI**. Útil solo como referencia de sintaxis v4. |
+| `typescript-mcp-server-generator` | 🟡 | Generar un MCP propio en TS (futuro/opcional). |
 
-### 🟢 `design-is` (Dieter Rams audit)
-
-Audita un diseño contra los 10 principios de Rams y deriva un plan. Útil como **segunda opinión** independiente de `impeccable` antes de un release o en rediseños.
-
-> **No invocar `ui-ux-pro-max` e `impeccable` a la vez** para una misma vista: el primero genera, el segundo pule.
+**Limpieza sugerida:** `vue` (🔴, no aplica). Revisar `wrangler` y `tailwind` (🟡) si no se usan Workers/Pages ni el runtime de browser.
 
 ---
 
-## 2. Nuxt — código y visibilidad de la app
+## 2. Agente + MCP de Nuxt
 
 ### 🟢 Agente `nuxt-expert` (`.claude/agents/`)
 
-Archivo: [`../.claude/agents/nuxt-expert.md`](../.claude/agents/nuxt-expert.md) · modelo: `sonnet`. Desarrollador senior **Nuxt 4 / Vue 3 / Pinia / TypeScript** que genera código con plantillas estrictas (types, stores, composables, componentes, páginas) y TS sin `any`.
+Archivo: [`../.claude/agents/nuxt-expert.md`](../.claude/agents/nuxt-expert.md) · modelo: `sonnet`. Senior **Nuxt 4 / Vue 3 / Pinia / TS**. Trigger: componentes, pages, layouts, middleware, tipos, **SSR/SSG/hybrid**. Invocación: `Task` tool con `subagent_type: nuxt-expert`.
 
-**Trigger:** crear/modificar componentes, pages, layouts, middleware; módulos/plugins; tipos TS; **SSR/SSG/hybrid rendering** (relevante para la tarea de migración a Universal — vertical-10).
-
-**Invocación:** `Task` tool con `subagent_type: nuxt-expert`.
-
-> Los agentes en `.claude/agents/` **sí van al repo** — son configuración compartida del equipo.
+> Los agentes en `.claude/agents/` **sí van al repo** — config compartida del equipo.
 
 ### 🟡 MCP `nuxt-mcp-dev`
 
-Expone la app **corriendo en dev** como servidor MCP (routes, componentes auto-importados, módulos, runtime config). Ya está cableado en `nuxt.config.ts`; endpoint `http://localhost:3000/__mcp/sse`.
-
-> ⚠️ **Experimental** (upstream). Solo en dev local, nunca en build de producción. Detalles: [`specs/11-mcp-servers.md`](specs/11-mcp-servers.md).
+App en dev como servidor MCP (routes, auto-imports, runtime config). Endpoint `http://localhost:3000/__mcp/sse`. **Experimental**, solo dev local. Detalles: [`specs/11-mcp-servers.md`](specs/11-mcp-servers.md).
 
 ---
 
-## 3. Infra / deploy
+## 3. Seguridad (🟢 disponibles en el entorno, NO instalados en el repo)
 
-La imagen Docker + CI ya existen ([ADR 0006](decisions/0006-ci-cd-docker-runtime-config.md)); estos skills aplican al mantenimiento y a la **migración a Universal/SSR** (vertical-10).
+El frontend es 100% auth/RBAC (JWT, cookies httpOnly, refresh, permisos). Usables ya; instalar en el repo solo si se quieren pinear para el equipo.
 
-| Skill | Disp. | Para qué |
+| Skill | Para qué |
+|---|---|
+| `owasp-security` | XSS, manejo/almacenamiento de tokens, OWASP Top 10 en el cliente. |
+| `api-security-best-practices` | Consumo seguro de la API, validación de inputs, authz en cliente. |
+| `/security-review` (built-in) | Revisión de seguridad del diff en PRs sensibles (login, permisos). |
+
+---
+
+## 4. A instalar si se necesitan (🟡)
+
+| Skill | Origen | Cuándo |
 |---|---|---|
-| `docker-expert` · `docker-compose-orchestration` | 🟢 | Dockerfiles multi-stage; al migrar a SSR, imagen Node en vez de Nginx estático |
-| `github-actions-docs` | 🟢 | Mantener `.github/workflows/ci.yaml` y `publish.yaml` |
-| `traefik` | 🟢 | Wiring del servicio frontend tras Traefik v3 en el hub |
-| `cloudflare` | 🟢 | DNS / R2 / Cloudflare del despliegue |
+| `web-app-testing` | marketplace `anthropics/skills` | E2E Playwright — vertical-10 (QA) |
+| `document-skills` | marketplace `anthropics/skills` | PDFs: carnet digital (vertical-9), comprobantes (vertical-6) |
+| `impeccable` / `design-is` | externos / claude-mem | Auditoría de UI extra (opcional; ya cubierto por `web-design-guidelines`) |
 
 ---
 
-## 4. Seguridad
+## 5. Built-ins de Claude Code (sin instalar)
 
-El frontend es 100% auth/RBAC (JWT, cookies httpOnly, refresh, permisos por rol) → conviene apoyo de seguridad.
-
-| Skill | Disp. | Para qué |
-|---|---|---|
-| `owasp-security` | 🟢 | XSS, manejo de tokens, almacenamiento seguro, OWASP Top 10 en el cliente |
-| `api-security-best-practices` | 🟢 | Consumo seguro de la API, validación de inputs, authz en cliente |
-| `/security-review` (built-in) | 🟢 | Revisión de seguridad del diff en PRs sensibles (login, permisos) |
+- **`/code-review`** — diff (bugs + simplificación) antes de mergear.
+- **`/verify`** · **`/run`** — correr la app y validar un cambio.
+- **`/security-review`** — ver §3.
 
 ---
 
-## 5. QA y extras
+## 6. Reglas operativas
 
-| Skill | Disp. | Para qué |
-|---|---|---|
-| `web-app-testing` (marketplace Anthropic) | 🟡 | Playwright para los E2E del vertical-10 (registro, pago, validador) |
-| `document-skills` (marketplace Anthropic) | 🟡 | Generar PDFs: carnet digital (vertical-9), comprobantes de pago (vertical-6) |
-| `mcp-server-generation` (marketplace Anthropic) | 🟡 | Si hiciera falta un MCP propio (opcional) |
-
----
-
-## 6. Built-ins de Claude Code (sin instalar)
-
-- 🟢 **`/code-review`** — revisar el diff (bugs + simplificación) antes de mergear.
-- 🟢 **`/verify`** · **`/run`** — correr la app y validar un cambio en la práctica.
-- 🟢 **`/security-review`** — ver sección 4.
-
----
-
-## 7. Marketplace oficial de Anthropic
-
-```
-/plugin marketplace add anthropics/skills
-```
-
-Incluye `web-app-testing`, `document-skills`, `mcp-server-generation` (sección 5).
-
----
-
-## 8. Reglas operativas
-
-1. **Scope:** los skills/plugins se instalan **solo en este repo** (`./.claude/`). No tocar `~/.claude/`.
-2. **Versionado:** según [`.gitignore`](../.gitignore), `.claude/{plugins,skills,cache}/` y `.claude/settings.local.json` **NO se commitean**. Lo único versionado es **`.claude/agents/`** (config compartida del equipo, ej. `nuxt-expert.md`).
-3. **Conflictos:** si un skill recomienda algo que contradice un ADR local ([`decisions/`](decisions/)), **prevalece el ADR**. Documentar la divergencia en el ADR.
+1. **Scope:** skills/plugins solo en este repo (`./.claude/`). No tocar `~/.claude/`.
+2. **Versionado:** según [`.gitignore`](../.gitignore), `.claude/{plugins,skills,cache}/` y `.claude/settings.local.json` **NO se commitean**. Lo único versionado es **`.claude/agents/`** (ej. `nuxt-expert.md`). El inventario de skills vive en [`../skills-lock.json`](../skills-lock.json).
+3. **Conflictos:** si un skill contradice un ADR local ([`decisions/`](decisions/)), **prevalece el ADR**. Documentar la divergencia.
 4. **MCP Nuxt:** experimental, solo dev local.
-5. **No invocar simultáneamente** `ui-ux-pro-max` e `impeccable` para una misma vista.
+5. **No invocar simultáneamente** un generador (`ui-ux-pro-max`) y un auditor (`web-design-guidelines`) para la misma vista: primero generar, después auditar.
 
 ---
 
-## 9. Orden recomendado de adopción
+## 7. Orden recomendado de adopción
 
 El bootstrap (FASE 0/1) ya está hecho; el proyecto está en **FASE 5 (vistas por vertical)**.
 
-1. **Para cada vista nueva (verticales 3–10):**
-   - Generar con `nuxt-expert` (+ `nuxt-mcp-dev` activo en dev).
-   - Diseño con `ui-ux-pro-max`, pulir con `impeccable` (`/audit`, `/polish`).
-2. **En PRs sensibles (auth, permisos, pagos):**
+1. **Cada vista nueva (verticales 3–10):**
+   - Código con `nuxt-expert` + `vue-best-practices` (+ `nuxt-mcp-dev` en dev) + `nuxt-ui`.
+   - Diseño con `ui-ux-pro-max`; auditar con `web-design-guidelines`.
+2. **PRs sensibles (auth, permisos, pagos):**
    - `/code-review` + `/security-review` (+ `owasp-security` / `api-security-best-practices`).
-3. **Para la migración a Universal/SSR (vertical-10):**
-   - `nuxt-expert` (rendering) + `docker-expert` + `github-actions-docs` + `traefik`.
+3. **Deploy / debug / migración SSR (vertical-10):**
+   - `docker-expert` + `docker-compose-orchestration` + `github-actions-docs` + `traefik`; `vue-debug-guides` + `nuxt-expert` para el rendering.
 4. **QA / pre-release:**
-   - `web-app-testing` (E2E), `design-is` / `impeccable` `/critique` por flujos críticos (login, validador, carnet, pago).
+   - `web-app-testing` (E2E) + `web-design-guidelines` por flujos críticos (login, validador, carnet, pago).
 5. **Documentos (verticales 6 y 9):**
    - `document-skills` para carnet digital y comprobantes PDF.
