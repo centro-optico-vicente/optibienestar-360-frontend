@@ -1,0 +1,24 @@
+# Build artifacts and deps — regenerated inside the image build stage.
+node_modules
+.nuxt
+.output
+dist
+
+# VCS & CI
+.git
+.github
+
+# Local env & editor noise
+.env
+.env.*
+!.env.example
+.vscode
+.idea
+
+# Docs / AI context — not needed in the image
+.ai
+*.md
+LICENSE
+
+# Claude / tooling
+.claude
