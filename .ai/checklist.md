@@ -57,8 +57,8 @@
 | 7 | Validador | [vertical-7](checklists/vertical-7-validador.md) | 4 | 0 | 4 | 🔲 |
 | 8 | Promotores, Comisiones y Referidos | [vertical-8](checklists/vertical-8-promotores-comisiones-referidos.md) | 4 | 0 | 4 | 🔲 |
 | 9 | Portal afiliado y Carnet digital | [vertical-9](checklists/vertical-9-notificaciones-y-carnet.md) | 5 | 0 | 5 | 🔲 |
-| 10 | Optimización, Reportes y QA | [vertical-10](checklists/vertical-10-optimizacion-reportes-hardening.md) | 6 | 0 | 6 | 🔲 |
-| **TOTAL FASE 5** | | | **42** | **9** | **33** | 🟡 21% |
+| 10 | Optimización, Reportes, QA y Rendering SSR | [vertical-10](checklists/vertical-10-optimizacion-reportes-hardening.md) | 8 | 0 | 8 | 🔲 |
+| **TOTAL FASE 5** | | | **44** | **9** | **35** | 🟡 20% |
 
 ---
 
