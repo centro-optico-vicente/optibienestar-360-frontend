@@ -46,6 +46,12 @@ export default defineNuxtConfig({
           href: 'https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap',
         },
       ],
+      // Runtime config loaded before the app bundle. The container rewrites
+      // /config.js from env vars on start (see 00.runtime-config.client.ts);
+      // a single image then serves any environment without a rebuild.
+      script: [
+        { src: '/config.js', tagPosition: 'head' },
+      ],
     },
   },
 
