@@ -219,4 +219,4 @@ A futuro: auto-generar desde `https://api.dominio.com/v3/api-docs` con `openapi-
 ## Referencias
 
 - [05-auth-flow.md](05-auth-flow.md)
-- [Hub `06-integration.md`](../../../centro-optico-vicente/.ai/specs/06-integration.md)
+- [Hub `06-integration.md`](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/specs/06-integration.md)

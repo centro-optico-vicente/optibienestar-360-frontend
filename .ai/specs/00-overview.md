@@ -1,6 +1,6 @@
 # Specs del frontend — índice
 
-> Specs cross-stack en [hub maestro](../../../centro-optico-vicente/.ai/specs/).
+> Specs cross-stack en [hub maestro](https://github.com/fenix-core/centro-optico-vicente/tree/main/.ai/specs).
 
 ## Specs disponibles
 
@@ -19,6 +19,6 @@
 
 ## Specs cross-stack relevantes
 
-- [Hub `06-integration.md`](../../../centro-optico-vicente/.ai/specs/06-integration.md) — REST contracts
-- [Hub `03-security.md`](../../../centro-optico-vicente/.ai/specs/03-security.md) — CORS, JWT
-- [Hub `05-domain-model.md`](../../../centro-optico-vicente/.ai/specs/05-domain-model.md) — modelo conceptual
+- [Hub `06-integration.md`](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/specs/06-integration.md) — REST contracts
+- [Hub `03-security.md`](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/specs/03-security.md) — CORS, JWT
+- [Hub `05-domain-model.md`](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/specs/05-domain-model.md) — modelo conceptual

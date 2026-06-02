@@ -1,6 +1,6 @@
 # `.ai/` — Brief para asistencia IA (frontend admin)
 
-> Brief específico del repo `optisalud-plus-frontend`. Para visión cross-stack, ver el hub maestro en [`../../centro-optico-vicente/.ai/`](../../centro-optico-vicente/.ai/).
+> Brief específico del repo `optisalud-plus-frontend`. Para visión cross-stack, ver el hub maestro [`centro-optico-vicente/.ai/`](https://github.com/fenix-core/centro-optico-vicente/tree/main/.ai).
 
 ## Qué es este repo
 
@@ -32,7 +32,7 @@ Frontend multi-rol (Vue 3 + Nuxt 3) que sirve a admin, operador, aliados, afilia
 4. [`checklist.md`](checklist.md)
 5. [`specs/01-project-structure.md`](specs/01-project-structure.md)
 6. [`specs/04-api-client.md`](specs/04-api-client.md) + [`05-auth-flow.md`](specs/05-auth-flow.md)
-7. Hub: [`../../centro-optico-vicente/.ai/specs/06-integration.md`](../../centro-optico-vicente/.ai/specs/06-integration.md)
+7. Hub: [`specs/06-integration.md`](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/specs/06-integration.md)
 
 ## Para tareas comunes
 
@@ -46,9 +46,11 @@ Frontend multi-rol (Vue 3 + Nuxt 3) que sirve a admin, operador, aliados, afilia
 ## Decisiones congeladas
 
 **Cross-stack:**
-- [ADR 0001 Stack](../../centro-optico-vicente/.ai/decisions/0001-stack.md)
-- [ADR 0004 Only free tools](../../centro-optico-vicente/.ai/decisions/0004-only-free-tools.md)
-- [ADR 0009 Code conventions](../../centro-optico-vicente/.ai/decisions/0009-code-conventions.md)
+- [ADR 0001 Stack](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0001-stack.md)
+- [ADR 0003 Infraestructura](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0003-infrastructure.md)
+- [ADR 0004 Only free tools](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0004-only-free-tools.md)
+- [ADR 0009 Code conventions](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0009-code-conventions.md)
+- [ADR 0010 Localización Venezuela](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0010-localization-venezuela.md)
 
 **Locales:**
 - [ADR 0001 Nuxt UI + Tailwind](decisions/0001-nuxt-ui-tailwind.md)
@@ -56,3 +58,8 @@ Frontend multi-rol (Vue 3 + Nuxt 3) que sirve a admin, operador, aliados, afilia
 - [ADR 0003 SPA mode](decisions/0003-spa-mode.md)
 - [ADR 0004 Mobile-first](decisions/0004-mobile-first.md)
 - [ADR 0005 Selects alimentados por catálogo](decisions/0005-catalog-backed-selects.md)
+- [ADR 0006 CI/CD + Docker (nginx) + config en runtime](decisions/0006-ci-cd-docker-runtime-config.md)
+- [ADR 0007 Convenciones de PR y ramas (Gitflow)](decisions/0007-pr-and-branch-conventions.md)
+- [ADR 0008 Naming TypeScript/Vue](decisions/0008-typescript-vue-naming-conventions.md)
+- [ADR 0009 Convenciones de código (espejo)](decisions/0009-code-conventions.md)
+- [ADR 0010 Localización Venezuela (espejo)](decisions/0010-localization-venezuela.md)

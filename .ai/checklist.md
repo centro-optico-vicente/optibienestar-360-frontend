@@ -1,6 +1,6 @@
 # Checklist frontend (subset del maestro)
 
-> Subset filtrado por tag `[F]` del [checklist maestro](../../centro-optico-vicente/.ai/checklist.md).
+> Subset filtrado por tag `[F]` del [checklist maestro](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/checklist.md).
 
 ## FASE 0 — Bootstrap
 
@@ -107,5 +107,5 @@
 
 ## Notas
 
-- Sincronizar con [checklist maestro](../../centro-optico-vicente/.ai/checklist.md) tag `[F]`.
+- Sincronizar con [checklist maestro](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/checklist.md) tag `[F]`.
 - Actualizar [`context/current-state.md`](context/current-state.md) tras cada sesión.
