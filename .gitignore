@@ -148,3 +148,5 @@ vite.config.ts.timestamp-*
 .claude/skills/
 .claude/cache/
 .mcp.local.json
+# Installed skill payloads (third-party content). Inventory lives in skills-lock.json.
+.agents/
