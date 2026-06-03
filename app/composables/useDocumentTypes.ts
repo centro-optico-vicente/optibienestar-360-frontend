@@ -1,4 +1,5 @@
 import type { CatalogItem } from '~/types/catalogs'
+import { toItems, type Page } from '~/types/admin'
 
 /**
  * Opciones de "Tipo de documento" para selects, cargadas desde el catálogo real
@@ -19,8 +20,11 @@ export const useDocumentTypes = () => {
   const load = async () => {
     if (loaded.value) return options.value
     try {
-      const items = await useApi<CatalogItem[]>('/v1/admin/catalogs/document-types', { silent: true })
-      options.value = items
+      const res = await useApi<Page<CatalogItem> | CatalogItem[]>('/v1/admin/catalogs/document-types', {
+        silent: true,
+        query: { unpaged: 'true' },
+      })
+      options.value = toItems(res)
         .filter(i => i.active !== false)
         .map(i => ({
           label: i.code ? `${i.code} — ${i.name}` : i.name,

@@ -1,5 +1,6 @@
 // Tipos de los catálogos administrables (/v1/admin/catalogs/*).
-// Los listados admin devuelven ARRAYS planos (no paginados).
+// Los listados devuelven una página (`Page<CatalogItem>`); los composables
+// (useCatalog/usePublicCatalog) la desempaquetan a `CatalogItem[]` vía `toItems`.
 //
 // Todos los catálogos comparten { uuid, name, active }. Algunos añaden `code`
 // (o `isoCode` en países), `description`, y dependencias jerárquicas
