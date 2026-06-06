@@ -24,31 +24,53 @@ export interface RoleDto {
 export interface UserDto {
   uuid: string
   email: string
+  // Name parts (LATAM convention) + derived fullName (read-only).
+  firstName: string
+  middleName?: string | null
+  lastName: string
+  secondLastName?: string | null
   fullName: string
   documentType?: string
   documentNumber?: string
-  phone?: string
+  taxDocumentType?: string | null
+  taxDocumentNumber?: string | null
+  phone?: string | null
+  locale?: string | null
   status?: string
   active?: boolean
   lastLoginAt?: string | null
   roles: RoleDto[]
 }
 
+// v2 breaking change: fullName replaced by the 4 atomic name parts.
+// firstName + lastName required; documentType + documentNumber required.
 export interface AdminCreateUserRequest {
   email: string
-  fullName: string
+  firstName: string
+  middleName?: string
+  lastName: string
+  secondLastName?: string
   password: string
-  documentType?: string
-  documentNumber?: string
+  documentType: string
+  documentNumber: string
+  taxDocumentType?: string
+  taxDocumentNumber?: string
   phone?: string
   roleIds: string[]
 }
 
+// Partial update: only present fields are applied (PATCH-style under PUT).
 export interface AdminUpdateUserRequest {
-  fullName?: string
+  firstName?: string
+  middleName?: string
+  lastName?: string
+  secondLastName?: string
   documentType?: string
   documentNumber?: string
+  taxDocumentType?: string
+  taxDocumentNumber?: string
   phone?: string
+  locale?: string
   status?: string
   active?: boolean
   roleIds?: string[]

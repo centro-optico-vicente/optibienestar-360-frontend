@@ -97,14 +97,18 @@ const mode = ref<'create' | 'edit'>('create')
 const editingUuid = ref<string | null>(null)
 const isSubmitting = ref(false)
 
-const STATUS_OPTIONS = ['ACTIVE', 'INACTIVE', 'SUSPENDED', 'PENDING']
+// Backend only accepts these (AdminUpdateUserRequest.status pattern).
+const STATUS_OPTIONS = ['ACTIVE', 'SUSPENDED', 'LOCKED']
 
 // Tipos de documento desde el catálogo real (/v1/admin/catalogs/document-types).
 const { options: documentTypeOptions, load: loadDocumentTypes } = useDocumentTypes()
 
 interface FormState {
   email: string
-  fullName: string
+  firstName: string
+  middleName: string
+  lastName: string
+  secondLastName: string
   password: string
   documentType: string | undefined
   documentNumber: string
@@ -116,7 +120,10 @@ interface FormState {
 
 const state = reactive<FormState>({
   email: '',
-  fullName: '',
+  firstName: '',
+  middleName: '',
+  lastName: '',
+  secondLastName: '',
   password: '',
   documentType: undefined,
   documentNumber: '',
@@ -136,16 +143,22 @@ const passwordRule = z
 
 const createSchema = z.object({
   email: z.string().email('Email no válido'),
-  fullName: z.string().min(3, 'Mínimo 3 caracteres'),
+  firstName: z.string().min(1, 'Requerido').max(50, 'Máximo 50 caracteres'),
+  middleName: z.string().max(50, 'Máximo 50 caracteres').optional(),
+  lastName: z.string().min(1, 'Requerido').max(50, 'Máximo 50 caracteres'),
+  secondLastName: z.string().max(50, 'Máximo 50 caracteres').optional(),
   password: passwordRule,
-  documentType: z.string().optional(),
-  documentNumber: z.string().optional(),
+  documentType: z.string().min(1, 'Requerido'),
+  documentNumber: z.string().min(1, 'Requerido'),
   phone: z.string().optional(),
   roleIds: z.array(z.string()).min(1, 'Selecciona al menos un rol'),
 })
 
 const editSchema = z.object({
-  fullName: z.string().min(3, 'Mínimo 3 caracteres'),
+  firstName: z.string().min(1, 'Requerido').max(50, 'Máximo 50 caracteres'),
+  middleName: z.string().max(50, 'Máximo 50 caracteres').optional(),
+  lastName: z.string().min(1, 'Requerido').max(50, 'Máximo 50 caracteres'),
+  secondLastName: z.string().max(50, 'Máximo 50 caracteres').optional(),
   documentType: z.string().optional(),
   documentNumber: z.string().optional(),
   phone: z.string().optional(),
@@ -157,7 +170,10 @@ const schema = computed(() => (mode.value === 'create' ? createSchema : editSche
 
 function resetForm() {
   state.email = ''
-  state.fullName = ''
+  state.firstName = ''
+  state.middleName = ''
+  state.lastName = ''
+  state.secondLastName = ''
   state.password = ''
   state.documentType = undefined
   state.documentNumber = ''
@@ -179,7 +195,10 @@ function openEdit(u: UserDto) {
   editingUuid.value = u.uuid
   resetForm()
   state.email = u.email
-  state.fullName = u.fullName ?? ''
+  state.firstName = u.firstName ?? ''
+  state.middleName = u.middleName ?? ''
+  state.lastName = u.lastName ?? ''
+  state.secondLastName = u.secondLastName ?? ''
   state.documentType = u.documentType || undefined
   state.documentNumber = u.documentNumber ?? ''
   state.phone = u.phone ?? ''
@@ -195,10 +214,13 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     if (mode.value === 'create') {
       const body: AdminCreateUserRequest = {
         email: state.email,
-        fullName: state.fullName,
+        firstName: state.firstName,
+        middleName: state.middleName || undefined,
+        lastName: state.lastName,
+        secondLastName: state.secondLastName || undefined,
         password: state.password,
-        documentType: state.documentType || undefined,
-        documentNumber: state.documentNumber || undefined,
+        documentType: state.documentType!,
+        documentNumber: state.documentNumber,
         phone: state.phone || undefined,
         roleIds: state.roleIds,
       }
@@ -207,7 +229,10 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     }
     else if (editingUuid.value) {
       const body: AdminUpdateUserRequest = {
-        fullName: state.fullName,
+        firstName: state.firstName,
+        middleName: state.middleName || undefined,
+        lastName: state.lastName,
+        secondLastName: state.secondLastName || undefined,
         documentType: state.documentType || undefined,
         documentNumber: state.documentNumber || undefined,
         phone: state.phone || undefined,
@@ -416,9 +441,20 @@ function formatDate(iso?: string | null): string {
             <UInput v-model="state.email" type="email" autocomplete="off" class="w-full" />
           </UFormField>
 
-          <UFormField label="Nombre completo" name="fullName" required>
-            <UInput v-model="state.fullName" class="w-full" />
-          </UFormField>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <UFormField label="Primer nombre" name="firstName" required>
+              <UInput v-model="state.firstName" class="w-full" />
+            </UFormField>
+            <UFormField label="Segundo nombre" name="middleName">
+              <UInput v-model="state.middleName" class="w-full" />
+            </UFormField>
+            <UFormField label="Primer apellido" name="lastName" required>
+              <UInput v-model="state.lastName" class="w-full" />
+            </UFormField>
+            <UFormField label="Segundo apellido" name="secondLastName">
+              <UInput v-model="state.secondLastName" class="w-full" />
+            </UFormField>
+          </div>
 
           <UFormField v-if="mode === 'create'" label="Contraseña" name="password" required>
             <UInput v-model="state.password" type="password" autocomplete="new-password" class="w-full" />
