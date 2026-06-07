@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { z } from 'zod'
+import type { FormSubmitEvent } from '@nuxt/ui'
 import type { PermissionDomainDto, RoleDto } from '~/types/admin'
 
 definePageMeta({
@@ -13,8 +15,14 @@ const rolesApi = useRoles()
 const { can } = usePermissions()
 const toast = useToast()
 
-// La gestión de permisos por rol se protege con USER_CHANGE_ROLE.
-const canManage = computed(() => can('USER_CHANGE_ROLE'))
+// La gestión (CRUD de roles y permisos por rol) es ROLE_PERMISSION_EDIT en el backend;
+// se acepta también USER_CHANGE_ROLE por compatibilidad con seeds anteriores.
+const canManage = computed(() => can('ROLE_PERMISSION_EDIT') || can('USER_CHANGE_ROLE'))
+
+/** El rol SYSTEM es inmutable: no se edita ni se elimina. */
+function isSystemRole(r: RoleDto): boolean {
+  return r.name === 'SYSTEM'
+}
 
 const roles = ref<RoleDto[]>([])
 const domains = ref<PermissionDomainDto[]>([])
@@ -50,6 +58,92 @@ async function loadPermissions() {
 onMounted(async () => {
   await Promise.all([loadRoles(), loadPermissions()])
 })
+
+// ---- CRUD de roles ----
+const roleFormOpen = ref(false)
+const roleMode = ref<'create' | 'edit'>('create')
+const roleEditingUuid = ref<string | null>(null)
+const roleSubmitting = ref(false)
+
+const roleState = reactive({ name: '', description: '' })
+
+const roleSchema = z.object({
+  name: z
+    .string()
+    .min(3, 'Mínimo 3 caracteres')
+    .regex(/^[A-Z][A-Z0-9_]*$/, 'Debe ser UPPER_SNAKE_CASE (ej: GERENTE_ALIADO)'),
+  description: z.string().optional(),
+})
+
+function openRoleCreate() {
+  roleMode.value = 'create'
+  roleEditingUuid.value = null
+  roleState.name = ''
+  roleState.description = ''
+  roleFormOpen.value = true
+}
+
+function openRoleEdit(r: RoleDto) {
+  roleMode.value = 'edit'
+  roleEditingUuid.value = r.uuid
+  roleState.name = r.name
+  roleState.description = r.description ?? ''
+  roleFormOpen.value = true
+}
+
+async function onRoleSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
+  roleSubmitting.value = true
+  try {
+    if (roleMode.value === 'create') {
+      await rolesApi.create({
+        name: roleState.name,
+        description: roleState.description || undefined,
+      })
+      toast.add({ title: 'Rol creado', color: 'success', icon: 'i-lucide-check-circle' })
+    }
+    else if (roleEditingUuid.value) {
+      await rolesApi.update(roleEditingUuid.value, {
+        name: roleState.name,
+        description: roleState.description || undefined,
+      })
+      toast.add({ title: 'Rol actualizado', color: 'success', icon: 'i-lucide-check-circle' })
+    }
+    roleFormOpen.value = false
+    await loadRoles()
+  }
+  catch {
+    // useApi ya notificó el error (409 nombre duplicado, 422, etc.)
+  }
+  finally {
+    roleSubmitting.value = false
+  }
+}
+
+const roleDeleteOpen = ref(false)
+const roleDeleting = ref(false)
+const roleTarget = ref<RoleDto | null>(null)
+
+function openRoleDelete(r: RoleDto) {
+  roleTarget.value = r
+  roleDeleteOpen.value = true
+}
+
+async function confirmRoleDelete() {
+  if (!roleTarget.value) return
+  roleDeleting.value = true
+  try {
+    await rolesApi.remove(roleTarget.value.uuid)
+    toast.add({ title: 'Rol eliminado', color: 'success', icon: 'i-lucide-check-circle' })
+    roleDeleteOpen.value = false
+    await loadRoles()
+  }
+  catch {
+    // toast por useApi (422 si tiene usuarios asignados, etc.)
+  }
+  finally {
+    roleDeleting.value = false
+  }
+}
 
 // ---- Edición de permisos por rol ----
 const formOpen = ref(false)
@@ -130,9 +224,19 @@ async function onSave() {
       <div>
         <h1 class="text-2xl font-extrabold text-prohealth-900">Roles y permisos</h1>
         <p class="text-sm text-prohealth-700/70 mt-1">
-          Los roles los define el sistema. Aquí ajustas los permisos (llaves) que otorga cada uno.
+          Crea roles y ajusta los permisos (llaves) que otorga cada uno. El rol SYSTEM es inmutable.
         </p>
       </div>
+      <UTooltip :text="canManage ? 'Crear un nuevo rol' : 'No tienes permiso para crear roles'">
+        <UButton
+          color="primary"
+          icon="i-lucide-shield-plus"
+          :disabled="!canManage"
+          @click="openRoleCreate"
+        >
+          Nuevo rol
+        </UButton>
+      </UTooltip>
     </div>
 
     <!-- Tabla de roles -->
@@ -174,6 +278,26 @@ async function onSave() {
                       @click="openEdit(r)"
                     />
                   </UTooltip>
+                  <UTooltip :text="isSystemRole(r) ? 'El rol SYSTEM es inmutable' : (canManage ? 'Editar rol' : 'No tienes permiso')">
+                    <UButton
+                      color="neutral"
+                      variant="ghost"
+                      icon="i-lucide-pencil"
+                      size="sm"
+                      :disabled="!canManage || isSystemRole(r)"
+                      @click="openRoleEdit(r)"
+                    />
+                  </UTooltip>
+                  <UTooltip :text="isSystemRole(r) ? 'El rol SYSTEM es inmutable' : (canManage ? 'Eliminar rol' : 'No tienes permiso')">
+                    <UButton
+                      color="error"
+                      variant="ghost"
+                      icon="i-lucide-trash-2"
+                      size="sm"
+                      :disabled="!canManage || isSystemRole(r)"
+                      @click="openRoleDelete(r)"
+                    />
+                  </UTooltip>
                 </div>
               </td>
             </tr>
@@ -181,6 +305,58 @@ async function onSave() {
         </table>
       </div>
     </div>
+
+    <!-- Modal crear/editar rol -->
+    <UModal
+      v-model:open="roleFormOpen"
+      :title="roleMode === 'create' ? 'Nuevo rol' : 'Editar rol'"
+      :description="roleMode === 'create' ? 'El nombre debe ser UPPER_SNAKE_CASE (ej: GERENTE_ALIADO). Luego asígnale permisos.' : 'Actualiza el nombre o la descripción del rol.'"
+    >
+      <template #body>
+        <UForm
+          :schema="roleSchema"
+          :state="roleState"
+          class="space-y-4"
+          @submit="onRoleSubmit"
+        >
+          <UFormField label="Nombre" name="name" required>
+            <UInput v-model="roleState.name" placeholder="GERENTE_ALIADO" class="w-full" />
+          </UFormField>
+
+          <UFormField label="Descripción" name="description">
+            <UTextarea v-model="roleState.description" :rows="2" class="w-full" />
+          </UFormField>
+
+          <div class="flex items-center justify-end gap-3 pt-2">
+            <UButton color="neutral" variant="ghost" :disabled="roleSubmitting" @click="roleFormOpen = false">
+              Cancelar
+            </UButton>
+            <UButton type="submit" color="primary" :loading="roleSubmitting" icon="i-lucide-save">
+              {{ roleMode === 'create' ? 'Crear rol' : 'Guardar cambios' }}
+            </UButton>
+          </div>
+        </UForm>
+      </template>
+    </UModal>
+
+    <!-- Modal confirmar eliminación de rol -->
+    <UModal v-model:open="roleDeleteOpen" title="Eliminar rol">
+      <template #body>
+        <p class="text-sm text-prohealth-700">
+          ¿Seguro que deseas eliminar el rol
+          <span class="font-semibold">{{ roleTarget?.name }}</span>?
+          El backend aplica smart delete: falla si el rol está en uso.
+        </p>
+        <div class="flex items-center justify-end gap-3 pt-5">
+          <UButton color="neutral" variant="ghost" :disabled="roleDeleting" @click="roleDeleteOpen = false">
+            Cancelar
+          </UButton>
+          <UButton color="error" :loading="roleDeleting" icon="i-lucide-trash-2" @click="confirmRoleDelete">
+            Eliminar
+          </UButton>
+        </div>
+      </template>
+    </UModal>
 
     <!-- Modal editar permisos del rol -->
     <UModal

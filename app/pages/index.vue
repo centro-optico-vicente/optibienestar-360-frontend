@@ -2,6 +2,8 @@
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { ApiError } from '~/types/auth'
+import heroImg from '~/assets/img/260c06e4612a1bcca2ebc97cbe1ef392.jpg'
+import aboutImg from '~/assets/img/c08baae430a8d168d93847b175f3d6ec.jpg'
 
 definePageMeta({ layout: 'default' })
 
@@ -151,10 +153,14 @@ const departments: Department[] = [
       </div>
 
       <div class="relative">
-        <div class="aspect-[4/5] rounded-3xl bg-white/10 backdrop-blur border border-white/20 overflow-hidden grid place-items-center">
-          <div class="text-center p-10">
-            <UIcon name="i-lucide-heart-pulse" class="w-32 h-32 text-lime-300 mx-auto" />
-            <p class="mt-6 text-prohealth-100/80 text-sm uppercase tracking-widest">
+        <div class="relative aspect-[4/5] rounded-3xl bg-white/10 backdrop-blur border border-white/20 overflow-hidden">
+          <img
+            :src="heroImg"
+            alt="Examen visual con optometrista en OptiSalud Plus"
+            class="h-full w-full object-cover"
+          >
+          <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-prohealth-950/80 via-prohealth-950/20 to-transparent p-6">
+            <p class="text-prohealth-100/90 text-sm uppercase tracking-widest">
               Salud · Familia · Bienestar
             </p>
           </div>
@@ -194,8 +200,12 @@ const departments: Department[] = [
           para que cuidarse sea simple.
         </p>
       </div>
-      <div class="aspect-[5/4] rounded-3xl bg-prohealth-50 grid place-items-center border border-prohealth-100">
-        <UIcon name="i-lucide-users" class="w-32 h-32 text-prohealth-300" />
+      <div class="aspect-[5/4] rounded-3xl overflow-hidden border border-prohealth-100">
+        <img
+          :src="aboutImg"
+          alt="Equipo de profesionales de OptiSalud Plus"
+          class="h-full w-full object-cover"
+        >
       </div>
     </div>
   </section>

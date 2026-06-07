@@ -1,9 +1,29 @@
 <script setup lang="ts">
+import imgHero from '~/assets/img/Gemini_Generated_Image_3w6wwq3w6wwq3w6w.png'
+import imgEyeTest from '~/assets/img/260c06e4612a1bcca2ebc97cbe1ef392.jpg'
+import img1 from '~/assets/img/104f493a124416e8cec5195e449b3d0f.jpg'
+import img2 from '~/assets/img/2cebb4172b5f4801ec4037d48736b911.jpg'
+import img3 from '~/assets/img/85e129d7a660b545b497d9e65b47b3a4.jpg'
+import img4 from '~/assets/img/c08baae430a8d168d93847b175f3d6ec.jpg'
+
 definePageMeta({ layout: 'dashboard' })
 
 useSeoMeta({ title: 'Panel — OptiSalud Plus' })
 
 const auth = useAuthStore()
+
+interface GalleryItem {
+  src: string
+  alt: string
+}
+
+const gallery: GalleryItem[] = [
+  { src: imgEyeTest, alt: 'Examen visual con optometrista' },
+  { src: img1, alt: 'Atención en óptica' },
+  { src: img2, alt: 'Servicios ópticos' },
+  { src: img3, alt: 'Selección de monturas' },
+  { src: img4, alt: 'Centro óptico' },
+]
 
 interface Kpi {
   label: string
@@ -102,86 +122,72 @@ const greeting = computed<string>(() => {
       </div>
     </section>
 
-    <!-- Charts row -->
-    <section class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      <!-- Chart placeholder -->
-      <div class="lg:col-span-2 bg-white rounded-2xl border border-prohealth-100 p-6">
-        <div class="flex items-center justify-between mb-4">
-          <div>
-            <h3 class="font-bold text-prohealth-900">Recaudación últimos 6 meses</h3>
-            <p class="text-xs text-prohealth-500">Comparativo de planes y pagos confirmados</p>
-          </div>
-          <UButton size="xs" color="neutral" variant="ghost" icon="i-lucide-more-horizontal" square />
-        </div>
-
-        <!-- Mock chart -->
-        <div class="h-56 flex items-end gap-3 pt-4 border-t border-prohealth-100">
-          <div
-            v-for="(h, i) in [40, 65, 55, 80, 72, 95]"
-            :key="i"
-            class="flex-1 flex flex-col items-center gap-1.5"
+    <!-- Banner destacado -->
+    <section class="relative overflow-hidden rounded-2xl border border-prohealth-100 bg-hero-prohealth text-white">
+      <div class="absolute inset-0 opacity-20">
+        <div class="absolute -top-20 -left-20 w-80 h-80 rounded-full bg-cyan-400/40 blur-3xl" />
+        <div class="absolute bottom-0 right-0 w-96 h-96 rounded-full bg-lime-400/30 blur-3xl" />
+      </div>
+      <div class="relative grid md:grid-cols-2 items-center gap-6">
+        <div class="p-8">
+          <span class="inline-flex items-center gap-2 text-xs font-semibold bg-white/15 backdrop-blur rounded-full px-3 py-1">
+            <UIcon name="i-lucide-eye" class="w-4 h-4" /> Centro Óptico Vicente
+          </span>
+          <h2 class="mt-4 text-2xl xl:text-3xl font-extrabold leading-tight max-w-md">
+            Cuidamos tu visión con la mejor atención.
+          </h2>
+          <p class="mt-3 text-prohealth-100/90 max-w-md text-sm">
+            Exámenes visuales, monturas y lentes para todos tus afiliados,
+            respaldados por la red OptiSalud Plus.
+          </p>
+          <UButton
+            to="/dashboard/users"
+            color="neutral"
+            variant="solid"
+            icon="i-lucide-arrow-right"
+            trailing
+            class="mt-6"
           >
-            <div class="w-full flex flex-col items-center gap-1">
-              <div
-                class="w-full bg-prohealth-600 rounded-t-md"
-                :style="{ height: `${h * 1.4}px` }"
-              />
-              <div
-                class="w-full bg-lime-400 rounded-b-md opacity-80"
-                :style="{ height: `${h * 0.5}px` }"
-              />
-            </div>
-            <span class="text-[10px] text-prohealth-500 font-medium">
-              {{ ['Dic', 'Ene', 'Feb', 'Mar', 'Abr', 'May'][i] }}
-            </span>
-          </div>
+            Gestionar afiliados
+          </UButton>
         </div>
-
-        <div class="flex items-center gap-6 mt-4 text-xs">
-          <span class="inline-flex items-center gap-2 text-prohealth-700">
-            <span class="w-3 h-3 rounded-sm bg-prohealth-600" /> Planes
-          </span>
-          <span class="inline-flex items-center gap-2 text-prohealth-700">
-            <span class="w-3 h-3 rounded-sm bg-lime-400" /> Servicios aliados
-          </span>
+        <div class="h-56 md:h-full min-h-[16rem]">
+          <img
+            :src="imgHero"
+            alt="Atención óptica OptiSalud Plus"
+            class="h-full w-full object-cover"
+          >
         </div>
       </div>
+    </section>
 
-      <!-- Distribution -->
-      <div class="bg-white rounded-2xl border border-prohealth-100 p-6">
-        <h3 class="font-bold text-prohealth-900">Distribución de planes</h3>
-        <p class="text-xs text-prohealth-500 mb-5">Suscripciones activas por tipo</p>
-
-        <div class="relative w-40 h-40 mx-auto">
-          <div class="absolute inset-0 rounded-full bg-gradient-conic from-prohealth-600 via-cyan-500 to-lime-400" />
-          <div class="absolute inset-3 rounded-full bg-white grid place-items-center text-center">
-            <div>
-              <p class="text-2xl font-extrabold text-prohealth-900">12.4K</p>
-              <p class="text-[10px] text-prohealth-500 uppercase tracking-wide">total</p>
-            </div>
+    <!-- Galería de servicios -->
+    <section class="bg-white rounded-2xl border border-prohealth-100 p-6">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="font-bold text-prohealth-900">Galería de servicios</h3>
+          <p class="text-xs text-prohealth-500">Conoce la experiencia OptiSalud Plus</p>
+        </div>
+        <UButton size="xs" color="neutral" variant="ghost" icon="i-lucide-images">
+          Ver todo
+        </UButton>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        <div
+          v-for="g in gallery"
+          :key="g.src"
+          class="group relative aspect-square overflow-hidden rounded-xl border border-prohealth-100"
+        >
+          <img
+            :src="g.src"
+            :alt="g.alt"
+            loading="lazy"
+            class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+          >
+          <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-2 opacity-0 transition-opacity group-hover:opacity-100">
+            <p class="text-[11px] font-medium text-white truncate">{{ g.alt }}</p>
           </div>
         </div>
-
-        <ul class="mt-5 space-y-2 text-sm">
-          <li class="flex items-center justify-between">
-            <span class="inline-flex items-center gap-2 text-prohealth-700">
-              <span class="w-2.5 h-2.5 rounded-full bg-prohealth-600" /> Individual
-            </span>
-            <span class="font-semibold text-prohealth-900">58%</span>
-          </li>
-          <li class="flex items-center justify-between">
-            <span class="inline-flex items-center gap-2 text-prohealth-700">
-              <span class="w-2.5 h-2.5 rounded-full bg-cyan-500" /> Familiar
-            </span>
-            <span class="font-semibold text-prohealth-900">31%</span>
-          </li>
-          <li class="flex items-center justify-between">
-            <span class="inline-flex items-center gap-2 text-prohealth-700">
-              <span class="w-2.5 h-2.5 rounded-full bg-lime-400" /> Empresarial
-            </span>
-            <span class="font-semibold text-prohealth-900">11%</span>
-          </li>
-        </ul>
       </div>
     </section>
 

@@ -1,6 +1,6 @@
 // Tipos de administración (Usuarios y Roles), alineados con el OpenAPI del backend.
-// Usuarios: CRUD completo (/v1/admin/users). Roles: solo lectura + gestión de permisos
-// (/v1/admin/roles, /v1/admin/roles/{uuid}/permissions, /v1/admin/permissions).
+// Usuarios: CRUD completo (/v1/admin/users). Roles: CRUD (smart delete; el rol SYSTEM
+// es inmutable) + gestión de permisos (/v1/admin/roles/{uuid}/permissions, /v1/admin/permissions).
 
 /** Página estándar de Spring Data (camelCase). */
 export interface Page<T> {
@@ -77,8 +77,18 @@ export interface AdminUpdateUserRequest {
 }
 
 // --- Roles / Permisos ---
-// Los roles son de solo lectura (definidos por el seed del backend). Lo único editable
-// son los permisos asignados a cada rol, vía PUT /v1/admin/roles/{uuid}/permissions.
+// CRUD de roles vía POST/PUT/DELETE /v1/admin/roles (nombre UPPER_SNAKE_CASE; el rol
+// SYSTEM no se puede modificar ni eliminar; DELETE es smart delete). Los permisos de
+// cada rol se reemplazan como conjunto vía PUT /v1/admin/roles/{uuid}/permissions.
+
+/** Body de POST /v1/admin/roles. El nombre debe ser UPPER_SNAKE_CASE. */
+export interface CreateRoleRequest {
+  name: string
+  description?: string
+}
+
+/** Body de PUT /v1/admin/roles/{uuid} (no aplica al rol SYSTEM). */
+export type UpdateRoleRequest = Partial<CreateRoleRequest>
 
 /** Permiso individual (llave de acción). */
 export interface PermissionDto {

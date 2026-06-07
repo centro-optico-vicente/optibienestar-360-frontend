@@ -1,19 +1,22 @@
 import {
   toItems,
+  type CreateRoleRequest,
   type Page,
   type PermissionDomainDto,
   type RoleDto,
+  type UpdateRoleRequest,
 } from '~/types/admin'
 
 /**
  * Acceso a Roles y Permisos.
  *
- * Los roles son de **solo lectura** (los define el seed del backend): solo se listan.
- * Lo editable son los permisos asignados a cada rol, vía
- * `PUT /v1/admin/roles/{uuid}/permissions`. En la UI se protege con `USER_CHANGE_ROLE`.
+ * Lectura con `USER_VIEW_ALL`; gestión (CRUD de roles y permisos por rol) con
+ * `ROLE_PERMISSION_EDIT`. El rol SYSTEM es inmutable y el DELETE es smart delete.
  *
  * - `GET /v1/admin/roles` → `RoleDto[]` (no paginado).
  * - `GET /v1/admin/roles/{uuid}` → `RoleDto`.
+ * - `POST /v1/admin/roles` → `{ name, description }` (nombre UPPER_SNAKE_CASE).
+ * - `PUT /v1/admin/roles/{uuid}` · `DELETE /v1/admin/roles/{uuid}` (204).
  * - `GET /v1/admin/roles/{uuid}/permissions` → `string[]` (UUIDs de permisos del rol).
  * - `PUT /v1/admin/roles/{uuid}/permissions` → `{ permissionUuids: string[] }` (mín. 1).
  * - `GET /v1/admin/permissions` → `PermissionDomainDto[]` (catálogo agrupado por dominio).
@@ -27,6 +30,15 @@ export const useRoles = () => {
 
   const get = (uuid: string) =>
     useApi<RoleDto>(`/v1/admin/roles/${uuid}`)
+
+  const create = (body: CreateRoleRequest) =>
+    useApi<RoleDto>('/v1/admin/roles', { method: 'POST', body })
+
+  const update = (uuid: string, body: UpdateRoleRequest) =>
+    useApi<RoleDto>(`/v1/admin/roles/${uuid}`, { method: 'PUT', body })
+
+  const remove = (uuid: string) =>
+    useApi<null>(`/v1/admin/roles/${uuid}`, { method: 'DELETE' })
 
   /** UUIDs de los permisos actualmente asignados al rol. */
   const getRolePermissions = (uuid: string) =>
@@ -43,5 +55,5 @@ export const useRoles = () => {
   const permissions = async (): Promise<PermissionDomainDto[]> =>
     toItems(await useApi<Page<PermissionDomainDto> | PermissionDomainDto[]>('/v1/admin/permissions'))
 
-  return { list, get, getRolePermissions, updateRolePermissions, permissions }
+  return { list, get, create, update, remove, getRolePermissions, updateRolePermissions, permissions }
 }

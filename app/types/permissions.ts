@@ -1,4 +1,4 @@
-// Catálogo de los 49 permisos (10 dominios) sembrados en el backend (V6__seed_roles.sql).
+// Catálogo de permisos sembrados en el backend (V6__seed_roles.sql y migraciones posteriores).
 // Ver "Flujo de seguridad y permisos" → Matriz de roles × permisos.
 // Úsalos como fuente de autocompletado/tipado en can(), v-can y definePageMeta.
 
@@ -10,6 +10,8 @@ export const PERMISSIONS = [
   'USER_VIEW_ALL',
   'USER_CHANGE_ROLE',
   'USER_RESET_PASSWORD',
+  // Gestión de roles y sus permisos (POST/PUT/DELETE /v1/admin/roles, PUT .../permissions).
+  'ROLE_PERMISSION_EDIT',
 
   // MEMBERS
   'MEMBER_CREATE',

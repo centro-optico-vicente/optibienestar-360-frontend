@@ -1,10 +1,13 @@
 <script setup lang="ts">
+import logoUrl from '~/assets/centro-optico-vicente-logo.png'
+
 const auth = useAuthStore()
 
 const navLinks = [
   { label: 'Inicio', to: '/' },
   { label: 'Sobre nosotros', to: '/#about' },
   { label: 'Departamentos', to: '/#departments' },
+  { label: 'Aliados', to: '/aliados' },
   { label: 'Contacto', to: '/#contact' },
 ]
 
@@ -36,9 +39,7 @@ onMounted(async () => {
     >
       <div class="max-w-7xl mx-auto px-6 lg:px-10 h-16 flex items-center justify-between">
         <NuxtLink to="/" class="flex items-center gap-2">
-          <span class="w-8 h-8 rounded-full bg-prohealth-600 grid place-items-center text-white font-bold">
-            +
-          </span>
+          <img :src="logoUrl" alt="Centro Óptico Vicente" class="w-8 h-8 rounded-full object-contain">
           <span class="font-extrabold text-lg text-prohealth-900">
             OptiSalud<span class="text-cyan-600"> Plus</span>
           </span>

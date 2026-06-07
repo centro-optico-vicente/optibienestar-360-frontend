@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Permission } from '~/types/permissions'
 import type { UserRole } from '~/types/auth'
+import logoUrl from '~/assets/centro-optico-vicente-logo.png'
 
 const auth = useAuthStore()
 const { logout } = useAuth()
@@ -29,6 +30,9 @@ const allNav: NavItem[] = [
   { label: 'Roles', to: '/dashboard/roles', icon: 'i-lucide-shield-check', requires: 'USER_CHANGE_ROLE' },
   { label: 'Catálogos', to: '/dashboard/catalogs', icon: 'i-lucide-database', roles: ['SYSTEM', 'ADMINISTRADOR'] },
   { label: 'Reportes', to: '/dashboard/reports', icon: 'i-lucide-bar-chart-3', requires: 'REPORT_VIEW_DASHBOARD' },
+  // Portales por rol (no admin).
+  { label: 'Mi carnet', to: '/afiliado', icon: 'i-lucide-id-card', requires: 'MEMBER_VIEW_OWN' },
+  { label: 'Mi empresa aliada', to: '/aliado', icon: 'i-lucide-building-2', roles: ['ALIADO'] },
 ]
 
 const otherNav: NavItem[] = [
@@ -62,7 +66,7 @@ const isSidebarOpen = ref<boolean>(false)
       ]"
     >
       <div class="h-16 px-5 flex items-center gap-2 border-b border-prohealth-100">
-        <span class="w-8 h-8 rounded-full bg-prohealth-600 grid place-items-center text-white font-bold">+</span>
+        <img :src="logoUrl" alt="Centro Óptico Vicente" class="w-8 h-8 rounded-full object-contain">
         <span class="font-extrabold text-prohealth-900">
           OptiSalud<span class="text-cyan-600"> Plus</span>
         </span>
