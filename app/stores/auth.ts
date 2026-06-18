@@ -27,8 +27,19 @@ function permissionsFromToken(token: string | null): string[] {
   return decodeJwt(token)?.permissions ?? []
 }
 
+/** Lee el claim `exp` (en ms) del accessToken; null si no se puede decodificar. */
+function accessExpMs(token: string | null): number | null {
+  const exp = token ? decodeJwt(token)?.exp : null
+  return exp ? exp * 1000 : null
+}
+
 // Promesa compartida: evita disparar varios /v1/auth/refresh en paralelo.
 let refreshing: Promise<boolean> | null = null
+
+// Timer del refresh proactivo (módulo, no reactivo): renueva antes de expirar.
+let refreshTimer: ReturnType<typeof setTimeout> | null = null
+// Margen para renovar antes del `exp`: cubre el reloj del cliente y la latencia.
+const REFRESH_MARGIN_MS = 60_000
 
 interface AuthState {
   accessToken: string | null
@@ -73,6 +84,7 @@ export const useAuthStore = defineStore('auth', {
       this.user = rawUser ? (JSON.parse(rawUser) as AuthUser) : null
       this.permissions = permissionsFromToken(this.accessToken)
       this.isHydrated = true
+      this.scheduleRefresh()
     },
 
     setSession(res: LoginResponse): void {
@@ -81,6 +93,7 @@ export const useAuthStore = defineStore('auth', {
       this.user = res.user
       this.permissions = permissionsFromToken(res.accessToken)
       this.persist()
+      this.scheduleRefresh()
     },
 
     setTokens(accessToken: string, refreshToken: string): void {
@@ -88,6 +101,7 @@ export const useAuthStore = defineStore('auth', {
       this.refreshToken = refreshToken
       this.permissions = permissionsFromToken(accessToken)
       this.persist()
+      this.scheduleRefresh()
     },
 
     /** Actualiza el perfil del usuario (p.ej. tras GET /v1/me) sin tocar los tokens. */
@@ -101,6 +115,34 @@ export const useAuthStore = defineStore('auth', {
       if (this.accessToken) sessionStorage.setItem(ACCESS_KEY, this.accessToken)
       if (this.refreshToken) localStorage.setItem(REFRESH_KEY, this.refreshToken)
       if (this.user) sessionStorage.setItem(USER_KEY, JSON.stringify(this.user))
+    },
+
+    /**
+     * Programa un refresh proactivo ~60s antes de que expire el accessToken.
+     * Se re-arma solo: cada `setTokens` exitoso vuelve a llamar aquí.
+     * Si el token ya está por vencer (o vencido), refresca en el próximo tick.
+     */
+    scheduleRefresh(): void {
+      if (!import.meta.client) return
+      if (refreshTimer) {
+        clearTimeout(refreshTimer)
+        refreshTimer = null
+      }
+      const expMs = accessExpMs(this.accessToken)
+      if (!expMs || !this.refreshToken) return
+      const delay = expMs - Date.now() - REFRESH_MARGIN_MS
+      if (delay <= 0) {
+        void this.tryRefresh()
+        return
+      }
+      refreshTimer = setTimeout(() => { void this.tryRefresh() }, delay)
+    },
+
+    /** ¿El accessToken expira dentro del margen? Usado por el pre-flight de useApi. */
+    isAccessExpiringSoon(): boolean {
+      const expMs = accessExpMs(this.accessToken)
+      if (!expMs) return false
+      return expMs - Date.now() <= REFRESH_MARGIN_MS
     },
 
     /** Renueva el par de tokens. Comparte la promesa entre llamadas concurrentes. */
@@ -134,6 +176,10 @@ export const useAuthStore = defineStore('auth', {
     },
 
     clearSession(): void {
+      if (refreshTimer) {
+        clearTimeout(refreshTimer)
+        refreshTimer = null
+      }
       this.accessToken = null
       this.refreshToken = null
       this.user = null

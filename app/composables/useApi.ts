@@ -57,6 +57,13 @@ export const useApi = async <T = unknown>(
     console.warn('[useApi] NUXT_PUBLIC_API_BASE_URL no está configurado.')
   }
 
+  // Pre-flight: si el accessToken está por expirar, renueva ANTES de enviar.
+  // Cubre el caso de pestaña en segundo plano (el timer del store se ralentiza).
+  // Single-flight: peticiones concurrentes comparten la misma promesa de refresh.
+  if (!skipAuth && !_retried && auth.refreshToken && auth.isAccessExpiringSoon()) {
+    await auth.tryRefresh()
+  }
+
   const finalHeaders: Record<string, string> = {
     Accept: 'application/json',
     ...(headers as Record<string, string> | undefined),
