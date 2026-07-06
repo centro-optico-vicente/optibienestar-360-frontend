@@ -411,12 +411,40 @@ onMounted(async () => {
             <dd class="text-prohealth-800 mt-0.5">{{ member.maritalStatus?.name || '—' }}</dd>
           </div>
           <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">Lugar de nacimiento</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ member.birthplace || '—' }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">Cantidad de hijos</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ member.numberOfChildren ?? '—' }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">Cónyuge</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ member.spouseName || '—' }}</dd>
+          </div>
+          <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">Ocupación</dt>
             <dd class="text-prohealth-800 mt-0.5">{{ member.occupation?.name || '—' }}</dd>
           </div>
           <div>
-            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">Teléfono</dt>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">Lugar de trabajo</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ member.employerName || '—' }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">Cargo</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ member.jobPosition || '—' }}</dd>
+          </div>
+          <div class="sm:col-span-2 lg:col-span-3">
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">Dirección de la empresa</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ member.employerAddress || '—' }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">Celular</dt>
             <dd class="text-prohealth-800 mt-0.5">{{ member.phone || '—' }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">Teléfono fijo</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ member.landlinePhone || '—' }}</dd>
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">Email</dt>
