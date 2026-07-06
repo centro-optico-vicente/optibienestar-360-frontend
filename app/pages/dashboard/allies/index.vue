@@ -122,6 +122,9 @@ const formOpen = ref(false)
 const mode = ref<'create' | 'edit'>('create')
 const editingUuid = ref<string | null>(null)
 const isSubmitting = ref(false)
+// El listado devuelve una proyección compacta (AllyListItemDto) con campos planos;
+// al editar se carga el detalle completo, y este flag muestra la carga en el modal.
+const editLoading = ref(false)
 
 const STATUS_OPTIONS = ['ACTIVE', 'INACTIVE', 'SUSPENDED']
 
@@ -201,25 +204,39 @@ function openCreate() {
   formOpen.value = true
 }
 
-function openEdit(a: AllyDto) {
+async function openEdit(a: AllyDto) {
   mode.value = 'edit'
   editingUuid.value = a.uuid
   resetForm()
-  state.name = a.name ?? ''
-  state.allyTypeUuid = a.allyType?.uuid
-  state.taxDocumentType = a.taxDocumentType || undefined
-  state.taxDocumentNumber = a.taxDocumentNumber ?? ''
-  state.email = a.email ?? ''
-  state.phone = a.phone ?? ''
-  state.website = a.website ?? ''
-  state.address = a.address ?? ''
-  state.cityUuid = a.city?.uuid
-  state.description = a.description ?? ''
-  state.joinedAt = a.joinedAt ?? ''
-  state.published = a.published ?? false
-  state.status = a.status || 'ACTIVE'
-  state.specialtyUuids = (a.specialties ?? []).map(s => s.uuid)
   formOpen.value = true
+  // La fila del listado (AllyListItemDto) trae los campos planos (allyTypeUuid, etc.)
+  // y omite email, RIF, web, especialidades…; además el form espera la forma anidada
+  // (allyType.uuid). Se carga el detalle completo para poblar de forma fiable.
+  editLoading.value = true
+  try {
+    const full = await allies.get(a.uuid)
+    state.name = full.name ?? ''
+    state.allyTypeUuid = full.allyType?.uuid
+    state.taxDocumentType = full.taxDocumentType || undefined
+    state.taxDocumentNumber = full.taxDocumentNumber ?? ''
+    state.email = full.email ?? ''
+    state.phone = full.phone ?? ''
+    state.website = full.website ?? ''
+    state.address = full.address ?? ''
+    state.cityUuid = full.city?.uuid
+    state.description = full.description ?? ''
+    state.joinedAt = full.joinedAt ?? ''
+    state.published = full.published ?? false
+    state.status = full.status || 'ACTIVE'
+    state.specialtyUuids = (full.specialties ?? []).map(s => s.uuid)
+  }
+  catch {
+    // El detalle no cargó (useApi ya notificó); cierra el modal.
+    formOpen.value = false
+  }
+  finally {
+    editLoading.value = false
+  }
 }
 
 async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
@@ -452,7 +469,12 @@ async function confirmDelete() {
       :ui="{ content: 'max-w-2xl' }"
     >
       <template #body>
+        <div v-if="editLoading" class="py-12 flex flex-col items-center justify-center gap-2 text-prohealth-500">
+          <UIcon name="i-lucide-loader-circle" class="w-6 h-6 animate-spin" />
+          <span class="text-sm">Cargando datos del aliado…</span>
+        </div>
         <UForm
+          v-else
           :schema="schema"
           :state="state"
           class="space-y-4"
