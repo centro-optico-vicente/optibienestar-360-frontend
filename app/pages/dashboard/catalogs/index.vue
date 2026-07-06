@@ -10,7 +10,7 @@ definePageMeta({
   roles: ['SYSTEM', 'ADMINISTRADOR'],
 })
 
-useSeoMeta({ title: 'Datos maestros — OptiSalud Plus' })
+useSeoMeta({ title: 'Datos maestros — OptiBienestar 360' })
 </script>
 
 <template>

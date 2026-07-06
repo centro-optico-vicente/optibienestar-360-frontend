@@ -41,7 +41,7 @@ onMounted(async () => {
         <NuxtLink to="/" class="flex items-center gap-2">
           <img :src="logoUrl" alt="Centro Óptico Vicente" class="w-8 h-8 rounded-full object-contain">
           <span class="font-extrabold text-lg text-prohealth-900">
-            OptiSalud<span class="text-cyan-600"> Plus</span>
+            OptiBienestar<span class="text-cyan-600"> 360</span>
           </span>
         </NuxtLink>
 
@@ -90,7 +90,7 @@ onMounted(async () => {
         <div class="md:col-span-2">
           <div class="flex items-center gap-2 mb-3">
             <span class="w-8 h-8 rounded-full bg-lime-500 grid place-items-center text-prohealth-950 font-bold">+</span>
-            <span class="font-extrabold text-lg text-white">OptiSalud Plus</span>
+            <span class="font-extrabold text-lg text-white">OptiBienestar 360</span>
           </div>
           <p class="text-sm text-prohealth-200/80 max-w-md">
             Programa integral de salud y bienestar. Atención preferencial en centros aliados,
@@ -108,14 +108,14 @@ onMounted(async () => {
         <div>
           <h4 class="font-semibold text-white mb-3">Contacto</h4>
           <ul class="space-y-2 text-sm text-prohealth-200/80">
-            <li>info@optisaludplus.com</li>
+            <li>info@optibienestar360.com</li>
             <li>+58 412 000 0000</li>
           </ul>
         </div>
       </div>
       <div class="border-t border-white/10">
         <div class="max-w-7xl mx-auto px-6 lg:px-10 py-4 text-xs text-prohealth-200/60 flex flex-wrap items-center justify-between gap-2">
-          <span>© {{ new Date().getFullYear() }} OptiSalud Plus. Todos los derechos reservados.</span>
+          <span>© {{ new Date().getFullYear() }} OptiBienestar 360. Todos los derechos reservados.</span>
           <span v-if="version" class="opacity-70">{{ version }}</span>
         </div>
       </div>

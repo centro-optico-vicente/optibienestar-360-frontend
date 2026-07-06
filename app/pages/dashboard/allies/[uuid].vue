@@ -29,7 +29,7 @@ definePageMeta({
   permission: 'ALLY_VIEW_ALL',
 })
 
-useSeoMeta({ title: 'Detalle de aliado — OptiSalud Plus' })
+useSeoMeta({ title: 'Detalle de aliado — OptiBienestar 360' })
 
 const route = useRoute()
 const allyUuid = route.params.uuid as string

@@ -7,8 +7,8 @@ import type { PublicAllyDto } from '~/types/allies'
 definePageMeta({ layout: 'default' })
 
 useSeoMeta({
-  title: 'Red de aliados — OptiSalud Plus',
-  description: 'Directorio de clínicas, farmacias y profesionales aliados de OptiSalud Plus.',
+  title: 'Red de aliados — OptiBienestar 360',
+  description: 'Directorio de clínicas, farmacias y profesionales aliados de OptiBienestar 360.',
 })
 
 const publicAllies = usePublicAllies()
@@ -137,7 +137,7 @@ onMounted(async () => {
           <span class="text-lime-300">más cercano.</span>
         </h1>
         <p class="mt-4 text-prohealth-100/90 max-w-xl">
-          Clínicas, farmacias y profesionales con atención preferencial para afiliados de OptiSalud Plus.
+          Clínicas, farmacias y profesionales con atención preferencial para afiliados de OptiBienestar 360.
         </p>
       </div>
     </section>

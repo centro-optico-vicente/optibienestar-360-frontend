@@ -9,7 +9,7 @@ definePageMeta({
   permission: 'USER_CHANGE_ROLE',
 })
 
-useSeoMeta({ title: 'Roles — OptiSalud Plus' })
+useSeoMeta({ title: 'Roles — OptiBienestar 360' })
 
 const rolesApi = useRoles()
 const { can } = usePermissions()

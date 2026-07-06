@@ -8,7 +8,7 @@ import aboutImg from '~/assets/img/c08baae430a8d168d93847b175f3d6ec.jpg'
 definePageMeta({ layout: 'default' })
 
 useSeoMeta({
-  title: 'OptiSalud Plus — Cuidamos lo que más amas',
+  title: 'OptiBienestar 360 — Cuidamos lo que más amas',
   description:
     'Plan integral de salud con red de aliados, atención preferencial, carnet digital y cobertura familiar.',
 })
@@ -156,7 +156,7 @@ const departments: Department[] = [
         <div class="relative aspect-[4/5] rounded-3xl bg-white/10 backdrop-blur border border-white/20 overflow-hidden">
           <img
             :src="heroImg"
-            alt="Examen visual con optometrista en OptiSalud Plus"
+            alt="Examen visual con optometrista en OptiBienestar 360"
             class="h-full w-full object-cover"
           >
           <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-prohealth-950/80 via-prohealth-950/20 to-transparent p-6">
@@ -191,7 +191,7 @@ const departments: Department[] = [
           Sobre nosotros
         </p>
         <h2 class="text-3xl md:text-4xl font-extrabold text-prohealth-900 leading-tight">
-          OptiSalud Plus es un equipo
+          OptiBienestar 360 es un equipo
           de profesionales de la salud comprometidos.
         </h2>
         <p class="mt-5 text-prohealth-700/80 max-w-lg">
@@ -203,7 +203,7 @@ const departments: Department[] = [
       <div class="aspect-[5/4] rounded-3xl overflow-hidden border border-prohealth-100">
         <img
           :src="aboutImg"
-          alt="Equipo de profesionales de OptiSalud Plus"
+          alt="Equipo de profesionales de OptiBienestar 360"
           class="h-full w-full object-cover"
         >
       </div>
@@ -251,7 +251,7 @@ const departments: Department[] = [
         </p>
         <ul class="mt-6 space-y-3 text-sm text-prohealth-700">
           <li class="flex items-center gap-2">
-            <UIcon name="i-lucide-mail" class="w-4 h-4 text-prohealth-500" /> info@optisaludplus.com
+            <UIcon name="i-lucide-mail" class="w-4 h-4 text-prohealth-500" /> info@optibienestar360.com
           </li>
           <li class="flex items-center gap-2">
             <UIcon name="i-lucide-phone" class="w-4 h-4 text-prohealth-500" /> +58 412 000 0000

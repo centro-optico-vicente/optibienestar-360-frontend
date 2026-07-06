@@ -13,7 +13,7 @@ import logoUrl from '~/assets/centro-optico-vicente-logo.png'
       <div class="relative z-10 flex flex-col justify-between p-12 text-white w-full">
         <NuxtLink to="/" class="flex items-center gap-2">
           <img :src="logoUrl" alt="Centro Óptico Vicente" class="w-9 h-9 rounded-full bg-white/15 backdrop-blur object-contain">
-          <span class="font-extrabold text-xl">OptiSalud Plus</span>
+          <span class="font-extrabold text-xl">OptiBienestar 360</span>
         </NuxtLink>
 
         <div>
@@ -22,7 +22,7 @@ import logoUrl from '~/assets/centro-optico-vicente-logo.png'
           </h1>
           <p class="mt-4 text-prohealth-100/90 max-w-md">
             Accede a tu carnet digital, gestiona tus afiliados y descubre la red de aliados
-            del programa OptiSalud Plus.
+            del programa OptiBienestar 360.
           </p>
 
           <div class="mt-8 flex items-center gap-3 bg-white/10 backdrop-blur rounded-xl px-4 py-3 max-w-sm">
@@ -38,7 +38,7 @@ import logoUrl from '~/assets/centro-optico-vicente-logo.png'
           </div>
         </div>
 
-        <span class="text-xs opacity-70">© {{ new Date().getFullYear() }} OptiSalud Plus</span>
+        <span class="text-xs opacity-70">© {{ new Date().getFullYear() }} OptiBienestar 360</span>
       </div>
     </aside>
 

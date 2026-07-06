@@ -17,7 +17,7 @@ const toast = useToast()
 // al navegar entre catálogos.
 const def = computed(() => getCatalogDef(String(route.params.resource)))
 
-useSeoMeta({ title: () => `${def.value?.label ?? 'Catálogo'} — OptiSalud Plus` })
+useSeoMeta({ title: () => `${def.value?.label ?? 'Catálogo'} — OptiBienestar 360` })
 
 const hasDescription = computed(() => def.value?.fields.some(f => f.name === 'description') ?? false)
 

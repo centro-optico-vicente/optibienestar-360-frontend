@@ -4,7 +4,7 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 
 definePageMeta({ layout: 'dashboard' })
 
-useSeoMeta({ title: 'Cambiar contraseña — OptiSalud Plus' })
+useSeoMeta({ title: 'Cambiar contraseña — OptiBienestar 360' })
 
 const { changePassword } = useAuth()
 const toast = useToast()

@@ -18,7 +18,7 @@ const notFound = ref(false)
 onMounted(async () => {
   try {
     ally.value = await publicAllies.get(allyUuid)
-    useSeoMeta({ title: `${ally.value.name} — Red de aliados OptiSalud Plus` })
+    useSeoMeta({ title: `${ally.value.name} — Red de aliados OptiBienestar 360` })
   }
   catch (err) {
     if ((err as ApiError).status === 404) notFound.value = true
@@ -164,7 +164,7 @@ function formatMoney(v?: string | null): string {
         <div>
           <h3 class="font-bold text-lg">¿Aún no eres afiliado?</h3>
           <p class="text-sm text-prohealth-100/90 mt-1">
-            Únete a OptiSalud Plus y accede a precios preferenciales en toda la red.
+            Únete a OptiBienestar 360 y accede a precios preferenciales en toda la red.
           </p>
         </div>
         <UButton to="/#contact" color="secondary" variant="solid">

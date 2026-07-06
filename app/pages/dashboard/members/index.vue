@@ -14,7 +14,7 @@ definePageMeta({
   permission: 'MEMBER_VIEW_ALL',
 })
 
-useSeoMeta({ title: 'Afiliados — OptiSalud Plus' })
+useSeoMeta({ title: 'Afiliados — OptiBienestar 360' })
 
 const members = useMembers()
 const { can } = usePermissions()

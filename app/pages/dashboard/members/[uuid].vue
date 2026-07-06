@@ -18,7 +18,7 @@ definePageMeta({
   permission: 'MEMBER_VIEW_ALL',
 })
 
-useSeoMeta({ title: 'Detalle de afiliado — OptiSalud Plus' })
+useSeoMeta({ title: 'Detalle de afiliado — OptiBienestar 360' })
 
 const route = useRoute()
 const memberUuid = route.params.uuid as string
