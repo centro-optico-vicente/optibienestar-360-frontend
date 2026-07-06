@@ -52,7 +52,7 @@ const isSidebarOpen = ref<boolean>(false)
       <div class="h-16 px-5 flex items-center gap-2 border-b border-prohealth-100">
         <img :src="logoUrl" alt="Centro Óptico Vicente" class="w-8 h-8 rounded-full object-contain">
         <span class="font-extrabold text-prohealth-900">
-          OptiSalud<span class="text-cyan-600"> Plus</span>
+          OptiBienestar<span class="text-cyan-600"> 360</span>
         </span>
       </div>
 

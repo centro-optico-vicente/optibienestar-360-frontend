@@ -5,7 +5,7 @@ import type { ApiError } from '~/types/auth'
 
 definePageMeta({ layout: 'auth' })
 
-useSeoMeta({ title: 'Restablecer contraseña — OptiSalud Plus' })
+useSeoMeta({ title: 'Restablecer contraseña — OptiBienestar 360' })
 
 const { resetPassword } = useAuth()
 const route = useRoute()

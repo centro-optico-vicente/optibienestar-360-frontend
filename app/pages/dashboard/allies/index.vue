@@ -14,7 +14,7 @@ definePageMeta({
   permission: 'ALLY_VIEW_ALL',
 })
 
-useSeoMeta({ title: 'Aliados — OptiSalud Plus' })
+useSeoMeta({ title: 'Aliados — OptiBienestar 360' })
 
 const allies = useAllies()
 const { can } = usePermissions()

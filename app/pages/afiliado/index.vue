@@ -12,7 +12,7 @@ definePageMeta({
   permission: 'MEMBER_VIEW_OWN',
 })
 
-useSeoMeta({ title: 'Mi carnet — OptiSalud Plus' })
+useSeoMeta({ title: 'Mi carnet — OptiBienestar 360' })
 
 const members = useMembers()
 const auth = useAuthStore()
@@ -96,9 +96,9 @@ function formatDate(iso?: string | null): string {
           <!-- Marca + estado -->
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <img :src="logoUrl" alt="OptiSalud Plus" class="w-8 h-8 rounded-full object-contain bg-white/90">
+              <img :src="logoUrl" alt="OptiBienestar 360" class="w-8 h-8 rounded-full object-contain bg-white/90">
               <span class="font-extrabold">
-                OptiSalud<span class="text-lime-300"> Plus</span>
+                OptiBienestar<span class="text-lime-300"> 360</span>
               </span>
             </div>
             <UBadge

@@ -14,7 +14,7 @@ definePageMeta({
   permission: 'USER_VIEW_ALL',
 })
 
-useSeoMeta({ title: 'Usuarios — OptiSalud Plus' })
+useSeoMeta({ title: 'Usuarios — OptiBienestar 360' })
 
 const users = useUsers()
 const roles = useRoles()

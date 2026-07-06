@@ -8,7 +8,7 @@ import img4 from '~/assets/img/c08baae430a8d168d93847b175f3d6ec.jpg'
 
 definePageMeta({ layout: 'dashboard' })
 
-useSeoMeta({ title: 'Panel — OptiSalud Plus' })
+useSeoMeta({ title: 'Panel — OptiBienestar 360' })
 
 const auth = useAuthStore()
 
@@ -138,7 +138,7 @@ const greeting = computed<string>(() => {
           </h2>
           <p class="mt-3 text-prohealth-100/90 max-w-md text-sm">
             Exámenes visuales, monturas y lentes para todos tus afiliados,
-            respaldados por la red OptiSalud Plus.
+            respaldados por la red OptiBienestar 360.
           </p>
           <UButton
             to="/dashboard/users"
@@ -154,7 +154,7 @@ const greeting = computed<string>(() => {
         <div class="h-56 md:h-full min-h-[16rem]">
           <img
             :src="imgHero"
-            alt="Atención óptica OptiSalud Plus"
+            alt="Atención óptica OptiBienestar 360"
             class="h-full w-full object-cover"
           >
         </div>
@@ -166,7 +166,7 @@ const greeting = computed<string>(() => {
       <div class="flex items-center justify-between mb-4">
         <div>
           <h3 class="font-bold text-prohealth-900">Galería de servicios</h3>
-          <p class="text-xs text-prohealth-500">Conoce la experiencia OptiSalud Plus</p>
+          <p class="text-xs text-prohealth-500">Conoce la experiencia OptiBienestar 360</p>
         </div>
         <UButton size="xs" color="neutral" variant="ghost" icon="i-lucide-images">
           Ver todo

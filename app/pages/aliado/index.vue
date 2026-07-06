@@ -16,7 +16,7 @@ definePageMeta({
   roles: ['ALIADO'],
 })
 
-useSeoMeta({ title: 'Mi empresa aliada — OptiSalud Plus' })
+useSeoMeta({ title: 'Mi empresa aliada — OptiBienestar 360' })
 
 const allies = useAllies()
 const toast = useToast()
@@ -81,7 +81,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     localStorage.setItem(ALLY_UUID_KEY, state.allyUuid)
     toast.add({
       title: 'Servicio propuesto',
-      description: 'Quedó en revisión; el equipo de OptiSalud lo aprobará.',
+      description: 'Quedó en revisión; el equipo de OptiBienestar 360 lo aprobará.',
       color: 'success',
       icon: 'i-lucide-check-circle',
     })
@@ -107,7 +107,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     <div>
       <h1 class="text-2xl font-extrabold text-prohealth-900">Mi empresa aliada</h1>
       <p class="text-sm text-prohealth-700/70 mt-1">
-        Propón nuevos servicios para tu empresa. Quedan en revisión hasta que OptiSalud los apruebe.
+        Propón nuevos servicios para tu empresa. Quedan en revisión hasta que OptiBienestar 360 los apruebe.
       </p>
     </div>
 
@@ -138,7 +138,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           label="UUID de tu empresa aliada"
           name="allyUuid"
           required
-          help="Te lo proporciona el equipo de OptiSalud al registrar tu empresa. Se recordará para próximas propuestas."
+          help="Te lo proporciona el equipo de OptiBienestar 360 al registrar tu empresa. Se recordará para próximas propuestas."
         >
           <UInput
             v-model="state.allyUuid"
@@ -195,7 +195,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       </p>
       <ol class="list-decimal list-inside space-y-1 text-prohealth-700">
         <li>Envías la propuesta del servicio con su precio y descuento para afiliados.</li>
-        <li>El equipo de OptiSalud la revisa y aprueba.</li>
+        <li>El equipo de OptiBienestar 360 la revisa y aprueba.</li>
         <li>Una vez publicado, aparece en el <NuxtLink to="/aliados" class="text-cyan-700 hover:underline">directorio público</NuxtLink>.</li>
       </ol>
     </div>

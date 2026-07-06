@@ -30,12 +30,12 @@ export default defineNuxtConfig({
 
   app: {
     head: {
-      title: 'OptiSalud Plus',
+      title: 'OptiBienestar 360',
       htmlAttrs: { lang: 'es' },
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'description', content: 'Programa de salud y bienestar OptiSalud Plus' },
+        { name: 'description', content: 'Programa de salud y bienestar OptiBienestar 360' },
       ],
       link: [
         { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },

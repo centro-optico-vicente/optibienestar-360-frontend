@@ -6,8 +6,8 @@ import type { ApiError } from '~/types/auth'
 definePageMeta({ layout: 'auth' })
 
 useSeoMeta({
-  title: 'Ingresar — OptiSalud Plus',
-  description: 'Accede al portal OptiSalud Plus',
+  title: 'Ingresar — OptiBienestar 360',
+  description: 'Accede al portal OptiBienestar 360',
 })
 
 const { login } = useAuth()

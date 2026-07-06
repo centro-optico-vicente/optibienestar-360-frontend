@@ -19,7 +19,7 @@ watchEffect(() => {
 })
 
 useSeoMeta({
-  title: () => (group.value ? `${group.value.label} — OptiSalud Plus` : 'OptiSalud Plus'),
+  title: () => (group.value ? `${group.value.label} — OptiBienestar 360` : 'OptiBienestar 360'),
 })
 </script>
 

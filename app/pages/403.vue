@@ -1,7 +1,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard' })
 
-useSeoMeta({ title: 'Sin permiso — OptiSalud Plus' })
+useSeoMeta({ title: 'Sin permiso — OptiBienestar 360' })
 </script>
 
 <template>
