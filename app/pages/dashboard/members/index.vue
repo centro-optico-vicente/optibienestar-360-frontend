@@ -142,9 +142,16 @@ interface FormState {
   maritalStatusUuid: string | undefined
   occupationUuid: string | undefined
   cityUuid: string | undefined
+  birthplace: string
+  numberOfChildren: string
+  spouseName: string
   phone: string
+  landlinePhone: string
   email: string
   address: string
+  employerName: string
+  jobPosition: string
+  employerAddress: string
   enrolledAt: string
   status: string
   notes: string
@@ -162,9 +169,16 @@ const state = reactive<FormState>({
   maritalStatusUuid: undefined,
   occupationUuid: undefined,
   cityUuid: undefined,
+  birthplace: '',
+  numberOfChildren: '',
+  spouseName: '',
   phone: '',
+  landlinePhone: '',
   email: '',
   address: '',
+  employerName: '',
+  jobPosition: '',
+  employerAddress: '',
   enrolledAt: '',
   status: 'ACTIVE',
   notes: '',
@@ -185,9 +199,16 @@ const baseSchema = {
   lastName: z.string().min(2, 'Mínimo 2 caracteres'),
   secondLastName: z.string().optional(),
   birthDate: z.string().min(1, 'Requerido').refine(isAdult, 'El titular debe ser mayor de 18 años'),
+  birthplace: z.string().optional(),
+  numberOfChildren: z.string().regex(/^\d*$/, 'Solo números').optional(),
+  spouseName: z.string().optional(),
   phone: z.string().optional(),
+  landlinePhone: z.string().optional(),
   email: z.string().email('Email no válido').optional().or(z.literal('')),
   address: z.string().optional(),
+  employerName: z.string().optional(),
+  jobPosition: z.string().optional(),
+  employerAddress: z.string().optional(),
   enrolledAt: z.string().optional(),
   notes: z.string().optional(),
 }
@@ -217,9 +238,16 @@ function resetForm() {
   state.maritalStatusUuid = undefined
   state.occupationUuid = undefined
   state.cityUuid = undefined
+  state.birthplace = ''
+  state.numberOfChildren = ''
+  state.spouseName = ''
   state.phone = ''
+  state.landlinePhone = ''
   state.email = ''
   state.address = ''
+  state.employerName = ''
+  state.jobPosition = ''
+  state.employerAddress = ''
   state.enrolledAt = ''
   state.status = 'ACTIVE'
   state.notes = ''
@@ -248,9 +276,16 @@ function openEdit(m: MemberDto) {
   state.maritalStatusUuid = m.maritalStatus?.uuid
   state.occupationUuid = m.occupation?.uuid
   state.cityUuid = m.city?.uuid
+  state.birthplace = m.birthplace ?? ''
+  state.numberOfChildren = m.numberOfChildren != null ? String(m.numberOfChildren) : ''
+  state.spouseName = m.spouseName ?? ''
   state.phone = m.phone ?? ''
+  state.landlinePhone = m.landlinePhone ?? ''
   state.email = m.email ?? ''
   state.address = m.address ?? ''
+  state.employerName = m.employerName ?? ''
+  state.jobPosition = m.jobPosition ?? ''
+  state.employerAddress = m.employerAddress ?? ''
   state.enrolledAt = m.enrolledAt ?? ''
   state.status = m.status || 'ACTIVE'
   state.notes = m.notes ?? ''
@@ -273,9 +308,16 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         maritalStatusUuid: state.maritalStatusUuid,
         occupationUuid: state.occupationUuid,
         cityUuid: state.cityUuid,
+        birthplace: state.birthplace || undefined,
+        numberOfChildren: state.numberOfChildren ? Number(state.numberOfChildren) : undefined,
+        spouseName: state.spouseName || undefined,
         phone: state.phone || undefined,
+        landlinePhone: state.landlinePhone || undefined,
         email: state.email || undefined,
         address: state.address || undefined,
+        employerName: state.employerName || undefined,
+        jobPosition: state.jobPosition || undefined,
+        employerAddress: state.employerAddress || undefined,
         enrolledAt: state.enrolledAt || undefined,
         notes: state.notes || undefined,
       }
@@ -293,9 +335,16 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         maritalStatusUuid: state.maritalStatusUuid,
         occupationUuid: state.occupationUuid,
         cityUuid: state.cityUuid,
+        birthplace: state.birthplace || undefined,
+        numberOfChildren: state.numberOfChildren ? Number(state.numberOfChildren) : undefined,
+        spouseName: state.spouseName || undefined,
         phone: state.phone || undefined,
+        landlinePhone: state.landlinePhone || undefined,
         email: state.email || undefined,
         address: state.address || undefined,
+        employerName: state.employerName || undefined,
+        jobPosition: state.jobPosition || undefined,
+        employerAddress: state.employerAddress || undefined,
         enrolledAt: state.enrolledAt || undefined,
         status: state.status,
         notes: state.notes || undefined,
@@ -565,6 +614,19 @@ function formatDate(iso?: string | null): string {
             </UFormField>
           </div>
 
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <UFormField label="Lugar de nacimiento" name="birthplace">
+              <UInput v-model="state.birthplace" class="w-full" />
+            </UFormField>
+            <UFormField label="Cantidad de hijos" name="numberOfChildren">
+              <UInput v-model="state.numberOfChildren" type="number" min="0" class="w-full" />
+            </UFormField>
+          </div>
+
+          <UFormField label="Cónyuge" name="spouseName">
+            <UInput v-model="state.spouseName" class="w-full" />
+          </UFormField>
+
           <UFormField label="Ocupación" name="occupationUuid">
             <USelectMenu
               v-model="state.occupationUuid"
@@ -577,13 +639,30 @@ function formatDate(iso?: string | null): string {
           </UFormField>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField label="Teléfono" name="phone">
-              <UInput v-model="state.phone" class="w-full" />
+            <UFormField label="Lugar de trabajo" name="employerName">
+              <UInput v-model="state.employerName" class="w-full" />
             </UFormField>
-            <UFormField label="Email" name="email">
-              <UInput v-model="state.email" type="email" class="w-full" />
+            <UFormField label="Cargo" name="jobPosition">
+              <UInput v-model="state.jobPosition" class="w-full" />
             </UFormField>
           </div>
+
+          <UFormField label="Dirección de la empresa" name="employerAddress">
+            <UInput v-model="state.employerAddress" class="w-full" />
+          </UFormField>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <UFormField label="Celular" name="phone">
+              <UInput v-model="state.phone" class="w-full" />
+            </UFormField>
+            <UFormField label="Teléfono fijo" name="landlinePhone">
+              <UInput v-model="state.landlinePhone" class="w-full" />
+            </UFormField>
+          </div>
+
+          <UFormField label="Email" name="email">
+            <UInput v-model="state.email" type="email" class="w-full" />
+          </UFormField>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <UFormField label="Estado (región)" name="stateUuid">

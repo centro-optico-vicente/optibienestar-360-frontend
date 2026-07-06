@@ -57,9 +57,18 @@ export interface MemberDto {
   maritalStatus?: CatalogRef
   occupation?: CatalogRef
   city?: CatalogRef
+  // Datos de la planilla de inscripción (V29)
+  birthplace?: string
+  numberOfChildren?: number
+  spouseName?: string
   phone?: string
+  landlinePhone?: string
   email?: string
   address?: string
+  // Información laboral del titular (V29)
+  employerName?: string
+  jobPosition?: string
+  employerAddress?: string
   enrolledAt?: string
   status?: string
   notes?: string
@@ -79,9 +88,18 @@ export interface CreateMemberRequest {
   maritalStatusUuid?: string
   occupationUuid?: string
   cityUuid?: string
+  // Datos de la planilla de inscripción (V29)
+  birthplace?: string
+  numberOfChildren?: number
+  spouseName?: string
   phone?: string
+  landlinePhone?: string
   email?: string
   address?: string
+  // Información laboral del titular (V29)
+  employerName?: string
+  jobPosition?: string
+  employerAddress?: string
   enrolledAt?: string
   notes?: string
 }
