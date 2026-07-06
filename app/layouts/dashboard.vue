@@ -1,51 +1,35 @@
 <script setup lang="ts">
-import type { Permission } from '~/types/permissions'
-import type { UserRole } from '~/types/auth'
 import logoUrl from '~/assets/centro-optico-vicente-logo.png'
+import { OTHER_NAV } from '~/utils/nav'
 
 const auth = useAuthStore()
 const { logout } = useAuth()
-const { can, hasAnyRole } = usePermissions()
+const route = useRoute()
 
-// El menú es un ESPEJO de los permisos: cada ítem declara la llave que exige.
-// Algunas áreas sin permiso dedicado (catálogos) se gatean por rol.
-interface NavItem {
-  label: string
-  to: string
-  icon: string
-  requires?: Permission | Permission[]
-  roles?: UserRole[]
+// Menú de dos niveles (módulo → vista), filtrado por permisos en useNav().
+const { visibleNav, groupKeyOfPath } = useNav()
+
+// Acordeón: un solo grupo abierto a la vez. Se abre automáticamente el grupo que
+// contiene la ruta activa y se recuerda al navegar dentro de él.
+const openGroup = ref<string | null>(null)
+watch(
+  () => route.path,
+  (path) => {
+    const key = groupKeyOfPath(path)
+    if (key) openGroup.value = key
+  },
+  { immediate: true },
+)
+
+function toggleGroup(key: string): void {
+  openGroup.value = openGroup.value === key ? null : key
 }
 
-const allNav: NavItem[] = [
-  { label: 'Panel', to: '/dashboard', icon: 'i-lucide-layout-dashboard' },
-  { label: 'Afiliados', to: '/dashboard/members', icon: 'i-lucide-users', requires: 'MEMBER_VIEW_ALL' },
-  { label: 'Aliados', to: '/dashboard/allies', icon: 'i-lucide-handshake', requires: 'ALLY_VIEW_ALL' },
-  { label: 'Planes', to: '/dashboard/plans', icon: 'i-lucide-package', requires: 'PLAN_VIEW_ALL' },
-  { label: 'Membresías', to: '/dashboard/memberships', icon: 'i-lucide-badge-check', requires: 'MEMBERSHIP_VIEW_ALL' },
-  { label: 'Pagos', to: '/dashboard/payments', icon: 'i-lucide-credit-card', requires: 'PAYMENT_VIEW_ALL' },
-  { label: 'Promotores', to: '/dashboard/promoters', icon: 'i-lucide-megaphone', requires: 'PROMOTER_VIEW_ALL' },
-  { label: 'Comisiones', to: '/dashboard/commissions', icon: 'i-lucide-percent', requires: ['COMMISSION_VIEW_ALL', 'COMMISSION_VIEW_OWN'] },
-  { label: 'Usuarios', to: '/dashboard/users', icon: 'i-lucide-shield-user', requires: 'USER_VIEW_ALL' },
-  { label: 'Roles', to: '/dashboard/roles', icon: 'i-lucide-shield-check', requires: 'USER_CHANGE_ROLE' },
-  { label: 'Catálogos', to: '/dashboard/catalogs', icon: 'i-lucide-database', roles: ['SYSTEM', 'ADMINISTRADOR'] },
-  { label: 'Reportes', to: '/dashboard/reports', icon: 'i-lucide-bar-chart-3', requires: 'REPORT_VIEW_DASHBOARD' },
-  // Portales por rol (no admin).
-  { label: 'Mi carnet', to: '/afiliado', icon: 'i-lucide-id-card', requires: 'MEMBER_VIEW_OWN' },
-  { label: 'Mi empresa aliada', to: '/aliado', icon: 'i-lucide-building-2', roles: ['ALIADO'] },
-]
+// El encabezado del grupo se resalta cuando alguna de sus vistas es la ruta activa.
+const activeGroupKey = computed<string | null>(() => groupKeyOfPath(route.path))
 
-const otherNav: NavItem[] = [
-  { label: 'Cambiar contraseña', to: '/dashboard/change-password', icon: 'i-lucide-key-round' },
-]
-
-const navItems = computed<NavItem[]>(() =>
-  allNav.filter((i) => {
-    if (i.roles?.length) return hasAnyRole(...i.roles)
-    if (!i.requires) return true
-    return Array.isArray(i.requires) ? i.requires.some(can) : can(i.requires)
-  }),
-)
+// Clases compartidas por los enlaces del menú (ítem raíz e hijos).
+const ACTIVE_LINK = 'bg-prohealth-50 text-prohealth-700 font-semibold'
 
 // Mientras se hidrata/carga el perfil mostramos skeletons en el menú y el footer.
 const ready = ref<boolean>(false)
@@ -84,15 +68,14 @@ const isSidebarOpen = ref<boolean>(false)
           </li>
         </ul>
         <ul v-else class="space-y-1">
-          <li v-for="item in navItems" :key="item.to">
-            <NuxtLink
-              :to="item.to"
-              active-class="bg-prohealth-50 text-prohealth-700 font-semibold"
-              class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-prohealth-900/80 hover:bg-prohealth-50 hover:text-prohealth-700 transition-colors"
-            >
-              <UIcon :name="item.icon" class="w-5 h-5" />
-              {{ item.label }}
-            </NuxtLink>
+          <li v-for="(entry, i) in visibleNav" :key="i">
+            <AppNavItem
+              :entry="entry"
+              :open-group="openGroup"
+              :active-group-key="activeGroupKey"
+              @toggle="toggleGroup"
+              @navigate="isSidebarOpen = false"
+            />
           </li>
         </ul>
 
@@ -100,11 +83,12 @@ const isSidebarOpen = ref<boolean>(false)
           Otros
         </p>
         <ul class="space-y-1">
-          <li v-for="item in otherNav" :key="item.to">
+          <li v-for="item in OTHER_NAV" :key="item.to">
             <NuxtLink
               :to="item.to"
-              active-class="bg-prohealth-50 text-prohealth-700 font-semibold"
+              :active-class="ACTIVE_LINK"
               class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-prohealth-900/80 hover:bg-prohealth-50 hover:text-prohealth-700 transition-colors"
+              @click="isSidebarOpen = false"
             >
               <UIcon :name="item.icon" class="w-5 h-5" />
               {{ item.label }}
