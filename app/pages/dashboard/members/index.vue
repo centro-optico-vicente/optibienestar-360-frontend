@@ -127,6 +127,9 @@ const formOpen = ref(false)
 const mode = ref<'create' | 'edit'>('create')
 const editingUuid = ref<string | null>(null)
 const isSubmitting = ref(false)
+// El listado devuelve una proyección compacta (MemberListItemDto); al editar se
+// carga el detalle completo, y este flag muestra el estado de carga en el modal.
+const editLoading = ref(false)
 
 const STATUS_OPTIONS = ['ACTIVE', 'INACTIVE', 'SUSPENDED']
 
@@ -261,35 +264,49 @@ function openCreate() {
   formOpen.value = true
 }
 
-function openEdit(m: MemberDto) {
+async function openEdit(m: MemberDto) {
   mode.value = 'edit'
   editingUuid.value = m.uuid
   resetForm()
-  state.firstName = m.firstName ?? ''
-  state.middleName = m.middleName ?? ''
-  state.lastName = m.lastName ?? ''
-  state.secondLastName = m.secondLastName ?? ''
-  state.documentType = m.documentType || undefined
-  state.documentNumber = m.documentNumber ?? ''
-  state.birthDate = m.birthDate ?? ''
-  state.genderUuid = m.gender?.uuid
-  state.maritalStatusUuid = m.maritalStatus?.uuid
-  state.occupationUuid = m.occupation?.uuid
-  state.cityUuid = m.city?.uuid
-  state.birthplace = m.birthplace ?? ''
-  state.numberOfChildren = m.numberOfChildren != null ? String(m.numberOfChildren) : ''
-  state.spouseName = m.spouseName ?? ''
-  state.phone = m.phone ?? ''
-  state.landlinePhone = m.landlinePhone ?? ''
-  state.email = m.email ?? ''
-  state.address = m.address ?? ''
-  state.employerName = m.employerName ?? ''
-  state.jobPosition = m.jobPosition ?? ''
-  state.employerAddress = m.employerAddress ?? ''
-  state.enrolledAt = m.enrolledAt ?? ''
-  state.status = m.status || 'ACTIVE'
-  state.notes = m.notes ?? ''
   formOpen.value = true
+  // La fila del listado (MemberListItemDto) solo trae nombre completo, documento,
+  // teléfono y fecha de afiliación; el resto (partes del nombre, nacimiento, género,
+  // catálogos…) solo viene en el detalle. Se carga el registro completo para poblar.
+  editLoading.value = true
+  try {
+    const full = await members.get(m.uuid)
+    state.firstName = full.firstName ?? ''
+    state.middleName = full.middleName ?? ''
+    state.lastName = full.lastName ?? ''
+    state.secondLastName = full.secondLastName ?? ''
+    state.documentType = full.documentType || undefined
+    state.documentNumber = full.documentNumber ?? ''
+    state.birthDate = full.birthDate ?? ''
+    state.genderUuid = full.gender?.uuid
+    state.maritalStatusUuid = full.maritalStatus?.uuid
+    state.occupationUuid = full.occupation?.uuid
+    state.cityUuid = full.city?.uuid
+    state.birthplace = full.birthplace ?? ''
+    state.numberOfChildren = full.numberOfChildren != null ? String(full.numberOfChildren) : ''
+    state.spouseName = full.spouseName ?? ''
+    state.phone = full.phone ?? ''
+    state.landlinePhone = full.landlinePhone ?? ''
+    state.email = full.email ?? ''
+    state.address = full.address ?? ''
+    state.employerName = full.employerName ?? ''
+    state.jobPosition = full.jobPosition ?? ''
+    state.employerAddress = full.employerAddress ?? ''
+    state.enrolledAt = full.enrolledAt ?? ''
+    state.status = full.status || 'ACTIVE'
+    state.notes = full.notes ?? ''
+  }
+  catch {
+    // El detalle no cargó (useApi ya notificó); cierra el modal.
+    formOpen.value = false
+  }
+  finally {
+    editLoading.value = false
+  }
 }
 
 async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
@@ -544,7 +561,12 @@ function formatDate(iso?: string | null): string {
       :ui="{ content: 'max-w-2xl' }"
     >
       <template #body>
+        <div v-if="editLoading" class="py-12 flex flex-col items-center justify-center gap-2 text-prohealth-500">
+          <UIcon name="i-lucide-loader-circle" class="w-6 h-6 animate-spin" />
+          <span class="text-sm">Cargando datos del afiliado…</span>
+        </div>
         <UForm
+          v-else
           :schema="schema"
           :state="state"
           class="space-y-4"

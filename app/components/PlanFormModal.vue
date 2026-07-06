@@ -85,8 +85,10 @@ function moneyToString(v?: number | string | null): string {
   return String(v)
 }
 
-function populate() {
-  const p = props.plan
+// True mientras se carga el detalle al abrir en modo edición.
+const loadingDetail = ref(false)
+
+function populateFrom(p: PlanDto | null) {
   if (!p) {
     state.code = ''
     state.name = ''
@@ -114,9 +116,25 @@ function populate() {
   state.published = p.published ?? false
 }
 
-// Repuebla al abrir para reflejar el plan actual (o limpiar en creación).
-watch(() => props.open, (open) => {
-  if (open) populate()
+// Al abrir: en creación limpia el form; en edición carga el detalle completo por UUID
+// (el `plan` recibido puede ser una fila de listado) para poblar de forma fiable.
+watch(() => props.open, async (open) => {
+  if (!open) return
+  if (!props.plan) {
+    populateFrom(null)
+    return
+  }
+  loadingDetail.value = true
+  try {
+    populateFrom(await plans.get(props.plan.uuid))
+  }
+  catch {
+    // Si el detalle no carga, usa el registro recibido como respaldo.
+    populateFrom(props.plan)
+  }
+  finally {
+    loadingDetail.value = false
+  }
 })
 
 function toInt(v: string): number | undefined {
@@ -187,7 +205,12 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     :ui="{ content: 'max-w-2xl' }"
   >
     <template #body>
+      <div v-if="loadingDetail" class="py-12 flex flex-col items-center justify-center gap-2 text-prohealth-500">
+        <UIcon name="i-lucide-loader-circle" class="w-6 h-6 animate-spin" />
+        <span class="text-sm">Cargando datos del plan…</span>
+      </div>
       <UForm
+        v-else
         :schema="schema"
         :state="state"
         class="space-y-4"
