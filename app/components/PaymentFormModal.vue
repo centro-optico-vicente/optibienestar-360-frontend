@@ -1,0 +1,349 @@
+<script setup lang="ts">
+import { z } from 'zod'
+import type { FormSubmitEvent } from '@nuxt/ui'
+import type { MemberDto } from '~/types/members'
+import type { MembershipDto } from '~/types/memberships'
+import type { PaymentCreateRequest, PaymentDto, PaymentMethod } from '~/types/payments'
+import { PAYMENT_METHOD_OPTIONS } from '~/types/payments'
+
+// Register a manual payment (POST /v1/admin/payments, multipart). There is no edit:
+// a payment is registered and then approved/rejected. The flow is a cascade —
+// search member -> pick one of their memberships -> capture the payment + proof.
+// The parent controls opening (v-model:open) and gates PAYMENT_REGISTER on the button.
+const props = defineProps<{ open: boolean }>()
+
+const emit = defineEmits<{
+  'update:open': [value: boolean]
+  'saved': [payment: PaymentDto]
+}>()
+
+const payments = usePayments()
+const members = useMembers()
+const memberships = useMemberships()
+const toast = useToast()
+
+const isOpen = computed({
+  get: () => props.open,
+  set: (v: boolean) => emit('update:open', v),
+})
+const isSubmitting = ref(false)
+
+// ---- Member search (server-side, debounced) ----
+type Option = { label: string, value: string }
+const memberSearch = ref('')
+const memberOptions = ref<Option[]>([])
+const searchingMembers = ref(false)
+
+function memberLabel(m: MemberDto): string {
+  const name = m.fullName || [m.firstName, m.middleName, m.lastName, m.secondLastName].filter(Boolean).join(' ') || '—'
+  const doc = m.documentNumber ? ` · ${m.documentType ?? ''} ${m.documentNumber}`.trimEnd() : ''
+  return `${name}${doc}`
+}
+
+let searchTimer: ReturnType<typeof setTimeout> | undefined
+watch(memberSearch, (q) => {
+  clearTimeout(searchTimer)
+  const term = q.trim()
+  if (term.length < 2) {
+    memberOptions.value = []
+    return
+  }
+  searchTimer = setTimeout(async () => {
+    searchingMembers.value = true
+    try {
+      const res = await members.list({ size: 10, q: term })
+      memberOptions.value = (res.content ?? []).map(m => ({ label: memberLabel(m), value: m.uuid }))
+    }
+    catch {
+      memberOptions.value = []
+    }
+    finally {
+      searchingMembers.value = false
+    }
+  }, 400)
+})
+
+// ---- Selected member's memberships ----
+const membershipOptions = ref<Option[]>([])
+const loadingMemberships = ref(false)
+
+function membershipLabel(ms: MembershipDto): string {
+  const plan = ms.planName || ms.planCode || 'Plan'
+  return `${ms.planCode ? `${ms.planCode} — ` : ''}${plan} (${ms.status})`
+}
+
+watch(() => state.memberUuid, async (memberUuid) => {
+  membershipOptions.value = []
+  state.membershipUuid = ''
+  if (!memberUuid) return
+  loadingMemberships.value = true
+  try {
+    const list = await memberships.listForMember(memberUuid)
+    membershipOptions.value = list.map(ms => ({ label: membershipLabel(ms), value: ms.uuid }))
+    // Shortcut: if the member has a single membership, select it.
+    if (membershipOptions.value.length === 1) state.membershipUuid = membershipOptions.value[0]!.value
+  }
+  catch {
+    membershipOptions.value = []
+  }
+  finally {
+    loadingMemberships.value = false
+  }
+})
+
+// ---- Form state ----
+interface FormState {
+  memberUuid: string
+  membershipUuid: string
+  amount: string
+  currency: string
+  paymentMethod: PaymentMethod | undefined
+  referenceNumber: string
+  paymentDate: string
+  inscription: boolean
+  appliedPeriod: string
+  adminNotes: string
+}
+
+const state = reactive<FormState>({
+  memberUuid: '',
+  membershipUuid: '',
+  amount: '',
+  currency: 'USD',
+  paymentMethod: undefined,
+  referenceNumber: '',
+  paymentDate: '',
+  inscription: false,
+  appliedPeriod: '',
+  adminNotes: '',
+})
+
+// ---- Proof of payment (optional) ----
+const supportFile = ref<File | null>(null)
+const fileInput = ref<HTMLInputElement | null>(null)
+
+function onFileChange(e: Event) {
+  const input = e.target as HTMLInputElement
+  supportFile.value = input.files?.[0] ?? null
+}
+
+function clearFile() {
+  supportFile.value = null
+  if (fileInput.value) fileInput.value.value = ''
+}
+
+function formatSize(bytes?: number | null): string {
+  if (bytes === null || bytes === undefined) return ''
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
+// ---- Validation ----
+function notFuture(v: string): boolean {
+  if (!v) return true
+  const today = new Date()
+  today.setHours(23, 59, 59, 999)
+  return new Date(v) <= today
+}
+
+const schema = z.object({
+  memberUuid: z.string({ message: 'Requerido' }).min(1, 'Selecciona un afiliado'),
+  membershipUuid: z.string({ message: 'Requerido' }).min(1, 'Selecciona una membresía'),
+  amount: z.string()
+    .regex(/^\d+(\.\d{1,2})?$/, 'Monto no válido (hasta 2 decimales)')
+    .refine(v => Number(v) >= 0.01, 'Debe ser mayor que 0'),
+  currency: z.string().regex(/^[A-Za-z]{3}$/, 'ISO 4217 (3 letras)').optional().or(z.literal('')),
+  paymentMethod: z.string({ message: 'Requerido' }).min(1, 'Requerido'),
+  referenceNumber: z.string().max(80, 'Máximo 80 caracteres').optional(),
+  paymentDate: z.string().min(1, 'Requerido').refine(notFuture, 'La fecha no puede ser futura'),
+  appliedPeriod: z.string().optional(),
+  adminNotes: z.string().optional(),
+})
+
+function resetForm() {
+  state.memberUuid = ''
+  state.membershipUuid = ''
+  state.amount = ''
+  state.currency = 'USD'
+  state.paymentMethod = undefined
+  state.referenceNumber = ''
+  state.paymentDate = ''
+  state.inscription = false
+  state.appliedPeriod = ''
+  state.adminNotes = ''
+  memberSearch.value = ''
+  memberOptions.value = []
+  membershipOptions.value = []
+  clearFile()
+}
+
+// Reset the form every time it opens (always creation mode).
+watch(() => props.open, (open) => {
+  if (open) resetForm()
+})
+
+async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
+  isSubmitting.value = true
+  try {
+    const payload: PaymentCreateRequest = {
+      membershipUuid: state.membershipUuid,
+      amount: state.amount.trim(),
+      currency: state.currency.trim() ? state.currency.trim().toUpperCase() : undefined,
+      paymentMethod: state.paymentMethod!,
+      referenceNumber: state.referenceNumber.trim() || undefined,
+      paymentDate: state.paymentDate,
+      inscription: state.inscription,
+      // inscription = one-time -> no period; recurring -> first day of the covered month.
+      appliedPeriod: state.inscription
+        ? undefined
+        : (state.appliedPeriod ? `${state.appliedPeriod}-01` : undefined),
+      adminNotes: state.adminNotes.trim() || undefined,
+    }
+    const result = await payments.register(payload, supportFile.value)
+    toast.add({ title: 'Pago registrado', description: 'Queda pendiente de revisión.', color: 'success', icon: 'i-lucide-check-circle' })
+    emit('saved', result)
+    isOpen.value = false
+  }
+  catch {
+    // useApi already notified the error (404 membership, 422 rules, validations)
+  }
+  finally {
+    isSubmitting.value = false
+  }
+}
+</script>
+
+<template>
+  <UModal
+    v-model:open="isOpen"
+    title="Registrar pago"
+    description="Registra un pago manual. Quedará pendiente de revisión hasta que se apruebe o rechace."
+    :ui="{ content: 'max-w-2xl' }"
+  >
+    <template #body>
+      <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
+        <!-- Member + membership -->
+        <div class="rounded-xl border border-prohealth-100 p-4 space-y-4">
+          <UFormField label="Buscar afiliado" help="Escribe nombre o documento (mín. 2 caracteres).">
+            <UInput
+              v-model="memberSearch"
+              placeholder="Buscar por nombre o documento…"
+              icon="i-lucide-search"
+              :loading="searchingMembers"
+              class="w-full"
+            />
+          </UFormField>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <UFormField label="Afiliado" name="memberUuid" required>
+              <USelectMenu
+                v-model="state.memberUuid"
+                :items="memberOptions"
+                label-key="label"
+                value-key="value"
+                :placeholder="memberOptions.length ? 'Selecciona' : 'Busca primero'"
+                class="w-full"
+              />
+            </UFormField>
+            <UFormField label="Membresía" name="membershipUuid" required>
+              <USelectMenu
+                v-model="state.membershipUuid"
+                :items="membershipOptions"
+                label-key="label"
+                value-key="value"
+                :loading="loadingMemberships"
+                :disabled="!state.memberUuid"
+                :placeholder="state.memberUuid ? 'Selecciona una membresía' : 'Selecciona un afiliado'"
+                class="w-full"
+              />
+            </UFormField>
+          </div>
+          <p v-if="state.memberUuid && !loadingMemberships && membershipOptions.length === 0" class="text-xs text-amber-600">
+            Este afiliado no tiene membresías registradas.
+          </p>
+        </div>
+
+        <!-- Amount + method -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <UFormField label="Monto" name="amount" required class="sm:col-span-1">
+            <UInput v-model="state.amount" placeholder="10.00" class="w-full">
+              <template #leading>
+                <span class="text-prohealth-400 text-sm">$</span>
+              </template>
+            </UInput>
+          </UFormField>
+          <UFormField label="Moneda" name="currency" help="ISO 4217. Por defecto USD.">
+            <UInput v-model="state.currency" placeholder="USD" class="w-full font-mono uppercase" />
+          </UFormField>
+          <UFormField label="Método" name="paymentMethod" required>
+            <USelectMenu
+              v-model="state.paymentMethod"
+              :items="PAYMENT_METHOD_OPTIONS"
+              label-key="label"
+              value-key="value"
+              placeholder="Selecciona"
+              class="w-full"
+            />
+          </UFormField>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <UFormField label="Referencia" name="referenceNumber" help="N° de operación / comprobante (opcional).">
+            <UInput v-model="state.referenceNumber" placeholder="Ej. 0012345678" class="w-full" />
+          </UFormField>
+          <UFormField label="Fecha del pago" name="paymentDate" required help="Fecha en que se realizó el pago.">
+            <UInput v-model="state.paymentDate" type="date" class="w-full" />
+          </UFormField>
+        </div>
+
+        <!-- Allocation -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+          <UFormField label="Es inscripción" name="inscription" help="Cargo único de afiliación (no aplica a un mes).">
+            <USwitch v-model="state.inscription" />
+          </UFormField>
+          <UFormField
+            v-if="!state.inscription"
+            label="Mes cubierto"
+            name="appliedPeriod"
+            help="Mensualidad recurrente. Vacío = mes actual."
+          >
+            <UInput v-model="state.appliedPeriod" type="month" class="w-full" />
+          </UFormField>
+        </div>
+
+        <UFormField label="Notas administrativas" name="adminNotes">
+          <UTextarea v-model="state.adminNotes" :rows="2" class="w-full" placeholder="Observaciones internas (opcional)." />
+        </UFormField>
+
+        <!-- Proof of payment -->
+        <UFormField label="Comprobante" help="Imagen o PDF del soporte de pago (opcional).">
+          <div class="flex flex-wrap items-center gap-3">
+            <input
+              ref="fileInput"
+              type="file"
+              accept="image/*,application/pdf"
+              class="block w-full max-w-xs text-sm text-prohealth-600 file:mr-3 file:rounded-lg file:border-0 file:bg-prohealth-50 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-prohealth-700 hover:file:bg-prohealth-100"
+              @change="onFileChange"
+            >
+            <div v-if="supportFile" class="flex items-center gap-2 text-xs text-prohealth-600">
+              <UIcon name="i-lucide-paperclip" class="w-4 h-4" />
+              <span class="font-medium">{{ supportFile.name }}</span>
+              <span class="text-prohealth-400">({{ formatSize(supportFile.size) }})</span>
+              <UButton color="neutral" variant="ghost" icon="i-lucide-x" size="xs" @click="clearFile" />
+            </div>
+          </div>
+        </UFormField>
+
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="isOpen = false">
+            Cancelar
+          </UButton>
+          <UButton type="submit" color="primary" :loading="isSubmitting" icon="i-lucide-save">
+            Registrar pago
+          </UButton>
+        </div>
+      </UForm>
+    </template>
+  </UModal>
+</template>

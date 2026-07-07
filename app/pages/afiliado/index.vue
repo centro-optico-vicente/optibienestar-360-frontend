@@ -167,6 +167,9 @@ function formatDate(iso?: string | null): string {
         </ul>
       </div>
 
+      <!-- My payments (self-gated by PAYMENT_VIEW_OWN) -->
+      <MyPaymentsCard />
+
       <!-- Datos de contacto registrados -->
       <div class="bg-white rounded-2xl border border-prohealth-100 p-6">
         <h2 class="font-bold text-prohealth-900 mb-4">Mis datos</h2>
