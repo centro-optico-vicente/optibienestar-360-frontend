@@ -14,11 +14,25 @@
 - [ ] [P1/C1] `i18n/locales/es.json` poblado (fuente de verdad de UI) + `en.json` con las **mismas keys**. Estructura por dominio (`common`, `auth`, `members`, `memberships`, `payments`, `validator`, `errors`, …) — ya esbozada en el spec.
 - [ ] [P1/C1] `composables/useFormatters.ts` — `formatCurrency` (`VES`/`USD` vía `Intl.NumberFormat('es-VE')`), `formatDate`, `formatRelative` ancladas a `es-VE` / `America/Caracas` ([ADR 0010](../decisions/0010-localization-venezuela.md)). Formato NO se ata al locale de UI (las cifras siguen en convención VE aunque la UI esté en inglés).
 
+## Fase 1b — Retrofit de verticales ya construidos (español-only → `$t`)
+
+> Todo el frontend entregado hasta hoy se construyó con textos en español **hardcodeados** (labels, placeholders, `help`, títulos/descripciones de toasts, encabezados de tabla, estados vacíos, badges y mensajes de validación zod). Tras la foundation (Fase 1), extraer los strings de cada vertical ya construido a keys `$t` de su dominio en `es.json` + `en.json` (mismas keys). Los `ProblemDetail` del backend ya llegan localizados — no re-traducir mensajes de negocio; solo textos UI-only. Moneda/fecha vía `useFormatters`. Un checkbox por vertical:
+
+- [ ] [P1/C2] **Auth + seguridad** (`auth`, `security`) — `pages/login.vue`, `recover-password.vue`, `reset-password.vue`, `dashboard/change-password.vue`, `dashboard/users/`, `dashboard/roles/` + `useAuth`/`useUsers`/`useRoles`. Ver [vertical-1](vertical-1-seguridad-y-autenticacion.md).
+- [ ] [P1/C2] **Catálogos / datos maestros** (`catalogs`) — `dashboard/catalogs/` + `useCatalog`/`useDocumentTypes` + `utils/catalog-registry`. Ver [vertical-2](vertical-2-catalogos.md).
+- [ ] [P1/C2] **Aliados** (`allies`) — `dashboard/allies/`, `aliados/` (público), portal `aliado/` + `useAllies`. Ver [vertical-3](vertical-3-aliados.md).
+- [ ] [P1/C2] **Afiliados y familia** (`members`) — `dashboard/members/`, portal `afiliado/` (carnet + beneficiarios) + `useMembers`. Ver [vertical-4](vertical-4-afiliados-y-familia.md).
+- [ ] [P1/C2] **Planes** (`plans`) — `dashboard/plans/` + `PlanFormModal` + `usePlans`. Ver [vertical-5](vertical-5-planes-y-membresias.md).
+- [ ] [P1/C2] **Pagos manuales** (`payments`) — `dashboard/payments/` (cola + detalle), `PaymentFormModal`, `PaymentReviewModal`, `MyPaymentsCard` + `usePayments`. Ver [vertical-6](vertical-6-pagos-manuales.md).
+- [ ] [P1/C1] **Layout / navegación / shell** (`common`, `nav`) — sidebar/acordeón, `utils/nav.ts` (labels + descriptions), mosaicos por grupo, `pages/403.vue`, títulos `useSeoMeta` y `pages/index.vue`.
+
+> Verticales aún **no construidos** (membresías, promotores/comisiones, validador, reportes, subsidios) nacen bilingües con `$t` desde el inicio — no requieren retrofit, se les puebla su dominio al implementarlos.
+
 ## Fase 2 — Sincronización de locale con el backend
 
 - [ ] [P1/C2] **Leer locale del usuario**: al hidratar la sesión (`/v1/me`), tomar `user.locale` y `setLocale()` de i18n. El backend devuelve `locale` en el `UserDto` (ver backend vertical-11 Fase 4) — la preferencia persistida gana sobre el default del navegador.
 - [ ] [P1/C2] **Cambiar locale mid-session** (Option C del backend): el selector de idioma hace `POST /v1/me/locale` con `{ locale }`, recibe un **access token nuevo** (`AccessTokenResponse`) con el claim `locale` actualizado, lo guarda y reemite requests con él. El refresh token NO rota (preferencia no es evento de seguridad). Tras el swap, `setLocale()` en el cliente.
-- [ ] [P1/C1] `<LocaleSwitcher>` en el header del layout autenticado (`es` / `en`). Sin auth (login, recuperar contraseña) usa el locale local sin persistir (no hay JWT todavía).
+- [ ] [P1/C1] `<LocaleSwitcher>` ES/EN en el header del layout autenticado — **entry point del usuario para i18n, inicialmente español e inglés** (base para sumar locales luego). Sin auth (login, recuperar contraseña) usa el locale local sin persistir (no hay JWT todavía).
 - [ ] [P1/C1] Persistir el locale elegido en `localStorage` como hint pre-login (para que la pantalla de login respete la última preferencia antes de tener JWT).
 
 ## Fase 3 — API client: Accept-Language + errores localizados
