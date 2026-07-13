@@ -1,9 +1,9 @@
 /**
- * Formateo de fechas, números y moneda anclado a la convención venezolana
- * (`es-VE` / `America/Caracas`, UTC-4 sin DST — ADR 0010). El formato NO se ata
- * al locale de la UI: las cifras y fechas siguen la convención VE aunque el
- * usuario tenga la interfaz en inglés. Los mensajes UI se traducen vía `$t`;
- * los datos numéricos/temporales se formatean aquí.
+ * Date, number and currency formatting anchored to the Venezuelan convention
+ * (`es-VE` / `America/Caracas`, UTC-4 with no DST — ADR 0010). Formatting is NOT
+ * tied to the UI locale: figures and dates keep the VE convention even when the
+ * user has the interface in English. UI strings are translated via `$t`; numeric
+ * and temporal data is formatted here.
  */
 
 const LOCALE = 'es-VE'
@@ -20,21 +20,21 @@ function toDate(value: DateInput): Date | null {
 }
 
 export const useFormatters = () => {
-  /** Moneda en convención VE (por defecto USD; usar 'VES' para bolívares). */
+  /** Currency in the VE convention (USD by default; use 'VES' for bolívares). */
   const formatCurrency = (amount: number | null | undefined, currency = 'USD'): string => {
     if (amount === null || amount === undefined || Number.isNaN(amount)) return EMPTY
     return new Intl.NumberFormat(LOCALE, { style: 'currency', currency }).format(amount)
   }
 
-  /** Número con separadores de miles en convención VE. */
+  /** Number with thousands separators in the VE convention. */
   const formatNumber = (value: number | null | undefined): string => {
     if (value === null || value === undefined || Number.isNaN(value)) return EMPTY
     return new Intl.NumberFormat(LOCALE).format(value)
   }
 
   /**
-   * Fecha en convención VE. `short` (dd/mm/aaaa), `long` (1 de enero de 2026)
-   * o `datetime` (fecha media + hora). Devuelve '—' si la entrada es vacía.
+   * Date in the VE convention. `short` (dd/mm/yyyy), `long` (1 de enero de 2026)
+   * or `datetime` (medium date + time). Returns '—' when the input is empty.
    */
   const formatDate = (date: DateInput, format: DateFormat = 'short'): string => {
     const d = toDate(date)
@@ -48,7 +48,7 @@ export const useFormatters = () => {
     return new Intl.DateTimeFormat(LOCALE, options).format(d)
   }
 
-  /** Distancia relativa ("hace 3 días", "en 2 semanas"). Devuelve '—' si es vacía. */
+  /** Relative distance ("hace 3 días", "en 2 semanas"). Returns '—' when empty. */
   const formatRelative = (date: DateInput): string => {
     const d = toDate(date)
     if (!d) return EMPTY

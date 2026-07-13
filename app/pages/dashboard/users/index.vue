@@ -106,7 +106,7 @@ const statusOptions = computed(() =>
   STATUS_VALUES.map(s => ({ label: t(`security.users.status.${s}`), value: s })),
 )
 
-/** Etiqueta localizada del estado; estados desconocidos se muestran crudos. */
+/** Localized status label; unknown statuses are shown raw. */
 function statusLabel(u: UserDto): string {
   if (u.active === false) return t('security.users.inactive')
   if (!u.status) return t('common.empty')
