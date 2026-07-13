@@ -1,0 +1,181 @@
+{
+  "app": {
+    "name": "OptiBienestar 360",
+    "tagline": "We care for what you love most"
+  },
+  "common": {
+    "loading": "Loading…",
+    "save": "Save",
+    "saveChanges": "Save changes",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "back": "Back",
+    "edit": "Edit",
+    "delete": "Delete",
+    "actions": "Actions",
+    "select": "Select",
+    "empty": "—"
+  },
+  "validation": {
+    "required": "Required",
+    "emailInvalid": "Invalid email",
+    "minChars": "At least {n} characters",
+    "maxChars": "At most {n} characters",
+    "passwordUppercase": "Must include an uppercase letter",
+    "passwordLowercase": "Must include a lowercase letter",
+    "passwordNumber": "Must include a number",
+    "passwordSymbol": "Must include a symbol",
+    "passwordsMismatch": "Passwords do not match",
+    "passwordSameAsCurrent": "The new password must differ from the current one"
+  },
+  "auth": {
+    "fields": {
+      "email": "Email",
+      "emailPlaceholder": "you{'@'}email.com",
+      "password": "Password",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm password",
+      "currentPassword": "Current password",
+      "confirmNewPassword": "Confirm new password"
+    },
+    "backToLogin": "← Back to sign in",
+    "login": {
+      "seoTitle": "Sign in — OptiBienestar 360",
+      "seoDescription": "Access the OptiBienestar 360 portal",
+      "heading": "Welcome back",
+      "subheading": "Sign in with your credentials to access the portal.",
+      "rememberMe": "Remember me",
+      "forgotPassword": "Forgot your password?",
+      "submit": "Sign in",
+      "noAccount": "Don't have an account?",
+      "contactPromoter": "Contact a promoter.",
+      "welcomeTitle": "Welcome!",
+      "welcomeDescription": "Hi {name}",
+      "errorFallback": "Unable to sign in"
+    },
+    "recover": {
+      "seoTitle": "Recover password — OptiBienestar 360",
+      "heading": "Recover password",
+      "subheading": "We'll send you a link to reset your password.",
+      "submit": "Send link",
+      "sentTitle": "Check your email",
+      "sentDescription": "If the email exists, you'll receive a link to reset your password.",
+      "errorFallback": "Unable to process the request"
+    },
+    "reset": {
+      "seoTitle": "Reset password — OptiBienestar 360",
+      "heading": "Reset password",
+      "subheading": "Set a new password for your account.",
+      "submit": "Reset password",
+      "successTitle": "Password reset",
+      "successDescription": "You can now sign in with your new password.",
+      "invalidLinkTitle": "Invalid link",
+      "invalidLinkDescription": "The recovery token is missing. Request a new link from “Recover password”.",
+      "errorFallback": "The link is invalid or has expired"
+    },
+    "changePassword": {
+      "seoTitle": "Change password — OptiBienestar 360",
+      "heading": "Change password",
+      "hint": "The new password must be at least 10 characters, with an uppercase letter, a lowercase letter, a number and a symbol.",
+      "submit": "Save new password",
+      "successTitle": "Password updated",
+      "successDescription": "Sign in again with your new password.",
+      "errorFallback": "Unable to update the password"
+    }
+  },
+  "security": {
+    "users": {
+      "seoTitle": "Users — OptiBienestar 360",
+      "title": "Users",
+      "subtitle": "Manage system users, their data and roles.",
+      "new": "New user",
+      "createTooltip": "Create a new user",
+      "noPermissionCreate": "You don't have permission to create users",
+      "noPermissionEdit": "You don't have permission to edit",
+      "noPermissionDelete": "You don't have permission to delete",
+      "searchPlaceholder": "Search by name or email…",
+      "empty": "No users",
+      "inactive": "Inactive",
+      "paginationSummary": "{shown} of {total} user(s)",
+      "selectAtLeastOneRole": "Select at least one role",
+      "selectRolesPlaceholder": "Select one or more roles",
+      "createdToast": "User created",
+      "updatedToast": "User updated",
+      "deletedToast": "User deleted",
+      "modalCreateTitle": "New user",
+      "modalEditTitle": "Edit user",
+      "modalCreateDescription": "Create an account and assign one or more roles.",
+      "modalEditDescription": "Update the user's data and roles.",
+      "submitCreate": "Create user",
+      "deleteTitle": "Delete user",
+      "deleteConfirm": "Are you sure you want to delete {name} ({email})? This deactivates the account.",
+      "columns": {
+        "user": "User",
+        "document": "Document",
+        "roles": "Roles",
+        "status": "Status",
+        "lastLogin": "Last login"
+      },
+      "fields": {
+        "email": "Email",
+        "firstName": "First name",
+        "middleName": "Middle name",
+        "lastName": "Last name",
+        "secondLastName": "Second last name",
+        "password": "Password",
+        "documentType": "Document type",
+        "documentNumber": "Document number",
+        "phone": "Phone",
+        "status": "Status",
+        "active": "Account active",
+        "roles": "Roles"
+      },
+      "status": {
+        "ACTIVE": "Active",
+        "SUSPENDED": "Suspended",
+        "LOCKED": "Locked"
+      }
+    },
+    "roles": {
+      "seoTitle": "Roles — OptiBienestar 360",
+      "title": "Roles and permissions",
+      "subtitle": "Create roles and adjust the permissions (keys) each one grants. The SYSTEM role is immutable.",
+      "new": "New role",
+      "createTooltip": "Create a new role",
+      "noPermissionCreate": "You don't have permission to create roles",
+      "noPermission": "You don't have permission",
+      "empty": "No roles",
+      "permissions": "Permissions",
+      "editPermissionsTooltip": "Edit permissions",
+      "editRoleTooltip": "Edit role",
+      "deleteRoleTooltip": "Delete role",
+      "systemImmutable": "The SYSTEM role is immutable",
+      "nameFormat": "Must be UPPER_SNAKE_CASE (e.g. GERENTE_ALIADO)",
+      "createdToast": "Role created",
+      "updatedToast": "Role updated",
+      "deletedToast": "Role deleted",
+      "permissionsUpdatedToast": "Permissions updated",
+      "modalCreateTitle": "New role",
+      "modalEditTitle": "Edit role",
+      "modalCreateDescription": "The name must be UPPER_SNAKE_CASE (e.g. GERENTE_ALIADO). Then assign permissions.",
+      "modalEditDescription": "Update the role's name or description.",
+      "submitCreate": "Create role",
+      "deleteTitle": "Delete role",
+      "deleteConfirm": "Are you sure you want to delete the {name} role? The backend applies smart delete: it fails if the role is in use.",
+      "permissionsModalTitle": "Permissions for {name}",
+      "permissionsModalDescription": "Check the keys this role grants. It must have at least one permission.",
+      "permissionsCatalogError": "Could not load the permissions catalog (/v1/admin/permissions).",
+      "permissionsCount": "{selected} / {total} permissions",
+      "selectAtLeastOnePermission": "Select at least one permission",
+      "savePermissions": "Save permissions",
+      "columns": {
+        "role": "Role",
+        "description": "Description"
+      },
+      "fields": {
+        "name": "Name",
+        "description": "Description"
+      }
+    }
+  }
+}

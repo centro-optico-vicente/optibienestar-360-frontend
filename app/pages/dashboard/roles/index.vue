@@ -9,7 +9,9 @@ definePageMeta({
   permission: 'USER_CHANGE_ROLE',
 })
 
-useSeoMeta({ title: 'Roles — OptiBienestar 360' })
+const { t } = useI18n()
+
+useSeoMeta({ title: () => t('security.roles.seoTitle') })
 
 const rolesApi = useRoles()
 const { can } = usePermissions()
@@ -67,13 +69,13 @@ const roleSubmitting = ref(false)
 
 const roleState = reactive({ name: '', description: '' })
 
-const roleSchema = z.object({
+const roleSchema = computed(() => z.object({
   name: z
     .string()
-    .min(3, 'Mínimo 3 caracteres')
-    .regex(/^[A-Z][A-Z0-9_]*$/, 'Debe ser UPPER_SNAKE_CASE (ej: GERENTE_ALIADO)'),
+    .min(3, t('validation.minChars', { n: 3 }))
+    .regex(/^[A-Z][A-Z0-9_]*$/, t('security.roles.nameFormat')),
   description: z.string().optional(),
-})
+}))
 
 function openRoleCreate() {
   roleMode.value = 'create'
@@ -99,14 +101,14 @@ async function onRoleSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         name: roleState.name,
         description: roleState.description || undefined,
       })
-      toast.add({ title: 'Rol creado', color: 'success', icon: 'i-lucide-check-circle' })
+      toast.add({ title: t('security.roles.createdToast'), color: 'success', icon: 'i-lucide-check-circle' })
     }
     else if (roleEditingUuid.value) {
       await rolesApi.update(roleEditingUuid.value, {
         name: roleState.name,
         description: roleState.description || undefined,
       })
-      toast.add({ title: 'Rol actualizado', color: 'success', icon: 'i-lucide-check-circle' })
+      toast.add({ title: t('security.roles.updatedToast'), color: 'success', icon: 'i-lucide-check-circle' })
     }
     roleFormOpen.value = false
     await loadRoles()
@@ -133,7 +135,7 @@ async function confirmRoleDelete() {
   roleDeleting.value = true
   try {
     await rolesApi.remove(roleTarget.value.uuid)
-    toast.add({ title: 'Rol eliminado', color: 'success', icon: 'i-lucide-check-circle' })
+    toast.add({ title: t('security.roles.deletedToast'), color: 'success', icon: 'i-lucide-check-circle' })
     roleDeleteOpen.value = false
     await loadRoles()
   }
@@ -205,7 +207,7 @@ async function onSave() {
   isSubmitting.value = true
   try {
     await rolesApi.updateRolePermissions(editing.value.uuid, selected.value)
-    toast.add({ title: 'Permisos actualizados', color: 'success', icon: 'i-lucide-check-circle' })
+    toast.add({ title: t('security.roles.permissionsUpdatedToast'), color: 'success', icon: 'i-lucide-check-circle' })
     formOpen.value = false
   }
   catch {
@@ -222,19 +224,19 @@ async function onSave() {
     <!-- Header -->
     <div class="flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-extrabold text-prohealth-900">Roles y permisos</h1>
+        <h1 class="text-2xl font-extrabold text-prohealth-900">{{ $t('security.roles.title') }}</h1>
         <p class="text-sm text-prohealth-700/70 mt-1">
-          Crea roles y ajusta los permisos (llaves) que otorga cada uno. El rol SYSTEM es inmutable.
+          {{ $t('security.roles.subtitle') }}
         </p>
       </div>
-      <UTooltip :text="canManage ? 'Crear un nuevo rol' : 'No tienes permiso para crear roles'">
+      <UTooltip :text="canManage ? $t('security.roles.createTooltip') : $t('security.roles.noPermissionCreate')">
         <UButton
           color="primary"
           icon="i-lucide-shield-plus"
           :disabled="!canManage"
           @click="openRoleCreate"
         >
-          Nuevo rol
+          {{ $t('security.roles.new') }}
         </UButton>
       </UTooltip>
     </div>
@@ -245,9 +247,9 @@ async function onSave() {
         <table class="w-full text-sm">
           <thead>
             <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
-              <th class="px-5 py-3 font-semibold">Rol</th>
-              <th class="px-5 py-3 font-semibold">Descripción</th>
-              <th class="px-5 py-3 font-semibold text-right">Acciones</th>
+              <th class="px-5 py-3 font-semibold">{{ $t('security.roles.columns.role') }}</th>
+              <th class="px-5 py-3 font-semibold">{{ $t('security.roles.columns.description') }}</th>
+              <th class="px-5 py-3 font-semibold text-right">{{ $t('common.actions') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-prohealth-100">
@@ -255,7 +257,7 @@ async function onSave() {
             <tr v-else-if="roles.length === 0">
               <td colspan="3" class="px-5 py-12 text-center text-prohealth-500">
                 <UIcon name="i-lucide-shield" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
-                Sin roles
+                {{ $t('security.roles.empty') }}
               </td>
             </tr>
             <tr v-for="r in roles" v-else :key="r.uuid" class="hover:bg-prohealth-50/50">
@@ -267,18 +269,18 @@ async function onSave() {
               </td>
               <td class="px-5 py-3">
                 <div class="flex items-center justify-end gap-1">
-                  <UTooltip :text="canManage ? 'Editar permisos' : 'No tienes permiso'">
+                  <UTooltip :text="canManage ? $t('security.roles.editPermissionsTooltip') : $t('security.roles.noPermission')">
                     <UButton
                       color="neutral"
                       variant="ghost"
                       icon="i-lucide-key-round"
                       size="sm"
-                      label="Permisos"
+                      :label="$t('security.roles.permissions')"
                       :disabled="!canManage"
                       @click="openEdit(r)"
                     />
                   </UTooltip>
-                  <UTooltip :text="isSystemRole(r) ? 'El rol SYSTEM es inmutable' : (canManage ? 'Editar rol' : 'No tienes permiso')">
+                  <UTooltip :text="isSystemRole(r) ? $t('security.roles.systemImmutable') : (canManage ? $t('security.roles.editRoleTooltip') : $t('security.roles.noPermission'))">
                     <UButton
                       color="neutral"
                       variant="ghost"
@@ -288,7 +290,7 @@ async function onSave() {
                       @click="openRoleEdit(r)"
                     />
                   </UTooltip>
-                  <UTooltip :text="isSystemRole(r) ? 'El rol SYSTEM es inmutable' : (canManage ? 'Eliminar rol' : 'No tienes permiso')">
+                  <UTooltip :text="isSystemRole(r) ? $t('security.roles.systemImmutable') : (canManage ? $t('security.roles.deleteRoleTooltip') : $t('security.roles.noPermission'))">
                     <UButton
                       color="error"
                       variant="ghost"
@@ -309,8 +311,8 @@ async function onSave() {
     <!-- Modal crear/editar rol -->
     <UModal
       v-model:open="roleFormOpen"
-      :title="roleMode === 'create' ? 'Nuevo rol' : 'Editar rol'"
-      :description="roleMode === 'create' ? 'El nombre debe ser UPPER_SNAKE_CASE (ej: GERENTE_ALIADO). Luego asígnale permisos.' : 'Actualiza el nombre o la descripción del rol.'"
+      :title="roleMode === 'create' ? $t('security.roles.modalCreateTitle') : $t('security.roles.modalEditTitle')"
+      :description="roleMode === 'create' ? $t('security.roles.modalCreateDescription') : $t('security.roles.modalEditDescription')"
     >
       <template #body>
         <UForm
@@ -319,20 +321,20 @@ async function onSave() {
           class="space-y-4"
           @submit="onRoleSubmit"
         >
-          <UFormField label="Nombre" name="name" required>
+          <UFormField :label="$t('security.roles.fields.name')" name="name" required>
             <UInput v-model="roleState.name" placeholder="GERENTE_ALIADO" class="w-full" />
           </UFormField>
 
-          <UFormField label="Descripción" name="description">
+          <UFormField :label="$t('security.roles.fields.description')" name="description">
             <UTextarea v-model="roleState.description" :rows="2" class="w-full" />
           </UFormField>
 
           <div class="flex items-center justify-end gap-3 pt-2">
             <UButton color="neutral" variant="ghost" :disabled="roleSubmitting" @click="roleFormOpen = false">
-              Cancelar
+              {{ $t('common.cancel') }}
             </UButton>
             <UButton type="submit" color="primary" :loading="roleSubmitting" icon="i-lucide-save">
-              {{ roleMode === 'create' ? 'Crear rol' : 'Guardar cambios' }}
+              {{ roleMode === 'create' ? $t('security.roles.submitCreate') : $t('common.saveChanges') }}
             </UButton>
           </div>
         </UForm>
@@ -340,19 +342,17 @@ async function onSave() {
     </UModal>
 
     <!-- Modal confirmar eliminación de rol -->
-    <UModal v-model:open="roleDeleteOpen" title="Eliminar rol">
+    <UModal v-model:open="roleDeleteOpen" :title="$t('security.roles.deleteTitle')">
       <template #body>
         <p class="text-sm text-prohealth-700">
-          ¿Seguro que deseas eliminar el rol
-          <span class="font-semibold">{{ roleTarget?.name }}</span>?
-          El backend aplica smart delete: falla si el rol está en uso.
+          {{ $t('security.roles.deleteConfirm', { name: roleTarget?.name ?? '' }) }}
         </p>
         <div class="flex items-center justify-end gap-3 pt-5">
           <UButton color="neutral" variant="ghost" :disabled="roleDeleting" @click="roleDeleteOpen = false">
-            Cancelar
+            {{ $t('common.cancel') }}
           </UButton>
           <UButton color="error" :loading="roleDeleting" icon="i-lucide-trash-2" @click="confirmRoleDelete">
-            Eliminar
+            {{ $t('common.delete') }}
           </UButton>
         </div>
       </template>
@@ -361,8 +361,8 @@ async function onSave() {
     <!-- Modal editar permisos del rol -->
     <UModal
       v-model:open="formOpen"
-      :title="`Permisos de ${editing?.name ?? ''}`"
-      description="Marca las llaves que otorga este rol. Debe tener al menos un permiso."
+      :title="$t('security.roles.permissionsModalTitle', { name: editing?.name ?? '' })"
+      :description="$t('security.roles.permissionsModalDescription')"
     >
       <template #body>
         <div v-if="loadingPerms" class="space-y-4 max-h-[60vh] overflow-hidden">
@@ -413,19 +413,19 @@ async function onSave() {
           </div>
 
           <p v-if="domains.length === 0" class="text-sm text-amber-600">
-            No se pudo cargar el catálogo de permisos (/v1/admin/permissions).
+            {{ $t('security.roles.permissionsCatalogError') }}
           </p>
         </div>
 
         <div class="flex items-center justify-between gap-3 pt-4 mt-2 border-t border-prohealth-100">
           <span class="text-xs text-prohealth-500">
-            {{ selected.length }} / {{ totalPermissions }} permisos
+            {{ $t('security.roles.permissionsCount', { selected: selected.length, total: totalPermissions }) }}
           </span>
           <div class="flex items-center gap-3">
             <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="formOpen = false">
-              Cancelar
+              {{ $t('common.cancel') }}
             </UButton>
-            <UTooltip :text="selected.length === 0 ? 'Selecciona al menos un permiso' : ''">
+            <UTooltip :text="selected.length === 0 ? $t('security.roles.selectAtLeastOnePermission') : ''">
               <UButton
                 color="primary"
                 icon="i-lucide-save"
@@ -433,7 +433,7 @@ async function onSave() {
                 :disabled="selected.length === 0 || loadingPerms"
                 @click="onSave"
               >
-                Guardar permisos
+                {{ $t('security.roles.savePermissions') }}
               </UButton>
             </UTooltip>
           </div>

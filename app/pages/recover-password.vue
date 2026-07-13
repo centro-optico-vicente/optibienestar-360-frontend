@@ -5,14 +5,19 @@ import type { ApiError } from '~/types/auth'
 
 definePageMeta({ layout: 'auth' })
 
-useSeoMeta({ title: 'Recuperar contraseña — OptiBienestar 360' })
+const { t } = useI18n()
+
+useSeoMeta({ title: () => t('auth.recover.seoTitle') })
 
 const { recoverPassword } = useAuth()
 
-const schema = z.object({
-  email: z.string().email('Email no válido'),
-})
-type Schema = z.infer<typeof schema>
+const schema = computed(() => z.object({
+  email: z.string().email(t('validation.emailInvalid')),
+}))
+
+interface Schema {
+  email: string
+}
 
 const state = reactive<Partial<Schema>>({ email: '' })
 const isSubmitting = ref(false)
@@ -27,7 +32,7 @@ const onSubmit = async (event: FormSubmitEvent<Schema>): Promise<void> => {
     sent.value = true
   }
   catch (err: unknown) {
-    apiError.value = (err as ApiError)?.message || 'No fue posible procesar la solicitud'
+    apiError.value = (err as ApiError)?.message || t('auth.recover.errorFallback')
   }
   finally {
     isSubmitting.value = false
@@ -39,10 +44,10 @@ const onSubmit = async (event: FormSubmitEvent<Schema>): Promise<void> => {
   <div>
     <div class="mb-8">
       <h2 class="text-2xl md:text-3xl font-extrabold text-prohealth-900">
-        Recuperar contraseña
+        {{ $t('auth.recover.heading') }}
       </h2>
       <p class="text-sm text-prohealth-700/70 mt-1">
-        Te enviaremos un enlace para restablecer tu contraseña.
+        {{ $t('auth.recover.subheading') }}
       </p>
     </div>
 
@@ -51,8 +56,8 @@ const onSubmit = async (event: FormSubmitEvent<Schema>): Promise<void> => {
       color="success"
       variant="subtle"
       icon="i-lucide-mail-check"
-      title="Revisa tu correo"
-      description="Si el correo existe, recibirás un enlace para restablecer tu contraseña."
+      :title="$t('auth.recover.sentTitle')"
+      :description="$t('auth.recover.sentDescription')"
     />
 
     <UForm
@@ -62,12 +67,12 @@ const onSubmit = async (event: FormSubmitEvent<Schema>): Promise<void> => {
       class="space-y-5"
       @submit="onSubmit"
     >
-      <UFormField label="Correo electrónico" name="email" required>
+      <UFormField :label="$t('auth.fields.email')" name="email" required>
         <UInput
           v-model="state.email"
           type="email"
           autocomplete="email"
-          placeholder="tu@correo.com"
+          :placeholder="$t('auth.fields.emailPlaceholder')"
           icon="i-lucide-mail"
           size="lg"
           class="w-full"
@@ -90,13 +95,13 @@ const onSubmit = async (event: FormSubmitEvent<Schema>): Promise<void> => {
         :loading="isSubmitting"
         icon="i-lucide-send"
       >
-        Enviar enlace
+        {{ $t('auth.recover.submit') }}
       </UButton>
     </UForm>
 
     <p class="text-center text-sm text-prohealth-700/70 pt-6">
       <NuxtLink to="/login" class="text-prohealth-600 hover:text-prohealth-700 font-medium">
-        ← Volver a iniciar sesión
+        {{ $t('auth.backToLogin') }}
       </NuxtLink>
     </p>
   </div>

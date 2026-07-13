@@ -6,8 +6,176 @@
   "common": {
     "loading": "Cargando…",
     "save": "Guardar",
+    "saveChanges": "Guardar cambios",
     "cancel": "Cancelar",
     "confirm": "Confirmar",
-    "back": "Volver"
+    "back": "Volver",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "actions": "Acciones",
+    "select": "Selecciona",
+    "empty": "—"
+  },
+  "validation": {
+    "required": "Requerido",
+    "emailInvalid": "Email no válido",
+    "minChars": "Mínimo {n} caracteres",
+    "maxChars": "Máximo {n} caracteres",
+    "passwordUppercase": "Debe incluir una mayúscula",
+    "passwordLowercase": "Debe incluir una minúscula",
+    "passwordNumber": "Debe incluir un número",
+    "passwordSymbol": "Debe incluir un símbolo",
+    "passwordsMismatch": "Las contraseñas no coinciden",
+    "passwordSameAsCurrent": "La nueva contraseña debe ser distinta a la actual"
+  },
+  "auth": {
+    "fields": {
+      "email": "Correo electrónico",
+      "emailPlaceholder": "tu{'@'}correo.com",
+      "password": "Contraseña",
+      "newPassword": "Nueva contraseña",
+      "confirmPassword": "Confirmar contraseña",
+      "currentPassword": "Contraseña actual",
+      "confirmNewPassword": "Confirmar nueva contraseña"
+    },
+    "backToLogin": "← Volver a iniciar sesión",
+    "login": {
+      "seoTitle": "Ingresar — OptiBienestar 360",
+      "seoDescription": "Accede al portal OptiBienestar 360",
+      "heading": "Bienvenido de nuevo",
+      "subheading": "Ingresa con tus credenciales para acceder al portal.",
+      "rememberMe": "Recordarme",
+      "forgotPassword": "¿Olvidaste tu contraseña?",
+      "submit": "Ingresar",
+      "noAccount": "¿No tienes cuenta?",
+      "contactPromoter": "Contacta a un promotor.",
+      "welcomeTitle": "¡Bienvenido!",
+      "welcomeDescription": "Hola {name}",
+      "errorFallback": "No fue posible iniciar sesión"
+    },
+    "recover": {
+      "seoTitle": "Recuperar contraseña — OptiBienestar 360",
+      "heading": "Recuperar contraseña",
+      "subheading": "Te enviaremos un enlace para restablecer tu contraseña.",
+      "submit": "Enviar enlace",
+      "sentTitle": "Revisa tu correo",
+      "sentDescription": "Si el correo existe, recibirás un enlace para restablecer tu contraseña.",
+      "errorFallback": "No fue posible procesar la solicitud"
+    },
+    "reset": {
+      "seoTitle": "Restablecer contraseña — OptiBienestar 360",
+      "heading": "Restablecer contraseña",
+      "subheading": "Define una nueva contraseña para tu cuenta.",
+      "submit": "Restablecer contraseña",
+      "successTitle": "Contraseña restablecida",
+      "successDescription": "Ya puedes iniciar sesión con tu nueva contraseña.",
+      "invalidLinkTitle": "Enlace no válido",
+      "invalidLinkDescription": "Falta el token de recuperación. Solicita un nuevo enlace desde «Recuperar contraseña».",
+      "errorFallback": "El enlace no es válido o ha expirado"
+    },
+    "changePassword": {
+      "seoTitle": "Cambiar contraseña — OptiBienestar 360",
+      "heading": "Cambiar contraseña",
+      "hint": "La nueva contraseña debe tener al menos 10 caracteres, con mayúscula, minúscula, número y símbolo.",
+      "submit": "Guardar nueva contraseña",
+      "successTitle": "Contraseña actualizada",
+      "successDescription": "Vuelve a iniciar sesión con tu nueva contraseña.",
+      "errorFallback": "No fue posible actualizar la contraseña"
+    }
+  },
+  "security": {
+    "users": {
+      "seoTitle": "Usuarios — OptiBienestar 360",
+      "title": "Usuarios",
+      "subtitle": "Gestión de usuarios del sistema, sus datos y roles.",
+      "new": "Nuevo usuario",
+      "createTooltip": "Crear un nuevo usuario",
+      "noPermissionCreate": "No tienes permiso para crear usuarios",
+      "noPermissionEdit": "No tienes permiso para editar",
+      "noPermissionDelete": "No tienes permiso para eliminar",
+      "searchPlaceholder": "Buscar por nombre o email…",
+      "empty": "Sin usuarios",
+      "inactive": "Inactivo",
+      "paginationSummary": "{shown} de {total} usuario(s)",
+      "selectAtLeastOneRole": "Selecciona al menos un rol",
+      "selectRolesPlaceholder": "Selecciona uno o más roles",
+      "createdToast": "Usuario creado",
+      "updatedToast": "Usuario actualizado",
+      "deletedToast": "Usuario eliminado",
+      "modalCreateTitle": "Nuevo usuario",
+      "modalEditTitle": "Editar usuario",
+      "modalCreateDescription": "Crea una cuenta y asígnale uno o más roles.",
+      "modalEditDescription": "Actualiza los datos y roles del usuario.",
+      "submitCreate": "Crear usuario",
+      "deleteTitle": "Eliminar usuario",
+      "deleteConfirm": "¿Seguro que deseas eliminar a {name} ({email})? Esta acción desactiva la cuenta.",
+      "columns": {
+        "user": "Usuario",
+        "document": "Documento",
+        "roles": "Roles",
+        "status": "Estado",
+        "lastLogin": "Último acceso"
+      },
+      "fields": {
+        "email": "Correo electrónico",
+        "firstName": "Primer nombre",
+        "middleName": "Segundo nombre",
+        "lastName": "Primer apellido",
+        "secondLastName": "Segundo apellido",
+        "password": "Contraseña",
+        "documentType": "Tipo de documento",
+        "documentNumber": "Número de documento",
+        "phone": "Teléfono",
+        "status": "Estado",
+        "active": "Cuenta activa",
+        "roles": "Roles"
+      },
+      "status": {
+        "ACTIVE": "Activo",
+        "SUSPENDED": "Suspendido",
+        "LOCKED": "Bloqueado"
+      }
+    },
+    "roles": {
+      "seoTitle": "Roles — OptiBienestar 360",
+      "title": "Roles y permisos",
+      "subtitle": "Crea roles y ajusta los permisos (llaves) que otorga cada uno. El rol SYSTEM es inmutable.",
+      "new": "Nuevo rol",
+      "createTooltip": "Crear un nuevo rol",
+      "noPermissionCreate": "No tienes permiso para crear roles",
+      "noPermission": "No tienes permiso",
+      "empty": "Sin roles",
+      "permissions": "Permisos",
+      "editPermissionsTooltip": "Editar permisos",
+      "editRoleTooltip": "Editar rol",
+      "deleteRoleTooltip": "Eliminar rol",
+      "systemImmutable": "El rol SYSTEM es inmutable",
+      "nameFormat": "Debe ser UPPER_SNAKE_CASE (ej: GERENTE_ALIADO)",
+      "createdToast": "Rol creado",
+      "updatedToast": "Rol actualizado",
+      "deletedToast": "Rol eliminado",
+      "permissionsUpdatedToast": "Permisos actualizados",
+      "modalCreateTitle": "Nuevo rol",
+      "modalEditTitle": "Editar rol",
+      "modalCreateDescription": "El nombre debe ser UPPER_SNAKE_CASE (ej: GERENTE_ALIADO). Luego asígnale permisos.",
+      "modalEditDescription": "Actualiza el nombre o la descripción del rol.",
+      "submitCreate": "Crear rol",
+      "deleteTitle": "Eliminar rol",
+      "deleteConfirm": "¿Seguro que deseas eliminar el rol {name}? El backend aplica smart delete: falla si el rol está en uso.",
+      "permissionsModalTitle": "Permisos de {name}",
+      "permissionsModalDescription": "Marca las llaves que otorga este rol. Debe tener al menos un permiso.",
+      "permissionsCatalogError": "No se pudo cargar el catálogo de permisos (/v1/admin/permissions).",
+      "permissionsCount": "{selected} / {total} permisos",
+      "selectAtLeastOnePermission": "Selecciona al menos un permiso",
+      "savePermissions": "Guardar permisos",
+      "columns": {
+        "role": "Rol",
+        "description": "Descripción"
+      },
+      "fields": {
+        "name": "Nombre",
+        "description": "Descripción"
+      }
+    }
   }
 }
