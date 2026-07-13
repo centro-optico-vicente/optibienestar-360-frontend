@@ -14,11 +14,14 @@ definePageMeta({
   permission: 'USER_VIEW_ALL',
 })
 
-useSeoMeta({ title: 'Usuarios — OptiBienestar 360' })
+const { t } = useI18n()
+
+useSeoMeta({ title: () => t('security.users.seoTitle') })
 
 const users = useUsers()
 const roles = useRoles()
 const { can } = usePermissions()
+const { formatDate } = useFormatters()
 const toast = useToast()
 
 const canCreate = computed(() => can('USER_CREATE'))
@@ -34,10 +37,10 @@ const size = ref(20)
 const search = ref('')
 
 function buildFilter(): string | undefined {
-  const t = search.value.trim()
-  if (!t) return undefined
+  const term = search.value.trim()
+  if (!term) return undefined
   // RSQL: OR entre fullName y email (coma = OR)
-  return `fullName=='*${t}*',email=='*${t}*'`
+  return `fullName=='*${term}*',email=='*${term}*'`
 }
 
 async function load() {
@@ -98,7 +101,17 @@ const editingUuid = ref<string | null>(null)
 const isSubmitting = ref(false)
 
 // Backend only accepts these (AdminUpdateUserRequest.status pattern).
-const STATUS_OPTIONS = ['ACTIVE', 'SUSPENDED', 'LOCKED']
+const STATUS_VALUES = ['ACTIVE', 'SUSPENDED', 'LOCKED']
+const statusOptions = computed(() =>
+  STATUS_VALUES.map(s => ({ label: t(`security.users.status.${s}`), value: s })),
+)
+
+/** Etiqueta localizada del estado; estados desconocidos se muestran crudos. */
+function statusLabel(u: UserDto): string {
+  if (u.active === false) return t('security.users.inactive')
+  if (!u.status) return t('common.empty')
+  return STATUS_VALUES.includes(u.status) ? t(`security.users.status.${u.status}`) : u.status
+}
 
 // Tipos de documento desde el catálogo real (/v1/admin/catalogs/document-types).
 const { options: documentTypeOptions, load: loadDocumentTypes } = useDocumentTypes()
@@ -133,40 +146,38 @@ const state = reactive<FormState>({
   roleIds: [],
 })
 
-const passwordRule = z
-  .string()
-  .min(10, 'Mínimo 10 caracteres')
-  .regex(/[A-Z]/, 'Debe incluir una mayúscula')
-  .regex(/[a-z]/, 'Debe incluir una minúscula')
-  .regex(/[0-9]/, 'Debe incluir un número')
-  .regex(/[^A-Za-z0-9]/, 'Debe incluir un símbolo')
-
-const createSchema = z.object({
-  email: z.string().email('Email no válido'),
-  firstName: z.string().min(1, 'Requerido').max(50, 'Máximo 50 caracteres'),
-  middleName: z.string().max(50, 'Máximo 50 caracteres').optional(),
-  lastName: z.string().min(1, 'Requerido').max(50, 'Máximo 50 caracteres'),
-  secondLastName: z.string().max(50, 'Máximo 50 caracteres').optional(),
-  password: passwordRule,
-  documentType: z.string().min(1, 'Requerido'),
-  documentNumber: z.string().min(1, 'Requerido'),
+const createSchema = computed(() => z.object({
+  email: z.string().email(t('validation.emailInvalid')),
+  firstName: z.string().min(1, t('validation.required')).max(50, t('validation.maxChars', { n: 50 })),
+  middleName: z.string().max(50, t('validation.maxChars', { n: 50 })).optional(),
+  lastName: z.string().min(1, t('validation.required')).max(50, t('validation.maxChars', { n: 50 })),
+  secondLastName: z.string().max(50, t('validation.maxChars', { n: 50 })).optional(),
+  password: z
+    .string()
+    .min(10, t('validation.minChars', { n: 10 }))
+    .regex(/[A-Z]/, t('validation.passwordUppercase'))
+    .regex(/[a-z]/, t('validation.passwordLowercase'))
+    .regex(/[0-9]/, t('validation.passwordNumber'))
+    .regex(/[^A-Za-z0-9]/, t('validation.passwordSymbol')),
+  documentType: z.string().min(1, t('validation.required')),
+  documentNumber: z.string().min(1, t('validation.required')),
   phone: z.string().optional(),
-  roleIds: z.array(z.string()).min(1, 'Selecciona al menos un rol'),
-})
+  roleIds: z.array(z.string()).min(1, t('security.users.selectAtLeastOneRole')),
+}))
 
-const editSchema = z.object({
-  firstName: z.string().min(1, 'Requerido').max(50, 'Máximo 50 caracteres'),
-  middleName: z.string().max(50, 'Máximo 50 caracteres').optional(),
-  lastName: z.string().min(1, 'Requerido').max(50, 'Máximo 50 caracteres'),
-  secondLastName: z.string().max(50, 'Máximo 50 caracteres').optional(),
+const editSchema = computed(() => z.object({
+  firstName: z.string().min(1, t('validation.required')).max(50, t('validation.maxChars', { n: 50 })),
+  middleName: z.string().max(50, t('validation.maxChars', { n: 50 })).optional(),
+  lastName: z.string().min(1, t('validation.required')).max(50, t('validation.maxChars', { n: 50 })),
+  secondLastName: z.string().max(50, t('validation.maxChars', { n: 50 })).optional(),
   documentType: z.string().optional(),
   documentNumber: z.string().optional(),
   phone: z.string().optional(),
   status: z.string(),
-  roleIds: z.array(z.string()).min(1, 'Selecciona al menos un rol'),
-})
+  roleIds: z.array(z.string()).min(1, t('security.users.selectAtLeastOneRole')),
+}))
 
-const schema = computed(() => (mode.value === 'create' ? createSchema : editSchema))
+const schema = computed(() => (mode.value === 'create' ? createSchema.value : editSchema.value))
 
 function resetForm() {
   state.email = ''
@@ -225,7 +236,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         roleIds: state.roleIds,
       }
       await users.create(body)
-      toast.add({ title: 'Usuario creado', color: 'success', icon: 'i-lucide-check-circle' })
+      toast.add({ title: t('security.users.createdToast'), color: 'success', icon: 'i-lucide-check-circle' })
     }
     else if (editingUuid.value) {
       const body: AdminUpdateUserRequest = {
@@ -241,7 +252,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         roleIds: state.roleIds,
       }
       await users.update(editingUuid.value, body)
-      toast.add({ title: 'Usuario actualizado', color: 'success', icon: 'i-lucide-check-circle' })
+      toast.add({ title: t('security.users.updatedToast'), color: 'success', icon: 'i-lucide-check-circle' })
     }
     formOpen.value = false
     await load()
@@ -269,7 +280,7 @@ async function confirmDelete() {
   deleting.value = true
   try {
     await users.remove(target.value.uuid)
-    toast.add({ title: 'Usuario eliminado', color: 'success', icon: 'i-lucide-check-circle' })
+    toast.add({ title: t('security.users.deletedToast'), color: 'success', icon: 'i-lucide-check-circle' })
     deleteOpen.value = false
     // Si la página queda vacía tras borrar, retrocede una.
     if (data.value.length === 1 && page.value > 1) page.value -= 1
@@ -282,11 +293,6 @@ async function confirmDelete() {
     deleting.value = false
   }
 }
-
-function formatDate(iso?: string | null): string {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleString('es', { dateStyle: 'medium', timeStyle: 'short' })
-}
 </script>
 
 <template>
@@ -294,19 +300,19 @@ function formatDate(iso?: string | null): string {
     <!-- Header -->
     <div class="flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-extrabold text-prohealth-900">Usuarios</h1>
+        <h1 class="text-2xl font-extrabold text-prohealth-900">{{ $t('security.users.title') }}</h1>
         <p class="text-sm text-prohealth-700/70 mt-1">
-          Gestión de usuarios del sistema, sus datos y roles.
+          {{ $t('security.users.subtitle') }}
         </p>
       </div>
-      <UTooltip :text="canCreate ? 'Crear un nuevo usuario' : 'No tienes permiso para crear usuarios'">
+      <UTooltip :text="canCreate ? $t('security.users.createTooltip') : $t('security.users.noPermissionCreate')">
         <UButton
           color="primary"
           icon="i-lucide-user-plus"
           :disabled="!canCreate"
           @click="openCreate"
         >
-          Nuevo usuario
+          {{ $t('security.users.new') }}
         </UButton>
       </UTooltip>
     </div>
@@ -315,7 +321,7 @@ function formatDate(iso?: string | null): string {
     <div class="bg-white rounded-2xl border border-prohealth-100 p-4">
       <UInput
         v-model="search"
-        placeholder="Buscar por nombre o email…"
+        :placeholder="$t('security.users.searchPlaceholder')"
         icon="i-lucide-search"
         size="lg"
         class="w-full max-w-md"
@@ -328,12 +334,12 @@ function formatDate(iso?: string | null): string {
         <table class="w-full text-sm">
           <thead>
             <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
-              <th class="px-5 py-3 font-semibold">Usuario</th>
-              <th class="px-5 py-3 font-semibold">Documento</th>
-              <th class="px-5 py-3 font-semibold">Roles</th>
-              <th class="px-5 py-3 font-semibold">Estado</th>
-              <th class="px-5 py-3 font-semibold">Último acceso</th>
-              <th class="px-5 py-3 font-semibold text-right">Acciones</th>
+              <th class="px-5 py-3 font-semibold">{{ $t('security.users.columns.user') }}</th>
+              <th class="px-5 py-3 font-semibold">{{ $t('security.users.columns.document') }}</th>
+              <th class="px-5 py-3 font-semibold">{{ $t('security.users.columns.roles') }}</th>
+              <th class="px-5 py-3 font-semibold">{{ $t('security.users.columns.status') }}</th>
+              <th class="px-5 py-3 font-semibold">{{ $t('security.users.columns.lastLogin') }}</th>
+              <th class="px-5 py-3 font-semibold text-right">{{ $t('common.actions') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-prohealth-100">
@@ -341,7 +347,7 @@ function formatDate(iso?: string | null): string {
             <tr v-else-if="data.length === 0">
               <td colspan="6" class="px-5 py-12 text-center text-prohealth-500">
                 <UIcon name="i-lucide-users" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
-                Sin usuarios
+                {{ $t('security.users.empty') }}
               </td>
             </tr>
             <tr
@@ -378,13 +384,13 @@ function formatDate(iso?: string | null): string {
                   variant="subtle"
                   size="sm"
                 >
-                  {{ u.active === false ? 'Inactivo' : (u.status || '—') }}
+                  {{ statusLabel(u) }}
                 </UBadge>
               </td>
-              <td class="px-5 py-3 text-prohealth-600">{{ formatDate(u.lastLoginAt) }}</td>
+              <td class="px-5 py-3 text-prohealth-600">{{ formatDate(u.lastLoginAt, 'datetime') }}</td>
               <td class="px-5 py-3">
                 <div class="flex items-center justify-end gap-1">
-                  <UTooltip :text="canUpdate ? 'Editar' : 'No tienes permiso para editar'">
+                  <UTooltip :text="canUpdate ? $t('common.edit') : $t('security.users.noPermissionEdit')">
                     <UButton
                       color="neutral"
                       variant="ghost"
@@ -394,7 +400,7 @@ function formatDate(iso?: string | null): string {
                       @click="openEdit(u)"
                     />
                   </UTooltip>
-                  <UTooltip :text="canDelete ? 'Eliminar' : 'No tienes permiso para eliminar'">
+                  <UTooltip :text="canDelete ? $t('common.delete') : $t('security.users.noPermissionDelete')">
                     <UButton
                       color="error"
                       variant="ghost"
@@ -414,7 +420,7 @@ function formatDate(iso?: string | null): string {
       <!-- Paginación -->
       <div class="flex items-center justify-between px-5 py-3 border-t border-prohealth-100">
         <p class="text-xs text-prohealth-500">
-          {{ data.length }} de {{ total }} usuario(s)
+          {{ $t('security.users.paginationSummary', { shown: data.length, total }) }}
         </p>
         <UPagination
           v-model:page="page"
@@ -427,8 +433,8 @@ function formatDate(iso?: string | null): string {
     <!-- Modal crear/editar -->
     <UModal
       v-model:open="formOpen"
-      :title="mode === 'create' ? 'Nuevo usuario' : 'Editar usuario'"
-      :description="mode === 'create' ? 'Crea una cuenta y asígnale uno o más roles.' : 'Actualiza los datos y roles del usuario.'"
+      :title="mode === 'create' ? $t('security.users.modalCreateTitle') : $t('security.users.modalEditTitle')"
+      :description="mode === 'create' ? $t('security.users.modalCreateDescription') : $t('security.users.modalEditDescription')"
     >
       <template #body>
         <UForm
@@ -437,76 +443,82 @@ function formatDate(iso?: string | null): string {
           class="space-y-4"
           @submit="onSubmit"
         >
-          <UFormField v-if="mode === 'create'" label="Correo electrónico" name="email" required>
+          <UFormField v-if="mode === 'create'" :label="$t('security.users.fields.email')" name="email" required>
             <UInput v-model="state.email" type="email" autocomplete="off" class="w-full" />
           </UFormField>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField label="Primer nombre" name="firstName" required>
+            <UFormField :label="$t('security.users.fields.firstName')" name="firstName" required>
               <UInput v-model="state.firstName" class="w-full" />
             </UFormField>
-            <UFormField label="Segundo nombre" name="middleName">
+            <UFormField :label="$t('security.users.fields.middleName')" name="middleName">
               <UInput v-model="state.middleName" class="w-full" />
             </UFormField>
-            <UFormField label="Primer apellido" name="lastName" required>
+            <UFormField :label="$t('security.users.fields.lastName')" name="lastName" required>
               <UInput v-model="state.lastName" class="w-full" />
             </UFormField>
-            <UFormField label="Segundo apellido" name="secondLastName">
+            <UFormField :label="$t('security.users.fields.secondLastName')" name="secondLastName">
               <UInput v-model="state.secondLastName" class="w-full" />
             </UFormField>
           </div>
 
-          <UFormField v-if="mode === 'create'" label="Contraseña" name="password" required>
+          <UFormField v-if="mode === 'create'" :label="$t('security.users.fields.password')" name="password" required>
             <UInput v-model="state.password" type="password" autocomplete="new-password" class="w-full" />
           </UFormField>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField label="Tipo de documento" name="documentType">
+            <UFormField :label="$t('security.users.fields.documentType')" name="documentType">
               <USelectMenu
                 v-model="state.documentType"
                 :items="documentTypeOptions"
                 label-key="label"
                 value-key="value"
-                placeholder="Selecciona"
+                :placeholder="$t('common.select')"
                 class="w-full"
               />
             </UFormField>
-            <UFormField label="Número de documento" name="documentNumber">
+            <UFormField :label="$t('security.users.fields.documentNumber')" name="documentNumber">
               <UInput v-model="state.documentNumber" class="w-full" />
             </UFormField>
           </div>
 
-          <UFormField label="Teléfono" name="phone">
+          <UFormField :label="$t('security.users.fields.phone')" name="phone">
             <UInput v-model="state.phone" class="w-full" />
           </UFormField>
 
           <div v-if="mode === 'edit'" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField label="Estado" name="status">
-              <USelectMenu v-model="state.status" :items="STATUS_OPTIONS" class="w-full" />
+            <UFormField :label="$t('security.users.fields.status')" name="status">
+              <USelectMenu
+                v-model="state.status"
+                :items="statusOptions"
+                label-key="label"
+                value-key="value"
+                class="w-full"
+              />
             </UFormField>
-            <UFormField label="Cuenta activa" name="active">
+            <UFormField :label="$t('security.users.fields.active')" name="active">
               <USwitch v-model="state.active" />
             </UFormField>
           </div>
 
-          <UFormField label="Roles" name="roleIds" required>
+          <UFormField :label="$t('security.users.fields.roles')" name="roleIds" required>
             <USelectMenu
               v-model="state.roleIds"
               :items="roleOptions"
               label-key="label"
               value-key="value"
               multiple
-              placeholder="Selecciona uno o más roles"
+              :placeholder="$t('security.users.selectRolesPlaceholder')"
               class="w-full"
             />
           </UFormField>
 
           <div class="flex items-center justify-end gap-3 pt-2">
             <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="formOpen = false">
-              Cancelar
+              {{ $t('common.cancel') }}
             </UButton>
             <UButton type="submit" color="primary" :loading="isSubmitting" icon="i-lucide-save">
-              {{ mode === 'create' ? 'Crear usuario' : 'Guardar cambios' }}
+              {{ mode === 'create' ? $t('security.users.submitCreate') : $t('common.saveChanges') }}
             </UButton>
           </div>
         </UForm>
@@ -514,19 +526,17 @@ function formatDate(iso?: string | null): string {
     </UModal>
 
     <!-- Modal confirmar eliminación -->
-    <UModal v-model:open="deleteOpen" title="Eliminar usuario">
+    <UModal v-model:open="deleteOpen" :title="$t('security.users.deleteTitle')">
       <template #body>
         <p class="text-sm text-prohealth-700">
-          ¿Seguro que deseas eliminar a
-          <span class="font-semibold">{{ target?.fullName }}</span>
-          ({{ target?.email }})? Esta acción desactiva la cuenta.
+          {{ $t('security.users.deleteConfirm', { name: target?.fullName ?? '', email: target?.email ?? '' }) }}
         </p>
         <div class="flex items-center justify-end gap-3 pt-5">
           <UButton color="neutral" variant="ghost" :disabled="deleting" @click="deleteOpen = false">
-            Cancelar
+            {{ $t('common.cancel') }}
           </UButton>
           <UButton color="error" :loading="deleting" icon="i-lucide-trash-2" @click="confirmDelete">
-            Eliminar
+            {{ $t('common.delete') }}
           </UButton>
         </div>
       </template>

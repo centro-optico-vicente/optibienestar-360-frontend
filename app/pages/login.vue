@@ -5,9 +5,11 @@ import type { ApiError } from '~/types/auth'
 
 definePageMeta({ layout: 'auth' })
 
+const { t } = useI18n()
+
 useSeoMeta({
-  title: 'Ingresar — OptiBienestar 360',
-  description: 'Accede al portal OptiBienestar 360',
+  title: () => t('auth.login.seoTitle'),
+  description: () => t('auth.login.seoDescription'),
 })
 
 const { login } = useAuth()
@@ -15,12 +17,15 @@ const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 
-const schema = z.object({
-  email: z.string().email('Email no válido'),
-  password: z.string().min(8, 'Mínimo 8 caracteres'),
-})
+const schema = computed(() => z.object({
+  email: z.string().email(t('validation.emailInvalid')),
+  password: z.string().min(8, t('validation.minChars', { n: 8 })),
+}))
 
-type LoginSchema = z.infer<typeof schema>
+interface LoginSchema {
+  email: string
+  password: string
+}
 
 const state = reactive<Partial<LoginSchema>>({
   email: '',
@@ -42,8 +47,8 @@ const onSubmit = async (event: FormSubmitEvent<LoginSchema>): Promise<void> => {
     const result = await login(event.data)
 
     toast.add({
-      title: '¡Bienvenido!',
-      description: `Hola ${result.user.fullName || result.user.email}`,
+      title: t('auth.login.welcomeTitle'),
+      description: t('auth.login.welcomeDescription', { name: result.user.fullName || result.user.email }),
       color: 'success',
       icon: 'i-lucide-check-circle',
     })
@@ -56,7 +61,7 @@ const onSubmit = async (event: FormSubmitEvent<LoginSchema>): Promise<void> => {
     if (e?.status === 423 && e.problem?.lockedUntil) {
       lockedUntil.value = new Date(e.problem.lockedUntil)
     }
-    apiError.value = e?.message || 'No fue posible iniciar sesión'
+    apiError.value = e?.message || t('auth.login.errorFallback')
   }
   finally {
     isSubmitting.value = false
@@ -68,10 +73,10 @@ const onSubmit = async (event: FormSubmitEvent<LoginSchema>): Promise<void> => {
   <div>
     <div class="mb-8">
       <h2 class="text-2xl md:text-3xl font-extrabold text-prohealth-900">
-        Bienvenido de nuevo
+        {{ $t('auth.login.heading') }}
       </h2>
       <p class="text-sm text-prohealth-700/70 mt-1">
-        Ingresa con tus credenciales para acceder al portal.
+        {{ $t('auth.login.subheading') }}
       </p>
     </div>
 
@@ -81,19 +86,19 @@ const onSubmit = async (event: FormSubmitEvent<LoginSchema>): Promise<void> => {
       class="space-y-5"
       @submit="onSubmit"
     >
-      <UFormField label="Correo electrónico" name="email" required>
+      <UFormField :label="$t('auth.fields.email')" name="email" required>
         <UInput
           v-model="state.email"
           type="email"
           autocomplete="email"
-          placeholder="tu@correo.com"
+          :placeholder="$t('auth.fields.emailPlaceholder')"
           icon="i-lucide-mail"
           size="lg"
           class="w-full"
         />
       </UFormField>
 
-      <UFormField label="Contraseña" name="password" required>
+      <UFormField :label="$t('auth.fields.password')" name="password" required>
         <UInput
           v-model="state.password"
           :type="showPassword ? 'text' : 'password'"
@@ -116,9 +121,9 @@ const onSubmit = async (event: FormSubmitEvent<LoginSchema>): Promise<void> => {
       </UFormField>
 
       <div class="flex items-center justify-between text-sm">
-        <UCheckbox label="Recordarme" />
+        <UCheckbox :label="$t('auth.login.rememberMe')" />
         <NuxtLink to="/recover-password" class="text-prohealth-600 hover:text-prohealth-700 font-medium">
-          ¿Olvidaste tu contraseña?
+          {{ $t('auth.login.forgotPassword') }}
         </NuxtLink>
       </div>
 
@@ -139,12 +144,12 @@ const onSubmit = async (event: FormSubmitEvent<LoginSchema>): Promise<void> => {
         :disabled="isLocked"
         icon="i-lucide-log-in"
       >
-        Ingresar
+        {{ $t('auth.login.submit') }}
       </UButton>
 
       <p class="text-center text-sm text-prohealth-700/70 pt-2">
-        ¿No tienes cuenta?
-        <span class="text-prohealth-900 font-medium">Contacta a un promotor.</span>
+        {{ $t('auth.login.noAccount') }}
+        <span class="text-prohealth-900 font-medium">{{ $t('auth.login.contactPromoter') }}</span>
       </p>
     </UForm>
   </div>

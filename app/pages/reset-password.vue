@@ -5,7 +5,9 @@ import type { ApiError } from '~/types/auth'
 
 definePageMeta({ layout: 'auth' })
 
-useSeoMeta({ title: 'Restablecer contraseña — OptiBienestar 360' })
+const { t } = useI18n()
+
+useSeoMeta({ title: () => t('auth.reset.seoTitle') })
 
 const { resetPassword } = useAuth()
 const route = useRoute()
@@ -15,23 +17,27 @@ const toast = useToast()
 // El token llega como query param desde el enlace del correo.
 const token = computed(() => (typeof route.query.token === 'string' ? route.query.token : ''))
 
-const schema = z
+const schema = computed(() => z
   .object({
     newPassword: z
       .string()
-      .min(10, 'Mínimo 10 caracteres')
-      .max(128, 'Máximo 128 caracteres')
-      .regex(/[A-Z]/, 'Debe incluir una mayúscula')
-      .regex(/[a-z]/, 'Debe incluir una minúscula')
-      .regex(/[0-9]/, 'Debe incluir un número')
-      .regex(/[^A-Za-z0-9]/, 'Debe incluir un símbolo'),
+      .min(10, t('validation.minChars', { n: 10 }))
+      .max(128, t('validation.maxChars', { n: 128 }))
+      .regex(/[A-Z]/, t('validation.passwordUppercase'))
+      .regex(/[a-z]/, t('validation.passwordLowercase'))
+      .regex(/[0-9]/, t('validation.passwordNumber'))
+      .regex(/[^A-Za-z0-9]/, t('validation.passwordSymbol')),
     confirmPassword: z.string(),
   })
-  .refine(d => d.newPassword === d.confirmPassword, {
+  .refine((d: { newPassword: string, confirmPassword: string }) => d.newPassword === d.confirmPassword, {
     path: ['confirmPassword'],
-    message: 'Las contraseñas no coinciden',
-  })
-type Schema = z.infer<typeof schema>
+    message: t('validation.passwordsMismatch'),
+  }))
+
+interface Schema {
+  newPassword: string
+  confirmPassword: string
+}
 
 const state = reactive<Partial<Schema>>({ newPassword: '', confirmPassword: '' })
 const isSubmitting = ref(false)
@@ -43,15 +49,15 @@ const onSubmit = async (event: FormSubmitEvent<Schema>): Promise<void> => {
   try {
     await resetPassword(token.value, event.data.newPassword)
     toast.add({
-      title: 'Contraseña restablecida',
-      description: 'Ya puedes iniciar sesión con tu nueva contraseña.',
+      title: t('auth.reset.successTitle'),
+      description: t('auth.reset.successDescription'),
       color: 'success',
       icon: 'i-lucide-check-circle',
     })
     await router.push('/login')
   }
   catch (err: unknown) {
-    apiError.value = (err as ApiError)?.message || 'El enlace no es válido o ha expirado'
+    apiError.value = (err as ApiError)?.message || t('auth.reset.errorFallback')
   }
   finally {
     isSubmitting.value = false
@@ -63,10 +69,10 @@ const onSubmit = async (event: FormSubmitEvent<Schema>): Promise<void> => {
   <div>
     <div class="mb-8">
       <h2 class="text-2xl md:text-3xl font-extrabold text-prohealth-900">
-        Restablecer contraseña
+        {{ $t('auth.reset.heading') }}
       </h2>
       <p class="text-sm text-prohealth-700/70 mt-1">
-        Define una nueva contraseña para tu cuenta.
+        {{ $t('auth.reset.subheading') }}
       </p>
     </div>
 
@@ -75,8 +81,8 @@ const onSubmit = async (event: FormSubmitEvent<Schema>): Promise<void> => {
       color="error"
       variant="subtle"
       icon="i-lucide-link-2-off"
-      title="Enlace no válido"
-      description="Falta el token de recuperación. Solicita un nuevo enlace desde 'Recuperar contraseña'."
+      :title="$t('auth.reset.invalidLinkTitle')"
+      :description="$t('auth.reset.invalidLinkDescription')"
     />
 
     <UForm
@@ -86,7 +92,7 @@ const onSubmit = async (event: FormSubmitEvent<Schema>): Promise<void> => {
       class="space-y-5"
       @submit="onSubmit"
     >
-      <UFormField label="Nueva contraseña" name="newPassword" required>
+      <UFormField :label="$t('auth.fields.newPassword')" name="newPassword" required>
         <UInput
           v-model="state.newPassword"
           type="password"
@@ -98,7 +104,7 @@ const onSubmit = async (event: FormSubmitEvent<Schema>): Promise<void> => {
         />
       </UFormField>
 
-      <UFormField label="Confirmar contraseña" name="confirmPassword" required>
+      <UFormField :label="$t('auth.fields.confirmPassword')" name="confirmPassword" required>
         <UInput
           v-model="state.confirmPassword"
           type="password"
@@ -126,13 +132,13 @@ const onSubmit = async (event: FormSubmitEvent<Schema>): Promise<void> => {
         :loading="isSubmitting"
         icon="i-lucide-check"
       >
-        Restablecer contraseña
+        {{ $t('auth.reset.submit') }}
       </UButton>
     </UForm>
 
     <p class="text-center text-sm text-prohealth-700/70 pt-6">
       <NuxtLink to="/login" class="text-prohealth-600 hover:text-prohealth-700 font-medium">
-        ← Volver a iniciar sesión
+        {{ $t('auth.backToLogin') }}
       </NuxtLink>
     </p>
   </div>

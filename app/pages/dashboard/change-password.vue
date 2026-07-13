@@ -4,33 +4,39 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 
 definePageMeta({ layout: 'dashboard' })
 
-useSeoMeta({ title: 'Cambiar contraseña — OptiBienestar 360' })
+const { t } = useI18n()
+
+useSeoMeta({ title: () => t('auth.changePassword.seoTitle') })
 
 const { changePassword } = useAuth()
 const toast = useToast()
 
-const schema = z
+interface Schema {
+  currentPassword: string
+  newPassword: string
+  confirmPassword: string
+}
+
+const schema = computed(() => z
   .object({
-    currentPassword: z.string().min(8, 'Mínimo 8 caracteres'),
+    currentPassword: z.string().min(8, t('validation.minChars', { n: 8 })),
     newPassword: z
       .string()
-      .min(10, 'Mínimo 10 caracteres')
-      .regex(/[A-Z]/, 'Debe incluir una mayúscula')
-      .regex(/[a-z]/, 'Debe incluir una minúscula')
-      .regex(/[0-9]/, 'Debe incluir un número')
-      .regex(/[^A-Za-z0-9]/, 'Debe incluir un símbolo'),
+      .min(10, t('validation.minChars', { n: 10 }))
+      .regex(/[A-Z]/, t('validation.passwordUppercase'))
+      .regex(/[a-z]/, t('validation.passwordLowercase'))
+      .regex(/[0-9]/, t('validation.passwordNumber'))
+      .regex(/[^A-Za-z0-9]/, t('validation.passwordSymbol')),
     confirmPassword: z.string(),
   })
-  .refine(d => d.newPassword === d.confirmPassword, {
+  .refine((d: Schema) => d.newPassword === d.confirmPassword, {
     path: ['confirmPassword'],
-    message: 'Las contraseñas no coinciden',
+    message: t('validation.passwordsMismatch'),
   })
-  .refine(d => d.currentPassword !== d.newPassword, {
+  .refine((d: Schema) => d.currentPassword !== d.newPassword, {
     path: ['newPassword'],
-    message: 'La nueva contraseña debe ser distinta a la actual',
-  })
-
-type Schema = z.infer<typeof schema>
+    message: t('validation.passwordSameAsCurrent'),
+  }))
 
 const state = reactive<Partial<Schema>>({
   currentPassword: '',
@@ -51,8 +57,8 @@ const onSubmit = async (event: FormSubmitEvent<Schema>): Promise<void> => {
   apiError.value = null
   try {
     toast.add({
-      title: 'Contraseña actualizada',
-      description: 'Vuelve a iniciar sesión con tu nueva contraseña.',
+      title: t('auth.changePassword.successTitle'),
+      description: t('auth.changePassword.successDescription'),
       color: 'success',
       icon: 'i-lucide-check-circle',
     })
@@ -64,7 +70,7 @@ const onSubmit = async (event: FormSubmitEvent<Schema>): Promise<void> => {
   }
   catch (err: unknown) {
     const e = err as { message?: string }
-    apiError.value = e?.message || 'No fue posible actualizar la contraseña'
+    apiError.value = e?.message || t('auth.changePassword.errorFallback')
   }
   finally {
     isSubmitting.value = false
@@ -77,11 +83,10 @@ const onSubmit = async (event: FormSubmitEvent<Schema>): Promise<void> => {
     <div class="bg-white rounded-2xl border border-prohealth-100 p-6 md:p-8">
       <div class="mb-6">
         <h1 class="text-xl md:text-2xl font-extrabold text-prohealth-900">
-          Cambiar contraseña
+          {{ $t('auth.changePassword.heading') }}
         </h1>
         <p class="text-sm text-prohealth-700/70 mt-1">
-          La nueva contraseña debe tener al menos 10 caracteres, con mayúscula,
-          minúscula, número y símbolo.
+          {{ $t('auth.changePassword.hint') }}
         </p>
       </div>
 
@@ -91,7 +96,7 @@ const onSubmit = async (event: FormSubmitEvent<Schema>): Promise<void> => {
         class="space-y-5"
         @submit="onSubmit"
       >
-        <UFormField label="Contraseña actual" name="currentPassword" required>
+        <UFormField :label="$t('auth.fields.currentPassword')" name="currentPassword" required>
           <UInput
             v-model="state.currentPassword"
             :type="showFields.current ? 'text' : 'password'"
@@ -112,7 +117,7 @@ const onSubmit = async (event: FormSubmitEvent<Schema>): Promise<void> => {
           </UInput>
         </UFormField>
 
-        <UFormField label="Nueva contraseña" name="newPassword" required>
+        <UFormField :label="$t('auth.fields.newPassword')" name="newPassword" required>
           <UInput
             v-model="state.newPassword"
             :type="showFields.next ? 'text' : 'password'"
@@ -133,7 +138,7 @@ const onSubmit = async (event: FormSubmitEvent<Schema>): Promise<void> => {
           </UInput>
         </UFormField>
 
-        <UFormField label="Confirmar nueva contraseña" name="confirmPassword" required>
+        <UFormField :label="$t('auth.fields.confirmNewPassword')" name="confirmPassword" required>
           <UInput
             v-model="state.confirmPassword"
             :type="showFields.confirm ? 'text' : 'password'"
@@ -169,7 +174,7 @@ const onSubmit = async (event: FormSubmitEvent<Schema>): Promise<void> => {
             variant="ghost"
             :disabled="isSubmitting"
           >
-            Cancelar
+            {{ $t('common.cancel') }}
           </UButton>
           <UButton
             type="submit"
@@ -177,7 +182,7 @@ const onSubmit = async (event: FormSubmitEvent<Schema>): Promise<void> => {
             :loading="isSubmitting"
             icon="i-lucide-shield-check"
           >
-            Guardar nueva contraseña
+            {{ $t('auth.changePassword.submit') }}
           </UButton>
         </div>
       </UForm>
