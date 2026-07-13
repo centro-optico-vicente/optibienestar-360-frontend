@@ -4,11 +4,11 @@ import logoUrl from '~/assets/centro-optico-vicente-logo.png'
 const auth = useAuthStore()
 
 const navLinks = [
-  { label: 'Inicio', to: '/' },
-  { label: 'Sobre nosotros', to: '/#about' },
-  { label: 'Departamentos', to: '/#departments' },
-  { label: 'Aliados', to: '/aliados' },
-  { label: 'Contacto', to: '/#contact' },
+  { labelKey: 'layout.public.nav.home', to: '/' },
+  { labelKey: 'layout.public.nav.about', to: '/#about' },
+  { labelKey: 'layout.public.nav.departments', to: '/#departments' },
+  { labelKey: 'layout.public.nav.allies', to: '/aliados' },
+  { labelKey: 'layout.public.nav.contact', to: '/#contact' },
 ]
 
 const scrolled = ref<boolean>(false)
@@ -52,7 +52,7 @@ onMounted(async () => {
             :to="link.to"
             class="text-sm font-medium text-prohealth-900/80 hover:text-prohealth-600 transition-colors"
           >
-            {{ link.label }}
+            {{ $t(link.labelKey) }}
           </NuxtLink>
         </nav>
 
@@ -65,7 +65,7 @@ onMounted(async () => {
             size="sm"
             icon="i-lucide-log-in"
           >
-            Ingresar
+            {{ $t('layout.public.signIn') }}
           </UButton>
           <UButton
             v-else
@@ -75,7 +75,7 @@ onMounted(async () => {
             size="sm"
             icon="i-lucide-layout-dashboard"
           >
-            Mi panel
+            {{ $t('layout.public.myPanel') }}
           </UButton>
         </div>
       </div>
@@ -93,20 +93,19 @@ onMounted(async () => {
             <span class="font-extrabold text-lg text-white">OptiBienestar 360</span>
           </div>
           <p class="text-sm text-prohealth-200/80 max-w-md">
-            Programa integral de salud y bienestar. Atención preferencial en centros aliados,
-            cobertura familiar y portal digital para gestionar tu plan.
+            {{ $t('layout.footer.description') }}
           </p>
         </div>
         <div>
-          <h4 class="font-semibold text-white mb-3">Producto</h4>
+          <h4 class="font-semibold text-white mb-3">{{ $t('layout.footer.productHeading') }}</h4>
           <ul class="space-y-2 text-sm text-prohealth-200/80">
-            <li>Planes</li>
-            <li>Aliados</li>
-            <li>Carnet digital</li>
+            <li>{{ $t('layout.footer.product.plans') }}</li>
+            <li>{{ $t('layout.footer.product.allies') }}</li>
+            <li>{{ $t('layout.footer.product.digitalCard') }}</li>
           </ul>
         </div>
         <div>
-          <h4 class="font-semibold text-white mb-3">Contacto</h4>
+          <h4 class="font-semibold text-white mb-3">{{ $t('layout.footer.contactHeading') }}</h4>
           <ul class="space-y-2 text-sm text-prohealth-200/80">
             <li>info@optibienestar360.com</li>
             <li>+58 412 000 0000</li>
@@ -115,7 +114,7 @@ onMounted(async () => {
       </div>
       <div class="border-t border-white/10">
         <div class="max-w-7xl mx-auto px-6 lg:px-10 py-4 text-xs text-prohealth-200/60 flex flex-wrap items-center justify-between gap-2">
-          <span>© {{ new Date().getFullYear() }} OptiBienestar 360. Todos los derechos reservados.</span>
+          <span>{{ $t('layout.copyrightFull', { year: new Date().getFullYear() }) }}</span>
           <span v-if="version" class="opacity-70">{{ version }}</span>
         </div>
       </div>

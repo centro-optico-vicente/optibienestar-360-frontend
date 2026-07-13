@@ -14,7 +14,9 @@
     "delete": "Delete",
     "actions": "Actions",
     "select": "Select",
-    "empty": "—"
+    "viewAll": "View all",
+    "empty": "—",
+    "seoTitle": "{page} — OptiBienestar 360"
   },
   "validation": {
     "required": "Required",
@@ -39,6 +41,7 @@
       "confirmNewPassword": "Confirm new password"
     },
     "backToLogin": "← Back to sign in",
+    "logout": "Sign out",
     "login": {
       "seoTitle": "Sign in — OptiBienestar 360",
       "seoDescription": "Access the OptiBienestar 360 portal",
@@ -176,6 +179,164 @@
         "name": "Name",
         "description": "Description"
       }
+    }
+  },
+  "nav": {
+    "mainMenu": "Main menu",
+    "otherSection": "Other",
+    "manage": "Manage",
+    "viewAllMosaic": "View all as grid",
+    "searchPlaceholder": "Search members, plans…",
+    "groups": {
+      "afiliaciones": {
+        "label": "Affiliations",
+        "description": "Plans, memberships, members and program payments."
+      },
+      "aliados": {
+        "label": "Partners",
+        "description": "Network of provider partners, their classification and services."
+      },
+      "comercial": {
+        "label": "Sales",
+        "description": "Program promoters and their commissions."
+      },
+      "seguridad": {
+        "label": "Security",
+        "description": "Access control by roles and system users."
+      },
+      "datosMaestros": {
+        "label": "Master data",
+        "description": "System master data: countries, states, cities, document types, genders and more."
+      },
+      "misPortales": {
+        "label": "My portals",
+        "description": "Access to your personal portals."
+      }
+    },
+    "items": {
+      "panel": { "label": "Dashboard" },
+      "reports": { "label": "Reports" },
+      "plans": { "label": "Plans", "description": "Available coverage plans." },
+      "memberships": { "label": "Memberships", "description": "Membership status and validity." },
+      "members": { "label": "Members", "description": "Member directory and records." },
+      "payments": { "label": "Payments", "description": "Payment registration and approval." },
+      "allyTypes": { "label": "Partner types", "description": "Partner classification." },
+      "alliesDirectory": { "label": "Partner directory", "description": "Network businesses and providers." },
+      "serviceCategories": { "label": "Service categories", "description": "Categories of the offered services." },
+      "medicalSpecialties": { "label": "Medical specialties", "description": "Partners' medical specialties." },
+      "promoters": { "label": "Promoters", "description": "Sales team and promoters." },
+      "commissions": { "label": "Commissions", "description": "Commission settlement and status." },
+      "roles": { "label": "Roles", "description": "Assignable roles and permissions." },
+      "users": { "label": "Users", "description": "System accounts and access." },
+      "myCard": { "label": "My card", "description": "Your member card." },
+      "myAllyCompany": { "label": "My partner company", "description": "Your partner company panel." }
+    },
+    "other": {
+      "changePassword": "Change password"
+    }
+  },
+  "layout": {
+    "copyrightShort": "© {year} OptiBienestar 360",
+    "copyrightFull": "© {year} OptiBienestar 360. All rights reserved.",
+    "auth": {
+      "tagline": "We care for what you love most.",
+      "lead": "Access your digital card, manage your members and discover the partner network of the OptiBienestar 360 program.",
+      "affiliatesCount": "+150k members",
+      "affiliatesTrust": "trust us"
+    },
+    "public": {
+      "nav": {
+        "home": "Home",
+        "about": "About us",
+        "departments": "Departments",
+        "allies": "Partners",
+        "contact": "Contact"
+      },
+      "signIn": "Sign in",
+      "myPanel": "My dashboard"
+    },
+    "footer": {
+      "description": "Comprehensive health and wellness program. Preferential care at partner centers, family coverage and a digital portal to manage your plan.",
+      "productHeading": "Product",
+      "product": {
+        "plans": "Plans",
+        "allies": "Partners",
+        "digitalCard": "Digital card"
+      },
+      "contactHeading": "Contact"
+    }
+  },
+  "landing": {
+    "seoTitle": "OptiBienestar 360 — We care for what you love most",
+    "seoDescription": "Comprehensive health plan with a partner network, preferential care, digital card and family coverage.",
+    "hero": {
+      "badge": "Trusted health program",
+      "titleLine1": "Comprehensive care,",
+      "titleLine2": "exceptional results.",
+      "lead": "Our team of professionals and partner network is committed to providing quality care and personalized support to each of our members.",
+      "ctaLogin": "Sign in to my account",
+      "ctaHow": "How it works",
+      "activeAffiliatesLabel": "Active members",
+      "imageAlt": "Vision exam with an optometrist at OptiBienestar 360",
+      "imageCaption": "Health · Family · Wellness"
+    },
+    "stats": {
+      "years": "Years in the sector",
+      "satisfaction": "Member satisfaction",
+      "careCount": "Visits per year",
+      "specialties": "Specialties covered"
+    },
+    "about": {
+      "eyebrow": "About us",
+      "title": "OptiBienestar 360 is a team of committed health professionals.",
+      "body": "We work with a holistic approach focused on the whole person, not just the symptom. Our partners, plans and promoters form a network designed to make self-care simple.",
+      "imageAlt": "OptiBienestar 360 team of professionals"
+    },
+    "departments": {
+      "eyebrow": "Our departments",
+      "title": "For your health.",
+      "items": {
+        "emergencies": { "title": "Emergencies", "description": "24/7 care at certified partners." },
+        "pediatrics": { "title": "Pediatrics", "description": "Preferential children's checkups and consultations." },
+        "gynecology": { "title": "Gynecology", "description": "Comprehensive women's health and maternity." },
+        "cardiology": { "title": "Cardiology", "description": "Screening, ECG and risk monitoring." },
+        "neurology": { "title": "Neurology", "description": "Assessments and follow-up plans." },
+        "ophthalmology": { "title": "Ophthalmology", "description": "Consultations, lenses and optical discounts." }
+      }
+    },
+    "contact": {
+      "eyebrow": "Contact",
+      "title": "Have questions? Write to us.",
+      "lead": "Fill out the form and our team will get back to you shortly.",
+      "sentTitle": "Thanks for reaching out!",
+      "sentDescription": "We've received your message and will reply soon.",
+      "form": {
+        "name": "Name",
+        "email": "Email",
+        "phone": "Phone",
+        "subject": "Subject",
+        "message": "Message",
+        "submit": "Send message"
+      },
+      "toast": {
+        "sentTitle": "Message sent",
+        "sentDescription": "We'll contact you soon.",
+        "errorTitle": "Couldn't send",
+        "errorFallback": "Please try again later."
+      }
+    },
+    "cta": {
+      "title": "Ready to manage your plan online?",
+      "body": "Sign in to the portal to view your card, add family members and check your history.",
+      "button": "Sign in now"
+    }
+  },
+  "errors": {
+    "forbidden": {
+      "seoTitle": "No access — OptiBienestar 360",
+      "title": "You don't have permission",
+      "description": "Your account doesn't have the permissions required to view this section. If you think this is a mistake, contact an administrator.",
+      "back": "Back to dashboard"
     }
   }
 }

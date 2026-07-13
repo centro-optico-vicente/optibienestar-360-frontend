@@ -12,11 +12,16 @@ import { CATALOGS } from '~/utils/catalog-registry'
 
 /** Una vista navegable. Es también la tarjeta que se pinta en el mosaico. */
 export interface NavLeaf {
+  /** Default text (es). Fallback when there is no `labelKey`. */
   label: string
+  /** i18n key for the label; resolved in `useNav`. Derived catalogs don't have one. */
+  labelKey?: string
   to: string
   icon: string
   /** Subtítulo de la tarjeta en el mosaico (por defecto "Gestionar"). */
   description?: string
+  /** i18n key for the description; resolved in `useNav`. */
+  descriptionKey?: string
   /** Resalta solo con coincidencia exacta de ruta (p.ej. Panel → /dashboard). */
   exact?: boolean
   requires?: Permission | Permission[]
@@ -28,9 +33,13 @@ export interface NavGroup {
   /** Slug de ruta para la página de mosaico: /dashboard/modulo/{key}. */
   key: string
   label: string
+  /** i18n key for the label; resolved in `useNav`. */
+  labelKey?: string
   icon: string
   /** Subtítulo de la página de mosaico del grupo. */
   description?: string
+  /** i18n key for the description; resolved in `useNav`. */
+  descriptionKey?: string
   /** Sobrescribe el destino del botón mosaico (Datos maestros → /dashboard/catalogs). */
   mosaicTo?: string
   children: NavLeaf[]
@@ -59,74 +68,86 @@ const catalogChildren: NavLeaf[] = CATALOGS
   }))
 
 export const MAIN_NAV: NavEntry[] = [
-  { label: 'Panel', to: '/dashboard', icon: 'i-lucide-layout-dashboard', exact: true },
+  { label: 'Panel', labelKey: 'nav.items.panel.label', to: '/dashboard', icon: 'i-lucide-layout-dashboard', exact: true },
   {
     key: 'afiliaciones',
     label: 'Afiliaciones',
+    labelKey: 'nav.groups.afiliaciones.label',
     icon: 'i-lucide-users',
     description: 'Planes, membresías, afiliados y pagos del programa.',
+    descriptionKey: 'nav.groups.afiliaciones.description',
     children: [
-      { label: 'Planes', to: '/dashboard/plans', icon: 'i-lucide-package', description: 'Planes de cobertura disponibles.', requires: 'PLAN_VIEW_ALL' },
-      { label: 'Membresías', to: '/dashboard/memberships', icon: 'i-lucide-badge-check', description: 'Estado y vigencia de las membresías.', requires: 'MEMBERSHIP_VIEW_ALL' },
-      { label: 'Afiliados', to: '/dashboard/members', icon: 'i-lucide-users', description: 'Directorio y expedientes de afiliados.', requires: 'MEMBER_VIEW_ALL' },
-      { label: 'Pagos', to: '/dashboard/payments', icon: 'i-lucide-credit-card', description: 'Registro y aprobación de pagos.', requires: 'PAYMENT_VIEW_ALL' },
+      { label: 'Planes', labelKey: 'nav.items.plans.label', to: '/dashboard/plans', icon: 'i-lucide-package', description: 'Planes de cobertura disponibles.', descriptionKey: 'nav.items.plans.description', requires: 'PLAN_VIEW_ALL' },
+      { label: 'Membresías', labelKey: 'nav.items.memberships.label', to: '/dashboard/memberships', icon: 'i-lucide-badge-check', description: 'Estado y vigencia de las membresías.', descriptionKey: 'nav.items.memberships.description', requires: 'MEMBERSHIP_VIEW_ALL' },
+      { label: 'Afiliados', labelKey: 'nav.items.members.label', to: '/dashboard/members', icon: 'i-lucide-users', description: 'Directorio y expedientes de afiliados.', descriptionKey: 'nav.items.members.description', requires: 'MEMBER_VIEW_ALL' },
+      { label: 'Pagos', labelKey: 'nav.items.payments.label', to: '/dashboard/payments', icon: 'i-lucide-credit-card', description: 'Registro y aprobación de pagos.', descriptionKey: 'nav.items.payments.description', requires: 'PAYMENT_VIEW_ALL' },
     ],
   },
   {
     key: 'aliados',
     label: 'Aliados',
+    labelKey: 'nav.groups.aliados.label',
     icon: 'i-lucide-handshake',
     description: 'Red de aliados prestadores, su clasificación y servicios.',
+    descriptionKey: 'nav.groups.aliados.description',
     children: [
-      { label: 'Tipos de aliado', to: '/dashboard/catalogs/ally-types', icon: 'i-lucide-tags', description: 'Clasificación de los aliados.', roles: ['SYSTEM', 'ADMINISTRADOR'] },
-      { label: 'Directorio de aliados', to: '/dashboard/allies', icon: 'i-lucide-handshake', description: 'Comercios y prestadores de la red.', requires: 'ALLY_VIEW_ALL' },
-      { label: 'Categorías de servicio', to: '/dashboard/catalogs/service-categories', icon: 'i-lucide-layers', description: 'Categorías de los servicios ofrecidos.', roles: ['SYSTEM', 'ADMINISTRADOR'] },
-      { label: 'Especialidades médicas', to: '/dashboard/catalogs/medical-specialties', icon: 'i-lucide-stethoscope', description: 'Especialidades médicas de los aliados.', roles: ['SYSTEM', 'ADMINISTRADOR'] },
+      { label: 'Tipos de aliado', labelKey: 'nav.items.allyTypes.label', to: '/dashboard/catalogs/ally-types', icon: 'i-lucide-tags', description: 'Clasificación de los aliados.', descriptionKey: 'nav.items.allyTypes.description', roles: ['SYSTEM', 'ADMINISTRADOR'] },
+      { label: 'Directorio de aliados', labelKey: 'nav.items.alliesDirectory.label', to: '/dashboard/allies', icon: 'i-lucide-handshake', description: 'Comercios y prestadores de la red.', descriptionKey: 'nav.items.alliesDirectory.description', requires: 'ALLY_VIEW_ALL' },
+      { label: 'Categorías de servicio', labelKey: 'nav.items.serviceCategories.label', to: '/dashboard/catalogs/service-categories', icon: 'i-lucide-layers', description: 'Categorías de los servicios ofrecidos.', descriptionKey: 'nav.items.serviceCategories.description', roles: ['SYSTEM', 'ADMINISTRADOR'] },
+      { label: 'Especialidades médicas', labelKey: 'nav.items.medicalSpecialties.label', to: '/dashboard/catalogs/medical-specialties', icon: 'i-lucide-stethoscope', description: 'Especialidades médicas de los aliados.', descriptionKey: 'nav.items.medicalSpecialties.description', roles: ['SYSTEM', 'ADMINISTRADOR'] },
     ],
   },
   {
     key: 'comercial',
     label: 'Comercial',
+    labelKey: 'nav.groups.comercial.label',
     icon: 'i-lucide-megaphone',
     description: 'Promotores del programa y sus comisiones.',
+    descriptionKey: 'nav.groups.comercial.description',
     children: [
-      { label: 'Promotores', to: '/dashboard/promoters', icon: 'i-lucide-megaphone', description: 'Equipo comercial y promotores.', requires: 'PROMOTER_VIEW_ALL' },
-      { label: 'Comisiones', to: '/dashboard/commissions', icon: 'i-lucide-percent', description: 'Liquidación y estado de comisiones.', requires: ['COMMISSION_VIEW_ALL', 'COMMISSION_VIEW_OWN'] },
+      { label: 'Promotores', labelKey: 'nav.items.promoters.label', to: '/dashboard/promoters', icon: 'i-lucide-megaphone', description: 'Equipo comercial y promotores.', descriptionKey: 'nav.items.promoters.description', requires: 'PROMOTER_VIEW_ALL' },
+      { label: 'Comisiones', labelKey: 'nav.items.commissions.label', to: '/dashboard/commissions', icon: 'i-lucide-percent', description: 'Liquidación y estado de comisiones.', descriptionKey: 'nav.items.commissions.description', requires: ['COMMISSION_VIEW_ALL', 'COMMISSION_VIEW_OWN'] },
     ],
   },
   {
     key: 'seguridad',
     label: 'Seguridad',
+    labelKey: 'nav.groups.seguridad.label',
     icon: 'i-lucide-shield-check',
     description: 'Control de acceso por roles y usuarios del sistema.',
+    descriptionKey: 'nav.groups.seguridad.description',
     children: [
-      { label: 'Roles', to: '/dashboard/roles', icon: 'i-lucide-shield-check', description: 'Roles y permisos asignables.', requires: 'USER_CHANGE_ROLE' },
-      { label: 'Usuarios', to: '/dashboard/users', icon: 'i-lucide-shield-user', description: 'Cuentas y accesos al sistema.', requires: 'USER_VIEW_ALL' },
+      { label: 'Roles', labelKey: 'nav.items.roles.label', to: '/dashboard/roles', icon: 'i-lucide-shield-check', description: 'Roles y permisos asignables.', descriptionKey: 'nav.items.roles.description', requires: 'USER_CHANGE_ROLE' },
+      { label: 'Usuarios', labelKey: 'nav.items.users.label', to: '/dashboard/users', icon: 'i-lucide-shield-user', description: 'Cuentas y accesos al sistema.', descriptionKey: 'nav.items.users.description', requires: 'USER_VIEW_ALL' },
     ],
   },
   {
     key: 'datos-maestros',
     label: 'Datos maestros',
+    labelKey: 'nav.groups.datosMaestros.label',
     icon: 'i-lucide-database',
     description: 'Datos maestros del sistema: países, estados, ciudades, tipos de documento, géneros y más.',
+    descriptionKey: 'nav.groups.datosMaestros.description',
     mosaicTo: '/dashboard/catalogs',
     children: catalogChildren,
   },
-  { label: 'Reportes', to: '/dashboard/reports', icon: 'i-lucide-bar-chart-3', requires: 'REPORT_VIEW_DASHBOARD' },
+  { label: 'Reportes', labelKey: 'nav.items.reports.label', to: '/dashboard/reports', icon: 'i-lucide-bar-chart-3', requires: 'REPORT_VIEW_DASHBOARD' },
   {
     key: 'mis-portales',
     label: 'Mis portales',
+    labelKey: 'nav.groups.misPortales.label',
     icon: 'i-lucide-id-card',
     description: 'Accesos a tus portales personales.',
+    descriptionKey: 'nav.groups.misPortales.description',
     children: [
-      { label: 'Mi carnet', to: '/afiliado', icon: 'i-lucide-id-card', description: 'Tu carnet de afiliado.', requires: 'MEMBER_VIEW_OWN' },
-      { label: 'Mi empresa aliada', to: '/aliado', icon: 'i-lucide-building-2', description: 'Panel de tu empresa aliada.', roles: ['ALIADO'] },
+      { label: 'Mi carnet', labelKey: 'nav.items.myCard.label', to: '/afiliado', icon: 'i-lucide-id-card', description: 'Tu carnet de afiliado.', descriptionKey: 'nav.items.myCard.description', requires: 'MEMBER_VIEW_OWN' },
+      { label: 'Mi empresa aliada', labelKey: 'nav.items.myAllyCompany.label', to: '/aliado', icon: 'i-lucide-building-2', description: 'Panel de tu empresa aliada.', descriptionKey: 'nav.items.myAllyCompany.description', roles: ['ALIADO'] },
     ],
   },
 ]
 
 export const OTHER_NAV: NavLeaf[] = [
-  { label: 'Cambiar contraseña', to: '/dashboard/change-password', icon: 'i-lucide-key-round' },
+  { label: 'Cambiar contraseña', labelKey: 'nav.other.changePassword', to: '/dashboard/change-password', icon: 'i-lucide-key-round' },
 ]
 
 /** Destino del botón mosaico de un grupo. */

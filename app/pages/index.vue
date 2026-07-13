@@ -7,24 +7,32 @@ import aboutImg from '~/assets/img/c08baae430a8d168d93847b175f3d6ec.jpg'
 
 definePageMeta({ layout: 'default' })
 
+const { t } = useI18n()
+
 useSeoMeta({
-  title: 'OptiBienestar 360 — Cuidamos lo que más amas',
-  description:
-    'Plan integral de salud con red de aliados, atención preferencial, carnet digital y cobertura familiar.',
+  title: () => t('landing.seoTitle'),
+  description: () => t('landing.seoDescription'),
 })
 
 // ---- Formulario de contacto (POST /v1/public/contact) ----
 const { send } = useContact()
 const toast = useToast()
 
-const contactSchema = z.object({
-  name: z.string().min(1, 'Requerido').max(150),
-  email: z.string().email('Email no válido').max(254),
+const contactSchema = computed(() => z.object({
+  name: z.string().min(1, t('validation.required')).max(150),
+  email: z.string().email(t('validation.emailInvalid')).max(254),
   phone: z.string().max(30).optional().or(z.literal('')),
-  subject: z.string().min(1, 'Requerido').max(200),
-  message: z.string().min(1, 'Requerido').max(2000),
-})
-type ContactSchema = z.infer<typeof contactSchema>
+  subject: z.string().min(1, t('validation.required')).max(200),
+  message: z.string().min(1, t('validation.required')).max(2000),
+}))
+
+interface ContactSchema {
+  name: string
+  email: string
+  phone?: string
+  subject: string
+  message: string
+}
 
 const contact = reactive<Partial<ContactSchema>>({
   name: '',
@@ -47,12 +55,12 @@ async function onContactSubmit(event: FormSubmitEvent<ContactSchema>): Promise<v
       message: event.data.message,
     })
     contactSent.value = true
-    toast.add({ title: 'Mensaje enviado', description: 'Te contactaremos pronto.', color: 'success', icon: 'i-lucide-check-circle' })
+    toast.add({ title: t('landing.contact.toast.sentTitle'), description: t('landing.contact.toast.sentDescription'), color: 'success', icon: 'i-lucide-check-circle' })
   }
   catch (err: unknown) {
     toast.add({
-      title: 'No se pudo enviar',
-      description: (err as ApiError)?.message || 'Inténtalo de nuevo más tarde.',
+      title: t('landing.contact.toast.errorTitle'),
+      description: (err as ApiError)?.message || t('landing.contact.toast.errorFallback'),
       color: 'error',
       icon: 'i-lucide-circle-alert',
     })
@@ -64,29 +72,29 @@ async function onContactSubmit(event: FormSubmitEvent<ContactSchema>): Promise<v
 
 interface Stat {
   value: string
-  label: string
+  labelKey: string
 }
 
 const stats: Stat[] = [
-  { value: '20+', label: 'Años en el sector' },
-  { value: '95%', label: 'Satisfacción de afiliados' },
-  { value: '5000+', label: 'Atenciones al año' },
-  { value: '10+', label: 'Especialidades cubiertas' },
+  { value: '20+', labelKey: 'landing.stats.years' },
+  { value: '95%', labelKey: 'landing.stats.satisfaction' },
+  { value: '5000+', labelKey: 'landing.stats.careCount' },
+  { value: '10+', labelKey: 'landing.stats.specialties' },
 ]
 
 interface Department {
   icon: string
-  title: string
-  description: string
+  titleKey: string
+  descriptionKey: string
 }
 
 const departments: Department[] = [
-  { icon: 'i-lucide-siren', title: 'Emergencias', description: 'Atención 24/7 en aliados certificados.' },
-  { icon: 'i-lucide-baby', title: 'Pediatría', description: 'Consultas y controles infantiles preferenciales.' },
-  { icon: 'i-lucide-stethoscope', title: 'Ginecología', description: 'Salud integral de la mujer y maternidad.' },
-  { icon: 'i-lucide-heart-pulse', title: 'Cardiología', description: 'Cribado, ECG y seguimiento de riesgo.' },
-  { icon: 'i-lucide-brain', title: 'Neurología', description: 'Evaluaciones y planes de seguimiento.' },
-  { icon: 'i-lucide-glasses', title: 'Oftalmología', description: 'Consultas, lentes y descuentos en óptica.' },
+  { icon: 'i-lucide-siren', titleKey: 'landing.departments.items.emergencies.title', descriptionKey: 'landing.departments.items.emergencies.description' },
+  { icon: 'i-lucide-baby', titleKey: 'landing.departments.items.pediatrics.title', descriptionKey: 'landing.departments.items.pediatrics.description' },
+  { icon: 'i-lucide-stethoscope', titleKey: 'landing.departments.items.gynecology.title', descriptionKey: 'landing.departments.items.gynecology.description' },
+  { icon: 'i-lucide-heart-pulse', titleKey: 'landing.departments.items.cardiology.title', descriptionKey: 'landing.departments.items.cardiology.description' },
+  { icon: 'i-lucide-brain', titleKey: 'landing.departments.items.neurology.title', descriptionKey: 'landing.departments.items.neurology.description' },
+  { icon: 'i-lucide-glasses', titleKey: 'landing.departments.items.ophthalmology.title', descriptionKey: 'landing.departments.items.ophthalmology.description' },
 ]
 </script>
 
@@ -102,15 +110,14 @@ const departments: Department[] = [
       <div>
         <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur px-3 py-1.5 rounded-full text-xs font-medium mb-5">
           <UIcon name="i-lucide-shield-check" class="w-4 h-4 text-lime-300" />
-          Programa de salud confiable
+          {{ $t('landing.hero.badge') }}
         </div>
         <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-[1.05] tracking-tight">
-          Cuidado integral,
-          <span class="block text-lime-300">resultados excepcionales.</span>
+          {{ $t('landing.hero.titleLine1') }}
+          <span class="block text-lime-300">{{ $t('landing.hero.titleLine2') }}</span>
         </h1>
         <p class="mt-6 text-prohealth-100/90 max-w-xl text-lg">
-          Nuestro equipo de profesionales y red de aliados está comprometido con brindar
-          atención de calidad y acompañamiento personalizado a cada uno de nuestros afiliados.
+          {{ $t('landing.hero.lead') }}
         </p>
 
         <div class="mt-8 flex flex-wrap items-center gap-3">
@@ -122,7 +129,7 @@ const departments: Department[] = [
             icon="i-lucide-log-in"
             class="bg-lime-500 hover:bg-lime-600 text-prohealth-950 font-semibold"
           >
-            Ingresar a mi cuenta
+            {{ $t('landing.hero.ctaLogin') }}
           </UButton>
           <UButton
             to="#about"
@@ -132,7 +139,7 @@ const departments: Department[] = [
             icon="i-lucide-play-circle"
             class="text-white hover:bg-white/10"
           >
-            Cómo funciona
+            {{ $t('landing.hero.ctaHow') }}
           </UButton>
         </div>
 
@@ -144,7 +151,7 @@ const departments: Department[] = [
           </div>
           <div>
             <div class="text-lg font-bold leading-tight">150K +</div>
-            <div class="text-xs opacity-80">Afiliados activos</div>
+            <div class="text-xs opacity-80">{{ $t('landing.hero.activeAffiliatesLabel') }}</div>
           </div>
           <span class="ml-2 w-7 h-7 rounded-full bg-lime-400 grid place-items-center">
             <UIcon name="i-lucide-check" class="w-4 h-4 text-prohealth-950" />
@@ -156,12 +163,12 @@ const departments: Department[] = [
         <div class="relative aspect-[4/5] rounded-3xl bg-white/10 backdrop-blur border border-white/20 overflow-hidden">
           <img
             :src="heroImg"
-            alt="Examen visual con optometrista en OptiBienestar 360"
+            :alt="$t('landing.hero.imageAlt')"
             class="h-full w-full object-cover"
           >
           <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-prohealth-950/80 via-prohealth-950/20 to-transparent p-6">
             <p class="text-prohealth-100/90 text-sm uppercase tracking-widest">
-              Salud · Familia · Bienestar
+              {{ $t('landing.hero.imageCaption') }}
             </p>
           </div>
         </div>
@@ -173,11 +180,11 @@ const departments: Department[] = [
       <div class="bg-white rounded-2xl shadow-xl border border-prohealth-100 grid grid-cols-2 md:grid-cols-4 divide-x divide-prohealth-100">
         <div
           v-for="s in stats"
-          :key="s.label"
+          :key="s.labelKey"
           class="px-6 py-6 text-center"
         >
           <div class="text-3xl md:text-4xl font-extrabold text-prohealth-700">{{ s.value }}</div>
-          <div class="mt-1 text-xs md:text-sm text-prohealth-500">{{ s.label }}</div>
+          <div class="mt-1 text-xs md:text-sm text-prohealth-500">{{ $t(s.labelKey) }}</div>
         </div>
       </div>
     </div>
@@ -188,22 +195,19 @@ const departments: Department[] = [
     <div class="max-w-7xl mx-auto px-6 lg:px-10 grid lg:grid-cols-2 gap-12 items-center">
       <div>
         <p class="text-sm font-semibold uppercase tracking-widest text-cyan-600 mb-3">
-          Sobre nosotros
+          {{ $t('landing.about.eyebrow') }}
         </p>
         <h2 class="text-3xl md:text-4xl font-extrabold text-prohealth-900 leading-tight">
-          OptiBienestar 360 es un equipo
-          de profesionales de la salud comprometidos.
+          {{ $t('landing.about.title') }}
         </h2>
         <p class="mt-5 text-prohealth-700/80 max-w-lg">
-          Trabajamos bajo un enfoque integral que se concentra en la persona como un todo,
-          no solo en el síntoma. Nuestros aliados, planes y promotores forman una red diseñada
-          para que cuidarse sea simple.
+          {{ $t('landing.about.body') }}
         </p>
       </div>
       <div class="aspect-[5/4] rounded-3xl overflow-hidden border border-prohealth-100">
         <img
           :src="aboutImg"
-          alt="Equipo de profesionales de OptiBienestar 360"
+          :alt="$t('landing.about.imageAlt')"
           class="h-full w-full object-cover"
         >
       </div>
@@ -214,23 +218,23 @@ const departments: Department[] = [
   <section id="departments" class="bg-prohealth-50/40 py-20">
     <div class="max-w-7xl mx-auto px-6 lg:px-10">
       <p class="text-sm font-semibold uppercase tracking-widest text-cyan-600 mb-3">
-        Nuestros departamentos
+        {{ $t('landing.departments.eyebrow') }}
       </p>
       <h2 class="text-3xl md:text-4xl font-extrabold text-prohealth-900">
-        Para tu salud.
+        {{ $t('landing.departments.title') }}
       </h2>
 
       <div class="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
         <div
           v-for="d in departments"
-          :key="d.title"
+          :key="d.titleKey"
           class="group bg-white rounded-2xl border border-prohealth-100 p-6 hover:border-cyan-300 hover:shadow-lg hover:-translate-y-0.5 transition-all"
         >
           <div class="w-12 h-12 rounded-xl bg-prohealth-50 border border-prohealth-100 grid place-items-center group-hover:bg-cyan-50 group-hover:border-cyan-200 transition-colors">
             <UIcon :name="d.icon" class="w-6 h-6 text-prohealth-600 group-hover:text-cyan-600" />
           </div>
-          <h3 class="mt-4 font-semibold text-prohealth-900">{{ d.title }}</h3>
-          <p class="mt-1 text-sm text-prohealth-700/70">{{ d.description }}</p>
+          <h3 class="mt-4 font-semibold text-prohealth-900">{{ $t(d.titleKey) }}</h3>
+          <p class="mt-1 text-sm text-prohealth-700/70">{{ $t(d.descriptionKey) }}</p>
         </div>
       </div>
     </div>
@@ -241,13 +245,13 @@ const departments: Department[] = [
     <div class="max-w-5xl mx-auto px-6 lg:px-10 grid lg:grid-cols-2 gap-10 items-start">
       <div>
         <p class="text-sm font-semibold uppercase tracking-widest text-cyan-600 mb-3">
-          Contacto
+          {{ $t('landing.contact.eyebrow') }}
         </p>
         <h2 class="text-3xl md:text-4xl font-extrabold text-prohealth-900 leading-tight">
-          ¿Tienes preguntas? Escríbenos.
+          {{ $t('landing.contact.title') }}
         </h2>
         <p class="mt-5 text-prohealth-700/80 max-w-md">
-          Completa el formulario y nuestro equipo te responderá a la brevedad.
+          {{ $t('landing.contact.lead') }}
         </p>
         <ul class="mt-6 space-y-3 text-sm text-prohealth-700">
           <li class="flex items-center gap-2">
@@ -265,8 +269,8 @@ const departments: Department[] = [
           color="success"
           variant="subtle"
           icon="i-lucide-mail-check"
-          title="¡Gracias por contactarnos!"
-          description="Hemos recibido tu mensaje y te responderemos pronto."
+          :title="$t('landing.contact.sentTitle')"
+          :description="$t('landing.contact.sentDescription')"
         />
         <UForm
           v-else
@@ -276,20 +280,20 @@ const departments: Department[] = [
           @submit="onContactSubmit"
         >
           <div class="grid sm:grid-cols-2 gap-4">
-            <UFormField label="Nombre" name="name" required>
+            <UFormField :label="$t('landing.contact.form.name')" name="name" required>
               <UInput v-model="contact.name" class="w-full" />
             </UFormField>
-            <UFormField label="Correo" name="email" required>
+            <UFormField :label="$t('landing.contact.form.email')" name="email" required>
               <UInput v-model="contact.email" type="email" class="w-full" />
             </UFormField>
           </div>
-          <UFormField label="Teléfono" name="phone">
+          <UFormField :label="$t('landing.contact.form.phone')" name="phone">
             <UInput v-model="contact.phone" class="w-full" />
           </UFormField>
-          <UFormField label="Asunto" name="subject" required>
+          <UFormField :label="$t('landing.contact.form.subject')" name="subject" required>
             <UInput v-model="contact.subject" class="w-full" />
           </UFormField>
-          <UFormField label="Mensaje" name="message" required>
+          <UFormField :label="$t('landing.contact.form.message')" name="message" required>
             <UTextarea v-model="contact.message" :rows="4" :maxlength="2000" class="w-full" />
           </UFormField>
           <UButton
@@ -300,7 +304,7 @@ const departments: Department[] = [
             :loading="contactSubmitting"
             icon="i-lucide-send"
           >
-            Enviar mensaje
+            {{ $t('landing.contact.form.submit') }}
           </UButton>
         </UForm>
       </div>
@@ -313,10 +317,10 @@ const departments: Department[] = [
       <div class="bg-hero-prohealth text-white rounded-3xl p-10 md:p-14 grid md:grid-cols-[1fr_auto] gap-6 items-center">
         <div>
           <h2 class="text-2xl md:text-3xl font-extrabold">
-            ¿Listo para gestionar tu plan en línea?
+            {{ $t('landing.cta.title') }}
           </h2>
           <p class="mt-2 text-prohealth-100/90 max-w-xl">
-            Ingresa al portal para ver tu carnet, agregar afiliados familiares y consultar tu historial.
+            {{ $t('landing.cta.body') }}
           </p>
         </div>
         <UButton
@@ -326,7 +330,7 @@ const departments: Department[] = [
           icon="i-lucide-arrow-right"
           trailing
         >
-          Ingresar ahora
+          {{ $t('landing.cta.button') }}
         </UButton>
       </div>
     </div>

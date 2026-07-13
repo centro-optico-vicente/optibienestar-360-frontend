@@ -1,17 +1,19 @@
 <script setup lang="ts">
-// Página de mosaico por módulo: pinta las vistas visibles de un grupo del menú
-// como tarjetas (patrón heredado de Catálogos). Es data-driven — una sola página
-// sirve a todos los grupos (afiliaciones, aliados, comercial, seguridad, etc.).
+// Per-module mosaic page: renders a menu group's visible views as cards (pattern
+// inherited from Catalogs). It's data-driven — a single page serves every group
+// (afiliaciones, aliados, comercial, seguridad, etc.).
 definePageMeta({ layout: 'dashboard' })
 
+const { t } = useI18n()
 const route = useRoute()
-const { findGroup, isLeafVisible } = useNav()
+const { visibleGroup } = useNav()
 
-const group = computed(() => findGroup(String(route.params.group)))
-const items = computed(() => group.value?.children.filter(isLeafVisible) ?? [])
+// Visible group with filtered children and labels already resolved to i18n.
+const group = computed(() => visibleGroup(String(route.params.group)))
+const items = computed(() => group.value?.children ?? [])
 
-// Grupo inexistente o sin vistas visibles para este usuario → de vuelta al panel.
-// (El backend es el muro real; esto es solo experiencia de usuario.)
+// Nonexistent group or no views visible to this user → back to the dashboard.
+// (The backend is the real wall; this is only UX.)
 watchEffect(() => {
   if (import.meta.client && (!group.value || items.value.length === 0)) {
     navigateTo('/dashboard')
@@ -19,7 +21,7 @@ watchEffect(() => {
 })
 
 useSeoMeta({
-  title: () => (group.value ? `${group.value.label} — OptiBienestar 360` : 'OptiBienestar 360'),
+  title: () => (group.value ? t('common.seoTitle', { page: group.value.label }) : t('app.name')),
 })
 </script>
 

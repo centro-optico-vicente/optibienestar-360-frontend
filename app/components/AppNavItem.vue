@@ -62,8 +62,8 @@ const isActiveGroup = computed<boolean>(() => group.value != null && props.activ
       <NuxtLink
         :to="mosaicTarget(group)"
         class="mr-1 p-1.5 rounded-md text-prohealth-400 hover:bg-prohealth-100 hover:text-prohealth-600 transition-colors"
-        title="Ver todo en mosaico"
-        aria-label="Ver todo en mosaico"
+        :title="$t('nav.viewAllMosaic')"
+        :aria-label="$t('nav.viewAllMosaic')"
         @click="emit('navigate')"
       >
         <UIcon name="i-lucide-layout-grid" class="w-4 h-4" />
