@@ -12,15 +12,15 @@ import { CATALOGS } from '~/utils/catalog-registry'
 
 /** Una vista navegable. Es también la tarjeta que se pinta en el mosaico. */
 export interface NavLeaf {
-  /** Texto por defecto (es). Fallback cuando no hay `labelKey`. */
+  /** Default text (es). Fallback when there is no `labelKey`. */
   label: string
-  /** Clave i18n del label; se resuelve en `useNav`. Los catálogos derivados no la tienen. */
+  /** i18n key for the label; resolved in `useNav`. Derived catalogs don't have one. */
   labelKey?: string
   to: string
   icon: string
   /** Subtítulo de la tarjeta en el mosaico (por defecto "Gestionar"). */
   description?: string
-  /** Clave i18n de la descripción; se resuelve en `useNav`. */
+  /** i18n key for the description; resolved in `useNav`. */
   descriptionKey?: string
   /** Resalta solo con coincidencia exacta de ruta (p.ej. Panel → /dashboard). */
   exact?: boolean
@@ -33,12 +33,12 @@ export interface NavGroup {
   /** Slug de ruta para la página de mosaico: /dashboard/modulo/{key}. */
   key: string
   label: string
-  /** Clave i18n del label; se resuelve en `useNav`. */
+  /** i18n key for the label; resolved in `useNav`. */
   labelKey?: string
   icon: string
   /** Subtítulo de la página de mosaico del grupo. */
   description?: string
-  /** Clave i18n de la descripción; se resuelve en `useNav`. */
+  /** i18n key for the description; resolved in `useNav`. */
   descriptionKey?: string
   /** Sobrescribe el destino del botón mosaico (Datos maestros → /dashboard/catalogs). */
   mosaicTo?: string
