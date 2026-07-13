@@ -1,10 +1,55 @@
-// Types for the Memberships vertical (/v1/admin/members/{memberUuid}/memberships),
-// aligned with the backend (MembershipDto). Only the read projection is used here for
-// the membership picker in the payment registration; the full membership CRUD is its
-// own vertical (still to be built in the admin panel).
+// Types for the Memberships vertical, aligned with the backend (MembershipDto,
+// MembershipCreateRequest, MembershipCancelRequest, MembershipReactivateRequest).
 //
 // A membership is a holder's enrollment into a Plan: it takes a "snapshot" of the plan
-// pricing at enrollment time and carries the lifecycle dates and cycle status.
+// pricing at enrollment time (inscriptionFee / monthlyFee / gracePeriodDays) so the
+// active membership stays immune to later plan edits, and carries the lifecycle dates
+// and cycle status. Memberships are a sub-resource of a member — there is no global
+// admin list; they are managed per member.
+//
+// Endpoints:
+// - GET  /v1/admin/members/{memberUuid}/memberships          (list, MEMBERSHIP_VIEW_ALL)
+// - GET  /v1/admin/members/{memberUuid}/memberships/{uuid}   (detail, MEMBERSHIP_VIEW_ALL)
+// - POST /v1/admin/members/{memberUuid}/memberships          (enroll, MEMBERSHIP_CREATE)
+// - PUT  /v1/admin/memberships/{uuid}/cancel                 (MEMBERSHIP_CANCEL)
+// - PUT  /v1/admin/memberships/{uuid}/reactivate             (MEMBERSHIP_REACTIVATE)
+
+// ---- Lifecycle status (mirror of Membership.LifecycleStatus) ----
+export type MembershipStatus = 'ACTIVE' | 'SUSPENDED' | 'EXPIRED' | 'CANCELED'
+
+export const MEMBERSHIP_STATUS_OPTIONS: { label: string, value: MembershipStatus }[] = [
+  { label: 'Activa', value: 'ACTIVE' },
+  { label: 'Suspendida', value: 'SUSPENDED' },
+  { label: 'Vencida', value: 'EXPIRED' },
+  { label: 'Cancelada', value: 'CANCELED' },
+]
+
+export function membershipStatusLabel(value?: string | null): string {
+  return MEMBERSHIP_STATUS_OPTIONS.find(o => o.value === value)?.label ?? value ?? '—'
+}
+
+/** Status badge color (Nuxt UI palette). */
+export function membershipStatusColor(value?: string | null): 'success' | 'warning' | 'neutral' | 'error' {
+  switch (value) {
+    case 'ACTIVE': return 'success'
+    case 'SUSPENDED': return 'warning'
+    case 'EXPIRED': return 'neutral'
+    case 'CANCELED': return 'error'
+    default: return 'neutral'
+  }
+}
+
+/** A membership can be canceled while it is still running. */
+export function isMembershipCancelable(status?: string | null): boolean {
+  return status === 'ACTIVE' || status === 'SUSPENDED'
+}
+
+/** A membership can be reactivated once it is canceled or expired. */
+export function isMembershipReactivatable(status?: string | null): boolean {
+  return status === 'CANCELED' || status === 'EXPIRED'
+}
+
+// ---- Membership ----
 
 export interface MembershipDto {
   uuid: string
@@ -24,11 +69,30 @@ export interface MembershipDto {
   monthlyFee: number | string
   gracePeriodDays: number
   // Status
-  status: string
+  status: MembershipStatus | string
   lastStatusChangeAt?: string | null
   lastStatusChangeReason?: string | null
   // Audit
   active?: boolean
   createdAt?: string
   updatedAt?: string
+}
+
+/**
+ * Body of POST /v1/admin/members/{memberUuid}/memberships. The pricing snapshot is
+ * copied from `planUuid` server-side — not sent here. `enrolledAt` defaults to today
+ * and `nextDueDate` is computed as enrolledAt + 1 month regardless of the client.
+ */
+export interface MembershipCreateRequest {
+  planUuid: string
+  /** ISO date (yyyy-MM-dd). Defaults to today server-side when omitted. */
+  enrolledAt?: string
+  /** ISO date (yyyy-MM-dd). Optional hard expiry. */
+  expiresAt?: string
+}
+
+/** Optional body of the cancel/reactivate lifecycle transitions. */
+export interface MembershipReviewRequest {
+  /** Free-text reason stored in lastStatusChangeReason (max 500). */
+  reason?: string
 }
