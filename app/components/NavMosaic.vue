@@ -29,7 +29,7 @@ defineProps<{
         </span>
         <div class="min-w-0">
           <p class="font-semibold text-prohealth-900 truncate">{{ item.label }}</p>
-          <p class="text-xs text-prohealth-500 truncate">{{ item.description ?? 'Gestionar' }}</p>
+          <p class="text-xs text-prohealth-500 truncate">{{ item.description ?? $t('nav.manage') }}</p>
         </div>
         <UIcon name="i-lucide-chevron-right" class="w-5 h-5 text-prohealth-300 ml-auto shrink-0 group-hover:text-prohealth-500" />
       </NuxtLink>

@@ -7,7 +7,7 @@ const { logout } = useAuth()
 const route = useRoute()
 
 // Menú de dos niveles (módulo → vista), filtrado por permisos en useNav().
-const { visibleNav, groupKeyOfPath } = useNav()
+const { visibleNav, groupKeyOfPath, navLabel } = useNav()
 
 // Acordeón: un solo grupo abierto a la vez. Se abre automáticamente el grupo que
 // contiene la ruta activa y se recuerda al navegar dentro de él.
@@ -58,7 +58,7 @@ const isSidebarOpen = ref<boolean>(false)
 
       <nav class="flex-1 px-3 py-5 overflow-y-auto">
         <p class="px-3 text-xs font-semibold uppercase tracking-wider text-prohealth-400 mb-2">
-          Menú principal
+          {{ $t('nav.mainMenu') }}
         </p>
         <!-- Skeleton mientras carga el perfil/permisos -->
         <ul v-if="!ready" class="space-y-1">
@@ -80,7 +80,7 @@ const isSidebarOpen = ref<boolean>(false)
         </ul>
 
         <p class="mt-6 px-3 text-xs font-semibold uppercase tracking-wider text-prohealth-400 mb-2">
-          Otros
+          {{ $t('nav.otherSection') }}
         </p>
         <ul class="space-y-1">
           <li v-for="item in OTHER_NAV" :key="item.to">
@@ -91,7 +91,7 @@ const isSidebarOpen = ref<boolean>(false)
               @click="isSidebarOpen = false"
             >
               <UIcon :name="item.icon" class="w-5 h-5" />
-              {{ item.label }}
+              {{ navLabel(item) }}
             </NuxtLink>
           </li>
         </ul>
@@ -122,7 +122,7 @@ const isSidebarOpen = ref<boolean>(false)
           size="sm"
           @click="logout"
         >
-          Cerrar sesión
+          {{ $t('auth.logout') }}
         </UButton>
       </div>
     </aside>
@@ -150,7 +150,7 @@ const isSidebarOpen = ref<boolean>(false)
             <UIcon name="i-lucide-search" class="w-4 h-4 text-prohealth-400" />
             <input
               type="text"
-              placeholder="Buscar afiliados, planes…"
+              :placeholder="$t('nav.searchPlaceholder')"
               class="bg-transparent text-sm w-full outline-none placeholder:text-prohealth-400"
             >
             <kbd class="text-[10px] text-prohealth-500 bg-white border border-prohealth-200 rounded px-1.5 py-0.5">⌘K</kbd>

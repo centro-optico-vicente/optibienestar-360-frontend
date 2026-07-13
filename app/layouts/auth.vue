@@ -18,11 +18,10 @@ import logoUrl from '~/assets/centro-optico-vicente-logo.png'
 
         <div>
           <h1 class="text-4xl xl:text-5xl font-extrabold leading-tight max-w-md">
-            Cuidamos lo que más amas.
+            {{ $t('layout.auth.tagline') }}
           </h1>
           <p class="mt-4 text-prohealth-100/90 max-w-md">
-            Accede a tu carnet digital, gestiona tus afiliados y descubre la red de aliados
-            del programa OptiBienestar 360.
+            {{ $t('layout.auth.lead') }}
           </p>
 
           <div class="mt-8 flex items-center gap-3 bg-white/10 backdrop-blur rounded-xl px-4 py-3 max-w-sm">
@@ -32,13 +31,13 @@ import logoUrl from '~/assets/centro-optico-vicente-logo.png'
               <span class="w-8 h-8 rounded-full bg-prohealth-300 border-2 border-white/30" />
             </div>
             <div class="text-sm">
-              <div class="font-semibold">+150 mil afiliados</div>
-              <div class="opacity-80">confían en nosotros</div>
+              <div class="font-semibold">{{ $t('layout.auth.affiliatesCount') }}</div>
+              <div class="opacity-80">{{ $t('layout.auth.affiliatesTrust') }}</div>
             </div>
           </div>
         </div>
 
-        <span class="text-xs opacity-70">© {{ new Date().getFullYear() }} OptiBienestar 360</span>
+        <span class="text-xs opacity-70">{{ $t('layout.copyrightShort', { year: new Date().getFullYear() }) }}</span>
       </div>
     </aside>
 

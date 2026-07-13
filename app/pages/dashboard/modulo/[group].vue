@@ -4,11 +4,13 @@
 // sirve a todos los grupos (afiliaciones, aliados, comercial, seguridad, etc.).
 definePageMeta({ layout: 'dashboard' })
 
+const { t } = useI18n()
 const route = useRoute()
-const { findGroup, isLeafVisible } = useNav()
+const { visibleGroup } = useNav()
 
-const group = computed(() => findGroup(String(route.params.group)))
-const items = computed(() => group.value?.children.filter(isLeafVisible) ?? [])
+// Grupo visible con hijos filtrados y labels ya resueltos a i18n.
+const group = computed(() => visibleGroup(String(route.params.group)))
+const items = computed(() => group.value?.children ?? [])
 
 // Grupo inexistente o sin vistas visibles para este usuario → de vuelta al panel.
 // (El backend es el muro real; esto es solo experiencia de usuario.)
@@ -19,7 +21,7 @@ watchEffect(() => {
 })
 
 useSeoMeta({
-  title: () => (group.value ? `${group.value.label} — OptiBienestar 360` : 'OptiBienestar 360'),
+  title: () => (group.value ? t('common.seoTitle', { page: group.value.label }) : t('app.name')),
 })
 </script>
 
