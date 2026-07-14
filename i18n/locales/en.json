@@ -952,5 +952,270 @@
       "subtitle": "History of your payments and their review status.",
       "empty": "You don't have any registered payments yet."
     }
+  },
+  "members": {
+    "title": "Members",
+    "subtitle": "Manage enrolled holders, their beneficiaries and medical record.",
+    "new": "New member",
+    "createTooltip": "Register a new member",
+    "noPermissionCreate": "You don't have permission to create members",
+    "noPermissionEdit": "You don't have permission to edit",
+    "noPermissionDelete": "You don't have permission to delete",
+    "noPermission": "You don't have permission",
+    "searchPlaceholder": "Search by name or document…",
+    "empty": "No members",
+    "viewDetailTooltip": "View detail",
+    "paginationSummary": "{shown} of {total} member(s)",
+    "createdToast": "Member created",
+    "updatedToast": "Member updated",
+    "deletedToast": "Member deleted",
+    "columns": {
+      "member": "Member",
+      "document": "Document",
+      "phone": "Phone",
+      "enrolledAt": "Enrollment",
+      "status": "Status"
+    },
+    "relationships": {
+      "CHILD": "Child",
+      "SPOUSE": "Spouse",
+      "PARENT": "Parent",
+      "SIBLING": "Sibling",
+      "OTHER": "Other"
+    },
+    "status": {
+      "ACTIVE": "Active",
+      "INACTIVE": "Inactive",
+      "SUSPENDED": "Suspended"
+    },
+    "form": {
+      "createTitle": "New member",
+      "editTitle": "Edit member",
+      "createDescription": "Register a holder (18 or older). If the person already exists by document, it is reused.",
+      "editDescription": "Update the member's data.",
+      "loadingDetail": "Loading member data…",
+      "submitCreate": "Create member",
+      "selectCityFirst": "Select a state first",
+      "fields": {
+        "firstName": "First name",
+        "middleName": "Middle name",
+        "lastName": "Last name",
+        "secondLastName": "Second last name",
+        "documentType": "Document type",
+        "documentNumber": "Document number",
+        "birthDate": "Birth date",
+        "enrolledAt": "Enrollment date",
+        "gender": "Gender",
+        "maritalStatus": "Marital status",
+        "birthplace": "Birthplace",
+        "numberOfChildren": "Number of children",
+        "spouseName": "Spouse",
+        "occupation": "Occupation",
+        "employerName": "Workplace",
+        "jobPosition": "Job position",
+        "employerAddress": "Employer address",
+        "phone": "Mobile",
+        "landlinePhone": "Landline",
+        "email": "Email",
+        "state": "State (region)",
+        "city": "City",
+        "address": "Address",
+        "status": "Status",
+        "notes": "Notes"
+      },
+      "validation": {
+        "documentMin": "At least 5 digits",
+        "adult": "The holder must be 18 or older"
+      }
+    },
+    "delete": {
+      "title": "Delete member",
+      "confirm": "Are you sure you want to delete {name} ({document})? This deactivates the enrollment (soft-delete)."
+    },
+    "detail": {
+      "seoPage": "Member detail",
+      "notFoundTitle": "Member not found",
+      "notFoundBody": "The record doesn't exist or was deleted.",
+      "memberSince": "Member since {date}",
+      "fields": {
+        "birthDate": "Birth",
+        "gender": "Gender",
+        "maritalStatus": "Marital status",
+        "birthplace": "Birthplace",
+        "numberOfChildren": "Number of children",
+        "spouseName": "Spouse",
+        "occupation": "Occupation",
+        "employerName": "Workplace",
+        "jobPosition": "Job position",
+        "employerAddress": "Employer address",
+        "phone": "Mobile",
+        "landlinePhone": "Landline",
+        "email": "Email",
+        "city": "City",
+        "address": "Address",
+        "notes": "Notes"
+      }
+    },
+    "beneficiaries": {
+      "title": "Beneficiaries",
+      "subtitle": "Family members covered by the enrollment.",
+      "addTooltip": "Add beneficiary",
+      "add": "Add",
+      "empty": "No beneficiaries registered",
+      "extraPaid": "Paid",
+      "createdToast": "Beneficiary added",
+      "updatedToast": "Beneficiary updated",
+      "deletedToast": "Beneficiary deleted",
+      "columns": {
+        "name": "Name",
+        "document": "Document",
+        "birthDate": "Birth",
+        "relationship": "Relationship",
+        "extraInscription": "Extra enrollment",
+        "status": "Status"
+      },
+      "form": {
+        "createTitle": "Add beneficiary",
+        "editTitle": "Edit beneficiary",
+        "createDescription": "Beneficiaries can be minors.",
+        "editDescription": "Update the beneficiary's data.",
+        "relationship": "Relationship",
+        "extraInscriptionPaid": "Extra enrollment paid"
+      },
+      "delete": {
+        "title": "Delete beneficiary",
+        "confirm": "Are you sure you want to delete {name}? This deactivates their coverage (soft-delete)."
+      }
+    },
+    "medical": {
+      "title": "Medical record",
+      "subtitle": "Clinical information and emergency contact.",
+      "deleteTooltip": "Delete record",
+      "editTooltip": "Edit record",
+      "createTooltip": "Create record",
+      "edit": "Edit",
+      "create": "Create",
+      "empty": "This member doesn't have a medical record yet.",
+      "savedToast": "Medical record saved",
+      "deletedToast": "Medical record deleted",
+      "fields": {
+        "bloodType": "Blood type",
+        "allergies": "Allergies",
+        "chronicConditions": "Chronic conditions",
+        "currentMedications": "Current medications",
+        "emergencyContact": "Emergency contact",
+        "emergencyPhone": "Emergency phone",
+        "notes": "Notes"
+      },
+      "form": {
+        "createTitle": "Create medical record",
+        "editTitle": "Edit medical record",
+        "description": "Holder's clinical information and emergency contact.",
+        "emergencyContact": "Emergency contact",
+        "phone": "Phone",
+        "relationship": "Relationship",
+        "submit": "Save",
+        "placeholders": {
+          "allergies": "Penicillin, shellfish…",
+          "chronic": "Hypertension, diabetes…"
+        }
+      },
+      "delete": {
+        "title": "Delete medical record",
+        "confirm": "Are you sure you want to delete {name}'s medical record? (soft-delete)"
+      }
+    },
+    "portal": {
+      "seoTitle": "My card — OptiBienestar 360",
+      "title": "My card",
+      "subtitle": "Show your digital card at any partner in the network.",
+      "notAffiliatedTitle": "You don't have an active enrollment yet",
+      "notAffiliatedBody": "Contact us to activate your plan and enjoy the partner network.",
+      "joinCta": "I want to join",
+      "errorTitle": "Your card couldn't be loaded",
+      "errorBody": "Try again in a few minutes.",
+      "card": {
+        "holder": "Holder",
+        "memberSince": "Member since",
+        "cardNumber": "Card No.",
+        "statusActive": "Active"
+      },
+      "beneficiaries": {
+        "title": "Covered beneficiaries",
+        "subtitle": "Family members included in your plan.",
+        "empty": "You don't have registered beneficiaries.",
+        "born": "Born {date}"
+      },
+      "myData": {
+        "title": "My data",
+        "phone": "Phone",
+        "email": "Email",
+        "city": "City",
+        "address": "Address",
+        "outdatedPre": "Outdated data? Write to us from the ",
+        "outdatedLink": "contact form",
+        "outdatedPost": "."
+      },
+      "directory": {
+        "text": "Explore the {network} and its preferential prices.",
+        "network": "partner network",
+        "button": "View directory"
+      }
+    }
+  },
+  "memberships": {
+    "title": "Memberships",
+    "subtitle": "Plan enrollments: validity, status and payments.",
+    "enrollTooltip": "Enroll in a plan",
+    "noPermissionEnroll": "You don't have permission to enroll",
+    "enroll": "Enroll in a plan",
+    "empty": "No memberships. Enroll this holder in a plan.",
+    "cancelTooltip": "Cancel membership",
+    "noPermissionCancel": "You don't have permission to cancel",
+    "reactivateTooltip": "Reactivate membership",
+    "noPermissionReactivate": "You don't have permission to reactivate",
+    "enrolledToast": "Membership created",
+    "canceledToast": "Membership canceled",
+    "reactivatedToast": "Membership reactivated",
+    "columns": {
+      "plan": "Plan",
+      "monthly": "Monthly",
+      "status": "Status",
+      "enrolledAt": "Member since",
+      "nextDue": "Next due"
+    },
+    "status": {
+      "ACTIVE": "Active",
+      "SUSPENDED": "Suspended",
+      "EXPIRED": "Expired",
+      "CANCELED": "Canceled"
+    },
+    "enrollForm": {
+      "title": "Enroll in a plan",
+      "description": "Create a new membership. Pricing is copied from the plan at enrollment time.",
+      "plan": "Plan",
+      "planHelp": "The monthly fee and enrollment are taken from the plan.",
+      "selectPlan": "Select a plan",
+      "enrolledAt": "Member since",
+      "enrolledAtHelp": "Empty = today.",
+      "expiresAt": "Expires (optional)",
+      "expiresAtHelp": "Forced expiry date.",
+      "submit": "Enroll"
+    },
+    "lifecycle": {
+      "cancelTitle": "Cancel membership",
+      "reactivateTitle": "Reactivate membership",
+      "plan": "Plan",
+      "cancelNotice": "The membership will change to {status} and the holder will lose coverage.",
+      "canceledWord": "canceled",
+      "reactivateNotice": "The membership will go back to {status}.",
+      "activeWord": "active",
+      "reasonLabel": "Reason (optional)",
+      "reasonHelp": "It's recorded in the membership history.",
+      "placeholderCancel": "e.g. missed payment, holder's request…",
+      "placeholderReactivate": "e.g. payment regularized…",
+      "cancelButton": "Cancel membership",
+      "reactivateButton": "Reactivate membership"
+    }
   }
 }

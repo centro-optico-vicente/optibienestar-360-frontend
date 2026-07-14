@@ -952,5 +952,270 @@
       "subtitle": "Historial de tus pagos y su estado de revisión.",
       "empty": "Aún no tienes pagos registrados."
     }
+  },
+  "members": {
+    "title": "Afiliados",
+    "subtitle": "Gestión de titulares afiliados, sus beneficiarios e histórico médico.",
+    "new": "Nuevo afiliado",
+    "createTooltip": "Registrar un nuevo afiliado",
+    "noPermissionCreate": "No tienes permiso para crear afiliados",
+    "noPermissionEdit": "No tienes permiso para editar",
+    "noPermissionDelete": "No tienes permiso para eliminar",
+    "noPermission": "No tienes permiso",
+    "searchPlaceholder": "Buscar por nombre o documento…",
+    "empty": "Sin afiliados",
+    "viewDetailTooltip": "Ver detalle",
+    "paginationSummary": "{shown} de {total} afiliado(s)",
+    "createdToast": "Afiliado creado",
+    "updatedToast": "Afiliado actualizado",
+    "deletedToast": "Afiliado eliminado",
+    "columns": {
+      "member": "Afiliado",
+      "document": "Documento",
+      "phone": "Teléfono",
+      "enrolledAt": "Afiliación",
+      "status": "Estado"
+    },
+    "relationships": {
+      "CHILD": "Hijo/a",
+      "SPOUSE": "Cónyuge",
+      "PARENT": "Padre/Madre",
+      "SIBLING": "Hermano/a",
+      "OTHER": "Otro"
+    },
+    "status": {
+      "ACTIVE": "Activo",
+      "INACTIVE": "Inactivo",
+      "SUSPENDED": "Suspendido"
+    },
+    "form": {
+      "createTitle": "Nuevo afiliado",
+      "editTitle": "Editar afiliado",
+      "createDescription": "Registra un titular (mayor de 18 años). Si la persona ya existe por documento, se reutiliza.",
+      "editDescription": "Actualiza los datos del afiliado.",
+      "loadingDetail": "Cargando datos del afiliado…",
+      "submitCreate": "Crear afiliado",
+      "selectCityFirst": "Selecciona un estado primero",
+      "fields": {
+        "firstName": "Primer nombre",
+        "middleName": "Segundo nombre",
+        "lastName": "Primer apellido",
+        "secondLastName": "Segundo apellido",
+        "documentType": "Tipo de documento",
+        "documentNumber": "Número de documento",
+        "birthDate": "Fecha de nacimiento",
+        "enrolledAt": "Fecha de afiliación",
+        "gender": "Género",
+        "maritalStatus": "Estado civil",
+        "birthplace": "Lugar de nacimiento",
+        "numberOfChildren": "Cantidad de hijos",
+        "spouseName": "Cónyuge",
+        "occupation": "Ocupación",
+        "employerName": "Lugar de trabajo",
+        "jobPosition": "Cargo",
+        "employerAddress": "Dirección de la empresa",
+        "phone": "Celular",
+        "landlinePhone": "Teléfono fijo",
+        "email": "Email",
+        "state": "Estado (región)",
+        "city": "Ciudad",
+        "address": "Dirección",
+        "status": "Estado",
+        "notes": "Notas"
+      },
+      "validation": {
+        "documentMin": "Mínimo 5 dígitos",
+        "adult": "El titular debe ser mayor de 18 años"
+      }
+    },
+    "delete": {
+      "title": "Eliminar afiliado",
+      "confirm": "¿Seguro que deseas eliminar a {name} ({document})? Esta acción desactiva la afiliación (soft-delete)."
+    },
+    "detail": {
+      "seoPage": "Detalle de afiliado",
+      "notFoundTitle": "Afiliado no encontrado",
+      "notFoundBody": "El registro no existe o fue eliminado.",
+      "memberSince": "Afiliado desde {date}",
+      "fields": {
+        "birthDate": "Nacimiento",
+        "gender": "Género",
+        "maritalStatus": "Estado civil",
+        "birthplace": "Lugar de nacimiento",
+        "numberOfChildren": "Cantidad de hijos",
+        "spouseName": "Cónyuge",
+        "occupation": "Ocupación",
+        "employerName": "Lugar de trabajo",
+        "jobPosition": "Cargo",
+        "employerAddress": "Dirección de la empresa",
+        "phone": "Celular",
+        "landlinePhone": "Teléfono fijo",
+        "email": "Email",
+        "city": "Ciudad",
+        "address": "Dirección",
+        "notes": "Notas"
+      }
+    },
+    "beneficiaries": {
+      "title": "Beneficiarios",
+      "subtitle": "Familiares cubiertos por la afiliación.",
+      "addTooltip": "Añadir beneficiario",
+      "add": "Añadir",
+      "empty": "Sin beneficiarios registrados",
+      "extraPaid": "Pagada",
+      "createdToast": "Beneficiario añadido",
+      "updatedToast": "Beneficiario actualizado",
+      "deletedToast": "Beneficiario eliminado",
+      "columns": {
+        "name": "Nombre",
+        "document": "Documento",
+        "birthDate": "Nacimiento",
+        "relationship": "Parentesco",
+        "extraInscription": "Inscripción extra",
+        "status": "Estado"
+      },
+      "form": {
+        "createTitle": "Añadir beneficiario",
+        "editTitle": "Editar beneficiario",
+        "createDescription": "Los beneficiarios pueden ser menores de edad.",
+        "editDescription": "Actualiza los datos del beneficiario.",
+        "relationship": "Parentesco",
+        "extraInscriptionPaid": "Inscripción extra pagada"
+      },
+      "delete": {
+        "title": "Eliminar beneficiario",
+        "confirm": "¿Seguro que deseas eliminar a {name}? Esta acción desactiva su cobertura (soft-delete)."
+      }
+    },
+    "medical": {
+      "title": "Histórico médico",
+      "subtitle": "Información clínica y contacto de emergencia.",
+      "deleteTooltip": "Eliminar histórico",
+      "editTooltip": "Editar histórico",
+      "createTooltip": "Crear histórico",
+      "edit": "Editar",
+      "create": "Crear",
+      "empty": "Este afiliado aún no tiene histórico médico.",
+      "savedToast": "Histórico médico guardado",
+      "deletedToast": "Histórico médico eliminado",
+      "fields": {
+        "bloodType": "Tipo de sangre",
+        "allergies": "Alergias",
+        "chronicConditions": "Condiciones crónicas",
+        "currentMedications": "Medicación actual",
+        "emergencyContact": "Contacto de emergencia",
+        "emergencyPhone": "Teléfono de emergencia",
+        "notes": "Notas"
+      },
+      "form": {
+        "createTitle": "Crear histórico médico",
+        "editTitle": "Editar histórico médico",
+        "description": "Información clínica del titular y contacto de emergencia.",
+        "emergencyContact": "Contacto de emergencia",
+        "phone": "Teléfono",
+        "relationship": "Parentesco",
+        "submit": "Guardar",
+        "placeholders": {
+          "allergies": "Penicilina, mariscos…",
+          "chronic": "Hipertensión, diabetes…"
+        }
+      },
+      "delete": {
+        "title": "Eliminar histórico médico",
+        "confirm": "¿Seguro que deseas eliminar el histórico médico de {name}? (soft-delete)"
+      }
+    },
+    "portal": {
+      "seoTitle": "Mi carnet — OptiBienestar 360",
+      "title": "Mi carnet",
+      "subtitle": "Presenta tu carnet digital en cualquier aliado de la red.",
+      "notAffiliatedTitle": "Aún no tienes una afiliación activa",
+      "notAffiliatedBody": "Contáctanos para activar tu plan y disfrutar de la red de aliados.",
+      "joinCta": "Quiero afiliarme",
+      "errorTitle": "No se pudo cargar tu carnet",
+      "errorBody": "Intenta de nuevo en unos minutos.",
+      "card": {
+        "holder": "Titular",
+        "memberSince": "Afiliado desde",
+        "cardNumber": "Carnet N°",
+        "statusActive": "Activo"
+      },
+      "beneficiaries": {
+        "title": "Beneficiarios cubiertos",
+        "subtitle": "Familiares incluidos en tu plan.",
+        "empty": "No tienes beneficiarios registrados.",
+        "born": "Nac. {date}"
+      },
+      "myData": {
+        "title": "Mis datos",
+        "phone": "Teléfono",
+        "email": "Email",
+        "city": "Ciudad",
+        "address": "Dirección",
+        "outdatedPre": "¿Datos desactualizados? Escríbenos desde el ",
+        "outdatedLink": "formulario de contacto",
+        "outdatedPost": "."
+      },
+      "directory": {
+        "text": "Explora la {network} y sus precios preferenciales.",
+        "network": "red de aliados",
+        "button": "Ver directorio"
+      }
+    }
+  },
+  "memberships": {
+    "title": "Membresías",
+    "subtitle": "Afiliaciones a planes: vigencia, estado y pagos.",
+    "enrollTooltip": "Afiliar a un plan",
+    "noPermissionEnroll": "No tienes permiso para afiliar",
+    "enroll": "Afiliar a un plan",
+    "empty": "Sin membresías. Afilia a este titular a un plan.",
+    "cancelTooltip": "Cancelar afiliación",
+    "noPermissionCancel": "No tienes permiso para cancelar",
+    "reactivateTooltip": "Reactivar afiliación",
+    "noPermissionReactivate": "No tienes permiso para reactivar",
+    "enrolledToast": "Afiliación creada",
+    "canceledToast": "Afiliación cancelada",
+    "reactivatedToast": "Afiliación reactivada",
+    "columns": {
+      "plan": "Plan",
+      "monthly": "Mensualidad",
+      "status": "Estado",
+      "enrolledAt": "Afiliado desde",
+      "nextDue": "Próx. pago"
+    },
+    "status": {
+      "ACTIVE": "Activa",
+      "SUSPENDED": "Suspendida",
+      "EXPIRED": "Vencida",
+      "CANCELED": "Cancelada"
+    },
+    "enrollForm": {
+      "title": "Afiliar a un plan",
+      "description": "Crea una nueva membresía. El pricing se copia del plan al momento de afiliar.",
+      "plan": "Plan",
+      "planHelp": "La mensualidad e inscripción se toman del plan.",
+      "selectPlan": "Selecciona un plan",
+      "enrolledAt": "Afiliado desde",
+      "enrolledAtHelp": "Vacío = hoy.",
+      "expiresAt": "Vence (opcional)",
+      "expiresAtHelp": "Fecha de expiración forzada.",
+      "submit": "Afiliar"
+    },
+    "lifecycle": {
+      "cancelTitle": "Cancelar afiliación",
+      "reactivateTitle": "Reactivar afiliación",
+      "plan": "Plan",
+      "cancelNotice": "La membresía pasará a {status} y el titular perderá la cobertura.",
+      "canceledWord": "cancelada",
+      "reactivateNotice": "La membresía volverá a {status}.",
+      "activeWord": "activa",
+      "reasonLabel": "Motivo (opcional)",
+      "reasonHelp": "Queda registrado en el historial de la membresía.",
+      "placeholderCancel": "Ej. falta de pago, solicitud del titular…",
+      "placeholderReactivate": "Ej. regularizó el pago…",
+      "cancelButton": "Cancelar afiliación",
+      "reactivateButton": "Reactivar afiliación"
+    }
   }
 }
