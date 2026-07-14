@@ -396,5 +396,110 @@
       "service-categories": { "label": "Categorías de servicio", "labelSingular": "Categoría de servicio" },
       "ally-types": { "label": "Tipos de aliado", "labelSingular": "Tipo de aliado" }
     }
+  },
+  "plans": {
+    "title": "Planes",
+    "subtitle": "Planes de cobertura: pricing, beneficiarios y periodo de gracia.",
+    "new": "Nuevo plan",
+    "createTooltip": "Registrar un nuevo plan",
+    "noPermissionCreate": "No tienes permiso para crear planes",
+    "noPermissionEdit": "No tienes permiso para editar",
+    "noPermissionDelete": "No tienes permiso para eliminar",
+    "searchPlaceholder": "Buscar por código, nombre o descripción…",
+    "empty": "Sin planes",
+    "published": "Publicado",
+    "draft": "Borrador",
+    "publish": "Publicar",
+    "unpublish": "Despublicar",
+    "publishTooltip": "Publicar en el directorio",
+    "unpublishTooltip": "Retirar del directorio",
+    "viewDetailTooltip": "Ver detalle",
+    "editTooltip": "Editar plan",
+    "deleteTooltip": "Eliminar plan",
+    "includedShort": "{n} incl.",
+    "maxShort": "máx {n}",
+    "paginationSummary": "{shown} de {total} plan(es)",
+    "publishedToast": "Plan publicado",
+    "unpublishedToast": "Plan despublicado",
+    "createdToast": "Plan creado",
+    "updatedToast": "Plan actualizado",
+    "deletedToast": "Plan eliminado",
+    "deleteTitle": "Eliminar plan",
+    "deleteConfirm": "¿Seguro que deseas eliminar el plan {name}? Esta acción lo desactiva y lo retira del directorio (soft-delete). Las membresías existentes conservan su pricing (no se ven afectadas).",
+    "columns": {
+      "plan": "Plan",
+      "type": "Tipo",
+      "inscription": "Inscripción",
+      "monthly": "Mensualidad",
+      "beneficiaries": "Beneficiarios",
+      "published": "Publicado"
+    },
+    "types": {
+      "INDIVIDUAL": "Individual",
+      "FAMILIAR": "Familiar",
+      "CORPORATIVO": "Corporativo"
+    },
+    "status": {
+      "ACTIVE": "Activo",
+      "INACTIVE": "Inactivo"
+    },
+    "detail": {
+      "seoPage": "Detalle de plan",
+      "notFoundTitle": "Plan no encontrado",
+      "notFoundBody": "El registro no existe o fue eliminado."
+    },
+    "sections": {
+      "pricing": "Pricing",
+      "beneficiaries": "Beneficiarios y vigencia",
+      "metadata": "Metadatos"
+    },
+    "pricing": {
+      "inscription": "Inscripción",
+      "inscriptionHint": "Cargo único de afiliación.",
+      "monthly": "Mensualidad",
+      "monthlyHint": "Cargo recurrente mensual.",
+      "extraBeneficiary": "Inscripción beneficiario extra",
+      "extraBeneficiaryHint": "Cargo único por beneficiario adicional.",
+      "notAllowed": "No admite"
+    },
+    "beneficiaries": {
+      "included": "Beneficiarios incluidos",
+      "max": "Beneficiarios máximos",
+      "noLimit": "Sin tope",
+      "graceDays": "Días de gracia",
+      "publishedAt": "Publicado el"
+    },
+    "metadata": {
+      "created": "Creado",
+      "updated": "Última actualización",
+      "uuid": "UUID"
+    },
+    "form": {
+      "createTitle": "Nuevo plan",
+      "editTitle": "Editar plan",
+      "createDescription": "Define un nuevo plan de cobertura y su pricing.",
+      "editDescription": "Actualiza los datos y el pricing del plan.",
+      "loadingDetail": "Cargando datos del plan…",
+      "invalidAmount": "Monto no válido",
+      "integersOnly": "Solo números enteros",
+      "codeFormat": "UPPER_SNAKE_CASE (A-Z, 0-9, _)",
+      "codeHelp": "UPPER_SNAKE_CASE. Llave única del plan.",
+      "namePlaceholder": "Plan Individual",
+      "extraBeneficiaryHelp": "Déjalo vacío si el plan no admite beneficiarios adicionales.",
+      "includedHelp": "Por defecto 0.",
+      "maxHelp": "Vacío = sin tope.",
+      "graceHelp": "Por defecto 7.",
+      "publishedHelp": "Visible en el directorio público de planes.",
+      "submitCreate": "Crear plan",
+      "fields": {
+        "code": "Código",
+        "type": "Tipo",
+        "name": "Nombre",
+        "description": "Descripción",
+        "inscription": "Inscripción (USD)",
+        "monthly": "Mensualidad (USD)",
+        "extraBeneficiary": "Inscripción por beneficiario extra (USD)"
+      }
+    }
   }
 }

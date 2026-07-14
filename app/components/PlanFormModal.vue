@@ -9,13 +9,13 @@ import type {
 } from '~/types/plans'
 import { PLAN_TYPE_OPTIONS } from '~/types/plans'
 
-// Formulario crear/editar de Plan, compartido por la lista (/dashboard/plans) y el
-// detalle (/dashboard/plans/[uuid]) para no duplicar los 11 campos + validación.
-// El padre controla la apertura (v-model:open) y gatea el permiso del botón que lo
-// abre (PLAN_CREATE / PLAN_UPDATE); al guardar emite `saved` para que recargue.
+// Plan create/edit form, shared by the list (/dashboard/plans) and the detail
+// (/dashboard/plans/[uuid]) so the 11 fields + validation aren't duplicated.
+// The parent controls opening (v-model:open) and gates the permission of the button
+// that opens it (PLAN_CREATE / PLAN_UPDATE); on save it emits `saved` to reload.
 const props = defineProps<{
   open: boolean
-  /** Si se pasa, el modal opera en modo edición; si es null/undefined, en creación. */
+  /** If provided, the modal is in edit mode; if null/undefined, in create mode. */
   plan?: PlanDto | null
 }>()
 
@@ -24,6 +24,7 @@ const emit = defineEmits<{
   'saved': [plan: PlanDto]
 }>()
 
+const { t } = useI18n()
 const plans = usePlans()
 const toast = useToast()
 
@@ -33,6 +34,11 @@ const isOpen = computed({
 })
 const mode = computed<'create' | 'edit'>(() => (props.plan ? 'edit' : 'create'))
 const isSubmitting = ref(false)
+
+// Type options localized at the consumption point (labelKey → i18n).
+const typeOptions = computed(() =>
+  PLAN_TYPE_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })),
+)
 
 interface FormState {
   code: string
@@ -62,22 +68,24 @@ const state = reactive<FormState>({
   published: false,
 })
 
-// Montos: BigDecimal(10,2) → hasta 2 decimales. Requerido vs opcional (permite vacío).
-const requiredMoney = z.string().regex(/^\d+(\.\d{1,2})?$/, 'Monto no válido')
-const optionalMoney = z.string().regex(/^\d*(\.\d{1,2})?$/, 'Monto no válido').optional().or(z.literal(''))
-const optionalInt = z.string().regex(/^\d*$/, 'Solo números enteros').optional().or(z.literal(''))
-
-const schema = z.object({
-  code: z.string().regex(/^[A-Z][A-Z0-9_]{0,39}$/, 'UPPER_SNAKE_CASE (A-Z, 0-9, _)'),
-  name: z.string().min(3, 'Mínimo 3 caracteres').max(100, 'Máximo 100 caracteres'),
-  description: z.string().optional(),
-  type: z.string({ message: 'Requerido' }).min(1, 'Requerido'),
-  inscriptionFee: requiredMoney,
-  monthlyFee: requiredMoney,
-  extraBeneficiaryInscriptionFee: optionalMoney,
-  includedBeneficiaries: optionalInt,
-  maxBeneficiaries: optionalInt,
-  gracePeriodDays: optionalInt,
+// Locale-reactive schema. Amounts: BigDecimal(10,2) → up to 2 decimals. Required vs
+// optional (allows empty). Wrapped in computed so validation messages follow the UI locale.
+const schema = computed(() => {
+  const requiredMoney = z.string().regex(/^\d+(\.\d{1,2})?$/, t('plans.form.invalidAmount'))
+  const optionalMoney = z.string().regex(/^\d*(\.\d{1,2})?$/, t('plans.form.invalidAmount')).optional().or(z.literal(''))
+  const optionalInt = z.string().regex(/^\d*$/, t('plans.form.integersOnly')).optional().or(z.literal(''))
+  return z.object({
+    code: z.string().regex(/^[A-Z][A-Z0-9_]{0,39}$/, t('plans.form.codeFormat')),
+    name: z.string().min(3, t('validation.minChars', { n: 3 })).max(100, t('validation.maxChars', { n: 100 })),
+    description: z.string().optional(),
+    type: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
+    inscriptionFee: requiredMoney,
+    monthlyFee: requiredMoney,
+    extraBeneficiaryInscriptionFee: optionalMoney,
+    includedBeneficiaries: optionalInt,
+    maxBeneficiaries: optionalInt,
+    gracePeriodDays: optionalInt,
+  })
 })
 
 function moneyToString(v?: number | string | null): string {
@@ -85,7 +93,7 @@ function moneyToString(v?: number | string | null): string {
   return String(v)
 }
 
-// True mientras se carga el detalle al abrir en modo edición.
+// True while the detail loads when opening in edit mode.
 const loadingDetail = ref(false)
 
 function populateFrom(p: PlanDto | null) {
@@ -116,8 +124,8 @@ function populateFrom(p: PlanDto | null) {
   state.published = p.published ?? false
 }
 
-// Al abrir: en creación limpia el form; en edición carga el detalle completo por UUID
-// (el `plan` recibido puede ser una fila de listado) para poblar de forma fiable.
+// On open: in create mode clear the form; in edit mode load the full detail by UUID
+// (the received `plan` may be a list row) to populate reliably.
 watch(() => props.open, async (open) => {
   if (!open) return
   if (!props.plan) {
@@ -129,7 +137,7 @@ watch(() => props.open, async (open) => {
     populateFrom(await plans.get(props.plan.uuid))
   }
   catch {
-    // Si el detalle no carga, usa el registro recibido como respaldo.
+    // If the detail fails to load, use the received record as a fallback.
     populateFrom(props.plan)
   }
   finally {
@@ -138,13 +146,13 @@ watch(() => props.open, async (open) => {
 })
 
 function toInt(v: string): number | undefined {
-  const t = v.trim()
-  return t === '' ? undefined : Number(t)
+  const trimmed = v.trim()
+  return trimmed === '' ? undefined : Number(trimmed)
 }
 
 function toMoney(v: string): string | undefined {
-  const t = v.trim()
-  return t === '' ? undefined : t
+  const trimmed = v.trim()
+  return trimmed === '' ? undefined : trimmed
 }
 
 async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
@@ -166,7 +174,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         published: state.published,
       }
       result = await plans.create(body)
-      toast.add({ title: 'Plan creado', color: 'success', icon: 'i-lucide-check-circle' })
+      toast.add({ title: t('plans.createdToast'), color: 'success', icon: 'i-lucide-check-circle' })
     }
     else {
       const body: UpdatePlanRequest = {
@@ -183,13 +191,13 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         published: state.published,
       }
       result = await plans.update(props.plan!.uuid, body)
-      toast.add({ title: 'Plan actualizado', color: 'success', icon: 'i-lucide-check-circle' })
+      toast.add({ title: t('plans.updatedToast'), color: 'success', icon: 'i-lucide-check-circle' })
     }
     emit('saved', result)
     isOpen.value = false
   }
   catch {
-    // useApi ya notificó el error (422 code duplicado, validaciones, etc.)
+    // useApi already notified the error (422 duplicate code, validations, etc.)
   }
   finally {
     isSubmitting.value = false
@@ -200,14 +208,14 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
 <template>
   <UModal
     v-model:open="isOpen"
-    :title="mode === 'create' ? 'Nuevo plan' : 'Editar plan'"
-    :description="mode === 'create' ? 'Define un nuevo plan de cobertura y su pricing.' : 'Actualiza los datos y el pricing del plan.'"
+    :title="mode === 'create' ? t('plans.form.createTitle') : t('plans.form.editTitle')"
+    :description="mode === 'create' ? t('plans.form.createDescription') : t('plans.form.editDescription')"
     :ui="{ content: 'max-w-2xl' }"
   >
     <template #body>
       <div v-if="loadingDetail" class="py-12 flex flex-col items-center justify-center gap-2 text-prohealth-500">
         <UIcon name="i-lucide-loader-circle" class="w-6 h-6 animate-spin" />
-        <span class="text-sm">Cargando datos del plan…</span>
+        <span class="text-sm">{{ t('plans.form.loadingDetail') }}</span>
       </div>
       <UForm
         v-else
@@ -217,38 +225,38 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         @submit="onSubmit"
       >
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <UFormField label="Código" name="code" required help="UPPER_SNAKE_CASE. Llave única del plan.">
+          <UFormField :label="t('plans.form.fields.code')" name="code" required :help="t('plans.form.codeHelp')">
             <UInput v-model="state.code" placeholder="INDIVIDUAL" class="w-full font-mono" />
           </UFormField>
-          <UFormField label="Tipo" name="type" required>
+          <UFormField :label="t('plans.form.fields.type')" name="type" required>
             <USelectMenu
               v-model="state.type"
-              :items="PLAN_TYPE_OPTIONS"
+              :items="typeOptions"
               label-key="label"
               value-key="value"
-              placeholder="Selecciona"
+              :placeholder="t('common.select')"
               class="w-full"
             />
           </UFormField>
         </div>
 
-        <UFormField label="Nombre" name="name" required>
-          <UInput v-model="state.name" placeholder="Plan Individual" class="w-full" />
+        <UFormField :label="t('plans.form.fields.name')" name="name" required>
+          <UInput v-model="state.name" :placeholder="t('plans.form.namePlaceholder')" class="w-full" />
         </UFormField>
 
-        <UFormField label="Descripción" name="description">
+        <UFormField :label="t('plans.form.fields.description')" name="description">
           <UTextarea v-model="state.description" :rows="3" class="w-full" />
         </UFormField>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <UFormField label="Inscripción (USD)" name="inscriptionFee" required help="Cargo único de afiliación.">
+          <UFormField :label="t('plans.form.fields.inscription')" name="inscriptionFee" required :help="t('plans.pricing.inscriptionHint')">
             <UInput v-model="state.inscriptionFee" placeholder="10.00" class="w-full">
               <template #leading>
                 <span class="text-prohealth-400 text-sm">$</span>
               </template>
             </UInput>
           </UFormField>
-          <UFormField label="Mensualidad (USD)" name="monthlyFee" required help="Cargo recurrente mensual.">
+          <UFormField :label="t('plans.form.fields.monthly')" name="monthlyFee" required :help="t('plans.pricing.monthlyHint')">
             <UInput v-model="state.monthlyFee" placeholder="5.00" class="w-full">
               <template #leading>
                 <span class="text-prohealth-400 text-sm">$</span>
@@ -258,9 +266,9 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         </div>
 
         <UFormField
-          label="Inscripción por beneficiario extra (USD)"
+          :label="t('plans.form.fields.extraBeneficiary')"
           name="extraBeneficiaryInscriptionFee"
-          help="Déjalo vacío si el plan no admite beneficiarios adicionales."
+          :help="t('plans.form.extraBeneficiaryHelp')"
         >
           <UInput v-model="state.extraBeneficiaryInscriptionFee" placeholder="5.00" class="w-full">
             <template #leading>
@@ -270,27 +278,27 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         </UFormField>
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <UFormField label="Beneficiarios incluidos" name="includedBeneficiaries" help="Por defecto 0.">
+          <UFormField :label="t('plans.beneficiaries.included')" name="includedBeneficiaries" :help="t('plans.form.includedHelp')">
             <UInput v-model="state.includedBeneficiaries" inputmode="numeric" placeholder="0" class="w-full" />
           </UFormField>
-          <UFormField label="Beneficiarios máximos" name="maxBeneficiaries" help="Vacío = sin tope.">
-            <UInput v-model="state.maxBeneficiaries" inputmode="numeric" placeholder="Sin tope" class="w-full" />
+          <UFormField :label="t('plans.beneficiaries.max')" name="maxBeneficiaries" :help="t('plans.form.maxHelp')">
+            <UInput v-model="state.maxBeneficiaries" inputmode="numeric" :placeholder="t('plans.beneficiaries.noLimit')" class="w-full" />
           </UFormField>
-          <UFormField label="Días de gracia" name="gracePeriodDays" help="Por defecto 7.">
+          <UFormField :label="t('plans.beneficiaries.graceDays')" name="gracePeriodDays" :help="t('plans.form.graceHelp')">
             <UInput v-model="state.gracePeriodDays" inputmode="numeric" placeholder="7" class="w-full" />
           </UFormField>
         </div>
 
-        <UFormField label="Publicado" name="published" help="Visible en el directorio público de planes.">
+        <UFormField :label="t('plans.published')" name="published" :help="t('plans.form.publishedHelp')">
           <USwitch v-model="state.published" />
         </UFormField>
 
         <div class="flex items-center justify-end gap-3 pt-2">
           <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="isOpen = false">
-            Cancelar
+            {{ t('common.cancel') }}
           </UButton>
           <UButton type="submit" color="primary" :loading="isSubmitting" icon="i-lucide-save">
-            {{ mode === 'create' ? 'Crear plan' : 'Guardar cambios' }}
+            {{ mode === 'create' ? t('plans.form.submitCreate') : t('common.saveChanges') }}
           </UButton>
         </div>
       </UForm>

@@ -1,33 +1,30 @@
-// Tipos del vertical de Planes (/v1/admin/plans), alineados con el backend
+// Types for the Plans vertical (/v1/admin/plans), aligned with the backend
 // (V13__plans.sql / V14__seed_plans.sql, PlanDto / PlanCreateRequest / PlanUpdateRequest).
 //
-// Un Plan es el producto-catálogo de suscripción: define pricing (inscripción,
-// mensualidad, cargo por beneficiario extra), beneficiarios incluidos/máximos y el
-// periodo de gracia. Las membresías (afiliaciones) referencian un Plan y toman una
-// "foto" de su pricing al momento de la afiliación. El listado admin es paginado
-// (Page<PlanDto>) con RSQL + `q`. Los PUT usan semántica PATCH (solo campos presentes).
+// A Plan is the subscription catalog product: it defines pricing (enrollment,
+// monthly fee, extra-beneficiary charge), included/maximum beneficiaries and the
+// grace period. Memberships reference a Plan and take a "snapshot" of its pricing
+// at enrollment time. The admin list is paged (Page<PlanDto>) with RSQL + `q`.
+// PUT uses PATCH semantics (only the fields present are applied).
 
-// ---- Tipo de plan (familia) ----
-// El backend modela solo la dimensión `type` (Individual/Familiar/Corporativo, la
-// taxonomía del flyer). El eje "Premium/1+/2+/3+" es un TBD aún no implementado.
+// ---- Plan type (family) ----
+// The backend only models the `type` dimension (Individual/Familiar/Corporativo,
+// the flyer taxonomy). The "Premium/1+/2+/3+" axis is a TBD, not yet implemented.
+// `label` is the Spanish fallback; `labelKey` resolves to i18n at the usage point.
 export type PlanType = 'INDIVIDUAL' | 'FAMILIAR' | 'CORPORATIVO'
 
-export const PLAN_TYPE_OPTIONS: { label: string, value: PlanType }[] = [
-  { label: 'Individual', value: 'INDIVIDUAL' },
-  { label: 'Familiar', value: 'FAMILIAR' },
-  { label: 'Corporativo', value: 'CORPORATIVO' },
+export const PLAN_TYPE_OPTIONS: { label: string, value: PlanType, labelKey: string }[] = [
+  { label: 'Individual', value: 'INDIVIDUAL', labelKey: 'plans.types.INDIVIDUAL' },
+  { label: 'Familiar', value: 'FAMILIAR', labelKey: 'plans.types.FAMILIAR' },
+  { label: 'Corporativo', value: 'CORPORATIVO', labelKey: 'plans.types.CORPORATIVO' },
 ]
-
-export function planTypeLabel(value?: string | null): string {
-  return PLAN_TYPE_OPTIONS.find(o => o.value === value)?.label ?? value ?? '—'
-}
 
 // ---- Plan ----
 
 /**
- * Respuesta del backend. Los montos (BigDecimal) pueden serializarse como número o
- * como string según el ObjectMapper; se tipan como `number | string` y se formatean
- * siempre pasando por `Number()`.
+ * Backend response. Amounts (BigDecimal) may be serialized as a number or a string
+ * depending on the ObjectMapper; they are typed as `number | string` and always
+ * formatted through `Number()`.
  */
 export interface PlanDto {
   uuid: string
@@ -38,9 +35,9 @@ export interface PlanDto {
   inscriptionFee: number | string
   monthlyFee: number | string
   includedBeneficiaries: number
-  /** null = sin tope de beneficiarios. */
+  /** null = no beneficiary cap. */
   maxBeneficiaries?: number | null
-  /** null = el plan no admite beneficiarios adicionales. */
+  /** null = the plan doesn't allow additional beneficiaries. */
   extraBeneficiaryInscriptionFee?: number | string | null
   gracePeriodDays: number
   published: boolean
@@ -52,11 +49,11 @@ export interface PlanDto {
 }
 
 /**
- * Body de POST /v1/admin/plans. Montos como string (BigDecimal acepta string y así
- * se evita pérdida de precisión); conteos como número entero.
+ * Body of POST /v1/admin/plans. Amounts as string (BigDecimal accepts string and
+ * this avoids precision loss); counts as integers.
  */
 export interface CreatePlanRequest {
-  /** UPPER_SNAKE_CASE, llave natural única. */
+  /** UPPER_SNAKE_CASE, unique natural key. */
   code: string
   name: string
   description?: string
@@ -64,15 +61,15 @@ export interface CreatePlanRequest {
   inscriptionFee: string
   monthlyFee: string
   includedBeneficiaries?: number
-  /** null = sin tope. */
+  /** null = no cap. */
   maxBeneficiaries?: number | null
-  /** null = sin adicionales. */
+  /** null = no additional beneficiaries. */
   extraBeneficiaryInscriptionFee?: string | null
   gracePeriodDays?: number
   published?: boolean
 }
 
-/** PUT con semántica PATCH: solo se aplican los campos presentes. */
+/** PUT with PATCH semantics: only the fields present are applied. */
 export interface UpdatePlanRequest extends Partial<CreatePlanRequest> {
   active?: boolean
   status?: string
