@@ -4,7 +4,7 @@
 @theme static {
   --font-sans: 'Manrope', ui-sans-serif, system-ui, sans-serif;
 
-  /* Paleta heredada del landing OptiSalud Plus
+  /* Paleta heredada del landing OptiBienestar 360
      Azul principal (#245E9E) — escala generada conservando el tono */
   --color-prohealth-50:  #f0f6fc;
   --color-prohealth-100: #dbeafe;

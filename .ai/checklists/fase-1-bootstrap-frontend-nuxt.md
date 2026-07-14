@@ -35,4 +35,4 @@
 ## Build y despliegue
 
 - [x] [P0/C2] Imagen Docker multi-stage (Nuxt build → nginx sirviendo SPA estático) — ver [ADR 0006](../decisions/0006-ci-cd-docker-runtime-config.md) — 2026-06-01
-- [x] [P0/C2] GitHub Actions: build + push imagen Docker Hub `fenixcoreenterprises/optisalud-plus-frontend` — ver [ADR 0006](../decisions/0006-ci-cd-docker-runtime-config.md) — 2026-06-01
+- [x] [P0/C2] GitHub Actions: build + push imagen Docker Hub `fenixcoreenterprises/optibienestar-360-frontend` — ver [ADR 0006](../decisions/0006-ci-cd-docker-runtime-config.md) — 2026-06-01

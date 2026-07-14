@@ -9,7 +9,7 @@ El frontend admin/portales es un **SPA estático** (`ssr: false` — ver [ADR 00
 
 - El backend publica imágenes Docker (alpine + debian) vía GitHub Actions en `release: published` → Docker Hub.
 - El landing `centro-optico-vicente-web` sigue el mismo patrón (nginx sirviendo estáticos).
-- La infra del hub ([ADR 0003 infra cross-stack](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0003-infrastructure.md)) ya reserva la imagen `fenixcoreenterprises/optisalud-plus-frontend` en Docker Hub y la sirve detrás de Traefik.
+- La infra del hub ([ADR 0003 infra cross-stack](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0003-infrastructure.md)) ya reserva la imagen `fenixcoreenterprises/optibienestar-360-frontend` en Docker Hub y la sirve detrás de Traefik.
 
 Restricción adicional: al ser SPA estático **no hay servidor Nitro** que lea variables de entorno en runtime, pero la URL del backend (`NUXT_PUBLIC_API_BASE_URL`) **debe definirse por entorno sin reconstruir la imagen**.
 

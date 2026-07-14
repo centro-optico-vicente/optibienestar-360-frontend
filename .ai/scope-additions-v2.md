@@ -1,6 +1,6 @@
 # Scope Additions v2 (frontend) — Vistas de los adicionales post-arranque
 
-> **Espejo UI** del mapa canónico del backend: [optisalud-plus-backend `.ai/scope-additions-v2.md`](https://github.com/fenix-core/optisalud-plus-backend/blob/main/.ai/scope-additions-v2.md).
+> **Espejo UI** del mapa canónico del backend: [optibienestar-360-backend `.ai/scope-additions-v2.md`](https://github.com/fenix-core/optibienestar-360-backend/blob/main/.ai/scope-additions-v2.md).
 > **Fuente formal:** PDF "Informe de Avances y Solicitud de Continuidad v1" (mesas técnicas, mayo–junio 2026) + flyer comercial "OPTIBIENESTAR 360" (jun 2026).
 >
 > Las decisiones de negocio, schema, permisos y endpoints son **fuente de verdad del backend**. Este doc mapea cada ítem PDF a la **vista frontend** que lo consume. Bullets `[v2]` en cada vista referencian este doc.

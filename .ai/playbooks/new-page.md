@@ -23,7 +23,7 @@ definePageMeta({
   permissions: ['FOO_VIEW_ALL'],                    // listar permisos requeridos
 });
 
-useHead({ title: 'Foos — OptiSalud Plus' });
+useHead({ title: 'Foos — OptiBienestar 360' });
 
 const route = useRoute();
 const api = useApi();

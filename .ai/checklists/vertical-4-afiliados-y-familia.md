@@ -16,7 +16,7 @@
 
 ## Adicionales v2 — Inclusión y Modificación de Beneficiarios
 
-> Equivalente UI del [backend vertical-4 §Adicionales v2](https://github.com/fenix-core/optisalud-plus-backend/blob/main/.ai/checklists/vertical-4-afiliados-y-familia.md) (ítem PDF #7). Mapa: [`../scope-additions-v2.md`](../scope-additions-v2.md). Reemplaza el límite hardcoded "máx 3 beneficiarios" — ahora es por plan.
+> Equivalente UI del [backend vertical-4 §Adicionales v2](https://github.com/fenix-core/optibienestar-360-backend/blob/main/.ai/checklists/vertical-4-afiliados-y-familia.md) (ítem PDF #7). Mapa: [`../scope-additions-v2.md`](../scope-additions-v2.md). Reemplaza el límite hardcoded "máx 3 beneficiarios" — ahora es por plan.
 
 - [ ] [v2] [P0/C2] Grilla familiar en la vista 360° del afiliado — al agregar beneficiario, mostrar si entra **sin cargo** (dentro de `plan.included_beneficiaries`) o si dispara **cobro de inscripción extra** ($5 según flyer). El backend genera el `payment` extra automáticamente; el front lo refleja.
 - [ ] [v2] [P0/C2] Bloquear/avisar al alcanzar el tope duro `plan.max_beneficiaries` (manejar el 422 `member.beneficiary.cap_exceeded` con mensaje claro).

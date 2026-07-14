@@ -1,6 +1,6 @@
 # Vista 12 — Subsidios y Exoneraciones (Adicionales v2)
 
-> 🆕 **Vista nueva, parte de Adicionales v2.** Equivalente UI del [backend vertical-12](https://github.com/fenix-core/optisalud-plus-backend/blob/main/.ai/checklists/vertical-12-subsidios-y-exoneraciones.md). Ítem PDF #1 — "Gestión de Subsidios y Exoneraciones".
+> 🆕 **Vista nueva, parte de Adicionales v2.** Equivalente UI del [backend vertical-12](https://github.com/fenix-core/optibienestar-360-backend/blob/main/.ai/checklists/vertical-12-subsidios-y-exoneraciones.md). Ítem PDF #1 — "Gestión de Subsidios y Exoneraciones".
 > Mapa de trazabilidad: [`../scope-additions-v2.md`](../scope-additions-v2.md) · Índice: [../checklist.md](../checklist.md) · Orden: [../checklist-vertical.md](../checklist-vertical.md)
 >
 > **Caso de uso (PDF):** controles para omitir o subsidiar el pago de mensualidades a perfiles especiales (fundaciones, iglesias, casos de bajos recursos) manteniendo registro formal en auditoría. UI permission-gated por `SUBSIDY_APPROVE` y `ALLOWS_DISCOUNT`.

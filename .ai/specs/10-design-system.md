@@ -68,7 +68,7 @@ defineProps<Props>();
   <div class="rounded-xl bg-gradient-to-br from-blue to-blue-dark text-white p-6 max-w-md shadow-xl">
     <div class="flex justify-between items-start mb-6">
       <div>
-        <div class="text-xs uppercase tracking-wide text-cyan-soft">OptiSalud Plus</div>
+        <div class="text-xs uppercase tracking-wide text-cyan-soft">OptiBienestar 360</div>
         <div class="text-lg font-bold">{{ plan.name }}</div>
       </div>
       <MembershipStatusBadge :status="status" />

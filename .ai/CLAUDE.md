@@ -1,10 +1,10 @@
 # `.ai/` — Brief para asistencia IA (frontend admin)
 
-> Brief específico del repo `optisalud-plus-frontend`. Para visión cross-stack, ver el hub maestro [`centro-optico-vicente/.ai/`](https://github.com/fenix-core/centro-optico-vicente/tree/main/.ai).
+> Brief específico del repo `optibienestar-360-frontend`. Para visión cross-stack, ver el hub maestro [`centro-optico-vicente/.ai/`](https://github.com/fenix-core/centro-optico-vicente/tree/main/.ai).
 
 ## Qué es este repo
 
-Frontend multi-rol (Vue 3 + Nuxt 3) que sirve a admin, operador, aliados, afiliados y promotores del programa OptiSalud Plus.
+Frontend multi-rol (Vue 3 + Nuxt 3) que sirve a admin, operador, aliados, afiliados y promotores del programa OptiBienestar 360.
 
 ## Stack confirmado
 

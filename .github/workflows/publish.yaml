@@ -13,7 +13,7 @@ on:
 
 env:
   DOCKER_HUB_REGISTRY: ${{ vars.DOCKER_HUB_REGISTRY || 'docker.io' }}
-  DOCKER_HUB_REPOSITORY: ${{ vars.DOCKER_HUB_REPOSITORY || format('{0}/optisalud-plus-frontend', vars.DOCKER_HUB_USERNAME) }}
+  DOCKER_HUB_REPOSITORY: ${{ vars.DOCKER_HUB_REPOSITORY || format('{0}/optibienestar-360-frontend', vars.DOCKER_HUB_USERNAME) }}
   NGINX_VERSION: ${{ github.event.inputs.nginx_version || vars.NGINX_VERSION || '1.31.0' }}
 
 jobs:

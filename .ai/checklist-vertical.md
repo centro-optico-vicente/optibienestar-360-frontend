@@ -5,7 +5,7 @@
 > **Dashboard de progreso (conteos, %):** [`checklist.md`](checklist.md)
 > **Fuente de verdad de checkboxes:** archivos `checklists/vertical-N-*.md`
 >
-> Numeración **alineada con el backend** ([backend `checklist-vertical.md`](https://github.com/fenix-core/optisalud-plus-backend/blob/main/.ai/checklist-vertical.md)): vertical-3 = Aliados en ambos repos, etc. Cada vista consume los endpoints del vertical homónimo del backend.
+> Numeración **alineada con el backend** ([backend `checklist-vertical.md`](https://github.com/fenix-core/optibienestar-360-backend/blob/main/.ai/checklist-vertical.md)): vertical-3 = Aliados en ambos repos, etc. Cada vista consume los endpoints del vertical homónimo del backend.
 
 ## Dependencias
 
@@ -44,7 +44,7 @@ FASE 1 (bootstrap Nuxt) ──────────────────�
 
 ## Adicionales v2
 
-> Adicionales surgidos post-arranque (PDF "Informe de Avances y Solicitud de Continuidad v1", mesas técnicas mayo–junio 2026). Mapa de trazabilidad UI: [`scope-additions-v2.md`](scope-additions-v2.md) (espejo del [mapa canónico del backend](https://github.com/fenix-core/optisalud-plus-backend/blob/main/.ai/scope-additions-v2.md)).
+> Adicionales surgidos post-arranque (PDF "Informe de Avances y Solicitud de Continuidad v1", mesas técnicas mayo–junio 2026). Mapa de trazabilidad UI: [`scope-additions-v2.md`](scope-additions-v2.md) (espejo del [mapa canónico del backend](https://github.com/fenix-core/optibienestar-360-backend/blob/main/.ai/scope-additions-v2.md)).
 >
 > **Convención:** los ítems v2 dentro de cada vista están marcados con tag `[v2]` en una sección "Adicionales v2" al final del archivo. Vista-12 es íntegramente v2 (nueva).
 >

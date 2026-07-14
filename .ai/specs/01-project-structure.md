@@ -3,7 +3,7 @@
 ## Estructura
 
 ```
-optisalud-plus-frontend/
+optibienestar-360-frontend/
 ├── nuxt.config.ts
 ├── tailwind.config.ts
 ├── app.config.ts                   # Nuxt UI config + theme overrides
@@ -166,7 +166,7 @@ export default defineNuxtConfig({
 
   app: {
     head: {
-      title: 'OptiSalud Plus',
+      title: 'OptiBienestar 360',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },

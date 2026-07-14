@@ -1,6 +1,6 @@
 # Vista 11 — Internacionalización (i18n) y Localización
 
-> Equivalente UI del [backend vertical-11](https://github.com/fenix-core/optisalud-plus-backend/blob/main/.ai/checklists/vertical-11-i18n.md).
+> Equivalente UI del [backend vertical-11](https://github.com/fenix-core/optibienestar-360-backend/blob/main/.ai/checklists/vertical-11-i18n.md).
 > `@nuxtjs/i18n` + bundles `es.json` / `en.json` (sin variantes regionales — ResourceBundle/i18n hacen fallback `es-VE → es`). Locale efectivo **debe espejar el del backend**: el JWT trae claim `locale`, el backend localiza sus `ProblemDetail` por `Accept-Language` o por ese claim, y persiste la preferencia por usuario. El frontend deja de ser "español-only".
 >
 > Cross-cutting: paraleliza con cualquier vista; idealmente arranca tras vista-1 (Auth) porque la preferencia de locale viaja en el JWT y se cambia desde el portal.
