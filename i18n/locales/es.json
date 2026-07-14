@@ -276,6 +276,61 @@
       "contactHeading": "Contacto"
     }
   },
+  "dashboard": {
+    "greeting": {
+      "morning": "Buenos días",
+      "afternoon": "Buenas tardes",
+      "evening": "Buenas noches"
+    },
+    "subtitle": "Resumen del programa en tiempo real.",
+    "thisMonth": "Este mes",
+    "kpis": {
+      "activeMembers": "Afiliados activos",
+      "monthlyRevenue": "Recaudación mensual",
+      "allyUsage": "Usos en aliados",
+      "pendingPayments": "Pagos pendientes"
+    },
+    "banner": {
+      "title": "Cuidamos tu visión con la mejor atención.",
+      "description": "Exámenes visuales, monturas y lentes para todos tus afiliados, respaldados por la red OptiBienestar 360.",
+      "cta": "Gestionar afiliados",
+      "imageAlt": "Atención óptica OptiBienestar 360"
+    },
+    "gallery": {
+      "title": "Galería de servicios",
+      "subtitle": "Conoce la experiencia OptiBienestar 360",
+      "items": {
+        "eyeTest": "Examen visual con optometrista",
+        "care": "Atención en óptica",
+        "services": "Servicios ópticos",
+        "frames": "Selección de monturas",
+        "center": "Centro óptico"
+      }
+    },
+    "activity": {
+      "title": "Actividad reciente",
+      "subtitle": "Últimas operaciones del sistema",
+      "support": "Soporte",
+      "status": {
+        "success": "Completado",
+        "pending": "Pendiente",
+        "error": "Error"
+      },
+      "items": {
+        "i1": { "what": "Pago confirmado — Plan Familiar", "when": "hace 5 min" },
+        "i2": { "what": "Uso registrado: lentes", "when": "hace 18 min" },
+        "i3": { "what": "Pago en revisión — Plan Individual", "when": "hace 42 min" },
+        "i4": { "what": "Solicitud de cambio de plan", "when": "hace 1 h" },
+        "i5": { "what": "Reintento de validación fallido", "when": "hace 2 h" }
+      }
+    },
+    "session": {
+      "title": "Tu sesión",
+      "subtitle": "Información de la cuenta activa",
+      "email": "Email",
+      "roles": "Roles"
+    }
+  },
   "landing": {
     "seoTitle": "OptiBienestar 360 — Cuidamos lo que más amas",
     "seoDescription": "Plan integral de salud con red de aliados, atención preferencial, carnet digital y cobertura familiar.",

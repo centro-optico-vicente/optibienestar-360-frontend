@@ -8,22 +8,25 @@ import img4 from '~/assets/img/c08baae430a8d168d93847b175f3d6ec.jpg'
 
 definePageMeta({ layout: 'dashboard' })
 
-useSeoMeta({ title: 'Panel — OptiBienestar 360' })
-
+const { t } = useI18n()
 const auth = useAuthStore()
+// Figures keep the VE convention regardless of UI locale (ADR 0010).
+const { formatNumber, formatCurrency } = useFormatters()
+
+useSeoMeta({ title: () => t('common.seoTitle', { page: t('nav.items.panel.label') }) })
 
 interface GalleryItem {
   src: string
   alt: string
 }
 
-const gallery: GalleryItem[] = [
-  { src: imgEyeTest, alt: 'Examen visual con optometrista' },
-  { src: img1, alt: 'Atención en óptica' },
-  { src: img2, alt: 'Servicios ópticos' },
-  { src: img3, alt: 'Selección de monturas' },
-  { src: img4, alt: 'Centro óptico' },
-]
+const gallery = computed<GalleryItem[]>(() => [
+  { src: imgEyeTest, alt: t('dashboard.gallery.items.eyeTest') },
+  { src: img1, alt: t('dashboard.gallery.items.care') },
+  { src: img2, alt: t('dashboard.gallery.items.services') },
+  { src: img3, alt: t('dashboard.gallery.items.frames') },
+  { src: img4, alt: t('dashboard.gallery.items.center') },
+])
 
 interface Kpi {
   label: string
@@ -34,12 +37,13 @@ interface Kpi {
   accent: string
 }
 
-const kpis: Kpi[] = [
-  { label: 'Afiliados activos', value: '12,480', delta: '+5.2%', trend: 'up', icon: 'i-lucide-users', accent: 'bg-prohealth-50 text-prohealth-700' },
-  { label: 'Recaudación mensual', value: '$48,250', delta: '+12.4%', trend: 'up', icon: 'i-lucide-banknote', accent: 'bg-lime-50 text-lime-700' },
-  { label: 'Usos en aliados', value: '1,820', delta: '-1.8%', trend: 'down', icon: 'i-lucide-handshake', accent: 'bg-cyan-50 text-cyan-700' },
-  { label: 'Pagos pendientes', value: '64', delta: '+3', trend: 'up', icon: 'i-lucide-clock', accent: 'bg-orange-50 text-orange-700' },
-]
+// Placeholder metrics (mockup — wired to real data when the dashboard is rebuilt).
+const kpis = computed<Kpi[]>(() => [
+  { label: t('dashboard.kpis.activeMembers'), value: formatNumber(12480), delta: '+5.2%', trend: 'up', icon: 'i-lucide-users', accent: 'bg-prohealth-50 text-prohealth-700' },
+  { label: t('dashboard.kpis.monthlyRevenue'), value: formatCurrency(48250), delta: '+12.4%', trend: 'up', icon: 'i-lucide-banknote', accent: 'bg-lime-50 text-lime-700' },
+  { label: t('dashboard.kpis.allyUsage'), value: formatNumber(1820), delta: '-1.8%', trend: 'down', icon: 'i-lucide-handshake', accent: 'bg-cyan-50 text-cyan-700' },
+  { label: t('dashboard.kpis.pendingPayments'), value: formatNumber(64), delta: '+3', trend: 'up', icon: 'i-lucide-clock', accent: 'bg-orange-50 text-orange-700' },
+])
 
 interface RecentActivity {
   id: number
@@ -49,13 +53,14 @@ interface RecentActivity {
   status: 'success' | 'pending' | 'error'
 }
 
-const activity: RecentActivity[] = [
-  { id: 1, who: 'Mia Torres', what: 'Pago confirmado — Plan Familiar', when: 'hace 5 min', status: 'success' },
-  { id: 2, who: 'Centro Óptico Vicente', what: 'Uso registrado: lentes', when: 'hace 18 min', status: 'success' },
-  { id: 3, who: 'Carlos Rivas', what: 'Pago en revisión — Plan Individual', when: 'hace 42 min', status: 'pending' },
-  { id: 4, who: 'Laura Pérez', what: 'Solicitud de cambio de plan', when: 'hace 1 h', status: 'pending' },
-  { id: 5, who: 'Soporte', what: 'Reintento de validación fallido', when: 'hace 2 h', status: 'error' },
-]
+// Placeholder feed; person names are literal, the system actor is localized.
+const activity = computed<RecentActivity[]>(() => [
+  { id: 1, who: 'Mia Torres', what: t('dashboard.activity.items.i1.what'), when: t('dashboard.activity.items.i1.when'), status: 'success' },
+  { id: 2, who: 'Centro Óptico Vicente', what: t('dashboard.activity.items.i2.what'), when: t('dashboard.activity.items.i2.when'), status: 'success' },
+  { id: 3, who: 'Carlos Rivas', what: t('dashboard.activity.items.i3.what'), when: t('dashboard.activity.items.i3.when'), status: 'pending' },
+  { id: 4, who: 'Laura Pérez', what: t('dashboard.activity.items.i4.what'), when: t('dashboard.activity.items.i4.when'), status: 'pending' },
+  { id: 5, who: t('dashboard.activity.support'), what: t('dashboard.activity.items.i5.what'), when: t('dashboard.activity.items.i5.when'), status: 'error' },
+])
 
 const statusColor: Record<RecentActivity['status'], 'success' | 'warning' | 'error'> = {
   success: 'success',
@@ -63,11 +68,12 @@ const statusColor: Record<RecentActivity['status'], 'success' | 'warning' | 'err
   error: 'error',
 }
 
-const greeting = computed<string>(() => {
+// Time-of-day greeting key resolved against the `dashboard.greeting.*` bundle.
+const greetingKey = computed<'morning' | 'afternoon' | 'evening'>(() => {
   const h = new Date().getHours()
-  if (h < 12) return 'Buenos días'
-  if (h < 19) return 'Buenas tardes'
-  return 'Buenas noches'
+  if (h < 12) return 'morning'
+  if (h < 19) return 'afternoon'
+  return 'evening'
 })
 </script>
 
@@ -77,18 +83,18 @@ const greeting = computed<string>(() => {
     <div class="flex flex-wrap items-end justify-between gap-4">
       <div>
         <h1 class="text-2xl md:text-3xl font-extrabold text-prohealth-900">
-          {{ greeting }}, {{ auth.user?.fullName || auth.user?.email }} 👋
+          {{ t(`dashboard.greeting.${greetingKey}`) }}, {{ auth.user?.fullName || auth.user?.email }} 👋
         </h1>
         <p class="text-sm text-prohealth-700/70 mt-1">
-          Resumen del programa en tiempo real.
+          {{ t('dashboard.subtitle') }}
         </p>
       </div>
       <div class="flex items-center gap-2">
         <UButton color="neutral" variant="outline" icon="i-lucide-calendar" size="sm">
-          Este mes
+          {{ t('dashboard.thisMonth') }}
         </UButton>
         <UButton color="primary" variant="solid" icon="i-lucide-plus" size="sm">
-          Nuevo afiliado
+          {{ t('members.new') }}
         </UButton>
       </div>
     </div>
@@ -134,11 +140,10 @@ const greeting = computed<string>(() => {
             <UIcon name="i-lucide-eye" class="w-4 h-4" /> Centro Óptico Vicente
           </span>
           <h2 class="mt-4 text-2xl xl:text-3xl font-extrabold leading-tight max-w-md">
-            Cuidamos tu visión con la mejor atención.
+            {{ t('dashboard.banner.title') }}
           </h2>
           <p class="mt-3 text-prohealth-100/90 max-w-md text-sm">
-            Exámenes visuales, monturas y lentes para todos tus afiliados,
-            respaldados por la red OptiBienestar 360.
+            {{ t('dashboard.banner.description') }}
           </p>
           <UButton
             to="/dashboard/users"
@@ -148,13 +153,13 @@ const greeting = computed<string>(() => {
             trailing
             class="mt-6"
           >
-            Gestionar afiliados
+            {{ t('dashboard.banner.cta') }}
           </UButton>
         </div>
         <div class="h-56 md:h-full min-h-[16rem]">
           <img
             :src="imgHero"
-            alt="Atención óptica OptiBienestar 360"
+            :alt="t('dashboard.banner.imageAlt')"
             class="h-full w-full object-cover"
           >
         </div>
@@ -165,11 +170,11 @@ const greeting = computed<string>(() => {
     <section class="bg-white rounded-2xl border border-prohealth-100 p-6">
       <div class="flex items-center justify-between mb-4">
         <div>
-          <h3 class="font-bold text-prohealth-900">Galería de servicios</h3>
-          <p class="text-xs text-prohealth-500">Conoce la experiencia OptiBienestar 360</p>
+          <h3 class="font-bold text-prohealth-900">{{ t('dashboard.gallery.title') }}</h3>
+          <p class="text-xs text-prohealth-500">{{ t('dashboard.gallery.subtitle') }}</p>
         </div>
         <UButton size="xs" color="neutral" variant="ghost" icon="i-lucide-images">
-          Ver todo
+          {{ t('common.viewAll') }}
         </UButton>
       </div>
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
@@ -196,10 +201,10 @@ const greeting = computed<string>(() => {
       <div class="lg:col-span-2 bg-white rounded-2xl border border-prohealth-100">
         <div class="p-6 pb-3 flex items-center justify-between">
           <div>
-            <h3 class="font-bold text-prohealth-900">Actividad reciente</h3>
-            <p class="text-xs text-prohealth-500">Últimas operaciones del sistema</p>
+            <h3 class="font-bold text-prohealth-900">{{ t('dashboard.activity.title') }}</h3>
+            <p class="text-xs text-prohealth-500">{{ t('dashboard.activity.subtitle') }}</p>
           </div>
-          <UButton size="xs" color="neutral" variant="ghost">Ver todo</UButton>
+          <UButton size="xs" color="neutral" variant="ghost">{{ t('common.viewAll') }}</UButton>
         </div>
         <ul class="divide-y divide-prohealth-100">
           <li
@@ -216,23 +221,23 @@ const greeting = computed<string>(() => {
             </div>
             <span class="text-xs text-prohealth-500 hidden sm:inline">{{ a.when }}</span>
             <UBadge :color="statusColor[a.status]" variant="subtle" size="sm">
-              {{ a.status }}
+              {{ t(`dashboard.activity.status.${a.status}`) }}
             </UBadge>
           </li>
         </ul>
       </div>
 
       <div class="bg-white rounded-2xl border border-prohealth-100 p-6">
-        <h3 class="font-bold text-prohealth-900">Tu sesión</h3>
-        <p class="text-xs text-prohealth-500 mb-5">Información de la cuenta activa</p>
+        <h3 class="font-bold text-prohealth-900">{{ t('dashboard.session.title') }}</h3>
+        <p class="text-xs text-prohealth-500 mb-5">{{ t('dashboard.session.subtitle') }}</p>
 
         <dl class="space-y-3 text-sm">
           <div class="flex items-center justify-between">
-            <dt class="text-prohealth-500">Email</dt>
+            <dt class="text-prohealth-500">{{ t('dashboard.session.email') }}</dt>
             <dd class="font-semibold text-prohealth-900 truncate max-w-[60%]">{{ auth.user?.email }}</dd>
           </div>
           <div class="flex items-center justify-between">
-            <dt class="text-prohealth-500">Roles</dt>
+            <dt class="text-prohealth-500">{{ t('dashboard.session.roles') }}</dt>
             <dd class="flex flex-wrap gap-1 justify-end">
               <UBadge
                 v-for="r in auth.roleNames"
@@ -254,7 +259,7 @@ const greeting = computed<string>(() => {
           icon="i-lucide-key-round"
           class="mt-6"
         >
-          Cambiar contraseña
+          {{ t('auth.changePassword.heading') }}
         </UButton>
       </div>
     </section>

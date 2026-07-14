@@ -276,6 +276,61 @@
       "contactHeading": "Contact"
     }
   },
+  "dashboard": {
+    "greeting": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening"
+    },
+    "subtitle": "Real-time program overview.",
+    "thisMonth": "This month",
+    "kpis": {
+      "activeMembers": "Active members",
+      "monthlyRevenue": "Monthly revenue",
+      "allyUsage": "Partner usage",
+      "pendingPayments": "Pending payments"
+    },
+    "banner": {
+      "title": "We care for your vision with the best service.",
+      "description": "Eye exams, frames and lenses for all your members, backed by the OptiBienestar 360 network.",
+      "cta": "Manage members",
+      "imageAlt": "OptiBienestar 360 optical care"
+    },
+    "gallery": {
+      "title": "Services gallery",
+      "subtitle": "Discover the OptiBienestar 360 experience",
+      "items": {
+        "eyeTest": "Eye exam with optometrist",
+        "care": "Optical care",
+        "services": "Optical services",
+        "frames": "Frame selection",
+        "center": "Optical center"
+      }
+    },
+    "activity": {
+      "title": "Recent activity",
+      "subtitle": "Latest system operations",
+      "support": "Support",
+      "status": {
+        "success": "Completed",
+        "pending": "Pending",
+        "error": "Error"
+      },
+      "items": {
+        "i1": { "what": "Payment confirmed — Family Plan", "when": "5 min ago" },
+        "i2": { "what": "Usage recorded: lenses", "when": "18 min ago" },
+        "i3": { "what": "Payment under review — Individual Plan", "when": "42 min ago" },
+        "i4": { "what": "Plan change request", "when": "1 h ago" },
+        "i5": { "what": "Validation retry failed", "when": "2 h ago" }
+      }
+    },
+    "session": {
+      "title": "Your session",
+      "subtitle": "Active account information",
+      "email": "Email",
+      "roles": "Roles"
+    }
+  },
   "landing": {
     "seoTitle": "OptiBienestar 360 — We care for what you love most",
     "seoDescription": "Comprehensive health plan with a partner network, preferential care, digital card and family coverage.",
