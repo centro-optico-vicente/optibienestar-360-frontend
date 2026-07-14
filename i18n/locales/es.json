@@ -795,5 +795,162 @@
         "step3post": "."
       }
     }
+  },
+  "payments": {
+    "title": "Pagos",
+    "subtitle": "Registro y revisión de pagos manuales: aprobación o rechazo con comprobante.",
+    "new": "Registrar pago",
+    "createTooltip": "Registrar un nuevo pago",
+    "noPermissionRegister": "No tienes permiso para registrar pagos",
+    "searchPlaceholder": "Buscar por referencia o notas…",
+    "statusFilterAll": "Todos",
+    "statusFilterPlaceholder": "Estado",
+    "empty": "Sin pagos",
+    "noReference": "Sin referencia",
+    "paginationSummary": "{shown} de {total} pago(s)",
+    "tooltips": {
+      "viewDetail": "Ver detalle",
+      "approve": "Aprobar",
+      "noPermissionApprove": "No tienes permiso para aprobar",
+      "reject": "Rechazar",
+      "noPermissionReject": "No tienes permiso para rechazar"
+    },
+    "columns": {
+      "planReference": "Plan / Referencia",
+      "amount": "Monto",
+      "method": "Método",
+      "date": "Fecha",
+      "proof": "Comprobante",
+      "status": "Estado"
+    },
+    "methods": {
+      "BANK_TRANSFER": "Transferencia bancaria",
+      "CASH": "Efectivo",
+      "ZELLE": "Zelle",
+      "PAGO_MOVIL": "Pago móvil",
+      "CRYPTO": "Cripto",
+      "INTERNATIONAL_TRANSFER": "Transferencia internacional",
+      "OTHER": "Otro"
+    },
+    "status": {
+      "PENDING": "Pendiente",
+      "APPROVED": "Aprobado",
+      "REJECTED": "Rechazado"
+    },
+    "allocation": {
+      "inscription": "Inscripción",
+      "inscriptionFull": "Inscripción (cargo único)",
+      "monthly": "Mensualidad",
+      "monthlyPeriod": "Mensualidad · {period}"
+    },
+    "detail": {
+      "seoPage": "Detalle de pago",
+      "notFoundTitle": "Pago no encontrado",
+      "notFoundBody": "El registro no existe o fue eliminado.",
+      "approve": "Aprobar",
+      "reject": "Rechazar",
+      "approveTooltip": "Aprobar pago",
+      "rejectTooltip": "Rechazar pago",
+      "sections": {
+        "detail": "Detalle del pago",
+        "membership": "Afiliación",
+        "proof": "Comprobante",
+        "review": "Revisión",
+        "adminNotes": "Notas administrativas",
+        "metadata": "Metadatos"
+      },
+      "fields": {
+        "amount": "Monto",
+        "method": "Método",
+        "reference": "Referencia",
+        "paymentDate": "Fecha del pago",
+        "received": "Recibido",
+        "allocation": "Asignación",
+        "plan": "Plan",
+        "member": "Afiliado",
+        "membership": "Membresía",
+        "status": "Estado",
+        "reviewed": "Revisado",
+        "reviewedBy": "Revisado por",
+        "reason": "Motivo / nota",
+        "created": "Creado",
+        "updated": "Última actualización",
+        "uuid": "UUID"
+      },
+      "proof": {
+        "fileNameFallback": "Comprobante",
+        "fileTypeFallback": "archivo",
+        "view": "Ver comprobante",
+        "none": "Sin comprobante adjunto."
+      }
+    },
+    "form": {
+      "title": "Registrar pago",
+      "description": "Registra un pago manual. Quedará pendiente de revisión hasta que se apruebe o rechace.",
+      "submit": "Registrar pago",
+      "registeredToast": "Pago registrado",
+      "registeredToastDescription": "Queda pendiente de revisión.",
+      "noMemberships": "Este afiliado no tiene membresías registradas.",
+      "planFallback": "Plan",
+      "memberSearchPlaceholder": "Buscar por nombre o documento…",
+      "memberPlaceholderSearch": "Busca primero",
+      "membershipPlaceholderMember": "Selecciona un afiliado",
+      "membershipPlaceholder": "Selecciona una membresía",
+      "fields": {
+        "searchMember": "Buscar afiliado",
+        "searchMemberHelp": "Escribe nombre o documento (mín. 2 caracteres).",
+        "member": "Afiliado",
+        "membership": "Membresía",
+        "amount": "Monto",
+        "currency": "Moneda",
+        "currencyHelp": "ISO 4217. Por defecto USD.",
+        "method": "Método",
+        "reference": "Referencia",
+        "referenceHelp": "N° de operación / comprobante (opcional).",
+        "paymentDate": "Fecha del pago",
+        "paymentDateHelp": "Fecha en que se realizó el pago.",
+        "inscription": "Es inscripción",
+        "inscriptionHelp": "Cargo único de afiliación (no aplica a un mes).",
+        "coveredMonth": "Mes cubierto",
+        "coveredMonthHelp": "Mensualidad recurrente. Vacío = mes actual.",
+        "adminNotes": "Notas administrativas",
+        "proof": "Comprobante",
+        "proofHelp": "Imagen o PDF del soporte de pago (opcional)."
+      },
+      "placeholders": {
+        "reference": "Ej. 0012345678",
+        "adminNotes": "Observaciones internas (opcional)."
+      },
+      "validation": {
+        "member": "Selecciona un afiliado",
+        "membership": "Selecciona una membresía",
+        "amountInvalid": "Monto no válido (hasta 2 decimales)",
+        "amountMin": "Debe ser mayor que 0",
+        "currencyFormat": "ISO 4217 (3 letras)",
+        "dateFuture": "La fecha no puede ser futura"
+      }
+    },
+    "review": {
+      "approveTitle": "Aprobar pago",
+      "rejectTitle": "Rechazar pago",
+      "approveNotice": "El pago se marcará como {status} y se notificará al afiliado por correo.",
+      "approvedWord": "aprobado",
+      "rejectNotice": "El pago se marcará como {status}. El motivo se enviará al afiliado para que pueda reenviar.",
+      "rejectedWord": "rechazado",
+      "reasonLabelApprove": "Nota de aprobación (opcional)",
+      "reasonLabelReject": "Motivo del rechazo",
+      "reasonRequired": "El motivo es obligatorio",
+      "placeholderApprove": "Observación opcional para el afiliado.",
+      "placeholderReject": "Explica por qué se rechaza (comprobante ilegible, monto incorrecto…).",
+      "approveButton": "Aprobar pago",
+      "rejectButton": "Rechazar pago",
+      "approvedToast": "Pago aprobado",
+      "rejectedToast": "Pago rechazado"
+    },
+    "mine": {
+      "title": "Mis pagos",
+      "subtitle": "Historial de tus pagos y su estado de revisión.",
+      "empty": "Aún no tienes pagos registrados."
+    }
   }
 }

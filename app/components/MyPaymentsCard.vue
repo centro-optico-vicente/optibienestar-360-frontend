@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import type { PaymentDto } from '~/types/payments'
-import {
-  paymentMethodLabel,
-  paymentStatusColor,
-  paymentStatusLabel,
-} from '~/types/payments'
+import { paymentStatusColor } from '~/types/payments'
 
 // Authenticated member's payment history (GET /v1/me/payments, PAYMENT_VIEW_OWN).
 // Self-gated: if the user lacks the permission, it renders nothing. Meant to be
 // embedded in the member portal (/afiliado) next to the card.
+const { t } = useI18n()
+const { formatCurrency, formatDate, formatMonthYear } = useFormatters()
 const payments = usePayments()
 const { can } = usePermissions()
 
@@ -43,33 +41,33 @@ onMounted(() => {
   if (canView.value) load()
 })
 
-function formatMoney(v?: number | string | null, currency?: string | null): string {
-  if (v === null || v === undefined || v === '') return '—'
-  return `${Number(v).toFixed(2)} ${currency ?? ''}`.trim()
+// Amount in the payment's currency, formatted in the VE convention. Empty → '—'.
+function money(v?: number | string | null, currency?: string | null): string {
+  if (v === null || v === undefined || v === '') return t('common.empty')
+  return formatCurrency(Number(v), currency || 'USD')
 }
 
-function formatDate(iso?: string | null): string {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('es', { dateStyle: 'medium' })
+// Payment method label; falls back to the raw value.
+function methodLabel(m?: string | null): string {
+  return m ? t(`payments.methods.${m}`, m) : t('common.empty')
 }
-
-function formatPeriod(iso?: string | null): string {
-  if (!iso) return ''
-  return new Date(iso).toLocaleDateString('es', { month: 'long', year: 'numeric' })
+function statusLabel(s?: string | null): string {
+  return s ? t(`payments.status.${s}`, s) : t('common.empty')
 }
 
 function allocationLabel(p: PaymentDto): string {
-  if (p.inscription) return 'Inscripción'
-  const period = formatPeriod(p.appliedPeriod)
-  return period ? `Mensualidad · ${period}` : 'Mensualidad'
+  if (p.inscription) return t('payments.allocation.inscription')
+  return p.appliedPeriod
+    ? t('payments.allocation.monthlyPeriod', { period: formatMonthYear(p.appliedPeriod) })
+    : t('payments.allocation.monthly')
 }
 </script>
 
 <template>
   <div v-if="canView" class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
     <div class="px-6 py-4 border-b border-prohealth-100">
-      <h2 class="font-bold text-prohealth-900">Mis pagos</h2>
-      <p class="text-xs text-prohealth-500 mt-0.5">Historial de tus pagos y su estado de revisión.</p>
+      <h2 class="font-bold text-prohealth-900">{{ t('payments.mine.title') }}</h2>
+      <p class="text-xs text-prohealth-500 mt-0.5">{{ t('payments.mine.subtitle') }}</p>
     </div>
 
     <!-- Loading -->
@@ -81,7 +79,7 @@ function allocationLabel(p: PaymentDto): string {
     <!-- Empty -->
     <div v-else-if="data.length === 0" class="px-6 py-10 text-center text-prohealth-500">
       <UIcon name="i-lucide-receipt" class="w-7 h-7 mx-auto mb-2 text-prohealth-300" />
-      <p class="text-sm">Aún no tienes pagos registrados.</p>
+      <p class="text-sm">{{ t('payments.mine.empty') }}</p>
     </div>
 
     <!-- List -->
@@ -92,13 +90,13 @@ function allocationLabel(p: PaymentDto): string {
         class="px-6 py-3.5 flex items-center justify-between gap-3"
       >
         <div class="min-w-0">
-          <p class="font-semibold text-prohealth-900">{{ formatMoney(p.amount, p.currency) }}</p>
+          <p class="font-semibold text-prohealth-900">{{ money(p.amount, p.currency) }}</p>
           <p class="text-xs text-prohealth-500">
-            {{ paymentMethodLabel(p.paymentMethod) }} · {{ formatDate(p.paymentDate) }} · {{ allocationLabel(p) }}
+            {{ methodLabel(p.paymentMethod) }} · {{ formatDate(p.paymentDate, 'short') }} · {{ allocationLabel(p) }}
           </p>
         </div>
         <UBadge :color="paymentStatusColor(p.status)" variant="subtle" size="sm">
-          {{ paymentStatusLabel(p.status) }}
+          {{ statusLabel(p.status) }}
         </UBadge>
       </li>
     </ul>

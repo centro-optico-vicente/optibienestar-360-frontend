@@ -795,5 +795,162 @@
         "step3post": "."
       }
     }
+  },
+  "payments": {
+    "title": "Payments",
+    "subtitle": "Register and review manual payments: approval or rejection with proof.",
+    "new": "Register payment",
+    "createTooltip": "Register a new payment",
+    "noPermissionRegister": "You don't have permission to register payments",
+    "searchPlaceholder": "Search by reference or notes…",
+    "statusFilterAll": "All",
+    "statusFilterPlaceholder": "Status",
+    "empty": "No payments",
+    "noReference": "No reference",
+    "paginationSummary": "{shown} of {total} payment(s)",
+    "tooltips": {
+      "viewDetail": "View detail",
+      "approve": "Approve",
+      "noPermissionApprove": "You don't have permission to approve",
+      "reject": "Reject",
+      "noPermissionReject": "You don't have permission to reject"
+    },
+    "columns": {
+      "planReference": "Plan / Reference",
+      "amount": "Amount",
+      "method": "Method",
+      "date": "Date",
+      "proof": "Proof",
+      "status": "Status"
+    },
+    "methods": {
+      "BANK_TRANSFER": "Bank transfer",
+      "CASH": "Cash",
+      "ZELLE": "Zelle",
+      "PAGO_MOVIL": "Mobile payment",
+      "CRYPTO": "Crypto",
+      "INTERNATIONAL_TRANSFER": "International transfer",
+      "OTHER": "Other"
+    },
+    "status": {
+      "PENDING": "Pending",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected"
+    },
+    "allocation": {
+      "inscription": "Enrollment",
+      "inscriptionFull": "Enrollment (one-time charge)",
+      "monthly": "Monthly",
+      "monthlyPeriod": "Monthly · {period}"
+    },
+    "detail": {
+      "seoPage": "Payment detail",
+      "notFoundTitle": "Payment not found",
+      "notFoundBody": "The record doesn't exist or was deleted.",
+      "approve": "Approve",
+      "reject": "Reject",
+      "approveTooltip": "Approve payment",
+      "rejectTooltip": "Reject payment",
+      "sections": {
+        "detail": "Payment detail",
+        "membership": "Membership",
+        "proof": "Proof",
+        "review": "Review",
+        "adminNotes": "Admin notes",
+        "metadata": "Metadata"
+      },
+      "fields": {
+        "amount": "Amount",
+        "method": "Method",
+        "reference": "Reference",
+        "paymentDate": "Payment date",
+        "received": "Received",
+        "allocation": "Allocation",
+        "plan": "Plan",
+        "member": "Member",
+        "membership": "Membership",
+        "status": "Status",
+        "reviewed": "Reviewed",
+        "reviewedBy": "Reviewed by",
+        "reason": "Reason / note",
+        "created": "Created",
+        "updated": "Last update",
+        "uuid": "UUID"
+      },
+      "proof": {
+        "fileNameFallback": "Proof",
+        "fileTypeFallback": "file",
+        "view": "View proof",
+        "none": "No proof attached."
+      }
+    },
+    "form": {
+      "title": "Register payment",
+      "description": "Register a manual payment. It will stay pending review until it is approved or rejected.",
+      "submit": "Register payment",
+      "registeredToast": "Payment registered",
+      "registeredToastDescription": "It's pending review.",
+      "noMemberships": "This member has no registered memberships.",
+      "planFallback": "Plan",
+      "memberSearchPlaceholder": "Search by name or document…",
+      "memberPlaceholderSearch": "Search first",
+      "membershipPlaceholderMember": "Select a member",
+      "membershipPlaceholder": "Select a membership",
+      "fields": {
+        "searchMember": "Search member",
+        "searchMemberHelp": "Type a name or document (min. 2 characters).",
+        "member": "Member",
+        "membership": "Membership",
+        "amount": "Amount",
+        "currency": "Currency",
+        "currencyHelp": "ISO 4217. Defaults to USD.",
+        "method": "Method",
+        "reference": "Reference",
+        "referenceHelp": "Operation / receipt number (optional).",
+        "paymentDate": "Payment date",
+        "paymentDateHelp": "Date the payment was made.",
+        "inscription": "Is enrollment",
+        "inscriptionHelp": "One-time enrollment charge (doesn't apply to a month).",
+        "coveredMonth": "Covered month",
+        "coveredMonthHelp": "Recurring monthly fee. Empty = current month.",
+        "adminNotes": "Admin notes",
+        "proof": "Proof",
+        "proofHelp": "Image or PDF of the payment proof (optional)."
+      },
+      "placeholders": {
+        "reference": "e.g. 0012345678",
+        "adminNotes": "Internal notes (optional)."
+      },
+      "validation": {
+        "member": "Select a member",
+        "membership": "Select a membership",
+        "amountInvalid": "Invalid amount (up to 2 decimals)",
+        "amountMin": "Must be greater than 0",
+        "currencyFormat": "ISO 4217 (3 letters)",
+        "dateFuture": "The date can't be in the future"
+      }
+    },
+    "review": {
+      "approveTitle": "Approve payment",
+      "rejectTitle": "Reject payment",
+      "approveNotice": "The payment will be marked as {status} and the member will be notified by email.",
+      "approvedWord": "approved",
+      "rejectNotice": "The payment will be marked as {status}. The reason will be sent to the member so they can resubmit.",
+      "rejectedWord": "rejected",
+      "reasonLabelApprove": "Approval note (optional)",
+      "reasonLabelReject": "Rejection reason",
+      "reasonRequired": "The reason is required",
+      "placeholderApprove": "Optional note for the member.",
+      "placeholderReject": "Explain why it's rejected (illegible proof, wrong amount…).",
+      "approveButton": "Approve payment",
+      "rejectButton": "Reject payment",
+      "approvedToast": "Payment approved",
+      "rejectedToast": "Payment rejected"
+    },
+    "mine": {
+      "title": "My payments",
+      "subtitle": "History of your payments and their review status.",
+      "empty": "You don't have any registered payments yet."
+    }
   }
 }

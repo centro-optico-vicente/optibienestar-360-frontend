@@ -17,6 +17,7 @@ const emit = defineEmits<{
   'saved': [payment: PaymentDto]
 }>()
 
+const { t } = useI18n()
 const payments = usePayments()
 const members = useMembers()
 const memberships = useMemberships()
@@ -28,6 +29,9 @@ const isOpen = computed({
 })
 const isSubmitting = ref(false)
 
+// Payment method options localized at the consumption point (labelKey → i18n).
+const methodOptions = computed(() => PAYMENT_METHOD_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
+
 // ---- Member search (server-side, debounced) ----
 type Option = { label: string, value: string }
 const memberSearch = ref('')
@@ -35,7 +39,7 @@ const memberOptions = ref<Option[]>([])
 const searchingMembers = ref(false)
 
 function memberLabel(m: MemberDto): string {
-  const name = m.fullName || [m.firstName, m.middleName, m.lastName, m.secondLastName].filter(Boolean).join(' ') || '—'
+  const name = m.fullName || [m.firstName, m.middleName, m.lastName, m.secondLastName].filter(Boolean).join(' ') || t('common.empty')
   const doc = m.documentNumber ? ` · ${m.documentType ?? ''} ${m.documentNumber}`.trimEnd() : ''
   return `${name}${doc}`
 }
@@ -68,7 +72,7 @@ const membershipOptions = ref<Option[]>([])
 const loadingMemberships = ref(false)
 
 function membershipLabel(ms: MembershipDto): string {
-  const plan = ms.planName || ms.planCode || 'Plan'
+  const plan = ms.planName || ms.planCode || t('payments.form.planFallback')
   return `${ms.planCode ? `${ms.planCode} — ` : ''}${plan} (${ms.status})`
 }
 
@@ -132,6 +136,7 @@ function clearFile() {
   if (fileInput.value) fileInput.value.value = ''
 }
 
+// Byte size with universal units (not localized).
 function formatSize(bytes?: number | null): string {
   if (bytes === null || bytes === undefined) return ''
   if (bytes < 1024) return `${bytes} B`
@@ -147,19 +152,20 @@ function notFuture(v: string): boolean {
   return new Date(v) <= today
 }
 
-const schema = z.object({
-  memberUuid: z.string({ message: 'Requerido' }).min(1, 'Selecciona un afiliado'),
-  membershipUuid: z.string({ message: 'Requerido' }).min(1, 'Selecciona una membresía'),
+// Locale-reactive schema so validation messages follow the UI locale.
+const schema = computed(() => z.object({
+  memberUuid: z.string({ message: t('validation.required') }).min(1, t('payments.form.validation.member')),
+  membershipUuid: z.string({ message: t('validation.required') }).min(1, t('payments.form.validation.membership')),
   amount: z.string()
-    .regex(/^\d+(\.\d{1,2})?$/, 'Monto no válido (hasta 2 decimales)')
-    .refine(v => Number(v) >= 0.01, 'Debe ser mayor que 0'),
-  currency: z.string().regex(/^[A-Za-z]{3}$/, 'ISO 4217 (3 letras)').optional().or(z.literal('')),
-  paymentMethod: z.string({ message: 'Requerido' }).min(1, 'Requerido'),
-  referenceNumber: z.string().max(80, 'Máximo 80 caracteres').optional(),
-  paymentDate: z.string().min(1, 'Requerido').refine(notFuture, 'La fecha no puede ser futura'),
+    .regex(/^\d+(\.\d{1,2})?$/, t('payments.form.validation.amountInvalid'))
+    .refine(v => Number(v) >= 0.01, t('payments.form.validation.amountMin')),
+  currency: z.string().regex(/^[A-Za-z]{3}$/, t('payments.form.validation.currencyFormat')).optional().or(z.literal('')),
+  paymentMethod: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
+  referenceNumber: z.string().max(80, t('validation.maxChars', { n: 80 })).optional(),
+  paymentDate: z.string().min(1, t('validation.required')).refine(notFuture, t('payments.form.validation.dateFuture')),
   appliedPeriod: z.string().optional(),
   adminNotes: z.string().optional(),
-})
+}))
 
 function resetForm() {
   state.memberUuid = ''
@@ -201,7 +207,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       adminNotes: state.adminNotes.trim() || undefined,
     }
     const result = await payments.register(payload, supportFile.value)
-    toast.add({ title: 'Pago registrado', description: 'Queda pendiente de revisión.', color: 'success', icon: 'i-lucide-check-circle' })
+    toast.add({ title: t('payments.form.registeredToast'), description: t('payments.form.registeredToastDescription'), color: 'success', icon: 'i-lucide-check-circle' })
     emit('saved', result)
     isOpen.value = false
   }
@@ -217,18 +223,18 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
 <template>
   <UModal
     v-model:open="isOpen"
-    title="Registrar pago"
-    description="Registra un pago manual. Quedará pendiente de revisión hasta que se apruebe o rechace."
+    :title="t('payments.form.title')"
+    :description="t('payments.form.description')"
     :ui="{ content: 'max-w-2xl' }"
   >
     <template #body>
       <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
         <!-- Member + membership -->
         <div class="rounded-xl border border-prohealth-100 p-4 space-y-4">
-          <UFormField label="Buscar afiliado" help="Escribe nombre o documento (mín. 2 caracteres).">
+          <UFormField :label="t('payments.form.fields.searchMember')" :help="t('payments.form.fields.searchMemberHelp')">
             <UInput
               v-model="memberSearch"
-              placeholder="Buscar por nombre o documento…"
+              :placeholder="t('payments.form.memberSearchPlaceholder')"
               icon="i-lucide-search"
               :loading="searchingMembers"
               class="w-full"
@@ -236,17 +242,17 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           </UFormField>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField label="Afiliado" name="memberUuid" required>
+            <UFormField :label="t('payments.form.fields.member')" name="memberUuid" required>
               <USelectMenu
                 v-model="state.memberUuid"
                 :items="memberOptions"
                 label-key="label"
                 value-key="value"
-                :placeholder="memberOptions.length ? 'Selecciona' : 'Busca primero'"
+                :placeholder="memberOptions.length ? t('common.select') : t('payments.form.memberPlaceholderSearch')"
                 class="w-full"
               />
             </UFormField>
-            <UFormField label="Membresía" name="membershipUuid" required>
+            <UFormField :label="t('payments.form.fields.membership')" name="membershipUuid" required>
               <USelectMenu
                 v-model="state.membershipUuid"
                 :items="membershipOptions"
@@ -254,70 +260,70 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
                 value-key="value"
                 :loading="loadingMemberships"
                 :disabled="!state.memberUuid"
-                :placeholder="state.memberUuid ? 'Selecciona una membresía' : 'Selecciona un afiliado'"
+                :placeholder="state.memberUuid ? t('payments.form.membershipPlaceholder') : t('payments.form.membershipPlaceholderMember')"
                 class="w-full"
               />
             </UFormField>
           </div>
           <p v-if="state.memberUuid && !loadingMemberships && membershipOptions.length === 0" class="text-xs text-amber-600">
-            Este afiliado no tiene membresías registradas.
+            {{ t('payments.form.noMemberships') }}
           </p>
         </div>
 
         <!-- Amount + method -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <UFormField label="Monto" name="amount" required class="sm:col-span-1">
+          <UFormField :label="t('payments.form.fields.amount')" name="amount" required class="sm:col-span-1">
             <UInput v-model="state.amount" placeholder="10.00" class="w-full">
               <template #leading>
                 <span class="text-prohealth-400 text-sm">$</span>
               </template>
             </UInput>
           </UFormField>
-          <UFormField label="Moneda" name="currency" help="ISO 4217. Por defecto USD.">
+          <UFormField :label="t('payments.form.fields.currency')" name="currency" :help="t('payments.form.fields.currencyHelp')">
             <UInput v-model="state.currency" placeholder="USD" class="w-full font-mono uppercase" />
           </UFormField>
-          <UFormField label="Método" name="paymentMethod" required>
+          <UFormField :label="t('payments.form.fields.method')" name="paymentMethod" required>
             <USelectMenu
               v-model="state.paymentMethod"
-              :items="PAYMENT_METHOD_OPTIONS"
+              :items="methodOptions"
               label-key="label"
               value-key="value"
-              placeholder="Selecciona"
+              :placeholder="t('common.select')"
               class="w-full"
             />
           </UFormField>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <UFormField label="Referencia" name="referenceNumber" help="N° de operación / comprobante (opcional).">
-            <UInput v-model="state.referenceNumber" placeholder="Ej. 0012345678" class="w-full" />
+          <UFormField :label="t('payments.form.fields.reference')" name="referenceNumber" :help="t('payments.form.fields.referenceHelp')">
+            <UInput v-model="state.referenceNumber" :placeholder="t('payments.form.placeholders.reference')" class="w-full" />
           </UFormField>
-          <UFormField label="Fecha del pago" name="paymentDate" required help="Fecha en que se realizó el pago.">
+          <UFormField :label="t('payments.form.fields.paymentDate')" name="paymentDate" required :help="t('payments.form.fields.paymentDateHelp')">
             <UInput v-model="state.paymentDate" type="date" class="w-full" />
           </UFormField>
         </div>
 
         <!-- Allocation -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
-          <UFormField label="Es inscripción" name="inscription" help="Cargo único de afiliación (no aplica a un mes).">
+          <UFormField :label="t('payments.form.fields.inscription')" name="inscription" :help="t('payments.form.fields.inscriptionHelp')">
             <USwitch v-model="state.inscription" />
           </UFormField>
           <UFormField
             v-if="!state.inscription"
-            label="Mes cubierto"
+            :label="t('payments.form.fields.coveredMonth')"
             name="appliedPeriod"
-            help="Mensualidad recurrente. Vacío = mes actual."
+            :help="t('payments.form.fields.coveredMonthHelp')"
           >
             <UInput v-model="state.appliedPeriod" type="month" class="w-full" />
           </UFormField>
         </div>
 
-        <UFormField label="Notas administrativas" name="adminNotes">
-          <UTextarea v-model="state.adminNotes" :rows="2" class="w-full" placeholder="Observaciones internas (opcional)." />
+        <UFormField :label="t('payments.form.fields.adminNotes')" name="adminNotes">
+          <UTextarea v-model="state.adminNotes" :rows="2" class="w-full" :placeholder="t('payments.form.placeholders.adminNotes')" />
         </UFormField>
 
         <!-- Proof of payment -->
-        <UFormField label="Comprobante" help="Imagen o PDF del soporte de pago (opcional).">
+        <UFormField :label="t('payments.form.fields.proof')" :help="t('payments.form.fields.proofHelp')">
           <div class="flex flex-wrap items-center gap-3">
             <input
               ref="fileInput"
@@ -337,10 +343,10 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
 
         <div class="flex items-center justify-end gap-3 pt-2">
           <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="isOpen = false">
-            Cancelar
+            {{ t('common.cancel') }}
           </UButton>
           <UButton type="submit" color="primary" :loading="isSubmitting" icon="i-lucide-save">
-            Registrar pago
+            {{ t('payments.form.submit') }}
           </UButton>
         </div>
       </UForm>

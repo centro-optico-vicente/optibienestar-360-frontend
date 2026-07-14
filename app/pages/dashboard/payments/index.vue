@@ -2,9 +2,7 @@
 import type { PaymentDto, PaymentStatus } from '~/types/payments'
 import {
   PAYMENT_STATUS_OPTIONS,
-  paymentMethodLabel,
   paymentStatusColor,
-  paymentStatusLabel,
 } from '~/types/payments'
 
 definePageMeta({
@@ -13,7 +11,10 @@ definePageMeta({
   permission: 'PAYMENT_VIEW_ALL',
 })
 
-useSeoMeta({ title: 'Pagos — OptiBienestar 360' })
+const { t } = useI18n()
+const { formatCurrency, formatDate } = useFormatters()
+
+useSeoMeta({ title: () => t('common.seoTitle', { page: t('payments.title') }) })
 
 const payments = usePayments()
 const { can } = usePermissions()
@@ -31,8 +32,11 @@ const size = ref(20)
 const search = ref('')
 const statusFilter = ref<PaymentStatus | ''>('')
 
-// Status filter options (with "Todos" first).
-const statusFilterOptions = [{ label: 'Todos', value: '' }, ...PAYMENT_STATUS_OPTIONS]
+// Status filter options (with "All" first), localized at the consumption point.
+const statusFilterOptions = computed(() => [
+  { label: t('payments.statusFilterAll'), value: '' },
+  ...PAYMENT_STATUS_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })),
+])
 
 function buildFilter(): string | undefined {
   // RSQL: status equality. The queue leverages the (status, received_at DESC) index.
@@ -80,14 +84,18 @@ watch(search, () => {
 onMounted(load)
 
 // ---- Presentation helpers ----
-function formatMoney(v?: number | string | null, currency?: string | null): string {
-  if (v === null || v === undefined || v === '') return '—'
-  return `${Number(v).toFixed(2)} ${currency ?? ''}`.trim()
+// Amount in the payment's currency, formatted in the VE convention. Empty → '—'.
+function money(v?: number | string | null, currency?: string | null): string {
+  if (v === null || v === undefined || v === '') return t('common.empty')
+  return formatCurrency(Number(v), currency || 'USD')
 }
 
-function formatDate(iso?: string | null): string {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('es', { dateStyle: 'medium' })
+// Enum label resolvers (fall back to the raw value).
+function methodLabel(m?: string | null): string {
+  return m ? t(`payments.methods.${m}`, m) : t('common.empty')
+}
+function statusLabel(s?: string | null): string {
+  return s ? t(`payments.status.${s}`, s) : t('common.empty')
 }
 
 // ---- Register (modal) ----
@@ -126,19 +134,19 @@ function isPending(p: PaymentDto): boolean {
     <!-- Header -->
     <div class="flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-extrabold text-prohealth-900">Pagos</h1>
+        <h1 class="text-2xl font-extrabold text-prohealth-900">{{ t('payments.title') }}</h1>
         <p class="text-sm text-prohealth-700/70 mt-1">
-          Registro y revisión de pagos manuales: aprobación o rechazo con comprobante.
+          {{ t('payments.subtitle') }}
         </p>
       </div>
-      <UTooltip :text="canRegister ? 'Registrar un nuevo pago' : 'No tienes permiso para registrar pagos'">
+      <UTooltip :text="canRegister ? t('payments.createTooltip') : t('payments.noPermissionRegister')">
         <UButton
           color="primary"
           icon="i-lucide-plus"
           :disabled="!canRegister"
           @click="formOpen = true"
         >
-          Registrar pago
+          {{ t('payments.new') }}
         </UButton>
       </UTooltip>
     </div>
@@ -147,7 +155,7 @@ function isPending(p: PaymentDto): boolean {
     <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
       <UInput
         v-model="search"
-        placeholder="Buscar por referencia o notas…"
+        :placeholder="t('payments.searchPlaceholder')"
         icon="i-lucide-search"
         size="lg"
         class="w-full max-w-md"
@@ -157,7 +165,7 @@ function isPending(p: PaymentDto): boolean {
         :items="statusFilterOptions"
         label-key="label"
         value-key="value"
-        placeholder="Estado"
+        :placeholder="t('payments.statusFilterPlaceholder')"
         icon="i-lucide-filter"
         class="w-44"
       />
@@ -169,13 +177,13 @@ function isPending(p: PaymentDto): boolean {
         <table class="w-full text-sm">
           <thead>
             <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
-              <th class="px-5 py-3 font-semibold">Plan / Referencia</th>
-              <th class="px-5 py-3 font-semibold">Monto</th>
-              <th class="px-5 py-3 font-semibold">Método</th>
-              <th class="px-5 py-3 font-semibold">Fecha</th>
-              <th class="px-5 py-3 font-semibold">Comprobante</th>
-              <th class="px-5 py-3 font-semibold">Estado</th>
-              <th class="px-5 py-3 font-semibold text-right">Acciones</th>
+              <th class="px-5 py-3 font-semibold">{{ t('payments.columns.planReference') }}</th>
+              <th class="px-5 py-3 font-semibold">{{ t('payments.columns.amount') }}</th>
+              <th class="px-5 py-3 font-semibold">{{ t('payments.columns.method') }}</th>
+              <th class="px-5 py-3 font-semibold">{{ t('payments.columns.date') }}</th>
+              <th class="px-5 py-3 font-semibold">{{ t('payments.columns.proof') }}</th>
+              <th class="px-5 py-3 font-semibold">{{ t('payments.columns.status') }}</th>
+              <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-prohealth-100">
@@ -183,7 +191,7 @@ function isPending(p: PaymentDto): boolean {
             <tr v-else-if="data.length === 0">
               <td colspan="7" class="px-5 py-12 text-center text-prohealth-500">
                 <UIcon name="i-lucide-receipt" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
-                Sin pagos
+                {{ t('payments.empty') }}
               </td>
             </tr>
             <tr
@@ -194,31 +202,31 @@ function isPending(p: PaymentDto): boolean {
               @click="navigateTo(`/dashboard/payments/${p.uuid}`)"
             >
               <td class="px-5 py-3">
-                <div class="font-semibold text-prohealth-900 font-mono">{{ p.planCode || '—' }}</div>
+                <div class="font-semibold text-prohealth-900 font-mono">{{ p.planCode || t('common.empty') }}</div>
                 <div class="text-xs text-prohealth-500">
-                  {{ p.referenceNumber || 'Sin referencia' }}
-                  <UBadge v-if="p.inscription" color="primary" variant="subtle" size="sm" class="ml-1">Inscripción</UBadge>
+                  {{ p.referenceNumber || t('payments.noReference') }}
+                  <UBadge v-if="p.inscription" color="primary" variant="subtle" size="sm" class="ml-1">{{ t('payments.allocation.inscription') }}</UBadge>
                 </div>
               </td>
-              <td class="px-5 py-3 font-semibold text-prohealth-900">{{ formatMoney(p.amount, p.currency) }}</td>
-              <td class="px-5 py-3 text-prohealth-700">{{ paymentMethodLabel(p.paymentMethod) }}</td>
-              <td class="px-5 py-3 text-prohealth-600">{{ formatDate(p.paymentDate) }}</td>
+              <td class="px-5 py-3 font-semibold text-prohealth-900">{{ money(p.amount, p.currency) }}</td>
+              <td class="px-5 py-3 text-prohealth-700">{{ methodLabel(p.paymentMethod) }}</td>
+              <td class="px-5 py-3 text-prohealth-600">{{ formatDate(p.paymentDate, 'short') }}</td>
               <td class="px-5 py-3">
                 <UIcon
                   v-if="p.supportFileAvailable"
                   name="i-lucide-paperclip"
                   class="w-4 h-4 text-prohealth-500"
                 />
-                <span v-else class="text-prohealth-300">—</span>
+                <span v-else class="text-prohealth-300">{{ t('common.empty') }}</span>
               </td>
               <td class="px-5 py-3">
                 <UBadge :color="paymentStatusColor(p.status)" variant="subtle" size="sm">
-                  {{ paymentStatusLabel(p.status) }}
+                  {{ statusLabel(p.status) }}
                 </UBadge>
               </td>
               <td class="px-5 py-3" @click.stop>
                 <div class="flex items-center justify-end gap-1">
-                  <UTooltip text="Ver detalle">
+                  <UTooltip :text="t('payments.tooltips.viewDetail')">
                     <UButton
                       color="neutral"
                       variant="ghost"
@@ -228,7 +236,7 @@ function isPending(p: PaymentDto): boolean {
                     />
                   </UTooltip>
                   <template v-if="isPending(p)">
-                    <UTooltip :text="canApprove ? 'Aprobar' : 'No tienes permiso para aprobar'">
+                    <UTooltip :text="canApprove ? t('payments.tooltips.approve') : t('payments.tooltips.noPermissionApprove')">
                       <UButton
                         color="success"
                         variant="ghost"
@@ -238,7 +246,7 @@ function isPending(p: PaymentDto): boolean {
                         @click="openReview(p, 'approve')"
                       />
                     </UTooltip>
-                    <UTooltip :text="canReject ? 'Rechazar' : 'No tienes permiso para rechazar'">
+                    <UTooltip :text="canReject ? t('payments.tooltips.reject') : t('payments.tooltips.noPermissionReject')">
                       <UButton
                         color="error"
                         variant="ghost"
@@ -259,7 +267,7 @@ function isPending(p: PaymentDto): boolean {
       <!-- Pagination -->
       <div class="flex items-center justify-between px-5 py-3 border-t border-prohealth-100">
         <p class="text-xs text-prohealth-500">
-          {{ data.length }} de {{ total }} pago(s)
+          {{ t('payments.paginationSummary', { shown: data.length, total }) }}
         </p>
         <UPagination
           v-model:page="page"
