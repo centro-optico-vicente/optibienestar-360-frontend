@@ -14,7 +14,10 @@ definePageMeta({
   permission: 'MEMBER_VIEW_ALL',
 })
 
-useSeoMeta({ title: 'Afiliados — OptiBienestar 360' })
+const { t } = useI18n()
+const { formatDate } = useFormatters()
+
+useSeoMeta({ title: () => t('common.seoTitle', { page: t('members.title') }) })
 
 const members = useMembers()
 const { can } = usePermissions()
@@ -24,11 +27,11 @@ const canCreate = computed(() => can('MEMBER_CREATE'))
 const canUpdate = computed(() => can('MEMBER_UPDATE'))
 const canDelete = computed(() => can('MEMBER_DELETE'))
 
-// ---- Listado + paginación + búsqueda ----
+// ---- List + pagination + search ----
 const data = ref<MemberDto[]>([])
 const total = ref(0)
 const loading = ref(false)
-const page = ref(1) // UPagination es 1-based; la API es 0-based
+const page = ref(1) // UPagination is 1-based; the API is 0-based
 const size = ref(20)
 const search = ref('')
 
@@ -39,14 +42,14 @@ async function load() {
       page: page.value - 1,
       size: size.value,
       sort: 'enrolledAt,desc',
-      // El backend expone búsqueda free-text (trigram, insensible a acentos)
+      // The backend exposes free-text search (trigram, accent-insensitive)
       q: search.value.trim() || undefined,
     })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
   }
   catch {
-    // useApi ya muestra el toast del error
+    // useApi already shows the error toast
     data.value = []
     total.value = 0
   }
@@ -65,7 +68,12 @@ watch(search, () => {
   }, 400)
 })
 
-// ---- Catálogos para los selects del formulario ----
+// Member status badge/select label; falls back to the raw value.
+function statusLabel(s?: string | null): string {
+  return s ? t(`members.status.${s}`, s) : t('common.empty')
+}
+
+// ---- Catalogs for the form selects ----
 type Option = { label: string, value: string }
 const genderOptions = ref<Option[]>([])
 const maritalStatusOptions = ref<Option[]>([])
@@ -81,7 +89,7 @@ function toOptions(items: CatalogItem[]): Option[] {
 }
 
 async function loadCatalogs() {
-  // Públicos (sin permisos), todos en paralelo; cada uno falla en silencio.
+  // Public (no permissions), all in parallel; each one fails silently.
   const safeList = async (resource: string, query?: Record<string, string>) => {
     try {
       return await usePublicCatalog(resource).list({ size: '-1', ...query })
@@ -102,7 +110,7 @@ async function loadCatalogs() {
   stateOptions.value = toOptions(states)
 }
 
-// Ciudades en cascada según el estado seleccionado.
+// Cities cascade based on the selected state.
 const selectedStateUuid = ref<string | undefined>(undefined)
 watch(selectedStateUuid, async (stateUuid) => {
   cityOptions.value = []
@@ -122,16 +130,17 @@ onMounted(async () => {
   await Promise.all([loadCatalogs(), loadDocumentTypes()])
 })
 
-// ---- Formulario crear/editar ----
+// ---- Create/edit form ----
 const formOpen = ref(false)
 const mode = ref<'create' | 'edit'>('create')
 const editingUuid = ref<string | null>(null)
 const isSubmitting = ref(false)
-// El listado devuelve una proyección compacta (MemberListItemDto); al editar se
-// carga el detalle completo, y este flag muestra el estado de carga en el modal.
+// The list returns a compact projection (MemberListItemDto); on edit the full detail
+// is loaded, and this flag shows the loading state in the modal.
 const editLoading = ref(false)
 
 const STATUS_OPTIONS = ['ACTIVE', 'INACTIVE', 'SUSPENDED']
+const statusOptions = computed(() => STATUS_OPTIONS.map(s => ({ label: statusLabel(s), value: s })))
 
 interface FormState {
   firstName: string
@@ -187,7 +196,7 @@ const state = reactive<FormState>({
   notes: '',
 })
 
-/** El titular debe ser mayor de edad (@MinimumAge=18 en el backend). */
+/** The holder must be of legal age (@MinimumAge=18 in the backend). */
 function isAdult(iso: string): boolean {
   const birth = new Date(iso)
   if (Number.isNaN(birth.getTime())) return false
@@ -196,38 +205,35 @@ function isAdult(iso: string): boolean {
   return birth <= cutoff
 }
 
-const baseSchema = {
-  firstName: z.string().min(2, 'Mínimo 2 caracteres'),
-  middleName: z.string().optional(),
-  lastName: z.string().min(2, 'Mínimo 2 caracteres'),
-  secondLastName: z.string().optional(),
-  birthDate: z.string().min(1, 'Requerido').refine(isAdult, 'El titular debe ser mayor de 18 años'),
-  birthplace: z.string().optional(),
-  numberOfChildren: z.string().regex(/^\d*$/, 'Solo números').optional(),
-  spouseName: z.string().optional(),
-  phone: z.string().optional(),
-  landlinePhone: z.string().optional(),
-  email: z.string().email('Email no válido').optional().or(z.literal('')),
-  address: z.string().optional(),
-  employerName: z.string().optional(),
-  jobPosition: z.string().optional(),
-  employerAddress: z.string().optional(),
-  enrolledAt: z.string().optional(),
-  notes: z.string().optional(),
-}
-
-const createSchema = z.object({
-  ...baseSchema,
-  documentType: z.string({ message: 'Requerido' }).min(1, 'Requerido'),
-  documentNumber: z.string().min(5, 'Mínimo 5 dígitos').regex(/^\d+$/, 'Solo números'),
+// Locale-reactive schema so validation messages follow the UI locale.
+const schema = computed(() => {
+  const base = {
+    firstName: z.string().min(2, t('validation.minChars', { n: 2 })),
+    middleName: z.string().optional(),
+    lastName: z.string().min(2, t('validation.minChars', { n: 2 })),
+    secondLastName: z.string().optional(),
+    birthDate: z.string().min(1, t('validation.required')).refine(isAdult, t('members.form.validation.adult')),
+    birthplace: z.string().optional(),
+    numberOfChildren: z.string().regex(/^\d*$/, t('validation.digitsOnly')).optional(),
+    spouseName: z.string().optional(),
+    phone: z.string().optional(),
+    landlinePhone: z.string().optional(),
+    email: z.string().email(t('validation.emailInvalid')).optional().or(z.literal('')),
+    address: z.string().optional(),
+    employerName: z.string().optional(),
+    jobPosition: z.string().optional(),
+    employerAddress: z.string().optional(),
+    enrolledAt: z.string().optional(),
+    notes: z.string().optional(),
+  }
+  return mode.value === 'create'
+    ? z.object({
+        ...base,
+        documentType: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
+        documentNumber: z.string().min(5, t('members.form.validation.documentMin')).regex(/^\d+$/, t('validation.digitsOnly')),
+      })
+    : z.object({ ...base, status: z.string() })
 })
-
-const editSchema = z.object({
-  ...baseSchema,
-  status: z.string(),
-})
-
-const schema = computed(() => (mode.value === 'create' ? createSchema : editSchema))
 
 function resetForm() {
   state.firstName = ''
@@ -269,9 +275,9 @@ async function openEdit(m: MemberDto) {
   editingUuid.value = m.uuid
   resetForm()
   formOpen.value = true
-  // La fila del listado (MemberListItemDto) solo trae nombre completo, documento,
-  // teléfono y fecha de afiliación; el resto (partes del nombre, nacimiento, género,
-  // catálogos…) solo viene en el detalle. Se carga el registro completo para poblar.
+  // The list row (MemberListItemDto) only carries the full name, document, phone and
+  // enrollment date; the rest (name parts, birth, gender, catalogs…) only comes in the
+  // detail. The full record is loaded to populate.
   editLoading.value = true
   try {
     const full = await members.get(m.uuid)
@@ -301,7 +307,7 @@ async function openEdit(m: MemberDto) {
     state.notes = full.notes ?? ''
   }
   catch {
-    // El detalle no cargó (useApi ya notificó); cierra el modal.
+    // The detail failed to load (useApi already notified); close the modal.
     formOpen.value = false
   }
   finally {
@@ -339,7 +345,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         notes: state.notes || undefined,
       }
       await members.create(body)
-      toast.add({ title: 'Afiliado creado', color: 'success', icon: 'i-lucide-check-circle' })
+      toast.add({ title: t('members.createdToast'), color: 'success', icon: 'i-lucide-check-circle' })
     }
     else if (editingUuid.value) {
       const body: UpdateMemberRequest = {
@@ -367,20 +373,20 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         notes: state.notes || undefined,
       }
       await members.update(editingUuid.value, body)
-      toast.add({ title: 'Afiliado actualizado', color: 'success', icon: 'i-lucide-check-circle' })
+      toast.add({ title: t('members.updatedToast'), color: 'success', icon: 'i-lucide-check-circle' })
     }
     formOpen.value = false
     await load()
   }
   catch {
-    // useApi ya notificó el error (409 documento duplicado, 422, etc.)
+    // useApi already notified the error (409 duplicate document, 422, etc.)
   }
   finally {
     isSubmitting.value = false
   }
 }
 
-// ---- Eliminar ----
+// ---- Delete ----
 const deleteOpen = ref(false)
 const deleting = ref(false)
 const target = ref<MemberDto | null>(null)
@@ -395,29 +401,24 @@ async function confirmDelete() {
   deleting.value = true
   try {
     await members.remove(target.value.uuid)
-    toast.add({ title: 'Afiliado eliminado', color: 'success', icon: 'i-lucide-check-circle' })
+    toast.add({ title: t('members.deletedToast'), color: 'success', icon: 'i-lucide-check-circle' })
     deleteOpen.value = false
-    // Si la página queda vacía tras borrar, retrocede una.
+    // If the page is left empty after deleting, step back one.
     if (data.value.length === 1 && page.value > 1) page.value -= 1
     else await load()
   }
   catch {
-    // toast por useApi
+    // toast handled by useApi
   }
   finally {
     deleting.value = false
   }
 }
 
-// ---- Helpers de presentación ----
+// ---- Presentation helpers ----
 function displayName(m: MemberDto): string {
   if (m.fullName) return m.fullName
-  return [m.firstName, m.middleName, m.lastName, m.secondLastName].filter(Boolean).join(' ') || '—'
-}
-
-function formatDate(iso?: string | null): string {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('es', { dateStyle: 'medium' })
+  return [m.firstName, m.middleName, m.lastName, m.secondLastName].filter(Boolean).join(' ') || t('common.empty')
 }
 </script>
 
@@ -426,46 +427,46 @@ function formatDate(iso?: string | null): string {
     <!-- Header -->
     <div class="flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-extrabold text-prohealth-900">Afiliados</h1>
+        <h1 class="text-2xl font-extrabold text-prohealth-900">{{ t('members.title') }}</h1>
         <p class="text-sm text-prohealth-700/70 mt-1">
-          Gestión de titulares afiliados, sus beneficiarios e histórico médico.
+          {{ t('members.subtitle') }}
         </p>
       </div>
-      <UTooltip :text="canCreate ? 'Registrar un nuevo afiliado' : 'No tienes permiso para crear afiliados'">
+      <UTooltip :text="canCreate ? t('members.createTooltip') : t('members.noPermissionCreate')">
         <UButton
           color="primary"
           icon="i-lucide-user-plus"
           :disabled="!canCreate"
           @click="openCreate"
         >
-          Nuevo afiliado
+          {{ t('members.new') }}
         </UButton>
       </UTooltip>
     </div>
 
-    <!-- Búsqueda -->
+    <!-- Search -->
     <div class="bg-white rounded-2xl border border-prohealth-100 p-4">
       <UInput
         v-model="search"
-        placeholder="Buscar por nombre o documento…"
+        :placeholder="t('members.searchPlaceholder')"
         icon="i-lucide-search"
         size="lg"
         class="w-full max-w-md"
       />
     </div>
 
-    <!-- Tabla -->
+    <!-- Table -->
     <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
             <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
-              <th class="px-5 py-3 font-semibold">Afiliado</th>
-              <th class="px-5 py-3 font-semibold">Documento</th>
-              <th class="px-5 py-3 font-semibold">Teléfono</th>
-              <th class="px-5 py-3 font-semibold">Afiliación</th>
-              <th class="px-5 py-3 font-semibold">Estado</th>
-              <th class="px-5 py-3 font-semibold text-right">Acciones</th>
+              <th class="px-5 py-3 font-semibold">{{ t('members.columns.member') }}</th>
+              <th class="px-5 py-3 font-semibold">{{ t('members.columns.document') }}</th>
+              <th class="px-5 py-3 font-semibold">{{ t('members.columns.phone') }}</th>
+              <th class="px-5 py-3 font-semibold">{{ t('members.columns.enrolledAt') }}</th>
+              <th class="px-5 py-3 font-semibold">{{ t('members.columns.status') }}</th>
+              <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-prohealth-100">
@@ -473,7 +474,7 @@ function formatDate(iso?: string | null): string {
             <tr v-else-if="data.length === 0">
               <td colspan="6" class="px-5 py-12 text-center text-prohealth-500">
                 <UIcon name="i-lucide-users" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
-                Sin afiliados
+                {{ t('members.empty') }}
               </td>
             </tr>
             <tr
@@ -485,26 +486,26 @@ function formatDate(iso?: string | null): string {
             >
               <td class="px-5 py-3">
                 <div class="font-semibold text-prohealth-900">{{ displayName(m) }}</div>
-                <div class="text-xs text-prohealth-500">{{ m.email || '—' }}</div>
+                <div class="text-xs text-prohealth-500">{{ m.email || t('common.empty') }}</div>
               </td>
               <td class="px-5 py-3 text-prohealth-700">
                 <span v-if="m.documentNumber">{{ m.documentType }} {{ m.documentNumber }}</span>
-                <span v-else class="text-prohealth-400">—</span>
+                <span v-else class="text-prohealth-400">{{ t('common.empty') }}</span>
               </td>
-              <td class="px-5 py-3 text-prohealth-700">{{ m.phone || '—' }}</td>
-              <td class="px-5 py-3 text-prohealth-600">{{ formatDate(m.enrolledAt) }}</td>
+              <td class="px-5 py-3 text-prohealth-700">{{ m.phone || t('common.empty') }}</td>
+              <td class="px-5 py-3 text-prohealth-600">{{ formatDate(m.enrolledAt, 'short') }}</td>
               <td class="px-5 py-3">
                 <UBadge
                   :color="m.status === 'ACTIVE' ? 'success' : 'warning'"
                   variant="subtle"
                   size="sm"
                 >
-                  {{ m.status || '—' }}
+                  {{ m.status ? statusLabel(m.status) : t('common.empty') }}
                 </UBadge>
               </td>
               <td class="px-5 py-3" @click.stop>
                 <div class="flex items-center justify-end gap-1">
-                  <UTooltip text="Ver detalle">
+                  <UTooltip :text="t('members.viewDetailTooltip')">
                     <UButton
                       color="neutral"
                       variant="ghost"
@@ -513,7 +514,7 @@ function formatDate(iso?: string | null): string {
                       :to="`/dashboard/members/${m.uuid}`"
                     />
                   </UTooltip>
-                  <UTooltip :text="canUpdate ? 'Editar' : 'No tienes permiso para editar'">
+                  <UTooltip :text="canUpdate ? t('common.edit') : t('members.noPermissionEdit')">
                     <UButton
                       color="neutral"
                       variant="ghost"
@@ -523,7 +524,7 @@ function formatDate(iso?: string | null): string {
                       @click="openEdit(m)"
                     />
                   </UTooltip>
-                  <UTooltip :text="canDelete ? 'Eliminar' : 'No tienes permiso para eliminar'">
+                  <UTooltip :text="canDelete ? t('common.delete') : t('members.noPermissionDelete')">
                     <UButton
                       color="error"
                       variant="ghost"
@@ -540,10 +541,10 @@ function formatDate(iso?: string | null): string {
         </table>
       </div>
 
-      <!-- Paginación -->
+      <!-- Pagination -->
       <div class="flex items-center justify-between px-5 py-3 border-t border-prohealth-100">
         <p class="text-xs text-prohealth-500">
-          {{ data.length }} de {{ total }} afiliado(s)
+          {{ t('members.paginationSummary', { shown: data.length, total }) }}
         </p>
         <UPagination
           v-model:page="page"
@@ -553,17 +554,17 @@ function formatDate(iso?: string | null): string {
       </div>
     </div>
 
-    <!-- Modal crear/editar -->
+    <!-- Create/edit modal -->
     <UModal
       v-model:open="formOpen"
-      :title="mode === 'create' ? 'Nuevo afiliado' : 'Editar afiliado'"
-      :description="mode === 'create' ? 'Registra un titular (mayor de 18 años). Si la persona ya existe por documento, se reutiliza.' : 'Actualiza los datos del afiliado.'"
+      :title="mode === 'create' ? t('members.form.createTitle') : t('members.form.editTitle')"
+      :description="mode === 'create' ? t('members.form.createDescription') : t('members.form.editDescription')"
       :ui="{ content: 'max-w-2xl' }"
     >
       <template #body>
         <div v-if="editLoading" class="py-12 flex flex-col items-center justify-center gap-2 text-prohealth-500">
           <UIcon name="i-lucide-loader-circle" class="w-6 h-6 animate-spin" />
-          <span class="text-sm">Cargando datos del afiliado…</span>
+          <span class="text-sm">{{ t('members.form.loadingDetail') }}</span>
         </div>
         <UForm
           v-else
@@ -573,182 +574,190 @@ function formatDate(iso?: string | null): string {
           @submit="onSubmit"
         >
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField label="Primer nombre" name="firstName" required>
+            <UFormField :label="t('members.form.fields.firstName')" name="firstName" required>
               <UInput v-model="state.firstName" class="w-full" />
             </UFormField>
-            <UFormField label="Segundo nombre" name="middleName">
+            <UFormField :label="t('members.form.fields.middleName')" name="middleName">
               <UInput v-model="state.middleName" class="w-full" />
             </UFormField>
-            <UFormField label="Primer apellido" name="lastName" required>
+            <UFormField :label="t('members.form.fields.lastName')" name="lastName" required>
               <UInput v-model="state.lastName" class="w-full" />
             </UFormField>
-            <UFormField label="Segundo apellido" name="secondLastName">
+            <UFormField :label="t('members.form.fields.secondLastName')" name="secondLastName">
               <UInput v-model="state.secondLastName" class="w-full" />
             </UFormField>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField label="Tipo de documento" name="documentType" :required="mode === 'create'">
+            <UFormField :label="t('members.form.fields.documentType')" name="documentType" :required="mode === 'create'">
               <USelectMenu
                 v-model="state.documentType"
                 :items="documentTypeOptions"
                 label-key="label"
                 value-key="value"
-                placeholder="Selecciona"
+                :placeholder="t('common.select')"
                 :disabled="mode === 'edit'"
                 class="w-full"
               />
             </UFormField>
-            <UFormField label="Número de documento" name="documentNumber" :required="mode === 'create'">
+            <UFormField :label="t('members.form.fields.documentNumber')" name="documentNumber" :required="mode === 'create'">
               <UInput v-model="state.documentNumber" :disabled="mode === 'edit'" class="w-full" />
             </UFormField>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField label="Fecha de nacimiento" name="birthDate" required>
+            <UFormField :label="t('members.form.fields.birthDate')" name="birthDate" required>
               <UInput v-model="state.birthDate" type="date" class="w-full" />
             </UFormField>
-            <UFormField label="Fecha de afiliación" name="enrolledAt">
+            <UFormField :label="t('members.form.fields.enrolledAt')" name="enrolledAt">
               <UInput v-model="state.enrolledAt" type="date" class="w-full" />
             </UFormField>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField label="Género" name="genderUuid">
+            <UFormField :label="t('members.form.fields.gender')" name="genderUuid">
               <USelectMenu
                 v-model="state.genderUuid"
                 :items="genderOptions"
                 label-key="label"
                 value-key="value"
-                placeholder="Selecciona"
+                :placeholder="t('common.select')"
                 class="w-full"
               />
             </UFormField>
-            <UFormField label="Estado civil" name="maritalStatusUuid">
+            <UFormField :label="t('members.form.fields.maritalStatus')" name="maritalStatusUuid">
               <USelectMenu
                 v-model="state.maritalStatusUuid"
                 :items="maritalStatusOptions"
                 label-key="label"
                 value-key="value"
-                placeholder="Selecciona"
+                :placeholder="t('common.select')"
                 class="w-full"
               />
             </UFormField>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField label="Lugar de nacimiento" name="birthplace">
+            <UFormField :label="t('members.form.fields.birthplace')" name="birthplace">
               <UInput v-model="state.birthplace" class="w-full" />
             </UFormField>
-            <UFormField label="Cantidad de hijos" name="numberOfChildren">
+            <UFormField :label="t('members.form.fields.numberOfChildren')" name="numberOfChildren">
               <UInput v-model="state.numberOfChildren" type="number" min="0" class="w-full" />
             </UFormField>
           </div>
 
-          <UFormField label="Cónyuge" name="spouseName">
+          <UFormField :label="t('members.form.fields.spouseName')" name="spouseName">
             <UInput v-model="state.spouseName" class="w-full" />
           </UFormField>
 
-          <UFormField label="Ocupación" name="occupationUuid">
+          <UFormField :label="t('members.form.fields.occupation')" name="occupationUuid">
             <USelectMenu
               v-model="state.occupationUuid"
               :items="occupationOptions"
               label-key="label"
               value-key="value"
-              placeholder="Selecciona"
+              :placeholder="t('common.select')"
               class="w-full"
             />
           </UFormField>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField label="Lugar de trabajo" name="employerName">
+            <UFormField :label="t('members.form.fields.employerName')" name="employerName">
               <UInput v-model="state.employerName" class="w-full" />
             </UFormField>
-            <UFormField label="Cargo" name="jobPosition">
+            <UFormField :label="t('members.form.fields.jobPosition')" name="jobPosition">
               <UInput v-model="state.jobPosition" class="w-full" />
             </UFormField>
           </div>
 
-          <UFormField label="Dirección de la empresa" name="employerAddress">
+          <UFormField :label="t('members.form.fields.employerAddress')" name="employerAddress">
             <UInput v-model="state.employerAddress" class="w-full" />
           </UFormField>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField label="Celular" name="phone">
+            <UFormField :label="t('members.form.fields.phone')" name="phone">
               <UInput v-model="state.phone" class="w-full" />
             </UFormField>
-            <UFormField label="Teléfono fijo" name="landlinePhone">
+            <UFormField :label="t('members.form.fields.landlinePhone')" name="landlinePhone">
               <UInput v-model="state.landlinePhone" class="w-full" />
             </UFormField>
           </div>
 
-          <UFormField label="Email" name="email">
+          <UFormField :label="t('members.form.fields.email')" name="email">
             <UInput v-model="state.email" type="email" class="w-full" />
           </UFormField>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField label="Estado (región)" name="stateUuid">
+            <UFormField :label="t('members.form.fields.state')" name="stateUuid">
               <USelectMenu
                 v-model="selectedStateUuid"
                 :items="stateOptions"
                 label-key="label"
                 value-key="value"
-                placeholder="Selecciona"
+                :placeholder="t('common.select')"
                 class="w-full"
               />
             </UFormField>
-            <UFormField label="Ciudad" name="cityUuid">
+            <UFormField :label="t('members.form.fields.city')" name="cityUuid">
               <USelectMenu
                 v-model="state.cityUuid"
                 :items="cityOptions"
                 label-key="label"
                 value-key="value"
                 :disabled="!selectedStateUuid"
-                placeholder="Selecciona un estado primero"
+                :placeholder="t('members.form.selectCityFirst')"
                 class="w-full"
               />
             </UFormField>
           </div>
 
-          <UFormField label="Dirección" name="address">
+          <UFormField :label="t('members.form.fields.address')" name="address">
             <UInput v-model="state.address" class="w-full" />
           </UFormField>
 
-          <UFormField v-if="mode === 'edit'" label="Estado" name="status">
-            <USelectMenu v-model="state.status" :items="STATUS_OPTIONS" class="w-full" />
+          <UFormField v-if="mode === 'edit'" :label="t('members.form.fields.status')" name="status">
+            <USelectMenu
+              v-model="state.status"
+              :items="statusOptions"
+              label-key="label"
+              value-key="value"
+              class="w-full"
+            />
           </UFormField>
 
-          <UFormField label="Notas" name="notes">
+          <UFormField :label="t('members.form.fields.notes')" name="notes">
             <UTextarea v-model="state.notes" :rows="2" class="w-full" />
           </UFormField>
 
           <div class="flex items-center justify-end gap-3 pt-2">
             <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="formOpen = false">
-              Cancelar
+              {{ t('common.cancel') }}
             </UButton>
             <UButton type="submit" color="primary" :loading="isSubmitting" icon="i-lucide-save">
-              {{ mode === 'create' ? 'Crear afiliado' : 'Guardar cambios' }}
+              {{ mode === 'create' ? t('members.form.submitCreate') : t('common.saveChanges') }}
             </UButton>
           </div>
         </UForm>
       </template>
     </UModal>
 
-    <!-- Modal confirmar eliminación -->
-    <UModal v-model:open="deleteOpen" title="Eliminar afiliado">
+    <!-- Delete confirmation modal -->
+    <UModal v-model:open="deleteOpen" :title="t('members.delete.title')">
       <template #body>
-        <p class="text-sm text-prohealth-700">
-          ¿Seguro que deseas eliminar a
-          <span class="font-semibold">{{ target ? displayName(target) : '' }}</span>
-          ({{ target?.documentType }} {{ target?.documentNumber }})?
-          Esta acción desactiva la afiliación (soft-delete).
-        </p>
+        <i18n-t keypath="members.delete.confirm" tag="p" class="text-sm text-prohealth-700" scope="global">
+          <template #name>
+            <span class="font-semibold">{{ target ? displayName(target) : '' }}</span>
+          </template>
+          <template #document>
+            {{ target?.documentType }} {{ target?.documentNumber }}
+          </template>
+        </i18n-t>
         <div class="flex items-center justify-end gap-3 pt-5">
           <UButton color="neutral" variant="ghost" :disabled="deleting" @click="deleteOpen = false">
-            Cancelar
+            {{ t('common.cancel') }}
           </UButton>
           <UButton color="error" :loading="deleting" icon="i-lucide-trash-2" @click="confirmDelete">
-            Eliminar
+            {{ t('common.delete') }}
           </UButton>
         </div>
       </template>

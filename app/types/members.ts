@@ -1,26 +1,23 @@
-// Tipos del vertical de Miembros/Afiliados (/v1/admin/members y /v1/me/member),
-// alineados con la guía de integración del backend (V17–V19, PRs #68–#76).
+// Types for the Members vertical (/v1/admin/members and /v1/me/member),
+// aligned with the backend integration guide (V17–V19, PRs #68–#76).
 //
-// Los listados son paginados (Page<MemberListItemDto>) con RSQL + `q` free-text.
-// El detalle incluye beneficiaries[]. El histórico médico es un sub-recurso 1:1
-// con upsert vía PUT. Los PUT usan semántica PATCH (solo campos no-null).
+// Lists are paged (Page<MemberListItemDto>) with RSQL + free-text `q`. The detail
+// includes beneficiaries[]. The medical record is a 1:1 sub-resource with upsert via
+// PUT. PUT uses PATCH semantics (only non-null fields are applied).
 
-/** Parentesco del beneficiario respecto al titular. */
+/** Beneficiary relationship to the holder. */
 export type BeneficiaryRelationship = 'CHILD' | 'SPOUSE' | 'PARENT' | 'SIBLING' | 'OTHER'
 
-export const RELATIONSHIP_OPTIONS: { label: string, value: BeneficiaryRelationship }[] = [
-  { label: 'Hijo/a', value: 'CHILD' },
-  { label: 'Cónyuge', value: 'SPOUSE' },
-  { label: 'Padre/Madre', value: 'PARENT' },
-  { label: 'Hermano/a', value: 'SIBLING' },
-  { label: 'Otro', value: 'OTHER' },
+// `label` is the Spanish fallback; `labelKey` resolves to i18n at the usage point.
+export const RELATIONSHIP_OPTIONS: { label: string, value: BeneficiaryRelationship, labelKey: string }[] = [
+  { label: 'Hijo/a', value: 'CHILD', labelKey: 'members.relationships.CHILD' },
+  { label: 'Cónyuge', value: 'SPOUSE', labelKey: 'members.relationships.SPOUSE' },
+  { label: 'Padre/Madre', value: 'PARENT', labelKey: 'members.relationships.PARENT' },
+  { label: 'Hermano/a', value: 'SIBLING', labelKey: 'members.relationships.SIBLING' },
+  { label: 'Otro', value: 'OTHER', labelKey: 'members.relationships.OTHER' },
 ]
 
-export function relationshipLabel(value?: string | null): string {
-  return RELATIONSHIP_OPTIONS.find(o => o.value === value)?.label ?? value ?? '—'
-}
-
-/** Referencia mínima a un ítem de catálogo embebido en el DTO. */
+/** Minimal reference to a catalog item embedded in the DTO. */
 export interface CatalogRef {
   uuid: string
   name: string
@@ -57,7 +54,7 @@ export interface MemberDto {
   maritalStatus?: CatalogRef
   occupation?: CatalogRef
   city?: CatalogRef
-  // Datos de la planilla de inscripción (V29)
+  // Enrollment form data (V29)
   birthplace?: string
   numberOfChildren?: number
   spouseName?: string
@@ -65,7 +62,7 @@ export interface MemberDto {
   landlinePhone?: string
   email?: string
   address?: string
-  // Información laboral del titular (V29)
+  // Holder's employment info (V29)
   employerName?: string
   jobPosition?: string
   employerAddress?: string
@@ -88,7 +85,7 @@ export interface CreateMemberRequest {
   maritalStatusUuid?: string
   occupationUuid?: string
   cityUuid?: string
-  // Datos de la planilla de inscripción (V29)
+  // Enrollment form data (V29)
   birthplace?: string
   numberOfChildren?: number
   spouseName?: string
@@ -96,7 +93,7 @@ export interface CreateMemberRequest {
   landlinePhone?: string
   email?: string
   address?: string
-  // Información laboral del titular (V29)
+  // Holder's employment info (V29)
   employerName?: string
   jobPosition?: string
   employerAddress?: string
@@ -104,7 +101,7 @@ export interface CreateMemberRequest {
   notes?: string
 }
 
-/** PUT con semántica PATCH: solo se aplican los campos enviados. */
+/** PUT with PATCH semantics: only the sent fields are applied. */
 export interface UpdateMemberRequest extends Partial<CreateMemberRequest> {
   status?: string
 }
@@ -138,5 +135,5 @@ export interface MedicalRecordDto {
   updatedAt?: string
 }
 
-/** Body de PUT /medical-record (upsert con semántica PATCH). */
+/** Body of PUT /medical-record (upsert with PATCH semantics). */
 export type UpsertMedicalRecordRequest = Omit<MedicalRecordDto, 'uuid' | 'updatedAt'>

@@ -17,16 +17,13 @@
 // ---- Lifecycle status (mirror of Membership.LifecycleStatus) ----
 export type MembershipStatus = 'ACTIVE' | 'SUSPENDED' | 'EXPIRED' | 'CANCELED'
 
-export const MEMBERSHIP_STATUS_OPTIONS: { label: string, value: MembershipStatus }[] = [
-  { label: 'Activa', value: 'ACTIVE' },
-  { label: 'Suspendida', value: 'SUSPENDED' },
-  { label: 'Vencida', value: 'EXPIRED' },
-  { label: 'Cancelada', value: 'CANCELED' },
+// `label` is the Spanish fallback; `labelKey` resolves to i18n at the usage point.
+export const MEMBERSHIP_STATUS_OPTIONS: { label: string, value: MembershipStatus, labelKey: string }[] = [
+  { label: 'Activa', value: 'ACTIVE', labelKey: 'memberships.status.ACTIVE' },
+  { label: 'Suspendida', value: 'SUSPENDED', labelKey: 'memberships.status.SUSPENDED' },
+  { label: 'Vencida', value: 'EXPIRED', labelKey: 'memberships.status.EXPIRED' },
+  { label: 'Cancelada', value: 'CANCELED', labelKey: 'memberships.status.CANCELED' },
 ]
-
-export function membershipStatusLabel(value?: string | null): string {
-  return MEMBERSHIP_STATUS_OPTIONS.find(o => o.value === value)?.label ?? value ?? '—'
-}
 
 /** Status badge color (Nuxt UI palette). */
 export function membershipStatusColor(value?: string | null): 'success' | 'warning' | 'neutral' | 'error' {
