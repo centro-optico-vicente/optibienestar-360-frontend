@@ -1,4 +1,5 @@
 import type {
+  AccessTokenResponse,
   AuthUser,
   ChangePasswordRequest,
   LoginRequest,
@@ -68,9 +69,20 @@ export const useAuth = () => {
     }
   }
 
-  /** Cambia el idioma preferido del usuario (es | es-VE | en). */
+  /**
+   * Persists the user's preferred locale (es | es-VE | en). The backend reissues
+   * an access token with the new `locale` claim and blacklists the old one, so we
+   * swap the token in immediately; the refresh token is left untouched (a
+   * preference change is not a security event). Localizes the user's future
+   * ProblemDetail responses and emails across devices.
+   */
   const updateLocale = async (locale: string): Promise<void> => {
-    await useApi('/v1/me/locale', { method: 'POST', body: { locale }, silent: true })
+    const res = await useApi<AccessTokenResponse>('/v1/me/locale', {
+      method: 'POST',
+      body: { locale },
+      silent: true,
+    })
+    store.applyAccessToken(res)
   }
 
   /** Solicita el correo de recuperación de contraseña. */

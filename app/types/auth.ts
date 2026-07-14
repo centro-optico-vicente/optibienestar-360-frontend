@@ -26,6 +26,8 @@ export interface AuthUser {
   documentType?: string
   documentNumber?: string
   phone?: string
+  /** Persisted UI/locale preference (es | es-VE | en). Source of truth for the UI language. */
+  locale?: string
   status?: UserStatus
   active?: boolean
   lastLoginAt?: string | null
@@ -50,6 +52,18 @@ export interface RefreshResponse {
   refreshToken: string
   tokenType: string
   expiresIn: number
+}
+
+/**
+ * Response for endpoints that reissue an access token WITHOUT rotating the
+ * refresh token (e.g. POST /v1/me/locale). Only the access token is replaced;
+ * the previous one is blacklisted server-side, so the client must swap it in.
+ */
+export interface AccessTokenResponse {
+  accessToken: string
+  tokenType: string
+  expiresIn: number
+  user: AuthUser
 }
 
 export interface ChangePasswordRequest {
@@ -87,6 +101,8 @@ export interface JwtPayload {
   sub?: string
   permissions?: string[]
   type?: string
+  /** Locale claim; updated by POST /v1/me/locale so the backend localizes ProblemDetail/emails. */
+  locale?: string
   exp?: number
   [key: string]: unknown
 }

@@ -156,6 +156,7 @@ const isSidebarOpen = ref<boolean>(false)
             <kbd class="text-[10px] text-prohealth-500 bg-white border border-prohealth-200 rounded px-1.5 py-0.5">⌘K</kbd>
           </div>
           <div class="ml-auto flex items-center gap-2">
+            <LocaleSwitcher />
             <UButton color="neutral" variant="ghost" icon="i-lucide-bell" square />
             <UButton color="neutral" variant="ghost" icon="i-lucide-message-square" square />
           </div>
