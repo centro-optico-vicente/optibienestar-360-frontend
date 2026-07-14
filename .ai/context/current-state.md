@@ -24,7 +24,7 @@
 ## Estructura del repo HOY
 
 ```
-optisalud-plus-frontend/
+optibienestar-360-frontend/
 ├── app/
 │   ├── pages/              # login, recover/reset-password, 403, index
 │   │   └── dashboard/      # index, users/, roles/, catalogs/, change-password, [...slug]

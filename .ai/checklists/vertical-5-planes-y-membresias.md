@@ -10,7 +10,7 @@
 
 ## Adicionales v2 — Planes Familiares, Corporativos y Solvencia con Subsidio
 
-> Equivalente UI del [backend vertical-5 §Adicionales v2](https://github.com/fenix-core/optisalud-plus-backend/blob/main/.ai/checklists/vertical-5-planes-y-membresias.md) (ítems PDF #3 y #7). Mapa: [`../scope-additions-v2.md`](../scope-additions-v2.md).
+> Equivalente UI del [backend vertical-5 §Adicionales v2](https://github.com/fenix-core/optibienestar-360-backend/blob/main/.ai/checklists/vertical-5-planes-y-membresias.md) (ítems PDF #3 y #7). Mapa: [`../scope-additions-v2.md`](../scope-additions-v2.md).
 > Tarifas flyer: Individual $10, Familiar $20, Corporativo $5/pers, Afiliado Adicional $5, Mensual $5.
 
 ### Planes con tipo y beneficiarios

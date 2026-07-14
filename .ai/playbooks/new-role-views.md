@@ -4,8 +4,8 @@
 
 ## Pre-requisitos
 
-- [ ] Rol ya creado en backend con sus permisos (ver [backend `playbooks/new-role.md`](https://github.com/fenix-core/optisalud-plus-backend/blob/main/.ai/playbooks/new-role.md))
-- [ ] Permisos documentados en [backend `05-roles-permissions.md`](https://github.com/fenix-core/optisalud-plus-backend/blob/main/.ai/specs/05-roles-permissions.md)
+- [ ] Rol ya creado en backend con sus permisos (ver [backend `playbooks/new-role.md`](https://github.com/fenix-core/optibienestar-360-backend/blob/main/.ai/playbooks/new-role.md))
+- [ ] Permisos documentados en [backend `05-roles-permissions.md`](https://github.com/fenix-core/optibienestar-360-backend/blob/main/.ai/specs/05-roles-permissions.md)
 
 ## Paso 1 — Decidir estructura de rutas
 

@@ -1,6 +1,6 @@
-# optisalud-plus-frontend
+# optibienestar-360-frontend
 
-Admin + multi-portal SPA del ecosistema **OptiSalud Plus / Centro Óptico Vicente**.
+Admin + multi-portal SPA del ecosistema **OptiBienestar 360 / Centro Óptico Vicente**.
 Nuxt 4 (SPA, `ssr: false`) + Nuxt UI + Tailwind CSS + Pinia.
 
 **Parte del ecosistema:** [centro-optico-vicente](https://github.com/fenix-core/centro-optico-vicente) (hub maestro)
@@ -51,7 +51,7 @@ env vars in production. The backend API base URL is resolved in two ways:
 
 Multi-stage build (`pnpm generate` → Nginx serving the static SPA), `alpine` and
 `debian` flavours, published to Docker Hub
-`fenixcoreenterprises/optisalud-plus-frontend` on GitHub Release. See
+`fenixcoreenterprises/optibienestar-360-frontend` on GitHub Release. See
 [`docker/`](docker/) and [ADR 0006](.ai/decisions/0006-ci-cd-docker-runtime-config.md).
 
 ## Documentation

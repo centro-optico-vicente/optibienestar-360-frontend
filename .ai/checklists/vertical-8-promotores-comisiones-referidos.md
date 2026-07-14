@@ -15,7 +15,7 @@
 
 ## Adicionales v2 — Referidos con Metas, Cobranza Delegada y Comisiones Escalonadas
 
-> Equivalente UI del [backend vertical-8 §Adicionales v2](https://github.com/fenix-core/optisalud-plus-backend/blob/main/.ai/checklists/vertical-8-promotores-comisiones-referidos.md) (ítems PDF #2, #4, #5). Mapa: [`../scope-additions-v2.md`](../scope-additions-v2.md).
+> Equivalente UI del [backend vertical-8 §Adicionales v2](https://github.com/fenix-core/optibienestar-360-backend/blob/main/.ai/checklists/vertical-8-promotores-comisiones-referidos.md) (ítems PDF #2, #4, #5). Mapa: [`../scope-additions-v2.md`](../scope-additions-v2.md).
 
 ### Referidos con metas (PDF #2)
 

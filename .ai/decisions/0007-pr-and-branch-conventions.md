@@ -2,7 +2,7 @@
 
 **Estado:** Aceptado
 **Fecha:** 2026-06-01
-**Equivalente backend:** [ADR 0004 — PR & branch conventions](https://github.com/fenix-core/optisalud-plus-backend/blob/main/.ai/decisions/0004-pr-and-branch-conventions.md) (misma convención, ejemplos del stack Nuxt)
+**Equivalente backend:** [ADR 0004 — PR & branch conventions](https://github.com/fenix-core/optibienestar-360-backend/blob/main/.ai/decisions/0004-pr-and-branch-conventions.md) (misma convención, ejemplos del stack Nuxt)
 
 ## Contexto
 

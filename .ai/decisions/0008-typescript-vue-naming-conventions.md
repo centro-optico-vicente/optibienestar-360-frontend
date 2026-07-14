@@ -3,7 +3,7 @@
 **Estado:** Aceptado
 **Fecha:** 2026-06-01
 **Fuente cross-stack:** [ADR 0009 (espejo local) — Convenciones de código](0009-code-conventions.md) · [original en el hub](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0009-code-conventions.md)
-**Equivalente backend:** [ADR 0007 — Java naming conventions](https://github.com/fenix-core/optisalud-plus-backend/blob/main/.ai/decisions/0007-java-naming-conventions.md)
+**Equivalente backend:** [ADR 0007 — Java naming conventions](https://github.com/fenix-core/optibienestar-360-backend/blob/main/.ai/decisions/0007-java-naming-conventions.md)
 
 ## Decisión
 

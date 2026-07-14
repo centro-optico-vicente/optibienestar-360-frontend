@@ -1,6 +1,6 @@
-# optisalud-plus-frontend
+# optibienestar-360-frontend
 
-Frontend admin/multi-rol del ecosistema **OptiSalud Plus**. Nuxt 4 (SPA, `ssr: false`) + Nuxt UI + Tailwind CSS + Pinia.
+Frontend admin/multi-rol del ecosistema **OptiBienestar 360**. Nuxt 4 (SPA, `ssr: false`) + Nuxt UI + Tailwind CSS + Pinia.
 
 **Parte del ecosistema:** [centro-optico-vicente](https://github.com/fenix-core/centro-optico-vicente) (hub maestro)
 

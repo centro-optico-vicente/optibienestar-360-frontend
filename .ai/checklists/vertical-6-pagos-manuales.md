@@ -1,7 +1,7 @@
 # Vista 6 — Pagos manuales
 
 > Cola de aprobación de pagos, preview de soporte, registro manual y listado en portal afiliado. Depende de Membresías.
-> **Estado: entregado en [PR #16](https://github.com/fenix-core/optisalud-plus-frontend/pull/16)** (`feat(payments): dar soporte frontend a pagos manuales`). Consume `/v1/admin/payments` + `/v1/me/payments`. Verde en `nuxt typecheck` + `nuxt build` (Node 20).
+> **Estado: entregado en [PR #16](https://github.com/fenix-core/optibienestar-360-frontend/pull/16)** (`feat(payments): dar soporte frontend a pagos manuales`). Consume `/v1/admin/payments` + `/v1/me/payments`. Verde en `nuxt typecheck` + `nuxt build` (Node 20).
 > Índice: [../checklist.md](../checklist.md) · Orden: [../checklist-vertical.md](../checklist-vertical.md)
 
 ## Admin

@@ -1,5 +1,5 @@
-// Contrato alineado con el backend real (optisalud-plus-backend).
-// Ver: "OptiSalud Plus Backend — Guía de integración Frontend".
+// Contrato alineado con el backend real (optibienestar-360-backend).
+// Ver: "OptiBienestar 360 Backend — Guía de integración Frontend".
 // La API responde y espera camelCase; fechas en ISO-8601; IDs uuid.
 
 export type UserRole =

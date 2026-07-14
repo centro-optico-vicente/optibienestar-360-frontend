@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-# Multi-stage build for the OptiSalud Plus admin/portals SPA (Nuxt 4, ssr: false).
+# Multi-stage build for the OptiBienestar 360 admin/portals SPA (Nuxt 4, ssr: false).
 # Stage 1 builds the static SPA with pnpm; stage 2 serves it with Nginx (Debian).
 
 # Global build args (declared before the first FROM so both stages' FROM lines can use them).
@@ -32,8 +32,8 @@ FROM nginx:${NGINX_VERSION}
 ARG BUILD_VERSION=unknown
 ARG BUILD_DATE=unknown
 
-LABEL org.opencontainers.image.title="optisalud-plus-frontend" \
-	org.opencontainers.image.description="Panel admin y portales OptiSalud Plus (Nuxt SPA) servido por Nginx (Debian)" \
+LABEL org.opencontainers.image.title="optibienestar-360-frontend" \
+	org.opencontainers.image.description="Panel admin y portales OptiBienestar 360 (Nuxt SPA) servido por Nginx (Debian)" \
 	org.opencontainers.image.version="${BUILD_VERSION}" \
 	org.opencontainers.image.created="${BUILD_DATE}" \
 	org.opencontainers.image.base.name="nginx:${NGINX_VERSION}"

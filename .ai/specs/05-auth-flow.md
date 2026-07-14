@@ -57,7 +57,7 @@ async function submit() {
     <UCard class="w-full max-w-md">
       <template #header>
         <h1 class="text-2xl font-bold text-blue-dark">Iniciar sesión</h1>
-        <p class="text-sm text-slate">OptiSalud Plus</p>
+        <p class="text-sm text-slate">OptiBienestar 360</p>
       </template>
 
       <form @submit.prevent="submit" class="space-y-4">

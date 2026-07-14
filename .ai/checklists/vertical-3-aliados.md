@@ -14,7 +14,7 @@
 
 ## Adicionales v2 — Flujo de Aprobación de Servicios
 
-> Equivalente UI del [backend vertical-3 §Adicionales v2](https://github.com/fenix-core/optisalud-plus-backend/blob/main/.ai/checklists/vertical-3-aliados.md) (ítem PDF #6). Mapa: [`../scope-additions-v2.md`](../scope-additions-v2.md).
+> Equivalente UI del [backend vertical-3 §Adicionales v2](https://github.com/fenix-core/optibienestar-360-backend/blob/main/.ai/checklists/vertical-3-aliados.md) (ítem PDF #6). Mapa: [`../scope-additions-v2.md`](../scope-additions-v2.md).
 
 ### Portal aliado
 

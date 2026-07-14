@@ -1,4 +1,4 @@
-# Checklist operacional — OptiSalud Plus Frontend
+# Checklist operacional — OptiBienestar 360 Frontend
 
 > Subset del [checklist maestro](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/checklist.md) (tag `[F]`).
 >

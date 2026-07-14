@@ -34,7 +34,7 @@
 
 ### "Voy a agregar permisos a una página"
 1. [`../specs/09-permissions.md`](../specs/09-permissions.md)
-2. Lista permisos backend: [backend `05-roles-permissions.md`](https://github.com/fenix-core/optisalud-plus-backend/blob/main/.ai/specs/05-roles-permissions.md)
+2. Lista permisos backend: [backend `05-roles-permissions.md`](https://github.com/fenix-core/optibienestar-360-backend/blob/main/.ai/specs/05-roles-permissions.md)
 
 ### "Voy a estilizar algo"
 1. [`design-tokens.md`](design-tokens.md) — paleta
