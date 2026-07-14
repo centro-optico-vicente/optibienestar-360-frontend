@@ -2,9 +2,12 @@
 import type { ApiError } from '~/types/auth'
 import type { PublicAllyDto } from '~/types/allies'
 
-// Detalle PÚBLICO de un aliado (sin login). El backend solo expone aliados
-// PUBLISHED+ACTIVE y servicios APPROVED/PUBLISHED/ACTIVE (/v1/public/allies/{uuid}).
+// PUBLIC partner detail (no login). The backend only exposes PUBLISHED+ACTIVE
+// partners and APPROVED/PUBLISHED/ACTIVE services (/v1/public/allies/{uuid}).
 definePageMeta({ layout: 'default' })
+
+const { t } = useI18n()
+const { formatCurrency } = useFormatters()
 
 const route = useRoute()
 const allyUuid = route.params.uuid as string
@@ -15,10 +18,13 @@ const ally = ref<PublicAllyDto | null>(null)
 const loading = ref(true)
 const notFound = ref(false)
 
+useSeoMeta({
+  title: () => (ally.value ? t('allies.public.detail.seoTitle', { name: ally.value.name }) : ''),
+})
+
 onMounted(async () => {
   try {
     ally.value = await publicAllies.get(allyUuid)
-    useSeoMeta({ title: `${ally.value.name} — Red de aliados OptiBienestar 360` })
   }
   catch (err) {
     if ((err as ApiError).status === 404) notFound.value = true
@@ -28,15 +34,16 @@ onMounted(async () => {
   }
 })
 
-function formatMoney(v?: string | null): string {
+// Amount in USD, formatted in the VE convention. Empty → '' (hidden by v-if).
+function money(v?: string | null): string {
   if (!v) return ''
-  return `$${Number(v).toFixed(2)}`
+  return formatCurrency(Number(v), 'USD')
 }
 </script>
 
 <template>
   <div class="max-w-5xl mx-auto px-6 lg:px-10 py-10">
-    <!-- Volver -->
+    <!-- Back -->
     <UButton
       color="neutral"
       variant="ghost"
@@ -45,28 +52,28 @@ function formatMoney(v?: string | null): string {
       size="sm"
       class="mb-5"
     >
-      Red de aliados
+      {{ t('allies.public.detail.back') }}
     </UButton>
 
-    <!-- Cargando -->
+    <!-- Loading -->
     <div v-if="loading" class="bg-white rounded-2xl border border-prohealth-100 p-6 space-y-3">
       <USkeleton class="h-7 w-64 rounded" />
       <USkeleton class="h-4 w-40 rounded" />
       <USkeleton class="h-4 w-full max-w-lg rounded" />
     </div>
 
-    <!-- No encontrado -->
+    <!-- Not found -->
     <div v-else-if="notFound || !ally" class="bg-white rounded-2xl border border-prohealth-100 p-12 text-center">
       <UIcon name="i-lucide-search-x" class="w-10 h-10 mx-auto mb-3 text-prohealth-300" />
-      <p class="text-prohealth-700 font-semibold">Aliado no disponible</p>
-      <p class="text-sm text-prohealth-500 mt-1">No existe o ya no forma parte del directorio.</p>
+      <p class="text-prohealth-700 font-semibold">{{ t('allies.public.detail.notFoundTitle') }}</p>
+      <p class="text-sm text-prohealth-500 mt-1">{{ t('allies.public.detail.notFoundBody') }}</p>
       <UButton to="/aliados" color="primary" variant="soft" size="sm" class="mt-4">
-        Volver al directorio
+        {{ t('allies.public.detail.backToDirectory') }}
       </UButton>
     </div>
 
     <template v-else>
-      <!-- Encabezado -->
+      <!-- Header -->
       <div class="bg-white rounded-2xl border border-prohealth-100 p-6 lg:p-8">
         <div class="flex items-start gap-4">
           <span class="shrink-0 w-14 h-14 rounded-2xl bg-cyan-50 grid place-items-center">
@@ -75,7 +82,7 @@ function formatMoney(v?: string | null): string {
           <div class="min-w-0">
             <h1 class="text-2xl lg:text-3xl font-extrabold text-prohealth-900">{{ ally.name }}</h1>
             <p class="text-sm text-prohealth-500 mt-1">
-              {{ ally.allyType?.name || 'Aliado' }}
+              {{ ally.allyType?.name || t('allies.fallbackName') }}
               <template v-if="ally.city?.name"> · {{ ally.city.name }}</template>
             </p>
           </div>
@@ -96,7 +103,7 @@ function formatMoney(v?: string | null): string {
           </UBadge>
         </div>
 
-        <!-- Datos de contacto -->
+        <!-- Contact data -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6 pt-6 border-t border-prohealth-100 text-sm">
           <div v-if="ally.address" class="flex items-start gap-2.5">
             <UIcon name="i-lucide-map-pin" class="w-4.5 h-4.5 text-cyan-600 mt-0.5 shrink-0" />
@@ -119,13 +126,13 @@ function formatMoney(v?: string | null): string {
         </div>
       </div>
 
-      <!-- Servicios -->
+      <!-- Services -->
       <div class="mt-6">
-        <h2 class="text-lg font-bold text-prohealth-900 mb-4">Servicios disponibles</h2>
+        <h2 class="text-lg font-bold text-prohealth-900 mb-4">{{ t('allies.public.detail.servicesTitle') }}</h2>
 
         <div v-if="!ally.services?.length" class="bg-white rounded-2xl border border-prohealth-100 py-10 text-center">
           <UIcon name="i-lucide-briefcase-medical" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
-          <p class="text-sm text-prohealth-500">Este aliado aún no tiene servicios publicados.</p>
+          <p class="text-sm text-prohealth-500">{{ t('allies.public.detail.servicesEmpty') }}</p>
         </div>
 
         <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -142,9 +149,9 @@ function formatMoney(v?: string | null): string {
                 </p>
               </div>
               <div v-if="s.priceUsd" class="text-right shrink-0">
-                <p class="font-bold text-prohealth-900">{{ formatMoney(s.priceUsd) }}</p>
+                <p class="font-bold text-prohealth-900">{{ money(s.priceUsd) }}</p>
                 <p v-if="s.discountPct" class="text-xs font-semibold text-lime-600">
-                  -{{ s.discountPct }}% afiliados
+                  {{ t('allies.public.detail.discountAffiliates', { pct: s.discountPct }) }}
                 </p>
               </div>
             </div>
@@ -153,7 +160,7 @@ function formatMoney(v?: string | null): string {
             </p>
             <div v-if="s.requiresAppointment" class="flex items-center gap-1.5 mt-3 text-xs text-cyan-700">
               <UIcon name="i-lucide-calendar-check" class="w-3.5 h-3.5" />
-              Requiere cita previa
+              {{ t('allies.public.detail.requiresAppointment') }}
             </div>
           </div>
         </div>
@@ -162,13 +169,13 @@ function formatMoney(v?: string | null): string {
       <!-- CTA -->
       <div class="mt-8 rounded-2xl bg-hero-prohealth text-white p-6 lg:p-8 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h3 class="font-bold text-lg">¿Aún no eres afiliado?</h3>
+          <h3 class="font-bold text-lg">{{ t('allies.public.detail.ctaTitle') }}</h3>
           <p class="text-sm text-prohealth-100/90 mt-1">
-            Únete a OptiBienestar 360 y accede a precios preferenciales en toda la red.
+            {{ t('allies.public.detail.ctaBody') }}
           </p>
         </div>
         <UButton to="/#contact" color="secondary" variant="solid">
-          Quiero afiliarme
+          {{ t('allies.public.detail.ctaButton') }}
         </UButton>
       </div>
     </template>

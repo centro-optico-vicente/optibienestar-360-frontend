@@ -1,13 +1,13 @@
-// Tipos del vertical de Aliados (/v1/admin/allies, /v1/public/allies, /v1/aliado),
-// alineados con la guía de integración del backend (V11–V12, PRs #57–#67).
+// Types for the Partners vertical (/v1/admin/allies, /v1/public/allies, /v1/aliado),
+// aligned with the backend integration guide (V11–V12, PRs #57–#67).
 //
-// El listado admin es paginado (Page<AllyDto>) con RSQL + `q`. El detalle incluye
-// specialties[]. Sub-recursos: services, agreements (ALLY_AGREEMENT_MANAGE) y
-// users (staff con membresía OWNER/STAFF/VIEWER). Los PUT usan semántica PATCH.
+// The admin list is paged (Page<AllyDto>) with RSQL + `q`. The detail includes
+// specialties[]. Sub-resources: services, agreements (ALLY_AGREEMENT_MANAGE) and
+// users (staff with OWNER/STAFF/VIEWER membership). PUT uses PATCH semantics.
 
 import type { CatalogRef } from '~/types/members'
 
-// ---- Aliado ----
+// ---- Partner ----
 
 export interface AllyDto {
   uuid: string
@@ -46,14 +46,14 @@ export interface CreateAllyRequest {
   specialtyUuids?: string[]
 }
 
-/** PUT con semántica PATCH; `specialtyUuids` REEMPLAZA el conjunto si se envía. */
+/** PUT with PATCH semantics; `specialtyUuids` REPLACES the set when sent. */
 export interface UpdateAllyRequest extends Partial<CreateAllyRequest> {
   status?: string
 }
 
-// ---- Servicios del aliado ----
+// ---- Partner services ----
 
-/** Estado de revisión del servicio (las propuestas nacen en PROPOSED). */
+/** Service review status (proposals are born in PROPOSED). */
 export type ServiceReviewStatus = 'PROPOSED' | 'APPROVED' | 'REJECTED'
 
 export interface AllyServiceDto {
@@ -79,31 +79,28 @@ export interface CreateAllyServiceRequest {
   requiresAppointment?: boolean
 }
 
-/** PUT con semántica PATCH; `reviewStatus` NO se cambia por esta vía. */
+/** PUT with PATCH semantics; `reviewStatus` is NOT changed this way. */
 export interface UpdateAllyServiceRequest extends Partial<CreateAllyServiceRequest> {
   published?: boolean
   status?: string
 }
 
-/** Body de POST /v1/aliado/services (propuesta hecha por el propio aliado). */
+/** Body of POST /v1/aliado/services (proposal made by the partner itself). */
 export interface ProposeAllyServiceRequest extends CreateAllyServiceRequest {
   allyUuid: string
 }
 
-// ---- Acuerdos ----
+// ---- Agreements ----
+// `label` is the Spanish fallback; `labelKey` resolves to i18n at the usage point.
 
 export type AgreementType = 'COMMERCIAL' | 'MEDICAL' | 'EXCLUSIVITY' | 'SUPPLY'
 
-export const AGREEMENT_TYPE_OPTIONS: { label: string, value: AgreementType }[] = [
-  { label: 'Comercial', value: 'COMMERCIAL' },
-  { label: 'Médico', value: 'MEDICAL' },
-  { label: 'Exclusividad', value: 'EXCLUSIVITY' },
-  { label: 'Suministro', value: 'SUPPLY' },
+export const AGREEMENT_TYPE_OPTIONS: { label: string, value: AgreementType, labelKey: string }[] = [
+  { label: 'Comercial', value: 'COMMERCIAL', labelKey: 'allies.agreements.types.COMMERCIAL' },
+  { label: 'Médico', value: 'MEDICAL', labelKey: 'allies.agreements.types.MEDICAL' },
+  { label: 'Exclusividad', value: 'EXCLUSIVITY', labelKey: 'allies.agreements.types.EXCLUSIVITY' },
+  { label: 'Suministro', value: 'SUPPLY', labelKey: 'allies.agreements.types.SUPPLY' },
 ]
-
-export function agreementTypeLabel(value?: string | null): string {
-  return AGREEMENT_TYPE_OPTIONS.find(o => o.value === value)?.label ?? value ?? '—'
-}
 
 export interface AllyAgreementDto {
   uuid: string
@@ -128,19 +125,16 @@ export interface UpdateAllyAgreementRequest extends Partial<CreateAllyAgreementR
   status?: string
 }
 
-// ---- Staff del aliado ----
+// ---- Partner staff ----
+// `label` is the Spanish fallback; `labelKey` resolves to i18n at the usage point.
 
 export type AllyRole = 'OWNER' | 'STAFF' | 'VIEWER'
 
-export const ALLY_ROLE_OPTIONS: { label: string, value: AllyRole }[] = [
-  { label: 'Propietario', value: 'OWNER' },
-  { label: 'Personal', value: 'STAFF' },
-  { label: 'Visor', value: 'VIEWER' },
+export const ALLY_ROLE_OPTIONS: { label: string, value: AllyRole, labelKey: string }[] = [
+  { label: 'Propietario', value: 'OWNER', labelKey: 'allies.staff.roles.OWNER' },
+  { label: 'Personal', value: 'STAFF', labelKey: 'allies.staff.roles.STAFF' },
+  { label: 'Visor', value: 'VIEWER', labelKey: 'allies.staff.roles.VIEWER' },
 ]
-
-export function allyRoleLabel(value?: string | null): string {
-  return ALLY_ROLE_OPTIONS.find(o => o.value === value)?.label ?? value ?? '—'
-}
 
 export interface AllyUserDto {
   uuid: string
@@ -158,7 +152,7 @@ export interface AllyUserDto {
 export interface AssignAllyUserRequest {
   userUuid: string
   allyRole: AllyRole
-  /** Solo válido con allyRole=OWNER y si no hay otro OWNER primary activo. */
+  /** Only valid with allyRole=OWNER and if there's no other active primary OWNER. */
   primary?: boolean
   joinedAt?: string
 }
@@ -170,9 +164,9 @@ export interface UpdateAllyUserRequest {
   status?: string
 }
 
-// ---- Directorio público ----
+// ---- Public directory ----
 
-/** DTO sanitizado del directorio público (solo aliados PUBLISHED + ACTIVE). */
+/** Sanitized DTO of the public directory (only PUBLISHED + ACTIVE partners). */
 export interface PublicAllyDto {
   uuid: string
   name: string

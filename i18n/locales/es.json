@@ -16,6 +16,8 @@
     "select": "Selecciona",
     "viewAll": "Ver todo",
     "empty": "—",
+    "yes": "Sí",
+    "no": "No",
     "seoTitle": "{page} — OptiBienestar 360"
   },
   "validation": {
@@ -28,7 +30,12 @@
     "passwordNumber": "Debe incluir un número",
     "passwordSymbol": "Debe incluir un símbolo",
     "passwordsMismatch": "Las contraseñas no coinciden",
-    "passwordSameAsCurrent": "La nueva contraseña debe ser distinta a la actual"
+    "passwordSameAsCurrent": "La nueva contraseña debe ser distinta a la actual",
+    "invalidAmount": "Monto no válido",
+    "invalidPercent": "Porcentaje no válido",
+    "invalidUrl": "URL no válida",
+    "digitsOnly": "Solo números",
+    "invalidUuid": "Debe ser un UUID válido"
   },
   "auth": {
     "fields": {
@@ -499,6 +506,293 @@
         "inscription": "Inscripción (USD)",
         "monthly": "Mensualidad (USD)",
         "extraBeneficiary": "Inscripción por beneficiario extra (USD)"
+      }
+    }
+  },
+  "allies": {
+    "title": "Aliados",
+    "subtitle": "Empresas y profesionales aliados: servicios, acuerdos y personal.",
+    "new": "Nuevo aliado",
+    "createTooltip": "Registrar un nuevo aliado",
+    "noPermissionCreate": "No tienes permiso para crear aliados",
+    "noPermissionEdit": "No tienes permiso para editar",
+    "noPermissionDelete": "No tienes permiso para eliminar",
+    "noPermission": "No tienes permiso",
+    "searchPlaceholder": "Buscar por nombre…",
+    "empty": "Sin aliados",
+    "published": "Publicado",
+    "draft": "Borrador",
+    "viewDetailTooltip": "Ver detalle",
+    "paginationSummary": "{shown} de {total} aliado(s)",
+    "createdToast": "Aliado creado",
+    "updatedToast": "Aliado actualizado",
+    "deletedToast": "Aliado eliminado",
+    "fallbackName": "Aliado",
+    "columns": {
+      "ally": "Aliado",
+      "type": "Tipo",
+      "taxId": "RIF",
+      "city": "Ciudad",
+      "published": "Publicado",
+      "status": "Estado"
+    },
+    "status": {
+      "ACTIVE": "Activo",
+      "INACTIVE": "Inactivo",
+      "SUSPENDED": "Suspendido"
+    },
+    "form": {
+      "createTitle": "Nuevo aliado",
+      "editTitle": "Editar aliado",
+      "createDescription": "Registra una empresa o profesional aliado.",
+      "editDescription": "Actualiza los datos del aliado.",
+      "loadingDetail": "Cargando datos del aliado…",
+      "submitCreate": "Crear aliado",
+      "selectCityFirst": "Selecciona un estado primero",
+      "selectMultiple": "Selecciona una o más",
+      "fields": {
+        "name": "Nombre",
+        "allyType": "Tipo de aliado",
+        "taxDocumentType": "Tipo de documento fiscal",
+        "taxDocumentNumber": "Número (RIF)",
+        "email": "Email",
+        "phone": "Teléfono",
+        "website": "Sitio web",
+        "state": "Estado (región)",
+        "city": "Ciudad",
+        "address": "Dirección",
+        "description": "Descripción",
+        "specialties": "Especialidades",
+        "joinedAt": "Fecha de alianza",
+        "published": "Publicado en directorio",
+        "status": "Estado"
+      }
+    },
+    "delete": {
+      "title": "Eliminar aliado",
+      "confirm": "¿Seguro que deseas eliminar a {name}? Esta acción lo desactiva y lo retira del directorio (soft-delete)."
+    },
+    "detail": {
+      "seoPage": "Detalle de aliado",
+      "notFoundTitle": "Aliado no encontrado",
+      "notFoundBody": "El registro no existe o fue eliminado.",
+      "memberSince": "Aliado desde {date}",
+      "fields": {
+        "email": "Email",
+        "phone": "Teléfono",
+        "website": "Sitio web",
+        "city": "Ciudad",
+        "address": "Dirección",
+        "description": "Descripción"
+      }
+    },
+    "tabs": {
+      "services": "Servicios",
+      "specialties": "Especialidades",
+      "agreements": "Acuerdos",
+      "staff": "Personal"
+    },
+    "services": {
+      "title": "Servicios",
+      "hint": "Los servicios nuevos quedan en revisión (PROPOSED).",
+      "addTooltip": "Añadir servicio",
+      "add": "Añadir",
+      "empty": "Sin servicios registrados",
+      "createdToast": "Servicio creado (en revisión)",
+      "updatedToast": "Servicio actualizado",
+      "deletedToast": "Servicio eliminado",
+      "columns": {
+        "service": "Servicio",
+        "category": "Categoría",
+        "price": "Precio",
+        "discount": "Desc.",
+        "appointment": "Cita",
+        "review": "Revisión",
+        "published": "Publicado"
+      },
+      "reviewStatus": {
+        "PROPOSED": "Propuesto",
+        "APPROVED": "Aprobado",
+        "REJECTED": "Rechazado"
+      },
+      "form": {
+        "createTitle": "Añadir servicio",
+        "editTitle": "Editar servicio",
+        "createDescription": "El servicio quedará en revisión (PROPOSED).",
+        "editDescription": "El estado de revisión no se cambia por esta vía.",
+        "fields": {
+          "category": "Categoría",
+          "name": "Nombre",
+          "description": "Descripción",
+          "price": "Precio (USD)",
+          "discount": "Descuento (%)",
+          "requiresAppointment": "Requiere cita",
+          "published": "Publicado"
+        }
+      },
+      "delete": {
+        "title": "Eliminar servicio",
+        "confirm": "¿Seguro que deseas eliminar el servicio {name}? (soft-delete)"
+      }
+    },
+    "specialties": {
+      "title": "Especialidades",
+      "hint": "Especialidades médicas que ofrece el aliado.",
+      "add": "Añadir especialidad",
+      "addButton": "Añadir",
+      "empty": "Sin especialidades asignadas."
+    },
+    "agreements": {
+      "title": "Acuerdos",
+      "hint": "Contratos y convenios con el aliado.",
+      "add": "Añadir",
+      "empty": "Sin acuerdos registrados",
+      "viewPdf": "Ver",
+      "createdToast": "Acuerdo creado",
+      "updatedToast": "Acuerdo actualizado",
+      "deletedToast": "Acuerdo eliminado",
+      "columns": {
+        "type": "Tipo",
+        "start": "Inicio",
+        "end": "Fin",
+        "pdf": "PDF",
+        "status": "Estado"
+      },
+      "types": {
+        "COMMERCIAL": "Comercial",
+        "MEDICAL": "Médico",
+        "EXCLUSIVITY": "Exclusividad",
+        "SUPPLY": "Suministro"
+      },
+      "status": {
+        "ACTIVE": "Activo",
+        "EXPIRED": "Vencido",
+        "TERMINATED": "Terminado"
+      },
+      "form": {
+        "createTitle": "Añadir acuerdo",
+        "editTitle": "Editar acuerdo",
+        "description": "Contrato o convenio firmado con el aliado.",
+        "fields": {
+          "type": "Tipo de acuerdo",
+          "startDate": "Fecha de inicio",
+          "endDate": "Fecha de fin",
+          "terms": "Términos",
+          "signedPdfUrl": "URL del PDF firmado",
+          "status": "Estado"
+        }
+      },
+      "delete": {
+        "title": "Eliminar acuerdo",
+        "confirm": "¿Seguro que deseas eliminar el acuerdo {type}? (soft-delete)"
+      }
+    },
+    "staff": {
+      "title": "Personal",
+      "hint": "Usuarios con acceso al panel del aliado.",
+      "assignTooltip": "Asignar usuario",
+      "assign": "Asignar",
+      "empty": "Sin personal asignado",
+      "editTooltip": "Editar",
+      "unlinkTooltip": "Desvincular",
+      "assignedToast": "Usuario asignado",
+      "updatedToast": "Membresía actualizada",
+      "unlinkedToast": "Usuario desvinculado",
+      "columns": {
+        "user": "Usuario",
+        "role": "Rol en el aliado",
+        "primary": "Principal",
+        "since": "Desde",
+        "status": "Estado"
+      },
+      "roles": {
+        "OWNER": "Propietario",
+        "STAFF": "Personal",
+        "VIEWER": "Visor"
+      },
+      "status": {
+        "ACTIVE": "Activo",
+        "INACTIVE": "Inactivo"
+      },
+      "form": {
+        "createTitle": "Asignar usuario",
+        "editTitle": "Editar membresía",
+        "description": "Solo puede haber un OWNER principal activo por aliado.",
+        "selectUser": "Selecciona un usuario",
+        "fields": {
+          "user": "Usuario",
+          "role": "Rol en el aliado",
+          "joinedAt": "Fecha de ingreso",
+          "primary": "Principal (solo OWNER)",
+          "status": "Estado"
+        }
+      },
+      "delete": {
+        "title": "Desvincular usuario",
+        "confirm": "¿Seguro que deseas desvincular a {name} de este aliado? (soft-delete)"
+      }
+    },
+    "public": {
+      "seoTitle": "Red de aliados — OptiBienestar 360",
+      "seoDescription": "Directorio de clínicas, farmacias y profesionales aliados de OptiBienestar 360.",
+      "heroBadge": "Red de aliados",
+      "heroTitle1": "Encuentra tu centro de atención",
+      "heroTitle2": "más cercano.",
+      "heroLead": "Clínicas, farmacias y profesionales con atención preferencial para afiliados de OptiBienestar 360.",
+      "viewDetail": "Ver detalle",
+      "emptyTitle": "No encontramos aliados",
+      "emptyBody": "Prueba con otros filtros o términos de búsqueda.",
+      "filters": {
+        "search": "Buscar por nombre…",
+        "state": "Estado",
+        "city": "Ciudad",
+        "specialty": "Especialidad",
+        "clear": "Limpiar filtros"
+      },
+      "detail": {
+        "seoTitle": "{name} — Red de aliados OptiBienestar 360",
+        "back": "Red de aliados",
+        "notFoundTitle": "Aliado no disponible",
+        "notFoundBody": "No existe o ya no forma parte del directorio.",
+        "backToDirectory": "Volver al directorio",
+        "servicesTitle": "Servicios disponibles",
+        "servicesEmpty": "Este aliado aún no tiene servicios publicados.",
+        "discountAffiliates": "-{pct}% afiliados",
+        "requiresAppointment": "Requiere cita previa",
+        "ctaTitle": "¿Aún no eres afiliado?",
+        "ctaBody": "Únete a OptiBienestar 360 y accede a precios preferenciales en toda la red.",
+        "ctaButton": "Quiero afiliarme"
+      }
+    },
+    "portal": {
+      "seoTitle": "Mi empresa aliada — OptiBienestar 360",
+      "title": "Mi empresa aliada",
+      "subtitle": "Propón nuevos servicios para tu empresa. Quedan en revisión hasta que OptiBienestar 360 los apruebe.",
+      "lastProposedTitle": "«{name}» enviado a revisión",
+      "lastProposedDescription": "Te notificaremos cuando sea aprobado y publicado en el directorio.",
+      "formTitle": "Proponer un servicio",
+      "formHint": "Debes tener membresía activa (propietario o personal) en la empresa aliada.",
+      "proposedToast": "Servicio propuesto",
+      "proposedToastDescription": "Quedó en revisión; el equipo de OptiBienestar 360 lo aprobará.",
+      "submit": "Enviar propuesta",
+      "namePlaceholder": "Consulta de Cardiología",
+      "fields": {
+        "allyUuid": "UUID de tu empresa aliada",
+        "allyUuidHelp": "Te lo proporciona el equipo de OptiBienestar 360 al registrar tu empresa. Se recordará para próximas propuestas.",
+        "category": "Categoría",
+        "name": "Nombre del servicio",
+        "description": "Descripción",
+        "price": "Precio (USD)",
+        "discount": "Descuento afiliados (%)",
+        "requiresAppointment": "Requiere cita"
+      },
+      "help": {
+        "title": "¿Cómo funciona?",
+        "step1": "Envías la propuesta del servicio con su precio y descuento para afiliados.",
+        "step2": "El equipo de OptiBienestar 360 la revisa y aprueba.",
+        "step3pre": "Una vez publicado, aparece en el ",
+        "step3link": "directorio público",
+        "step3post": "."
       }
     }
   }
