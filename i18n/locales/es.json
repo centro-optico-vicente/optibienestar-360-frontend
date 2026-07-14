@@ -342,6 +342,19 @@
     }
   },
   "errors": {
+    "locked": "Cuenta bloqueada hasta las {time}.",
+    "network": "Error de conexión. Verifica tu internet.",
+    "unexpected": "Ocurrió un error inesperado. Intenta nuevamente.",
+    "byStatus": {
+      "400": "Revisa los datos ingresados.",
+      "401": "Tu sesión expiró. Inicia sesión nuevamente.",
+      "403": "No tienes permiso para realizar esta acción.",
+      "404": "Recurso no encontrado.",
+      "409": "Conflicto: el recurso ya existe o cambió.",
+      "422": "No se pudo completar por una regla de negocio.",
+      "423": "Cuenta bloqueada temporalmente.",
+      "500": "Error interno. Intenta nuevamente."
+    },
     "forbidden": {
       "seoTitle": "Sin permiso — OptiBienestar 360",
       "title": "No tienes permiso",
