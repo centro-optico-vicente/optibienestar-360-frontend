@@ -55,6 +55,13 @@ export const useFormatters = () => {
     return new Intl.DateTimeFormat(LOCALE, { month: 'long', year: 'numeric', timeZone: TIME_ZONE }).format(d)
   }
 
+  /** Time of day (HH:mm) in the VE convention. Returns '—' when empty. */
+  const formatTime = (date: DateInput): string => {
+    const d = toDate(date)
+    if (!d) return EMPTY
+    return new Intl.DateTimeFormat(LOCALE, { hour: '2-digit', minute: '2-digit', timeZone: TIME_ZONE }).format(d)
+  }
+
   /** Relative distance ("hace 3 días", "en 2 semanas"). Returns '—' when empty. */
   const formatRelative = (date: DateInput): string => {
     const d = toDate(date)
@@ -75,5 +82,5 @@ export const useFormatters = () => {
     return rtf.format(Math.round(diffMs / 1000), 'second')
   }
 
-  return { formatCurrency, formatNumber, formatDate, formatMonthYear, formatRelative }
+  return { formatCurrency, formatNumber, formatDate, formatMonthYear, formatTime, formatRelative }
 }

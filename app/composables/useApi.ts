@@ -4,20 +4,35 @@ import type { ApiError, ProblemDetail } from '~/types/auth'
 type ApiFetchOptions = NonNullable<Parameters<typeof $fetch>[1]>
 
 interface UseApiOptions extends ApiFetchOptions {
-  /** No adjuntar el header Authorization (login, refresh, contacto público). */
+  /** Skip the Authorization header (login, refresh, public contact). */
   skipAuth?: boolean
-  /** No emitir toasts globales; el componente maneja el error (login, formularios). */
+  /** Suppress global toasts; the component handles the error itself (login, forms). */
   silent?: boolean
-  /** Interno: marca el reintento tras refresh para no entrar en bucle. */
+  /** Internal: marks the post-refresh retry so we don't loop. */
   _retried?: boolean
 }
 
-/** Construye el mensaje de usuario a partir del problem+json. */
-function problemMessage(status: number, problem: ProblemDetail | null): string | null {
+/** Translator surface we rely on (incl. the default-message overload `t(key, fallback)`). */
+interface Translate {
+  (key: string): string
+  (key: string, named: Record<string, unknown>): string
+  (key: string, defaultMsg: string): string
+}
+
+/**
+ * Builds the user-facing message from the backend's problem+json. Business errors
+ * arrive ALREADY localized (the backend resolves locale via the JWT claim or the
+ * `Accept-Language` we send), so `detail`/`title`/field errors are shown verbatim —
+ * only client-owned fallbacks (network, lockout time) are translated here.
+ */
+function problemMessage(
+  status: number,
+  problem: ProblemDetail | null,
+  t: Translate,
+  formatTime: (date: string) => string,
+): string | null {
   if (status === 423 && problem?.lockedUntil) {
-    const until = new Date(problem.lockedUntil)
-    const hh = until.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' })
-    return `Cuenta bloqueada hasta las ${hh}.`
+    return t('errors.locked', { time: formatTime(problem.lockedUntil) })
   }
   if (problem?.errors?.length) {
     return problem.errors.map(e => e.message).join(' · ')
@@ -25,21 +40,13 @@ function problemMessage(status: number, problem: ProblemDetail | null): string |
   return problem?.detail || problem?.title || null
 }
 
-const FALLBACK: Record<number, string> = {
-  403: 'No tienes permiso para realizar esta acción.',
-  409: 'Conflicto: el recurso ya existe o cambió.',
-  422: 'No se pudo completar por una regla de negocio.',
-  423: 'Cuenta bloqueada temporalmente.',
-  500: 'Error interno. Intenta nuevamente.',
-}
-
 /**
- * Cliente HTTP central. Único punto de comunicación con el backend.
- * - Inyecta `Authorization: Bearer <accessToken>`.
- * - Ante 401 refresca el token UNA vez (promesa compartida en el store) y reintenta.
- * - Mapea errores RFC 7807 (problem+json) a toasts; propaga 400/404 al componente.
+ * Central HTTP client. Single point of communication with the backend.
+ * - Injects `Authorization: Bearer <accessToken>` and `Accept-Language: <active locale>`.
+ * - On 401 refreshes the token ONCE (shared promise in the store) and retries.
+ * - Maps RFC 7807 (problem+json) errors to toasts; propagates 400/404 to the component.
  *
- * Uso:
+ * Usage:
  *   const me = await useApi<AuthUser>('/v1/me')
  *   const page = await useApi<Page<UserDto>>('/v1/admin/users', { query: { page: 0 } })
  */
@@ -50,22 +57,32 @@ export const useApi = async <T = unknown>(
   const config = useRuntimeConfig()
   const auth = useAuthStore()
   const toast = useToast()
+  const { $i18n } = useNuxtApp()
+  const { formatTime } = useFormatters()
+  // Global i18n instance: useApi runs from event handlers too, where useI18n()
+  // has no active setup instance — read the translator/locale off nuxtApp.
+  const t = $i18n.t as unknown as Translate
+  const activeLocale = String(unref($i18n.locale) ?? 'es')
   const { skipAuth = false, silent = false, _retried = false, headers, ...rest } = options
 
   const baseURL = config.public.apiBaseUrl
   if (!baseURL) {
-    console.warn('[useApi] NUXT_PUBLIC_API_BASE_URL no está configurado.')
+    console.warn('[useApi] NUXT_PUBLIC_API_BASE_URL is not configured.')
   }
 
-  // Pre-flight: si el accessToken está por expirar, renueva ANTES de enviar.
-  // Cubre el caso de pestaña en segundo plano (el timer del store se ralentiza).
-  // Single-flight: peticiones concurrentes comparten la misma promesa de refresh.
+  // Pre-flight: if the access token is about to expire, refresh BEFORE sending.
+  // Covers backgrounded tabs (the store timer is throttled there).
+  // Single-flight: concurrent requests share the same refresh promise.
   if (!skipAuth && !_retried && auth.refreshToken && auth.isAccessExpiringSoon()) {
     await auth.tryRefresh()
   }
 
   const finalHeaders: Record<string, string> = {
-    Accept: 'application/json',
+    'Accept': 'application/json',
+    // Backend resolves locale as JWT claim > Accept-Language > es-VE. Sending it on
+    // every request localizes public endpoints (login, contact, directory) that
+    // have no JWT yet, and keeps anonymous ProblemDetail responses in the UI language.
+    'Accept-Language': activeLocale,
     ...(headers as Record<string, string> | undefined),
   }
   if (!skipAuth && auth.accessToken) {
@@ -80,7 +97,7 @@ export const useApi = async <T = unknown>(
     const status = fetchError.response?.status ?? 0
     const problem = (fetchError.response?._data ?? null) as ProblemDetail | null
 
-    // 401 → refresca el token una sola vez y reintenta la petición original.
+    // 401 → refresh the token once and retry the original request.
     if (status === 401 && !skipAuth && !_retried) {
       const refreshed = await auth.tryRefresh()
       if (refreshed) {
@@ -90,10 +107,13 @@ export const useApi = async <T = unknown>(
       if (import.meta.client) await navigateTo('/login')
     }
 
-    // Notificación global (salvo silenciados y errores que maneja el componente).
+    // Global notification (except silenced ones and errors the component handles).
+    // The backend sends a localized ProblemDetail; when it's missing (network/timeout)
+    // we fall back to `errors.byStatus.<code>` and finally `errors.unexpected` (i18n bundles).
     if (!silent && status !== 400 && status !== 404 && status !== 401 && status !== 0) {
       toast.add({
-        title: problemMessage(status, problem) || FALLBACK[status] || 'Error inesperado',
+        title: problemMessage(status, problem, t, formatTime)
+          || t(`errors.byStatus.${status}`, t('errors.unexpected')),
         color: 'error',
         icon: 'i-lucide-circle-alert',
       })
@@ -102,7 +122,9 @@ export const useApi = async <T = unknown>(
     const apiError: ApiError = {
       status,
       problem,
-      message: problemMessage(status, problem) ?? fetchError.message ?? 'Error de red',
+      message: problemMessage(status, problem, t, formatTime)
+        ?? fetchError.message
+        ?? t('errors.network'),
     }
     throw apiError
   }
