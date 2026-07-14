@@ -396,5 +396,110 @@
       "service-categories": { "label": "Service categories", "labelSingular": "Service category" },
       "ally-types": { "label": "Partner types", "labelSingular": "Partner type" }
     }
+  },
+  "plans": {
+    "title": "Plans",
+    "subtitle": "Coverage plans: pricing, beneficiaries and grace period.",
+    "new": "New plan",
+    "createTooltip": "Register a new plan",
+    "noPermissionCreate": "You don't have permission to create plans",
+    "noPermissionEdit": "You don't have permission to edit",
+    "noPermissionDelete": "You don't have permission to delete",
+    "searchPlaceholder": "Search by code, name or description…",
+    "empty": "No plans",
+    "published": "Published",
+    "draft": "Draft",
+    "publish": "Publish",
+    "unpublish": "Unpublish",
+    "publishTooltip": "Publish to the directory",
+    "unpublishTooltip": "Remove from the directory",
+    "viewDetailTooltip": "View detail",
+    "editTooltip": "Edit plan",
+    "deleteTooltip": "Delete plan",
+    "includedShort": "{n} incl.",
+    "maxShort": "max {n}",
+    "paginationSummary": "{shown} of {total} plan(s)",
+    "publishedToast": "Plan published",
+    "unpublishedToast": "Plan unpublished",
+    "createdToast": "Plan created",
+    "updatedToast": "Plan updated",
+    "deletedToast": "Plan deleted",
+    "deleteTitle": "Delete plan",
+    "deleteConfirm": "Are you sure you want to delete the plan {name}? This deactivates it and removes it from the directory (soft-delete). Existing memberships keep their pricing (they are not affected).",
+    "columns": {
+      "plan": "Plan",
+      "type": "Type",
+      "inscription": "Enrollment",
+      "monthly": "Monthly",
+      "beneficiaries": "Beneficiaries",
+      "published": "Published"
+    },
+    "types": {
+      "INDIVIDUAL": "Individual",
+      "FAMILIAR": "Family",
+      "CORPORATIVO": "Corporate"
+    },
+    "status": {
+      "ACTIVE": "Active",
+      "INACTIVE": "Inactive"
+    },
+    "detail": {
+      "seoPage": "Plan detail",
+      "notFoundTitle": "Plan not found",
+      "notFoundBody": "The record doesn't exist or was deleted."
+    },
+    "sections": {
+      "pricing": "Pricing",
+      "beneficiaries": "Beneficiaries and validity",
+      "metadata": "Metadata"
+    },
+    "pricing": {
+      "inscription": "Enrollment",
+      "inscriptionHint": "One-time enrollment fee.",
+      "monthly": "Monthly",
+      "monthlyHint": "Recurring monthly charge.",
+      "extraBeneficiary": "Extra beneficiary enrollment",
+      "extraBeneficiaryHint": "One-time charge per additional beneficiary.",
+      "notAllowed": "Not allowed"
+    },
+    "beneficiaries": {
+      "included": "Included beneficiaries",
+      "max": "Maximum beneficiaries",
+      "noLimit": "No limit",
+      "graceDays": "Grace days",
+      "publishedAt": "Published on"
+    },
+    "metadata": {
+      "created": "Created",
+      "updated": "Last update",
+      "uuid": "UUID"
+    },
+    "form": {
+      "createTitle": "New plan",
+      "editTitle": "Edit plan",
+      "createDescription": "Define a new coverage plan and its pricing.",
+      "editDescription": "Update the plan's data and pricing.",
+      "loadingDetail": "Loading plan data…",
+      "invalidAmount": "Invalid amount",
+      "integersOnly": "Whole numbers only",
+      "codeFormat": "UPPER_SNAKE_CASE (A-Z, 0-9, _)",
+      "codeHelp": "UPPER_SNAKE_CASE. Unique key of the plan.",
+      "namePlaceholder": "Individual Plan",
+      "extraBeneficiaryHelp": "Leave empty if the plan doesn't allow additional beneficiaries.",
+      "includedHelp": "Defaults to 0.",
+      "maxHelp": "Empty = no limit.",
+      "graceHelp": "Defaults to 7.",
+      "publishedHelp": "Visible in the public plans directory.",
+      "submitCreate": "Create plan",
+      "fields": {
+        "code": "Code",
+        "type": "Type",
+        "name": "Name",
+        "description": "Description",
+        "inscription": "Enrollment (USD)",
+        "monthly": "Monthly (USD)",
+        "extraBeneficiary": "Extra beneficiary enrollment (USD)"
+      }
+    }
   }
 }
