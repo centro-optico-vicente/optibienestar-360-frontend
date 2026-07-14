@@ -41,7 +41,10 @@ import logoUrl from '~/assets/centro-optico-vicente-logo.png'
       </div>
     </aside>
 
-    <section class="flex items-center justify-center p-6 lg:p-12">
+    <section class="relative flex items-center justify-center p-6 lg:p-12">
+      <div class="absolute top-4 right-4 lg:top-6 lg:right-6">
+        <LocaleSwitcher />
+      </div>
       <div class="w-full max-w-md">
         <slot />
       </div>

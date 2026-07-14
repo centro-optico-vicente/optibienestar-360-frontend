@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { AuthUser, JwtPayload, LoginResponse, RefreshResponse, UserRole } from '~/types/auth'
+import type { AccessTokenResponse, AuthUser, JwtPayload, LoginResponse, RefreshResponse, UserRole } from '~/types/auth'
 
 // Política de almacenamiento (Guía de integración §9):
 // accessToken en sessionStorage (corto, 15 min), refreshToken en localStorage
@@ -108,6 +108,19 @@ export const useAuthStore = defineStore('auth', {
     setUser(user: AuthUser): void {
       this.user = user
       this.persist()
+    },
+
+    /**
+     * Swaps in a reissued access token (POST /v1/me/locale) keeping the current
+     * refresh token. The backend blacklists the previous access token, so this
+     * must run synchronously after the response and refresh the derived state.
+     */
+    applyAccessToken(res: AccessTokenResponse): void {
+      this.accessToken = res.accessToken
+      this.user = res.user
+      this.permissions = permissionsFromToken(res.accessToken)
+      this.persist()
+      this.scheduleRefresh()
     },
 
     persist(): void {

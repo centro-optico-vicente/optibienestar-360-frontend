@@ -20,6 +20,9 @@
     "no": "No",
     "seoTitle": "{page} — OptiBienestar 360"
   },
+  "locale": {
+    "change": "Cambiar idioma"
+  },
   "validation": {
     "required": "Requerido",
     "emailInvalid": "Email no válido",
