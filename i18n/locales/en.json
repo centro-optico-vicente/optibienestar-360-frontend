@@ -16,6 +16,8 @@
     "select": "Select",
     "viewAll": "View all",
     "empty": "—",
+    "yes": "Yes",
+    "no": "No",
     "seoTitle": "{page} — OptiBienestar 360"
   },
   "validation": {
@@ -28,7 +30,12 @@
     "passwordNumber": "Must include a number",
     "passwordSymbol": "Must include a symbol",
     "passwordsMismatch": "Passwords do not match",
-    "passwordSameAsCurrent": "The new password must differ from the current one"
+    "passwordSameAsCurrent": "The new password must differ from the current one",
+    "invalidAmount": "Invalid amount",
+    "invalidPercent": "Invalid percentage",
+    "invalidUrl": "Invalid URL",
+    "digitsOnly": "Numbers only",
+    "invalidUuid": "Must be a valid UUID"
   },
   "auth": {
     "fields": {
@@ -499,6 +506,293 @@
         "inscription": "Enrollment (USD)",
         "monthly": "Monthly (USD)",
         "extraBeneficiary": "Extra beneficiary enrollment (USD)"
+      }
+    }
+  },
+  "allies": {
+    "title": "Partners",
+    "subtitle": "Partner companies and professionals: services, agreements and staff.",
+    "new": "New partner",
+    "createTooltip": "Register a new partner",
+    "noPermissionCreate": "You don't have permission to create partners",
+    "noPermissionEdit": "You don't have permission to edit",
+    "noPermissionDelete": "You don't have permission to delete",
+    "noPermission": "You don't have permission",
+    "searchPlaceholder": "Search by name…",
+    "empty": "No partners",
+    "published": "Published",
+    "draft": "Draft",
+    "viewDetailTooltip": "View detail",
+    "paginationSummary": "{shown} of {total} partner(s)",
+    "createdToast": "Partner created",
+    "updatedToast": "Partner updated",
+    "deletedToast": "Partner deleted",
+    "fallbackName": "Partner",
+    "columns": {
+      "ally": "Partner",
+      "type": "Type",
+      "taxId": "Tax ID",
+      "city": "City",
+      "published": "Published",
+      "status": "Status"
+    },
+    "status": {
+      "ACTIVE": "Active",
+      "INACTIVE": "Inactive",
+      "SUSPENDED": "Suspended"
+    },
+    "form": {
+      "createTitle": "New partner",
+      "editTitle": "Edit partner",
+      "createDescription": "Register a partner company or professional.",
+      "editDescription": "Update the partner's data.",
+      "loadingDetail": "Loading partner data…",
+      "submitCreate": "Create partner",
+      "selectCityFirst": "Select a state first",
+      "selectMultiple": "Select one or more",
+      "fields": {
+        "name": "Name",
+        "allyType": "Partner type",
+        "taxDocumentType": "Tax document type",
+        "taxDocumentNumber": "Number (Tax ID)",
+        "email": "Email",
+        "phone": "Phone",
+        "website": "Website",
+        "state": "State (region)",
+        "city": "City",
+        "address": "Address",
+        "description": "Description",
+        "specialties": "Specialties",
+        "joinedAt": "Partnership date",
+        "published": "Published in directory",
+        "status": "Status"
+      }
+    },
+    "delete": {
+      "title": "Delete partner",
+      "confirm": "Are you sure you want to delete {name}? This deactivates it and removes it from the directory (soft-delete)."
+    },
+    "detail": {
+      "seoPage": "Partner detail",
+      "notFoundTitle": "Partner not found",
+      "notFoundBody": "The record doesn't exist or was deleted.",
+      "memberSince": "Partner since {date}",
+      "fields": {
+        "email": "Email",
+        "phone": "Phone",
+        "website": "Website",
+        "city": "City",
+        "address": "Address",
+        "description": "Description"
+      }
+    },
+    "tabs": {
+      "services": "Services",
+      "specialties": "Specialties",
+      "agreements": "Agreements",
+      "staff": "Staff"
+    },
+    "services": {
+      "title": "Services",
+      "hint": "New services stay under review (PROPOSED).",
+      "addTooltip": "Add service",
+      "add": "Add",
+      "empty": "No services registered",
+      "createdToast": "Service created (under review)",
+      "updatedToast": "Service updated",
+      "deletedToast": "Service deleted",
+      "columns": {
+        "service": "Service",
+        "category": "Category",
+        "price": "Price",
+        "discount": "Disc.",
+        "appointment": "Appt.",
+        "review": "Review",
+        "published": "Published"
+      },
+      "reviewStatus": {
+        "PROPOSED": "Proposed",
+        "APPROVED": "Approved",
+        "REJECTED": "Rejected"
+      },
+      "form": {
+        "createTitle": "Add service",
+        "editTitle": "Edit service",
+        "createDescription": "The service will stay under review (PROPOSED).",
+        "editDescription": "The review status is not changed this way.",
+        "fields": {
+          "category": "Category",
+          "name": "Name",
+          "description": "Description",
+          "price": "Price (USD)",
+          "discount": "Discount (%)",
+          "requiresAppointment": "Requires appointment",
+          "published": "Published"
+        }
+      },
+      "delete": {
+        "title": "Delete service",
+        "confirm": "Are you sure you want to delete the service {name}? (soft-delete)"
+      }
+    },
+    "specialties": {
+      "title": "Specialties",
+      "hint": "Medical specialties the partner offers.",
+      "add": "Add specialty",
+      "addButton": "Add",
+      "empty": "No specialties assigned."
+    },
+    "agreements": {
+      "title": "Agreements",
+      "hint": "Contracts and agreements with the partner.",
+      "add": "Add",
+      "empty": "No agreements registered",
+      "viewPdf": "View",
+      "createdToast": "Agreement created",
+      "updatedToast": "Agreement updated",
+      "deletedToast": "Agreement deleted",
+      "columns": {
+        "type": "Type",
+        "start": "Start",
+        "end": "End",
+        "pdf": "PDF",
+        "status": "Status"
+      },
+      "types": {
+        "COMMERCIAL": "Commercial",
+        "MEDICAL": "Medical",
+        "EXCLUSIVITY": "Exclusivity",
+        "SUPPLY": "Supply"
+      },
+      "status": {
+        "ACTIVE": "Active",
+        "EXPIRED": "Expired",
+        "TERMINATED": "Terminated"
+      },
+      "form": {
+        "createTitle": "Add agreement",
+        "editTitle": "Edit agreement",
+        "description": "Contract or agreement signed with the partner.",
+        "fields": {
+          "type": "Agreement type",
+          "startDate": "Start date",
+          "endDate": "End date",
+          "terms": "Terms",
+          "signedPdfUrl": "Signed PDF URL",
+          "status": "Status"
+        }
+      },
+      "delete": {
+        "title": "Delete agreement",
+        "confirm": "Are you sure you want to delete the {type} agreement? (soft-delete)"
+      }
+    },
+    "staff": {
+      "title": "Staff",
+      "hint": "Users with access to the partner panel.",
+      "assignTooltip": "Assign user",
+      "assign": "Assign",
+      "empty": "No staff assigned",
+      "editTooltip": "Edit",
+      "unlinkTooltip": "Unlink",
+      "assignedToast": "User assigned",
+      "updatedToast": "Membership updated",
+      "unlinkedToast": "User unlinked",
+      "columns": {
+        "user": "User",
+        "role": "Partner role",
+        "primary": "Primary",
+        "since": "Since",
+        "status": "Status"
+      },
+      "roles": {
+        "OWNER": "Owner",
+        "STAFF": "Staff",
+        "VIEWER": "Viewer"
+      },
+      "status": {
+        "ACTIVE": "Active",
+        "INACTIVE": "Inactive"
+      },
+      "form": {
+        "createTitle": "Assign user",
+        "editTitle": "Edit membership",
+        "description": "There can only be one active primary OWNER per partner.",
+        "selectUser": "Select a user",
+        "fields": {
+          "user": "User",
+          "role": "Partner role",
+          "joinedAt": "Join date",
+          "primary": "Primary (OWNER only)",
+          "status": "Status"
+        }
+      },
+      "delete": {
+        "title": "Unlink user",
+        "confirm": "Are you sure you want to unlink {name} from this partner? (soft-delete)"
+      }
+    },
+    "public": {
+      "seoTitle": "Partner network — OptiBienestar 360",
+      "seoDescription": "Directory of OptiBienestar 360 partner clinics, pharmacies and professionals.",
+      "heroBadge": "Partner network",
+      "heroTitle1": "Find your nearest",
+      "heroTitle2": "care center.",
+      "heroLead": "Clinics, pharmacies and professionals with preferential care for OptiBienestar 360 members.",
+      "viewDetail": "View detail",
+      "emptyTitle": "No partners found",
+      "emptyBody": "Try other filters or search terms.",
+      "filters": {
+        "search": "Search by name…",
+        "state": "State",
+        "city": "City",
+        "specialty": "Specialty",
+        "clear": "Clear filters"
+      },
+      "detail": {
+        "seoTitle": "{name} — OptiBienestar 360 partner network",
+        "back": "Partner network",
+        "notFoundTitle": "Partner unavailable",
+        "notFoundBody": "It doesn't exist or is no longer part of the directory.",
+        "backToDirectory": "Back to directory",
+        "servicesTitle": "Available services",
+        "servicesEmpty": "This partner doesn't have published services yet.",
+        "discountAffiliates": "-{pct}% members",
+        "requiresAppointment": "Requires an appointment",
+        "ctaTitle": "Not a member yet?",
+        "ctaBody": "Join OptiBienestar 360 and access preferential prices across the network.",
+        "ctaButton": "I want to join"
+      }
+    },
+    "portal": {
+      "seoTitle": "My partner company — OptiBienestar 360",
+      "title": "My partner company",
+      "subtitle": "Propose new services for your company. They stay under review until OptiBienestar 360 approves them.",
+      "lastProposedTitle": "“{name}” sent for review",
+      "lastProposedDescription": "We'll notify you when it's approved and published in the directory.",
+      "formTitle": "Propose a service",
+      "formHint": "You must have an active membership (owner or staff) in the partner company.",
+      "proposedToast": "Service proposed",
+      "proposedToastDescription": "It's under review; the OptiBienestar 360 team will approve it.",
+      "submit": "Send proposal",
+      "namePlaceholder": "Cardiology consultation",
+      "fields": {
+        "allyUuid": "Your partner company UUID",
+        "allyUuidHelp": "The OptiBienestar 360 team gives it to you when registering your company. It will be remembered for future proposals.",
+        "category": "Category",
+        "name": "Service name",
+        "description": "Description",
+        "price": "Price (USD)",
+        "discount": "Member discount (%)",
+        "requiresAppointment": "Requires appointment"
+      },
+      "help": {
+        "title": "How does it work?",
+        "step1": "You submit the service proposal with its price and member discount.",
+        "step2": "The OptiBienestar 360 team reviews and approves it.",
+        "step3pre": "Once published, it appears in the ",
+        "step3link": "public directory",
+        "step3post": "."
       }
     }
   }

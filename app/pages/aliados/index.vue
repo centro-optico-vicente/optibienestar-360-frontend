@@ -2,22 +2,24 @@
 import type { CatalogItem } from '~/types/catalogs'
 import type { PublicAllyDto } from '~/types/allies'
 
-// Directorio PÚBLICO de aliados (sin login). Solo muestra aliados PUBLISHED+ACTIVE
-// con datos sanitizados por el backend (/v1/public/allies).
+// PUBLIC partner directory (no login). Only shows PUBLISHED+ACTIVE partners with
+// data sanitized by the backend (/v1/public/allies).
 definePageMeta({ layout: 'default' })
 
+const { t } = useI18n()
+
 useSeoMeta({
-  title: 'Red de aliados — OptiBienestar 360',
-  description: 'Directorio de clínicas, farmacias y profesionales aliados de OptiBienestar 360.',
+  title: () => t('allies.public.seoTitle'),
+  description: () => t('allies.public.seoDescription'),
 })
 
 const publicAllies = usePublicAllies()
 
-// ---- Listado + filtros ----
+// ---- List + filters ----
 const data = ref<PublicAllyDto[]>([])
 const total = ref(0)
 const loading = ref(false)
-const page = ref(1) // UPagination es 1-based; la API es 0-based
+const page = ref(1) // UPagination is 1-based; the API is 0-based
 const size = ref(12)
 const search = ref('')
 const cityUuid = ref<string | undefined>(undefined)
@@ -37,7 +39,7 @@ async function load() {
     total.value = res.totalElements ?? 0
   }
   catch {
-    // useApi ya muestra el toast del error
+    // useApi already shows the error toast
     data.value = []
     total.value = 0
   }
@@ -60,7 +62,7 @@ watch(search, () => {
   }, 400)
 })
 
-// ---- Catálogos para los filtros ----
+// ---- Catalogs for the filters ----
 type Option = { label: string, value: string }
 const specialtyOptions = ref<Option[]>([])
 const stateOptions = ref<Option[]>([])
@@ -89,7 +91,7 @@ async function loadCatalogs() {
   stateOptions.value = toOptions(states)
 }
 
-// Ciudades en cascada según el estado seleccionado.
+// Cities cascade based on the selected state.
 const selectedStateUuid = ref<string | undefined>(undefined)
 watch(selectedStateUuid, async (stateUuid) => {
   cityOptions.value = []
@@ -130,24 +132,24 @@ onMounted(async () => {
       <div class="relative max-w-7xl mx-auto px-6 lg:px-10 py-14 lg:py-20">
         <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur px-3 py-1.5 rounded-full text-xs font-medium mb-5">
           <UIcon name="i-lucide-handshake" class="w-4 h-4 text-lime-300" />
-          Red de aliados
+          {{ t('allies.public.heroBadge') }}
         </div>
         <h1 class="text-3xl md:text-5xl font-extrabold leading-tight tracking-tight max-w-2xl">
-          Encuentra tu centro de atención
-          <span class="text-lime-300">más cercano.</span>
+          {{ t('allies.public.heroTitle1') }}
+          <span class="text-lime-300">{{ t('allies.public.heroTitle2') }}</span>
         </h1>
         <p class="mt-4 text-prohealth-100/90 max-w-xl">
-          Clínicas, farmacias y profesionales con atención preferencial para afiliados de OptiBienestar 360.
+          {{ t('allies.public.heroLead') }}
         </p>
       </div>
     </section>
 
-    <!-- Filtros -->
+    <!-- Filters -->
     <section class="max-w-7xl mx-auto px-6 lg:px-10 -mt-8 relative z-10">
       <div class="bg-white rounded-2xl border border-prohealth-100 shadow-sm p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <UInput
           v-model="search"
-          placeholder="Buscar por nombre…"
+          :placeholder="t('allies.public.filters.search')"
           icon="i-lucide-search"
           size="lg"
         />
@@ -156,7 +158,7 @@ onMounted(async () => {
           :items="stateOptions"
           label-key="label"
           value-key="value"
-          placeholder="Estado"
+          :placeholder="t('allies.public.filters.state')"
           size="lg"
         />
         <USelectMenu
@@ -165,7 +167,7 @@ onMounted(async () => {
           label-key="label"
           value-key="value"
           :disabled="!selectedStateUuid"
-          placeholder="Ciudad"
+          :placeholder="t('allies.public.filters.city')"
           size="lg"
         />
         <div class="flex items-center gap-2">
@@ -174,11 +176,11 @@ onMounted(async () => {
             :items="specialtyOptions"
             label-key="label"
             value-key="value"
-            placeholder="Especialidad"
+            :placeholder="t('allies.public.filters.specialty')"
             size="lg"
             class="flex-1"
           />
-          <UTooltip v-if="hasFilters" text="Limpiar filtros">
+          <UTooltip v-if="hasFilters" :text="t('allies.public.filters.clear')">
             <UButton
               color="neutral"
               variant="ghost"
@@ -192,7 +194,7 @@ onMounted(async () => {
       </div>
     </section>
 
-    <!-- Resultados -->
+    <!-- Results -->
     <section class="max-w-7xl mx-auto px-6 lg:px-10 py-10">
       <!-- Skeleton -->
       <div v-if="loading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -206,17 +208,17 @@ onMounted(async () => {
         </div>
       </div>
 
-      <!-- Vacío -->
+      <!-- Empty -->
       <div v-else-if="data.length === 0" class="bg-white rounded-2xl border border-prohealth-100 py-16 text-center">
         <UIcon name="i-lucide-search-x" class="w-10 h-10 mx-auto mb-3 text-prohealth-300" />
-        <p class="text-prohealth-700 font-semibold">No encontramos aliados</p>
-        <p class="text-sm text-prohealth-500 mt-1">Prueba con otros filtros o términos de búsqueda.</p>
+        <p class="text-prohealth-700 font-semibold">{{ t('allies.public.emptyTitle') }}</p>
+        <p class="text-sm text-prohealth-500 mt-1">{{ t('allies.public.emptyBody') }}</p>
         <UButton v-if="hasFilters" color="primary" variant="soft" size="sm" class="mt-4" @click="clearFilters">
-          Limpiar filtros
+          {{ t('allies.public.filters.clear') }}
         </UButton>
       </div>
 
-      <!-- Grid de aliados -->
+      <!-- Partners grid -->
       <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         <NuxtLink
           v-for="a in data"
@@ -230,7 +232,7 @@ onMounted(async () => {
                 {{ a.name }}
               </h3>
               <p class="text-xs text-prohealth-500 mt-0.5">
-                {{ a.allyType?.name || 'Aliado' }}
+                {{ a.allyType?.name || t('allies.fallbackName') }}
                 <template v-if="a.city?.name"> · {{ a.city.name }}</template>
               </p>
             </div>
@@ -259,13 +261,13 @@ onMounted(async () => {
           </div>
 
           <div class="flex items-center gap-1 mt-4 text-sm font-medium text-cyan-700">
-            Ver detalle
+            {{ t('allies.public.viewDetail') }}
             <UIcon name="i-lucide-arrow-right" class="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
           </div>
         </NuxtLink>
       </div>
 
-      <!-- Paginación -->
+      <!-- Pagination -->
       <div v-if="total > size" class="flex justify-center mt-8">
         <UPagination
           v-model:page="page"

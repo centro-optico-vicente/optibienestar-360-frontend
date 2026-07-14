@@ -4,26 +4,28 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 import type { CatalogItem } from '~/types/catalogs'
 import type { AllyServiceDto } from '~/types/allies'
 
-// Panel del aliado: proponer servicios (POST /v1/aliado/services, nacen en PROPOSED).
-// El backend exige que el usuario tenga membresía OWNER/STAFF en el ally indicado.
+// Partner panel: propose services (POST /v1/aliado/services, born in PROPOSED).
+// The backend requires the user to have OWNER/STAFF membership in the given ally.
 //
-// LIMITACIÓN backend: no existe `GET /v1/me/ally`, así que el UUID del aliado se
-// pide una vez y se recuerda en localStorage. Cuando el backend lo exponga,
-// reemplazar el campo por la carga automática.
+// Backend LIMITATION: there's no `GET /v1/me/ally`, so the partner UUID is asked
+// once and remembered in localStorage. When the backend exposes it, replace the
+// field with automatic loading.
 definePageMeta({
   layout: 'dashboard',
   middleware: 'role',
   roles: ['ALIADO'],
 })
 
-useSeoMeta({ title: 'Mi empresa aliada — OptiBienestar 360' })
+const { t } = useI18n()
+
+useSeoMeta({ title: () => t('allies.portal.seoTitle') })
 
 const allies = useAllies()
 const toast = useToast()
 
 const ALLY_UUID_KEY = 'aliado:ally-uuid'
 
-// ---- Catálogo de categorías ----
+// ---- Categories catalog ----
 const categoryOptions = ref<{ label: string, value: string }[]>([])
 
 async function loadCategories() {
@@ -43,7 +45,7 @@ onMounted(() => {
   loadCategories()
 })
 
-// ---- Formulario de propuesta ----
+// ---- Proposal form ----
 const isSubmitting = ref(false)
 const lastProposed = ref<AllyServiceDto | null>(null)
 
@@ -57,14 +59,15 @@ const state = reactive({
   requiresAppointment: false,
 })
 
-const schema = z.object({
-  allyUuid: z.string().uuid('Debe ser un UUID válido'),
-  serviceCategoryUuid: z.string({ message: 'Requerido' }).min(1, 'Requerido'),
-  name: z.string().min(3, 'Mínimo 3 caracteres'),
+// Locale-reactive schema so validation messages follow the UI locale.
+const schema = computed(() => z.object({
+  allyUuid: z.string().uuid(t('validation.invalidUuid')),
+  serviceCategoryUuid: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
+  name: z.string().min(3, t('validation.minChars', { n: 3 })),
   description: z.string().optional(),
-  priceUsd: z.string().regex(/^\d*(\.\d{1,2})?$/, 'Monto no válido').optional().or(z.literal('')),
-  discountPct: z.string().regex(/^\d*(\.\d{1,2})?$/, 'Porcentaje no válido').optional().or(z.literal('')),
-})
+  priceUsd: z.string().regex(/^\d*(\.\d{1,2})?$/, t('validation.invalidAmount')).optional().or(z.literal('')),
+  discountPct: z.string().regex(/^\d*(\.\d{1,2})?$/, t('validation.invalidPercent')).optional().or(z.literal('')),
+}))
 
 async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
   isSubmitting.value = true
@@ -80,12 +83,12 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     })
     localStorage.setItem(ALLY_UUID_KEY, state.allyUuid)
     toast.add({
-      title: 'Servicio propuesto',
-      description: 'Quedó en revisión; el equipo de OptiBienestar 360 lo aprobará.',
+      title: t('allies.portal.proposedToast'),
+      description: t('allies.portal.proposedToastDescription'),
       color: 'success',
       icon: 'i-lucide-check-circle',
     })
-    // Conserva allyUuid para la siguiente propuesta; limpia el resto.
+    // Keep allyUuid for the next proposal; clear the rest.
     state.serviceCategoryUuid = undefined
     state.name = ''
     state.description = ''
@@ -94,7 +97,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     state.requiresAppointment = false
   }
   catch {
-    // useApi ya notificó el error (403 si no tienes membresía OWNER/STAFF en ese ally)
+    // useApi already notified the error (403 if you don't have OWNER/STAFF membership in that ally)
   }
   finally {
     isSubmitting.value = false
@@ -105,27 +108,27 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
 <template>
   <div class="space-y-6 max-w-2xl">
     <div>
-      <h1 class="text-2xl font-extrabold text-prohealth-900">Mi empresa aliada</h1>
+      <h1 class="text-2xl font-extrabold text-prohealth-900">{{ t('allies.portal.title') }}</h1>
       <p class="text-sm text-prohealth-700/70 mt-1">
-        Propón nuevos servicios para tu empresa. Quedan en revisión hasta que OptiBienestar 360 los apruebe.
+        {{ t('allies.portal.subtitle') }}
       </p>
     </div>
 
-    <!-- Última propuesta -->
+    <!-- Last proposal -->
     <UAlert
       v-if="lastProposed"
       color="success"
       variant="subtle"
       icon="i-lucide-clock"
-      :title="`«${lastProposed.name}» enviado a revisión`"
-      description="Te notificaremos cuando sea aprobado y publicado en el directorio."
+      :title="t('allies.portal.lastProposedTitle', { name: lastProposed.name })"
+      :description="t('allies.portal.lastProposedDescription')"
     />
 
-    <!-- Formulario -->
+    <!-- Form -->
     <div class="bg-white rounded-2xl border border-prohealth-100 p-6">
-      <h2 class="font-bold text-prohealth-900 mb-1">Proponer un servicio</h2>
+      <h2 class="font-bold text-prohealth-900 mb-1">{{ t('allies.portal.formTitle') }}</h2>
       <p class="text-xs text-prohealth-500 mb-5">
-        Debes tener membresía activa (propietario o personal) en la empresa aliada.
+        {{ t('allies.portal.formHint') }}
       </p>
 
       <UForm
@@ -135,10 +138,10 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         @submit="onSubmit"
       >
         <UFormField
-          label="UUID de tu empresa aliada"
+          :label="t('allies.portal.fields.allyUuid')"
           name="allyUuid"
           required
-          help="Te lo proporciona el equipo de OptiBienestar 360 al registrar tu empresa. Se recordará para próximas propuestas."
+          :help="t('allies.portal.fields.allyUuidHelp')"
         >
           <UInput
             v-model="state.allyUuid"
@@ -148,55 +151,55 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           />
         </UFormField>
 
-        <UFormField label="Categoría" name="serviceCategoryUuid" required>
+        <UFormField :label="t('allies.portal.fields.category')" name="serviceCategoryUuid" required>
           <USelectMenu
             v-model="state.serviceCategoryUuid"
             :items="categoryOptions"
             label-key="label"
             value-key="value"
-            placeholder="Selecciona"
+            :placeholder="t('common.select')"
             class="w-full"
           />
         </UFormField>
 
-        <UFormField label="Nombre del servicio" name="name" required>
-          <UInput v-model="state.name" placeholder="Consulta de Cardiología" class="w-full" />
+        <UFormField :label="t('allies.portal.fields.name')" name="name" required>
+          <UInput v-model="state.name" :placeholder="t('allies.portal.namePlaceholder')" class="w-full" />
         </UFormField>
 
-        <UFormField label="Descripción" name="description">
+        <UFormField :label="t('allies.portal.fields.description')" name="description">
           <UTextarea v-model="state.description" :rows="2" class="w-full" />
         </UFormField>
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <UFormField label="Precio (USD)" name="priceUsd">
+          <UFormField :label="t('allies.portal.fields.price')" name="priceUsd">
             <UInput v-model="state.priceUsd" placeholder="100.00" class="w-full" />
           </UFormField>
-          <UFormField label="Descuento afiliados (%)" name="discountPct">
+          <UFormField :label="t('allies.portal.fields.discount')" name="discountPct">
             <UInput v-model="state.discountPct" placeholder="10.00" class="w-full" />
           </UFormField>
-          <UFormField label="Requiere cita" name="requiresAppointment">
+          <UFormField :label="t('allies.portal.fields.requiresAppointment')" name="requiresAppointment">
             <USwitch v-model="state.requiresAppointment" />
           </UFormField>
         </div>
 
         <div class="flex justify-end pt-2">
           <UButton type="submit" color="primary" :loading="isSubmitting" icon="i-lucide-send">
-            Enviar propuesta
+            {{ t('allies.portal.submit') }}
           </UButton>
         </div>
       </UForm>
     </div>
 
-    <!-- Ayuda -->
+    <!-- Help -->
     <div class="rounded-2xl border border-cyan-200 bg-cyan-50/60 p-5 text-sm text-prohealth-800 space-y-2">
       <p class="font-semibold flex items-center gap-2">
         <UIcon name="i-lucide-info" class="w-4 h-4 text-cyan-600" />
-        ¿Cómo funciona?
+        {{ t('allies.portal.help.title') }}
       </p>
       <ol class="list-decimal list-inside space-y-1 text-prohealth-700">
-        <li>Envías la propuesta del servicio con su precio y descuento para afiliados.</li>
-        <li>El equipo de OptiBienestar 360 la revisa y aprueba.</li>
-        <li>Una vez publicado, aparece en el <NuxtLink to="/aliados" class="text-cyan-700 hover:underline">directorio público</NuxtLink>.</li>
+        <li>{{ t('allies.portal.help.step1') }}</li>
+        <li>{{ t('allies.portal.help.step2') }}</li>
+        <li>{{ t('allies.portal.help.step3pre') }}<NuxtLink to="/aliados" class="text-cyan-700 hover:underline">{{ t('allies.portal.help.step3link') }}</NuxtLink>{{ t('allies.portal.help.step3post') }}</li>
       </ol>
     </div>
   </div>

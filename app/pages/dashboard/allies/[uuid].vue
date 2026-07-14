@@ -19,8 +19,6 @@ import type {
 import {
   AGREEMENT_TYPE_OPTIONS,
   ALLY_ROLE_OPTIONS,
-  agreementTypeLabel,
-  allyRoleLabel,
 } from '~/types/allies'
 
 definePageMeta({
@@ -29,7 +27,10 @@ definePageMeta({
   permission: 'ALLY_VIEW_ALL',
 })
 
-useSeoMeta({ title: 'Detalle de aliado — OptiBienestar 360' })
+const { t } = useI18n()
+const { formatCurrency, formatDate } = useFormatters()
+
+useSeoMeta({ title: () => t('common.seoTitle', { page: t('allies.detail.seoPage') }) })
 
 const route = useRoute()
 const allyUuid = route.params.uuid as string
@@ -42,7 +43,7 @@ const canUpdate = computed(() => can('ALLY_UPDATE'))
 const canDelete = computed(() => can('ALLY_DELETE'))
 const canManageAgreements = computed(() => can('ALLY_AGREEMENT_MANAGE'))
 
-// ---- Carga del aliado ----
+// ---- Ally load ----
 const ally = ref<AllyDto | null>(null)
 const loading = ref(true)
 const notFound = ref(false)
@@ -62,29 +63,58 @@ async function loadAlly() {
   }
 }
 
-function formatDate(iso?: string | null): string {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('es', { dateStyle: 'medium' })
+// Date in the VE convention (useFormatters). Empty → '—'.
+function date(iso?: string | null): string {
+  return formatDate(iso, 'short')
 }
 
-function formatMoney(v?: string | null): string {
-  if (!v) return '—'
-  return `$${Number(v).toFixed(2)}`
+// Amount in USD, formatted in the VE convention. Empty → '—'.
+function money(v?: string | null): string {
+  if (v === null || v === undefined || v === '') return t('common.empty')
+  return formatCurrency(Number(v), 'USD')
 }
+
+// ---- Enum label resolvers (fall back to the raw value) ----
+function allyStatusLabel(s?: string | null): string {
+  return s ? t(`allies.status.${s}`, s) : t('common.empty')
+}
+function agrTypeLabel(type?: string | null): string {
+  return type ? t(`allies.agreements.types.${type}`, type) : t('common.empty')
+}
+function agreementStatusLabel(s?: string | null): string {
+  return s ? t(`allies.agreements.status.${s}`, s) : t('common.empty')
+}
+function roleLabel(role?: string | null): string {
+  return role ? t(`allies.staff.roles.${role}`, role) : t('common.empty')
+}
+function reviewStatusLabel(s?: string | null): string {
+  return s ? t(`allies.services.reviewStatus.${s}`, s) : t('common.empty')
+}
+function staffStatusLabel(s?: string | null): string {
+  return s ? t(`allies.staff.status.${s}`, s) : t('common.empty')
+}
+
+// Localized enum options for the selects.
+const agreementTypeOptions = computed(() => AGREEMENT_TYPE_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
+const allyRoleOptions = computed(() => ALLY_ROLE_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
+const AGR_STATUS_OPTIONS = ['ACTIVE', 'EXPIRED', 'TERMINATED']
+const agrStatusOptions = computed(() => AGR_STATUS_OPTIONS.map(s => ({ label: agreementStatusLabel(s), value: s })))
+const STAFF_STATUS_OPTIONS = ['ACTIVE', 'INACTIVE']
+const staffStatusOptions = computed(() => STAFF_STATUS_OPTIONS.map(s => ({ label: staffStatusLabel(s), value: s })))
 
 // ---- Tabs ----
 const tabs = computed(() => [
-  { label: 'Servicios', value: 'services', icon: 'i-lucide-briefcase-medical' },
-  { label: 'Especialidades', value: 'specialties', icon: 'i-lucide-stethoscope' },
+  { label: t('allies.tabs.services'), value: 'services', icon: 'i-lucide-briefcase-medical' },
+  { label: t('allies.tabs.specialties'), value: 'specialties', icon: 'i-lucide-stethoscope' },
   ...(canManageAgreements.value
-    ? [{ label: 'Acuerdos', value: 'agreements', icon: 'i-lucide-file-signature' }]
+    ? [{ label: t('allies.tabs.agreements'), value: 'agreements', icon: 'i-lucide-file-signature' }]
     : []),
-  { label: 'Personal', value: 'users', icon: 'i-lucide-users' },
+  { label: t('allies.tabs.staff'), value: 'users', icon: 'i-lucide-users' },
 ])
 const activeTab = ref('services')
 
 // =========================================================
-// Servicios
+// Services
 // =========================================================
 const services = ref<AllyServiceDto[]>([])
 const servicesLoading = ref(false)
@@ -95,7 +125,7 @@ async function loadServices() {
     services.value = await allies.listServices(allyUuid)
   }
   catch {
-    // toast por useApi
+    // toast handled by useApi
   }
   finally {
     servicesLoading.value = false
@@ -141,13 +171,13 @@ const svcState = reactive<SvcFormState>({
   published: false,
 })
 
-const svcSchema = z.object({
-  serviceCategoryUuid: z.string({ message: 'Requerido' }).min(1, 'Requerido'),
-  name: z.string().min(3, 'Mínimo 3 caracteres'),
+const svcSchema = computed(() => z.object({
+  serviceCategoryUuid: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
+  name: z.string().min(3, t('validation.minChars', { n: 3 })),
   description: z.string().optional(),
-  priceUsd: z.string().regex(/^\d*(\.\d{1,2})?$/, 'Monto no válido').optional().or(z.literal('')),
-  discountPct: z.string().regex(/^\d*(\.\d{1,2})?$/, 'Porcentaje no válido').optional().or(z.literal('')),
-})
+  priceUsd: z.string().regex(/^\d*(\.\d{1,2})?$/, t('validation.invalidAmount')).optional().or(z.literal('')),
+  discountPct: z.string().regex(/^\d*(\.\d{1,2})?$/, t('validation.invalidPercent')).optional().or(z.literal('')),
+}))
 
 function resetSvcForm() {
   svcState.serviceCategoryUuid = undefined
@@ -193,7 +223,7 @@ async function onSvcSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         requiresAppointment: svcState.requiresAppointment,
       }
       await allies.createService(allyUuid, body)
-      toast.add({ title: 'Servicio creado (en revisión)', color: 'success', icon: 'i-lucide-check-circle' })
+      toast.add({ title: t('allies.services.createdToast'), color: 'success', icon: 'i-lucide-check-circle' })
     }
     else if (svcEditingUuid.value) {
       const body: UpdateAllyServiceRequest = {
@@ -206,13 +236,13 @@ async function onSvcSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         published: svcState.published,
       }
       await allies.updateService(allyUuid, svcEditingUuid.value, body)
-      toast.add({ title: 'Servicio actualizado', color: 'success', icon: 'i-lucide-check-circle' })
+      toast.add({ title: t('allies.services.updatedToast'), color: 'success', icon: 'i-lucide-check-circle' })
     }
     svcFormOpen.value = false
     await loadServices()
   }
   catch {
-    // toast por useApi
+    // toast handled by useApi
   }
   finally {
     svcSubmitting.value = false
@@ -233,12 +263,12 @@ async function confirmSvcDelete() {
   svcDeleting.value = true
   try {
     await allies.removeService(allyUuid, svcTarget.value.uuid)
-    toast.add({ title: 'Servicio eliminado', color: 'success', icon: 'i-lucide-check-circle' })
+    toast.add({ title: t('allies.services.deletedToast'), color: 'success', icon: 'i-lucide-check-circle' })
     svcDeleteOpen.value = false
     await loadServices()
   }
   catch {
-    // toast por useApi
+    // toast handled by useApi
   }
   finally {
     svcDeleting.value = false
@@ -253,7 +283,7 @@ function reviewStatusColor(s?: string): 'success' | 'warning' | 'error' | 'neutr
 }
 
 // =========================================================
-// Especialidades (ManyToMany)
+// Specialties (ManyToMany)
 // =========================================================
 const specialties = ref<CatalogRef[]>([])
 const specialtiesLoading = ref(false)
@@ -267,7 +297,7 @@ async function loadSpecialties() {
     specialties.value = await allies.listSpecialties(allyUuid)
   }
   catch {
-    // toast por useApi
+    // toast handled by useApi
   }
   finally {
     specialtiesLoading.value = false
@@ -286,7 +316,7 @@ async function loadAllSpecialties() {
   }
 }
 
-/** Solo las especialidades aún no asignadas. */
+/** Only the specialties not yet assigned. */
 const availableSpecialtyOptions = computed(() => {
   const assigned = new Set(specialties.value.map(s => s.uuid))
   return allSpecialtyOptions.value.filter(o => !assigned.has(o.value))
@@ -301,7 +331,7 @@ async function addSpecialty() {
     await loadSpecialties()
   }
   catch {
-    // toast por useApi
+    // toast handled by useApi
   }
   finally {
     specialtyMutating.value = false
@@ -315,7 +345,7 @@ async function removeSpecialty(specialtyUuid: string) {
     await loadSpecialties()
   }
   catch {
-    // toast por useApi
+    // toast handled by useApi
   }
   finally {
     specialtyMutating.value = false
@@ -323,7 +353,7 @@ async function removeSpecialty(specialtyUuid: string) {
 }
 
 // =========================================================
-// Acuerdos (ALLY_AGREEMENT_MANAGE)
+// Agreements (ALLY_AGREEMENT_MANAGE)
 // =========================================================
 const agreements = ref<AllyAgreementDto[]>([])
 const agreementsLoading = ref(false)
@@ -335,7 +365,7 @@ async function loadAgreements() {
     agreements.value = await allies.listAgreements(allyUuid)
   }
   catch {
-    // toast por useApi
+    // toast handled by useApi
   }
   finally {
     agreementsLoading.value = false
@@ -365,13 +395,13 @@ const agrState = reactive<AgrFormState>({
   status: 'ACTIVE',
 })
 
-const agrSchema = z.object({
-  agreementType: z.string({ message: 'Requerido' }).min(1, 'Requerido'),
+const agrSchema = computed(() => z.object({
+  agreementType: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
   terms: z.string().optional(),
-  signedPdfUrl: z.string().url('URL no válida').optional().or(z.literal('')),
-})
+  signedPdfUrl: z.string().url(t('validation.invalidUrl')).optional().or(z.literal('')),
+}))
 
 function resetAgrForm() {
   agrState.agreementType = undefined
@@ -414,7 +444,7 @@ async function onAgrSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         signedPdfUrl: agrState.signedPdfUrl || undefined,
       }
       await allies.createAgreement(allyUuid, body)
-      toast.add({ title: 'Acuerdo creado', color: 'success', icon: 'i-lucide-check-circle' })
+      toast.add({ title: t('allies.agreements.createdToast'), color: 'success', icon: 'i-lucide-check-circle' })
     }
     else if (agrEditingUuid.value) {
       const body: UpdateAllyAgreementRequest = {
@@ -426,13 +456,13 @@ async function onAgrSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         status: agrState.status,
       }
       await allies.updateAgreement(allyUuid, agrEditingUuid.value, body)
-      toast.add({ title: 'Acuerdo actualizado', color: 'success', icon: 'i-lucide-check-circle' })
+      toast.add({ title: t('allies.agreements.updatedToast'), color: 'success', icon: 'i-lucide-check-circle' })
     }
     agrFormOpen.value = false
     await loadAgreements()
   }
   catch {
-    // toast por useApi
+    // toast handled by useApi
   }
   finally {
     agrSubmitting.value = false
@@ -453,12 +483,12 @@ async function confirmAgrDelete() {
   agrDeleting.value = true
   try {
     await allies.removeAgreement(allyUuid, agrTarget.value.uuid)
-    toast.add({ title: 'Acuerdo eliminado', color: 'success', icon: 'i-lucide-check-circle' })
+    toast.add({ title: t('allies.agreements.deletedToast'), color: 'success', icon: 'i-lucide-check-circle' })
     agrDeleteOpen.value = false
     await loadAgreements()
   }
   catch {
-    // toast por useApi
+    // toast handled by useApi
   }
   finally {
     agrDeleting.value = false
@@ -466,7 +496,7 @@ async function confirmAgrDelete() {
 }
 
 // =========================================================
-// Personal (staff del aliado)
+// Staff (partner users)
 // =========================================================
 const staff = ref<AllyUserDto[]>([])
 const staffLoading = ref(false)
@@ -477,15 +507,15 @@ async function loadStaff() {
     staff.value = await allies.listUsers(allyUuid)
   }
   catch {
-    // toast por useApi
+    // toast handled by useApi
   }
   finally {
     staffLoading.value = false
   }
 }
 
-// Usuarios del sistema para el selector de asignación (requiere USER_VIEW_ALL;
-// si no hay permiso, falla en silencio y el select queda vacío).
+// System users for the assignment selector (requires USER_VIEW_ALL; without the
+// permission it fails silently and the select stays empty).
 const userOptions = ref<{ label: string, value: string }[]>([])
 
 async function loadUserOptions() {
@@ -523,16 +553,16 @@ const staffState = reactive<StaffFormState>({
   status: 'ACTIVE',
 })
 
-const staffCreateSchema = z.object({
-  userUuid: z.string({ message: 'Requerido' }).min(1, 'Requerido'),
-  allyRole: z.string({ message: 'Requerido' }).min(1, 'Requerido'),
+const staffSchema = computed(() => {
+  const createSchema = z.object({
+    userUuid: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
+    allyRole: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
+  })
+  const editSchema = z.object({
+    allyRole: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
+  })
+  return staffMode.value === 'create' ? createSchema : editSchema
 })
-
-const staffEditSchema = z.object({
-  allyRole: z.string({ message: 'Requerido' }).min(1, 'Requerido'),
-})
-
-const staffSchema = computed(() => (staffMode.value === 'create' ? staffCreateSchema : staffEditSchema))
 
 function resetStaffForm() {
   staffState.userUuid = undefined
@@ -561,7 +591,7 @@ function openStaffEdit(s: AllyUserDto) {
   staffFormOpen.value = true
 }
 
-// `primary` solo aplica a OWNER: al cambiar de rol se desactiva.
+// `primary` only applies to OWNER: it's cleared when the role changes.
 watch(() => staffState.allyRole, (role) => {
   if (role !== 'OWNER') staffState.primary = false
 })
@@ -576,7 +606,7 @@ async function onStaffSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         primary: staffState.primary,
         joinedAt: staffState.joinedAt || undefined,
       })
-      toast.add({ title: 'Usuario asignado', color: 'success', icon: 'i-lucide-check-circle' })
+      toast.add({ title: t('allies.staff.assignedToast'), color: 'success', icon: 'i-lucide-check-circle' })
     }
     else if (staffEditingUuid.value) {
       await allies.updateUser(allyUuid, staffEditingUuid.value, {
@@ -585,13 +615,13 @@ async function onStaffSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         joinedAt: staffState.joinedAt || undefined,
         status: staffState.status,
       })
-      toast.add({ title: 'Membresía actualizada', color: 'success', icon: 'i-lucide-check-circle' })
+      toast.add({ title: t('allies.staff.updatedToast'), color: 'success', icon: 'i-lucide-check-circle' })
     }
     staffFormOpen.value = false
     await loadStaff()
   }
   catch {
-    // toast por useApi (422 si ya hay OWNER primary, etc.)
+    // toast handled by useApi (422 if there's already a primary OWNER, etc.)
   }
   finally {
     staffSubmitting.value = false
@@ -612,12 +642,12 @@ async function confirmStaffDelete() {
   staffDeleting.value = true
   try {
     await allies.removeUser(allyUuid, staffTarget.value.uuid)
-    toast.add({ title: 'Usuario desvinculado', color: 'success', icon: 'i-lucide-check-circle' })
+    toast.add({ title: t('allies.staff.unlinkedToast'), color: 'success', icon: 'i-lucide-check-circle' })
     staffDeleteOpen.value = false
     await loadStaff()
   }
   catch {
-    // toast por useApi
+    // toast handled by useApi
   }
   finally {
     staffDeleting.value = false
@@ -641,7 +671,7 @@ onMounted(async () => {
 
 <template>
   <div class="space-y-5">
-    <!-- Volver -->
+    <!-- Back -->
     <UButton
       color="neutral"
       variant="ghost"
@@ -649,89 +679,89 @@ onMounted(async () => {
       to="/dashboard/allies"
       size="sm"
     >
-      Aliados
+      {{ t('allies.title') }}
     </UButton>
 
-    <!-- Cargando -->
+    <!-- Loading -->
     <div v-if="loading" class="bg-white rounded-2xl border border-prohealth-100 p-6 space-y-3">
       <USkeleton class="h-7 w-64 rounded" />
       <USkeleton class="h-4 w-40 rounded" />
       <USkeleton class="h-4 w-full max-w-lg rounded" />
     </div>
 
-    <!-- No encontrado -->
+    <!-- Not found -->
     <div v-else-if="notFound || !ally" class="bg-white rounded-2xl border border-prohealth-100 p-12 text-center">
       <UIcon name="i-lucide-search-x" class="w-10 h-10 mx-auto mb-3 text-prohealth-300" />
-      <p class="text-prohealth-700 font-semibold">Aliado no encontrado</p>
-      <p class="text-sm text-prohealth-500 mt-1">El registro no existe o fue eliminado.</p>
+      <p class="text-prohealth-700 font-semibold">{{ t('allies.detail.notFoundTitle') }}</p>
+      <p class="text-sm text-prohealth-500 mt-1">{{ t('allies.detail.notFoundBody') }}</p>
     </div>
 
     <template v-else>
-      <!-- Datos del aliado -->
+      <!-- Ally data -->
       <div class="bg-white rounded-2xl border border-prohealth-100 p-6">
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div>
             <div class="flex items-center gap-3 flex-wrap">
               <h1 class="text-2xl font-extrabold text-prohealth-900">{{ ally.name }}</h1>
               <UBadge :color="ally.status === 'ACTIVE' ? 'success' : 'warning'" variant="subtle">
-                {{ ally.status || '—' }}
+                {{ ally.status ? allyStatusLabel(ally.status) : t('common.empty') }}
               </UBadge>
               <UBadge :color="ally.published ? 'success' : 'neutral'" variant="subtle">
-                {{ ally.published ? 'Publicado' : 'Borrador' }}
+                {{ ally.published ? t('allies.published') : t('allies.draft') }}
               </UBadge>
             </div>
             <p class="text-sm text-prohealth-500 mt-1">
-              {{ ally.allyType?.name || 'Aliado' }}
+              {{ ally.allyType?.name || t('allies.fallbackName') }}
               <template v-if="ally.taxDocumentNumber"> · {{ ally.taxDocumentType }}-{{ ally.taxDocumentNumber }}</template>
-              · Aliado desde {{ formatDate(ally.joinedAt) }}
+              · {{ t('allies.detail.memberSince', { date: date(ally.joinedAt) }) }}
             </p>
           </div>
         </div>
 
         <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 mt-6 text-sm">
           <div>
-            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">Email</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ ally.email || '—' }}</dd>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.detail.fields.email') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ ally.email || t('common.empty') }}</dd>
           </div>
           <div>
-            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">Teléfono</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ ally.phone || '—' }}</dd>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.detail.fields.phone') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ ally.phone || t('common.empty') }}</dd>
           </div>
           <div>
-            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">Sitio web</dt>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.detail.fields.website') }}</dt>
             <dd class="text-prohealth-800 mt-0.5">
               <a v-if="ally.website" :href="ally.website" target="_blank" rel="noopener" class="text-cyan-700 hover:underline">
                 {{ ally.website }}
               </a>
-              <span v-else>—</span>
+              <span v-else>{{ t('common.empty') }}</span>
             </dd>
           </div>
           <div>
-            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">Ciudad</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ ally.city?.name || '—' }}</dd>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.detail.fields.city') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ ally.city?.name || t('common.empty') }}</dd>
           </div>
           <div class="sm:col-span-2">
-            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">Dirección</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ ally.address || '—' }}</dd>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.detail.fields.address') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ ally.address || t('common.empty') }}</dd>
           </div>
           <div v-if="ally.description" class="sm:col-span-3">
-            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">Descripción</dt>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.detail.fields.description') }}</dt>
             <dd class="text-prohealth-800 mt-0.5">{{ ally.description }}</dd>
           </div>
         </dl>
       </div>
 
-      <!-- Tabs de sub-recursos -->
+      <!-- Sub-resource tabs -->
       <UTabs v-model="activeTab" :items="tabs" :content="false" />
 
-      <!-- ============ Servicios ============ -->
+      <!-- ============ Services ============ -->
       <div v-show="activeTab === 'services'" class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
         <div class="flex items-center justify-between px-6 py-4 border-b border-prohealth-100">
           <div>
-            <h2 class="font-bold text-prohealth-900">Servicios</h2>
-            <p class="text-xs text-prohealth-500 mt-0.5">Los servicios nuevos quedan en revisión (PROPOSED).</p>
+            <h2 class="font-bold text-prohealth-900">{{ t('allies.services.title') }}</h2>
+            <p class="text-xs text-prohealth-500 mt-0.5">{{ t('allies.services.hint') }}</p>
           </div>
-          <UTooltip :text="canUpdate ? 'Añadir servicio' : 'No tienes permiso'">
+          <UTooltip :text="canUpdate ? t('allies.services.addTooltip') : t('allies.noPermission')">
             <UButton
               color="primary"
               variant="soft"
@@ -740,7 +770,7 @@ onMounted(async () => {
               :disabled="!canUpdate"
               @click="openSvcCreate"
             >
-              Añadir
+              {{ t('allies.services.add') }}
             </UButton>
           </UTooltip>
         </div>
@@ -749,14 +779,14 @@ onMounted(async () => {
           <table class="w-full text-sm">
             <thead>
               <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
-                <th class="px-6 py-3 font-semibold">Servicio</th>
-                <th class="px-6 py-3 font-semibold">Categoría</th>
-                <th class="px-6 py-3 font-semibold">Precio</th>
-                <th class="px-6 py-3 font-semibold">Desc.</th>
-                <th class="px-6 py-3 font-semibold">Cita</th>
-                <th class="px-6 py-3 font-semibold">Revisión</th>
-                <th class="px-6 py-3 font-semibold">Publicado</th>
-                <th class="px-6 py-3 font-semibold text-right">Acciones</th>
+                <th class="px-6 py-3 font-semibold">{{ t('allies.services.columns.service') }}</th>
+                <th class="px-6 py-3 font-semibold">{{ t('allies.services.columns.category') }}</th>
+                <th class="px-6 py-3 font-semibold">{{ t('allies.services.columns.price') }}</th>
+                <th class="px-6 py-3 font-semibold">{{ t('allies.services.columns.discount') }}</th>
+                <th class="px-6 py-3 font-semibold">{{ t('allies.services.columns.appointment') }}</th>
+                <th class="px-6 py-3 font-semibold">{{ t('allies.services.columns.review') }}</th>
+                <th class="px-6 py-3 font-semibold">{{ t('allies.services.columns.published') }}</th>
+                <th class="px-6 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-prohealth-100">
@@ -764,7 +794,7 @@ onMounted(async () => {
               <tr v-else-if="services.length === 0">
                 <td colspan="8" class="px-6 py-10 text-center text-prohealth-500">
                   <UIcon name="i-lucide-briefcase-medical" class="w-7 h-7 mx-auto mb-2 text-prohealth-300" />
-                  Sin servicios registrados
+                  {{ t('allies.services.empty') }}
                 </td>
               </tr>
               <tr v-for="s in services" v-else :key="s.uuid" class="hover:bg-prohealth-50/50">
@@ -772,9 +802,9 @@ onMounted(async () => {
                   <div class="font-semibold text-prohealth-900">{{ s.name }}</div>
                   <div v-if="s.description" class="text-xs text-prohealth-500 line-clamp-1">{{ s.description }}</div>
                 </td>
-                <td class="px-6 py-3 text-prohealth-700">{{ s.serviceCategory?.name || '—' }}</td>
-                <td class="px-6 py-3 text-prohealth-700">{{ formatMoney(s.priceUsd) }}</td>
-                <td class="px-6 py-3 text-prohealth-700">{{ s.discountPct ? `${s.discountPct}%` : '—' }}</td>
+                <td class="px-6 py-3 text-prohealth-700">{{ s.serviceCategory?.name || t('common.empty') }}</td>
+                <td class="px-6 py-3 text-prohealth-700">{{ money(s.priceUsd) }}</td>
+                <td class="px-6 py-3 text-prohealth-700">{{ s.discountPct ? `${s.discountPct}%` : t('common.empty') }}</td>
                 <td class="px-6 py-3">
                   <UIcon
                     :name="s.requiresAppointment ? 'i-lucide-calendar-check' : 'i-lucide-minus'"
@@ -784,17 +814,17 @@ onMounted(async () => {
                 </td>
                 <td class="px-6 py-3">
                   <UBadge :color="reviewStatusColor(s.reviewStatus)" variant="subtle" size="sm">
-                    {{ s.reviewStatus || '—' }}
+                    {{ s.reviewStatus ? reviewStatusLabel(s.reviewStatus) : t('common.empty') }}
                   </UBadge>
                 </td>
                 <td class="px-6 py-3">
                   <UBadge :color="s.published ? 'success' : 'neutral'" variant="subtle" size="sm">
-                    {{ s.published ? 'Sí' : 'No' }}
+                    {{ s.published ? t('common.yes') : t('common.no') }}
                   </UBadge>
                 </td>
                 <td class="px-6 py-3">
                   <div class="flex items-center justify-end gap-1">
-                    <UTooltip :text="canUpdate ? 'Editar' : 'No tienes permiso'">
+                    <UTooltip :text="canUpdate ? t('common.edit') : t('allies.noPermission')">
                       <UButton
                         color="neutral"
                         variant="ghost"
@@ -804,7 +834,7 @@ onMounted(async () => {
                         @click="openSvcEdit(s)"
                       />
                     </UTooltip>
-                    <UTooltip :text="canDelete ? 'Eliminar' : 'No tienes permiso'">
+                    <UTooltip :text="canDelete ? t('common.delete') : t('allies.noPermission')">
                       <UButton
                         color="error"
                         variant="ghost"
@@ -822,25 +852,25 @@ onMounted(async () => {
         </div>
       </div>
 
-      <!-- ============ Especialidades ============ -->
+      <!-- ============ Specialties ============ -->
       <div v-show="activeTab === 'specialties'" class="bg-white rounded-2xl border border-prohealth-100">
         <div class="flex items-center justify-between px-6 py-4 border-b border-prohealth-100">
           <div>
-            <h2 class="font-bold text-prohealth-900">Especialidades</h2>
-            <p class="text-xs text-prohealth-500 mt-0.5">Especialidades médicas que ofrece el aliado.</p>
+            <h2 class="font-bold text-prohealth-900">{{ t('allies.specialties.title') }}</h2>
+            <p class="text-xs text-prohealth-500 mt-0.5">{{ t('allies.specialties.hint') }}</p>
           </div>
         </div>
 
         <div class="p-6 space-y-5">
-          <!-- Añadir -->
+          <!-- Add -->
           <div v-if="canUpdate" class="flex items-end gap-3 max-w-md">
-            <UFormField label="Añadir especialidad" class="flex-1">
+            <UFormField :label="t('allies.specialties.add')" class="flex-1">
               <USelectMenu
                 v-model="specialtyToAdd"
                 :items="availableSpecialtyOptions"
                 label-key="label"
                 value-key="value"
-                placeholder="Selecciona"
+                :placeholder="t('common.select')"
                 class="w-full"
               />
             </UFormField>
@@ -851,16 +881,16 @@ onMounted(async () => {
               :loading="specialtyMutating"
               @click="addSpecialty"
             >
-              Añadir
+              {{ t('allies.specialties.addButton') }}
             </UButton>
           </div>
 
-          <!-- Lista -->
+          <!-- List -->
           <div v-if="specialtiesLoading" class="flex gap-2">
             <USkeleton v-for="i in 3" :key="i" class="h-7 w-28 rounded-full" />
           </div>
           <p v-else-if="specialties.length === 0" class="text-sm text-prohealth-500">
-            Sin especialidades asignadas.
+            {{ t('allies.specialties.empty') }}
           </p>
           <div v-else class="flex flex-wrap gap-2">
             <UBadge
@@ -887,7 +917,7 @@ onMounted(async () => {
         </div>
       </div>
 
-      <!-- ============ Acuerdos ============ -->
+      <!-- ============ Agreements ============ -->
       <div
         v-if="canManageAgreements"
         v-show="activeTab === 'agreements'"
@@ -895,8 +925,8 @@ onMounted(async () => {
       >
         <div class="flex items-center justify-between px-6 py-4 border-b border-prohealth-100">
           <div>
-            <h2 class="font-bold text-prohealth-900">Acuerdos</h2>
-            <p class="text-xs text-prohealth-500 mt-0.5">Contratos y convenios con el aliado.</p>
+            <h2 class="font-bold text-prohealth-900">{{ t('allies.agreements.title') }}</h2>
+            <p class="text-xs text-prohealth-500 mt-0.5">{{ t('allies.agreements.hint') }}</p>
           </div>
           <UButton
             color="primary"
@@ -905,7 +935,7 @@ onMounted(async () => {
             size="sm"
             @click="openAgrCreate"
           >
-            Añadir
+            {{ t('allies.agreements.add') }}
           </UButton>
         </div>
 
@@ -913,12 +943,12 @@ onMounted(async () => {
           <table class="w-full text-sm">
             <thead>
               <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
-                <th class="px-6 py-3 font-semibold">Tipo</th>
-                <th class="px-6 py-3 font-semibold">Inicio</th>
-                <th class="px-6 py-3 font-semibold">Fin</th>
-                <th class="px-6 py-3 font-semibold">PDF</th>
-                <th class="px-6 py-3 font-semibold">Estado</th>
-                <th class="px-6 py-3 font-semibold text-right">Acciones</th>
+                <th class="px-6 py-3 font-semibold">{{ t('allies.agreements.columns.type') }}</th>
+                <th class="px-6 py-3 font-semibold">{{ t('allies.agreements.columns.start') }}</th>
+                <th class="px-6 py-3 font-semibold">{{ t('allies.agreements.columns.end') }}</th>
+                <th class="px-6 py-3 font-semibold">{{ t('allies.agreements.columns.pdf') }}</th>
+                <th class="px-6 py-3 font-semibold">{{ t('allies.agreements.columns.status') }}</th>
+                <th class="px-6 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-prohealth-100">
@@ -926,13 +956,13 @@ onMounted(async () => {
               <tr v-else-if="agreements.length === 0">
                 <td colspan="6" class="px-6 py-10 text-center text-prohealth-500">
                   <UIcon name="i-lucide-file-signature" class="w-7 h-7 mx-auto mb-2 text-prohealth-300" />
-                  Sin acuerdos registrados
+                  {{ t('allies.agreements.empty') }}
                 </td>
               </tr>
               <tr v-for="a in agreements" v-else :key="a.uuid" class="hover:bg-prohealth-50/50">
-                <td class="px-6 py-3 font-semibold text-prohealth-900">{{ agreementTypeLabel(a.agreementType) }}</td>
-                <td class="px-6 py-3 text-prohealth-600">{{ formatDate(a.startDate) }}</td>
-                <td class="px-6 py-3 text-prohealth-600">{{ formatDate(a.endDate) }}</td>
+                <td class="px-6 py-3 font-semibold text-prohealth-900">{{ agrTypeLabel(a.agreementType) }}</td>
+                <td class="px-6 py-3 text-prohealth-600">{{ date(a.startDate) }}</td>
+                <td class="px-6 py-3 text-prohealth-600">{{ date(a.endDate) }}</td>
                 <td class="px-6 py-3">
                   <a
                     v-if="a.signedPdfUrl"
@@ -941,9 +971,9 @@ onMounted(async () => {
                     rel="noopener"
                     class="text-cyan-700 hover:underline inline-flex items-center gap-1"
                   >
-                    <UIcon name="i-lucide-file-text" class="w-4 h-4" /> Ver
+                    <UIcon name="i-lucide-file-text" class="w-4 h-4" /> {{ t('allies.agreements.viewPdf') }}
                   </a>
-                  <span v-else class="text-prohealth-400">—</span>
+                  <span v-else class="text-prohealth-400">{{ t('common.empty') }}</span>
                 </td>
                 <td class="px-6 py-3">
                   <UBadge
@@ -951,7 +981,7 @@ onMounted(async () => {
                     variant="subtle"
                     size="sm"
                   >
-                    {{ a.status || '—' }}
+                    {{ a.status ? agreementStatusLabel(a.status) : t('common.empty') }}
                   </UBadge>
                 </td>
                 <td class="px-6 py-3">
@@ -978,14 +1008,14 @@ onMounted(async () => {
         </div>
       </div>
 
-      <!-- ============ Personal ============ -->
+      <!-- ============ Staff ============ -->
       <div v-show="activeTab === 'users'" class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
         <div class="flex items-center justify-between px-6 py-4 border-b border-prohealth-100">
           <div>
-            <h2 class="font-bold text-prohealth-900">Personal</h2>
-            <p class="text-xs text-prohealth-500 mt-0.5">Usuarios con acceso al panel del aliado.</p>
+            <h2 class="font-bold text-prohealth-900">{{ t('allies.staff.title') }}</h2>
+            <p class="text-xs text-prohealth-500 mt-0.5">{{ t('allies.staff.hint') }}</p>
           </div>
-          <UTooltip :text="canUpdate ? 'Asignar usuario' : 'No tienes permiso'">
+          <UTooltip :text="canUpdate ? t('allies.staff.assignTooltip') : t('allies.noPermission')">
             <UButton
               color="primary"
               variant="soft"
@@ -994,7 +1024,7 @@ onMounted(async () => {
               :disabled="!canUpdate"
               @click="openStaffCreate"
             >
-              Asignar
+              {{ t('allies.staff.assign') }}
             </UButton>
           </UTooltip>
         </div>
@@ -1003,12 +1033,12 @@ onMounted(async () => {
           <table class="w-full text-sm">
             <thead>
               <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
-                <th class="px-6 py-3 font-semibold">Usuario</th>
-                <th class="px-6 py-3 font-semibold">Rol en el aliado</th>
-                <th class="px-6 py-3 font-semibold">Principal</th>
-                <th class="px-6 py-3 font-semibold">Desde</th>
-                <th class="px-6 py-3 font-semibold">Estado</th>
-                <th class="px-6 py-3 font-semibold text-right">Acciones</th>
+                <th class="px-6 py-3 font-semibold">{{ t('allies.staff.columns.user') }}</th>
+                <th class="px-6 py-3 font-semibold">{{ t('allies.staff.columns.role') }}</th>
+                <th class="px-6 py-3 font-semibold">{{ t('allies.staff.columns.primary') }}</th>
+                <th class="px-6 py-3 font-semibold">{{ t('allies.staff.columns.since') }}</th>
+                <th class="px-6 py-3 font-semibold">{{ t('allies.staff.columns.status') }}</th>
+                <th class="px-6 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-prohealth-100">
@@ -1016,17 +1046,17 @@ onMounted(async () => {
               <tr v-else-if="staff.length === 0">
                 <td colspan="6" class="px-6 py-10 text-center text-prohealth-500">
                   <UIcon name="i-lucide-users" class="w-7 h-7 mx-auto mb-2 text-prohealth-300" />
-                  Sin personal asignado
+                  {{ t('allies.staff.empty') }}
                 </td>
               </tr>
               <tr v-for="s in staff" v-else :key="s.uuid" class="hover:bg-prohealth-50/50">
                 <td class="px-6 py-3">
-                  <div class="font-semibold text-prohealth-900">{{ s.user?.fullName || '—' }}</div>
-                  <div class="text-xs text-prohealth-500">{{ s.user?.email || '—' }}</div>
+                  <div class="font-semibold text-prohealth-900">{{ s.user?.fullName || t('common.empty') }}</div>
+                  <div class="text-xs text-prohealth-500">{{ s.user?.email || t('common.empty') }}</div>
                 </td>
                 <td class="px-6 py-3">
                   <UBadge color="primary" variant="subtle" size="sm">
-                    {{ allyRoleLabel(s.allyRole) }}
+                    {{ roleLabel(s.allyRole) }}
                   </UBadge>
                 </td>
                 <td class="px-6 py-3">
@@ -1036,19 +1066,19 @@ onMounted(async () => {
                     :class="s.primary ? 'text-amber-500' : 'text-prohealth-300'"
                   />
                 </td>
-                <td class="px-6 py-3 text-prohealth-600">{{ formatDate(s.joinedAt) }}</td>
+                <td class="px-6 py-3 text-prohealth-600">{{ date(s.joinedAt) }}</td>
                 <td class="px-6 py-3">
                   <UBadge
                     :color="s.status === 'ACTIVE' || !s.status ? 'success' : 'warning'"
                     variant="subtle"
                     size="sm"
                   >
-                    {{ s.status || 'ACTIVE' }}
+                    {{ staffStatusLabel(s.status || 'ACTIVE') }}
                   </UBadge>
                 </td>
                 <td class="px-6 py-3">
                   <div class="flex items-center justify-end gap-1">
-                    <UTooltip :text="canUpdate ? 'Editar' : 'No tienes permiso'">
+                    <UTooltip :text="canUpdate ? t('common.edit') : t('allies.noPermission')">
                       <UButton
                         color="neutral"
                         variant="ghost"
@@ -1058,7 +1088,7 @@ onMounted(async () => {
                         @click="openStaffEdit(s)"
                       />
                     </UTooltip>
-                    <UTooltip :text="canUpdate ? 'Desvincular' : 'No tienes permiso'">
+                    <UTooltip :text="canUpdate ? t('allies.staff.unlinkTooltip') : t('allies.noPermission')">
                       <UButton
                         color="error"
                         variant="ghost"
@@ -1077,11 +1107,11 @@ onMounted(async () => {
       </div>
     </template>
 
-    <!-- Modal servicio -->
+    <!-- Service modal -->
     <UModal
       v-model:open="svcFormOpen"
-      :title="svcMode === 'create' ? 'Añadir servicio' : 'Editar servicio'"
-      :description="svcMode === 'create' ? 'El servicio quedará en revisión (PROPOSED).' : 'El estado de revisión no se cambia por esta vía.'"
+      :title="svcMode === 'create' ? t('allies.services.form.createTitle') : t('allies.services.form.editTitle')"
+      :description="svcMode === 'create' ? t('allies.services.form.createDescription') : t('allies.services.form.editDescription')"
     >
       <template #body>
         <UForm
@@ -1090,78 +1120,79 @@ onMounted(async () => {
           class="space-y-4"
           @submit="onSvcSubmit"
         >
-          <UFormField label="Categoría" name="serviceCategoryUuid" required>
+          <UFormField :label="t('allies.services.form.fields.category')" name="serviceCategoryUuid" required>
             <USelectMenu
               v-model="svcState.serviceCategoryUuid"
               :items="categoryOptions"
               label-key="label"
               value-key="value"
-              placeholder="Selecciona"
+              :placeholder="t('common.select')"
               class="w-full"
             />
           </UFormField>
 
-          <UFormField label="Nombre" name="name" required>
+          <UFormField :label="t('allies.services.form.fields.name')" name="name" required>
             <UInput v-model="svcState.name" class="w-full" />
           </UFormField>
 
-          <UFormField label="Descripción" name="description">
+          <UFormField :label="t('allies.services.form.fields.description')" name="description">
             <UTextarea v-model="svcState.description" :rows="2" class="w-full" />
           </UFormField>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField label="Precio (USD)" name="priceUsd">
+            <UFormField :label="t('allies.services.form.fields.price')" name="priceUsd">
               <UInput v-model="svcState.priceUsd" placeholder="100.00" class="w-full" />
             </UFormField>
-            <UFormField label="Descuento (%)" name="discountPct">
+            <UFormField :label="t('allies.services.form.fields.discount')" name="discountPct">
               <UInput v-model="svcState.discountPct" placeholder="10.00" class="w-full" />
             </UFormField>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField label="Requiere cita" name="requiresAppointment">
+            <UFormField :label="t('allies.services.form.fields.requiresAppointment')" name="requiresAppointment">
               <USwitch v-model="svcState.requiresAppointment" />
             </UFormField>
-            <UFormField v-if="svcMode === 'edit'" label="Publicado" name="published">
+            <UFormField v-if="svcMode === 'edit'" :label="t('allies.services.form.fields.published')" name="published">
               <USwitch v-model="svcState.published" />
             </UFormField>
           </div>
 
           <div class="flex items-center justify-end gap-3 pt-2">
             <UButton color="neutral" variant="ghost" :disabled="svcSubmitting" @click="svcFormOpen = false">
-              Cancelar
+              {{ t('common.cancel') }}
             </UButton>
             <UButton type="submit" color="primary" :loading="svcSubmitting" icon="i-lucide-save">
-              {{ svcMode === 'create' ? 'Añadir' : 'Guardar cambios' }}
+              {{ svcMode === 'create' ? t('allies.services.add') : t('common.saveChanges') }}
             </UButton>
           </div>
         </UForm>
       </template>
     </UModal>
 
-    <!-- Modal eliminar servicio -->
-    <UModal v-model:open="svcDeleteOpen" title="Eliminar servicio">
+    <!-- Delete service modal -->
+    <UModal v-model:open="svcDeleteOpen" :title="t('allies.services.delete.title')">
       <template #body>
-        <p class="text-sm text-prohealth-700">
-          ¿Seguro que deseas eliminar el servicio
-          <span class="font-semibold">{{ svcTarget?.name }}</span>? (soft-delete)
-        </p>
+        <i18n-t keypath="allies.services.delete.confirm" tag="p" class="text-sm text-prohealth-700" scope="global">
+          <template #name>
+            <span class="font-semibold">{{ svcTarget?.name }}</span>
+          </template>
+        </i18n-t>
         <div class="flex items-center justify-end gap-3 pt-5">
           <UButton color="neutral" variant="ghost" :disabled="svcDeleting" @click="svcDeleteOpen = false">
-            Cancelar
+            {{ t('common.cancel') }}
           </UButton>
           <UButton color="error" :loading="svcDeleting" icon="i-lucide-trash-2" @click="confirmSvcDelete">
-            Eliminar
+            {{ t('common.delete') }}
           </UButton>
         </div>
       </template>
     </UModal>
 
-    <!-- Modal acuerdo -->
+    <!-- Agreement modal -->
     <UModal
       v-model:open="agrFormOpen"
-      :title="agrMode === 'create' ? 'Añadir acuerdo' : 'Editar acuerdo'"
-      description="Contrato o convenio firmado con el aliado."
+      :title="agrMode === 'create' ? t('allies.agreements.form.createTitle') : t('allies.agreements.form.editTitle')"
+      :description="t('allies.agreements.form.description')"
     >
       <template #body>
         <UForm
@@ -1170,73 +1201,80 @@ onMounted(async () => {
           class="space-y-4"
           @submit="onAgrSubmit"
         >
-          <UFormField label="Tipo de acuerdo" name="agreementType" required>
+          <UFormField :label="t('allies.agreements.form.fields.type')" name="agreementType" required>
             <USelectMenu
               v-model="agrState.agreementType"
-              :items="AGREEMENT_TYPE_OPTIONS"
+              :items="agreementTypeOptions"
               label-key="label"
               value-key="value"
-              placeholder="Selecciona"
+              :placeholder="t('common.select')"
               class="w-full"
             />
           </UFormField>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField label="Fecha de inicio" name="startDate">
+            <UFormField :label="t('allies.agreements.form.fields.startDate')" name="startDate">
               <UInput v-model="agrState.startDate" type="date" class="w-full" />
             </UFormField>
-            <UFormField label="Fecha de fin" name="endDate">
+            <UFormField :label="t('allies.agreements.form.fields.endDate')" name="endDate">
               <UInput v-model="agrState.endDate" type="date" class="w-full" />
             </UFormField>
           </div>
 
-          <UFormField label="Términos" name="terms">
+          <UFormField :label="t('allies.agreements.form.fields.terms')" name="terms">
             <UTextarea v-model="agrState.terms" :rows="3" class="w-full" />
           </UFormField>
 
-          <UFormField label="URL del PDF firmado" name="signedPdfUrl">
+          <UFormField :label="t('allies.agreements.form.fields.signedPdfUrl')" name="signedPdfUrl">
             <UInput v-model="agrState.signedPdfUrl" placeholder="https://…" class="w-full" />
           </UFormField>
 
-          <UFormField v-if="agrMode === 'edit'" label="Estado" name="status">
-            <USelectMenu v-model="agrState.status" :items="['ACTIVE', 'EXPIRED', 'TERMINATED']" class="w-full" />
+          <UFormField v-if="agrMode === 'edit'" :label="t('allies.agreements.form.fields.status')" name="status">
+            <USelectMenu
+              v-model="agrState.status"
+              :items="agrStatusOptions"
+              label-key="label"
+              value-key="value"
+              class="w-full"
+            />
           </UFormField>
 
           <div class="flex items-center justify-end gap-3 pt-2">
             <UButton color="neutral" variant="ghost" :disabled="agrSubmitting" @click="agrFormOpen = false">
-              Cancelar
+              {{ t('common.cancel') }}
             </UButton>
             <UButton type="submit" color="primary" :loading="agrSubmitting" icon="i-lucide-save">
-              {{ agrMode === 'create' ? 'Añadir' : 'Guardar cambios' }}
+              {{ agrMode === 'create' ? t('allies.agreements.add') : t('common.saveChanges') }}
             </UButton>
           </div>
         </UForm>
       </template>
     </UModal>
 
-    <!-- Modal eliminar acuerdo -->
-    <UModal v-model:open="agrDeleteOpen" title="Eliminar acuerdo">
+    <!-- Delete agreement modal -->
+    <UModal v-model:open="agrDeleteOpen" :title="t('allies.agreements.delete.title')">
       <template #body>
-        <p class="text-sm text-prohealth-700">
-          ¿Seguro que deseas eliminar el acuerdo
-          <span class="font-semibold">{{ agreementTypeLabel(agrTarget?.agreementType) }}</span>? (soft-delete)
-        </p>
+        <i18n-t keypath="allies.agreements.delete.confirm" tag="p" class="text-sm text-prohealth-700" scope="global">
+          <template #type>
+            <span class="font-semibold">{{ agrTypeLabel(agrTarget?.agreementType) }}</span>
+          </template>
+        </i18n-t>
         <div class="flex items-center justify-end gap-3 pt-5">
           <UButton color="neutral" variant="ghost" :disabled="agrDeleting" @click="agrDeleteOpen = false">
-            Cancelar
+            {{ t('common.cancel') }}
           </UButton>
           <UButton color="error" :loading="agrDeleting" icon="i-lucide-trash-2" @click="confirmAgrDelete">
-            Eliminar
+            {{ t('common.delete') }}
           </UButton>
         </div>
       </template>
     </UModal>
 
-    <!-- Modal asignar/editar personal -->
+    <!-- Assign/edit staff modal -->
     <UModal
       v-model:open="staffFormOpen"
-      :title="staffMode === 'create' ? 'Asignar usuario' : 'Editar membresía'"
-      description="Solo puede haber un OWNER principal activo por aliado."
+      :title="staffMode === 'create' ? t('allies.staff.form.createTitle') : t('allies.staff.form.editTitle')"
+      :description="t('allies.staff.form.description')"
     >
       <template #body>
         <UForm
@@ -1245,68 +1283,74 @@ onMounted(async () => {
           class="space-y-4"
           @submit="onStaffSubmit"
         >
-          <UFormField v-if="staffMode === 'create'" label="Usuario" name="userUuid" required>
+          <UFormField v-if="staffMode === 'create'" :label="t('allies.staff.form.fields.user')" name="userUuid" required>
             <USelectMenu
               v-model="staffState.userUuid"
               :items="userOptions"
               label-key="label"
               value-key="value"
-              placeholder="Selecciona un usuario"
+              :placeholder="t('allies.staff.form.selectUser')"
               class="w-full"
             />
           </UFormField>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField label="Rol en el aliado" name="allyRole" required>
+            <UFormField :label="t('allies.staff.form.fields.role')" name="allyRole" required>
               <USelectMenu
                 v-model="staffState.allyRole"
-                :items="ALLY_ROLE_OPTIONS"
+                :items="allyRoleOptions"
                 label-key="label"
                 value-key="value"
-                placeholder="Selecciona"
+                :placeholder="t('common.select')"
                 class="w-full"
               />
             </UFormField>
-            <UFormField label="Fecha de ingreso" name="joinedAt">
+            <UFormField :label="t('allies.staff.form.fields.joinedAt')" name="joinedAt">
               <UInput v-model="staffState.joinedAt" type="date" class="w-full" />
             </UFormField>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField label="Principal (solo OWNER)" name="primary">
+            <UFormField :label="t('allies.staff.form.fields.primary')" name="primary">
               <USwitch v-model="staffState.primary" :disabled="staffState.allyRole !== 'OWNER'" />
             </UFormField>
-            <UFormField v-if="staffMode === 'edit'" label="Estado" name="status">
-              <USelectMenu v-model="staffState.status" :items="['ACTIVE', 'INACTIVE']" class="w-full" />
+            <UFormField v-if="staffMode === 'edit'" :label="t('allies.staff.form.fields.status')" name="status">
+              <USelectMenu
+                v-model="staffState.status"
+                :items="staffStatusOptions"
+                label-key="label"
+                value-key="value"
+                class="w-full"
+              />
             </UFormField>
           </div>
 
           <div class="flex items-center justify-end gap-3 pt-2">
             <UButton color="neutral" variant="ghost" :disabled="staffSubmitting" @click="staffFormOpen = false">
-              Cancelar
+              {{ t('common.cancel') }}
             </UButton>
             <UButton type="submit" color="primary" :loading="staffSubmitting" icon="i-lucide-save">
-              {{ staffMode === 'create' ? 'Asignar' : 'Guardar cambios' }}
+              {{ staffMode === 'create' ? t('allies.staff.assign') : t('common.saveChanges') }}
             </UButton>
           </div>
         </UForm>
       </template>
     </UModal>
 
-    <!-- Modal desvincular personal -->
-    <UModal v-model:open="staffDeleteOpen" title="Desvincular usuario">
+    <!-- Unlink staff modal -->
+    <UModal v-model:open="staffDeleteOpen" :title="t('allies.staff.delete.title')">
       <template #body>
-        <p class="text-sm text-prohealth-700">
-          ¿Seguro que deseas desvincular a
-          <span class="font-semibold">{{ staffTarget?.user?.fullName || staffTarget?.user?.email }}</span>
-          de este aliado? (soft-delete)
-        </p>
+        <i18n-t keypath="allies.staff.delete.confirm" tag="p" class="text-sm text-prohealth-700" scope="global">
+          <template #name>
+            <span class="font-semibold">{{ staffTarget?.user?.fullName || staffTarget?.user?.email }}</span>
+          </template>
+        </i18n-t>
         <div class="flex items-center justify-end gap-3 pt-5">
           <UButton color="neutral" variant="ghost" :disabled="staffDeleting" @click="staffDeleteOpen = false">
-            Cancelar
+            {{ t('common.cancel') }}
           </UButton>
           <UButton color="error" :loading="staffDeleting" icon="i-lucide-user-minus" @click="confirmStaffDelete">
-            Desvincular
+            {{ t('allies.staff.unlinkTooltip') }}
           </UButton>
         </div>
       </template>

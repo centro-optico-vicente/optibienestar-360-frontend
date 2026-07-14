@@ -14,7 +14,9 @@ definePageMeta({
   permission: 'ALLY_VIEW_ALL',
 })
 
-useSeoMeta({ title: 'Aliados — OptiBienestar 360' })
+const { t } = useI18n()
+
+useSeoMeta({ title: () => t('common.seoTitle', { page: t('allies.title') }) })
 
 const allies = useAllies()
 const { can } = usePermissions()
@@ -24,11 +26,11 @@ const canCreate = computed(() => can('ALLY_CREATE'))
 const canUpdate = computed(() => can('ALLY_UPDATE'))
 const canDelete = computed(() => can('ALLY_DELETE'))
 
-// ---- Listado + paginación + búsqueda ----
+// ---- List + pagination + search ----
 const data = ref<AllyDto[]>([])
 const total = ref(0)
 const loading = ref(false)
-const page = ref(1) // UPagination es 1-based; la API es 0-based
+const page = ref(1) // UPagination is 1-based; the API is 0-based
 const size = ref(20)
 const search = ref('')
 
@@ -45,7 +47,7 @@ async function load() {
     total.value = res.totalElements ?? 0
   }
   catch {
-    // useApi ya muestra el toast del error
+    // useApi already shows the error toast
     data.value = []
     total.value = 0
   }
@@ -64,7 +66,12 @@ watch(search, () => {
   }, 400)
 })
 
-// ---- Catálogos para los selects del formulario ----
+// Partner status badge/select label; falls back to the raw value.
+function statusLabel(status?: string | null): string {
+  return status ? t(`allies.status.${status}`, status) : t('common.empty')
+}
+
+// ---- Catalogs for the form selects ----
 type Option = { label: string, value: string }
 const allyTypeOptions = ref<Option[]>([])
 const specialtyOptions = ref<Option[]>([])
@@ -97,7 +104,7 @@ async function loadCatalogs() {
   stateOptions.value = toOptions(states)
 }
 
-// Ciudades en cascada según el estado seleccionado.
+// Cities cascade based on the selected state.
 const selectedStateUuid = ref<string | undefined>(undefined)
 watch(selectedStateUuid, async (stateUuid) => {
   cityOptions.value = []
@@ -117,16 +124,17 @@ onMounted(async () => {
   await Promise.all([loadCatalogs(), loadDocumentTypes()])
 })
 
-// ---- Formulario crear/editar ----
+// ---- Create/edit form ----
 const formOpen = ref(false)
 const mode = ref<'create' | 'edit'>('create')
 const editingUuid = ref<string | null>(null)
 const isSubmitting = ref(false)
-// El listado devuelve una proyección compacta (AllyListItemDto) con campos planos;
-// al editar se carga el detalle completo, y este flag muestra la carga en el modal.
+// The list returns a compact projection (AllyListItemDto) with flat fields; on edit
+// the full detail is loaded, and this flag shows the loading state in the modal.
 const editLoading = ref(false)
 
 const STATUS_OPTIONS = ['ACTIVE', 'INACTIVE', 'SUSPENDED']
+const statusOptions = computed(() => STATUS_OPTIONS.map(s => ({ label: statusLabel(s), value: s })))
 
 interface FormState {
   name: string
@@ -162,22 +170,22 @@ const state = reactive<FormState>({
   specialtyUuids: [],
 })
 
-const baseSchema = {
-  name: z.string().min(3, 'Mínimo 3 caracteres'),
-  allyTypeUuid: z.string({ message: 'Requerido' }).min(1, 'Requerido'),
-  taxDocumentType: z.string().optional(),
-  taxDocumentNumber: z.string().regex(/^\d*$/, 'Solo números').optional(),
-  email: z.string().email('Email no válido').optional().or(z.literal('')),
-  phone: z.string().optional(),
-  website: z.string().url('URL no válida').optional().or(z.literal('')),
-  address: z.string().optional(),
-  description: z.string().optional(),
-  joinedAt: z.string().optional(),
-}
-
-const createSchema = z.object(baseSchema)
-const editSchema = z.object({ ...baseSchema, status: z.string() })
-const schema = computed(() => (mode.value === 'create' ? createSchema : editSchema))
+// Locale-reactive schema so validation messages follow the UI locale.
+const schema = computed(() => {
+  const base = {
+    name: z.string().min(3, t('validation.minChars', { n: 3 })),
+    allyTypeUuid: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
+    taxDocumentType: z.string().optional(),
+    taxDocumentNumber: z.string().regex(/^\d*$/, t('validation.digitsOnly')).optional(),
+    email: z.string().email(t('validation.emailInvalid')).optional().or(z.literal('')),
+    phone: z.string().optional(),
+    website: z.string().url(t('validation.invalidUrl')).optional().or(z.literal('')),
+    address: z.string().optional(),
+    description: z.string().optional(),
+    joinedAt: z.string().optional(),
+  }
+  return mode.value === 'create' ? z.object(base) : z.object({ ...base, status: z.string() })
+})
 
 function resetForm() {
   state.name = ''
@@ -209,9 +217,9 @@ async function openEdit(a: AllyDto) {
   editingUuid.value = a.uuid
   resetForm()
   formOpen.value = true
-  // La fila del listado (AllyListItemDto) trae los campos planos (allyTypeUuid, etc.)
-  // y omite email, RIF, web, especialidades…; además el form espera la forma anidada
-  // (allyType.uuid). Se carga el detalle completo para poblar de forma fiable.
+  // The list row (AllyListItemDto) carries flat fields (allyTypeUuid, etc.) and omits
+  // email, tax ID, website, specialties…; the form also expects the nested shape
+  // (allyType.uuid). The full detail is loaded to populate reliably.
   editLoading.value = true
   try {
     const full = await allies.get(a.uuid)
@@ -231,7 +239,7 @@ async function openEdit(a: AllyDto) {
     state.specialtyUuids = (full.specialties ?? []).map(s => s.uuid)
   }
   catch {
-    // El detalle no cargó (useApi ya notificó); cierra el modal.
+    // The detail failed to load (useApi already notified); close the modal.
     formOpen.value = false
   }
   finally {
@@ -259,7 +267,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         specialtyUuids: state.specialtyUuids.length ? state.specialtyUuids : undefined,
       }
       await allies.create(body)
-      toast.add({ title: 'Aliado creado', color: 'success', icon: 'i-lucide-check-circle' })
+      toast.add({ title: t('allies.createdToast'), color: 'success', icon: 'i-lucide-check-circle' })
     }
     else if (editingUuid.value) {
       const body: UpdateAllyRequest = {
@@ -276,24 +284,24 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         joinedAt: state.joinedAt || undefined,
         published: state.published,
         status: state.status,
-        // Reemplaza el conjunto completo de especialidades.
+        // Replaces the full specialties set.
         specialtyUuids: state.specialtyUuids,
       }
       await allies.update(editingUuid.value, body)
-      toast.add({ title: 'Aliado actualizado', color: 'success', icon: 'i-lucide-check-circle' })
+      toast.add({ title: t('allies.updatedToast'), color: 'success', icon: 'i-lucide-check-circle' })
     }
     formOpen.value = false
     await load()
   }
   catch {
-    // useApi ya notificó el error (409 RIF duplicado, 422, etc.)
+    // useApi already notified the error (409 duplicate tax ID, 422, etc.)
   }
   finally {
     isSubmitting.value = false
   }
 }
 
-// ---- Eliminar ----
+// ---- Delete ----
 const deleteOpen = ref(false)
 const deleting = ref(false)
 const target = ref<AllyDto | null>(null)
@@ -308,14 +316,14 @@ async function confirmDelete() {
   deleting.value = true
   try {
     await allies.remove(target.value.uuid)
-    toast.add({ title: 'Aliado eliminado', color: 'success', icon: 'i-lucide-check-circle' })
+    toast.add({ title: t('allies.deletedToast'), color: 'success', icon: 'i-lucide-check-circle' })
     deleteOpen.value = false
-    // Si la página queda vacía tras borrar, retrocede una.
+    // If the page is left empty after deleting, step back one.
     if (data.value.length === 1 && page.value > 1) page.value -= 1
     else await load()
   }
   catch {
-    // toast por useApi
+    // toast handled by useApi
   }
   finally {
     deleting.value = false
@@ -328,47 +336,47 @@ async function confirmDelete() {
     <!-- Header -->
     <div class="flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-extrabold text-prohealth-900">Aliados</h1>
+        <h1 class="text-2xl font-extrabold text-prohealth-900">{{ t('allies.title') }}</h1>
         <p class="text-sm text-prohealth-700/70 mt-1">
-          Empresas y profesionales aliados: servicios, acuerdos y personal.
+          {{ t('allies.subtitle') }}
         </p>
       </div>
-      <UTooltip :text="canCreate ? 'Registrar un nuevo aliado' : 'No tienes permiso para crear aliados'">
+      <UTooltip :text="canCreate ? t('allies.createTooltip') : t('allies.noPermissionCreate')">
         <UButton
           color="primary"
           icon="i-lucide-handshake"
           :disabled="!canCreate"
           @click="openCreate"
         >
-          Nuevo aliado
+          {{ t('allies.new') }}
         </UButton>
       </UTooltip>
     </div>
 
-    <!-- Búsqueda -->
+    <!-- Search -->
     <div class="bg-white rounded-2xl border border-prohealth-100 p-4">
       <UInput
         v-model="search"
-        placeholder="Buscar por nombre…"
+        :placeholder="t('allies.searchPlaceholder')"
         icon="i-lucide-search"
         size="lg"
         class="w-full max-w-md"
       />
     </div>
 
-    <!-- Tabla -->
+    <!-- Table -->
     <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
             <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
-              <th class="px-5 py-3 font-semibold">Aliado</th>
-              <th class="px-5 py-3 font-semibold">Tipo</th>
-              <th class="px-5 py-3 font-semibold">RIF</th>
-              <th class="px-5 py-3 font-semibold">Ciudad</th>
-              <th class="px-5 py-3 font-semibold">Publicado</th>
-              <th class="px-5 py-3 font-semibold">Estado</th>
-              <th class="px-5 py-3 font-semibold text-right">Acciones</th>
+              <th class="px-5 py-3 font-semibold">{{ t('allies.columns.ally') }}</th>
+              <th class="px-5 py-3 font-semibold">{{ t('allies.columns.type') }}</th>
+              <th class="px-5 py-3 font-semibold">{{ t('allies.columns.taxId') }}</th>
+              <th class="px-5 py-3 font-semibold">{{ t('allies.columns.city') }}</th>
+              <th class="px-5 py-3 font-semibold">{{ t('allies.columns.published') }}</th>
+              <th class="px-5 py-3 font-semibold">{{ t('allies.columns.status') }}</th>
+              <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-prohealth-100">
@@ -376,7 +384,7 @@ async function confirmDelete() {
             <tr v-else-if="data.length === 0">
               <td colspan="7" class="px-5 py-12 text-center text-prohealth-500">
                 <UIcon name="i-lucide-handshake" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
-                Sin aliados
+                {{ t('allies.empty') }}
               </td>
             </tr>
             <tr
@@ -388,17 +396,17 @@ async function confirmDelete() {
             >
               <td class="px-5 py-3">
                 <div class="font-semibold text-prohealth-900">{{ a.name }}</div>
-                <div class="text-xs text-prohealth-500">{{ a.email || '—' }}</div>
+                <div class="text-xs text-prohealth-500">{{ a.email || t('common.empty') }}</div>
               </td>
-              <td class="px-5 py-3 text-prohealth-700">{{ a.allyType?.name || '—' }}</td>
+              <td class="px-5 py-3 text-prohealth-700">{{ a.allyType?.name || t('common.empty') }}</td>
               <td class="px-5 py-3 text-prohealth-700">
                 <span v-if="a.taxDocumentNumber">{{ a.taxDocumentType }}-{{ a.taxDocumentNumber }}</span>
-                <span v-else class="text-prohealth-400">—</span>
+                <span v-else class="text-prohealth-400">{{ t('common.empty') }}</span>
               </td>
-              <td class="px-5 py-3 text-prohealth-700">{{ a.city?.name || '—' }}</td>
+              <td class="px-5 py-3 text-prohealth-700">{{ a.city?.name || t('common.empty') }}</td>
               <td class="px-5 py-3">
                 <UBadge :color="a.published ? 'success' : 'neutral'" variant="subtle" size="sm">
-                  {{ a.published ? 'Publicado' : 'Borrador' }}
+                  {{ a.published ? t('allies.published') : t('allies.draft') }}
                 </UBadge>
               </td>
               <td class="px-5 py-3">
@@ -407,12 +415,12 @@ async function confirmDelete() {
                   variant="subtle"
                   size="sm"
                 >
-                  {{ a.status || '—' }}
+                  {{ a.status ? statusLabel(a.status) : t('common.empty') }}
                 </UBadge>
               </td>
               <td class="px-5 py-3" @click.stop>
                 <div class="flex items-center justify-end gap-1">
-                  <UTooltip text="Ver detalle">
+                  <UTooltip :text="t('allies.viewDetailTooltip')">
                     <UButton
                       color="neutral"
                       variant="ghost"
@@ -421,7 +429,7 @@ async function confirmDelete() {
                       :to="`/dashboard/allies/${a.uuid}`"
                     />
                   </UTooltip>
-                  <UTooltip :text="canUpdate ? 'Editar' : 'No tienes permiso para editar'">
+                  <UTooltip :text="canUpdate ? t('common.edit') : t('allies.noPermissionEdit')">
                     <UButton
                       color="neutral"
                       variant="ghost"
@@ -431,7 +439,7 @@ async function confirmDelete() {
                       @click="openEdit(a)"
                     />
                   </UTooltip>
-                  <UTooltip :text="canDelete ? 'Eliminar' : 'No tienes permiso para eliminar'">
+                  <UTooltip :text="canDelete ? t('common.delete') : t('allies.noPermissionDelete')">
                     <UButton
                       color="error"
                       variant="ghost"
@@ -448,10 +456,10 @@ async function confirmDelete() {
         </table>
       </div>
 
-      <!-- Paginación -->
+      <!-- Pagination -->
       <div class="flex items-center justify-between px-5 py-3 border-t border-prohealth-100">
         <p class="text-xs text-prohealth-500">
-          {{ data.length }} de {{ total }} aliado(s)
+          {{ t('allies.paginationSummary', { shown: data.length, total }) }}
         </p>
         <UPagination
           v-model:page="page"
@@ -461,17 +469,17 @@ async function confirmDelete() {
       </div>
     </div>
 
-    <!-- Modal crear/editar -->
+    <!-- Create/edit modal -->
     <UModal
       v-model:open="formOpen"
-      :title="mode === 'create' ? 'Nuevo aliado' : 'Editar aliado'"
-      :description="mode === 'create' ? 'Registra una empresa o profesional aliado.' : 'Actualiza los datos del aliado.'"
+      :title="mode === 'create' ? t('allies.form.createTitle') : t('allies.form.editTitle')"
+      :description="mode === 'create' ? t('allies.form.createDescription') : t('allies.form.editDescription')"
       :ui="{ content: 'max-w-2xl' }"
     >
       <template #body>
         <div v-if="editLoading" class="py-12 flex flex-col items-center justify-center gap-2 text-prohealth-500">
           <UIcon name="i-lucide-loader-circle" class="w-6 h-6 animate-spin" />
-          <span class="text-sm">Cargando datos del aliado…</span>
+          <span class="text-sm">{{ t('allies.form.loadingDetail') }}</span>
         </div>
         <UForm
           v-else
@@ -481,132 +489,138 @@ async function confirmDelete() {
           @submit="onSubmit"
         >
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField label="Nombre" name="name" required>
+            <UFormField :label="t('allies.form.fields.name')" name="name" required>
               <UInput v-model="state.name" class="w-full" />
             </UFormField>
-            <UFormField label="Tipo de aliado" name="allyTypeUuid" required>
+            <UFormField :label="t('allies.form.fields.allyType')" name="allyTypeUuid" required>
               <USelectMenu
                 v-model="state.allyTypeUuid"
                 :items="allyTypeOptions"
                 label-key="label"
                 value-key="value"
-                placeholder="Selecciona"
+                :placeholder="t('common.select')"
                 class="w-full"
               />
             </UFormField>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField label="Tipo de documento fiscal" name="taxDocumentType">
+            <UFormField :label="t('allies.form.fields.taxDocumentType')" name="taxDocumentType">
               <USelectMenu
                 v-model="state.taxDocumentType"
                 :items="documentTypeOptions"
                 label-key="label"
                 value-key="value"
-                placeholder="Selecciona"
+                :placeholder="t('common.select')"
                 class="w-full"
               />
             </UFormField>
-            <UFormField label="Número (RIF)" name="taxDocumentNumber">
+            <UFormField :label="t('allies.form.fields.taxDocumentNumber')" name="taxDocumentNumber">
               <UInput v-model="state.taxDocumentNumber" class="w-full" />
             </UFormField>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField label="Email" name="email">
+            <UFormField :label="t('allies.form.fields.email')" name="email">
               <UInput v-model="state.email" type="email" class="w-full" />
             </UFormField>
-            <UFormField label="Teléfono" name="phone">
+            <UFormField :label="t('allies.form.fields.phone')" name="phone">
               <UInput v-model="state.phone" class="w-full" />
             </UFormField>
           </div>
 
-          <UFormField label="Sitio web" name="website">
+          <UFormField :label="t('allies.form.fields.website')" name="website">
             <UInput v-model="state.website" placeholder="https://…" class="w-full" />
           </UFormField>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField label="Estado (región)" name="stateUuid">
+            <UFormField :label="t('allies.form.fields.state')" name="stateUuid">
               <USelectMenu
                 v-model="selectedStateUuid"
                 :items="stateOptions"
                 label-key="label"
                 value-key="value"
-                placeholder="Selecciona"
+                :placeholder="t('common.select')"
                 class="w-full"
               />
             </UFormField>
-            <UFormField label="Ciudad" name="cityUuid">
+            <UFormField :label="t('allies.form.fields.city')" name="cityUuid">
               <USelectMenu
                 v-model="state.cityUuid"
                 :items="cityOptions"
                 label-key="label"
                 value-key="value"
                 :disabled="!selectedStateUuid"
-                placeholder="Selecciona un estado primero"
+                :placeholder="t('allies.form.selectCityFirst')"
                 class="w-full"
               />
             </UFormField>
           </div>
 
-          <UFormField label="Dirección" name="address">
+          <UFormField :label="t('allies.form.fields.address')" name="address">
             <UInput v-model="state.address" class="w-full" />
           </UFormField>
 
-          <UFormField label="Descripción" name="description">
+          <UFormField :label="t('allies.form.fields.description')" name="description">
             <UTextarea v-model="state.description" :rows="2" class="w-full" />
           </UFormField>
 
-          <UFormField label="Especialidades" name="specialtyUuids">
+          <UFormField :label="t('allies.form.fields.specialties')" name="specialtyUuids">
             <USelectMenu
               v-model="state.specialtyUuids"
               :items="specialtyOptions"
               label-key="label"
               value-key="value"
               multiple
-              placeholder="Selecciona una o más"
+              :placeholder="t('allies.form.selectMultiple')"
               class="w-full"
             />
           </UFormField>
 
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <UFormField label="Fecha de alianza" name="joinedAt">
+            <UFormField :label="t('allies.form.fields.joinedAt')" name="joinedAt">
               <UInput v-model="state.joinedAt" type="date" class="w-full" />
             </UFormField>
-            <UFormField label="Publicado en directorio" name="published">
+            <UFormField :label="t('allies.form.fields.published')" name="published">
               <USwitch v-model="state.published" />
             </UFormField>
-            <UFormField v-if="mode === 'edit'" label="Estado" name="status">
-              <USelectMenu v-model="state.status" :items="STATUS_OPTIONS" class="w-full" />
+            <UFormField v-if="mode === 'edit'" :label="t('allies.form.fields.status')" name="status">
+              <USelectMenu
+                v-model="state.status"
+                :items="statusOptions"
+                label-key="label"
+                value-key="value"
+                class="w-full"
+              />
             </UFormField>
           </div>
 
           <div class="flex items-center justify-end gap-3 pt-2">
             <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="formOpen = false">
-              Cancelar
+              {{ t('common.cancel') }}
             </UButton>
             <UButton type="submit" color="primary" :loading="isSubmitting" icon="i-lucide-save">
-              {{ mode === 'create' ? 'Crear aliado' : 'Guardar cambios' }}
+              {{ mode === 'create' ? t('allies.form.submitCreate') : t('common.saveChanges') }}
             </UButton>
           </div>
         </UForm>
       </template>
     </UModal>
 
-    <!-- Modal confirmar eliminación -->
-    <UModal v-model:open="deleteOpen" title="Eliminar aliado">
+    <!-- Delete confirmation modal -->
+    <UModal v-model:open="deleteOpen" :title="t('allies.delete.title')">
       <template #body>
-        <p class="text-sm text-prohealth-700">
-          ¿Seguro que deseas eliminar a
-          <span class="font-semibold">{{ target?.name }}</span>?
-          Esta acción lo desactiva y lo retira del directorio (soft-delete).
-        </p>
+        <i18n-t keypath="allies.delete.confirm" tag="p" class="text-sm text-prohealth-700" scope="global">
+          <template #name>
+            <span class="font-semibold">{{ target?.name }}</span>
+          </template>
+        </i18n-t>
         <div class="flex items-center justify-end gap-3 pt-5">
           <UButton color="neutral" variant="ghost" :disabled="deleting" @click="deleteOpen = false">
-            Cancelar
+            {{ t('common.cancel') }}
           </UButton>
           <UButton color="error" :loading="deleting" icon="i-lucide-trash-2" @click="confirmDelete">
-            Eliminar
+            {{ t('common.delete') }}
           </UButton>
         </div>
       </template>
