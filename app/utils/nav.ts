@@ -62,6 +62,7 @@ const catalogChildren: NavLeaf[] = CATALOGS
   .filter(c => !CATALOGS_IN_VERTICALS.has(c.key))
   .map(c => ({
     label: c.label,
+    labelKey: c.labelKey,
     to: `/dashboard/catalogs/${c.key}`,
     icon: c.icon,
     roles: ['SYSTEM', 'ADMINISTRADOR'],

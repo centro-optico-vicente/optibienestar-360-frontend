@@ -338,5 +338,63 @@
       "description": "Tu cuenta no cuenta con los permisos necesarios para ver esta sección. Si crees que es un error, contacta a un administrador.",
       "back": "Volver al panel"
     }
+  },
+  "catalogs": {
+    "title": "Catálogos",
+    "breadcrumb": "Catálogos",
+    "notFound": "Catálogo no encontrado.",
+    "viewCatalogs": "Ver catálogos",
+    "new": "Nuevo",
+    "create": "Crear",
+    "searchPlaceholder": "Buscar por nombre o código…",
+    "filterByParent": "Filtrar por padre…",
+    "empty": "Sin registros",
+    "recordCount": "{count} registro(s)",
+    "selectPlaceholder": "Selecciona {field}",
+    "modalCreateTitle": "Nuevo: {entity}",
+    "modalEditTitle": "Editar: {entity}",
+    "deleteTitle": "Eliminar {entity}",
+    "deleteConfirm": "¿Seguro que deseas eliminar {name}?",
+    "createdToast": "{entity} creado",
+    "updatedToast": "{entity} actualizado",
+    "deletedToast": "{entity} eliminado",
+    "columns": {
+      "code": "Código",
+      "name": "Nombre",
+      "parent": "Padre",
+      "description": "Descripción",
+      "status": "Estado"
+    },
+    "status": {
+      "active": "Activo",
+      "inactive": "Inactivo"
+    },
+    "fields": {
+      "isoCode": "Código ISO",
+      "name": "Nombre",
+      "code": "Código",
+      "description": "Descripción",
+      "country": "País",
+      "state": "Estado"
+    },
+    "validation": {
+      "isoCode": "Dos letras mayúsculas (ISO 3166-1, p.ej. VE)",
+      "genderCode": "Una letra mayúscula (p.ej. M, F)",
+      "documentTypeCode": "1 a 3 letras mayúsculas (p.ej. CC, CI)",
+      "codeMax": "Mayúsculas/guion bajo, máx. {n}",
+      "invalidFormat": "Formato no válido"
+    },
+    "registry": {
+      "countries": { "label": "Países", "labelSingular": "País" },
+      "states": { "label": "Estados / Departamentos", "labelSingular": "Estado" },
+      "cities": { "label": "Ciudades", "labelSingular": "Ciudad" },
+      "genders": { "label": "Géneros", "labelSingular": "Género" },
+      "document-types": { "label": "Tipos de documento", "labelSingular": "Tipo de documento" },
+      "marital-statuses": { "label": "Estados civiles", "labelSingular": "Estado civil" },
+      "occupations": { "label": "Ocupaciones", "labelSingular": "Ocupación" },
+      "medical-specialties": { "label": "Especialidades médicas", "labelSingular": "Especialidad médica" },
+      "service-categories": { "label": "Categorías de servicio", "labelSingular": "Categoría de servicio" },
+      "ally-types": { "label": "Tipos de aliado", "labelSingular": "Tipo de aliado" }
+    }
   }
 }
