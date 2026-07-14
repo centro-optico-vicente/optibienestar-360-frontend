@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { PaymentDto } from '~/types/payments'
-import { paymentMethodLabel } from '~/types/payments'
 
 // Review modal for a PENDING payment: approve (optional reason) or reject (mandatory
 // reason, the member will see it to resubmit). Shared by the queue (/dashboard/payments)
@@ -16,6 +15,8 @@ const emit = defineEmits<{
   'reviewed': [payment: PaymentDto]
 }>()
 
+const { t } = useI18n()
+const { formatCurrency } = useFormatters()
 const payments = usePayments()
 const toast = useToast()
 
@@ -31,7 +32,7 @@ const touched = ref(false)
 
 // Rejection requires a reason; the inline error shows after the first attempt.
 const reasonError = computed(() =>
-  !isApprove.value && touched.value && !reason.value.trim() ? 'El motivo es obligatorio' : undefined)
+  !isApprove.value && touched.value && !reason.value.trim() ? t('payments.review.reasonRequired') : undefined)
 
 watch(() => props.open, (open) => {
   if (open) {
@@ -40,9 +41,15 @@ watch(() => props.open, (open) => {
   }
 })
 
-function formatMoney(v?: number | string | null, currency?: string | null): string {
-  if (v === null || v === undefined || v === '') return '—'
-  return `${Number(v).toFixed(2)} ${currency ?? ''}`.trim()
+// Amount in the payment's currency, formatted in the VE convention. Empty → '—'.
+function money(v?: number | string | null, currency?: string | null): string {
+  if (v === null || v === undefined || v === '') return t('common.empty')
+  return formatCurrency(Number(v), currency || 'USD')
+}
+
+// Payment method label; falls back to the raw value.
+function methodLabel(m?: string | null): string {
+  return m ? t(`payments.methods.${m}`, m) : t('common.empty')
 }
 
 async function confirm() {
@@ -56,7 +63,7 @@ async function confirm() {
       ? await payments.approve(props.payment.uuid, text || undefined)
       : await payments.reject(props.payment.uuid, text)
     toast.add({
-      title: isApprove.value ? 'Pago aprobado' : 'Pago rechazado',
+      title: isApprove.value ? t('payments.review.approvedToast') : t('payments.review.rejectedToast'),
       color: isApprove.value ? 'success' : 'warning',
       icon: isApprove.value ? 'i-lucide-check-circle' : 'i-lucide-circle-x',
     })
@@ -75,41 +82,45 @@ async function confirm() {
 <template>
   <UModal
     v-model:open="isOpen"
-    :title="isApprove ? 'Aprobar pago' : 'Rechazar pago'"
+    :title="isApprove ? t('payments.review.approveTitle') : t('payments.review.rejectTitle')"
   >
     <template #body>
       <div class="space-y-4">
         <!-- Payment summary -->
         <div v-if="payment" class="rounded-xl border border-prohealth-100 bg-prohealth-50/40 p-4 text-sm space-y-1">
           <div class="flex items-center justify-between">
-            <span class="text-prohealth-500">Monto</span>
-            <span class="font-semibold text-prohealth-900">{{ formatMoney(payment.amount, payment.currency) }}</span>
+            <span class="text-prohealth-500">{{ t('payments.detail.fields.amount') }}</span>
+            <span class="font-semibold text-prohealth-900">{{ money(payment.amount, payment.currency) }}</span>
           </div>
           <div class="flex items-center justify-between">
-            <span class="text-prohealth-500">Método</span>
-            <span class="text-prohealth-800">{{ paymentMethodLabel(payment.paymentMethod) }}</span>
+            <span class="text-prohealth-500">{{ t('payments.detail.fields.method') }}</span>
+            <span class="text-prohealth-800">{{ methodLabel(payment.paymentMethod) }}</span>
           </div>
           <div v-if="payment.referenceNumber" class="flex items-center justify-between">
-            <span class="text-prohealth-500">Referencia</span>
+            <span class="text-prohealth-500">{{ t('payments.detail.fields.reference') }}</span>
             <span class="text-prohealth-800 font-mono">{{ payment.referenceNumber }}</span>
           </div>
           <div v-if="payment.planCode" class="flex items-center justify-between">
-            <span class="text-prohealth-500">Plan</span>
+            <span class="text-prohealth-500">{{ t('payments.detail.fields.plan') }}</span>
             <span class="text-prohealth-800 font-mono">{{ payment.planCode }}</span>
           </div>
         </div>
 
         <p class="text-sm text-prohealth-700">
-          <template v-if="isApprove">
-            El pago se marcará como <span class="font-semibold text-green-700">aprobado</span> y se notificará al afiliado por correo.
-          </template>
-          <template v-else>
-            El pago se marcará como <span class="font-semibold text-red-700">rechazado</span>. El motivo se enviará al afiliado para que pueda reenviar.
-          </template>
+          <i18n-t v-if="isApprove" keypath="payments.review.approveNotice" tag="span" scope="global">
+            <template #status>
+              <span class="font-semibold text-green-700">{{ t('payments.review.approvedWord') }}</span>
+            </template>
+          </i18n-t>
+          <i18n-t v-else keypath="payments.review.rejectNotice" tag="span" scope="global">
+            <template #status>
+              <span class="font-semibold text-red-700">{{ t('payments.review.rejectedWord') }}</span>
+            </template>
+          </i18n-t>
         </p>
 
         <UFormField
-          :label="isApprove ? 'Nota de aprobación (opcional)' : 'Motivo del rechazo'"
+          :label="isApprove ? t('payments.review.reasonLabelApprove') : t('payments.review.reasonLabelReject')"
           :required="!isApprove"
           :error="reasonError"
         >
@@ -117,7 +128,7 @@ async function confirm() {
             v-model="reason"
             :rows="3"
             :maxlength="500"
-            :placeholder="isApprove ? 'Observación opcional para el afiliado.' : 'Explica por qué se rechaza (comprobante ilegible, monto incorrecto…).'"
+            :placeholder="isApprove ? t('payments.review.placeholderApprove') : t('payments.review.placeholderReject')"
             class="w-full"
             @blur="touched = true"
           />
@@ -125,7 +136,7 @@ async function confirm() {
 
         <div class="flex items-center justify-end gap-3 pt-1">
           <UButton color="neutral" variant="ghost" :disabled="submitting" @click="isOpen = false">
-            Cancelar
+            {{ t('common.cancel') }}
           </UButton>
           <UButton
             :color="isApprove ? 'success' : 'error'"
@@ -133,7 +144,7 @@ async function confirm() {
             :loading="submitting"
             @click="confirm"
           >
-            {{ isApprove ? 'Aprobar pago' : 'Rechazar pago' }}
+            {{ isApprove ? t('payments.review.approveButton') : t('payments.review.rejectButton') }}
           </UButton>
         </div>
       </div>

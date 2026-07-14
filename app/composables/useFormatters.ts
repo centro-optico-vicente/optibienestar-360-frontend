@@ -48,6 +48,13 @@ export const useFormatters = () => {
     return new Intl.DateTimeFormat(LOCALE, options).format(d)
   }
 
+  /** Month + year in the VE convention ("julio de 2026"). Returns '—' when empty. */
+  const formatMonthYear = (date: DateInput): string => {
+    const d = toDate(date)
+    if (!d) return EMPTY
+    return new Intl.DateTimeFormat(LOCALE, { month: 'long', year: 'numeric', timeZone: TIME_ZONE }).format(d)
+  }
+
   /** Relative distance ("hace 3 días", "en 2 semanas"). Returns '—' when empty. */
   const formatRelative = (date: DateInput): string => {
     const d = toDate(date)
@@ -68,5 +75,5 @@ export const useFormatters = () => {
     return rtf.format(Math.round(diffMs / 1000), 'second')
   }
 
-  return { formatCurrency, formatNumber, formatDate, formatRelative }
+  return { formatCurrency, formatNumber, formatDate, formatMonthYear, formatRelative }
 }

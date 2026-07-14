@@ -1,11 +1,7 @@
 <script setup lang="ts">
 import type { ApiError } from '~/types/auth'
 import type { PaymentDto } from '~/types/payments'
-import {
-  paymentMethodLabel,
-  paymentStatusColor,
-  paymentStatusLabel,
-} from '~/types/payments'
+import { paymentStatusColor } from '~/types/payments'
 
 definePageMeta({
   layout: 'dashboard',
@@ -13,7 +9,10 @@ definePageMeta({
   permission: 'PAYMENT_VIEW_ALL',
 })
 
-useSeoMeta({ title: 'Detalle de pago — OptiBienestar 360' })
+const { t } = useI18n()
+const { formatCurrency, formatDate, formatMonthYear } = useFormatters()
+
+useSeoMeta({ title: () => t('common.seoTitle', { page: t('payments.detail.seoPage') }) })
 
 const route = useRoute()
 const paymentUuid = route.params.uuid as string
@@ -48,31 +47,26 @@ onMounted(loadPayment)
 const isPending = computed(() => payment.value?.status === 'PENDING')
 
 // ---- Presentation helpers ----
-function formatMoney(v?: number | string | null, currency?: string | null): string {
-  if (v === null || v === undefined || v === '') return '—'
-  return `${Number(v).toFixed(2)} ${currency ?? ''}`.trim()
+// Amount in the payment's currency, formatted in the VE convention. Empty → '—'.
+function money(v?: number | string | null, currency?: string | null): string {
+  if (v === null || v === undefined || v === '') return t('common.empty')
+  return formatCurrency(Number(v), currency || 'USD')
 }
 
-function formatDate(iso?: string | null): string {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('es', { dateStyle: 'medium' })
-}
-
-function formatDateTime(iso?: string | null): string {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleString('es', { dateStyle: 'medium', timeStyle: 'short' })
-}
-
-function formatPeriod(iso?: string | null): string {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('es', { month: 'long', year: 'numeric' })
-}
-
+// Byte size with universal units (not localized).
 function formatSize(bytes?: number | null): string {
   if (bytes === null || bytes === undefined) return ''
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
+// Enum label resolvers (fall back to the raw value).
+function methodLabel(m?: string | null): string {
+  return m ? t(`payments.methods.${m}`, m) : t('common.empty')
+}
+function statusLabel(s?: string | null): string {
+  return s ? t(`payments.status.${s}`, s) : t('common.empty')
 }
 
 // ---- View proof (presigned URL) ----
@@ -118,7 +112,7 @@ function onReviewed(updated: PaymentDto) {
       to="/dashboard/payments"
       size="sm"
     >
-      Pagos
+      {{ t('payments.title') }}
     </UButton>
 
     <!-- Loading -->
@@ -131,8 +125,8 @@ function onReviewed(updated: PaymentDto) {
     <!-- Not found -->
     <div v-else-if="notFound || !payment" class="bg-white rounded-2xl border border-prohealth-100 p-12 text-center">
       <UIcon name="i-lucide-search-x" class="w-10 h-10 mx-auto mb-3 text-prohealth-300" />
-      <p class="text-prohealth-700 font-semibold">Pago no encontrado</p>
-      <p class="text-sm text-prohealth-500 mt-1">El registro no existe o fue eliminado.</p>
+      <p class="text-prohealth-700 font-semibold">{{ t('payments.detail.notFoundTitle') }}</p>
+      <p class="text-sm text-prohealth-500 mt-1">{{ t('payments.detail.notFoundBody') }}</p>
     </div>
 
     <template v-else>
@@ -142,20 +136,20 @@ function onReviewed(updated: PaymentDto) {
           <div>
             <div class="flex items-center gap-3 flex-wrap">
               <h1 class="text-2xl font-extrabold text-prohealth-900">
-                {{ formatMoney(payment.amount, payment.currency) }}
+                {{ money(payment.amount, payment.currency) }}
               </h1>
               <UBadge :color="paymentStatusColor(payment.status)" variant="subtle">
-                {{ paymentStatusLabel(payment.status) }}
+                {{ statusLabel(payment.status) }}
               </UBadge>
-              <UBadge v-if="payment.inscription" color="primary" variant="subtle">Inscripción</UBadge>
+              <UBadge v-if="payment.inscription" color="primary" variant="subtle">{{ t('payments.allocation.inscription') }}</UBadge>
             </div>
             <p class="text-sm text-prohealth-500 mt-1">
-              {{ paymentMethodLabel(payment.paymentMethod) }} · {{ formatDate(payment.paymentDate) }}
+              {{ methodLabel(payment.paymentMethod) }} · {{ formatDate(payment.paymentDate, 'short') }}
             </p>
           </div>
 
           <div v-if="isPending" class="flex items-center gap-2">
-            <UTooltip :text="canReject ? 'Rechazar pago' : 'No tienes permiso para rechazar'">
+            <UTooltip :text="canReject ? t('payments.detail.rejectTooltip') : t('payments.tooltips.noPermissionReject')">
               <UButton
                 color="error"
                 variant="soft"
@@ -163,17 +157,17 @@ function onReviewed(updated: PaymentDto) {
                 :disabled="!canReject"
                 @click="openReview('reject')"
               >
-                Rechazar
+                {{ t('payments.detail.reject') }}
               </UButton>
             </UTooltip>
-            <UTooltip :text="canApprove ? 'Aprobar pago' : 'No tienes permiso para aprobar'">
+            <UTooltip :text="canApprove ? t('payments.detail.approveTooltip') : t('payments.tooltips.noPermissionApprove')">
               <UButton
                 color="success"
                 icon="i-lucide-check"
                 :disabled="!canApprove"
                 @click="openReview('approve')"
               >
-                Aprobar
+                {{ t('payments.detail.approve') }}
               </UButton>
             </UTooltip>
           </div>
@@ -182,32 +176,32 @@ function onReviewed(updated: PaymentDto) {
 
       <!-- Payment detail -->
       <div class="bg-white rounded-2xl border border-prohealth-100 p-6">
-        <h2 class="font-bold text-prohealth-900 mb-4">Detalle del pago</h2>
+        <h2 class="font-bold text-prohealth-900 mb-4">{{ t('payments.detail.sections.detail') }}</h2>
         <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 text-sm">
           <div>
-            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">Monto</dt>
-            <dd class="text-prohealth-900 text-lg font-semibold mt-0.5">{{ formatMoney(payment.amount, payment.currency) }}</dd>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.amount') }}</dt>
+            <dd class="text-prohealth-900 text-lg font-semibold mt-0.5">{{ money(payment.amount, payment.currency) }}</dd>
           </div>
           <div>
-            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">Método</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ paymentMethodLabel(payment.paymentMethod) }}</dd>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.method') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ methodLabel(payment.paymentMethod) }}</dd>
           </div>
           <div>
-            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">Referencia</dt>
-            <dd class="text-prohealth-800 mt-0.5 font-mono">{{ payment.referenceNumber || '—' }}</dd>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.reference') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5 font-mono">{{ payment.referenceNumber || t('common.empty') }}</dd>
           </div>
           <div>
-            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">Fecha del pago</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ formatDate(payment.paymentDate) }}</dd>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.paymentDate') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ formatDate(payment.paymentDate, 'short') }}</dd>
           </div>
           <div>
-            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">Recibido</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ formatDateTime(payment.receivedAt) }}</dd>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.received') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ formatDate(payment.receivedAt, 'datetime') }}</dd>
           </div>
           <div>
-            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">Asignación</dt>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.allocation') }}</dt>
             <dd class="text-prohealth-800 mt-0.5">
-              {{ payment.inscription ? 'Inscripción (cargo único)' : `Mensualidad · ${formatPeriod(payment.appliedPeriod)}` }}
+              {{ payment.inscription ? t('payments.allocation.inscriptionFull') : t('payments.allocation.monthlyPeriod', { period: formatMonthYear(payment.appliedPeriod) }) }}
             </dd>
           </div>
         </dl>
@@ -215,14 +209,14 @@ function onReviewed(updated: PaymentDto) {
 
       <!-- Membership -->
       <div class="bg-white rounded-2xl border border-prohealth-100 p-6">
-        <h2 class="font-bold text-prohealth-900 mb-4">Afiliación</h2>
+        <h2 class="font-bold text-prohealth-900 mb-4">{{ t('payments.detail.sections.membership') }}</h2>
         <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 text-sm">
           <div>
-            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">Plan</dt>
-            <dd class="text-prohealth-800 mt-0.5 font-mono">{{ payment.planCode || '—' }}</dd>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.plan') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5 font-mono">{{ payment.planCode || t('common.empty') }}</dd>
           </div>
           <div>
-            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">Afiliado</dt>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.member') }}</dt>
             <dd class="mt-0.5">
               <NuxtLink :to="`/dashboard/members/${payment.memberUuid}`" class="text-cyan-700 hover:underline font-mono text-xs break-all">
                 {{ payment.memberUuid }}
@@ -230,7 +224,7 @@ function onReviewed(updated: PaymentDto) {
             </dd>
           </div>
           <div>
-            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">Membresía</dt>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.membership') }}</dt>
             <dd class="text-prohealth-800 mt-0.5 font-mono text-xs break-all">{{ payment.membershipUuid }}</dd>
           </div>
         </dl>
@@ -238,14 +232,14 @@ function onReviewed(updated: PaymentDto) {
 
       <!-- Proof of payment -->
       <div class="bg-white rounded-2xl border border-prohealth-100 p-6">
-        <h2 class="font-bold text-prohealth-900 mb-4">Comprobante</h2>
+        <h2 class="font-bold text-prohealth-900 mb-4">{{ t('payments.detail.sections.proof') }}</h2>
         <div v-if="payment.supportFileAvailable" class="flex flex-wrap items-center justify-between gap-3">
           <div class="flex items-center gap-3">
             <UIcon name="i-lucide-file-text" class="w-8 h-8 text-prohealth-400" />
             <div>
-              <p class="text-sm font-medium text-prohealth-800">{{ payment.supportFileName || 'Comprobante' }}</p>
+              <p class="text-sm font-medium text-prohealth-800">{{ payment.supportFileName || t('payments.detail.proof.fileNameFallback') }}</p>
               <p class="text-xs text-prohealth-500">
-                {{ payment.supportFileContentType || 'archivo' }}
+                {{ payment.supportFileContentType || t('payments.detail.proof.fileTypeFallback') }}
                 <template v-if="payment.supportFileSizeBytes"> · {{ formatSize(payment.supportFileSizeBytes) }}</template>
               </p>
             </div>
@@ -257,62 +251,62 @@ function onReviewed(updated: PaymentDto) {
             :loading="loadingSupport"
             @click="viewSupport"
           >
-            Ver comprobante
+            {{ t('payments.detail.proof.view') }}
           </UButton>
         </div>
         <div v-else class="flex items-center gap-2 text-sm text-prohealth-500">
           <UIcon name="i-lucide-file-x" class="w-5 h-5 text-prohealth-300" />
-          Sin comprobante adjunto.
+          {{ t('payments.detail.proof.none') }}
         </div>
       </div>
 
       <!-- Review -->
       <div class="bg-white rounded-2xl border border-prohealth-100 p-6">
-        <h2 class="font-bold text-prohealth-900 mb-4">Revisión</h2>
+        <h2 class="font-bold text-prohealth-900 mb-4">{{ t('payments.detail.sections.review') }}</h2>
         <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 text-sm">
           <div>
-            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">Estado</dt>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.status') }}</dt>
             <dd class="mt-0.5">
               <UBadge :color="paymentStatusColor(payment.status)" variant="subtle" size="sm">
-                {{ paymentStatusLabel(payment.status) }}
+                {{ statusLabel(payment.status) }}
               </UBadge>
             </dd>
           </div>
           <div>
-            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">Revisado</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ formatDateTime(payment.reviewedAt) }}</dd>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.reviewed') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ formatDate(payment.reviewedAt, 'datetime') }}</dd>
           </div>
           <div>
-            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">Revisado por</dt>
-            <dd class="text-prohealth-800 mt-0.5 font-mono text-xs break-all">{{ payment.reviewedByUserUuid || '—' }}</dd>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.reviewedBy') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5 font-mono text-xs break-all">{{ payment.reviewedByUserUuid || t('common.empty') }}</dd>
           </div>
           <div class="sm:col-span-2 lg:col-span-3">
-            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">Motivo / nota</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ payment.reviewReason || '—' }}</dd>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.reason') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ payment.reviewReason || t('common.empty') }}</dd>
           </div>
         </dl>
       </div>
 
       <!-- Admin notes -->
       <div v-if="payment.adminNotes" class="bg-white rounded-2xl border border-prohealth-100 p-6">
-        <h2 class="font-bold text-prohealth-900 mb-2">Notas administrativas</h2>
+        <h2 class="font-bold text-prohealth-900 mb-2">{{ t('payments.detail.sections.adminNotes') }}</h2>
         <p class="text-sm text-prohealth-700 whitespace-pre-line">{{ payment.adminNotes }}</p>
       </div>
 
       <!-- Metadata -->
       <div class="bg-white rounded-2xl border border-prohealth-100 p-6">
-        <h2 class="font-bold text-prohealth-900 mb-4">Metadatos</h2>
+        <h2 class="font-bold text-prohealth-900 mb-4">{{ t('payments.detail.sections.metadata') }}</h2>
         <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 text-sm">
           <div>
-            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">Creado</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ formatDateTime(payment.createdAt) }}</dd>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.created') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ formatDate(payment.createdAt, 'datetime') }}</dd>
           </div>
           <div>
-            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">Última actualización</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ formatDateTime(payment.updatedAt) }}</dd>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.updated') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ formatDate(payment.updatedAt, 'datetime') }}</dd>
           </div>
           <div>
-            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">UUID</dt>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.uuid') }}</dt>
             <dd class="text-prohealth-800 mt-0.5 font-mono text-xs break-all">{{ payment.uuid }}</dd>
           </div>
         </dl>

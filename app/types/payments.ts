@@ -18,32 +18,26 @@ export type PaymentMethod =
   | 'INTERNATIONAL_TRANSFER'
   | 'OTHER'
 
-export const PAYMENT_METHOD_OPTIONS: { label: string, value: PaymentMethod }[] = [
-  { label: 'Transferencia bancaria', value: 'BANK_TRANSFER' },
-  { label: 'Efectivo', value: 'CASH' },
-  { label: 'Zelle', value: 'ZELLE' },
-  { label: 'Pago móvil', value: 'PAGO_MOVIL' },
-  { label: 'Cripto', value: 'CRYPTO' },
-  { label: 'Transferencia internacional', value: 'INTERNATIONAL_TRANSFER' },
-  { label: 'Otro', value: 'OTHER' },
+// `label` is the Spanish fallback; `labelKey` resolves to i18n at the usage point.
+export const PAYMENT_METHOD_OPTIONS: { label: string, value: PaymentMethod, labelKey: string }[] = [
+  { label: 'Transferencia bancaria', value: 'BANK_TRANSFER', labelKey: 'payments.methods.BANK_TRANSFER' },
+  { label: 'Efectivo', value: 'CASH', labelKey: 'payments.methods.CASH' },
+  { label: 'Zelle', value: 'ZELLE', labelKey: 'payments.methods.ZELLE' },
+  { label: 'Pago móvil', value: 'PAGO_MOVIL', labelKey: 'payments.methods.PAGO_MOVIL' },
+  { label: 'Cripto', value: 'CRYPTO', labelKey: 'payments.methods.CRYPTO' },
+  { label: 'Transferencia internacional', value: 'INTERNATIONAL_TRANSFER', labelKey: 'payments.methods.INTERNATIONAL_TRANSFER' },
+  { label: 'Otro', value: 'OTHER', labelKey: 'payments.methods.OTHER' },
 ]
-
-export function paymentMethodLabel(value?: string | null): string {
-  return PAYMENT_METHOD_OPTIONS.find(o => o.value === value)?.label ?? value ?? '—'
-}
 
 // ---- Review status (PENDING/APPROVED/REJECTED) ----
 export type PaymentStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
 
-export const PAYMENT_STATUS_OPTIONS: { label: string, value: PaymentStatus }[] = [
-  { label: 'Pendiente', value: 'PENDING' },
-  { label: 'Aprobado', value: 'APPROVED' },
-  { label: 'Rechazado', value: 'REJECTED' },
+// `label` is the Spanish fallback; `labelKey` resolves to i18n at the usage point.
+export const PAYMENT_STATUS_OPTIONS: { label: string, value: PaymentStatus, labelKey: string }[] = [
+  { label: 'Pendiente', value: 'PENDING', labelKey: 'payments.status.PENDING' },
+  { label: 'Aprobado', value: 'APPROVED', labelKey: 'payments.status.APPROVED' },
+  { label: 'Rechazado', value: 'REJECTED', labelKey: 'payments.status.REJECTED' },
 ]
-
-export function paymentStatusLabel(value?: string | null): string {
-  return PAYMENT_STATUS_OPTIONS.find(o => o.value === value)?.label ?? value ?? '—'
-}
 
 /** Status badge color (Nuxt UI palette). */
 export function paymentStatusColor(value?: string | null): 'warning' | 'success' | 'error' | 'neutral' {
