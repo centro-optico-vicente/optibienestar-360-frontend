@@ -1,8 +1,10 @@
 <script setup lang="ts">
-// Mosaico de "Datos maestros". Es el botón mosaico del grupo homónimo del menú:
-// reutiliza NavMosaic con las vistas derivadas del registro de catálogos.
-const { findGroup } = useNav()
-const group = findGroup('datos-maestros')
+// "Master data" mosaic. It's the mosaic button of the menu group with the same
+// name: reuses NavMosaic with the views derived from the catalog registry.
+// `visibleGroup` resolves labels to i18n and filters children by permission.
+const { t } = useI18n()
+const { visibleGroup } = useNav()
+const group = computed(() => visibleGroup('datos-maestros'))
 
 definePageMeta({
   layout: 'dashboard',
@@ -10,7 +12,7 @@ definePageMeta({
   roles: ['SYSTEM', 'ADMINISTRADOR'],
 })
 
-useSeoMeta({ title: 'Datos maestros — OptiBienestar 360' })
+useSeoMeta({ title: () => t('common.seoTitle', { page: t('nav.groups.datosMaestros.label') }) })
 </script>
 
 <template>

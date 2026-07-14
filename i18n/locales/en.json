@@ -338,5 +338,63 @@
       "description": "Your account doesn't have the permissions required to view this section. If you think this is a mistake, contact an administrator.",
       "back": "Back to dashboard"
     }
+  },
+  "catalogs": {
+    "title": "Catalogs",
+    "breadcrumb": "Catalogs",
+    "notFound": "Catalog not found.",
+    "viewCatalogs": "View catalogs",
+    "new": "New",
+    "create": "Create",
+    "searchPlaceholder": "Search by name or code…",
+    "filterByParent": "Filter by parent…",
+    "empty": "No records",
+    "recordCount": "{count} record(s)",
+    "selectPlaceholder": "Select {field}",
+    "modalCreateTitle": "New: {entity}",
+    "modalEditTitle": "Edit: {entity}",
+    "deleteTitle": "Delete {entity}",
+    "deleteConfirm": "Are you sure you want to delete {name}?",
+    "createdToast": "{entity} created",
+    "updatedToast": "{entity} updated",
+    "deletedToast": "{entity} deleted",
+    "columns": {
+      "code": "Code",
+      "name": "Name",
+      "parent": "Parent",
+      "description": "Description",
+      "status": "Status"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "fields": {
+      "isoCode": "ISO code",
+      "name": "Name",
+      "code": "Code",
+      "description": "Description",
+      "country": "Country",
+      "state": "State"
+    },
+    "validation": {
+      "isoCode": "Two uppercase letters (ISO 3166-1, e.g. VE)",
+      "genderCode": "One uppercase letter (e.g. M, F)",
+      "documentTypeCode": "1 to 3 uppercase letters (e.g. CC, CI)",
+      "codeMax": "Uppercase/underscore, max {n}",
+      "invalidFormat": "Invalid format"
+    },
+    "registry": {
+      "countries": { "label": "Countries", "labelSingular": "Country" },
+      "states": { "label": "States / Departments", "labelSingular": "State" },
+      "cities": { "label": "Cities", "labelSingular": "City" },
+      "genders": { "label": "Genders", "labelSingular": "Gender" },
+      "document-types": { "label": "Document types", "labelSingular": "Document type" },
+      "marital-statuses": { "label": "Marital statuses", "labelSingular": "Marital status" },
+      "occupations": { "label": "Occupations", "labelSingular": "Occupation" },
+      "medical-specialties": { "label": "Medical specialties", "labelSingular": "Medical specialty" },
+      "service-categories": { "label": "Service categories", "labelSingular": "Service category" },
+      "ally-types": { "label": "Partner types", "labelSingular": "Partner type" }
+    }
   }
 }

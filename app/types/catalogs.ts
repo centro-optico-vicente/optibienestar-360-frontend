@@ -1,12 +1,12 @@
-// Tipos de los catálogos administrables (/v1/admin/catalogs/*).
-// Los listados devuelven una página (`Page<CatalogItem>`); los composables
-// (useCatalog/usePublicCatalog) la desempaquetan a `CatalogItem[]` vía `toItems`.
+// Types for the manageable catalogs (/v1/admin/catalogs/*).
+// Lists return a page (`Page<CatalogItem>`); the composables
+// (useCatalog/usePublicCatalog) unwrap it to `CatalogItem[]` via `toItems`.
 //
-// Todos los catálogos comparten { uuid, name, active }. Algunos añaden `code`
-// (o `isoCode` en países), `description`, y dependencias jerárquicas
+// Every catalog shares { uuid, name, active }. Some add `code`
+// (or `isoCode` for countries), `description`, and hierarchical dependencies
 // (State → countryUuid/countryIsoCode, City → stateUuid/stateCode).
 
-/** Forma permisiva que cubre los 10 catálogos. */
+/** Permissive shape covering all 10 catalogs. */
 export interface CatalogItem {
   uuid: string
   name: string
@@ -21,39 +21,47 @@ export interface CatalogItem {
   stateCode?: string
 }
 
-/** Un campo editable del formulario de un catálogo. */
+/** An editable field of a catalog form. */
 export interface CatalogField {
-  /** Clave en el form state y en el body del request. */
+  /** Key in the form state and in the request body. */
   name: string
+  /** Default text (es). Fallback when there is no `labelKey`. */
   label: string
+  /** i18n key for the label; resolved on the page. */
+  labelKey?: string
   type: 'text' | 'textarea' | 'parent'
   required?: boolean
-  /** Patrón de validación (p.ej. código en mayúsculas). */
+  /** Validation pattern (e.g. uppercase code). */
   regex?: RegExp
   regexMsg?: string
+  /** i18n key for the validation message; resolved on the page (receives `{ n: max }`). */
+  regexMsgKey?: string
   max?: number
   placeholder?: string
-  /** Inmutable en edición (code/isoCode y FKs solo se fijan al crear). */
+  /** Immutable on edit (code/isoCode and FKs are only set on create). */
   onlyCreate?: boolean
-  /** Si type === 'parent': clave del catálogo padre en el registro. */
+  /** When type === 'parent': key of the parent catalog in the registry. */
   parentKey?: string
 }
 
-/** Definición declarativa de un catálogo. */
+/** Declarative definition of a catalog. */
 export interface CatalogDef {
-  /** Segmento de ruta y clave única, p.ej. 'countries'. */
+  /** Route segment and unique key, e.g. 'countries'. */
   key: string
-  /** Ruta base del recurso, p.ej. '/v1/admin/catalogs/countries'. */
+  /** Resource base path, e.g. '/v1/admin/catalogs/countries'. */
   basePath: string
   label: string
   labelSingular: string
+  /** i18n keys for the labels; resolved on the page (and in the nav via `useNav`). */
+  labelKey?: string
+  labelSingularKey?: string
   icon: string
-  /** Campos del formulario, en orden. */
+  /** Form fields, in order. */
   fields: CatalogField[]
-  /** Campo que actúa como "código" para mostrarlo en la tabla ('code' | 'isoCode'). */
+  /** Field acting as the "code" shown in the table ('code' | 'isoCode'). */
   codeField?: 'code' | 'isoCode'
-  /** Campo denormalizado del padre a mostrar en la tabla (p.ej. 'stateCode'). */
+  /** Denormalized parent field shown in the table (e.g. 'stateCode'). */
   parentDisplayField?: keyof CatalogItem
-  /** Filtro por padre en el listado: { param: nombre del query param, field: campo FK }. */
+  /** Parent filter in the list: { param: query param name, field: FK field }. */
   listFilter?: { param: string, field: keyof CatalogItem }
 }
