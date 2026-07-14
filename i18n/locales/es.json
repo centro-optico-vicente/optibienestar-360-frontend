@@ -14,7 +14,9 @@
     "delete": "Eliminar",
     "actions": "Acciones",
     "select": "Selecciona",
-    "empty": "—"
+    "viewAll": "Ver todo",
+    "empty": "—",
+    "seoTitle": "{page} — OptiBienestar 360"
   },
   "validation": {
     "required": "Requerido",
@@ -39,6 +41,7 @@
       "confirmNewPassword": "Confirmar nueva contraseña"
     },
     "backToLogin": "← Volver a iniciar sesión",
+    "logout": "Cerrar sesión",
     "login": {
       "seoTitle": "Ingresar — OptiBienestar 360",
       "seoDescription": "Accede al portal OptiBienestar 360",
@@ -176,6 +179,164 @@
         "name": "Nombre",
         "description": "Descripción"
       }
+    }
+  },
+  "nav": {
+    "mainMenu": "Menú principal",
+    "otherSection": "Otros",
+    "manage": "Gestionar",
+    "viewAllMosaic": "Ver todo en mosaico",
+    "searchPlaceholder": "Buscar afiliados, planes…",
+    "groups": {
+      "afiliaciones": {
+        "label": "Afiliaciones",
+        "description": "Planes, membresías, afiliados y pagos del programa."
+      },
+      "aliados": {
+        "label": "Aliados",
+        "description": "Red de aliados prestadores, su clasificación y servicios."
+      },
+      "comercial": {
+        "label": "Comercial",
+        "description": "Promotores del programa y sus comisiones."
+      },
+      "seguridad": {
+        "label": "Seguridad",
+        "description": "Control de acceso por roles y usuarios del sistema."
+      },
+      "datosMaestros": {
+        "label": "Datos maestros",
+        "description": "Datos maestros del sistema: países, estados, ciudades, tipos de documento, géneros y más."
+      },
+      "misPortales": {
+        "label": "Mis portales",
+        "description": "Accesos a tus portales personales."
+      }
+    },
+    "items": {
+      "panel": { "label": "Panel" },
+      "reports": { "label": "Reportes" },
+      "plans": { "label": "Planes", "description": "Planes de cobertura disponibles." },
+      "memberships": { "label": "Membresías", "description": "Estado y vigencia de las membresías." },
+      "members": { "label": "Afiliados", "description": "Directorio y expedientes de afiliados." },
+      "payments": { "label": "Pagos", "description": "Registro y aprobación de pagos." },
+      "allyTypes": { "label": "Tipos de aliado", "description": "Clasificación de los aliados." },
+      "alliesDirectory": { "label": "Directorio de aliados", "description": "Comercios y prestadores de la red." },
+      "serviceCategories": { "label": "Categorías de servicio", "description": "Categorías de los servicios ofrecidos." },
+      "medicalSpecialties": { "label": "Especialidades médicas", "description": "Especialidades médicas de los aliados." },
+      "promoters": { "label": "Promotores", "description": "Equipo comercial y promotores." },
+      "commissions": { "label": "Comisiones", "description": "Liquidación y estado de comisiones." },
+      "roles": { "label": "Roles", "description": "Roles y permisos asignables." },
+      "users": { "label": "Usuarios", "description": "Cuentas y accesos al sistema." },
+      "myCard": { "label": "Mi carnet", "description": "Tu carnet de afiliado." },
+      "myAllyCompany": { "label": "Mi empresa aliada", "description": "Panel de tu empresa aliada." }
+    },
+    "other": {
+      "changePassword": "Cambiar contraseña"
+    }
+  },
+  "layout": {
+    "copyrightShort": "© {year} OptiBienestar 360",
+    "copyrightFull": "© {year} OptiBienestar 360. Todos los derechos reservados.",
+    "auth": {
+      "tagline": "Cuidamos lo que más amas.",
+      "lead": "Accede a tu carnet digital, gestiona tus afiliados y descubre la red de aliados del programa OptiBienestar 360.",
+      "affiliatesCount": "+150 mil afiliados",
+      "affiliatesTrust": "confían en nosotros"
+    },
+    "public": {
+      "nav": {
+        "home": "Inicio",
+        "about": "Sobre nosotros",
+        "departments": "Departamentos",
+        "allies": "Aliados",
+        "contact": "Contacto"
+      },
+      "signIn": "Ingresar",
+      "myPanel": "Mi panel"
+    },
+    "footer": {
+      "description": "Programa integral de salud y bienestar. Atención preferencial en centros aliados, cobertura familiar y portal digital para gestionar tu plan.",
+      "productHeading": "Producto",
+      "product": {
+        "plans": "Planes",
+        "allies": "Aliados",
+        "digitalCard": "Carnet digital"
+      },
+      "contactHeading": "Contacto"
+    }
+  },
+  "landing": {
+    "seoTitle": "OptiBienestar 360 — Cuidamos lo que más amas",
+    "seoDescription": "Plan integral de salud con red de aliados, atención preferencial, carnet digital y cobertura familiar.",
+    "hero": {
+      "badge": "Programa de salud confiable",
+      "titleLine1": "Cuidado integral,",
+      "titleLine2": "resultados excepcionales.",
+      "lead": "Nuestro equipo de profesionales y red de aliados está comprometido con brindar atención de calidad y acompañamiento personalizado a cada uno de nuestros afiliados.",
+      "ctaLogin": "Ingresar a mi cuenta",
+      "ctaHow": "Cómo funciona",
+      "activeAffiliatesLabel": "Afiliados activos",
+      "imageAlt": "Examen visual con optometrista en OptiBienestar 360",
+      "imageCaption": "Salud · Familia · Bienestar"
+    },
+    "stats": {
+      "years": "Años en el sector",
+      "satisfaction": "Satisfacción de afiliados",
+      "careCount": "Atenciones al año",
+      "specialties": "Especialidades cubiertas"
+    },
+    "about": {
+      "eyebrow": "Sobre nosotros",
+      "title": "OptiBienestar 360 es un equipo de profesionales de la salud comprometidos.",
+      "body": "Trabajamos bajo un enfoque integral que se concentra en la persona como un todo, no solo en el síntoma. Nuestros aliados, planes y promotores forman una red diseñada para que cuidarse sea simple.",
+      "imageAlt": "Equipo de profesionales de OptiBienestar 360"
+    },
+    "departments": {
+      "eyebrow": "Nuestros departamentos",
+      "title": "Para tu salud.",
+      "items": {
+        "emergencies": { "title": "Emergencias", "description": "Atención 24/7 en aliados certificados." },
+        "pediatrics": { "title": "Pediatría", "description": "Consultas y controles infantiles preferenciales." },
+        "gynecology": { "title": "Ginecología", "description": "Salud integral de la mujer y maternidad." },
+        "cardiology": { "title": "Cardiología", "description": "Cribado, ECG y seguimiento de riesgo." },
+        "neurology": { "title": "Neurología", "description": "Evaluaciones y planes de seguimiento." },
+        "ophthalmology": { "title": "Oftalmología", "description": "Consultas, lentes y descuentos en óptica." }
+      }
+    },
+    "contact": {
+      "eyebrow": "Contacto",
+      "title": "¿Tienes preguntas? Escríbenos.",
+      "lead": "Completa el formulario y nuestro equipo te responderá a la brevedad.",
+      "sentTitle": "¡Gracias por contactarnos!",
+      "sentDescription": "Hemos recibido tu mensaje y te responderemos pronto.",
+      "form": {
+        "name": "Nombre",
+        "email": "Correo",
+        "phone": "Teléfono",
+        "subject": "Asunto",
+        "message": "Mensaje",
+        "submit": "Enviar mensaje"
+      },
+      "toast": {
+        "sentTitle": "Mensaje enviado",
+        "sentDescription": "Te contactaremos pronto.",
+        "errorTitle": "No se pudo enviar",
+        "errorFallback": "Inténtalo de nuevo más tarde."
+      }
+    },
+    "cta": {
+      "title": "¿Listo para gestionar tu plan en línea?",
+      "body": "Ingresa al portal para ver tu carnet, agregar afiliados familiares y consultar tu historial.",
+      "button": "Ingresar ahora"
+    }
+  },
+  "errors": {
+    "forbidden": {
+      "seoTitle": "Sin permiso — OptiBienestar 360",
+      "title": "No tienes permiso",
+      "description": "Tu cuenta no cuenta con los permisos necesarios para ver esta sección. Si crees que es un error, contacta a un administrador.",
+      "back": "Volver al panel"
     }
   }
 }

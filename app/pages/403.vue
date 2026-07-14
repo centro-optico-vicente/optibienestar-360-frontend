@@ -1,7 +1,9 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard' })
 
-useSeoMeta({ title: 'Sin permiso — OptiBienestar 360' })
+const { t } = useI18n()
+
+useSeoMeta({ title: () => t('errors.forbidden.seoTitle') })
 </script>
 
 <template>
@@ -11,11 +13,10 @@ useSeoMeta({ title: 'Sin permiso — OptiBienestar 360' })
         <UIcon name="i-lucide-shield-x" class="w-8 h-8" />
       </span>
       <h1 class="mt-6 text-2xl font-extrabold text-prohealth-900">
-        No tienes permiso
+        {{ $t('errors.forbidden.title') }}
       </h1>
       <p class="mt-2 text-sm text-prohealth-700/70">
-        Tu cuenta no cuenta con los permisos necesarios para ver esta sección.
-        Si crees que es un error, contacta a un administrador.
+        {{ $t('errors.forbidden.description') }}
       </p>
       <UButton
         to="/dashboard"
@@ -24,7 +25,7 @@ useSeoMeta({ title: 'Sin permiso — OptiBienestar 360' })
         icon="i-lucide-arrow-left"
         class="mt-6"
       >
-        Volver al panel
+        {{ $t('errors.forbidden.back') }}
       </UButton>
     </div>
   </div>
