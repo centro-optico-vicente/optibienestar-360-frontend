@@ -6,8 +6,9 @@ import { getCatalogDef } from '~/utils/catalog-registry'
 
 definePageMeta({
   layout: 'dashboard',
-  middleware: 'role',
-  roles: ['SYSTEM', 'ADMINISTRADOR'],
+  // Resolves the catalog's own write key from the route param (V33): reaching a
+  // catalog screen means being able to manage it.
+  middleware: 'catalog-access',
 })
 
 const { t } = useI18n()

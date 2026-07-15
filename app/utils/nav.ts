@@ -65,7 +65,9 @@ const catalogChildren: NavLeaf[] = CATALOGS
     labelKey: c.labelKey,
     to: `/dashboard/catalogs/${c.key}`,
     icon: c.icon,
-    roles: ['SYSTEM', 'ADMINISTRADOR'],
+    // Gated by the catalog's own write key (V33) instead of a hardcoded role
+    // list, so a role granted a single catalog sees only that one.
+    requires: c.permission,
   }))
 
 export const MAIN_NAV: NavEntry[] = [
@@ -92,10 +94,10 @@ export const MAIN_NAV: NavEntry[] = [
     description: 'Red de aliados prestadores, su clasificación y servicios.',
     descriptionKey: 'nav.groups.aliados.description',
     children: [
-      { label: 'Tipos de aliado', labelKey: 'nav.items.allyTypes.label', to: '/dashboard/catalogs/ally-types', icon: 'i-lucide-tags', description: 'Clasificación de los aliados.', descriptionKey: 'nav.items.allyTypes.description', roles: ['SYSTEM', 'ADMINISTRADOR'] },
+      { label: 'Tipos de aliado', labelKey: 'nav.items.allyTypes.label', to: '/dashboard/catalogs/ally-types', icon: 'i-lucide-tags', description: 'Clasificación de los aliados.', descriptionKey: 'nav.items.allyTypes.description', requires: 'CATALOG_ALLY_TYPE_WRITE' },
       { label: 'Directorio de aliados', labelKey: 'nav.items.alliesDirectory.label', to: '/dashboard/allies', icon: 'i-lucide-handshake', description: 'Comercios y prestadores de la red.', descriptionKey: 'nav.items.alliesDirectory.description', requires: 'ALLY_VIEW_ALL' },
-      { label: 'Categorías de servicio', labelKey: 'nav.items.serviceCategories.label', to: '/dashboard/catalogs/service-categories', icon: 'i-lucide-layers', description: 'Categorías de los servicios ofrecidos.', descriptionKey: 'nav.items.serviceCategories.description', roles: ['SYSTEM', 'ADMINISTRADOR'] },
-      { label: 'Especialidades médicas', labelKey: 'nav.items.medicalSpecialties.label', to: '/dashboard/catalogs/medical-specialties', icon: 'i-lucide-stethoscope', description: 'Especialidades médicas de los aliados.', descriptionKey: 'nav.items.medicalSpecialties.description', roles: ['SYSTEM', 'ADMINISTRADOR'] },
+      { label: 'Categorías de servicio', labelKey: 'nav.items.serviceCategories.label', to: '/dashboard/catalogs/service-categories', icon: 'i-lucide-layers', description: 'Categorías de los servicios ofrecidos.', descriptionKey: 'nav.items.serviceCategories.description', requires: 'CATALOG_SERVICE_CATEGORY_WRITE' },
+      { label: 'Especialidades médicas', labelKey: 'nav.items.medicalSpecialties.label', to: '/dashboard/catalogs/medical-specialties', icon: 'i-lucide-stethoscope', description: 'Especialidades médicas de los aliados.', descriptionKey: 'nav.items.medicalSpecialties.description', requires: 'CATALOG_MEDICAL_SPECIALTY_WRITE' },
     ],
   },
   {
