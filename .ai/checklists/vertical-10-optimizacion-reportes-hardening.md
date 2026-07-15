@@ -10,9 +10,21 @@
 
 ## Reportes
 
-- [ ] [P1/C3] Página `pages/admin/dashboard.vue` con cards KPIs + gráficos (Chart.js o ECharts)
-- [ ] [P1/C3] Página `pages/admin/reports/index.vue`
+> Diseño congelado en [ADR 0012](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0012-reporting-documents-engine.md) (motor cross-stack) · contrato backend: [spec 15](https://github.com/fenix-core/optibienestar-360-backend/blob/main/.ai/specs/15-reporting-documents.md).
+> **Rutas reconciliadas**: este checklist decía `pages/admin/dashboard.vue` / `pages/admin/reports/index.vue`, pero **no existe árbol `pages/admin/*`** — la app usa `pages/dashboard/*` y el nav ya apunta a `/dashboard/reports` (hoy cae en el catch-all "en construcción").
+> **Regla dura**: nunca streamear bytes por `useApi` (es JSON-only y `window.open` no manda `Authorization`) — siempre presigned URL + `window.open`, como ya hace `usePayments.supportUrl()` → `viewSupport()`.
+
+- [ ] [P1/C3] Página `pages/dashboard/reports/index.vue` (la ruta del nav ya existe; deja de caer en el catch-all)
+- [ ] [P1/C3] KPI cards + gráficos en `pages/dashboard/index.vue` — **reemplazar los mocks actuales** ("Pagos pendientes: 64", "Recaudación: $48,250") por datos reales de `GET /v1/admin/dashboard`. Librería de gráficos: Chart.js o ECharts (ambas OSS) — elección diferida a implementación
+- [ ] [P1/C2] `composables/useReports.ts` — `dashboard()`, `memberships()/allies()/commissions()` (KPIs JSON) y `exportReport(type, format)` → `window.open(res.url)` (clonar patrón `usePayments.supportUrl`)
+- [ ] [P1/C3] `composables/useDocuments.ts` — `generate(documentType, format, params, delivery)`, `get(uuid)` (polling ante 202 hasta `READY`), `downloadUrl(uuid)` → `window.open`, `list()`, `emailDoc(uuid, …)`
+- [ ] [P1/C2] `types/documents.ts` — `DocumentDto`, `DocumentUrlDto` (misma forma que `PaymentSupportUrlDto`), enums `DocumentFormat` (PDF/XLSX/CSV/TICKET_PDF) y `DeliveryMode` (DOWNLOAD/EMAIL_ATTACHMENT/EMAIL_LINK) + helpers de label
+- [ ] [P1/C2] Control "Generar documento": selector de **formato** (PDF/XLSX/CSV/Ticket) + **modo de entrega** (Descargar / Enviar adjunto / Enviar enlace). Reusar el patrón de modal existente (`PaymentReviewModal`)
+- [ ] [P1/C2] Generación por entidad: botón "Recibo" en `pages/dashboard/payments/[uuid].vue` (PDF/ticket) y planilla en el detalle de afiliado
+- [ ] [P1/C1] Cablear el permiso **`REPORT_EXPORT`** (hoy declarado en `types/permissions.ts` y **sin uso en ninguna parte**) a los controles de exportación; sumar los `DOCUMENT_VIEW_ALL`/`VIEW_OWN`/`GENERATE` nuevos al catálogo
+- [ ] [P2/C2] "Mis documentos" en el portal del afiliado (`DOCUMENT_VIEW_OWN`) — descargar sus propios recibos/carnet
 - [ ] [P2/C2] Filtros rango de fechas con date pickers
+- [ ] [P2/C1] Los tickets se imprimen desde el visor de PDF del navegador (v1 = `TICKET_PDF` 58/80 mm). ESC/POS con auto-corte/gaveta queda diferido (requeriría agente local/WebUSB)
 
 ## QA
 
