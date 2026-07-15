@@ -136,17 +136,33 @@ export const ALLY_ROLE_OPTIONS: { label: string, value: AllyRole, labelKey: stri
   { label: 'Visor', value: 'VIEWER', labelKey: 'allies.staff.roles.VIEWER' },
 ]
 
+/**
+ * A staff membership under /v1/admin/allies/{allyUuid}/users.
+ *
+ * The backend flattens User + Person into `userUuid` / `userEmail` /
+ * `userFullName` (see AllyUserDto + AllyMapper.toAllyUserDto) so the table
+ * renders without round-trips. It does NOT send a nested `user` object.
+ *
+ * `uuid` is the membership row's, not the user's — `AssignAllyUserRequest.userUuid`
+ * and the edit form both want `userUuid`.
+ */
 export interface AllyUserDto {
   uuid: string
-  user?: {
-    uuid: string
-    email?: string
-    fullName?: string
-  }
+  allyUuid?: string
+
+  // User + Person, flattened by the backend mapper for display.
+  userUuid: string
+  userEmail?: string
+  userFullName?: string
+
   allyRole: AllyRole | string
   primary?: boolean
   joinedAt?: string
+
+  active?: boolean
   status?: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 export interface AssignAllyUserRequest {
