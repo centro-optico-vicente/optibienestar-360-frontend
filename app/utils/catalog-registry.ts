@@ -17,6 +17,7 @@ export const CATALOGS: CatalogDef[] = [
   {
     key: 'countries',
     basePath: '/v1/admin/catalogs/countries',
+    permission: 'CATALOG_COUNTRY_WRITE',
     label: 'Países',
     labelSingular: 'País',
     labelKey: 'catalogs.registry.countries.label',
@@ -31,6 +32,7 @@ export const CATALOGS: CatalogDef[] = [
   {
     key: 'states',
     basePath: '/v1/admin/catalogs/states',
+    permission: 'CATALOG_STATE_WRITE',
     label: 'Estados / Departamentos',
     labelSingular: 'Estado',
     labelKey: 'catalogs.registry.states.label',
@@ -47,6 +49,7 @@ export const CATALOGS: CatalogDef[] = [
   {
     key: 'cities',
     basePath: '/v1/admin/catalogs/cities',
+    permission: 'CATALOG_CITY_WRITE',
     label: 'Ciudades',
     labelSingular: 'Ciudad',
     labelKey: 'catalogs.registry.cities.label',
@@ -62,6 +65,7 @@ export const CATALOGS: CatalogDef[] = [
   {
     key: 'genders',
     basePath: '/v1/admin/catalogs/genders',
+    permission: 'CATALOG_GENDER_WRITE',
     label: 'Géneros',
     labelSingular: 'Género',
     labelKey: 'catalogs.registry.genders.label',
@@ -76,6 +80,7 @@ export const CATALOGS: CatalogDef[] = [
   {
     key: 'document-types',
     basePath: '/v1/admin/catalogs/document-types',
+    permission: 'CATALOG_DOCUMENT_TYPE_WRITE',
     label: 'Tipos de documento',
     labelSingular: 'Tipo de documento',
     labelKey: 'catalogs.registry.document-types.label',
@@ -91,6 +96,7 @@ export const CATALOGS: CatalogDef[] = [
   {
     key: 'marital-statuses',
     basePath: '/v1/admin/catalogs/marital-statuses',
+    permission: 'CATALOG_MARITAL_STATUS_WRITE',
     label: 'Estados civiles',
     labelSingular: 'Estado civil',
     labelKey: 'catalogs.registry.marital-statuses.label',
@@ -105,6 +111,7 @@ export const CATALOGS: CatalogDef[] = [
   {
     key: 'occupations',
     basePath: '/v1/admin/catalogs/occupations',
+    permission: 'CATALOG_OCCUPATION_WRITE',
     label: 'Ocupaciones',
     labelSingular: 'Ocupación',
     labelKey: 'catalogs.registry.occupations.label',
@@ -118,6 +125,7 @@ export const CATALOGS: CatalogDef[] = [
   {
     key: 'medical-specialties',
     basePath: '/v1/admin/catalogs/medical-specialties',
+    permission: 'CATALOG_MEDICAL_SPECIALTY_WRITE',
     label: 'Especialidades médicas',
     labelSingular: 'Especialidad médica',
     labelKey: 'catalogs.registry.medical-specialties.label',
@@ -133,6 +141,7 @@ export const CATALOGS: CatalogDef[] = [
   {
     key: 'service-categories',
     basePath: '/v1/admin/catalogs/service-categories',
+    permission: 'CATALOG_SERVICE_CATEGORY_WRITE',
     label: 'Categorías de servicio',
     labelSingular: 'Categoría de servicio',
     labelKey: 'catalogs.registry.service-categories.label',
@@ -148,6 +157,7 @@ export const CATALOGS: CatalogDef[] = [
   {
     key: 'ally-types',
     basePath: '/v1/admin/catalogs/ally-types',
+    permission: 'CATALOG_ALLY_TYPE_WRITE',
     label: 'Tipos de aliado',
     labelSingular: 'Tipo de aliado',
     labelKey: 'catalogs.registry.ally-types.label',

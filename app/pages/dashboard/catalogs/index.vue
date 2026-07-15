@@ -8,8 +8,9 @@ const group = computed(() => visibleGroup('datos-maestros'))
 
 definePageMeta({
   layout: 'dashboard',
-  middleware: 'role',
-  roles: ['SYSTEM', 'ADMINISTRADOR'],
+  // Needs at least one catalog write key (V33); the mosaic then lists only the
+  // catalogs the user can actually manage.
+  middleware: 'catalog-access',
 })
 
 useSeoMeta({ title: () => t('common.seoTitle', { page: t('nav.groups.datosMaestros.label') }) })

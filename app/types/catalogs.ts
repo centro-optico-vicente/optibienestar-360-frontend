@@ -1,3 +1,5 @@
+import type { Permission } from '~/types/permissions'
+
 // Types for the manageable catalogs (/v1/admin/catalogs/*).
 // Lists return a page (`Page<CatalogItem>`); the composables
 // (useCatalog/usePublicCatalog) unwrap it to `CatalogItem[]` via `toItems`.
@@ -50,6 +52,12 @@ export interface CatalogDef {
   key: string
   /** Resource base path, e.g. '/v1/admin/catalogs/countries'. */
   basePath: string
+  /**
+   * Write key this catalog requires (V33) — one per catalog, so access is
+   * delegated per catalog. Drives the nav gate and the `catalog-access`
+   * middleware, so managing a catalog is granted by a single permission.
+   */
+  permission: Permission
   label: string
   labelSingular: string
   /** i18n keys for the labels; resolved on the page (and in the nav via `useNav`). */

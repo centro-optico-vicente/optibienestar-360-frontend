@@ -19,9 +19,19 @@ export const PERMISSIONS = [
   'ROLE_PERMISSION_EDIT',
 
   // CATALOGS
-  // Renamed from USER_CHANGE_ROLE in V32: despite that name it never guarded
-  // user roles, only these catalog writes.
-  'CATALOG_WRITE',
+  // One write key per catalog (V33), so access is delegated per catalog: an
+  // HR-style role can get occupations without also getting countries. Reads stay
+  // under USER_VIEW_ALL — form dropdowns hit these same endpoints.
+  'CATALOG_COUNTRY_WRITE',
+  'CATALOG_STATE_WRITE',
+  'CATALOG_CITY_WRITE',
+  'CATALOG_GENDER_WRITE',
+  'CATALOG_DOCUMENT_TYPE_WRITE',
+  'CATALOG_MARITAL_STATUS_WRITE',
+  'CATALOG_OCCUPATION_WRITE',
+  'CATALOG_MEDICAL_SPECIALTY_WRITE',
+  'CATALOG_SERVICE_CATEGORY_WRITE',
+  'CATALOG_ALLY_TYPE_WRITE',
 
   // MEMBERS
   'MEMBER_CREATE',
