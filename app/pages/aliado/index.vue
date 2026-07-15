@@ -2,14 +2,13 @@
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { CatalogItem } from '~/types/catalogs'
-import type { AllyServiceDto } from '~/types/allies'
+import type { AllyServiceDto, MyAllyDto } from '~/types/allies'
 
 // Partner panel: propose services (POST /v1/aliado/services, born in PROPOSED).
 // The backend requires the user to have OWNER/STAFF membership in the given ally.
 //
-// Backend LIMITATION: there's no `GET /v1/me/ally`, so the partner UUID is asked
-// once and remembered in localStorage. When the backend exposes it, replace the
-// field with automatic loading.
+// The ally is resolved from GET /v1/me/allies — never typed. One ally (the common
+// case) needs no picker; a user spanning several gets one.
 definePageMeta({
   layout: 'dashboard',
   middleware: 'role',
@@ -21,9 +20,30 @@ const { t } = useI18n()
 useSeoMeta({ title: () => t('allies.portal.seoTitle') })
 
 const allies = useAllies()
+const myAllies = useMyAllies()
 const toast = useToast()
 
-const ALLY_UUID_KEY = 'aliado:ally-uuid'
+// ---- Which ally am I proposing for? ----
+const myAllyList = ref<MyAllyDto[]>([])
+const alliesLoading = ref(true)
+
+const allyOptions = computed(() => myAllyList.value.map(a => ({ label: a.name, value: a.uuid })))
+const selectedAlly = computed(() => myAllyList.value.find(a => a.uuid === state.allyUuid) ?? null)
+const hasNoAlly = computed(() => !alliesLoading.value && myAllyList.value.length === 0)
+
+async function loadMyAllies() {
+  try {
+    myAllyList.value = await myAllies.list()
+    // The backend returns primary first, so the head is the sensible default.
+    state.allyUuid = myAllyList.value[0]?.uuid ?? ''
+  }
+  catch {
+    // useApi already notified; hasNoAlly renders the empty state.
+  }
+  finally {
+    alliesLoading.value = false
+  }
+}
 
 // ---- Categories catalog ----
 const categoryOptions = ref<{ label: string, value: string }[]>([])
@@ -41,7 +61,7 @@ async function loadCategories() {
 }
 
 onMounted(() => {
-  state.allyUuid = localStorage.getItem(ALLY_UUID_KEY) ?? ''
+  loadMyAllies()
   loadCategories()
 })
 
@@ -81,7 +101,6 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       discountPct: state.discountPct || undefined,
       requiresAppointment: state.requiresAppointment,
     })
-    localStorage.setItem(ALLY_UUID_KEY, state.allyUuid)
     toast.add({
       title: t('allies.portal.proposedToast'),
       description: t('allies.portal.proposedToastDescription'),
@@ -114,6 +133,17 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       </p>
     </div>
 
+    <!-- No ally: the form can't produce a valid proposal, so say why instead of
+         letting it 403 on submit. -->
+    <UAlert
+      v-if="hasNoAlly"
+      color="warning"
+      variant="subtle"
+      icon="i-lucide-building-2"
+      :title="t('allies.portal.noAllyTitle')"
+      :description="t('allies.portal.noAllyDescription')"
+    />
+
     <!-- Last proposal -->
     <UAlert
       v-if="lastProposed"
@@ -125,7 +155,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     />
 
     <!-- Form -->
-    <div class="bg-white rounded-2xl border border-prohealth-100 p-6">
+    <div v-if="!hasNoAlly" class="bg-white rounded-2xl border border-prohealth-100 p-6">
       <h2 class="font-bold text-prohealth-900 mb-1">{{ t('allies.portal.formTitle') }}</h2>
       <p class="text-xs text-prohealth-500 mb-5">
         {{ t('allies.portal.formHint') }}
@@ -137,19 +167,29 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         class="space-y-4"
         @submit="onSubmit"
       >
+        <!-- Ally picker only when there's a real choice to make; otherwise the single
+             ally is resolved silently and just shown for confirmation. -->
         <UFormField
-          :label="t('allies.portal.fields.allyUuid')"
+          v-if="allyOptions.length > 1"
+          :label="t('allies.portal.fields.ally')"
           name="allyUuid"
           required
-          :help="t('allies.portal.fields.allyUuidHelp')"
+          :help="t('allies.portal.fields.allyHelp')"
         >
-          <UInput
+          <USelectMenu
             v-model="state.allyUuid"
-            placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+            :items="allyOptions"
+            label-key="label"
+            value-key="value"
             icon="i-lucide-building-2"
-            class="w-full font-mono"
+            :placeholder="t('common.select')"
+            class="w-full"
           />
         </UFormField>
+        <p v-else-if="selectedAlly" class="text-xs text-prohealth-500 flex items-center gap-1.5">
+          <UIcon name="i-lucide-building-2" class="w-3.5 h-3.5" />
+          {{ selectedAlly.name }}
+        </p>
 
         <UFormField :label="t('allies.portal.fields.category')" name="serviceCategoryUuid" required>
           <USelectMenu
