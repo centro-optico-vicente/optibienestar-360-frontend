@@ -152,7 +152,7 @@
     "roles": {
       "seoTitle": "Roles — OptiBienestar 360",
       "title": "Roles y permisos",
-      "subtitle": "Crea roles y ajusta los permisos (llaves) que otorga cada uno. El rol SYSTEM es inmutable.",
+      "subtitle": "Crea roles y ajusta los permisos (llaves) que otorga cada uno. El rol SYSTEM solo puede editarlo un usuario SYSTEM.",
       "new": "Nuevo rol",
       "createTooltip": "Crear un nuevo rol",
       "noPermissionCreate": "No tienes permiso para crear roles",
@@ -162,7 +162,8 @@
       "editPermissionsTooltip": "Editar permisos",
       "editRoleTooltip": "Editar rol",
       "deleteRoleTooltip": "Eliminar rol",
-      "systemImmutable": "El rol SYSTEM es inmutable",
+      "systemOnlySystemActor": "Solo un usuario SYSTEM puede editar el rol SYSTEM",
+      "systemNotDeletable": "El rol SYSTEM no se puede eliminar",
       "nameFormat": "Debe ser UPPER_SNAKE_CASE (ej: GERENTE_ALIADO)",
       "createdToast": "Rol creado",
       "updatedToast": "Rol actualizado",

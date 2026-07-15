@@ -6,7 +6,11 @@ import type { PermissionDomainDto, RoleDto } from '~/types/admin'
 definePageMeta({
   layout: 'dashboard',
   middleware: 'can',
-  permission: 'USER_CHANGE_ROLE',
+  // ROLE_PERMISSION_EDIT es la llave que el backend exige en los endpoints de
+  // roles (create/update/delete/{uuid}/permissions). USER_CHANGE_ROLE no aplica:
+  // pese al nombre, es el marcador "solo SYSTEM" que protege la escritura de
+  // catálogos, y dejaba esta pantalla fuera del alcance de ADMINISTRADOR.
+  permission: 'ROLE_PERMISSION_EDIT',
 })
 
 const { t } = useI18n()
@@ -14,16 +18,32 @@ const { t } = useI18n()
 useSeoMeta({ title: () => t('security.roles.seoTitle') })
 
 const rolesApi = useRoles()
-const { can } = usePermissions()
+const { can, hasRole } = usePermissions()
 const toast = useToast()
 
 // La gestión (CRUD de roles y permisos por rol) es ROLE_PERMISSION_EDIT en el backend;
 // se acepta también USER_CHANGE_ROLE por compatibilidad con seeds anteriores.
 const canManage = computed(() => can('ROLE_PERMISSION_EDIT') || can('USER_CHANGE_ROLE'))
 
-/** El rol SYSTEM es inmutable: no se edita ni se elimina. */
+/** Solo un actor con rol SYSTEM puede editar el rol SYSTEM (lo exige el backend). */
+const isSystemUser = computed(() => hasRole('SYSTEM'))
+
 function isSystemRole(r: RoleDto): boolean {
   return r.name === 'SYSTEM'
+}
+
+/**
+ * Espeja los guards del backend sobre el rol SYSTEM:
+ * editar nombre/descripción y permisos → solo actores SYSTEM (403
+ * `role.system.not_editable` para el resto); eliminarlo → bloqueado para todos
+ * (`role.system.not_deletable`).
+ */
+function canEditRole(r: RoleDto): boolean {
+  return canManage.value && (!isSystemRole(r) || isSystemUser.value)
+}
+
+function canDeleteRole(r: RoleDto): boolean {
+  return canManage.value && !isSystemRole(r)
 }
 
 const roles = ref<RoleDto[]>([])
@@ -269,34 +289,34 @@ async function onSave() {
               </td>
               <td class="px-5 py-3">
                 <div class="flex items-center justify-end gap-1">
-                  <UTooltip :text="canManage ? $t('security.roles.editPermissionsTooltip') : $t('security.roles.noPermission')">
+                  <UTooltip :text="!canManage ? $t('security.roles.noPermission') : (canEditRole(r) ? $t('security.roles.editPermissionsTooltip') : $t('security.roles.systemOnlySystemActor'))">
                     <UButton
                       color="neutral"
                       variant="ghost"
                       icon="i-lucide-key-round"
                       size="sm"
                       :label="$t('security.roles.permissions')"
-                      :disabled="!canManage"
+                      :disabled="!canEditRole(r)"
                       @click="openEdit(r)"
                     />
                   </UTooltip>
-                  <UTooltip :text="isSystemRole(r) ? $t('security.roles.systemImmutable') : (canManage ? $t('security.roles.editRoleTooltip') : $t('security.roles.noPermission'))">
+                  <UTooltip :text="!canManage ? $t('security.roles.noPermission') : (canEditRole(r) ? $t('security.roles.editRoleTooltip') : $t('security.roles.systemOnlySystemActor'))">
                     <UButton
                       color="neutral"
                       variant="ghost"
                       icon="i-lucide-pencil"
                       size="sm"
-                      :disabled="!canManage || isSystemRole(r)"
+                      :disabled="!canEditRole(r)"
                       @click="openRoleEdit(r)"
                     />
                   </UTooltip>
-                  <UTooltip :text="isSystemRole(r) ? $t('security.roles.systemImmutable') : (canManage ? $t('security.roles.deleteRoleTooltip') : $t('security.roles.noPermission'))">
+                  <UTooltip :text="!canManage ? $t('security.roles.noPermission') : (isSystemRole(r) ? $t('security.roles.systemNotDeletable') : $t('security.roles.deleteRoleTooltip'))">
                     <UButton
                       color="error"
                       variant="ghost"
                       icon="i-lucide-trash-2"
                       size="sm"
-                      :disabled="!canManage || isSystemRole(r)"
+                      :disabled="!canDeleteRole(r)"
                       @click="openRoleDelete(r)"
                     />
                   </UTooltip>
