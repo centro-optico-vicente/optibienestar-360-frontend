@@ -5,13 +5,23 @@
 export const PERMISSIONS = [
   // USERS
   'USER_CREATE',
+  // Also covers assigning/revoking a user's roles — the PUT carries the roleIds.
   'USER_UPDATE',
   'USER_DELETE',
   'USER_VIEW_ALL',
-  'USER_CHANGE_ROLE',
   'USER_RESET_PASSWORD',
-  // Gestión de roles y sus permisos (POST/PUT/DELETE /v1/admin/roles, PUT .../permissions).
+  // Role management — one key per action (V32).
+  'ROLE_VIEW',
+  'ROLE_CREATE',
+  'ROLE_UPDATE',
+  'ROLE_DELETE',
+  // Assigning permissions to a role only (PUT /v1/admin/roles/{uuid}/permissions).
   'ROLE_PERMISSION_EDIT',
+
+  // CATALOGS
+  // Renamed from USER_CHANGE_ROLE in V32: despite that name it never guarded
+  // user roles, only these catalog writes.
+  'CATALOG_WRITE',
 
   // MEMBERS
   'MEMBER_CREATE',
