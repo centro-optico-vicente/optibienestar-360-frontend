@@ -48,12 +48,19 @@ onMounted(async () => {
   finally {
     alliesLoading.value = false
     await nextTick()
-    documentInput.value?.focus()
+    focusDocument()
   }
 })
 
 // ---- Validation ----
-const documentInput = ref<{ focus: () => void } | null>(null)
+// UInput exposes only `inputRef` (the native element), not a focus() method — the
+// chain must go through it. Optional all the way so a miss is a no-op, never a
+// TypeError at the counter; the `autofocus` prop covers the initial focus anyway.
+const documentInput = ref<{ inputRef?: HTMLInputElement | null } | null>(null)
+
+function focusDocument() {
+  documentInput.value?.inputRef?.focus()
+}
 const document = ref('')
 const result = ref<ValidationResultDto | null>(null)
 const validating = ref(false)
@@ -96,7 +103,7 @@ function reset() {
   result.value = null
   validatedDocument.value = ''
   failed.value = false
-  documentInput.value?.focus()
+  focusDocument()
 }
 
 // ---- Benefit usage ----
