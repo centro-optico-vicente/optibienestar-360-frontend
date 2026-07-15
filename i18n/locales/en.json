@@ -152,7 +152,7 @@
     "roles": {
       "seoTitle": "Roles — OptiBienestar 360",
       "title": "Roles and permissions",
-      "subtitle": "Create roles and adjust the permissions (keys) each one grants. The SYSTEM role is immutable.",
+      "subtitle": "Create roles and adjust the permissions (keys) each one grants. Only a SYSTEM user can edit the SYSTEM role.",
       "new": "New role",
       "createTooltip": "Create a new role",
       "noPermissionCreate": "You don't have permission to create roles",
@@ -162,7 +162,8 @@
       "editPermissionsTooltip": "Edit permissions",
       "editRoleTooltip": "Edit role",
       "deleteRoleTooltip": "Delete role",
-      "systemImmutable": "The SYSTEM role is immutable",
+      "systemOnlySystemActor": "Only a SYSTEM user can edit the SYSTEM role",
+      "systemNotDeletable": "The SYSTEM role cannot be deleted",
       "nameFormat": "Must be UPPER_SNAKE_CASE (e.g. GERENTE_ALIADO)",
       "createdToast": "Role created",
       "updatedToast": "Role updated",

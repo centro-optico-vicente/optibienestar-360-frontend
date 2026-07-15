@@ -118,7 +118,7 @@ export const MAIN_NAV: NavEntry[] = [
     description: 'Control de acceso por roles y usuarios del sistema.',
     descriptionKey: 'nav.groups.seguridad.description',
     children: [
-      { label: 'Roles', labelKey: 'nav.items.roles.label', to: '/dashboard/roles', icon: 'i-lucide-shield-check', description: 'Roles y permisos asignables.', descriptionKey: 'nav.items.roles.description', requires: 'USER_CHANGE_ROLE' },
+      { label: 'Roles', labelKey: 'nav.items.roles.label', to: '/dashboard/roles', icon: 'i-lucide-shield-check', description: 'Roles y permisos asignables.', descriptionKey: 'nav.items.roles.description', requires: 'ROLE_PERMISSION_EDIT' },
       { label: 'Usuarios', labelKey: 'nav.items.users.label', to: '/dashboard/users', icon: 'i-lucide-shield-user', description: 'Cuentas y accesos al sistema.', descriptionKey: 'nav.items.users.description', requires: 'USER_VIEW_ALL' },
     ],
   },
