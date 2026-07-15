@@ -6,11 +6,9 @@ import type { PermissionDomainDto, RoleDto } from '~/types/admin'
 definePageMeta({
   layout: 'dashboard',
   middleware: 'can',
-  // ROLE_PERMISSION_EDIT es la llave que el backend exige en los endpoints de
-  // roles (create/update/delete/{uuid}/permissions). USER_CHANGE_ROLE no aplica:
-  // pese al nombre, es el marcador "solo SYSTEM" que protege la escritura de
-  // catálogos, y dejaba esta pantalla fuera del alcance de ADMINISTRADOR.
-  permission: 'ROLE_PERMISSION_EDIT',
+  // Entering only needs read access; each action is gated below by its own key
+  // (V32), so a read-only role can consult the list without editing anything.
+  permission: 'ROLE_VIEW',
 })
 
 const { t } = useI18n()
@@ -21,29 +19,38 @@ const rolesApi = useRoles()
 const { can, hasRole } = usePermissions()
 const toast = useToast()
 
-// La gestión (CRUD de roles y permisos por rol) es ROLE_PERMISSION_EDIT en el backend;
-// se acepta también USER_CHANGE_ROLE por compatibilidad con seeds anteriores.
-const canManage = computed(() => can('ROLE_PERMISSION_EDIT') || can('USER_CHANGE_ROLE'))
+// One key per action (V32), mirroring the backend's @PreAuthorize.
+const canCreate = computed(() => can('ROLE_CREATE'))
+const canUpdate = computed(() => can('ROLE_UPDATE'))
+const canDelete = computed(() => can('ROLE_DELETE'))
+const canEditPermissions = computed(() => can('ROLE_PERMISSION_EDIT'))
 
-/** Solo un actor con rol SYSTEM puede editar el rol SYSTEM (lo exige el backend). */
 const isSystemUser = computed(() => hasRole('SYSTEM'))
 
 function isSystemRole(r: RoleDto): boolean {
   return r.name === 'SYSTEM'
 }
 
+/** The SYSTEM role is only touchable by a SYSTEM actor (403 `role.system.not_editable`). */
+function systemAllows(r: RoleDto): boolean {
+  return !isSystemRole(r) || isSystemUser.value
+}
+
 /**
- * Espeja los guards del backend sobre el rol SYSTEM:
- * editar nombre/descripción y permisos → solo actores SYSTEM (403
- * `role.system.not_editable` para el resto); eliminarlo → bloqueado para todos
- * (`role.system.not_deletable`).
+ * Mirrors the backend guards: every action needs its own key, and the SYSTEM
+ * role additionally requires a SYSTEM actor. Deleting the SYSTEM role is blocked
+ * for everyone (`role.system.not_deletable`), even for a SYSTEM actor.
  */
 function canEditRole(r: RoleDto): boolean {
-  return canManage.value && (!isSystemRole(r) || isSystemUser.value)
+  return canUpdate.value && systemAllows(r)
+}
+
+function canEditRolePermissions(r: RoleDto): boolean {
+  return canEditPermissions.value && systemAllows(r)
 }
 
 function canDeleteRole(r: RoleDto): boolean {
-  return canManage.value && !isSystemRole(r)
+  return canDelete.value && !isSystemRole(r)
 }
 
 const roles = ref<RoleDto[]>([])
@@ -85,6 +92,8 @@ onMounted(async () => {
 const roleFormOpen = ref(false)
 const roleMode = ref<'create' | 'edit'>('create')
 const roleEditingUuid = ref<string | null>(null)
+/** Role open in the name/description modal; drives its inline actions. */
+const roleEditing = ref<RoleDto | null>(null)
 const roleSubmitting = ref(false)
 
 const roleState = reactive({ name: '', description: '' })
@@ -100,6 +109,7 @@ const roleSchema = computed(() => z.object({
 function openRoleCreate() {
   roleMode.value = 'create'
   roleEditingUuid.value = null
+  roleEditing.value = null
   roleState.name = ''
   roleState.description = ''
   roleFormOpen.value = true
@@ -108,9 +118,26 @@ function openRoleCreate() {
 function openRoleEdit(r: RoleDto) {
   roleMode.value = 'edit'
   roleEditingUuid.value = r.uuid
+  roleEditing.value = r
   roleState.name = r.name
   roleState.description = r.description ?? ''
   roleFormOpen.value = true
+}
+
+// Shortcuts from the edit modal to the role's other two actions. They close this
+// modal first so two dialogs never stack.
+function openPermissionsFromEdit() {
+  const r = roleEditing.value
+  if (!r) return
+  roleFormOpen.value = false
+  openEdit(r)
+}
+
+function openDeleteFromEdit() {
+  const r = roleEditing.value
+  if (!r) return
+  roleFormOpen.value = false
+  openRoleDelete(r)
 }
 
 async function onRoleSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
@@ -249,11 +276,11 @@ async function onSave() {
           {{ $t('security.roles.subtitle') }}
         </p>
       </div>
-      <UTooltip :text="canManage ? $t('security.roles.createTooltip') : $t('security.roles.noPermissionCreate')">
+      <UTooltip :text="canCreate ? $t('security.roles.createTooltip') : $t('security.roles.noPermissionCreate')">
         <UButton
           color="primary"
           icon="i-lucide-shield-plus"
-          :disabled="!canManage"
+          :disabled="!canCreate"
           @click="openRoleCreate"
         >
           {{ $t('security.roles.new') }}
@@ -289,18 +316,18 @@ async function onSave() {
               </td>
               <td class="px-5 py-3">
                 <div class="flex items-center justify-end gap-1">
-                  <UTooltip :text="!canManage ? $t('security.roles.noPermission') : (canEditRole(r) ? $t('security.roles.editPermissionsTooltip') : $t('security.roles.systemOnlySystemActor'))">
+                  <UTooltip :text="!canEditPermissions ? $t('security.roles.noPermission') : (canEditRolePermissions(r) ? $t('security.roles.editPermissionsTooltip') : $t('security.roles.systemOnlySystemActor'))">
                     <UButton
                       color="neutral"
                       variant="ghost"
                       icon="i-lucide-key-round"
                       size="sm"
                       :label="$t('security.roles.permissions')"
-                      :disabled="!canEditRole(r)"
+                      :disabled="!canEditRolePermissions(r)"
                       @click="openEdit(r)"
                     />
                   </UTooltip>
-                  <UTooltip :text="!canManage ? $t('security.roles.noPermission') : (canEditRole(r) ? $t('security.roles.editRoleTooltip') : $t('security.roles.systemOnlySystemActor'))">
+                  <UTooltip :text="!canUpdate ? $t('security.roles.noPermission') : (canEditRole(r) ? $t('security.roles.editRoleTooltip') : $t('security.roles.systemOnlySystemActor'))">
                     <UButton
                       color="neutral"
                       variant="ghost"
@@ -310,7 +337,7 @@ async function onSave() {
                       @click="openRoleEdit(r)"
                     />
                   </UTooltip>
-                  <UTooltip :text="!canManage ? $t('security.roles.noPermission') : (isSystemRole(r) ? $t('security.roles.systemNotDeletable') : $t('security.roles.deleteRoleTooltip'))">
+                  <UTooltip :text="!canDelete ? $t('security.roles.noPermission') : (isSystemRole(r) ? $t('security.roles.systemNotDeletable') : $t('security.roles.deleteRoleTooltip'))">
                     <UButton
                       color="error"
                       variant="ghost"
@@ -349,13 +376,42 @@ async function onSave() {
             <UTextarea v-model="roleState.description" :rows="2" class="w-full" />
           </UFormField>
 
-          <div class="flex items-center justify-end gap-3 pt-2">
-            <UButton color="neutral" variant="ghost" :disabled="roleSubmitting" @click="roleFormOpen = false">
-              {{ $t('common.cancel') }}
-            </UButton>
-            <UButton type="submit" color="primary" :loading="roleSubmitting" icon="i-lucide-save">
-              {{ roleMode === 'create' ? $t('security.roles.submitCreate') : $t('common.saveChanges') }}
-            </UButton>
+          <div class="flex items-center justify-between gap-3 pt-2">
+            <!-- Inline actions on the same role; meaningless while creating one that does not exist yet. -->
+            <div v-if="roleMode === 'edit' && roleEditing" class="flex items-center gap-1">
+              <UTooltip :text="!canEditPermissions ? $t('security.roles.noPermission') : (canEditRolePermissions(roleEditing) ? $t('security.roles.editPermissionsTooltip') : $t('security.roles.systemOnlySystemActor'))">
+                <UButton
+                  color="neutral"
+                  variant="ghost"
+                  icon="i-lucide-key-round"
+                  size="sm"
+                  :label="$t('security.roles.permissions')"
+                  :disabled="roleSubmitting || !canEditRolePermissions(roleEditing)"
+                  @click="openPermissionsFromEdit"
+                />
+              </UTooltip>
+              <UTooltip :text="!canDelete ? $t('security.roles.noPermission') : (isSystemRole(roleEditing) ? $t('security.roles.systemNotDeletable') : $t('security.roles.deleteRoleTooltip'))">
+                <UButton
+                  color="error"
+                  variant="ghost"
+                  icon="i-lucide-trash-2"
+                  size="sm"
+                  :label="$t('common.delete')"
+                  :disabled="roleSubmitting || !canDeleteRole(roleEditing)"
+                  @click="openDeleteFromEdit"
+                />
+              </UTooltip>
+            </div>
+            <div v-else />
+
+            <div class="flex items-center gap-3">
+              <UButton color="neutral" variant="ghost" :disabled="roleSubmitting" @click="roleFormOpen = false">
+                {{ $t('common.cancel') }}
+              </UButton>
+              <UButton type="submit" color="primary" :loading="roleSubmitting" icon="i-lucide-save">
+                {{ roleMode === 'create' ? $t('security.roles.submitCreate') : $t('common.saveChanges') }}
+              </UButton>
+            </div>
           </div>
         </UForm>
       </template>
