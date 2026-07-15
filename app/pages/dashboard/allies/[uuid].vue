@@ -583,7 +583,7 @@ function openStaffEdit(s: AllyUserDto) {
   staffMode.value = 'edit'
   staffEditingUuid.value = s.uuid
   resetStaffForm()
-  staffState.userUuid = s.user?.uuid
+  staffState.userUuid = s.userUuid
   staffState.allyRole = s.allyRole as AllyRole
   staffState.primary = s.primary ?? false
   staffState.joinedAt = s.joinedAt ?? ''
@@ -1051,8 +1051,8 @@ onMounted(async () => {
               </tr>
               <tr v-for="s in staff" v-else :key="s.uuid" class="hover:bg-prohealth-50/50">
                 <td class="px-6 py-3">
-                  <div class="font-semibold text-prohealth-900">{{ s.user?.fullName || t('common.empty') }}</div>
-                  <div class="text-xs text-prohealth-500">{{ s.user?.email || t('common.empty') }}</div>
+                  <div class="font-semibold text-prohealth-900">{{ s.userFullName || t('common.empty') }}</div>
+                  <div class="text-xs text-prohealth-500">{{ s.userEmail || t('common.empty') }}</div>
                 </td>
                 <td class="px-6 py-3">
                   <UBadge color="primary" variant="subtle" size="sm">
@@ -1342,7 +1342,7 @@ onMounted(async () => {
       <template #body>
         <i18n-t keypath="allies.staff.delete.confirm" tag="p" class="text-sm text-prohealth-700" scope="global">
           <template #name>
-            <span class="font-semibold">{{ staffTarget?.user?.fullName || staffTarget?.user?.email }}</span>
+            <span class="font-semibold">{{ staffTarget?.userFullName || staffTarget?.userEmail }}</span>
           </template>
         </i18n-t>
         <div class="flex items-center justify-end gap-3 pt-5">
