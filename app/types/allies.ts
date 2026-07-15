@@ -164,6 +164,38 @@ export interface UpdateAllyUserRequest {
   status?: string
 }
 
+// ---- Partner self-service ----
+
+/**
+ * Response item of GET /v1/me/allies — "which allies do I operate on?".
+ *
+ * `uuid` is the ALLY's uuid (not the staff-membership pivot's): it is what
+ * POST /v1/ally/benefit-usage and POST /v1/aliado/services expect as
+ * `allyUuid`, and reading it straight off this record is the whole point of
+ * the endpoint. `allyRole` is the caller's authority inside this ally, so the
+ * portal can hide write actions from a VIEWER instead of letting them 403 at
+ * the counter. `joinedAt` is when the CALLER joined the ally.
+ *
+ * The backend returns primary membership first, then alphabetical — the portal
+ * preselects the head of the list, so the order is contract, not cosmetic.
+ */
+export interface MyAllyDto {
+  uuid: string
+  name: string
+  allyTypeUuid?: string | null
+  allyTypeName?: string | null
+  logoUrl?: string | null
+  phone?: string | null
+  allyRole: AllyRole | string
+  primary: boolean
+  joinedAt?: string | null
+}
+
+/** Roles allowed to write at the counter (validate + register usage). VIEWER is read-only. */
+export function canOperateAtCounter(role?: AllyRole | string | null): boolean {
+  return role === 'OWNER' || role === 'STAFF'
+}
+
 // ---- Public directory ----
 
 /** Sanitized DTO of the public directory (only PUBLISHED + ACTIVE partners). */

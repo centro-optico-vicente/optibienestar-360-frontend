@@ -225,22 +225,76 @@
       }
     },
     "items": {
-      "panel": { "label": "Dashboard" },
-      "reports": { "label": "Reports" },
-      "plans": { "label": "Plans", "description": "Available coverage plans." },
-      "memberships": { "label": "Memberships", "description": "Membership status and validity." },
-      "members": { "label": "Members", "description": "Member directory and records." },
-      "payments": { "label": "Payments", "description": "Payment registration and approval." },
-      "allyTypes": { "label": "Partner types", "description": "Partner classification." },
-      "alliesDirectory": { "label": "Partner directory", "description": "Network businesses and providers." },
-      "serviceCategories": { "label": "Service categories", "description": "Categories of the offered services." },
-      "medicalSpecialties": { "label": "Medical specialties", "description": "Partners' medical specialties." },
-      "promoters": { "label": "Promoters", "description": "Sales team and promoters." },
-      "commissions": { "label": "Commissions", "description": "Commission settlement and status." },
-      "roles": { "label": "Roles", "description": "Assignable roles and permissions." },
-      "users": { "label": "Users", "description": "System accounts and access." },
-      "myCard": { "label": "My card", "description": "Your member card." },
-      "myAllyCompany": { "label": "My partner company", "description": "Your partner company panel." }
+      "panel": {
+        "label": "Dashboard"
+      },
+      "reports": {
+        "label": "Reports"
+      },
+      "plans": {
+        "label": "Plans",
+        "description": "Available coverage plans."
+      },
+      "memberships": {
+        "label": "Memberships",
+        "description": "Membership status and validity."
+      },
+      "members": {
+        "label": "Members",
+        "description": "Member directory and records."
+      },
+      "payments": {
+        "label": "Payments",
+        "description": "Payment registration and approval."
+      },
+      "allyTypes": {
+        "label": "Partner types",
+        "description": "Partner classification."
+      },
+      "alliesDirectory": {
+        "label": "Partner directory",
+        "description": "Network businesses and providers."
+      },
+      "serviceCategories": {
+        "label": "Service categories",
+        "description": "Categories of the offered services."
+      },
+      "medicalSpecialties": {
+        "label": "Medical specialties",
+        "description": "Partners' medical specialties."
+      },
+      "promoters": {
+        "label": "Promoters",
+        "description": "Sales team and promoters."
+      },
+      "commissions": {
+        "label": "Commissions",
+        "description": "Commission settlement and status."
+      },
+      "roles": {
+        "label": "Roles",
+        "description": "Assignable roles and permissions."
+      },
+      "users": {
+        "label": "Users",
+        "description": "System accounts and access."
+      },
+      "myCard": {
+        "label": "My card",
+        "description": "Your member card."
+      },
+      "myAllyCompany": {
+        "label": "My partner company",
+        "description": "Your partner company panel."
+      },
+      "validator": {
+        "label": "Validator",
+        "description": "Validate an affiliate's standing."
+      },
+      "usageHistory": {
+        "label": "Usages",
+        "description": "Benefits registered at your partner."
+      }
     },
     "other": {
       "changePassword": "Change password"
@@ -318,11 +372,26 @@
         "error": "Error"
       },
       "items": {
-        "i1": { "what": "Payment confirmed — Family Plan", "when": "5 min ago" },
-        "i2": { "what": "Usage recorded: lenses", "when": "18 min ago" },
-        "i3": { "what": "Payment under review — Individual Plan", "when": "42 min ago" },
-        "i4": { "what": "Plan change request", "when": "1 h ago" },
-        "i5": { "what": "Validation retry failed", "when": "2 h ago" }
+        "i1": {
+          "what": "Payment confirmed — Family Plan",
+          "when": "5 min ago"
+        },
+        "i2": {
+          "what": "Usage recorded: lenses",
+          "when": "18 min ago"
+        },
+        "i3": {
+          "what": "Payment under review — Individual Plan",
+          "when": "42 min ago"
+        },
+        "i4": {
+          "what": "Plan change request",
+          "when": "1 h ago"
+        },
+        "i5": {
+          "what": "Validation retry failed",
+          "when": "2 h ago"
+        }
       }
     },
     "session": {
@@ -362,12 +431,30 @@
       "eyebrow": "Our departments",
       "title": "For your health.",
       "items": {
-        "emergencies": { "title": "Emergencies", "description": "24/7 care at certified partners." },
-        "pediatrics": { "title": "Pediatrics", "description": "Preferential children's checkups and consultations." },
-        "gynecology": { "title": "Gynecology", "description": "Comprehensive women's health and maternity." },
-        "cardiology": { "title": "Cardiology", "description": "Screening, ECG and risk monitoring." },
-        "neurology": { "title": "Neurology", "description": "Assessments and follow-up plans." },
-        "ophthalmology": { "title": "Ophthalmology", "description": "Consultations, lenses and optical discounts." }
+        "emergencies": {
+          "title": "Emergencies",
+          "description": "24/7 care at certified partners."
+        },
+        "pediatrics": {
+          "title": "Pediatrics",
+          "description": "Preferential children's checkups and consultations."
+        },
+        "gynecology": {
+          "title": "Gynecology",
+          "description": "Comprehensive women's health and maternity."
+        },
+        "cardiology": {
+          "title": "Cardiology",
+          "description": "Screening, ECG and risk monitoring."
+        },
+        "neurology": {
+          "title": "Neurology",
+          "description": "Assessments and follow-up plans."
+        },
+        "ophthalmology": {
+          "title": "Ophthalmology",
+          "description": "Consultations, lenses and optical discounts."
+        }
       }
     },
     "contact": {
@@ -464,16 +551,46 @@
       "invalidFormat": "Invalid format"
     },
     "registry": {
-      "countries": { "label": "Countries", "labelSingular": "Country" },
-      "states": { "label": "States / Departments", "labelSingular": "State" },
-      "cities": { "label": "Cities", "labelSingular": "City" },
-      "genders": { "label": "Genders", "labelSingular": "Gender" },
-      "document-types": { "label": "Document types", "labelSingular": "Document type" },
-      "marital-statuses": { "label": "Marital statuses", "labelSingular": "Marital status" },
-      "occupations": { "label": "Occupations", "labelSingular": "Occupation" },
-      "medical-specialties": { "label": "Medical specialties", "labelSingular": "Medical specialty" },
-      "service-categories": { "label": "Service categories", "labelSingular": "Service category" },
-      "ally-types": { "label": "Partner types", "labelSingular": "Partner type" }
+      "countries": {
+        "label": "Countries",
+        "labelSingular": "Country"
+      },
+      "states": {
+        "label": "States / Departments",
+        "labelSingular": "State"
+      },
+      "cities": {
+        "label": "Cities",
+        "labelSingular": "City"
+      },
+      "genders": {
+        "label": "Genders",
+        "labelSingular": "Gender"
+      },
+      "document-types": {
+        "label": "Document types",
+        "labelSingular": "Document type"
+      },
+      "marital-statuses": {
+        "label": "Marital statuses",
+        "labelSingular": "Marital status"
+      },
+      "occupations": {
+        "label": "Occupations",
+        "labelSingular": "Occupation"
+      },
+      "medical-specialties": {
+        "label": "Medical specialties",
+        "labelSingular": "Medical specialty"
+      },
+      "service-categories": {
+        "label": "Service categories",
+        "labelSingular": "Service category"
+      },
+      "ally-types": {
+        "label": "Partner types",
+        "labelSingular": "Partner type"
+      }
     }
   },
   "plans": {
@@ -849,14 +966,14 @@
       "submit": "Send proposal",
       "namePlaceholder": "Cardiology consultation",
       "fields": {
-        "allyUuid": "Your partner company UUID",
-        "allyUuidHelp": "The OptiBienestar 360 team gives it to you when registering your company. It will be remembered for future proposals.",
         "category": "Category",
         "name": "Service name",
         "description": "Description",
         "price": "Price (USD)",
         "discount": "Member discount (%)",
-        "requiresAppointment": "Requires appointment"
+        "requiresAppointment": "Requires appointment",
+        "ally": "Partner company",
+        "allyHelp": "You work at more than one; pick which one you are proposing for."
       },
       "help": {
         "title": "How does it work?",
@@ -865,7 +982,9 @@
         "step3pre": "Once published, it appears in the ",
         "step3link": "public directory",
         "step3post": "."
-      }
+      },
+      "noAllyTitle": "You are not linked to any partner company",
+      "noAllyDescription": "Ask the OptiBienestar 360 team to link you to your partner company so you can propose services."
     }
   },
   "payments": {
@@ -1288,6 +1407,78 @@
       "placeholderReactivate": "e.g. payment regularized…",
       "cancelButton": "Cancel membership",
       "reactivateButton": "Reactivate membership"
+    }
+  },
+  "validator": {
+    "seoTitle": "Validator — OptiBienestar 360",
+    "title": "Affiliate validator",
+    "subtitle": "Check the affiliate's standing before applying the benefit.",
+    "noAllyTitle": "You are not linked to any partner company",
+    "noAllyDescription": "Ask the OptiBienestar 360 team to link you to your partner company so you can validate affiliates.",
+    "validateButton": "Validate",
+    "newQuery": "New lookup",
+    "documentPlaceholder": "V-12345678",
+    "failedTitle": "Lookup failed",
+    "failedDescription": "Check your connection and try again.",
+    "fields": {
+      "ally": "Partner company",
+      "allyHelp": "You work at more than one; pick where the affiliate is being seen.",
+      "document": "Affiliate's ID document",
+      "documentHelp": "Type or scan the document and press Enter."
+    },
+    "status": {
+      "ACTIVE": "Affiliate in good standing",
+      "SUSPENDED": "Suspended for non-payment",
+      "EXPIRED": "Membership expired",
+      "CANCELED": "Membership canceled",
+      "NOT_FOUND": "Document not registered",
+      "NOT_ENROLLED": "Person not enrolled",
+      "NO_ACTIVE_MEMBERSHIP": "No active membership"
+    },
+    "statusHint": {
+      "ACTIVE": "You may apply the benefit.",
+      "SUSPENDED": "Within the grace period. Do not apply the benefit until payment is settled.",
+      "EXPIRED": "Past the grace period. Do not apply the benefit.",
+      "CANCELED": "The membership was canceled. Do not apply the benefit.",
+      "NOT_FOUND": "No affiliate has that document. Check the digits.",
+      "NOT_ENROLLED": "The person exists but is not enrolled in the program.",
+      "NO_ACTIVE_MEMBERSHIP": "They have no membership in force."
+    },
+    "result": {
+      "member": "Affiliate",
+      "document": "Document",
+      "plan": "Plan",
+      "nextDueDate": "Next due date"
+    },
+    "usage": {
+      "openButton": "Register usage",
+      "title": "Register benefit usage",
+      "ally": "Partner company",
+      "submit": "Register usage",
+      "noServices": "No services in catalog",
+      "copayPreview": "Co-pay: {amount}",
+      "registeredToast": "Usage registered",
+      "registeredToastDescription": "{name}'s benefit was registered.",
+      "lastRegisteredTitle": "Usage registered",
+      "lastRegisteredDescription": "Recorded with date {date}.",
+      "fields": {
+        "service": "Service",
+        "serviceHelp": "Optional. Leave empty if the service is not in the catalog.",
+        "usageDate": "Service date",
+        "usageDateHelp": "Cannot be in the future.",
+        "copayAmount": "Co-pay",
+        "copayHelp": "Optional. What the affiliate paid out of pocket.",
+        "copayCurrency": "Currency",
+        "notes": "Notes"
+      }
+    },
+    "history": {
+      "seoTitle": "Usages — OptiBienestar 360",
+      "title": "Registered usages",
+      "subtitle": "Benefits you registered at your partner companies.",
+      "empty": "You have not registered any usage yet",
+      "copayLabel": "Co-pay",
+      "validateCta": "Validate affiliate"
     }
   }
 }

@@ -9,6 +9,7 @@ import type {
   CreateAllyAgreementRequest,
   CreateAllyRequest,
   CreateAllyServiceRequest,
+  MyAllyDto,
   ProposeAllyServiceRequest,
   PublicAllyDto,
   UpdateAllyAgreementRequest,
@@ -166,4 +167,21 @@ export const usePublicAllies = () => {
     useApi<PublicAllyDto>(`/v1/public/allies/${uuid}`, { skipAuth: true })
 
   return { list, get }
+}
+
+/**
+ * Partner self-identification (GET /v1/me/allies, ALLY_VIEW_OWN).
+ *
+ * This is what lets the partner portal know its own `allyUuid` — required by
+ * POST /v1/ally/benefit-usage and POST /v1/aliado/services. Scoped by the JWT
+ * subject: there is no way to ask for another user's allies.
+ *
+ * Always 200. A partner user not yet attached to an ally gets `[]`, which the
+ * portal renders as an empty state rather than an error.
+ */
+export const useMyAllies = () => {
+  /** Allies I operate on, primary first then alphabetical (order set by the backend). */
+  const list = () => useApi<MyAllyDto[]>('/v1/me/allies')
+
+  return { list }
 }

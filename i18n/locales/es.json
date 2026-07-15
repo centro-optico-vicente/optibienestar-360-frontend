@@ -225,22 +225,76 @@
       }
     },
     "items": {
-      "panel": { "label": "Panel" },
-      "reports": { "label": "Reportes" },
-      "plans": { "label": "Planes", "description": "Planes de cobertura disponibles." },
-      "memberships": { "label": "Membresías", "description": "Estado y vigencia de las membresías." },
-      "members": { "label": "Afiliados", "description": "Directorio y expedientes de afiliados." },
-      "payments": { "label": "Pagos", "description": "Registro y aprobación de pagos." },
-      "allyTypes": { "label": "Tipos de aliado", "description": "Clasificación de los aliados." },
-      "alliesDirectory": { "label": "Directorio de aliados", "description": "Comercios y prestadores de la red." },
-      "serviceCategories": { "label": "Categorías de servicio", "description": "Categorías de los servicios ofrecidos." },
-      "medicalSpecialties": { "label": "Especialidades médicas", "description": "Especialidades médicas de los aliados." },
-      "promoters": { "label": "Promotores", "description": "Equipo comercial y promotores." },
-      "commissions": { "label": "Comisiones", "description": "Liquidación y estado de comisiones." },
-      "roles": { "label": "Roles", "description": "Roles y permisos asignables." },
-      "users": { "label": "Usuarios", "description": "Cuentas y accesos al sistema." },
-      "myCard": { "label": "Mi carnet", "description": "Tu carnet de afiliado." },
-      "myAllyCompany": { "label": "Mi empresa aliada", "description": "Panel de tu empresa aliada." }
+      "panel": {
+        "label": "Panel"
+      },
+      "reports": {
+        "label": "Reportes"
+      },
+      "plans": {
+        "label": "Planes",
+        "description": "Planes de cobertura disponibles."
+      },
+      "memberships": {
+        "label": "Membresías",
+        "description": "Estado y vigencia de las membresías."
+      },
+      "members": {
+        "label": "Afiliados",
+        "description": "Directorio y expedientes de afiliados."
+      },
+      "payments": {
+        "label": "Pagos",
+        "description": "Registro y aprobación de pagos."
+      },
+      "allyTypes": {
+        "label": "Tipos de aliado",
+        "description": "Clasificación de los aliados."
+      },
+      "alliesDirectory": {
+        "label": "Directorio de aliados",
+        "description": "Comercios y prestadores de la red."
+      },
+      "serviceCategories": {
+        "label": "Categorías de servicio",
+        "description": "Categorías de los servicios ofrecidos."
+      },
+      "medicalSpecialties": {
+        "label": "Especialidades médicas",
+        "description": "Especialidades médicas de los aliados."
+      },
+      "promoters": {
+        "label": "Promotores",
+        "description": "Equipo comercial y promotores."
+      },
+      "commissions": {
+        "label": "Comisiones",
+        "description": "Liquidación y estado de comisiones."
+      },
+      "roles": {
+        "label": "Roles",
+        "description": "Roles y permisos asignables."
+      },
+      "users": {
+        "label": "Usuarios",
+        "description": "Cuentas y accesos al sistema."
+      },
+      "myCard": {
+        "label": "Mi carnet",
+        "description": "Tu carnet de afiliado."
+      },
+      "myAllyCompany": {
+        "label": "Mi empresa aliada",
+        "description": "Panel de tu empresa aliada."
+      },
+      "validator": {
+        "label": "Validador",
+        "description": "Valida la solvencia de un afiliado."
+      },
+      "usageHistory": {
+        "label": "Consumos",
+        "description": "Beneficios registrados en tu aliado."
+      }
     },
     "other": {
       "changePassword": "Cambiar contraseña"
@@ -318,11 +372,26 @@
         "error": "Error"
       },
       "items": {
-        "i1": { "what": "Pago confirmado — Plan Familiar", "when": "hace 5 min" },
-        "i2": { "what": "Uso registrado: lentes", "when": "hace 18 min" },
-        "i3": { "what": "Pago en revisión — Plan Individual", "when": "hace 42 min" },
-        "i4": { "what": "Solicitud de cambio de plan", "when": "hace 1 h" },
-        "i5": { "what": "Reintento de validación fallido", "when": "hace 2 h" }
+        "i1": {
+          "what": "Pago confirmado — Plan Familiar",
+          "when": "hace 5 min"
+        },
+        "i2": {
+          "what": "Uso registrado: lentes",
+          "when": "hace 18 min"
+        },
+        "i3": {
+          "what": "Pago en revisión — Plan Individual",
+          "when": "hace 42 min"
+        },
+        "i4": {
+          "what": "Solicitud de cambio de plan",
+          "when": "hace 1 h"
+        },
+        "i5": {
+          "what": "Reintento de validación fallido",
+          "when": "hace 2 h"
+        }
       }
     },
     "session": {
@@ -362,12 +431,30 @@
       "eyebrow": "Nuestros departamentos",
       "title": "Para tu salud.",
       "items": {
-        "emergencies": { "title": "Emergencias", "description": "Atención 24/7 en aliados certificados." },
-        "pediatrics": { "title": "Pediatría", "description": "Consultas y controles infantiles preferenciales." },
-        "gynecology": { "title": "Ginecología", "description": "Salud integral de la mujer y maternidad." },
-        "cardiology": { "title": "Cardiología", "description": "Cribado, ECG y seguimiento de riesgo." },
-        "neurology": { "title": "Neurología", "description": "Evaluaciones y planes de seguimiento." },
-        "ophthalmology": { "title": "Oftalmología", "description": "Consultas, lentes y descuentos en óptica." }
+        "emergencies": {
+          "title": "Emergencias",
+          "description": "Atención 24/7 en aliados certificados."
+        },
+        "pediatrics": {
+          "title": "Pediatría",
+          "description": "Consultas y controles infantiles preferenciales."
+        },
+        "gynecology": {
+          "title": "Ginecología",
+          "description": "Salud integral de la mujer y maternidad."
+        },
+        "cardiology": {
+          "title": "Cardiología",
+          "description": "Cribado, ECG y seguimiento de riesgo."
+        },
+        "neurology": {
+          "title": "Neurología",
+          "description": "Evaluaciones y planes de seguimiento."
+        },
+        "ophthalmology": {
+          "title": "Oftalmología",
+          "description": "Consultas, lentes y descuentos en óptica."
+        }
       }
     },
     "contact": {
@@ -464,16 +551,46 @@
       "invalidFormat": "Formato no válido"
     },
     "registry": {
-      "countries": { "label": "Países", "labelSingular": "País" },
-      "states": { "label": "Estados / Departamentos", "labelSingular": "Estado" },
-      "cities": { "label": "Ciudades", "labelSingular": "Ciudad" },
-      "genders": { "label": "Géneros", "labelSingular": "Género" },
-      "document-types": { "label": "Tipos de documento", "labelSingular": "Tipo de documento" },
-      "marital-statuses": { "label": "Estados civiles", "labelSingular": "Estado civil" },
-      "occupations": { "label": "Ocupaciones", "labelSingular": "Ocupación" },
-      "medical-specialties": { "label": "Especialidades médicas", "labelSingular": "Especialidad médica" },
-      "service-categories": { "label": "Categorías de servicio", "labelSingular": "Categoría de servicio" },
-      "ally-types": { "label": "Tipos de aliado", "labelSingular": "Tipo de aliado" }
+      "countries": {
+        "label": "Países",
+        "labelSingular": "País"
+      },
+      "states": {
+        "label": "Estados / Departamentos",
+        "labelSingular": "Estado"
+      },
+      "cities": {
+        "label": "Ciudades",
+        "labelSingular": "Ciudad"
+      },
+      "genders": {
+        "label": "Géneros",
+        "labelSingular": "Género"
+      },
+      "document-types": {
+        "label": "Tipos de documento",
+        "labelSingular": "Tipo de documento"
+      },
+      "marital-statuses": {
+        "label": "Estados civiles",
+        "labelSingular": "Estado civil"
+      },
+      "occupations": {
+        "label": "Ocupaciones",
+        "labelSingular": "Ocupación"
+      },
+      "medical-specialties": {
+        "label": "Especialidades médicas",
+        "labelSingular": "Especialidad médica"
+      },
+      "service-categories": {
+        "label": "Categorías de servicio",
+        "labelSingular": "Categoría de servicio"
+      },
+      "ally-types": {
+        "label": "Tipos de aliado",
+        "labelSingular": "Tipo de aliado"
+      }
     }
   },
   "plans": {
@@ -849,14 +966,14 @@
       "submit": "Enviar propuesta",
       "namePlaceholder": "Consulta de Cardiología",
       "fields": {
-        "allyUuid": "UUID de tu empresa aliada",
-        "allyUuidHelp": "Te lo proporciona el equipo de OptiBienestar 360 al registrar tu empresa. Se recordará para próximas propuestas.",
         "category": "Categoría",
         "name": "Nombre del servicio",
         "description": "Descripción",
         "price": "Precio (USD)",
         "discount": "Descuento afiliados (%)",
-        "requiresAppointment": "Requiere cita"
+        "requiresAppointment": "Requiere cita",
+        "ally": "Empresa aliada",
+        "allyHelp": "Trabajas en más de una; elige para cuál propones el servicio."
       },
       "help": {
         "title": "¿Cómo funciona?",
@@ -865,7 +982,9 @@
         "step3pre": "Una vez publicado, aparece en el ",
         "step3link": "directorio público",
         "step3post": "."
-      }
+      },
+      "noAllyTitle": "No estás asociado a ninguna empresa aliada",
+      "noAllyDescription": "Pide al equipo de OptiBienestar 360 que te vincule a tu empresa aliada para poder proponer servicios."
     }
   },
   "payments": {
@@ -1288,6 +1407,78 @@
       "placeholderReactivate": "Ej. regularizó el pago…",
       "cancelButton": "Cancelar afiliación",
       "reactivateButton": "Reactivar afiliación"
+    }
+  },
+  "validator": {
+    "seoTitle": "Validador — OptiBienestar 360",
+    "title": "Validador de afiliados",
+    "subtitle": "Consulta la solvencia del afiliado antes de aplicar el beneficio.",
+    "noAllyTitle": "No estás asociado a ninguna empresa aliada",
+    "noAllyDescription": "Pide al equipo de OptiBienestar 360 que te vincule a tu empresa aliada para poder validar afiliados.",
+    "validateButton": "Validar",
+    "newQuery": "Nueva consulta",
+    "documentPlaceholder": "V-12345678",
+    "failedTitle": "No se pudo consultar",
+    "failedDescription": "Revisa tu conexión e intenta de nuevo.",
+    "fields": {
+      "ally": "Empresa aliada",
+      "allyHelp": "Trabajas en más de una; elige dónde se está atendiendo al afiliado.",
+      "document": "Cédula o documento del afiliado",
+      "documentHelp": "Escribe o escanea el documento y presiona Enter."
+    },
+    "status": {
+      "ACTIVE": "Afiliado solvente",
+      "SUSPENDED": "Suspendido por falta de pago",
+      "EXPIRED": "Membresía vencida",
+      "CANCELED": "Membresía cancelada",
+      "NOT_FOUND": "Documento no registrado",
+      "NOT_ENROLLED": "Persona sin afiliación",
+      "NO_ACTIVE_MEMBERSHIP": "Sin membresía activa"
+    },
+    "statusHint": {
+      "ACTIVE": "Puedes aplicar el beneficio.",
+      "SUSPENDED": "Está dentro del período de gracia. No apliques el beneficio hasta que regularice el pago.",
+      "EXPIRED": "Pasó el período de gracia. No apliques el beneficio.",
+      "CANCELED": "La membresía fue cancelada. No apliques el beneficio.",
+      "NOT_FOUND": "Ningún afiliado tiene ese documento. Verifica los dígitos.",
+      "NOT_ENROLLED": "La persona existe pero no está afiliada al programa.",
+      "NO_ACTIVE_MEMBERSHIP": "No tiene ninguna membresía vigente."
+    },
+    "result": {
+      "member": "Afiliado",
+      "document": "Documento",
+      "plan": "Plan",
+      "nextDueDate": "Próximo vencimiento"
+    },
+    "usage": {
+      "openButton": "Registrar uso",
+      "title": "Registrar uso de beneficio",
+      "ally": "Empresa aliada",
+      "submit": "Registrar uso",
+      "noServices": "Sin servicios en catálogo",
+      "copayPreview": "Copago: {amount}",
+      "registeredToast": "Uso registrado",
+      "registeredToastDescription": "Se registró el beneficio de {name}.",
+      "lastRegisteredTitle": "Uso registrado",
+      "lastRegisteredDescription": "Quedó asentado con fecha {date}.",
+      "fields": {
+        "service": "Servicio",
+        "serviceHelp": "Opcional. Si el servicio no está en el catálogo, déjalo vacío.",
+        "usageDate": "Fecha de atención",
+        "usageDateHelp": "No puede ser futura.",
+        "copayAmount": "Copago",
+        "copayHelp": "Opcional. Lo que pagó el afiliado de su bolsillo.",
+        "copayCurrency": "Moneda",
+        "notes": "Notas"
+      }
+    },
+    "history": {
+      "seoTitle": "Consumos — OptiBienestar 360",
+      "title": "Consumos registrados",
+      "subtitle": "Beneficios que registraste en tus empresas aliadas.",
+      "empty": "Aún no has registrado consumos",
+      "copayLabel": "Copago",
+      "validateCta": "Validar afiliado"
     }
   }
 }
