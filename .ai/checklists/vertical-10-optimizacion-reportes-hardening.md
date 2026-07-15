@@ -30,6 +30,14 @@
 
 - [ ] [P1/C3] Tests E2E Playwright (flujos críticos: registro afiliado, pago, validador)
 
+## Contrato de tipos con el backend
+
+> Auditoría 2026-07-15: **6 desfases reales** entre los tipos del frontend y lo que el backend manda por el cable (1 corregido, 5 pendientes en los verticales 3 y 4). Diagnóstico del patrón: [`../dto-shape-mismatches.md`](../dto-shape-mismatches.md).
+> El denominador común es que los `*Dto` del frontend se escriben a mano, y **TypeScript valida el código contra el tipo, no el tipo contra la realidad** — por eso los 6 pasaron typecheck, build y CI sin ruido.
+
+- [ ] [P1/C3] **Generar los tipos desde el OpenAPI del backend** — `springdoc-openapi` ya está y los controllers declaran su tipo de retorno exacto, así que `/v3/api-docs` es fiel. Generar `app/types/api.d.ts` con `openapi-typescript` convierte cada desfase futuro en error de compilación. Decidir: ¿se genera en CI contra un backend levantado, o se commitea el esquema? Es cambio de tooling → **merece ADR propio**.
+- [ ] [P2/C2] Alternativa táctica si no se toma el generador: espejar el cable dividiendo `AllyDto` → `AllyListItemDto` + `AllyDetailDto` y `PublicAllyDto` → `PublicAllyListItemDto` + `PublicAllyDetailDto`. Mata los 5 síntomas pendientes pero no la clase.
+
 ## Dependencias
 
 - [ ] [P1/C3] Migrar `@nuxt/ui` v3 → v4: bump del dep + guía de migración oficial + re-testear las vistas ya construidas (login, dashboard, users, roles, catalogs). Tailwind v4 (4.3.0) ya está → prerequisito cubierto. **Hacerlo antes** de construir los verticales 3–10 evita rework y habilita los componentes Pro (tablas/dashboards) gratis.

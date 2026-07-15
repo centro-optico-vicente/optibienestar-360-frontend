@@ -3,6 +3,20 @@
 > Vistas de directorio y gestión de aliados (clínicas, farmacias, ambulancias). Requiere el portal del propio aliado.
 > Índice: [../checklist.md](../checklist.md) · Orden: [../checklist-vertical.md](../checklist-vertical.md)
 
+## Bugs verificados — desfases de forma DTO
+
+> Auditados el 2026-07-15 contra los records + mappers + tipos de retorno de los controllers del backend. **No son sospechas: cada uno está confirmado en la fuente.** Ver el patrón común en [`../dto-shape-mismatches.md`](../dto-shape-mismatches.md).
+>
+> **Causa raíz:** el backend tiene **dos proyecciones por recurso** (`AllyListItemDto` plano para listar / `AllyDetailDto` anidado para detalle) y el frontend las colapsó en **un único tipo escrito a mano** (`AllyDto`). Una sola mentira que se ramifica a tres páginas.
+>
+> **Por qué el typecheck no los caza:** el tipo es una afirmación a mano sobre el formato del cable, no algo generado. `a.allyType?.name` compila perfecto contra un tipo equivocado. Precedente ya corregido con el mismo diagnóstico: `AllyUserDto` anidado→plano ([PR #38](https://github.com/fenix-core/optibienestar-360-frontend/pull/38)).
+
+- [ ] [P0/C2] **Directorio público sin tipo, ciudad ni especialidades** — `GET /v1/public/allies` devuelve `Page<PublicAllyListItemDto>`, que es **plano** (`allyTypeName`, `cityName`) y **no trae `specialties`**; `composables/useAllies.ts:154` lo tipa `Page<PublicAllyDto>` (anidado + `specialties`). `pages/aliados/index.vue:235-248` lee `a.allyType?.name` → siempre cae al fallback genérico; `a.city?.name` → nunca renderiza; `a.specialties?.length` → el bloque de badges **no renderiza para ningún aliado**. **Es la vitrina pública, tráfico anónimo.** Fix: dividir `PublicAllyDto` en `PublicAllyListItemDto` + `PublicAllyDetailDto` espejando el cable.
+- [ ] [P1/C2] **Detalle público decapitado** — `GET /v1/public/allies/{uuid}` devuelve `PublicAllyDetailDto`: `allyTypeName`/`cityName` planos, `specialtyNames: List<String>` (no `specialties: CatalogRef[]`) y `services[].categoryName: String` (no `serviceCategory: CatalogRef`). `pages/aliados/[uuid].vue:85-97,147` lee las 4 formas viejas → tipo con fallback, ciudad nunca, bloque de especialidades nunca, y cada tarjeta de servicio sin su subtítulo de categoría. Los servicios sí llegan; solo les falta la cabecera.
+- [ ] [P1/C1] **Tabla admin de aliados: columnas Tipo y Ciudad siempre "—"** — `GET /v1/admin/allies` devuelve `Page<AllyListItemDto>` (plano), tipado `Page<AllyDto>` en `useAllies.ts:39`. `pages/dashboard/allies/index.vue:401,406` lee `a.allyType?.name` / `a.city?.name`. **Ojo:** el `openEdit()` del mismo archivo (línea ~220) ya tiene un comentario que dice que la fila trae campos planos y por eso carga el detalle — alguien entendió el problema, arregló el formulario y dejó la tabla rota. El detalle (`AllyDetailDto`) **sí** es anidado, así que `dashboard/allies/[uuid].vue:714,741` está correcto: el bug es solo de lista.
+- [ ] [P2/C1] **`PublicAllyDto.email` es un campo fantasma** — `PublicAllyDetailDto` omite el email **a propósito** (su Javadoc: lo cosecharían los scrapers), así que el `v-if="ally.email"` de `pages/aliados/[uuid].vue:115` nunca renderiza — accidentalmente correcto. Quitar el campo del tipo. **NO** "arreglarlo" agregando el email al backend.
+- [ ] [P2/C1] **`AllyDto.services` es campo muerto** — `AllyDetailDto` no inlinea servicios; `dashboard/allies/[uuid].vue` los carga con `listServices()` y nunca lee `ally.services`. Sin síntoma; limpiar al dividir el tipo.
+
 ## Admin
 
 - [ ] [P0/C3] Página `pages/admin/allies/index.vue` (tabla + filtros + búsqueda)
