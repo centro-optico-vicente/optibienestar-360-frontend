@@ -222,6 +222,10 @@
       "misPortales": {
         "label": "My portals",
         "description": "Access to your personal portals."
+      },
+      "sistema": {
+        "label": "System",
+        "description": "Internal system configuration and operations."
       }
     },
     "items": {
@@ -294,6 +298,10 @@
       "usageHistory": {
         "label": "Usages",
         "description": "Benefits registered at your partner."
+      },
+      "scheduledJobs": {
+        "label": "Scheduled jobs",
+        "description": "Automated system tasks and their run history."
       }
     },
     "other": {
@@ -1479,6 +1487,326 @@
       "empty": "You have not registered any usage yet",
       "copayLabel": "Co-pay",
       "validateCta": "Validate affiliate"
+    }
+  },
+  "promoters": {
+    "title": "Promoters",
+    "subtitle": "Sales team that refers members and earns commissions.",
+    "new": "New promoter",
+    "createTooltip": "Register a new promoter",
+    "editTooltip": "Edit promoter",
+    "deleteTooltip": "Delete promoter",
+    "viewDetailTooltip": "View detail",
+    "searchPlaceholder": "Search by name or referral code…",
+    "empty": "No promoters registered yet.",
+    "systemBadge": "System",
+    "systemLocked": "The system promoter cannot be edited or deleted.",
+    "createdToast": "Promoter created successfully.",
+    "updatedToast": "Promoter updated successfully.",
+    "deletedToast": "Promoter deleted successfully.",
+    "deleteTitle": "Delete promoter",
+    "deleteConfirm": "Are you sure you want to delete the promoter {name}? This action cannot be undone.",
+    "noPermissionCreate": "You don't have permission to create promoters.",
+    "noPermissionEdit": "You don't have permission to edit promoters.",
+    "noPermissionDelete": "You don't have permission to delete promoters.",
+    "paginationSummary": "Showing {shown} of {total} promoters",
+    "columns": {
+      "promoter": "Promoter",
+      "status": "Status",
+      "referrals": "Referrals",
+      "commissionPaid": "Commission paid",
+      "active": "Active",
+      "createdAt": "Registered"
+    },
+    "status": {
+      "ACTIVE": "Active",
+      "INACTIVE": "Inactive",
+      "SUSPENDED": "Suspended"
+    },
+    "detail": {
+      "seoPage": "Promoter detail",
+      "notFoundTitle": "Promoter not found",
+      "notFoundBody": "The promoter you are looking for does not exist or was deleted.",
+      "sections": {
+        "contact": "Contact and identity",
+        "metrics": "Metrics",
+        "metadata": "Metadata"
+      },
+      "fields": {
+        "displayName": "Name",
+        "referralCode": "Referral code",
+        "status": "Status",
+        "active": "Active",
+        "description": "Description",
+        "email": "Email",
+        "phone": "Phone",
+        "userUuid": "User UUID",
+        "personUuid": "Person UUID",
+        "totalReferrals": "Total referrals",
+        "totalCommissionPaid": "Total commission paid",
+        "createdAt": "Created",
+        "updatedAt": "Updated",
+        "uuid": "UUID"
+      }
+    },
+    "form": {
+      "createTitle": "New promoter",
+      "editTitle": "Edit promoter",
+      "createDescription": "Register a promoter and their referral code.",
+      "editDescription": "Update the promoter's details.",
+      "loadingDetail": "Loading promoter…",
+      "submitCreate": "Create promoter",
+      "referralCodeHelp": "Unique code the promoter will share. It cannot be changed later.",
+      "referralCodeFormat": "Between 4 and 20 uppercase letters, numbers or hyphens (A-Z, 0-9, -).",
+      "uuidHelp": "An identifier that already exists in the system.",
+      "fields": {
+        "displayName": "Name",
+        "referralCode": "Referral code",
+        "userUuid": "User UUID",
+        "personUuid": "Person UUID",
+        "description": "Description",
+        "email": "Email",
+        "phone": "Phone",
+        "status": "Status",
+        "active": "Active"
+      }
+    }
+  },
+  "commissions": {
+    "title": "Commissions",
+    "subtitle": "Promoter commission ledger and period payouts.",
+    "searchPlaceholder": "Search by promoter, code or reference…",
+    "filterPlaceholder": "RSQL filter, e.g. promoter.uuid==…;status==PENDING",
+    "empty": "No commissions recorded yet.",
+    "paginationSummary": "Showing {shown} of {total}",
+    "columns": {
+      "promoter": "Promoter",
+      "amount": "Amount",
+      "calc": "Calculation",
+      "appliesTo": "Applies to",
+      "status": "Status",
+      "earnedAt": "Earned",
+      "paidAt": "Paid"
+    },
+    "status": {
+      "PENDING": "Pending",
+      "PAID": "Paid",
+      "VOIDED": "Voided",
+      "DISPUTED": "Disputed"
+    },
+    "appliesTo": {
+      "INSCRIPTION": "Inscription",
+      "MONTHLY": "Monthly"
+    },
+    "detail": {
+      "title": "Commission detail",
+      "loading": "Loading detail…",
+      "sections": {
+        "commission": "Commission",
+        "calculation": "Calculation",
+        "period": "Period",
+        "review": "Payout",
+        "metadata": "Metadata"
+      },
+      "fields": {
+        "promoter": "Promoter",
+        "code": "Code",
+        "amount": "Amount",
+        "currency": "Currency",
+        "status": "Status",
+        "appliesTo": "Applies to",
+        "active": "Active",
+        "calculationBasis": "Calculation basis",
+        "commissionPct": "Percentage",
+        "flatAmount": "Flat amount",
+        "tier": "Tier",
+        "periodStrategy": "Period strategy",
+        "periodStart": "Period start",
+        "periodEnd": "Period end",
+        "earnedAt": "Earned",
+        "payoutReference": "Payout reference",
+        "paidAt": "Paid",
+        "voidedAt": "Voided",
+        "voidReason": "Void reason",
+        "adminNotes": "Internal notes",
+        "promoterUuid": "Promoter UUID",
+        "paymentUuid": "Payment UUID",
+        "memberUuid": "Member UUID",
+        "uuid": "UUID",
+        "createdAt": "Created",
+        "updatedAt": "Updated"
+      }
+    },
+    "payout": {
+      "button": "Settle period",
+      "title": "Settle commission period",
+      "description": "Close a date range and settle each promoter's pending commissions.",
+      "dryRunNote": "The preview only computes totals: it does not mark commissions as paid or send emails.",
+      "fields": {
+        "periodStart": "Period start",
+        "periodEnd": "Period end",
+        "payoutReference": "Payout reference"
+      },
+      "referencePlaceholder": "e.g. PAY-2026-07",
+      "preview": "Preview",
+      "previewTitle": "Period summary",
+      "totals": {
+        "promoters": "Promoters",
+        "commissions": "Commissions",
+        "amount": "Total",
+        "executedAt": "Executed"
+      },
+      "perPromoter": {
+        "name": "Promoter",
+        "code": "Code",
+        "count": "Commissions",
+        "amount": "Total",
+        "email": "Email"
+      },
+      "emptyPreview": "There are no pending commissions in this period.",
+      "back": "Back",
+      "confirm": "Confirm payout",
+      "confirmDescription": "Confirming marks the commissions as PAID and emails a breakdown to each promoter. This action cannot be undone.",
+      "successToast": "Period settled: {promoters} promoters, {commissions} commissions, {amount}.",
+      "invalidRange": "The period end must be on or after the start."
+    }
+  },
+  "scheduledJobs": {
+    "title": "Scheduled jobs",
+    "subtitle": "Automated system tasks, their schedule and their run history.",
+    "new": "New job",
+    "searchPlaceholder": "Search by code or name…",
+    "empty": "No scheduled jobs.",
+    "paginationSummary": "Showing {shown} of {total}",
+    "viewDetailTooltip": "View detail",
+    "noPermissionCreate": "You don't have permission to create jobs",
+    "noPermissionEdit": "You don't have permission to edit",
+    "noPermissionDelete": "You don't have permission to delete",
+    "noPermissionRun": "You don't have permission to run",
+    "deleteTitle": "Delete job",
+    "deleteConfirm": "Are you sure you want to delete {name}? This action cannot be undone.",
+    "deletedToast": "Job deleted",
+    "createdToast": "Job created",
+    "updatedToast": "Job updated",
+    "columns": {
+      "job": "Job",
+      "schedule": "Schedule",
+      "enabled": "Enabled",
+      "lastRun": "Last run",
+      "nextRun": "Next"
+    },
+    "outcome": {
+      "RUNNING": "Running",
+      "SUCCESS": "Success",
+      "FAILED": "Failed",
+      "TIMEOUT": "Timed out",
+      "SKIPPED_CONCURRENT": "Skipped (concurrency)",
+      "CANCELED": "Canceled"
+    },
+    "trigger": {
+      "SCHEDULED": "Scheduled",
+      "MANUAL": "Manual",
+      "STARTUP": "Startup"
+    },
+    "runNow": {
+      "button": "Run now",
+      "runningToast": "The job is running, check the history.",
+      "successToast": "The job ran successfully.",
+      "failedToast": "The job failed. Check the history.",
+      "polling": "Running… refreshing status."
+    },
+    "toggle": {
+      "enabledToast": "Job enabled",
+      "disabledToast": "Job disabled"
+    },
+    "detail": {
+      "title": "Job detail",
+      "schedule": "Schedule",
+      "policy": "Execution policy",
+      "lastRun": "Last run",
+      "lastRunAt": "Last run at",
+      "nextRun": "Next run",
+      "lockHeld": "Lock held",
+      "created": "Created",
+      "updated": "Updated",
+      "uuid": "UUID",
+      "notFoundTitle": "Job not found",
+      "notFoundBody": "The job you're looking for doesn't exist or was removed.",
+      "runsTitle": "Run history",
+      "runsEmpty": "No runs recorded yet.",
+      "reload": "Reload",
+      "runColumns": {
+        "outcome": "Outcome",
+        "trigger": "Source",
+        "started": "Started",
+        "duration": "Duration",
+        "error": "Error"
+      }
+    },
+    "form": {
+      "createTitle": "New scheduled job",
+      "editTitle": "Edit job",
+      "createDescription": "Define an automated job with its cron expression and execution policy.",
+      "editDescription": "Update the job's schedule and policy.",
+      "loadingDetail": "Loading job…",
+      "submitCreate": "Create job",
+      "codeHelp": "Unique UPPERCASE identifier. It can't be changed later.",
+      "codeFormat": "Format: UPPERCASE, starts with a letter (A–Z, 0–9, _).",
+      "cronHelp": "Spring cron: sec min hour dom mon dow",
+      "maxSyncHelp": "Max seconds to run synchronously before switching to async.",
+      "enabledHelp": "If disabled, it won't run on its schedule.",
+      "allowConcurrentHelp": "Allow overlapping runs of the same job.",
+      "activeHelp": "Deactivate the job (soft delete) without removing it.",
+      "fields": {
+        "code": "Code",
+        "displayName": "Name",
+        "description": "Description",
+        "cronExpression": "Cron expression",
+        "timezone": "Time zone",
+        "enabled": "Enabled",
+        "allowConcurrent": "Allow concurrency",
+        "maxSyncSeconds": "Max sync seconds",
+        "active": "Active"
+      }
+    }
+  },
+  "referrals": {
+    "mine": {
+      "title": "My referrals",
+      "subtitle": "People you referred and the status of your rewards.",
+      "empty": "You haven't referred anyone yet. Share your code to get started.",
+      "pendingReferred": "Referral pending enrollment",
+      "enrolledOn": "Enrolled on {date}",
+      "reward": "Reward: {reward}"
+    },
+    "status": {
+      "PENDING_ENROLLMENT": "Pending enrollment",
+      "REGISTERED": "Registered",
+      "EXPIRED": "Expired",
+      "REWARD_GRANTED": "Reward granted",
+      "VOIDED": "Voided"
+    },
+    "code": {
+      "title": "Referral code",
+      "subtitle": "Issue or regenerate the code this affiliate uses to refer others.",
+      "issue": "Issue code",
+      "hint": "No code has been issued in this session yet. Use the button to issue or regenerate.",
+      "copy": "Copy",
+      "copied": "Copied",
+      "generatedAuto": "Auto-generated",
+      "generatedCustom": "Custom code",
+      "previousCode": "Previous code",
+      "holder": "Holder",
+      "issuedAt": "Issued",
+      "issuedToast": "Referral code issued",
+      "form": {
+        "title": "Issue referral code",
+        "description": "Leave the field empty to auto-generate a code, or type a custom one.",
+        "customCode": "Custom code (optional)",
+        "customCodeHelp": "4 to 20 characters: letters A–Z, numbers and dashes.",
+        "customCodeFormat": "Invalid format. Use 4–20 characters: A–Z, 0–9 or dashes.",
+        "submit": "Issue"
+      }
     }
   }
 }

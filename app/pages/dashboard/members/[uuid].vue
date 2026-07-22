@@ -574,6 +574,9 @@ onMounted(async () => {
       <!-- Memberships (self-gated by MEMBERSHIP_VIEW_ALL) -->
       <MemberMembershipsCard :member-uuid="memberUuid" />
 
+      <!-- Referral code (self-gated by REFERRAL_CODE_CREATE) -->
+      <MemberReferralCodeCard :member-uuid="memberUuid" />
+
       <!-- Medical record -->
       <div v-if="canViewMedical" class="bg-white rounded-2xl border border-prohealth-100">
         <div class="flex items-center justify-between px-6 py-4 border-b border-prohealth-100">

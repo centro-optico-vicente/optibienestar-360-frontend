@@ -172,6 +172,9 @@ function relationshipLabel(r?: string | null): string {
       <!-- My payments (self-gated by PAYMENT_VIEW_OWN) -->
       <MyPaymentsCard />
 
+      <!-- My referrals (self-gated by REFERRAL_CODE_VIEW_OWN) -->
+      <MyReferralsCard />
+
       <!-- Registered contact data -->
       <div class="bg-white rounded-2xl border border-prohealth-100 p-6">
         <h2 class="font-bold text-prohealth-900 mb-4">{{ t('members.portal.myData.title') }}</h2>

@@ -1,0 +1,76 @@
+import type { Page } from '~/types/admin'
+import type {
+  ManualRunResponse,
+  ScheduledJobCreateRequest,
+  ScheduledJobDto,
+  ScheduledJobRunDto,
+  ScheduledJobUpdateRequest,
+} from '~/types/scheduling'
+
+interface ListParams {
+  page?: number
+  size?: number
+  sort?: string
+  filter?: string
+  q?: string
+}
+
+interface RunListParams {
+  page?: number
+  size?: number
+  sort?: string
+}
+
+/**
+ * Acceso al vertical de Trabajos Programados (/v1/admin/scheduled-jobs).
+ * Permisos del backend por acción:
+ * - list/get/listRuns/getRun → JOB_VIEW_ALL · create → JOB_CREATE
+ * - update → JOB_UPDATE · remove → JOB_DELETE · runNow → JOB_RUN_NOW
+ *
+ * `runNow` es híbrido: la respuesta trae `outcome: "RUNNING"` + `statusUrl` cuando el
+ * backend responde 202 (asíncrono); en ese caso poll-ear con `getRun(uuid, runUuid)`.
+ */
+export const useScheduledJobs = () => {
+  const list = (params: ListParams = {}) =>
+    useApi<Page<ScheduledJobDto>>('/v1/admin/scheduled-jobs', {
+      query: {
+        page: params.page ?? 0,
+        size: params.size ?? 50,
+        sort: params.sort ?? 'code,asc',
+        ...(params.filter ? { filter: params.filter } : {}),
+        ...(params.q ? { q: params.q } : {}),
+      },
+    })
+
+  const get = (uuid: string) =>
+    useApi<ScheduledJobDto>(`/v1/admin/scheduled-jobs/${uuid}`)
+
+  const create = (body: ScheduledJobCreateRequest) =>
+    useApi<ScheduledJobDto>('/v1/admin/scheduled-jobs', { method: 'POST', body })
+
+  const update = (uuid: string, body: ScheduledJobUpdateRequest) =>
+    useApi<ScheduledJobDto>(`/v1/admin/scheduled-jobs/${uuid}`, { method: 'PUT', body })
+
+  const remove = (uuid: string) =>
+    useApi<null>(`/v1/admin/scheduled-jobs/${uuid}`, { method: 'DELETE' })
+
+  /** Dispara el job ahora (sync 200 o async 202 → poll con getRun). */
+  const runNow = (uuid: string) =>
+    useApi<ManualRunResponse>(`/v1/admin/scheduled-jobs/${uuid}/run-now`, { method: 'POST', body: {} })
+
+  /** Histórico de ejecuciones del job (paginado). */
+  const listRuns = (uuid: string, params: RunListParams = {}) =>
+    useApi<Page<ScheduledJobRunDto>>(`/v1/admin/scheduled-jobs/${uuid}/runs`, {
+      query: {
+        page: params.page ?? 0,
+        size: params.size ?? 20,
+        sort: params.sort ?? 'startedAt,desc',
+      },
+    })
+
+  /** Una ejecución puntual (para poll-ear un disparo manual asíncrono). */
+  const getRun = (uuid: string, runUuid: string) =>
+    useApi<ScheduledJobRunDto>(`/v1/admin/scheduled-jobs/${uuid}/runs/${runUuid}`)
+
+  return { list, get, create, update, remove, runNow, listRuns, getRun }
+}

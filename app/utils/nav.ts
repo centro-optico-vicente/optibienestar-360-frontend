@@ -125,6 +125,17 @@ export const MAIN_NAV: NavEntry[] = [
     ],
   },
   {
+    key: 'sistema',
+    label: 'Sistema',
+    labelKey: 'nav.groups.sistema.label',
+    icon: 'i-lucide-server-cog',
+    description: 'Configuración y operación interna del sistema.',
+    descriptionKey: 'nav.groups.sistema.description',
+    children: [
+      { label: 'Trabajos programados', labelKey: 'nav.items.scheduledJobs.label', to: '/dashboard/scheduled-jobs', icon: 'i-lucide-timer', description: 'Tareas automáticas del sistema y su historial de ejecución.', descriptionKey: 'nav.items.scheduledJobs.description', requires: 'JOB_VIEW_ALL' },
+    ],
+  },
+  {
     key: 'datos-maestros',
     label: 'Datos maestros',
     labelKey: 'nav.groups.datosMaestros.label',

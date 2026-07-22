@@ -1,0 +1,254 @@
+<script setup lang="ts">
+import type { ApiError } from '~/types/auth'
+import type { PromoterDto, PromoterStatus } from '~/types/promoters'
+
+definePageMeta({
+  layout: 'dashboard',
+  middleware: 'can',
+  permission: 'PROMOTER_VIEW_ALL',
+})
+
+const { t } = useI18n()
+const { formatCurrency, formatDate } = useFormatters()
+
+useSeoMeta({ title: () => t('common.seoTitle', { page: t('promoters.detail.seoPage') }) })
+
+const route = useRoute()
+const promoterUuid = route.params.uuid as string
+
+const promoters = usePromoters()
+const { can } = usePermissions()
+const toast = useToast()
+
+const canUpdate = computed(() => can('PROMOTER_UPDATE'))
+const canDelete = computed(() => can('PROMOTER_DELETE'))
+
+// ---- Promoter load ----
+const promoter = ref<PromoterDto | null>(null)
+const loading = ref(true)
+const notFound = ref(false)
+
+async function loadPromoter() {
+  loading.value = true
+  try {
+    promoter.value = await promoters.get(promoterUuid)
+  }
+  catch (err) {
+    if ((err as ApiError).status === 404) notFound.value = true
+    promoter.value = null
+  }
+  finally {
+    loading.value = false
+  }
+}
+
+onMounted(loadPromoter)
+
+// Amount in USD, formatted in the VE convention (useFormatters). Empty → '—'.
+function money(v?: number | string | null): string {
+  if (v === null || v === undefined || v === '') return t('common.empty')
+  return formatCurrency(Number(v), 'USD')
+}
+
+// Status label; falls back to the raw value for unknown statuses.
+function statusLabel(s?: string | null): string {
+  return s ? t(`promoters.status.${s}`, s) : t('common.empty')
+}
+
+// Status → badge color: ACTIVE success, SUSPENDED warning, INACTIVE neutral.
+function statusColor(s?: PromoterStatus | null): 'success' | 'warning' | 'neutral' {
+  return s === 'ACTIVE' ? 'success' : s === 'SUSPENDED' ? 'warning' : 'neutral'
+}
+
+// ---- Edit (shared modal) ----
+const formOpen = ref(false)
+
+function openEdit() {
+  formOpen.value = true
+}
+
+function onSaved(updated: PromoterDto) {
+  promoter.value = updated
+}
+
+// ---- Delete ----
+const deleteOpen = ref(false)
+const deleting = ref(false)
+
+async function confirmDelete() {
+  if (!promoter.value) return
+  deleting.value = true
+  try {
+    await promoters.remove(promoter.value.uuid)
+    toast.add({ title: t('promoters.deletedToast'), color: 'success', icon: 'i-lucide-check-circle' })
+    await navigateTo('/dashboard/promoters')
+  }
+  catch {
+    // toast handled by useApi
+  }
+  finally {
+    deleting.value = false
+  }
+}
+</script>
+
+<template>
+  <div class="space-y-5">
+    <!-- Back -->
+    <UButton
+      color="neutral"
+      variant="ghost"
+      icon="i-lucide-arrow-left"
+      to="/dashboard/promoters"
+      size="sm"
+    >
+      {{ t('promoters.title') }}
+    </UButton>
+
+    <!-- Loading -->
+    <div v-if="loading" class="bg-white rounded-2xl border border-prohealth-100 p-6 space-y-3">
+      <USkeleton class="h-7 w-64 rounded" />
+      <USkeleton class="h-4 w-40 rounded" />
+      <USkeleton class="h-4 w-full max-w-lg rounded" />
+    </div>
+
+    <!-- Not found -->
+    <div v-else-if="notFound || !promoter" class="bg-white rounded-2xl border border-prohealth-100 p-12 text-center">
+      <UIcon name="i-lucide-search-x" class="w-10 h-10 mx-auto mb-3 text-prohealth-300" />
+      <p class="text-prohealth-700 font-semibold">{{ t('promoters.detail.notFoundTitle') }}</p>
+      <p class="text-sm text-prohealth-500 mt-1">{{ t('promoters.detail.notFoundBody') }}</p>
+    </div>
+
+    <template v-else>
+      <!-- Header + actions -->
+      <div class="bg-white rounded-2xl border border-prohealth-100 p-6">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-3 flex-wrap">
+              <h1 class="text-2xl font-extrabold text-prohealth-900">{{ promoter.displayName }}</h1>
+              <UBadge :color="statusColor(promoter.status)" variant="subtle">
+                {{ statusLabel(promoter.status) }}
+              </UBadge>
+              <UBadge :color="promoter.active ? 'success' : 'neutral'" variant="subtle">
+                {{ promoter.active ? t('common.yes') : t('common.no') }}
+              </UBadge>
+              <UBadge v-if="promoter.system" color="neutral" variant="subtle">
+                {{ t('promoters.systemBadge') }}
+              </UBadge>
+            </div>
+            <p class="text-sm text-prohealth-500 mt-1 font-mono">{{ promoter.referralCode }}</p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <UTooltip :text="promoter.system ? t('promoters.systemLocked') : (canUpdate ? t('promoters.editTooltip') : t('promoters.noPermissionEdit'))">
+              <UButton
+                color="primary"
+                icon="i-lucide-pencil"
+                :disabled="!canUpdate || promoter.system"
+                @click="openEdit"
+              >
+                {{ t('common.edit') }}
+              </UButton>
+            </UTooltip>
+            <UTooltip :text="promoter.system ? t('promoters.systemLocked') : (canDelete ? t('promoters.deleteTooltip') : t('promoters.noPermissionDelete'))">
+              <UButton
+                color="error"
+                variant="ghost"
+                icon="i-lucide-trash-2"
+                :disabled="!canDelete || promoter.system"
+                @click="deleteOpen = true"
+              />
+            </UTooltip>
+          </div>
+        </div>
+
+        <p v-if="promoter.description" class="text-sm text-prohealth-700 mt-4 max-w-3xl">
+          {{ promoter.description }}
+        </p>
+      </div>
+
+      <!-- Contact -->
+      <div class="bg-white rounded-2xl border border-prohealth-100 p-6">
+        <h2 class="font-bold text-prohealth-900 mb-4">{{ t('promoters.detail.sections.contact') }}</h2>
+        <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 text-sm">
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.fields.email') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ promoter.email || t('common.empty') }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.fields.phone') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ promoter.phone || t('common.empty') }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.fields.referralCode') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5 font-mono">{{ promoter.referralCode }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.fields.userUuid') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5 font-mono text-xs break-all">{{ promoter.userUuid || t('common.empty') }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.fields.personUuid') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5 font-mono text-xs break-all">{{ promoter.personUuid || t('common.empty') }}</dd>
+          </div>
+        </dl>
+      </div>
+
+      <!-- Metrics -->
+      <div class="bg-white rounded-2xl border border-prohealth-100 p-6">
+        <h2 class="font-bold text-prohealth-900 mb-4">{{ t('promoters.detail.sections.metrics') }}</h2>
+        <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 text-sm">
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.fields.totalReferrals') }}</dt>
+            <dd class="text-prohealth-900 text-lg font-semibold mt-0.5">{{ promoter.totalReferrals }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.fields.totalCommissionPaid') }}</dt>
+            <dd class="text-prohealth-900 text-lg font-semibold mt-0.5">{{ money(promoter.totalCommissionPaid) }}</dd>
+          </div>
+        </dl>
+      </div>
+
+      <!-- Metadata -->
+      <div class="bg-white rounded-2xl border border-prohealth-100 p-6">
+        <h2 class="font-bold text-prohealth-900 mb-4">{{ t('promoters.detail.sections.metadata') }}</h2>
+        <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 text-sm">
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.fields.createdAt') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ formatDate(promoter.createdAt, 'datetime') }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.fields.updatedAt') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ formatDate(promoter.updatedAt, 'datetime') }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.fields.uuid') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5 font-mono text-xs break-all">{{ promoter.uuid }}</dd>
+          </div>
+        </dl>
+      </div>
+    </template>
+
+    <!-- Edit modal (shared with the list) -->
+    <PromoterFormModal v-model:open="formOpen" :promoter="promoter" @saved="onSaved" />
+
+    <!-- Delete confirmation modal -->
+    <UModal v-model:open="deleteOpen" :title="t('promoters.deleteTitle')">
+      <template #body>
+        <i18n-t keypath="promoters.deleteConfirm" tag="p" class="text-sm text-prohealth-700" scope="global">
+          <template #name>
+            <span class="font-semibold">{{ promoter?.displayName }}</span>
+          </template>
+        </i18n-t>
+        <div class="flex items-center justify-end gap-3 pt-5">
+          <UButton color="neutral" variant="ghost" :disabled="deleting" @click="deleteOpen = false">
+            {{ t('common.cancel') }}
+          </UButton>
+          <UButton color="error" :loading="deleting" icon="i-lucide-trash-2" @click="confirmDelete">
+            {{ t('common.delete') }}
+          </UButton>
+        </div>
+      </template>
+    </UModal>
+  </div>
+</template>

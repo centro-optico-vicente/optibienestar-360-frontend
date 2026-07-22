@@ -222,6 +222,10 @@
       "misPortales": {
         "label": "Mis portales",
         "description": "Accesos a tus portales personales."
+      },
+      "sistema": {
+        "label": "Sistema",
+        "description": "Configuración y operación interna del sistema."
       }
     },
     "items": {
@@ -294,6 +298,10 @@
       "usageHistory": {
         "label": "Consumos",
         "description": "Beneficios registrados en tu aliado."
+      },
+      "scheduledJobs": {
+        "label": "Trabajos programados",
+        "description": "Tareas automáticas del sistema y su historial de ejecución."
       }
     },
     "other": {
@@ -1479,6 +1487,326 @@
       "empty": "Aún no has registrado consumos",
       "copayLabel": "Copago",
       "validateCta": "Validar afiliado"
+    }
+  },
+  "promoters": {
+    "title": "Promotores",
+    "subtitle": "Equipo comercial que refiere afiliados y genera comisiones.",
+    "new": "Nuevo promotor",
+    "createTooltip": "Registrar un nuevo promotor",
+    "editTooltip": "Editar promotor",
+    "deleteTooltip": "Eliminar promotor",
+    "viewDetailTooltip": "Ver detalle",
+    "searchPlaceholder": "Buscar por nombre o código de referido…",
+    "empty": "No hay promotores registrados.",
+    "systemBadge": "Sistema",
+    "systemLocked": "El promotor del sistema no se puede editar ni eliminar.",
+    "createdToast": "Promotor creado correctamente.",
+    "updatedToast": "Promotor actualizado correctamente.",
+    "deletedToast": "Promotor eliminado correctamente.",
+    "deleteTitle": "Eliminar promotor",
+    "deleteConfirm": "¿Seguro que deseas eliminar al promotor {name}? Esta acción no se puede deshacer.",
+    "noPermissionCreate": "No tienes permiso para crear promotores.",
+    "noPermissionEdit": "No tienes permiso para editar promotores.",
+    "noPermissionDelete": "No tienes permiso para eliminar promotores.",
+    "paginationSummary": "Mostrando {shown} de {total} promotores",
+    "columns": {
+      "promoter": "Promotor",
+      "status": "Estado",
+      "referrals": "Referidos",
+      "commissionPaid": "Comisión pagada",
+      "active": "Activo",
+      "createdAt": "Registrado"
+    },
+    "status": {
+      "ACTIVE": "Activo",
+      "INACTIVE": "Inactivo",
+      "SUSPENDED": "Suspendido"
+    },
+    "detail": {
+      "seoPage": "Detalle de promotor",
+      "notFoundTitle": "Promotor no encontrado",
+      "notFoundBody": "El promotor que buscas no existe o fue eliminado.",
+      "sections": {
+        "contact": "Contacto e identidad",
+        "metrics": "Métricas",
+        "metadata": "Metadatos"
+      },
+      "fields": {
+        "displayName": "Nombre",
+        "referralCode": "Código de referido",
+        "status": "Estado",
+        "active": "Activo",
+        "description": "Descripción",
+        "email": "Correo electrónico",
+        "phone": "Teléfono",
+        "userUuid": "UUID de usuario",
+        "personUuid": "UUID de persona",
+        "totalReferrals": "Total de referidos",
+        "totalCommissionPaid": "Comisión total pagada",
+        "createdAt": "Creado",
+        "updatedAt": "Actualizado",
+        "uuid": "UUID"
+      }
+    },
+    "form": {
+      "createTitle": "Nuevo promotor",
+      "editTitle": "Editar promotor",
+      "createDescription": "Registra un promotor y su código de referido.",
+      "editDescription": "Actualiza los datos del promotor.",
+      "loadingDetail": "Cargando promotor…",
+      "submitCreate": "Crear promotor",
+      "referralCodeHelp": "Código único que compartirá el promotor. No podrá cambiarse luego.",
+      "referralCodeFormat": "Entre 4 y 20 caracteres en mayúsculas, números o guiones (A-Z, 0-9, -).",
+      "uuidHelp": "Identificador existente en el sistema.",
+      "fields": {
+        "displayName": "Nombre",
+        "referralCode": "Código de referido",
+        "userUuid": "UUID de usuario",
+        "personUuid": "UUID de persona",
+        "description": "Descripción",
+        "email": "Correo electrónico",
+        "phone": "Teléfono",
+        "status": "Estado",
+        "active": "Activo"
+      }
+    }
+  },
+  "commissions": {
+    "title": "Comisiones",
+    "subtitle": "Ledger de comisiones de los promotores y liquidación de períodos.",
+    "searchPlaceholder": "Buscar por promotor, código o referencia…",
+    "filterPlaceholder": "Filtro RSQL, p. ej. promoter.uuid==…;status==PENDING",
+    "empty": "No hay comisiones registradas.",
+    "paginationSummary": "Mostrando {shown} de {total}",
+    "columns": {
+      "promoter": "Promotor",
+      "amount": "Monto",
+      "calc": "Cálculo",
+      "appliesTo": "Aplica a",
+      "status": "Estado",
+      "earnedAt": "Ganada",
+      "paidAt": "Pagada"
+    },
+    "status": {
+      "PENDING": "Pendiente",
+      "PAID": "Pagada",
+      "VOIDED": "Anulada",
+      "DISPUTED": "En disputa"
+    },
+    "appliesTo": {
+      "INSCRIPTION": "Inscripción",
+      "MONTHLY": "Mensualidad"
+    },
+    "detail": {
+      "title": "Detalle de la comisión",
+      "loading": "Cargando detalle…",
+      "sections": {
+        "commission": "Comisión",
+        "calculation": "Cálculo",
+        "period": "Período",
+        "review": "Liquidación",
+        "metadata": "Metadatos"
+      },
+      "fields": {
+        "promoter": "Promotor",
+        "code": "Código",
+        "amount": "Monto",
+        "currency": "Moneda",
+        "status": "Estado",
+        "appliesTo": "Aplica a",
+        "active": "Activa",
+        "calculationBasis": "Base de cálculo",
+        "commissionPct": "Porcentaje",
+        "flatAmount": "Monto fijo",
+        "tier": "Nivel",
+        "periodStrategy": "Estrategia de período",
+        "periodStart": "Inicio del período",
+        "periodEnd": "Fin del período",
+        "earnedAt": "Ganada",
+        "payoutReference": "Referencia de liquidación",
+        "paidAt": "Pagada",
+        "voidedAt": "Anulada",
+        "voidReason": "Motivo de anulación",
+        "adminNotes": "Notas internas",
+        "promoterUuid": "UUID del promotor",
+        "paymentUuid": "UUID del pago",
+        "memberUuid": "UUID del afiliado",
+        "uuid": "UUID",
+        "createdAt": "Creada",
+        "updatedAt": "Actualizada"
+      }
+    },
+    "payout": {
+      "button": "Liquidar período",
+      "title": "Liquidar período de comisiones",
+      "description": "Cierra un rango de fechas y liquida las comisiones pendientes de cada promotor.",
+      "dryRunNote": "La previsualización solo calcula totales: no marca comisiones como pagadas ni envía correos.",
+      "fields": {
+        "periodStart": "Inicio del período",
+        "periodEnd": "Fin del período",
+        "payoutReference": "Referencia de liquidación"
+      },
+      "referencePlaceholder": "p. ej. LIQ-2026-07",
+      "preview": "Previsualizar",
+      "previewTitle": "Resumen del período",
+      "totals": {
+        "promoters": "Promotores",
+        "commissions": "Comisiones",
+        "amount": "Total",
+        "executedAt": "Ejecutado"
+      },
+      "perPromoter": {
+        "name": "Promotor",
+        "code": "Código",
+        "count": "Comisiones",
+        "amount": "Total",
+        "email": "Correo"
+      },
+      "emptyPreview": "No hay comisiones pendientes en este período.",
+      "back": "Volver",
+      "confirm": "Confirmar liquidación",
+      "confirmDescription": "Al confirmar se marcarán las comisiones como PAGADAS y se enviará un correo con el desglose a cada promotor. Esta acción no se puede deshacer.",
+      "successToast": "Período liquidado: {promoters} promotores, {commissions} comisiones, {amount}.",
+      "invalidRange": "El fin del período debe ser posterior o igual al inicio."
+    }
+  },
+  "scheduledJobs": {
+    "title": "Trabajos programados",
+    "subtitle": "Tareas automáticas del sistema, su programación y su historial de ejecución.",
+    "new": "Nuevo trabajo",
+    "searchPlaceholder": "Buscar por código o nombre…",
+    "empty": "No hay trabajos programados.",
+    "paginationSummary": "Mostrando {shown} de {total}",
+    "viewDetailTooltip": "Ver detalle",
+    "noPermissionCreate": "No tienes permiso para crear trabajos",
+    "noPermissionEdit": "No tienes permiso para editar",
+    "noPermissionDelete": "No tienes permiso para eliminar",
+    "noPermissionRun": "No tienes permiso para ejecutar",
+    "deleteTitle": "Eliminar trabajo",
+    "deleteConfirm": "¿Seguro que deseas eliminar {name}? Esta acción no se puede deshacer.",
+    "deletedToast": "Trabajo eliminado",
+    "createdToast": "Trabajo creado",
+    "updatedToast": "Trabajo actualizado",
+    "columns": {
+      "job": "Trabajo",
+      "schedule": "Programación",
+      "enabled": "Habilitado",
+      "lastRun": "Última ejecución",
+      "nextRun": "Próxima"
+    },
+    "outcome": {
+      "RUNNING": "En ejecución",
+      "SUCCESS": "Éxito",
+      "FAILED": "Fallido",
+      "TIMEOUT": "Tiempo agotado",
+      "SKIPPED_CONCURRENT": "Omitido (concurrencia)",
+      "CANCELED": "Cancelado"
+    },
+    "trigger": {
+      "SCHEDULED": "Programado",
+      "MANUAL": "Manual",
+      "STARTUP": "Arranque"
+    },
+    "runNow": {
+      "button": "Ejecutar ahora",
+      "runningToast": "El trabajo está en ejecución, revisa el historial.",
+      "successToast": "El trabajo se ejecutó correctamente.",
+      "failedToast": "El trabajo falló. Revisa el historial.",
+      "polling": "Ejecutando… actualizando el estado."
+    },
+    "toggle": {
+      "enabledToast": "Trabajo habilitado",
+      "disabledToast": "Trabajo deshabilitado"
+    },
+    "detail": {
+      "title": "Detalle del trabajo",
+      "schedule": "Programación",
+      "policy": "Política de ejecución",
+      "lastRun": "Última ejecución",
+      "lastRunAt": "Fecha última ejecución",
+      "nextRun": "Próxima ejecución",
+      "lockHeld": "Bloqueo activo",
+      "created": "Creado",
+      "updated": "Actualizado",
+      "uuid": "UUID",
+      "notFoundTitle": "Trabajo no encontrado",
+      "notFoundBody": "El trabajo que buscas no existe o fue eliminado.",
+      "runsTitle": "Historial de ejecuciones",
+      "runsEmpty": "Aún no hay ejecuciones registradas.",
+      "reload": "Recargar",
+      "runColumns": {
+        "outcome": "Resultado",
+        "trigger": "Origen",
+        "started": "Inicio",
+        "duration": "Duración",
+        "error": "Error"
+      }
+    },
+    "form": {
+      "createTitle": "Nuevo trabajo programado",
+      "editTitle": "Editar trabajo",
+      "createDescription": "Define un trabajo automático con su expresión cron y su política de ejecución.",
+      "editDescription": "Actualiza la programación y la política del trabajo.",
+      "loadingDetail": "Cargando trabajo…",
+      "submitCreate": "Crear trabajo",
+      "codeHelp": "Identificador único en MAYÚSCULAS. No se puede cambiar después.",
+      "codeFormat": "Formato: MAYÚSCULAS, empieza por letra (A–Z, 0–9, _).",
+      "cronHelp": "Cron de Spring: seg min hora día-mes mes día-semana",
+      "maxSyncHelp": "Segundos máximos de ejecución síncrona antes de pasar a asíncrona.",
+      "enabledHelp": "Si está deshabilitado, no se ejecuta según su programación.",
+      "allowConcurrentHelp": "Permite ejecuciones solapadas del mismo trabajo.",
+      "activeHelp": "Desactiva el trabajo (borrado lógico) sin eliminarlo.",
+      "fields": {
+        "code": "Código",
+        "displayName": "Nombre",
+        "description": "Descripción",
+        "cronExpression": "Expresión cron",
+        "timezone": "Zona horaria",
+        "enabled": "Habilitado",
+        "allowConcurrent": "Permitir concurrencia",
+        "maxSyncSeconds": "Máx. segundos síncronos",
+        "active": "Activo"
+      }
+    }
+  },
+  "referrals": {
+    "mine": {
+      "title": "Mis referidos",
+      "subtitle": "Personas que has referido y el estado de tus recompensas.",
+      "empty": "Todavía no has referido a nadie. Comparte tu código para empezar.",
+      "pendingReferred": "Referido pendiente de inscripción",
+      "enrolledOn": "Inscrito el {date}",
+      "reward": "Recompensa: {reward}"
+    },
+    "status": {
+      "PENDING_ENROLLMENT": "Por inscribir",
+      "REGISTERED": "Registrado",
+      "EXPIRED": "Expirado",
+      "REWARD_GRANTED": "Recompensa otorgada",
+      "VOIDED": "Anulado"
+    },
+    "code": {
+      "title": "Código de referido",
+      "subtitle": "Emite o regenera el código con el que este afiliado refiere a otros.",
+      "issue": "Emitir código",
+      "hint": "Aún no se ha emitido un código en esta sesión. Usa el botón para emitir o regenerar.",
+      "copy": "Copiar",
+      "copied": "Copiado",
+      "generatedAuto": "Generado automáticamente",
+      "generatedCustom": "Código personalizado",
+      "previousCode": "Código anterior",
+      "holder": "Titular",
+      "issuedAt": "Emitido",
+      "issuedToast": "Código de referido emitido",
+      "form": {
+        "title": "Emitir código de referido",
+        "description": "Deja el campo vacío para autogenerar un código, o escribe uno personalizado.",
+        "customCode": "Código personalizado (opcional)",
+        "customCodeHelp": "4 a 20 caracteres: letras A–Z, números y guiones.",
+        "customCodeFormat": "Formato inválido. Usa 4–20 caracteres: A–Z, 0–9 o guiones.",
+        "submit": "Emitir"
+      }
     }
   }
 }
