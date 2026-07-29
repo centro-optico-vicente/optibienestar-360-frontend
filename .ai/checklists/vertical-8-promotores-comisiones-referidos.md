@@ -38,3 +38,11 @@
 - [ ] [v2] [P0/C2] Admin: configuración de `commission_tiers` (umbral, % o monto plano, `period_strategy`, `applies_to`) en `pages/admin/commissions/`.
 - [ ] [v2] [P0/C2] Página de **leaderboard** (`GET /v1/admin/leaderboard?period=&strategy=`) — top promotores reales (excluye el promotor sistema INSTITUCION), premios top 3. Filtro por estrategia de período.
 - [ ] [v2] [P0/C1] El promotor sistema `INSTITUCION` (atribución por defecto) NO aparece en el leaderboard público pero sí en reportes financieros internos del admin — la UI debe respetar ese filtro.
+
+## Adicionales v3 — Escala/cobranza de comisión y salto de mensualidad por referido
+
+> Equivalente UI del [backend vertical-8 §Adicionales v3](https://github.com/fenix-core/optibienestar-360-backend/blob/main/.ai/checklists/vertical-8-promotores-comisiones-referidos.md) (ítems A/B/C). Mapa: [`../scope-additions-v3.md`](../scope-additions-v3.md) · [ADR 0013](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0013-incentives-engine-v3.md).
+
+- [ ] [v3] [P1/C2] Admin (`pages/admin/commissions/`): editor de la **escala de comisión por inscripción** (bandas 25/30/35% + **bono por escala** $100/$100/$150/$300) sobre `commission_tiers` + `commission_bonus_rules`. Mostrar que el % es retroactivo por banda al cierre de mes. _(El backend recalcula; la UI configura y muestra.)_
+- [ ] [v3] [P1/C2] Admin: editor de **tiers de cobranza** (`collection_commission_tiers`: días → %) + campo **día de corte** (`billing_start_day`) en la ficha de la membresía. _(Comisión de cobranza decreciente por días.)_
+- [ ] [v3] [P1/C2] Afiliado (`pages/afiliado/referrals.vue`): progreso hacia el **salto de mensualidad** (3 referidos → 1 mes gratis, 9 → 3), con los meses ya ganados (subsidios auto-otorgados, `GET /v1/me/subsidies`) y aviso de que el conteo resetea por mes. _(Reusa la vista de subsidios; ver [vista-12](vertical-12-subsidios-y-exoneraciones.md).)_
