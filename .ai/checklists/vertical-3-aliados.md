@@ -43,3 +43,11 @@
 - [ ] [v2] [P0/C2] Acciones aprobar / rechazar / remover (`POST .../{uuid}/approve|reject|remove`) — reject/remove exigen `reason`. Botones gated por permiso `ALLY_SERVICE_APPROVE`.
 - [ ] [v2] [P0/C2] Vista de historial de revisión admin (`GET /v1/admin/ally-services/{uuid}/log`) — mismo log que ve el aliado.
 - [ ] [v2] [P0/C1] El directorio público (`pages` públicas) solo muestra servicios `APPROVED` (el backend ya filtra; el front no debe asumir otros estados visibles).
+
+## Adicionales v3 — Fidelidad y cortesías de aliados
+
+> Equivalente UI del [backend vertical-3 §Adicionales v3](https://github.com/fenix-core/optibienestar-360-backend/blob/main/.ai/checklists/vertical-3-aliados.md) (ítems D1/D2). Mapa: [`../scope-additions-v3.md`](../scope-additions-v3.md) · [ADR 0013](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0013-incentives-engine-v3.md).
+
+- [ ] [v3] [P1/C2] Admin: CRUD de **programas de fidelidad** `pages/admin/loyalty-programs/` (`/v1/admin/loyalty-programs`, `ALLY_LOYALTY_MANAGE`) — métrica (consumo $ / nº compras), umbral ($100 / 50), premio parametrizable (servicio gratis / % descuento), aliado o global. _(El backend evalúa y emite vouchers.)_
+- [ ] [v3] [P1/C2] Portal aliado (`pages/aliado/`): otorgar **cortesía** a 1 persona de una membresía (`POST /v1/aliado/courtesy-grants`, `ALLY_COURTESY_GRANT`) — p. ej. 1ª consulta gratis; + listado de cortesías/vouchers emitidos y su estado de canje. _(El validador reconoce el canje.)_
+- [ ] [v3] [P1/C2] Afiliado: **"Mis vouchers de fidelidad"** (`GET /v1/me/loyalty-vouchers`, `LOYALTY_VIEW_OWN`) — vouchers ganados por consumo/compras, con premio y estado (pendiente/canjeado/vencido). _(Solo muestra; el canje ocurre en el aliado vía validador.)_
