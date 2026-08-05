@@ -166,6 +166,7 @@ const createSchema = computed(() => z.object({
 }))
 
 const editSchema = computed(() => z.object({
+  email: z.string().email(t('validation.emailInvalid')).optional(),
   firstName: z.string().min(1, t('validation.required')).max(50, t('validation.maxChars', { n: 50 })),
   middleName: z.string().max(50, t('validation.maxChars', { n: 50 })).optional(),
   lastName: z.string().min(1, t('validation.required')).max(50, t('validation.maxChars', { n: 50 })),
@@ -443,8 +444,14 @@ async function confirmDelete() {
           class="space-y-4"
           @submit="onSubmit"
         >
-          <UFormField v-if="mode === 'create'" :label="$t('security.users.fields.email')" name="email" required>
-            <UInput v-model="state.email" type="email" autocomplete="off" class="w-full" />
+          <UFormField :label="$t('security.users.fields.email')" name="email" :required="mode === 'create'">
+            <UInput
+              v-model="state.email"
+              type="email"
+              autocomplete="off"
+              class="w-full"
+              :disabled="mode === 'edit'"
+            />
           </UFormField>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
