@@ -5,7 +5,7 @@
 // specialties[]. Sub-resources: services, agreements (ALLY_AGREEMENT_MANAGE) and
 // users (staff with OWNER/STAFF/VIEWER membership). PUT uses PATCH semantics.
 
-import type { CatalogRef } from '~/types/members'
+import type { CatalogRef, CityRef } from '~/types/members'
 
 // ---- Partner ----
 
@@ -19,7 +19,7 @@ export interface AllyDto {
   phone?: string
   website?: string
   address?: string
-  city?: CatalogRef
+  city?: CityRef
   description?: string
   joinedAt?: string
   published?: boolean

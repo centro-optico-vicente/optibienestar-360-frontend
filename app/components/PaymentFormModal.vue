@@ -67,6 +67,33 @@ watch(memberSearch, (q) => {
   }, 400)
 })
 
+// ---- Form state ----
+interface FormState {
+  memberUuid: string
+  membershipUuid: string
+  amount: string
+  currency: string
+  paymentMethod: PaymentMethod | undefined
+  referenceNumber: string
+  paymentDate: string
+  inscription: boolean
+  appliedPeriod: string
+  adminNotes: string
+}
+
+const state = reactive<FormState>({
+  memberUuid: '',
+  membershipUuid: '',
+  amount: '',
+  currency: 'USD',
+  paymentMethod: undefined,
+  referenceNumber: '',
+  paymentDate: '',
+  inscription: false,
+  appliedPeriod: '',
+  adminNotes: '',
+})
+
 // ---- Selected member's memberships ----
 const membershipOptions = ref<Option[]>([])
 const loadingMemberships = ref(false)
@@ -93,33 +120,6 @@ watch(() => state.memberUuid, async (memberUuid) => {
   finally {
     loadingMemberships.value = false
   }
-})
-
-// ---- Form state ----
-interface FormState {
-  memberUuid: string
-  membershipUuid: string
-  amount: string
-  currency: string
-  paymentMethod: PaymentMethod | undefined
-  referenceNumber: string
-  paymentDate: string
-  inscription: boolean
-  appliedPeriod: string
-  adminNotes: string
-}
-
-const state = reactive<FormState>({
-  memberUuid: '',
-  membershipUuid: '',
-  amount: '',
-  currency: 'USD',
-  paymentMethod: undefined,
-  referenceNumber: '',
-  paymentDate: '',
-  inscription: false,
-  appliedPeriod: '',
-  adminNotes: '',
 })
 
 // ---- Proof of payment (optional) ----

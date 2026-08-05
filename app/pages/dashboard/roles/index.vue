@@ -312,7 +312,7 @@ async function onSave() {
                 <UBadge color="primary" variant="subtle">{{ r.name }}</UBadge>
               </td>
               <td class="px-5 py-3 text-prohealth-700">
-                {{ r.description || '—' }}
+                {{ r.description || $t('common.empty') }}
               </td>
               <td class="px-5 py-3">
                 <div class="flex items-center justify-end gap-1">
