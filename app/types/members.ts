@@ -24,6 +24,12 @@ export interface CatalogRef {
   code?: string
 }
 
+/** City reference embedded in a DTO — the backend sends the full CityDto, incl. its state FK. */
+export interface CityRef extends CatalogRef {
+  stateUuid?: string
+  stateCode?: string
+}
+
 export interface BeneficiaryDto {
   uuid: string
   firstName: string
@@ -42,6 +48,8 @@ export interface BeneficiaryDto {
 
 export interface MemberDto {
   uuid: string
+  /** Solo presente en el detalle (GET /v1/admin/members/{uuid}), no en el listado. */
+  personUuid?: string
   firstName: string
   middleName?: string
   lastName: string
@@ -53,7 +61,7 @@ export interface MemberDto {
   gender?: CatalogRef
   maritalStatus?: CatalogRef
   occupation?: CatalogRef
-  city?: CatalogRef
+  city?: CityRef
   // Enrollment form data (V29)
   birthplace?: string
   numberOfChildren?: number

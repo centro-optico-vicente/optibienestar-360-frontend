@@ -104,15 +104,21 @@ async function loadCatalogs() {
   stateOptions.value = toOptions(states)
 }
 
-// Cities cascade based on the selected state.
+// Cities cascade based on the selected state. `pendingCityUuid` lets openEdit
+// preselect a city once its state's cities finish loading — otherwise the watcher's
+// reset below would wipe the value the instant `selectedStateUuid` is set.
 const selectedStateUuid = ref<string | undefined>(undefined)
+const pendingCityUuid = ref<string | undefined>(undefined)
 watch(selectedStateUuid, async (stateUuid) => {
+  const keepCityUuid = pendingCityUuid.value
+  pendingCityUuid.value = undefined
   cityOptions.value = []
   state.cityUuid = undefined
   if (!stateUuid) return
   try {
     const cities = await usePublicCatalog('cities').list({ stateUuid, size: '-1' })
     cityOptions.value = toOptions(cities)
+    if (keepCityUuid) state.cityUuid = keepCityUuid
   }
   catch {
     cityOptions.value = []
@@ -203,6 +209,7 @@ function resetForm() {
   state.status = 'ACTIVE'
   state.specialtyUuids = []
   selectedStateUuid.value = undefined
+  pendingCityUuid.value = undefined
 }
 
 function openCreate() {
@@ -231,7 +238,11 @@ async function openEdit(a: AllyDto) {
     state.phone = full.phone ?? ''
     state.website = full.website ?? ''
     state.address = full.address ?? ''
-    state.cityUuid = full.city?.uuid
+    // The city select is populated by a cascade that keys off the selected state; set the
+    // state first (from the embedded CityDto's own stateUuid) and stash the city so the
+    // cascade watcher can apply it once that state's cities finish loading.
+    pendingCityUuid.value = full.city?.uuid
+    selectedStateUuid.value = full.city?.stateUuid
     state.description = full.description ?? ''
     state.joinedAt = full.joinedAt ?? ''
     state.published = full.published ?? false

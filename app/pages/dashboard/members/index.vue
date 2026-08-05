@@ -110,15 +110,21 @@ async function loadCatalogs() {
   stateOptions.value = toOptions(states)
 }
 
-// Cities cascade based on the selected state.
+// Cities cascade based on the selected state. `pendingCityUuid` lets openEdit
+// preselect a city once its state's cities finish loading — otherwise the watcher's
+// reset below would wipe the value the instant `selectedStateUuid` is set.
 const selectedStateUuid = ref<string | undefined>(undefined)
+const pendingCityUuid = ref<string | undefined>(undefined)
 watch(selectedStateUuid, async (stateUuid) => {
+  const keepCityUuid = pendingCityUuid.value
+  pendingCityUuid.value = undefined
   cityOptions.value = []
   state.cityUuid = undefined
   if (!stateUuid) return
   try {
     const cities = await usePublicCatalog('cities').list({ stateUuid, size: '-1' })
     cityOptions.value = toOptions(cities)
+    if (keepCityUuid) state.cityUuid = keepCityUuid
   }
   catch {
     cityOptions.value = []
@@ -226,13 +232,13 @@ const schema = computed(() => {
     enrolledAt: z.string().optional(),
     notes: z.string().optional(),
   }
+  const document = {
+    documentType: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
+    documentNumber: z.string().min(5, t('members.form.validation.documentMin')).regex(/^\d+$/, t('validation.digitsOnly')),
+  }
   return mode.value === 'create'
-    ? z.object({
-        ...base,
-        documentType: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
-        documentNumber: z.string().min(5, t('members.form.validation.documentMin')).regex(/^\d+$/, t('validation.digitsOnly')),
-      })
-    : z.object({ ...base, status: z.string() })
+    ? z.object({ ...base, ...document })
+    : z.object({ ...base, ...document, status: z.string() })
 })
 
 function resetForm() {
@@ -261,6 +267,7 @@ function resetForm() {
   state.status = 'ACTIVE'
   state.notes = ''
   selectedStateUuid.value = undefined
+  pendingCityUuid.value = undefined
 }
 
 function openCreate() {
@@ -291,7 +298,11 @@ async function openEdit(m: MemberDto) {
     state.genderUuid = full.gender?.uuid
     state.maritalStatusUuid = full.maritalStatus?.uuid
     state.occupationUuid = full.occupation?.uuid
-    state.cityUuid = full.city?.uuid
+    // The city select is populated by a cascade that keys off the selected state; set the
+    // state first (from the embedded CityDto's own stateUuid) and stash the city so the
+    // cascade watcher can apply it once that state's cities finish loading.
+    pendingCityUuid.value = full.city?.uuid
+    selectedStateUuid.value = full.city?.stateUuid
     state.birthplace = full.birthplace ?? ''
     state.numberOfChildren = full.numberOfChildren != null ? String(full.numberOfChildren) : ''
     state.spouseName = full.spouseName ?? ''
@@ -353,6 +364,8 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         middleName: state.middleName || undefined,
         lastName: state.lastName,
         secondLastName: state.secondLastName || undefined,
+        documentType: state.documentType,
+        documentNumber: state.documentNumber,
         birthDate: state.birthDate || undefined,
         genderUuid: state.genderUuid,
         maritalStatusUuid: state.maritalStatusUuid,
@@ -589,19 +602,18 @@ function displayName(m: MemberDto): string {
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField :label="t('members.form.fields.documentType')" name="documentType" :required="mode === 'create'">
+            <UFormField :label="t('members.form.fields.documentType')" name="documentType" required>
               <USelectMenu
                 v-model="state.documentType"
                 :items="documentTypeOptions"
                 label-key="label"
                 value-key="value"
                 :placeholder="t('common.select')"
-                :disabled="mode === 'edit'"
                 class="w-full"
               />
             </UFormField>
-            <UFormField :label="t('members.form.fields.documentNumber')" name="documentNumber" :required="mode === 'create'">
-              <UInput v-model="state.documentNumber" :disabled="mode === 'edit'" class="w-full" />
+            <UFormField :label="t('members.form.fields.documentNumber')" name="documentNumber" required>
+              <UInput v-model="state.documentNumber" class="w-full" />
             </UFormField>
           </div>
 

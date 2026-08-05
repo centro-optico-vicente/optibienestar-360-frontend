@@ -13,6 +13,7 @@ definePageMeta({
 
 useSeoMeta({ title: 'Membresías — OptiBienestar 360' })
 
+const { t } = useI18n()
 const members = useMembers()
 
 // ---- Member search (server-side, debounced) ----
@@ -23,7 +24,7 @@ const searching = ref(false)
 const selectedMemberUuid = ref<string>('')
 
 function memberLabel(m: MemberDto): string {
-  const name = m.fullName || [m.firstName, m.middleName, m.lastName, m.secondLastName].filter(Boolean).join(' ') || '—'
+  const name = m.fullName || [m.firstName, m.middleName, m.lastName, m.secondLastName].filter(Boolean).join(' ') || t('common.empty')
   const doc = m.documentNumber ? ` · ${m.documentType ?? ''} ${m.documentNumber}`.trimEnd() : ''
   return `${name}${doc}`
 }

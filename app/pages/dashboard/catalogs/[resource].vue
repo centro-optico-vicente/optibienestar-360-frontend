@@ -307,10 +307,10 @@ async function confirmDelete() {
               </td>
               <td class="px-5 py-3 font-medium text-prohealth-900">{{ item.name }}</td>
               <td v-if="def.parentDisplayField" class="px-5 py-3 text-prohealth-600">
-                {{ item[def.parentDisplayField] || '—' }}
+                {{ item[def.parentDisplayField] || $t('common.empty') }}
               </td>
               <td v-if="hasDescription" class="px-5 py-3 text-prohealth-600">
-                {{ item.description || '—' }}
+                {{ item.description || $t('common.empty') }}
               </td>
               <td class="px-5 py-3">
                 <UBadge :color="item.active ? 'success' : 'neutral'" variant="subtle" size="sm">
