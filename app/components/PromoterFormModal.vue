@@ -74,12 +74,14 @@ const state = reactive<FormState>({
 
 // ---- User search (create-only; server-side, debounced) ----
 // Feeds state.userUuid directly — the select's value IS the user's uuid.
-const userSearch = ref('')
+// Search box lives inside the USelectMenu itself (search-term) so typing and
+// picking a result happen in the same field instead of two separate widgets.
+const userSearchTerm = ref('')
 const userOptions = ref<SelectItem[]>([])
 const searchingUsers = ref(false)
 
 let userSearchTimer: ReturnType<typeof setTimeout> | undefined
-watch(userSearch, (q) => {
+watch(userSearchTerm, (q) => {
   clearTimeout(userSearchTimer)
   const term = q.trim()
   if (term.length < 2) {
@@ -107,14 +109,14 @@ watch(userSearch, (q) => {
 // members (afiliados) by name/document, then resolves the actual personUuid from the
 // selected member's detail. This assumes the promoter's person is also a member; if
 // it isn't (or doesn't match the selected user), the operator must correct it.
-const personSearch = ref('')
+const personSearchTerm = ref('')
 const memberOptions = ref<SelectItem[]>([])
 const searchingMembers = ref(false)
 const selectedMemberUuid = ref('')
 const resolvingPerson = ref(false)
 
 let personSearchTimer: ReturnType<typeof setTimeout> | undefined
-watch(personSearch, (q) => {
+watch(personSearchTerm, (q) => {
   clearTimeout(personSearchTimer)
   const term = q.trim()
   if (term.length < 2) {
@@ -153,9 +155,9 @@ watch(selectedMemberUuid, async (memberUuid) => {
 })
 
 function resetSearchState() {
-  userSearch.value = ''
+  userSearchTerm.value = ''
   userOptions.value = []
-  personSearch.value = ''
+  personSearchTerm.value = ''
   memberOptions.value = []
   selectedMemberUuid.value = ''
 }
@@ -306,35 +308,27 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           </UFormField>
 
           <div class="rounded-xl border border-prohealth-100 p-4 space-y-4">
-            <UFormField :label="t('promoters.form.userSearchLabel')" :help="t('promoters.form.userSearchHelp')">
-              <UInput
-                v-model="userSearch"
-                :placeholder="t('promoters.form.userSearchPlaceholder')"
-                icon="i-lucide-search"
-                :loading="searchingUsers"
-                class="w-full"
-              />
-            </UFormField>
-            <UFormField :label="t('promoters.form.fields.userUuid')" name="userUuid" required>
+            <UFormField
+              :label="t('promoters.form.fields.userUuid')"
+              name="userUuid"
+              required
+              :help="t('promoters.form.userSearchHelp')"
+            >
               <USelectMenu
                 v-model="state.userUuid"
+                v-model:search-term="userSearchTerm"
                 :items="userOptions"
                 label-key="label"
                 value-key="value"
-                :placeholder="userOptions.length ? t('common.select') : t('promoters.form.userPlaceholderSearch')"
+                ignore-filter
+                icon="i-lucide-search"
+                :loading="searchingUsers"
+                :placeholder="t('promoters.form.userPlaceholderSearch')"
+                :search-input="{ placeholder: t('promoters.form.userSearchPlaceholder'), icon: 'i-lucide-search' }"
                 class="w-full"
               />
             </UFormField>
 
-            <UFormField :label="t('promoters.form.personSearchLabel')" :help="t('promoters.form.personSearchHelp')">
-              <UInput
-                v-model="personSearch"
-                :placeholder="t('promoters.form.personSearchPlaceholder')"
-                icon="i-lucide-search"
-                :loading="searchingMembers"
-                class="w-full"
-              />
-            </UFormField>
             <UFormField
               :label="t('promoters.form.fields.personUuid')"
               name="personUuid"
@@ -343,11 +337,15 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
             >
               <USelectMenu
                 v-model="selectedMemberUuid"
+                v-model:search-term="personSearchTerm"
                 :items="memberOptions"
                 label-key="label"
                 value-key="value"
-                :loading="resolvingPerson"
-                :placeholder="memberOptions.length ? t('common.select') : t('promoters.form.personPlaceholderSearch')"
+                ignore-filter
+                icon="i-lucide-search"
+                :loading="searchingMembers || resolvingPerson"
+                :placeholder="t('promoters.form.personPlaceholderSearch')"
+                :search-input="{ placeholder: t('promoters.form.personSearchPlaceholder'), icon: 'i-lucide-search' }"
                 class="w-full"
               />
             </UFormField>
