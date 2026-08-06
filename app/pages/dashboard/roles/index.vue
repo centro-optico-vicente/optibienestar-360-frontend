@@ -2,6 +2,7 @@
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { PermissionDomainDto, RoleDto } from '~/types/admin'
+import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
 
 definePageMeta({
   layout: 'dashboard',
@@ -56,6 +57,19 @@ function canDeleteRole(r: RoleDto): boolean {
 const roles = ref<RoleDto[]>([])
 const domains = ref<PermissionDomainDto[]>([])
 const loading = ref(false)
+
+// Client-side pagination: the backend endpoint (GET /v1/admin/roles) returns the
+// full list — it doesn't accept Pageable — so page/size are sliced here.
+const page = ref(1)
+const size = ref(DEFAULT_PAGE_SIZE)
+const pageSizeItems = buildPageSizeItems(t)
+const total = computed(() => roles.value.length)
+const pagedRoles = computed(() => {
+  if (size.value === UNPAGED_PAGE_SIZE) return roles.value
+  const start = (page.value - 1) * size.value
+  return roles.value.slice(start, start + size.value)
+})
+watch(size, () => { page.value = 1 })
 
 // Total de permisos del catálogo (para mostrar "n/total" por rol).
 const totalPermissions = computed(() =>
@@ -289,10 +303,10 @@ async function onSave() {
     </div>
 
     <!-- Tabla de roles -->
-    <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
-      <div class="overflow-x-auto">
+    <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-15rem)] min-h-[20rem]">
+      <div class="overflow-auto flex-1">
         <table class="w-full text-sm">
-          <thead>
+          <thead class="sticky top-0 bg-white z-10">
             <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
               <th class="px-5 py-3 font-semibold">{{ $t('security.roles.columns.role') }}</th>
               <th class="px-5 py-3 font-semibold">{{ $t('security.roles.columns.description') }}</th>
@@ -307,7 +321,7 @@ async function onSave() {
                 {{ $t('security.roles.empty') }}
               </td>
             </tr>
-            <tr v-for="r in roles" v-else :key="r.uuid" class="hover:bg-prohealth-50/50">
+            <tr v-for="r in pagedRoles" v-else :key="r.uuid" class="hover:bg-prohealth-50/50">
               <td class="px-5 py-3">
                 <UBadge color="primary" variant="subtle">{{ r.name }}</UBadge>
               </td>
@@ -352,6 +366,33 @@ async function onSave() {
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Paginación -->
+      <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-3 border-t border-prohealth-100 shrink-0">
+        <p class="text-xs text-prohealth-500">
+          {{ $t('catalogs.recordCount', { count: total }) }}
+        </p>
+        <div class="flex items-center gap-3">
+          <UPagination
+            v-if="size !== UNPAGED_PAGE_SIZE"
+            v-model:page="page"
+            :total="total"
+            :items-per-page="size"
+          />
+          <UTooltip :text="$t('catalogs.pageSizeLabel')">
+            <USelectMenu
+              v-model="size"
+              :items="pageSizeItems"
+              label-key="label"
+              value-key="value"
+              icon="i-lucide-list"
+              :search-input="false"
+              :aria-label="$t('catalogs.pageSizeLabel')"
+              class="w-40"
+            />
+          </UTooltip>
+        </div>
       </div>
     </div>
 
