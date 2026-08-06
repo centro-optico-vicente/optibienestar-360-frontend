@@ -4,6 +4,7 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 import type { ApiError } from '~/types/auth'
 import type { CatalogItem } from '~/types/catalogs'
 import type { CatalogRef } from '~/types/members'
+import { toSelectItems } from '~/types/options'
 import type {
   AllyAgreementDto,
   AllyDto,
@@ -306,10 +307,8 @@ async function loadSpecialties() {
 
 async function loadAllSpecialties() {
   try {
-    const items = await usePublicCatalog('medical-specialties').list({ size: '-1' })
-    allSpecialtyOptions.value = items
-      .filter((i: CatalogItem) => i.active !== false)
-      .map((i: CatalogItem) => ({ label: i.name, value: i.uuid }))
+    const items = await useCatalogOptions('medical-specialties').options({ limit: 200 })
+    allSpecialtyOptions.value = toSelectItems(items)
   }
   catch {
     allSpecialtyOptions.value = []

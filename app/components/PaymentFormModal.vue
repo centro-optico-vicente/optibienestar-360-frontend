@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
-import type { MemberDto } from '~/types/members'
+import { memberOptionLabel } from '~/types/members'
 import type { MembershipDto } from '~/types/memberships'
+import type { SelectItem } from '~/types/options'
 import type { PaymentCreateRequest, PaymentDto, PaymentMethod } from '~/types/payments'
 import { PAYMENT_METHOD_OPTIONS } from '~/types/payments'
 
@@ -33,16 +34,9 @@ const isSubmitting = ref(false)
 const methodOptions = computed(() => PAYMENT_METHOD_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
 
 // ---- Member search (server-side, debounced) ----
-type Option = { label: string, value: string }
 const memberSearch = ref('')
-const memberOptions = ref<Option[]>([])
+const memberOptions = ref<SelectItem[]>([])
 const searchingMembers = ref(false)
-
-function memberLabel(m: MemberDto): string {
-  const name = m.fullName || [m.firstName, m.middleName, m.lastName, m.secondLastName].filter(Boolean).join(' ') || t('common.empty')
-  const doc = m.documentNumber ? ` · ${m.documentType ?? ''} ${m.documentNumber}`.trimEnd() : ''
-  return `${name}${doc}`
-}
 
 let searchTimer: ReturnType<typeof setTimeout> | undefined
 watch(memberSearch, (q) => {
@@ -55,8 +49,8 @@ watch(memberSearch, (q) => {
   searchTimer = setTimeout(async () => {
     searchingMembers.value = true
     try {
-      const res = await members.list({ size: 10, q: term })
-      memberOptions.value = (res.content ?? []).map(m => ({ label: memberLabel(m), value: m.uuid }))
+      const res = await members.options({ q: term, limit: 10 })
+      memberOptions.value = res.map(o => ({ label: memberOptionLabel(o), value: o.uuid }))
     }
     catch {
       memberOptions.value = []
@@ -95,7 +89,7 @@ const state = reactive<FormState>({
 })
 
 // ---- Selected member's memberships ----
-const membershipOptions = ref<Option[]>([])
+const membershipOptions = ref<SelectItem[]>([])
 const loadingMemberships = ref(false)
 
 function membershipLabel(ms: MembershipDto): string {

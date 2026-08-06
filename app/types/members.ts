@@ -17,6 +17,11 @@ export const RELATIONSHIP_OPTIONS: { label: string, value: BeneficiaryRelationsh
   { label: 'Otro', value: 'OTHER', labelKey: 'members.relationships.OTHER' },
 ]
 
+/** `Option.label` is the member's full name, `Option.code` is the document number (see `MembersService.listOptions`). */
+export function memberOptionLabel(o: { label: string, code: string | null }): string {
+  return o.code ? `${o.label} · ${o.code}` : o.label
+}
+
 /** Minimal reference to a catalog item embedded in the DTO. */
 export interface CatalogRef {
   uuid: string

@@ -6,6 +6,13 @@ import {
   type RoleDto,
   type UpdateRoleRequest,
 } from '~/types/admin'
+import type { Option } from '~/types/options'
+
+interface OptionsParams {
+  q?: string
+  limit?: number
+  currentValues?: string[]
+}
 
 /**
  * Acceso a Roles y Permisos.
@@ -27,6 +34,16 @@ import {
 export const useRoles = () => {
   const list = async (): Promise<RoleDto[]> =>
     toItems(await useApi<Page<RoleDto> | RoleDto[]>('/v1/admin/roles'))
+
+  /** Proyección liviana para selects (`GET /v1/admin/roles/options`), sin paginar. */
+  const options = (params: OptionsParams = {}) =>
+    useApi<Option[]>('/v1/admin/roles/options', {
+      query: {
+        ...(params.q ? { q: params.q } : {}),
+        ...(params.limit ? { limit: params.limit } : {}),
+        ...(params.currentValues?.length ? { currentValues: params.currentValues } : {}),
+      },
+    })
 
   const get = (uuid: string) =>
     useApi<RoleDto>(`/v1/admin/roles/${uuid}`)
@@ -55,5 +72,5 @@ export const useRoles = () => {
   const permissions = async (): Promise<PermissionDomainDto[]> =>
     toItems(await useApi<Page<PermissionDomainDto> | PermissionDomainDto[]>('/v1/admin/permissions'))
 
-  return { list, get, create, update, remove, getRolePermissions, updateRolePermissions, permissions }
+  return { list, options, get, create, update, remove, getRolePermissions, updateRolePermissions, permissions }
 }

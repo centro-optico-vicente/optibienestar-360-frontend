@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
-import type { CatalogItem } from '~/types/catalogs'
+import type { SelectItem } from '~/types/options'
+import { toSelectItems } from '~/types/options'
 import type {
   CreateMemberRequest,
   MemberDto,
@@ -74,40 +75,33 @@ function statusLabel(s?: string | null): string {
 }
 
 // ---- Catalogs for the form selects ----
-type Option = { label: string, value: string }
-const genderOptions = ref<Option[]>([])
-const maritalStatusOptions = ref<Option[]>([])
-const occupationOptions = ref<Option[]>([])
-const stateOptions = ref<Option[]>([])
-const cityOptions = ref<Option[]>([])
+const genderOptions = ref<SelectItem[]>([])
+const maritalStatusOptions = ref<SelectItem[]>([])
+const occupationOptions = ref<SelectItem[]>([])
+const stateOptions = ref<SelectItem[]>([])
+const cityOptions = ref<SelectItem[]>([])
 const { options: documentTypeOptions, load: loadDocumentTypes } = useDocumentTypes()
 
-function toOptions(items: CatalogItem[]): Option[] {
-  return items
-    .filter(i => i.active !== false)
-    .map(i => ({ label: i.name, value: i.uuid }))
-}
-
 async function loadCatalogs() {
-  // Public (no permissions), all in parallel; each one fails silently.
-  const safeList = async (resource: string, query?: Record<string, string>) => {
+  // Admin catalog options (auth'd), all in parallel; each one fails silently.
+  const safeOptions = async (resource: string, limit = 200) => {
     try {
-      return await usePublicCatalog(resource).list({ size: '-1', ...query })
+      return await useCatalogOptions(resource).options({ limit })
     }
     catch {
-      return [] as CatalogItem[]
+      return []
     }
   }
   const [genders, marital, occupations, states] = await Promise.all([
-    safeList('genders'),
-    safeList('marital-statuses'),
-    safeList('occupations'),
-    safeList('states', { country: 'VE' }),
+    safeOptions('genders'),
+    safeOptions('marital-statuses'),
+    safeOptions('occupations'),
+    safeOptions('states'),
   ])
-  genderOptions.value = toOptions(genders)
-  maritalStatusOptions.value = toOptions(marital)
-  occupationOptions.value = toOptions(occupations)
-  stateOptions.value = toOptions(states)
+  genderOptions.value = toSelectItems(genders)
+  maritalStatusOptions.value = toSelectItems(marital)
+  occupationOptions.value = toSelectItems(occupations)
+  stateOptions.value = toSelectItems(states)
 }
 
 // Cities cascade based on the selected state. `pendingCityUuid` lets openEdit
@@ -122,8 +116,8 @@ watch(selectedStateUuid, async (stateUuid) => {
   state.cityUuid = undefined
   if (!stateUuid) return
   try {
-    const cities = await usePublicCatalog('cities').list({ stateUuid, size: '-1' })
-    cityOptions.value = toOptions(cities)
+    const cities = await useCatalogOptions('cities').options({ parentUuid: stateUuid, limit: 200 })
+    cityOptions.value = toSelectItems(cities)
     if (keepCityUuid) state.cityUuid = keepCityUuid
   }
   catch {

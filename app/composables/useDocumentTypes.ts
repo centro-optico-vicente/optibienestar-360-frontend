@@ -1,9 +1,8 @@
-import type { CatalogItem } from '~/types/catalogs'
-import { toItems, type Page } from '~/types/admin'
+import type { Option } from '~/types/options'
 
 /**
- * Opciones de "Tipo de documento" para selects, cargadas desde el catálogo real
- * (`GET /v1/admin/catalogs/document-types`). El valor es el `code` (V, E, J, …),
+ * Opciones de "Tipo de documento" para selects, cargadas desde el endpoint liviano
+ * (`GET /v1/admin/catalogs/document-types/options`). El valor es el `code` (V, E, J, …),
  * que es lo que esperan los formularios (UserDto.documentType, etc.).
  *
  * Se cachea con useState: se pide una sola vez por sesión aunque varios formularios
@@ -20,16 +19,11 @@ export const useDocumentTypes = () => {
   const load = async () => {
     if (loaded.value) return options.value
     try {
-      const res = await useApi<Page<CatalogItem> | CatalogItem[]>('/v1/admin/catalogs/document-types', {
+      const res = await useApi<Option[]>('/v1/admin/catalogs/document-types/options', {
         silent: true,
-        query: { unpaged: 'true' },
+        query: { limit: 200 },
       })
-      options.value = toItems(res)
-        .filter(i => i.active !== false)
-        .map(i => ({
-          label: i.code ? `${i.code} — ${i.name}` : i.name,
-          value: i.code ?? i.uuid,
-        }))
+      options.value = res.map(o => ({ label: o.label, value: o.code ?? o.uuid }))
       loaded.value = true
     }
     catch {

@@ -1,4 +1,5 @@
 import type { Page } from '~/types/admin'
+import type { Option } from '~/types/options'
 import type {
   BeneficiaryDto,
   CreateBeneficiaryRequest,
@@ -18,6 +19,12 @@ interface ListParams {
   q?: string
 }
 
+interface OptionsParams {
+  q?: string
+  limit?: number
+  currentValues?: string[]
+}
+
 /**
  * Acceso al vertical de Miembros/Afiliados (/v1/admin/members + /v1/me/member).
  * Permisos del backend por acción:
@@ -35,6 +42,16 @@ export const useMembers = () => {
         sort: params.sort ?? 'enrolledAt,desc',
         ...(params.filter ? { filter: params.filter } : {}),
         ...(params.q ? { q: params.q } : {}),
+      },
+    })
+
+  /** Proyección liviana para selects/typeahead (`GET /v1/admin/members/options`), sin paginar. */
+  const options = (params: OptionsParams = {}) =>
+    useApi<Option[]>('/v1/admin/members/options', {
+      query: {
+        ...(params.q ? { q: params.q } : {}),
+        ...(params.limit ? { limit: params.limit } : {}),
+        ...(params.currentValues?.length ? { currentValues: params.currentValues } : {}),
       },
     })
 
@@ -82,6 +99,7 @@ export const useMembers = () => {
 
   return {
     list,
+    options,
     get,
     create,
     update,
