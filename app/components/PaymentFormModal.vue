@@ -34,12 +34,14 @@ const isSubmitting = ref(false)
 const methodOptions = computed(() => PAYMENT_METHOD_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
 
 // ---- Member search (server-side, debounced) ----
-const memberSearch = ref('')
+// Search box lives inside the USelectMenu itself (search-term) so typing and
+// picking a result happen in the same field instead of two separate widgets.
+const memberSearchTerm = ref('')
 const memberOptions = ref<SelectItem[]>([])
 const searchingMembers = ref(false)
 
 let searchTimer: ReturnType<typeof setTimeout> | undefined
-watch(memberSearch, (q) => {
+watch(memberSearchTerm, (q) => {
   clearTimeout(searchTimer)
   const term = q.trim()
   if (term.length < 2) {
@@ -172,7 +174,7 @@ function resetForm() {
   state.inscription = false
   state.appliedPeriod = ''
   state.adminNotes = ''
-  memberSearch.value = ''
+  memberSearchTerm.value = ''
   memberOptions.value = []
   membershipOptions.value = []
   clearFile()
@@ -225,24 +227,24 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
         <!-- Member + membership -->
         <div class="rounded-xl border border-prohealth-100 p-4 space-y-4">
-          <UFormField :label="t('payments.form.fields.searchMember')" :help="t('payments.form.fields.searchMemberHelp')">
-            <UInput
-              v-model="memberSearch"
-              :placeholder="t('payments.form.memberSearchPlaceholder')"
-              icon="i-lucide-search"
-              :loading="searchingMembers"
-              class="w-full"
-            />
-          </UFormField>
-
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField :label="t('payments.form.fields.member')" name="memberUuid" required>
+            <UFormField
+              :label="t('payments.form.fields.member')"
+              name="memberUuid"
+              required
+              :help="t('payments.form.fields.searchMemberHelp')"
+            >
               <USelectMenu
                 v-model="state.memberUuid"
+                v-model:search-term="memberSearchTerm"
                 :items="memberOptions"
                 label-key="label"
                 value-key="value"
-                :placeholder="memberOptions.length ? t('common.select') : t('payments.form.memberPlaceholderSearch')"
+                ignore-filter
+                icon="i-lucide-search"
+                :loading="searchingMembers"
+                :placeholder="t('payments.form.memberPlaceholderSearch')"
+                :search-input="{ placeholder: t('payments.form.memberSearchPlaceholder'), icon: 'i-lucide-search' }"
                 class="w-full"
               />
             </UFormField>

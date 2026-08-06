@@ -12,18 +12,22 @@ definePageMeta({
   permission: 'MEMBERSHIP_VIEW_ALL',
 })
 
-useSeoMeta({ title: 'Membresías — OptiBienestar 360' })
+const { t } = useI18n()
+
+useSeoMeta({ title: () => `${t('memberships.page.title')} — OptiBienestar 360` })
 
 const members = useMembers()
 
 // ---- Member search (server-side, debounced) ----
-const memberSearch = ref('')
+// Search box lives inside the USelectMenu itself (search-term) so typing and
+// picking a result happen in the same field instead of two separate widgets.
+const memberSearchTerm = ref('')
 const memberOptions = ref<SelectItem[]>([])
 const searching = ref(false)
 const selectedMemberUuid = ref<string>('')
 
 let searchTimer: ReturnType<typeof setTimeout> | undefined
-watch(memberSearch, (q) => {
+watch(memberSearchTerm, (q) => {
   clearTimeout(searchTimer)
   const term = q.trim()
   if (term.length < 2) {
@@ -53,38 +57,32 @@ const selectedMemberLabel = computed(() =>
   <div class="space-y-5">
     <!-- Header -->
     <div>
-      <h1 class="text-2xl font-extrabold text-prohealth-900">Membresías</h1>
+      <h1 class="text-2xl font-extrabold text-prohealth-900">{{ t('memberships.page.title') }}</h1>
       <p class="text-sm text-prohealth-700/70 mt-1">
-        Las afiliaciones a planes se gestionan por titular. Busca un afiliado para ver y administrar sus membresías.
+        {{ t('memberships.page.description') }}
       </p>
     </div>
 
     <!-- Member picker -->
     <div class="bg-white rounded-2xl border border-prohealth-100 p-4 space-y-4">
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <UFormField label="Buscar afiliado" help="Escribe nombre o documento (mín. 2 caracteres).">
-          <UInput
-            v-model="memberSearch"
-            placeholder="Buscar por nombre o documento…"
-            icon="i-lucide-search"
-            :loading="searching"
-            class="w-full"
-          />
-        </UFormField>
-        <UFormField label="Afiliado">
-          <USelectMenu
-            v-model="selectedMemberUuid"
-            :items="memberOptions"
-            label-key="label"
-            value-key="value"
-            :placeholder="memberOptions.length ? 'Selecciona' : 'Busca primero'"
-            class="w-full"
-          />
-        </UFormField>
-      </div>
+      <UFormField :label="t('memberships.page.searchLabel')" :help="t('memberships.page.searchHelp')">
+        <USelectMenu
+          v-model="selectedMemberUuid"
+          v-model:search-term="memberSearchTerm"
+          :items="memberOptions"
+          label-key="label"
+          value-key="value"
+          ignore-filter
+          icon="i-lucide-search"
+          :loading="searching"
+          :placeholder="t('memberships.page.searchPlaceholder')"
+          :search-input="{ placeholder: t('memberships.page.searchPlaceholder'), icon: 'i-lucide-search' }"
+          class="w-full sm:max-w-md"
+        />
+      </UFormField>
       <p v-if="selectedMemberLabel" class="text-xs text-prohealth-500">
-        Gestionando membresías de <span class="font-semibold text-prohealth-700">{{ selectedMemberLabel }}</span>.
-        <NuxtLink :to="`/dashboard/members/${selectedMemberUuid}`" class="text-cyan-700 hover:underline">Ver expediente completo</NuxtLink>.
+        {{ t('memberships.page.managingFor') }} <span class="font-semibold text-prohealth-700">{{ selectedMemberLabel }}</span>.
+        <NuxtLink :to="`/dashboard/members/${selectedMemberUuid}`" class="text-cyan-700 hover:underline">{{ t('memberships.page.viewFullRecord') }}</NuxtLink>.
       </p>
     </div>
 
@@ -94,8 +92,8 @@ const selectedMemberLabel = computed(() =>
     <!-- Empty state before choosing a member -->
     <div v-else class="bg-white rounded-2xl border border-prohealth-100 p-12 text-center">
       <UIcon name="i-lucide-badge-check" class="w-10 h-10 mx-auto mb-3 text-prohealth-300" />
-      <p class="text-prohealth-700 font-semibold">Selecciona un afiliado</p>
-      <p class="text-sm text-prohealth-500 mt-1">Busca por nombre o documento para gestionar sus membresías.</p>
+      <p class="text-prohealth-700 font-semibold">{{ t('memberships.page.emptyTitle') }}</p>
+      <p class="text-sm text-prohealth-500 mt-1">{{ t('memberships.page.emptyDescription') }}</p>
     </div>
   </div>
 </template>

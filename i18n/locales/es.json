@@ -1415,6 +1415,17 @@
       "placeholderReactivate": "Ej. regularizó el pago…",
       "cancelButton": "Cancelar afiliación",
       "reactivateButton": "Reactivar afiliación"
+    },
+    "page": {
+      "title": "Membresías",
+      "description": "Las afiliaciones a planes se gestionan por titular. Busca un afiliado para ver y administrar sus membresías.",
+      "searchLabel": "Afiliado",
+      "searchHelp": "Escribe nombre o documento (mín. 2 caracteres).",
+      "searchPlaceholder": "Busca por nombre o documento…",
+      "managingFor": "Gestionando membresías de",
+      "viewFullRecord": "Ver expediente completo",
+      "emptyTitle": "Selecciona un afiliado",
+      "emptyDescription": "Busca por nombre o documento para gestionar sus membresías."
     }
   },
   "validator": {

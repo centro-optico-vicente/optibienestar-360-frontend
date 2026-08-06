@@ -1415,6 +1415,17 @@
       "placeholderReactivate": "e.g. payment regularized…",
       "cancelButton": "Cancel membership",
       "reactivateButton": "Reactivate membership"
+    },
+    "page": {
+      "title": "Memberships",
+      "description": "Plan enrollments are managed per holder. Search for a member to view and manage their memberships.",
+      "searchLabel": "Member",
+      "searchHelp": "Type a name or document number (min. 2 characters).",
+      "searchPlaceholder": "Search by name or document…",
+      "managingFor": "Managing memberships for",
+      "viewFullRecord": "View full record",
+      "emptyTitle": "Select a member",
+      "emptyDescription": "Search by name or document to manage their memberships."
     }
   },
   "validator": {
