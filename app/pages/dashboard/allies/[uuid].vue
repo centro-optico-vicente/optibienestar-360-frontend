@@ -396,9 +396,9 @@ const agrState = reactive<AgrFormState>({
 
 const agrSchema = computed(() => z.object({
   agreementType: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
-  startDate: z.string().optional(),
+  startDate: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
   endDate: z.string().optional(),
-  terms: z.string().optional(),
+  terms: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
   signedPdfUrl: z.string().url(t('validation.invalidUrl')).optional().or(z.literal('')),
 }))
 
@@ -1215,7 +1215,7 @@ onMounted(async () => {
           </UFormField>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField :label="t('allies.agreements.form.fields.startDate')" name="startDate">
+            <UFormField :label="t('allies.agreements.form.fields.startDate')" name="startDate" required>
               <UInput v-model="agrState.startDate" type="date" class="w-full" />
             </UFormField>
             <UFormField :label="t('allies.agreements.form.fields.endDate')" name="endDate">
@@ -1223,7 +1223,7 @@ onMounted(async () => {
             </UFormField>
           </div>
 
-          <UFormField :label="t('allies.agreements.form.fields.terms')" name="terms">
+          <UFormField :label="t('allies.agreements.form.fields.terms')" name="terms" required>
             <UTextarea v-model="agrState.terms" :rows="3" class="w-full" />
           </UFormField>
 
