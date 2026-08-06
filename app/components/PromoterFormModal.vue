@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
-import { memberOptionLabel } from '~/types/members'
 import type { SelectItem } from '~/types/options'
 import type {
   PromoterCreateRequest,
@@ -18,7 +17,8 @@ import { PROMOTER_STATUS_OPTIONS } from '~/types/promoters'
 //
 // The system row (INSTITUCION) can't be edited — the parent disables its edit button,
 // so this modal only ever handles human promoters. On create the referralCode +
-// userUuid + personUuid are required; on edit (PATCH) they are read-only/hidden.
+// userUuid are required (the linked Person is derived server-side from the user);
+// on edit (PATCH) they are read-only/hidden.
 const props = defineProps<{
   open: boolean
   /** If provided, the modal is in edit mode; if null/undefined, in create mode. */
@@ -33,7 +33,6 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const promoters = usePromoters()
 const users = useUsers()
-const members = useMembers()
 const toast = useToast()
 
 const isOpen = computed({
@@ -52,7 +51,6 @@ interface FormState {
   displayName: string
   referralCode: string
   userUuid: string
-  personUuid: string
   description: string
   email: string
   phone: string
@@ -64,7 +62,6 @@ const state = reactive<FormState>({
   displayName: '',
   referralCode: '',
   userUuid: '',
-  personUuid: '',
   description: '',
   email: '',
   phone: '',
@@ -104,66 +101,31 @@ watch(userSearchTerm, (q) => {
   }, 400)
 })
 
-// ---- Person search (create-only) ----
-// There is no standalone "search persons" endpoint — personUuid is only exposed via
-// the member detail (GET /v1/admin/members/{uuid}), not the list. So this searches
-// members (afiliados) by name/document, then resolves the actual personUuid from the
-// selected member's detail. This assumes the promoter's person is also a member; if
-// it isn't (or doesn't match the selected user), the operator must correct it.
-const personSearchTerm = ref('')
-const memberOptions = ref<SelectItem[]>([])
-const searchingMembers = ref(false)
-const selectedMemberUuid = ref('')
-const resolvingPerson = ref(false)
-
-let personSearchTimer: ReturnType<typeof setTimeout> | undefined
-watch(personSearchTerm, (q) => {
-  clearTimeout(personSearchTimer)
-  const term = q.trim()
-  // See userSearchTerm watch above: don't clear on the post-select reset to '',
-  // or the trigger loses the selected item's label and shows the raw uuid.
-  if (term.length < 2) return
-  personSearchTimer = setTimeout(async () => {
-    searchingMembers.value = true
-    try {
-      const res = await members.options({ q: term, limit: 10 })
-      memberOptions.value = res.map(o => ({ label: memberOptionLabel(o), value: o.uuid }))
-    }
-    catch {
-      memberOptions.value = []
-    }
-    finally {
-      searchingMembers.value = false
-    }
-  }, 400)
-})
-
-watch(selectedMemberUuid, async (memberUuid) => {
-  state.personUuid = ''
-  if (!memberUuid) return
-  resolvingPerson.value = true
+// Autofill name/email/phone from the selected user (create-only). The Person linked
+// to the promoter is derived server-side from the user (User → Person is a mandatory
+// 1:1 FK), so the frontend never picks/sends a personUuid — only fills empty fields
+// so it never clobbers a manual edit made before or after picking the user; the
+// operator can still change any of them before saving.
+watch(() => state.userUuid, async (userUuid) => {
+  if (mode.value !== 'create' || !userUuid) return
   try {
-    const detail = await members.get(memberUuid)
-    state.personUuid = detail.personUuid ?? ''
+    const detail = await users.get(userUuid)
+    if (!state.displayName) state.displayName = detail.fullName ?? ''
+    if (!state.email) state.email = detail.email ?? ''
+    if (!state.phone) state.phone = detail.phone ?? ''
   }
   catch {
-    state.personUuid = ''
-  }
-  finally {
-    resolvingPerson.value = false
+    // Silent: autofill is a convenience, not required for the form to work.
   }
 })
 
 function resetSearchState() {
   userSearchTerm.value = ''
   userOptions.value = []
-  personSearchTerm.value = ''
-  memberOptions.value = []
-  selectedMemberUuid.value = ''
 }
 
-// Locale-reactive schema. On create the referralCode/userUuid/personUuid are required;
-// on edit (PATCH) only the editable subset is validated. Wrapped in computed so the
+// Locale-reactive schema. On create the referralCode/userUuid are required; on edit
+// (PATCH) only the editable subset is validated. Wrapped in computed so the
 // validation messages follow the UI locale.
 const schema = computed(() => {
   const base = {
@@ -177,7 +139,6 @@ const schema = computed(() => {
       ...base,
       referralCode: z.string().regex(/^[A-Z0-9-]{4,20}$/, t('promoters.form.referralCodeFormat')),
       userUuid: z.string().min(1, t('validation.required')).uuid(t('validation.invalidUuid')),
-      personUuid: z.string().min(1, t('validation.required')).uuid(t('validation.invalidUuid')),
     })
   }
   return z.object(base)
@@ -191,7 +152,6 @@ function populateFrom(p: PromoterDto | null) {
     state.displayName = ''
     state.referralCode = ''
     state.userUuid = ''
-    state.personUuid = ''
     state.description = ''
     state.email = ''
     state.phone = ''
@@ -202,7 +162,6 @@ function populateFrom(p: PromoterDto | null) {
   state.displayName = p.displayName ?? ''
   state.referralCode = p.referralCode ?? ''
   state.userUuid = p.userUuid ?? ''
-  state.personUuid = p.personUuid ?? ''
   state.description = p.description ?? ''
   state.email = p.email ?? ''
   state.phone = p.phone ?? ''
@@ -241,7 +200,6 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         displayName: state.displayName.trim(),
         referralCode: state.referralCode.trim(),
         userUuid: state.userUuid.trim(),
-        personUuid: state.personUuid.trim(),
         description: state.description.trim() || undefined,
         email: state.email.trim() || undefined,
         phone: state.phone.trim() || undefined,
@@ -292,21 +250,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         class="space-y-4"
         @submit="onSubmit"
       >
-        <UFormField :label="t('promoters.form.fields.displayName')" name="displayName" required>
-          <UInput v-model="state.displayName" class="w-full" />
-        </UFormField>
-
-        <!-- Create-only identity fields (immutable once the promoter exists). -->
         <template v-if="mode === 'create'">
-          <UFormField
-            :label="t('promoters.form.fields.referralCode')"
-            name="referralCode"
-            required
-            :help="t('promoters.form.referralCodeHelp')"
-          >
-            <UInput v-model="state.referralCode" placeholder="PROMO-2026" class="w-full font-mono" />
-          </UFormField>
-
           <div class="rounded-xl border border-prohealth-100 p-4 space-y-4">
             <UFormField
               :label="t('promoters.form.fields.userUuid')"
@@ -328,31 +272,22 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
                 class="w-full"
               />
             </UFormField>
-
-            <UFormField
-              :label="t('promoters.form.fields.personUuid')"
-              name="personUuid"
-              required
-              :help="t('promoters.form.personHelp')"
-            >
-              <USelectMenu
-                v-model="selectedMemberUuid"
-                v-model:search-term="personSearchTerm"
-                :items="memberOptions"
-                label-key="label"
-                value-key="value"
-                ignore-filter
-                icon="i-lucide-search"
-                :loading="searchingMembers || resolvingPerson"
-                :placeholder="t('promoters.form.personPlaceholderSearch')"
-                :search-input="{ placeholder: t('promoters.form.personSearchPlaceholder'), icon: 'i-lucide-search' }"
-                class="w-full"
-              />
-            </UFormField>
-            <p v-if="selectedMemberUuid && !resolvingPerson && !state.personUuid" class="text-xs text-red-600">
-              {{ t('promoters.form.personResolveError') }}
-            </p>
           </div>
+        </template>
+        <UFormField :label="t('promoters.form.fields.displayName')" name="displayName" required>
+          <UInput v-model="state.displayName" class="w-full" />
+        </UFormField>
+
+        <!-- Create-only identity fields (immutable once the promoter exists). -->
+        <template v-if="mode === 'create'">
+          <UFormField
+            :label="t('promoters.form.fields.referralCode')"
+            name="referralCode"
+            required
+            :help="t('promoters.form.referralCodeHelp')"
+          >
+            <UInput v-model="state.referralCode" placeholder="PROMO-2026" class="w-full font-mono" />
+          </UFormField>
         </template>
 
         <!-- Edit-only: referralCode shown read-only for context; status + active editable. -->
@@ -401,7 +336,6 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
               type="submit"
               color="primary"
               :loading="isSubmitting"
-              :disabled="mode === 'create' && resolvingPerson"
               icon="i-lucide-save"
             >
               {{ mode === 'create' ? t('promoters.form.submitCreate') : t('common.saveChanges') }}
