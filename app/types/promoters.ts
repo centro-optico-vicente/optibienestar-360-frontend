@@ -73,7 +73,6 @@ export interface PromoterCreateRequest {
   /** patrón ^[A-Z0-9-]{4,20}$ */
   referralCode: string
   userUuid: string
-  personUuid: string
   email?: string
   phone?: string
 }
