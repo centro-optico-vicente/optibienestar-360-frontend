@@ -376,6 +376,8 @@ async function onSave() {
             <UTextarea v-model="roleState.description" :rows="2" class="w-full" />
           </UFormField>
 
+          <p class="text-xs text-prohealth-500">{{ $t('common.requiredFieldsHint') }}</p>
+
           <div class="flex items-center justify-between gap-3 pt-2">
             <!-- Inline actions on the same role; meaningless while creating one that does not exist yet. -->
             <div v-if="roleMode === 'edit' && roleEditing" class="flex items-center gap-1">

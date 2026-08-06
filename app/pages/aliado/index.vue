@@ -222,7 +222,8 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           </UFormField>
         </div>
 
-        <div class="flex justify-end pt-2">
+        <div class="flex items-center justify-between gap-3 pt-2">
+          <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
           <UButton type="submit" color="primary" :loading="isSubmitting" icon="i-lucide-send">
             {{ t('allies.portal.submit') }}
           </UButton>

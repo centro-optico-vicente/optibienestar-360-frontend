@@ -734,13 +734,16 @@ onMounted(async () => {
             </UFormField>
           </div>
 
-          <div class="flex items-center justify-end gap-3 pt-2">
-            <UButton color="neutral" variant="ghost" :disabled="benSubmitting" @click="benFormOpen = false">
-              {{ t('common.cancel') }}
-            </UButton>
-            <UButton type="submit" color="primary" :loading="benSubmitting" icon="i-lucide-save">
-              {{ benMode === 'create' ? t('members.beneficiaries.add') : t('common.saveChanges') }}
-            </UButton>
+          <div class="flex items-center justify-between gap-3 pt-2">
+            <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
+            <div class="flex items-center gap-3">
+              <UButton color="neutral" variant="ghost" :disabled="benSubmitting" @click="benFormOpen = false">
+                {{ t('common.cancel') }}
+              </UButton>
+              <UButton type="submit" color="primary" :loading="benSubmitting" icon="i-lucide-save">
+                {{ benMode === 'create' ? t('members.beneficiaries.add') : t('common.saveChanges') }}
+              </UButton>
+            </div>
           </div>
         </UForm>
       </template>
