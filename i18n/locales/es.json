@@ -18,7 +18,8 @@
     "empty": "Sin información",
     "yes": "Sí",
     "no": "No",
-    "seoTitle": "{page} — OptiBienestar 360"
+    "seoTitle": "{page} — OptiBienestar 360",
+    "requiredFieldsHint": "Los campos marcados con * son obligatorios."
   },
   "locale": {
     "change": "Cambiar idioma"

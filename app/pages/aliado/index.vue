@@ -81,7 +81,7 @@ const state = reactive({
 
 // Locale-reactive schema so validation messages follow the UI locale.
 const schema = computed(() => z.object({
-  allyUuid: z.string().uuid(t('validation.invalidUuid')),
+  allyUuid: z.string().min(1, t('validation.required')).uuid(t('validation.invalidUuid')),
   serviceCategoryUuid: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
   name: z.string().min(3, t('validation.minChars', { n: 3 })),
   description: z.string().optional(),

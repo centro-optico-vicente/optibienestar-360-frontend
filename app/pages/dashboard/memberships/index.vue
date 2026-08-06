@@ -30,10 +30,11 @@ let searchTimer: ReturnType<typeof setTimeout> | undefined
 watch(memberSearchTerm, (q) => {
   clearTimeout(searchTimer)
   const term = q.trim()
-  if (term.length < 2) {
-    memberOptions.value = []
-    return
-  }
+  // Don't clear memberOptions here: USelectMenu resets search-term to '' right after a
+  // pick (resetSearchTermOnSelect/Blur), and wiping the list at that point would drop
+  // the just-selected item, making the trigger fall back to showing the raw uuid
+  // instead of its label.
+  if (term.length < 2) return
   searchTimer = setTimeout(async () => {
     searching.value = true
     try {

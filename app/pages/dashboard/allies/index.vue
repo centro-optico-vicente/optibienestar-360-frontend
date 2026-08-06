@@ -577,6 +577,7 @@ async function confirmDelete() {
               label-key="label"
               value-key="value"
               multiple
+              icon="i-lucide-list-checks"
               :placeholder="t('allies.form.selectMultiple')"
               class="w-full"
             />
