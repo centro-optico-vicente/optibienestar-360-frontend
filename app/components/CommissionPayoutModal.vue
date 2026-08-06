@@ -168,13 +168,16 @@ async function onConfirm() {
           />
         </UFormField>
 
-        <div class="flex items-center justify-end gap-3 pt-2">
-          <UButton color="neutral" variant="ghost" :disabled="previewing" @click="isOpen = false">
-            {{ t('common.cancel') }}
-          </UButton>
-          <UButton type="submit" color="primary" :loading="previewing" icon="i-lucide-eye">
-            {{ t('commissions.payout.preview') }}
-          </UButton>
+        <div class="flex items-center justify-between gap-3 pt-2">
+          <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
+          <div class="flex items-center gap-3">
+            <UButton color="neutral" variant="ghost" :disabled="previewing" @click="isOpen = false">
+              {{ t('common.cancel') }}
+            </UButton>
+            <UButton type="submit" color="primary" :loading="previewing" icon="i-lucide-eye">
+              {{ t('commissions.payout.preview') }}
+            </UButton>
+          </div>
         </div>
       </UForm>
 

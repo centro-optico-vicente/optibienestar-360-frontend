@@ -84,10 +84,11 @@ let userSearchTimer: ReturnType<typeof setTimeout> | undefined
 watch(userSearchTerm, (q) => {
   clearTimeout(userSearchTimer)
   const term = q.trim()
-  if (term.length < 2) {
-    userOptions.value = []
-    return
-  }
+  // Don't clear userOptions here: USelectMenu resets search-term to '' right after a
+  // pick (resetSearchTermOnSelect/Blur), and wiping the list at that point would drop
+  // the just-selected item, making the trigger fall back to showing the raw uuid
+  // instead of its label.
+  if (term.length < 2) return
   userSearchTimer = setTimeout(async () => {
     searchingUsers.value = true
     try {
@@ -119,10 +120,9 @@ let personSearchTimer: ReturnType<typeof setTimeout> | undefined
 watch(personSearchTerm, (q) => {
   clearTimeout(personSearchTimer)
   const term = q.trim()
-  if (term.length < 2) {
-    memberOptions.value = []
-    return
-  }
+  // See userSearchTerm watch above: don't clear on the post-select reset to '',
+  // or the trigger loses the selected item's label and shows the raw uuid.
+  if (term.length < 2) return
   personSearchTimer = setTimeout(async () => {
     searchingMembers.value = true
     try {
@@ -176,8 +176,8 @@ const schema = computed(() => {
     return z.object({
       ...base,
       referralCode: z.string().regex(/^[A-Z0-9-]{4,20}$/, t('promoters.form.referralCodeFormat')),
-      userUuid: z.string().uuid(t('validation.invalidUuid')),
-      personUuid: z.string().uuid(t('validation.invalidUuid')),
+      userUuid: z.string().min(1, t('validation.required')).uuid(t('validation.invalidUuid')),
+      personUuid: z.string().min(1, t('validation.required')).uuid(t('validation.invalidUuid')),
     })
   }
   return z.object(base)
@@ -391,19 +391,22 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           </UFormField>
         </div>
 
-        <div class="flex items-center justify-end gap-3 pt-2">
-          <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="isOpen = false">
-            {{ t('common.cancel') }}
-          </UButton>
-          <UButton
-            type="submit"
-            color="primary"
-            :loading="isSubmitting"
-            :disabled="mode === 'create' && resolvingPerson"
-            icon="i-lucide-save"
-          >
-            {{ mode === 'create' ? t('promoters.form.submitCreate') : t('common.saveChanges') }}
-          </UButton>
+        <div class="flex items-center justify-between gap-3 pt-2">
+          <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
+          <div class="flex items-center gap-3">
+            <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="isOpen = false">
+              {{ t('common.cancel') }}
+            </UButton>
+            <UButton
+              type="submit"
+              color="primary"
+              :loading="isSubmitting"
+              :disabled="mode === 'create' && resolvingPerson"
+              icon="i-lucide-save"
+            >
+              {{ mode === 'create' ? t('promoters.form.submitCreate') : t('common.saveChanges') }}
+            </UButton>
+          </div>
         </div>
       </UForm>
     </template>

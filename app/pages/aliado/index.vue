@@ -81,7 +81,7 @@ const state = reactive({
 
 // Locale-reactive schema so validation messages follow the UI locale.
 const schema = computed(() => z.object({
-  allyUuid: z.string().uuid(t('validation.invalidUuid')),
+  allyUuid: z.string().min(1, t('validation.required')).uuid(t('validation.invalidUuid')),
   serviceCategoryUuid: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
   name: z.string().min(3, t('validation.minChars', { n: 3 })),
   description: z.string().optional(),
@@ -222,7 +222,8 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           </UFormField>
         </div>
 
-        <div class="flex justify-end pt-2">
+        <div class="flex items-center justify-between gap-3 pt-2">
+          <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
           <UButton type="submit" color="primary" :loading="isSubmitting" icon="i-lucide-send">
             {{ t('allies.portal.submit') }}
           </UButton>

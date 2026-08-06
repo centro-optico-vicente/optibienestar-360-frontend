@@ -44,10 +44,11 @@ let searchTimer: ReturnType<typeof setTimeout> | undefined
 watch(memberSearchTerm, (q) => {
   clearTimeout(searchTimer)
   const term = q.trim()
-  if (term.length < 2) {
-    memberOptions.value = []
-    return
-  }
+  // Don't clear memberOptions here: USelectMenu resets search-term to '' right after a
+  // pick (resetSearchTermOnSelect/Blur), and wiping the list at that point would drop
+  // the just-selected item, making the trigger fall back to showing the raw uuid
+  // instead of its label.
+  if (term.length < 2) return
   searchTimer = setTimeout(async () => {
     searchingMembers.value = true
     try {
@@ -337,13 +338,16 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           </div>
         </UFormField>
 
-        <div class="flex items-center justify-end gap-3 pt-2">
-          <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="isOpen = false">
-            {{ t('common.cancel') }}
-          </UButton>
-          <UButton type="submit" color="primary" :loading="isSubmitting" icon="i-lucide-save">
-            {{ t('payments.form.submit') }}
-          </UButton>
+        <div class="flex items-center justify-between gap-3 pt-2">
+          <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
+          <div class="flex items-center gap-3">
+            <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="isOpen = false">
+              {{ t('common.cancel') }}
+            </UButton>
+            <UButton type="submit" color="primary" :loading="isSubmitting" icon="i-lucide-save">
+              {{ t('payments.form.submit') }}
+            </UButton>
+          </div>
         </div>
       </UForm>
     </template>

@@ -1156,13 +1156,16 @@ onMounted(async () => {
             </UFormField>
           </div>
 
-          <div class="flex items-center justify-end gap-3 pt-2">
-            <UButton color="neutral" variant="ghost" :disabled="svcSubmitting" @click="svcFormOpen = false">
-              {{ t('common.cancel') }}
-            </UButton>
-            <UButton type="submit" color="primary" :loading="svcSubmitting" icon="i-lucide-save">
-              {{ svcMode === 'create' ? t('allies.services.add') : t('common.saveChanges') }}
-            </UButton>
+          <div class="flex items-center justify-between gap-3 pt-2">
+            <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
+            <div class="flex items-center gap-3">
+              <UButton color="neutral" variant="ghost" :disabled="svcSubmitting" @click="svcFormOpen = false">
+                {{ t('common.cancel') }}
+              </UButton>
+              <UButton type="submit" color="primary" :loading="svcSubmitting" icon="i-lucide-save">
+                {{ svcMode === 'create' ? t('allies.services.add') : t('common.saveChanges') }}
+              </UButton>
+            </div>
           </div>
         </UForm>
       </template>
@@ -1238,13 +1241,16 @@ onMounted(async () => {
             />
           </UFormField>
 
-          <div class="flex items-center justify-end gap-3 pt-2">
-            <UButton color="neutral" variant="ghost" :disabled="agrSubmitting" @click="agrFormOpen = false">
-              {{ t('common.cancel') }}
-            </UButton>
-            <UButton type="submit" color="primary" :loading="agrSubmitting" icon="i-lucide-save">
-              {{ agrMode === 'create' ? t('allies.agreements.add') : t('common.saveChanges') }}
-            </UButton>
+          <div class="flex items-center justify-between gap-3 pt-2">
+            <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
+            <div class="flex items-center gap-3">
+              <UButton color="neutral" variant="ghost" :disabled="agrSubmitting" @click="agrFormOpen = false">
+                {{ t('common.cancel') }}
+              </UButton>
+              <UButton type="submit" color="primary" :loading="agrSubmitting" icon="i-lucide-save">
+                {{ agrMode === 'create' ? t('allies.agreements.add') : t('common.saveChanges') }}
+              </UButton>
+            </div>
           </div>
         </UForm>
       </template>
@@ -1324,13 +1330,16 @@ onMounted(async () => {
             </UFormField>
           </div>
 
-          <div class="flex items-center justify-end gap-3 pt-2">
-            <UButton color="neutral" variant="ghost" :disabled="staffSubmitting" @click="staffFormOpen = false">
-              {{ t('common.cancel') }}
-            </UButton>
-            <UButton type="submit" color="primary" :loading="staffSubmitting" icon="i-lucide-save">
-              {{ staffMode === 'create' ? t('allies.staff.assign') : t('common.saveChanges') }}
-            </UButton>
+          <div class="flex items-center justify-between gap-3 pt-2">
+            <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
+            <div class="flex items-center gap-3">
+              <UButton color="neutral" variant="ghost" :disabled="staffSubmitting" @click="staffFormOpen = false">
+                {{ t('common.cancel') }}
+              </UButton>
+              <UButton type="submit" color="primary" :loading="staffSubmitting" icon="i-lucide-save">
+                {{ staffMode === 'create' ? t('allies.staff.assign') : t('common.saveChanges') }}
+              </UButton>
+            </div>
           </div>
         </UForm>
       </template>
