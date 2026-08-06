@@ -1,4 +1,5 @@
 import type { Page } from '~/types/admin'
+import type { Option } from '~/types/options'
 import type {
   CreatePlanRequest,
   PlanDto,
@@ -11,6 +12,12 @@ interface ListParams {
   sort?: string
   filter?: string
   q?: string
+}
+
+interface OptionsParams {
+  q?: string
+  limit?: number
+  currentValues?: string[]
 }
 
 /**
@@ -32,6 +39,16 @@ export const usePlans = () => {
       },
     })
 
+  /** Proyección liviana para selects (`GET /v1/admin/plans/options`), sin paginar. */
+  const options = (params: OptionsParams = {}) =>
+    useApi<Option[]>('/v1/admin/plans/options', {
+      query: {
+        ...(params.q ? { q: params.q } : {}),
+        ...(params.limit ? { limit: params.limit } : {}),
+        ...(params.currentValues?.length ? { currentValues: params.currentValues } : {}),
+      },
+    })
+
   const get = (uuid: string) =>
     useApi<PlanDto>(`/v1/admin/plans/${uuid}`)
 
@@ -44,5 +61,5 @@ export const usePlans = () => {
   const remove = (uuid: string) =>
     useApi<null>(`/v1/admin/plans/${uuid}`, { method: 'DELETE' })
 
-  return { list, get, create, update, remove }
+  return { list, options, get, create, update, remove }
 }

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
-import type { CatalogItem } from '~/types/catalogs'
+import type { SelectItem } from '~/types/options'
+import { toSelectItems } from '~/types/options'
 import type {
   AllyDto,
   CreateAllyRequest,
@@ -72,36 +73,29 @@ function statusLabel(status?: string | null): string {
 }
 
 // ---- Catalogs for the form selects ----
-type Option = { label: string, value: string }
-const allyTypeOptions = ref<Option[]>([])
-const specialtyOptions = ref<Option[]>([])
-const stateOptions = ref<Option[]>([])
-const cityOptions = ref<Option[]>([])
+const allyTypeOptions = ref<SelectItem[]>([])
+const specialtyOptions = ref<SelectItem[]>([])
+const stateOptions = ref<SelectItem[]>([])
+const cityOptions = ref<SelectItem[]>([])
 const { options: documentTypeOptions, load: loadDocumentTypes } = useDocumentTypes()
 
-function toOptions(items: CatalogItem[]): Option[] {
-  return items
-    .filter(i => i.active !== false)
-    .map(i => ({ label: i.name, value: i.uuid }))
-}
-
 async function loadCatalogs() {
-  const safeList = async (resource: string, query?: Record<string, string>) => {
+  const safeOptions = async (resource: string, limit = 200) => {
     try {
-      return await usePublicCatalog(resource).list({ size: '-1', ...query })
+      return await useCatalogOptions(resource).options({ limit })
     }
     catch {
-      return [] as CatalogItem[]
+      return []
     }
   }
   const [types, specialties, states] = await Promise.all([
-    safeList('ally-types'),
-    safeList('medical-specialties'),
-    safeList('states', { country: 'VE' }),
+    safeOptions('ally-types'),
+    safeOptions('medical-specialties'),
+    safeOptions('states'),
   ])
-  allyTypeOptions.value = toOptions(types)
-  specialtyOptions.value = toOptions(specialties)
-  stateOptions.value = toOptions(states)
+  allyTypeOptions.value = toSelectItems(types)
+  specialtyOptions.value = toSelectItems(specialties)
+  stateOptions.value = toSelectItems(states)
 }
 
 // Cities cascade based on the selected state. `pendingCityUuid` lets openEdit
@@ -116,8 +110,8 @@ watch(selectedStateUuid, async (stateUuid) => {
   state.cityUuid = undefined
   if (!stateUuid) return
   try {
-    const cities = await usePublicCatalog('cities').list({ stateUuid, size: '-1' })
-    cityOptions.value = toOptions(cities)
+    const cities = await useCatalogOptions('cities').options({ parentUuid: stateUuid, limit: 200 })
+    cityOptions.value = toSelectItems(cities)
     if (keepCityUuid) state.cityUuid = keepCityUuid
   }
   catch {

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
-import type { UserDto } from '~/types/admin'
-import type { MemberDto } from '~/types/members'
+import { memberOptionLabel } from '~/types/members'
+import type { SelectItem } from '~/types/options'
 import type {
   PromoterCreateRequest,
   PromoterDto,
@@ -72,16 +72,11 @@ const state = reactive<FormState>({
   active: true,
 })
 
-// ---- User search (create-only; server-side, debounced RSQL) ----
+// ---- User search (create-only; server-side, debounced) ----
 // Feeds state.userUuid directly — the select's value IS the user's uuid.
-type Option = { label: string, value: string }
 const userSearch = ref('')
-const userOptions = ref<Option[]>([])
+const userOptions = ref<SelectItem[]>([])
 const searchingUsers = ref(false)
-
-function userLabel(u: UserDto): string {
-  return `${u.fullName || u.email} · ${u.email}`
-}
 
 let userSearchTimer: ReturnType<typeof setTimeout> | undefined
 watch(userSearch, (q) => {
@@ -94,8 +89,8 @@ watch(userSearch, (q) => {
   userSearchTimer = setTimeout(async () => {
     searchingUsers.value = true
     try {
-      const res = await users.list({ size: 10, filter: `fullName=='*${term}*',email=='*${term}*'` })
-      userOptions.value = (res.content ?? []).map(u => ({ label: userLabel(u), value: u.uuid }))
+      const res = await users.options({ q: term, limit: 10 })
+      userOptions.value = res.map(o => ({ label: o.label, value: o.uuid }))
     }
     catch {
       userOptions.value = []
@@ -113,15 +108,10 @@ watch(userSearch, (q) => {
 // selected member's detail. This assumes the promoter's person is also a member; if
 // it isn't (or doesn't match the selected user), the operator must correct it.
 const personSearch = ref('')
-const memberOptions = ref<Option[]>([])
+const memberOptions = ref<SelectItem[]>([])
 const searchingMembers = ref(false)
 const selectedMemberUuid = ref('')
 const resolvingPerson = ref(false)
-
-function memberLabel(m: MemberDto): string {
-  const doc = m.documentNumber ? ` · ${m.documentType ?? ''} ${m.documentNumber}`.trimEnd() : ''
-  return `${m.fullName || t('common.empty')}${doc}`
-}
 
 let personSearchTimer: ReturnType<typeof setTimeout> | undefined
 watch(personSearch, (q) => {
@@ -134,8 +124,8 @@ watch(personSearch, (q) => {
   personSearchTimer = setTimeout(async () => {
     searchingMembers.value = true
     try {
-      const res = await members.list({ size: 10, q: term })
-      memberOptions.value = (res.content ?? []).map(m => ({ label: memberLabel(m), value: m.uuid }))
+      const res = await members.options({ q: term, limit: 10 })
+      memberOptions.value = res.map(o => ({ label: memberOptionLabel(o), value: o.uuid }))
     }
     catch {
       memberOptions.value = []

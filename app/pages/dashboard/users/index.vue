@@ -6,7 +6,6 @@ import type {
   AdminUpdateUserRequest,
   UserDto,
 } from '~/types/admin'
-import { toItems } from '~/types/admin'
 
 definePageMeta({
   layout: 'dashboard',
@@ -80,8 +79,8 @@ const roleOptions = ref<{ label: string, value: string }[]>([])
 
 async function loadRoles() {
   try {
-    const res = await roles.list()
-    roleOptions.value = toItems(res).map(r => ({ label: r.name, value: r.uuid }))
+    const res = await roles.options({ limit: 200 })
+    roleOptions.value = res.map(o => ({ label: o.label, value: o.uuid }))
   }
   catch {
     // useApi ya notificó el error; sin roles no se puede asignar.

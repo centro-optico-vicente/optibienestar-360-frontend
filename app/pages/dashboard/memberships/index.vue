@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { MemberDto } from '~/types/members'
+import type { SelectItem } from '~/types/options'
+import { memberOptionLabel } from '~/types/members'
 
 // Memberships have no global admin list in the backend — they are a sub-resource of a
 // member (enroll/cancel/reactivate per member). So this page is a member picker that
@@ -13,21 +14,13 @@ definePageMeta({
 
 useSeoMeta({ title: 'Membresías — OptiBienestar 360' })
 
-const { t } = useI18n()
 const members = useMembers()
 
 // ---- Member search (server-side, debounced) ----
-type Option = { label: string, value: string }
 const memberSearch = ref('')
-const memberOptions = ref<Option[]>([])
+const memberOptions = ref<SelectItem[]>([])
 const searching = ref(false)
 const selectedMemberUuid = ref<string>('')
-
-function memberLabel(m: MemberDto): string {
-  const name = m.fullName || [m.firstName, m.middleName, m.lastName, m.secondLastName].filter(Boolean).join(' ') || t('common.empty')
-  const doc = m.documentNumber ? ` · ${m.documentType ?? ''} ${m.documentNumber}`.trimEnd() : ''
-  return `${name}${doc}`
-}
 
 let searchTimer: ReturnType<typeof setTimeout> | undefined
 watch(memberSearch, (q) => {
@@ -40,8 +33,8 @@ watch(memberSearch, (q) => {
   searchTimer = setTimeout(async () => {
     searching.value = true
     try {
-      const res = await members.list({ size: 10, q: term })
-      memberOptions.value = (res.content ?? []).map(m => ({ label: memberLabel(m), value: m.uuid }))
+      const res = await members.options({ q: term, limit: 10 })
+      memberOptions.value = res.map(o => ({ label: memberOptionLabel(o), value: o.uuid }))
     }
     catch {
       memberOptions.value = []

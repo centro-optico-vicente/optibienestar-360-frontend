@@ -2,6 +2,7 @@
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { CatalogDef, CatalogField, CatalogItem } from '~/types/catalogs'
+import { toSelectItems } from '~/types/options'
 import { getCatalogDef } from '~/utils/catalog-registry'
 
 definePageMeta({
@@ -98,11 +99,8 @@ async function loadParents() {
     const pdef = getCatalogDef(f.parentKey!)
     if (!pdef) return
     try {
-      const list = await useCatalog(pdef.basePath).list()
-      parentOptions.value[f.name] = list.map(i => ({
-        label: pdef.codeField ? `${i[pdef.codeField] ?? ''} — ${i.name}` : i.name,
-        value: i.uuid,
-      }))
+      const list = await useCatalogOptions(pdef.key).options({ limit: 200 })
+      parentOptions.value[f.name] = toSelectItems(list)
     }
     catch {
       parentOptions.value[f.name] = []

@@ -4,12 +4,19 @@ import type {
   Page,
   UserDto,
 } from '~/types/admin'
+import type { Option } from '~/types/options'
 
 interface ListParams {
   page?: number
   size?: number
   sort?: string
   filter?: string
+}
+
+interface OptionsParams {
+  q?: string
+  limit?: number
+  currentValues?: string[]
 }
 
 /**
@@ -27,6 +34,16 @@ export const useUsers = () => {
       },
     })
 
+  /** Proyección liviana para selects/typeahead (`GET /v1/admin/users/options`), sin paginar. */
+  const options = (params: OptionsParams = {}) =>
+    useApi<Option[]>('/v1/admin/users/options', {
+      query: {
+        ...(params.q ? { q: params.q } : {}),
+        ...(params.limit ? { limit: params.limit } : {}),
+        ...(params.currentValues?.length ? { currentValues: params.currentValues } : {}),
+      },
+    })
+
   const get = (uuid: string) =>
     useApi<UserDto>(`/v1/admin/users/${uuid}`)
 
@@ -39,5 +56,5 @@ export const useUsers = () => {
   const remove = (uuid: string) =>
     useApi<null>(`/v1/admin/users/${uuid}`, { method: 'DELETE' })
 
-  return { list, get, create, update, remove }
+  return { list, options, get, create, update, remove }
 }

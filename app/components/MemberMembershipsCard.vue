@@ -2,7 +2,7 @@
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { MembershipCreateRequest, MembershipDto } from '~/types/memberships'
-import type { PlanDto } from '~/types/plans'
+import { toSelectItems } from '~/types/options'
 import {
   isMembershipCancelable,
   isMembershipReactivatable,
@@ -72,11 +72,8 @@ const plansLoaded = ref(false)
 async function loadPlans() {
   if (plansLoaded.value) return
   try {
-    const res = await plans.list({ size: 100, sort: 'code,asc' })
-    planOptions.value = (res.content ?? []).map((p: PlanDto) => ({
-      label: `${p.code} — ${p.name}`,
-      value: p.uuid,
-    }))
+    const res = await plans.options({ limit: 200 })
+    planOptions.value = toSelectItems(res)
     plansLoaded.value = true
   }
   catch {
