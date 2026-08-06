@@ -5,18 +5,23 @@ import { toItems, type Page } from '~/types/admin'
  * Factory genérico de acceso a un catálogo administrable (/v1/admin/catalogs/*).
  * Reutiliza el patrón CRUD de `useUsers`, parametrizado por `basePath`.
  *
- * Los listados ahora devuelven una página (`Page<CatalogItem>`). Para selects y la
- * tabla de administración necesitamos TODOS los registros, así que pedimos
- * `unpaged=true` (de lo contrario el backend trunca al tamaño por defecto, size=50) y
- * desempaquetamos `content` con `toItems`, de modo que `list()` sigue resolviendo a
- * `CatalogItem[]` para los consumidores. Sin filtros, el backend cachea esta consulta 1h.
+ * El backend pagina de verdad (`page`/`size`/`sort`, más `q` para búsqueda libre y
+ * `filter` en sintaxis RSQL) — sin esos parámetros cae en un atajo sin paginar
+ * cacheado 1h ({@code ListQuery.isUnfilteredUnpaged}). `list()` pasa la página tal
+ * cual para que la tabla de administración controle página/tamaño real contra el
+ * servidor; `listAll()` sigue resolviendo a `CatalogItem[]` completo para selects
+ * y opciones de FK que necesitan todos los registros.
  *
  * @example
  * const api = useCatalog('/v1/admin/catalogs/countries')
- * const items = await api.list()
+ * const page = await api.list({ page: 0, size: 25, q: 'lentes' })
+ * const all = await api.listAll()
  */
 export const useCatalog = (basePath: string) => {
-  const list = async (query?: Record<string, string | undefined>): Promise<CatalogItem[]> => {
+  const list = (query?: Record<string, string | number | undefined>) =>
+    useApi<Page<CatalogItem>>(basePath, { query })
+
+  const listAll = async (query?: Record<string, string | undefined>): Promise<CatalogItem[]> => {
     const res = await useApi<Page<CatalogItem> | CatalogItem[]>(basePath, {
       query: { unpaged: 'true', ...(query ?? {}) },
     })

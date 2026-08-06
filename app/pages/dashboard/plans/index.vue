@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
 import type { PlanDto } from '~/types/plans'
 
 definePageMeta({
@@ -25,7 +26,8 @@ const data = ref<PlanDto[]>([])
 const total = ref(0)
 const loading = ref(false)
 const page = ref(1) // UPagination is 1-based; the API is 0-based
-const size = ref(20)
+const size = ref(DEFAULT_PAGE_SIZE)
+const pageSizeItems = buildPageSizeItems(t)
 const search = ref('')
 
 async function load() {
@@ -50,6 +52,7 @@ async function load() {
   }
 }
 
+watch(size, () => { page.value = 1 })
 watch([page, size], load)
 let searchTimer: ReturnType<typeof setTimeout> | undefined
 watch(search, () => {
@@ -155,10 +158,10 @@ async function confirmDelete() {
     </div>
 
     <!-- Table -->
-    <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
-      <div class="overflow-x-auto">
+    <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-19rem)] min-h-[24rem]">
+      <div class="overflow-auto flex-1">
         <table class="w-full text-sm">
-          <thead>
+          <thead class="sticky top-0 bg-white z-10">
             <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
               <th class="px-5 py-3 font-semibold">{{ t('plans.columns.plan') }}</th>
               <th class="px-5 py-3 font-semibold">{{ t('plans.columns.type') }}</th>
@@ -241,15 +244,30 @@ async function confirmDelete() {
       </div>
 
       <!-- Pagination -->
-      <div class="flex items-center justify-between px-5 py-3 border-t border-prohealth-100">
+      <div class="flex items-center flex-wrap justify-between gap-3 px-5 py-3 border-t border-prohealth-100 shrink-0">
         <p class="text-xs text-prohealth-500">
           {{ t('plans.paginationSummary', { shown: data.length, total }) }}
         </p>
-        <UPagination
-          v-model:page="page"
-          :total="total"
-          :items-per-page="size"
-        />
+        <div class="flex items-center gap-3">
+          <UPagination
+            v-if="size !== UNPAGED_PAGE_SIZE"
+            v-model:page="page"
+            :total="total"
+            :items-per-page="size"
+          />
+          <UTooltip :text="$t('catalogs.pageSizeLabel')">
+            <USelectMenu
+              v-model="size"
+              :items="pageSizeItems"
+              label-key="label"
+              value-key="value"
+              icon="i-lucide-list"
+              :search-input="false"
+              :aria-label="$t('catalogs.pageSizeLabel')"
+              class="w-40"
+            />
+          </UTooltip>
+        </div>
       </div>
     </div>
 

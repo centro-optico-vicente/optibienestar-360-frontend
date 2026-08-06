@@ -4,6 +4,7 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 import type { CatalogDef, CatalogField, CatalogItem } from '~/types/catalogs'
 import { toSelectItems } from '~/types/options'
 import { getCatalogDef } from '~/utils/catalog-registry'
+import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
 
 definePageMeta({
   layout: 'dashboard',
@@ -52,11 +53,18 @@ const columnCount = computed(() => {
 
 // ---- List ----
 const items = ref<CatalogItem[]>([])
+const total = ref(0)
 const loading = ref(false)
 const search = ref('')
 
 // Parent filter (e.g. cities by state).
 const filterValue = ref<string>('')
+
+// Server-side pagination. `page` is 1-based (UPagination); the API is 0-based.
+// `pageSize === UNPAGED_PAGE_SIZE` (-1) is the backend's "return everything" sentinel.
+const pageSize = ref<number>(DEFAULT_PAGE_SIZE)
+const page = ref(1)
+const pageSizeItems = buildPageSizeItems(t)
 
 function api() {
   return useCatalog(def.value!.basePath)
@@ -66,27 +74,40 @@ async function load() {
   if (!def.value) return
   loading.value = true
   try {
-    const query = def.value.listFilter && filterValue.value
+    const parentFilter = def.value.listFilter && filterValue.value
       ? { [def.value.listFilter.param]: filterValue.value }
-      : undefined
-    items.value = await api().list(query)
+      : {}
+    const searchTerm = search.value.trim()
+    const query = {
+      page: page.value - 1,
+      size: pageSize.value,
+      sort: 'name',
+      ...parentFilter,
+      ...(searchTerm ? { q: searchTerm } : {}),
+    }
+    const res = await api().list(query)
+    items.value = res.content ?? []
+    total.value = res.totalElements ?? items.value.length
   }
   catch {
     items.value = []
+    total.value = 0
   }
   finally {
     loading.value = false
   }
 }
 
-const filtered = computed(() => {
-  const term = search.value.trim().toLowerCase()
-  if (!term) return items.value
-  return items.value.filter((i) => {
-    const code = (i.code ?? i.isoCode ?? '').toLowerCase()
-    return i.name.toLowerCase().includes(term) || code.includes(term)
-  })
+let searchTimer: ReturnType<typeof setTimeout> | undefined
+watch(search, () => {
+  clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => {
+    page.value = 1
+    load()
+  }, 300)
 })
+watch(pageSize, () => { page.value = 1; load() })
+watch(page, load)
 
 // ---- Parent catalog options (for FK selects and the filter) ----
 const parentOptions = ref<Record<string, { label: string, value: string }[]>>({})
@@ -118,17 +139,19 @@ async function init() {
   if (!def.value) return
   search.value = ''
   filterValue.value = ''
+  page.value = 1
   await Promise.all([loadParents(), load()])
 }
 
 onMounted(init)
 watch(() => route.params.resource, init)
-watch(filterValue, load)
+watch(filterValue, () => { page.value = 1; load() })
 
 // ---- Create/edit form ----
 const formOpen = ref(false)
 const mode = ref<'create' | 'edit'>('create')
 const editingUuid = ref<string | null>(null)
+const editingItem = ref<CatalogItem | null>(null)
 const isSubmitting = ref(false)
 const state = reactive<Record<string, string>>({})
 
@@ -162,6 +185,7 @@ function openCreate() {
 function openEdit(item: CatalogItem) {
   mode.value = 'edit'
   editingUuid.value = item.uuid
+  editingItem.value = item
   resetForm()
   for (const f of def.value?.fields ?? []) {
     state[f.name] = String((item as unknown as Record<string, unknown>)[f.name] ?? '')
@@ -211,6 +235,15 @@ const target = ref<CatalogItem | null>(null)
 function openDelete(item: CatalogItem) {
   target.value = item
   deleteOpen.value = true
+}
+
+// Shortcut from the edit modal so the user doesn't have to close it first
+// and hunt for the row's trash icon. Closes the edit modal so the two
+// dialogs never stack.
+function openDeleteFromEdit() {
+  if (!editingItem.value) return
+  formOpen.value = false
+  openDelete(editingItem.value)
 }
 
 async function confirmDelete() {
@@ -277,11 +310,12 @@ async function confirmDelete() {
       />
     </div>
 
-    <!-- Table -->
-    <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
-      <div class="overflow-x-auto">
+    <!-- Table: fixed-height card so the pagination footer stays pinned at the
+         bottom (few rows) and only the row area scrolls (many rows). -->
+    <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-19rem)] min-h-[24rem]">
+      <div class="overflow-auto flex-1">
         <table class="w-full text-sm">
-          <thead>
+          <thead class="sticky top-0 bg-white z-10">
             <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
               <th v-if="def.codeField" class="px-5 py-3 font-semibold">{{ $t('catalogs.columns.code') }}</th>
               <th class="px-5 py-3 font-semibold">{{ $t('catalogs.columns.name') }}</th>
@@ -293,13 +327,13 @@ async function confirmDelete() {
           </thead>
           <tbody class="divide-y divide-prohealth-100">
             <TableSkeleton v-if="loading" :rows="6" :cols="columnCount" />
-            <tr v-else-if="filtered.length === 0">
+            <tr v-else-if="items.length === 0">
               <td :colspan="columnCount" class="px-5 py-12 text-center text-prohealth-500">
                 <UIcon :name="def.icon" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
                 {{ $t('catalogs.empty') }}
               </td>
             </tr>
-            <tr v-for="item in filtered" v-else :key="item.uuid" class="hover:bg-prohealth-50/50">
+            <tr v-for="item in items" v-else :key="item.uuid" class="hover:bg-prohealth-50/50">
               <td v-if="def.codeField" class="px-5 py-3">
                 <UBadge color="neutral" variant="subtle">{{ item[def.codeField] }}</UBadge>
               </td>
@@ -329,8 +363,30 @@ async function confirmDelete() {
           </tbody>
         </table>
       </div>
-      <div class="px-5 py-3 border-t border-prohealth-100 text-xs text-prohealth-500">
-        {{ $t('catalogs.recordCount', { count: filtered.length }) }}
+      <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-3 border-t border-prohealth-100 shrink-0">
+        <p class="text-xs text-prohealth-500">
+          {{ $t('catalogs.recordCount', { count: total }) }}
+        </p>
+        <div class="flex items-center gap-3">
+          <UPagination
+            v-if="pageSize !== UNPAGED_PAGE_SIZE"
+            v-model:page="page"
+            :total="total"
+            :items-per-page="pageSize"
+          />
+          <UTooltip :text="$t('catalogs.pageSizeLabel')">
+            <USelectMenu
+              v-model="pageSize"
+              :items="pageSizeItems"
+              label-key="label"
+              value-key="value"
+              icon="i-lucide-list"
+              :search-input="false"
+              :aria-label="$t('catalogs.pageSizeLabel')"
+              class="w-40"
+            />
+          </UTooltip>
+        </div>
       </div>
     </div>
 
@@ -373,8 +429,23 @@ async function confirmDelete() {
             />
           </UFormField>
 
+          <p class="text-xs text-prohealth-500">{{ $t('common.requiredFieldsHint') }}</p>
+
           <div class="flex items-center justify-between gap-3 pt-2">
-            <p class="text-xs text-prohealth-500">{{ $t('common.requiredFieldsHint') }}</p>
+            <!-- Shortcut to delete the record being edited; meaningless while creating one that does not exist yet. -->
+            <div v-if="mode === 'edit' && editingItem">
+              <UButton
+                color="error"
+                variant="ghost"
+                icon="i-lucide-trash-2"
+                size="sm"
+                :label="$t('common.delete')"
+                :disabled="isSubmitting"
+                @click="openDeleteFromEdit"
+              />
+            </div>
+            <div v-else />
+
             <div class="flex items-center gap-3">
               <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="formOpen = false">
                 {{ $t('common.cancel') }}
