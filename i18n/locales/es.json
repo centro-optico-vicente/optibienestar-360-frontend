@@ -256,6 +256,10 @@
         "label": "Tipos de aliado",
         "description": "Clasificación de los aliados."
       },
+      "promoterTypes": {
+        "label": "Tipos de promotor",
+        "description": "Clasificación de los promotores."
+      },
       "alliesDirectory": {
         "label": "Directorio de aliados",
         "description": "Comercios y prestadores de la red."
@@ -603,6 +607,10 @@
       "ally-types": {
         "label": "Tipos de aliado",
         "labelSingular": "Tipo de aliado"
+      },
+      "promoter-types": {
+        "label": "Tipos de promotor",
+        "labelSingular": "Tipo de promotor"
       }
     }
   },
@@ -1558,6 +1566,7 @@
         "phone": "Teléfono",
         "userUuid": "UUID de usuario",
         "personUuid": "UUID de persona",
+        "promoterTypeUuid": "Tipo de promotor",
         "totalReferrals": "Total de referidos",
         "totalCommissionPaid": "Comisión total pagada",
         "createdAt": "Creado",
@@ -1585,6 +1594,7 @@
         "description": "Descripción",
         "email": "Correo electrónico",
         "phone": "Teléfono",
+        "promoterTypeUuid": "Tipo de promotor",
         "status": "Estado",
         "active": "Activo"
       }

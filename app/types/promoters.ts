@@ -56,6 +56,8 @@ export interface PromoterDto {
   system: boolean
   userUuid?: string | null
   personUuid?: string | null
+  promoterTypeUuid?: string | null
+  promoterTypeName?: string | null
   email?: string
   phone?: string
   totalReferrals: number
@@ -75,6 +77,7 @@ export interface PromoterCreateRequest {
   userUuid: string
   email?: string
   phone?: string
+  promoterTypeUuid?: string
 }
 
 /**
@@ -86,6 +89,7 @@ export interface PromoterUpdateRequest {
   description?: string
   email?: string
   phone?: string
+  promoterTypeUuid?: string
   active?: boolean
   status?: PromoterStatus
 }

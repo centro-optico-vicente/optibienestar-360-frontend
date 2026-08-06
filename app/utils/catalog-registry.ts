@@ -170,6 +170,22 @@ export const CATALOGS: CatalogDef[] = [
       { name: 'description', label: 'Descripción', labelKey: 'catalogs.fields.description', type: 'textarea', max: 200 },
     ],
   },
+  {
+    key: 'promoter-types',
+    basePath: '/v1/admin/catalogs/promoter-types',
+    permission: 'CATALOG_PROMOTER_TYPE_WRITE',
+    label: 'Tipos de promotor',
+    labelSingular: 'Tipo de promotor',
+    labelKey: 'catalogs.registry.promoter-types.label',
+    labelSingularKey: 'catalogs.registry.promoter-types.labelSingular',
+    icon: 'i-lucide-badge-percent',
+    codeField: 'code',
+    fields: [
+      { name: 'code', label: 'Código', labelKey: 'catalogs.fields.code', type: 'text', required: true, onlyCreate: true, regex: CODE_40, regexMsg: codeMsg(40), regexMsgKey: 'catalogs.validation.codeMax', max: 40, placeholder: 'INDEPENDIENTE' },
+      { name: 'name', label: 'Nombre', labelKey: 'catalogs.fields.name', type: 'text', required: true, max: 100 },
+      { name: 'description', label: 'Descripción', labelKey: 'catalogs.fields.description', type: 'textarea', max: 200 },
+    ],
+  },
 ]
 
 /** Finds a catalog definition by its route key. */

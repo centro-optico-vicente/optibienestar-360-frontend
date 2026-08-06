@@ -256,6 +256,10 @@
         "label": "Partner types",
         "description": "Partner classification."
       },
+      "promoterTypes": {
+        "label": "Promoter types",
+        "description": "Promoter classification."
+      },
       "alliesDirectory": {
         "label": "Partner directory",
         "description": "Network businesses and providers."
@@ -603,6 +607,10 @@
       "ally-types": {
         "label": "Partner types",
         "labelSingular": "Partner type"
+      },
+      "promoter-types": {
+        "label": "Promoter types",
+        "labelSingular": "Promoter type"
       }
     }
   },
@@ -1558,6 +1566,7 @@
         "phone": "Phone",
         "userUuid": "User UUID",
         "personUuid": "Person UUID",
+        "promoterTypeUuid": "Promoter type",
         "totalReferrals": "Total referrals",
         "totalCommissionPaid": "Total commission paid",
         "createdAt": "Created",
@@ -1585,6 +1594,7 @@
         "description": "Description",
         "email": "Email",
         "phone": "Phone",
+        "promoterTypeUuid": "Promoter type",
         "status": "Status",
         "active": "Active"
       }

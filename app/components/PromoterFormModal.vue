@@ -33,6 +33,7 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const promoters = usePromoters()
 const users = useUsers()
+const promoterTypeOptions = useCatalogOptions('promoter-types')
 const toast = useToast()
 
 const isOpen = computed({
@@ -54,6 +55,7 @@ interface FormState {
   description: string
   email: string
   phone: string
+  promoterTypeUuid: string
   status: PromoterStatus | undefined
   active: boolean
 }
@@ -65,8 +67,22 @@ const state = reactive<FormState>({
   description: '',
   email: '',
   phone: '',
+  promoterTypeUuid: '',
   status: 'ACTIVE',
   active: true,
+})
+
+// Loaded once when the modal opens — small fixed catalog, no search needed.
+const promoterTypeItems = ref<SelectItem[]>([])
+watch(() => props.open, async (open) => {
+  if (!open || promoterTypeItems.value.length) return
+  try {
+    const res = await promoterTypeOptions.options({ limit: 100 })
+    promoterTypeItems.value = res.map(o => ({ label: o.label, value: o.uuid }))
+  }
+  catch {
+    promoterTypeItems.value = []
+  }
 })
 
 // ---- User search (create-only; server-side, debounced) ----
@@ -155,6 +171,7 @@ function populateFrom(p: PromoterDto | null) {
     state.description = ''
     state.email = ''
     state.phone = ''
+    state.promoterTypeUuid = ''
     state.status = 'ACTIVE'
     state.active = true
     return
@@ -165,6 +182,7 @@ function populateFrom(p: PromoterDto | null) {
   state.description = p.description ?? ''
   state.email = p.email ?? ''
   state.phone = p.phone ?? ''
+  state.promoterTypeUuid = p.promoterTypeUuid ?? ''
   state.status = (p.status as PromoterStatus) ?? 'ACTIVE'
   state.active = p.active ?? true
 }
@@ -203,6 +221,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         description: state.description.trim() || undefined,
         email: state.email.trim() || undefined,
         phone: state.phone.trim() || undefined,
+        promoterTypeUuid: state.promoterTypeUuid || undefined,
       }
       result = await promoters.create(body)
       toast.add({ title: t('promoters.createdToast'), color: 'success', icon: 'i-lucide-check-circle' })
@@ -213,6 +232,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         description: state.description.trim() || undefined,
         email: state.email.trim() || undefined,
         phone: state.phone.trim() || undefined,
+        promoterTypeUuid: state.promoterTypeUuid || undefined,
         status: state.status,
         active: state.active,
       }
@@ -280,21 +300,45 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
 
         <!-- Create-only identity fields (immutable once the promoter exists). -->
         <template v-if="mode === 'create'">
-          <UFormField
-            :label="t('promoters.form.fields.referralCode')"
-            name="referralCode"
-            required
-            :help="t('promoters.form.referralCodeHelp')"
-          >
-            <UInput v-model="state.referralCode" placeholder="PROMO-2026" class="w-full font-mono" />
-          </UFormField>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <UFormField
+              :label="t('promoters.form.fields.referralCode')"
+              name="referralCode"
+              required
+              :help="t('promoters.form.referralCodeHelp')"
+            >
+              <UInput v-model="state.referralCode" placeholder="PROMO-2026" class="w-full font-mono" />
+            </UFormField>
+            <UFormField :label="t('promoters.form.fields.promoterTypeUuid')" name="promoterTypeUuid">
+              <USelectMenu
+                v-model="state.promoterTypeUuid"
+                :items="promoterTypeItems"
+                label-key="label"
+                value-key="value"
+                :placeholder="t('common.select')"
+                class="w-full"
+              />
+            </UFormField>
+          </div>
         </template>
 
         <!-- Edit-only: referralCode shown read-only for context; status + active editable. -->
         <template v-else>
-          <UFormField :label="t('promoters.form.fields.referralCode')" name="referralCode">
-            <UInput v-model="state.referralCode" class="w-full font-mono" disabled />
-          </UFormField>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <UFormField :label="t('promoters.form.fields.referralCode')" name="referralCode">
+              <UInput v-model="state.referralCode" class="w-full font-mono" disabled />
+            </UFormField>
+            <UFormField :label="t('promoters.form.fields.promoterTypeUuid')" name="promoterTypeUuid">
+              <USelectMenu
+                v-model="state.promoterTypeUuid"
+                :items="promoterTypeItems"
+                label-key="label"
+                value-key="value"
+                :placeholder="t('common.select')"
+                class="w-full"
+              />
+            </UFormField>
+          </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <UFormField :label="t('promoters.form.fields.status')" name="status">
