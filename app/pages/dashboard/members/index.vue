@@ -490,14 +490,15 @@ function displayName(m: MemberDto): string {
               <th class="px-5 py-3 font-semibold">{{ t('members.columns.document') }}</th>
               <th class="px-5 py-3 font-semibold">{{ t('members.columns.phone') }}</th>
               <th class="px-5 py-3 font-semibold">{{ t('members.columns.enrolledAt') }}</th>
+              <th class="px-5 py-3 font-semibold">{{ t('members.columns.promoter') }}</th>
               <th class="px-5 py-3 font-semibold">{{ t('members.columns.status') }}</th>
               <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-prohealth-100">
-            <TableSkeleton v-if="loading" :rows="8" :cols="6" />
+            <TableSkeleton v-if="loading" :rows="8" :cols="7" />
             <tr v-else-if="data.length === 0">
-              <td colspan="6" class="px-5 py-12 text-center text-prohealth-500">
+              <td colspan="7" class="px-5 py-12 text-center text-prohealth-500">
                 <UIcon name="i-lucide-users" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
                 {{ t('members.empty') }}
               </td>
@@ -519,6 +520,16 @@ function displayName(m: MemberDto): string {
               </td>
               <td class="px-5 py-3 text-prohealth-700">{{ m.phone || t('common.empty') }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ formatDate(m.enrolledAt, 'short') }}</td>
+              <td class="px-5 py-3" @click.stop>
+                <NuxtLink
+                  v-if="m.currentPromoterUuid"
+                  :to="`/dashboard/promoters/${m.currentPromoterUuid}`"
+                  class="text-primary-600 hover:underline"
+                >
+                  {{ m.currentPromoterName || t('common.empty') }}
+                </NuxtLink>
+                <span v-else class="text-prohealth-400">{{ t('common.empty') }}</span>
+              </td>
               <td class="px-5 py-3">
                 <UBadge
                   :color="m.status === 'ACTIVE' ? 'success' : 'warning'"

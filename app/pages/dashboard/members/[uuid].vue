@@ -588,6 +588,25 @@ onMounted(async () => {
       <!-- Referral code (self-gated by REFERRAL_CODE_CREATE) -->
       <MemberReferralCodeCard :member-uuid="memberUuid" />
 
+      <!-- Promoter link + history -->
+      <MemberPromoterCard
+        v-if="member"
+        :member-uuid="memberUuid"
+        :current-promoter-uuid="member.currentPromoterUuid"
+        :current-promoter-name="member.currentPromoterName"
+        @changed="loadMember"
+      />
+
+      <!-- Confirmation status (self-gated by MEMBER_CONFIRM for the action) -->
+      <MemberConfirmationCard
+        v-if="member"
+        :member-uuid="memberUuid"
+        :member-name="displayName"
+        :created-at="member.createdAt"
+        :confirmed-at="member.confirmedAt"
+        @confirmed="loadMember"
+      />
+
       <!-- Medical record -->
       <div v-if="canViewMedical" class="bg-white rounded-2xl border border-prohealth-100">
         <div class="flex items-center justify-between px-6 py-4 border-b border-prohealth-100">

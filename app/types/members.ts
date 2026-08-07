@@ -83,7 +83,39 @@ export interface MemberDto {
   status?: string
   notes?: string
   beneficiaries?: BeneficiaryDto[]
+  // Promoter attribution — null/undefined cuando el afiliado no está vinculado.
+  currentPromoterUuid?: string
+  currentPromoterName?: string
   createdAt?: string
+  /** Fecha de confirmación (primer pago aprobado, o manual para afiliados con subsidio). null/undefined = pendiente. */
+  confirmedAt?: string
+}
+
+/** Fila del histórico de reasignaciones de promotor de un afiliado (GET .../promoter-history). @JsonInclude(NON_NULL) en el backend. */
+export interface MemberPromoterAssignmentDto {
+  uuid: string
+  memberUuid: string
+  memberName?: string
+  fromPromoterUuid?: string
+  fromPromoterName?: string
+  toPromoterUuid: string
+  toPromoterName: string
+  actorUserUuid?: string
+  reason: string
+  assignedAt: string
+}
+
+/** Body de POST /v1/admin/members/{uuid}/assign-promoter — exactamente uno de promoterUuid/referralCode. */
+export interface AssignPromoterRequest {
+  promoterUuid?: string
+  referralCode?: string
+  reason: string
+}
+
+/** Respuesta de POST /v1/admin/members/{uuid}/confirm. */
+export interface MemberConfirmationDto {
+  memberUuid: string
+  confirmedAt: string
 }
 
 export interface CreateMemberRequest {

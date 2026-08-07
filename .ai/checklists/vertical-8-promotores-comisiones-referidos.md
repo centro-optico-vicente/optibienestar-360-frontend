@@ -26,7 +26,7 @@
 
 - [ ] [v2] [P0/C3] `pages/promotor/dashboard.vue` contra `GET /v1/promoter/me`: afiliados activos, cobranza al-día/vencida (totales + drill-down al afiliado), comisiones del período, posición en leaderboard.
 - [ ] [v2] [P0/C2] Mostrar el `referral_code` único del promotor (para compartir; tracking de altas).
-- [ ] [v2] [P0/C2] Admin: acción "Asignar/Trasladar promotor" (`POST /v1/admin/members/{uuid}/assign-promoter`, permiso `MEMBER_ASSIGN_PROMOTER`) con `reason`. Aclarar en UI que es **enlace permanente** y no retroactivo.
+- [x] [v2] [P0/C2] Admin: acción "Asignar/Trasladar promotor" (`POST /v1/admin/members/{uuid}/assign-promoter`, permiso `MEMBER_ASSIGN_PROMOTER`) con `reason`. Aclarar en UI que es **enlace permanente** y no retroactivo. _(Implementado 2026-08-07: columna "Promotor" (nombre + link) en `pages/dashboard/members/index.vue`; `components/MemberPromoterCard.vue` en el detalle del afiliado con promotor actual, botón "Cambiar promotor" (selección de promotor destino) o "Vincular por código" (cuando no hay promotor — `assign-promoter` acepta `promoterUuid` XOR `referralCode`), tabla de histórico (`GET .../promoter-history`) y aviso de enlace permanente/no retroactivo. Tipos nuevos en `types/members.ts` (`MemberPromoterAssignmentDto`, `AssignPromoterRequest`); métodos `assignPromoter`/`promoterHistory` en `useMembers.ts`. Junto con esto se agregó soporte de confirmación de afiliado — `components/MemberConfirmationCard.vue` (fecha de creación + confirmación + botón "Confirmar manualmente", `POST .../confirm`, permiso `MEMBER_CONFIRM`), no cubierto por ningún ítem previo de este checklist. `pnpm typecheck` verde.)_
 
 ### Cobranza delegada (PDF #2.b)
 
