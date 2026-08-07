@@ -87,6 +87,7 @@ export interface MemberDto {
   currentPromoterUuid?: string
   currentPromoterName?: string
   createdAt?: string
+<<<<<<< Updated upstream
   /** Fecha de confirmación (primer pago aprobado, o manual para afiliados con subsidio). null/undefined = pendiente. */
   confirmedAt?: string
 }
@@ -116,6 +117,13 @@ export interface AssignPromoterRequest {
 export interface MemberConfirmationDto {
   memberUuid: string
   confirmedAt: string
+=======
+  /** Promotor actualmente atribuido (enlace permanente); null si nunca tuvo uno. */
+  currentPromoterUuid?: string | null
+  currentPromoterName?: string | null
+  /** Fecha de confirmación manual del afiliado (POST /confirm), o auto al primer pago aprobado. */
+  confirmedAt?: string | null
+>>>>>>> Stashed changes
 }
 
 export interface CreateMemberRequest {
@@ -149,6 +157,42 @@ export interface CreateMemberRequest {
 /** PUT with PATCH semantics: only the sent fields are applied. */
 export interface UpdateMemberRequest extends Partial<CreateMemberRequest> {
   status?: string
+}
+
+// ---- Reasignación de promotor (V45, MEMBER_ASSIGN_PROMOTER) ----
+
+/**
+ * Body de POST /v1/admin/members/{uuid}/assign-promoter. Exactamente uno de
+ * `promoterUuid` / `referralCode` debe enviarse — el admin elige un promotor
+ * directamente o introduce su código de referido. `reason` es obligatorio: el
+ * enlace es una atribución permanente y cada cambio queda auditado.
+ */
+export interface AssignPromoterRequest {
+  promoterUuid?: string
+  referralCode?: string
+  reason: string
+}
+
+/** Fila de auditoría de una reasignación — respuesta de assign-promoter y de promoter-history. */
+export interface MemberPromoterAssignmentDto {
+  uuid: string
+  memberUuid: string
+  memberName: string
+  fromPromoterUuid?: string
+  fromPromoterName?: string
+  toPromoterUuid?: string
+  toPromoterName?: string
+  actorUserUuid: string
+  reason: string
+  assignedAt: string
+}
+
+// ---- Confirmación manual (V45, MEMBER_CONFIRM) ----
+
+/** Respuesta de POST /v1/admin/members/{uuid}/confirm. */
+export interface MemberConfirmationDto {
+  memberUuid: string
+  confirmedAt: string
 }
 
 export interface CreateBeneficiaryRequest {

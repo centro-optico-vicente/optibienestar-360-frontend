@@ -277,9 +277,17 @@
         "label": "Promoters",
         "description": "Sales team and promoters."
       },
+      "promoterTypes": {
+        "label": "Promoter types",
+        "description": "Classification of promoters."
+      },
       "commissions": {
         "label": "Commissions",
         "description": "Commission settlement and status."
+      },
+      "collectionCommissionTiers": {
+        "label": "Collection commission",
+        "description": "Commission bands by days of collected arrears."
       },
       "roles": {
         "label": "Roles",
@@ -1344,6 +1352,7 @@
         "confirm": "Are you sure you want to delete {name}'s medical record? (soft-delete)"
       }
     },
+<<<<<<< Updated upstream
     "promoter": {
       "title": "Promoter",
       "subtitle": "Permanent link with the promoter and its reassignment history.",
@@ -1388,6 +1397,42 @@
         "title": "Confirm member",
         "confirm": "Manually confirm {name}? Use this for members covered by a subsidy that don't generate a payment."
       }
+=======
+    "promoterCard": {
+      "title": "Attributed promoter",
+      "subtitle": "Permanent sales-attribution link.",
+      "reassign": "Reassign",
+      "noPermission": "You don't have permission to reassign the promoter.",
+      "currentlyAttributed": "Currently attributed",
+      "none": "No promoter",
+      "reassignedToast": "Promoter reassigned successfully.",
+      "history": "Reassignment history",
+      "historyEmpty": "This member has no reassignments recorded.",
+      "form": {
+        "title": "Reassign promoter",
+        "description": "The link is permanent and every change is audited.",
+        "byPromoter": "Pick a promoter",
+        "byCode": "Referral code",
+        "searchPromoter": "Search promoter",
+        "searchPromoterHelp": "Type a name or code (min. 2 characters).",
+        "searchPromoterPlaceholder": "Name or code…",
+        "searchFirst": "Search for a promoter first",
+        "referralCode": "Referral code",
+        "reason": "Reason",
+        "submit": "Reassign",
+        "targetRequired": "Select a promoter or enter a referral code."
+      }
+    },
+    "confirmation": {
+      "confirmed": "Confirmed",
+      "pending": "Pending confirmation",
+      "confirmedAt": "Confirmed on {date}",
+      "confirm": "Confirm member",
+      "noPermission": "You don't have permission to confirm members.",
+      "confirmedToast": "Member confirmed successfully.",
+      "confirmTitle": "Confirm member",
+      "confirmBody": "Confirm {name} as a member? This also happens automatically when their first payment is approved."
+>>>>>>> Stashed changes
     },
     "portal": {
       "seoTitle": "My card — OptiBienestar 360",
@@ -1610,7 +1655,30 @@
       "sections": {
         "contact": "Contact and identity",
         "metrics": "Metrics",
+        "portfolio": "Portfolio and collection",
+        "commissionHistory": "Commission history",
         "metadata": "Metadata"
+      },
+      "portfolio": {
+        "activeAffiliates": "Active affiliates",
+        "upToDate": "Up to date",
+        "overdue": "Overdue",
+        "withoutMembership": "Without active membership",
+        "periodCommissions": "This month's commissions",
+        "empty": "This promoter has no affiliates in their portfolio yet.",
+        "loadError": "Could not load this promoter's portfolio.",
+        "noCommissions": "No commissions recorded for any period.",
+        "noMembership": "No active membership",
+        "columns": {
+          "member": "Affiliate",
+          "status": "Status",
+          "nextDueDate": "Next due date",
+          "monthlyFee": "Monthly fee",
+          "period": "Period",
+          "strategy": "Strategy",
+          "count": "Commissions",
+          "total": "Total"
+        }
       },
       "fields": {
         "displayName": "Name",
@@ -1620,10 +1688,18 @@
         "description": "Description",
         "email": "Email",
         "phone": "Phone",
+<<<<<<< Updated upstream
         "personFullName": "Name",
         "personRif": "Tax ID",
         "userEmail": "User",
         "promoterTypeUuid": "Promoter type",
+=======
+        "userUuid": "User UUID",
+        "userEmail": "User email",
+        "personFullName": "Person name",
+        "personRif": "Tax ID / national ID",
+        "promoterType": "Promoter type",
+>>>>>>> Stashed changes
         "totalReferrals": "Total referrals",
         "totalCommissionPaid": "Total commission paid",
         "createdAt": "Created",
@@ -1680,6 +1756,10 @@
         "displayName": "Name",
         "referralCode": "Referral code",
         "userUuid": "User",
+<<<<<<< Updated upstream
+=======
+        "promoterType": "Promoter type",
+>>>>>>> Stashed changes
         "description": "Description",
         "email": "Email",
         "phone": "Phone",
@@ -1714,6 +1794,15 @@
     "appliesTo": {
       "INSCRIPTION": "Inscription",
       "MONTHLY": "Monthly"
+    },
+    "periodStrategy": {
+      "DAILY": "Daily",
+      "WEEKLY": "Weekly",
+      "BIWEEKLY": "Biweekly",
+      "MONTHLY": "Monthly",
+      "QUARTERLY": "Quarterly",
+      "SEMIANNUAL": "Semiannual",
+      "ANNUAL": "Annual"
     },
     "detail": {
       "title": "Commission detail",
@@ -1883,6 +1972,45 @@
         "enabled": "Enabled",
         "allowConcurrent": "Allow concurrency",
         "maxSyncSeconds": "Max sync seconds",
+        "active": "Active"
+      }
+    }
+  },
+  "collectionCommissionTiers": {
+    "title": "Collection commission",
+    "subtitle": "Extra commission bands based on how many days of arrears the promoter manages to collect.",
+    "new": "New band",
+    "searchPlaceholder": "Search by name…",
+    "includeInactive": "Show inactive",
+    "empty": "No collection-commission bands registered yet.",
+    "noPermission": "You don't have permission to manage collection commission.",
+    "upToDays": "Up to {days} days",
+    "createdToast": "Band created successfully.",
+    "updatedToast": "Band updated successfully.",
+    "deletedToast": "Band deleted successfully.",
+    "deleteTitle": "Delete band",
+    "deleteConfirm": "Are you sure you want to delete the band {name}? This action cannot be undone.",
+    "paginationSummary": "Showing {shown} of {total}",
+    "columns": {
+      "name": "Name",
+      "maxDays": "Days of arrears",
+      "commissionPct": "Commission",
+      "active": "Active",
+      "updatedAt": "Updated"
+    },
+    "form": {
+      "createTitle": "New commission band",
+      "editTitle": "Edit commission band",
+      "description": "Bands by days of arrears collected: less arrears, higher commission.",
+      "submitCreate": "Create band",
+      "maxDaysHelp": "Maximum days of arrears this band covers.",
+      "maxDaysInvalid": "Must be a positive whole number.",
+      "commissionPctHelp": "Commission percentage applied (0.01–100).",
+      "commissionPctInvalid": "Must be between 0.01 and 100.",
+      "fields": {
+        "name": "Name",
+        "maxDays": "Days of arrears (max.)",
+        "commissionPct": "Commission (%)",
         "active": "Active"
       }
     }

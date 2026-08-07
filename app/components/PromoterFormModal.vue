@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
+<<<<<<< Updated upstream
 import type { SelectItem } from '~/types/options'
+=======
+import type { UserDto } from '~/types/admin'
+>>>>>>> Stashed changes
 import type {
   PromoterCreateRequest,
   PromoterDto,
@@ -17,8 +21,14 @@ import { PROMOTER_STATUS_OPTIONS } from '~/types/promoters'
 //
 // The system row (INSTITUCION) can't be edited — the parent disables its edit button,
 // so this modal only ever handles human promoters. On create the referralCode +
+<<<<<<< Updated upstream
 // userUuid are required (the linked Person is derived server-side from the user);
 // on edit (PATCH) they are read-only/hidden.
+=======
+// userUuid are required; on edit (PATCH) they are read-only/hidden. `personUuid` is
+// NOT collected here — the backend derives the Person server-side from the selected
+// user (`user.getPerson()`), so the client never supplies it.
+>>>>>>> Stashed changes
 const props = defineProps<{
   open: boolean
   /** If provided, the modal is in edit mode; if null/undefined, in create mode. */
@@ -35,8 +45,13 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const promoters = usePromoters()
 const users = useUsers()
+<<<<<<< Updated upstream
 const promoterTypeOptions = useCatalogOptions('promoter-types')
+=======
+>>>>>>> Stashed changes
 const toast = useToast()
+const { options: promoterTypeOptions, load: loadPromoterTypes } = usePromoterTypes()
+onMounted(loadPromoterTypes)
 
 const isOpen = computed({
   get: () => props.open,
@@ -54,6 +69,10 @@ interface FormState {
   displayName: string
   referralCode: string
   userUuid: string
+<<<<<<< Updated upstream
+=======
+  promoterTypeUuid: string
+>>>>>>> Stashed changes
   description: string
   email: string
   phone: string
@@ -66,6 +85,10 @@ const state = reactive<FormState>({
   displayName: '',
   referralCode: '',
   userUuid: '',
+<<<<<<< Updated upstream
+=======
+  promoterTypeUuid: '',
+>>>>>>> Stashed changes
   description: '',
   email: '',
   phone: '',
@@ -107,8 +130,13 @@ watch(userSearchTerm, (q) => {
   userSearchTimer = setTimeout(async () => {
     searchingUsers.value = true
     try {
+<<<<<<< Updated upstream
       const res = await users.options({ q: term, limit: 10 })
       userOptions.value = res.map(o => ({ label: o.label, value: o.uuid }))
+=======
+      const res = await users.list({ size: 10, q: term })
+      userOptions.value = (res.content ?? []).map(u => ({ label: userLabel(u), value: u.uuid }))
+>>>>>>> Stashed changes
     }
     catch {
       userOptions.value = []
@@ -119,6 +147,7 @@ watch(userSearchTerm, (q) => {
   }, 400)
 })
 
+<<<<<<< Updated upstream
 // Autofill name/email/phone from the selected user (create-only). The Person linked
 // to the promoter is derived server-side from the user (User → Person is a mandatory
 // 1:1 FK), so the frontend never picks/sends a personUuid — only fills empty fields
@@ -137,6 +166,8 @@ watch(() => state.userUuid, async (userUuid) => {
   }
 })
 
+=======
+>>>>>>> Stashed changes
 function resetSearchState() {
   userSearchTerm.value = ''
   userOptions.value = []
@@ -151,12 +182,17 @@ const schema = computed(() => {
     description: z.string().optional(),
     email: z.string().email(t('validation.emailInvalid')).optional().or(z.literal('')),
     phone: z.string().optional(),
+    promoterTypeUuid: z.string().optional(),
   }
   if (mode.value === 'create') {
     return z.object({
       ...base,
       referralCode: z.string().regex(/^[A-Z0-9-]{4,20}$/, t('promoters.form.referralCodeFormat')),
+<<<<<<< Updated upstream
       userUuid: z.string().min(1, t('validation.required')).uuid(t('validation.invalidUuid')),
+=======
+      userUuid: z.string().uuid(t('validation.invalidUuid')),
+>>>>>>> Stashed changes
     })
   }
   return z.object(base)
@@ -170,6 +206,10 @@ function populateFrom(p: PromoterDto | null) {
     state.displayName = ''
     state.referralCode = ''
     state.userUuid = ''
+<<<<<<< Updated upstream
+=======
+    state.promoterTypeUuid = ''
+>>>>>>> Stashed changes
     state.description = ''
     state.email = ''
     state.phone = ''
@@ -181,6 +221,10 @@ function populateFrom(p: PromoterDto | null) {
   state.displayName = p.displayName ?? ''
   state.referralCode = p.referralCode ?? ''
   state.userUuid = p.userUuid ?? ''
+<<<<<<< Updated upstream
+=======
+  state.promoterTypeUuid = p.promoterTypeUuid ?? ''
+>>>>>>> Stashed changes
   state.description = p.description ?? ''
   state.email = p.email ?? ''
   state.phone = p.phone ?? ''
@@ -220,6 +264,10 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         displayName: state.displayName.trim(),
         referralCode: state.referralCode.trim(),
         userUuid: state.userUuid.trim(),
+<<<<<<< Updated upstream
+=======
+        promoterTypeUuid: state.promoterTypeUuid || undefined,
+>>>>>>> Stashed changes
         description: state.description.trim() || undefined,
         email: state.email.trim() || undefined,
         phone: state.phone.trim() || undefined,
@@ -311,6 +359,7 @@ function openDeleteFromEdit() {
 
         <!-- Create-only identity fields (immutable once the promoter exists). -->
         <template v-if="mode === 'create'">
+<<<<<<< Updated upstream
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <UFormField
               :label="t('promoters.form.fields.referralCode')"
@@ -327,6 +376,34 @@ function openDeleteFromEdit() {
                 label-key="label"
                 value-key="value"
                 :placeholder="t('common.select')"
+=======
+          <UFormField
+            :label="t('promoters.form.fields.referralCode')"
+            name="referralCode"
+            required
+            :help="t('promoters.form.referralCodeHelp')"
+          >
+            <UInput v-model="state.referralCode" placeholder="PROMO-2026" class="w-full font-mono" />
+          </UFormField>
+
+          <div class="rounded-xl border border-prohealth-100 p-4 space-y-4">
+            <UFormField :label="t('promoters.form.userSearchLabel')" :help="t('promoters.form.userSearchHelp')">
+              <UInput
+                v-model="userSearch"
+                :placeholder="t('promoters.form.userSearchPlaceholder')"
+                icon="i-lucide-search"
+                :loading="searchingUsers"
+                class="w-full"
+              />
+            </UFormField>
+            <UFormField :label="t('promoters.form.fields.userUuid')" name="userUuid" required>
+              <USelectMenu
+                v-model="state.userUuid"
+                :items="userOptions"
+                label-key="label"
+                value-key="value"
+                :placeholder="userOptions.length ? t('common.select') : t('promoters.form.userPlaceholderSearch')"
+>>>>>>> Stashed changes
                 class="w-full"
               />
             </UFormField>
@@ -368,6 +445,17 @@ function openDeleteFromEdit() {
           </div>
         </template>
 
+        <UFormField :label="t('promoters.form.fields.promoterType')" name="promoterTypeUuid">
+          <USelectMenu
+            v-model="state.promoterTypeUuid"
+            :items="promoterTypeOptions"
+            label-key="label"
+            value-key="value"
+            :placeholder="t('common.select')"
+            class="w-full"
+          />
+        </UFormField>
+
         <UFormField :label="t('promoters.form.fields.description')" name="description">
           <UTextarea v-model="state.description" :rows="3" class="w-full" />
         </UFormField>
@@ -381,6 +469,7 @@ function openDeleteFromEdit() {
           </UFormField>
         </div>
 
+<<<<<<< Updated upstream
         <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
 
         <div class="flex items-center justify-between gap-3 pt-2">
@@ -410,6 +499,20 @@ function openDeleteFromEdit() {
               {{ mode === 'create' ? t('promoters.form.submitCreate') : t('common.saveChanges') }}
             </UButton>
           </div>
+=======
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="isOpen = false">
+            {{ t('common.cancel') }}
+          </UButton>
+          <UButton
+            type="submit"
+            color="primary"
+            :loading="isSubmitting"
+            icon="i-lucide-save"
+          >
+            {{ mode === 'create' ? t('promoters.form.submitCreate') : t('common.saveChanges') }}
+          </UButton>
+>>>>>>> Stashed changes
         </div>
       </UForm>
     </template>

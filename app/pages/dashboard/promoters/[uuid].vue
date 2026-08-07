@@ -4,9 +4,15 @@ import type {
   CommissionPeriodSummaryDto,
   PromoterDashboardDto,
   PromoterDto,
+<<<<<<< Updated upstream
   PromoterMemberRow,
   PromoterStatus,
 } from '~/types/promoters'
+=======
+  PromoterStatus,
+} from '~/types/promoters'
+import { membershipStatusColor } from '~/types/memberships'
+>>>>>>> Stashed changes
 
 definePageMeta({
   layout: 'dashboard',
@@ -28,6 +34,7 @@ const toast = useToast()
 
 const canUpdate = computed(() => can('PROMOTER_UPDATE'))
 const canDelete = computed(() => can('PROMOTER_DELETE'))
+const canViewCommissions = computed(() => can('COMMISSION_VIEW_ALL'))
 
 // ---- Promoter load ----
 const promoter = ref<PromoterDto | null>(null)
@@ -48,10 +55,61 @@ async function loadPromoter() {
   }
 }
 
+<<<<<<< Updated upstream
 onMounted(async () => {
   await loadPromoter()
   await Promise.all([loadPortfolio(), loadCommissionsSummary()])
 })
+=======
+// ---- Portfolio (cartera + salud de cobranza + comisiones del mes) ----
+const dashboard = ref<PromoterDashboardDto | null>(null)
+const dashboardLoading = ref(true)
+
+async function loadDashboard() {
+  dashboardLoading.value = true
+  try {
+    dashboard.value = await promoters.portfolio(promoterUuid)
+  }
+  catch {
+    // 403 si el rol no tiene PROMOTER_VIEW_ALL a nivel de fila, u otro error de red
+    dashboard.value = null
+  }
+  finally {
+    dashboardLoading.value = false
+  }
+}
+
+// ---- Histórico mensual de comisiones ----
+const commissionHistory = ref<CommissionPeriodSummaryDto[]>([])
+const commissionHistoryLoading = ref(true)
+
+async function loadCommissionHistory() {
+  if (!canViewCommissions.value) {
+    commissionHistoryLoading.value = false
+    return
+  }
+  commissionHistoryLoading.value = true
+  try {
+    commissionHistory.value = await promoters.commissionsSummary(promoterUuid)
+  }
+  catch {
+    commissionHistory.value = []
+  }
+  finally {
+    commissionHistoryLoading.value = false
+  }
+}
+
+onMounted(() => {
+  loadPromoter()
+  loadDashboard()
+  loadCommissionHistory()
+})
+
+function membershipStatusLabel(s?: string | null): string {
+  return s ? t(`memberships.status.${s}`, s) : t('promoters.detail.portfolio.noMembership')
+}
+>>>>>>> Stashed changes
 
 // Amount in USD, formatted in the VE convention (useFormatters). Empty → '—'.
 function money(v?: number | string | null): string {
@@ -274,12 +332,28 @@ async function loadCommissionsSummary() {
             <dd class="text-prohealth-800 mt-0.5">{{ promoter.personFullName || t('common.empty') }}</dd>
           </div>
           <div>
+<<<<<<< Updated upstream
+=======
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.fields.userEmail') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ promoter.userEmail || t('common.empty') }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.fields.personFullName') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ promoter.personFullName || t('common.empty') }}</dd>
+          </div>
+          <div>
+>>>>>>> Stashed changes
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.fields.personRif') }}</dt>
             <dd class="text-prohealth-800 mt-0.5">{{ promoter.personRif || t('common.empty') }}</dd>
           </div>
           <div>
+<<<<<<< Updated upstream
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.fields.userEmail') }}</dt>
             <dd class="text-prohealth-800 mt-0.5">{{ promoter.userEmail || t('common.empty') }}</dd>
+=======
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.fields.promoterType') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ promoter.promoterTypeName || t('common.empty') }}</dd>
+>>>>>>> Stashed changes
           </div>
         </dl>
       </div>
@@ -297,6 +371,110 @@ async function loadCommissionsSummary() {
             <dd class="text-prohealth-900 text-lg font-semibold mt-0.5">{{ money(promoter.totalCommissionPaid) }}</dd>
           </div>
         </dl>
+      </div>
+
+      <!-- Portfolio (cartera + salud de cobranza) -->
+      <div class="bg-white rounded-2xl border border-prohealth-100 p-6">
+        <h2 class="font-bold text-prohealth-900 mb-4">{{ t('promoters.detail.sections.portfolio') }}</h2>
+
+        <div v-if="dashboardLoading" class="space-y-2">
+          <USkeleton class="h-16 w-full rounded" />
+        </div>
+        <template v-else-if="dashboard">
+          <dl class="grid grid-cols-2 lg:grid-cols-5 gap-x-6 gap-y-4 text-sm mb-6">
+            <div>
+              <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.portfolio.activeAffiliates') }}</dt>
+              <dd class="text-prohealth-900 text-lg font-semibold mt-0.5">{{ dashboard.activeAffiliates }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.portfolio.upToDate') }}</dt>
+              <dd class="text-success-600 text-lg font-semibold mt-0.5">{{ dashboard.affiliatesUpToDate }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.portfolio.overdue') }}</dt>
+              <dd class="text-warning-600 text-lg font-semibold mt-0.5">{{ dashboard.affiliatesOverdue }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.portfolio.withoutMembership') }}</dt>
+              <dd class="text-prohealth-900 text-lg font-semibold mt-0.5">{{ dashboard.affiliatesWithoutMembership }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.portfolio.periodCommissions') }}</dt>
+              <dd class="text-prohealth-900 text-lg font-semibold mt-0.5">{{ money(dashboard.periodCommissions) }}</dd>
+            </div>
+          </dl>
+
+          <div class="overflow-x-auto rounded-xl border border-prohealth-100">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
+                  <th class="px-5 py-3 font-semibold">{{ t('promoters.detail.portfolio.columns.member') }}</th>
+                  <th class="px-5 py-3 font-semibold">{{ t('promoters.detail.portfolio.columns.status') }}</th>
+                  <th class="px-5 py-3 font-semibold">{{ t('promoters.detail.portfolio.columns.nextDueDate') }}</th>
+                  <th class="px-5 py-3 font-semibold">{{ t('promoters.detail.portfolio.columns.monthlyFee') }}</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-prohealth-100">
+                <tr v-if="!dashboard.portfolio.length">
+                  <td colspan="4" class="px-5 py-8 text-center text-prohealth-500">
+                    {{ t('promoters.detail.portfolio.empty') }}
+                  </td>
+                </tr>
+                <tr v-for="row in dashboard.portfolio" v-else :key="row.memberUuid" class="hover:bg-prohealth-50/50">
+                  <td class="px-5 py-3">
+                    <NuxtLink :to="`/dashboard/members/${row.memberUuid}`" class="text-primary-600 hover:underline font-semibold">
+                      {{ row.memberName }}
+                    </NuxtLink>
+                  </td>
+                  <td class="px-5 py-3">
+                    <UBadge :color="membershipStatusColor(row.membershipStatus)" variant="subtle" size="sm">
+                      {{ membershipStatusLabel(row.membershipStatus) }}
+                    </UBadge>
+                  </td>
+                  <td class="px-5 py-3 text-prohealth-600">{{ row.nextDueDate ? formatDate(row.nextDueDate) : t('common.empty') }}</td>
+                  <td class="px-5 py-3 text-prohealth-900 font-semibold">{{ money(row.monthlyFee) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </template>
+        <p v-else class="text-sm text-prohealth-500 py-4">{{ t('promoters.detail.portfolio.loadError') }}</p>
+      </div>
+
+      <!-- Commission history -->
+      <div v-if="canViewCommissions" class="bg-white rounded-2xl border border-prohealth-100 p-6">
+        <h2 class="font-bold text-prohealth-900 mb-4">{{ t('promoters.detail.sections.commissionHistory') }}</h2>
+
+        <div v-if="commissionHistoryLoading" class="space-y-2">
+          <USkeleton class="h-16 w-full rounded" />
+        </div>
+        <template v-else>
+          <div class="overflow-x-auto rounded-xl border border-prohealth-100">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
+                  <th class="px-5 py-3 font-semibold">{{ t('promoters.detail.portfolio.columns.period') }}</th>
+                  <th class="px-5 py-3 font-semibold">{{ t('promoters.detail.portfolio.columns.strategy') }}</th>
+                  <th class="px-5 py-3 font-semibold">{{ t('promoters.detail.portfolio.columns.count') }}</th>
+                  <th class="px-5 py-3 font-semibold">{{ t('promoters.detail.portfolio.columns.total') }}</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-prohealth-100">
+                <tr v-if="!commissionHistory.length">
+                  <td colspan="4" class="px-5 py-8 text-center text-prohealth-500">
+                    {{ t('promoters.detail.portfolio.noCommissions') }}
+                  </td>
+                </tr>
+                <tr v-for="row in commissionHistory" v-else :key="`${row.periodStart}-${row.periodEnd}`" class="hover:bg-prohealth-50/50">
+                  <td class="px-5 py-3 text-prohealth-700">{{ formatDate(row.periodStart) }} – {{ formatDate(row.periodEnd) }}</td>
+                  <td class="px-5 py-3 text-prohealth-700">{{ t(`commissions.periodStrategy.${row.periodStrategy}`, row.periodStrategy) }}</td>
+                  <td class="px-5 py-3 text-prohealth-700">{{ row.commissionCount }}</td>
+                  <td class="px-5 py-3 text-prohealth-900 font-semibold">{{ formatCurrency(row.totalAmount, row.currency) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </template>
       </div>
 
       <!-- Metadata -->

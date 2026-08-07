@@ -57,10 +57,19 @@ export interface PromoterDto {
   userUuid?: string | null
   userEmail?: string | null
   personUuid?: string | null
+<<<<<<< Updated upstream
   personFullName?: string | null
   personRif?: string | null
   promoterTypeUuid?: string | null
   promoterTypeName?: string | null
+=======
+  /** Clasificación del promotor (catálogo `promoter-types`); nullable — filas legacy no tienen. */
+  promoterTypeUuid?: string | null
+  promoterTypeName?: string | null
+  userEmail?: string
+  personFullName?: string
+  personRif?: string
+>>>>>>> Stashed changes
   email?: string
   phone?: string
   totalReferrals: number
@@ -71,6 +80,7 @@ export interface PromoterDto {
   updatedAt: string
 }
 
+<<<<<<< Updated upstream
 /** Un afiliado en la cartera de un promotor — fila de `PromoterDashboardDto.portfolio`. */
 export interface PromoterMemberRow {
   memberUuid: string
@@ -109,12 +119,22 @@ export interface CommissionPeriodSummaryDto {
 }
 
 /** Body de POST /v1/admin/promoters (crea un promotor HUMANO; la fila INSTITUCION no se crea aquí). */
+=======
+/**
+ * Body de POST /v1/admin/promoters (crea un promotor HUMANO; la fila INSTITUCION no se crea aquí).
+ * `personUuid` NO se envía: el backend deriva la Person server-side desde `user.getPerson()`.
+ */
+>>>>>>> Stashed changes
 export interface PromoterCreateRequest {
   displayName: string
   description?: string
   /** patrón ^[A-Z0-9-]{4,20}$ */
   referralCode: string
   userUuid: string
+<<<<<<< Updated upstream
+=======
+  promoterTypeUuid?: string
+>>>>>>> Stashed changes
   email?: string
   phone?: string
   promoterTypeUuid?: string
@@ -132,6 +152,75 @@ export interface PromoterUpdateRequest {
   promoterTypeUuid?: string
   active?: boolean
   status?: PromoterStatus
+}
+
+// ---- Portfolio / dashboard de promotor (GET /v1/admin/promoters/{uuid}/portfolio) ----
+
+/** Una afiliada en la cartera de un promotor (drill-down). */
+export interface PromoterMemberRow {
+  memberUuid: string
+  memberName: string
+  /** Estado de la membresía activa del afiliado, o null si no tiene una activa. */
+  membershipStatus?: string | null
+  nextDueDate?: string | null
+  monthlyFee?: number | null
+}
+
+/** Respuesta de GET /v1/admin/promoters/{uuid}/portfolio (@JsonInclude(NON_NULL)). */
+export interface PromoterDashboardDto {
+  promoterUuid: string
+  promoterName: string
+  referralCode: string
+  activeAffiliates: number
+  affiliatesUpToDate: number
+  affiliatesOverdue: number
+  affiliatesWithoutMembership: number
+  periodCommissions?: number
+  periodCurrency?: string
+  periodStart?: string
+  periodEnd?: string
+  leaderboardPosition?: number | null
+  portfolio: PromoterMemberRow[]
+}
+
+/** Fila de GET /v1/admin/promoters/{uuid}/commissions/summary (histórico mensual). */
+export interface CommissionPeriodSummaryDto {
+  periodStrategy: CommissionPeriodStrategy
+  periodStart: string
+  periodEnd: string
+  commissionCount: number
+  totalAmount: number
+  currency: string
+}
+
+// ---- Comisión de cobranza (/v1/admin/collection-commission-tiers, V44) ----
+
+/** Banda de comisión de cobranza: % de comisión según días de mora cobrados. */
+export interface CollectionCommissionTierDto {
+  uuid: string
+  name: string
+  maxDays: number
+  commissionPct: number
+  active: boolean
+  status: string
+  createdAt: string
+  updatedAt: string
+}
+
+/** Body de POST /v1/admin/collection-commission-tiers. */
+export interface CollectionCommissionTierCreateRequest {
+  name: string
+  maxDays: number
+  /** 0.01–100, hasta 2 decimales. */
+  commissionPct: number
+}
+
+/** Body de PUT /v1/admin/collection-commission-tiers/{uuid} (PATCH semantics: todo opcional). */
+export interface CollectionCommissionTierUpdateRequest {
+  name?: string
+  maxDays?: number
+  commissionPct?: number
+  active?: boolean
 }
 
 // ---- Comisiones ----

@@ -11,6 +11,7 @@ interface ListParams {
   size?: number
   sort?: string
   filter?: string
+<<<<<<< Updated upstream
   includeInactive?: boolean
 }
 
@@ -18,6 +19,10 @@ interface OptionsParams {
   q?: string
   limit?: number
   currentValues?: string[]
+=======
+  q?: string
+  includeInactive?: boolean
+>>>>>>> Stashed changes
 }
 
 /**
@@ -32,6 +37,7 @@ export const useUsers = () => {
         size: params.size ?? 20,
         sort: params.sort ?? 'createdAt,desc',
         ...(params.filter ? { filter: params.filter } : {}),
+<<<<<<< Updated upstream
         ...(params.includeInactive ? { includeInactive: 'true' } : {}),
       },
     })
@@ -43,6 +49,10 @@ export const useUsers = () => {
         ...(params.q ? { q: params.q } : {}),
         ...(params.limit ? { limit: params.limit } : {}),
         ...(params.currentValues?.length ? { currentValues: params.currentValues } : {}),
+=======
+        ...(params.q ? { q: params.q } : {}),
+        ...(params.includeInactive ? { includeInactive: true } : {}),
+>>>>>>> Stashed changes
       },
     })
 

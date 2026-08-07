@@ -102,6 +102,7 @@ export const useMembers = () => {
   const me = () =>
     useApi<MemberDto>('/v1/me/member', { silent: true })
 
+<<<<<<< Updated upstream
   // ---- Enlace permanente promotor (MEMBER_ASSIGN_PROMOTER) ----
   /** Reasigna o vincula (si el afiliado no tenía) el promotor. `body` trae promoterUuid XOR referralCode. */
   const assignPromoter = (memberUuid: string, body: AssignPromoterRequest) =>
@@ -113,6 +114,16 @@ export const useMembers = () => {
 
   // ---- Confirmación manual del afiliado (MEMBER_CONFIRM) ----
   /** Para afiliados cubiertos por subsidio que nunca generan pago (la confirmación normal ocurre al aprobar el primer pago). */
+=======
+  // ---- Reasignación de promotor (MEMBER_ASSIGN_PROMOTER) ----
+  const assignPromoter = (memberUuid: string, body: AssignPromoterRequest) =>
+    useApi<MemberPromoterAssignmentDto>(`/v1/admin/members/${memberUuid}/assign-promoter`, { method: 'POST', body })
+
+  const promoterHistory = (memberUuid: string) =>
+    useApi<MemberPromoterAssignmentDto[]>(`/v1/admin/members/${memberUuid}/promoter-history`)
+
+  // ---- Confirmación manual (MEMBER_CONFIRM) ----
+>>>>>>> Stashed changes
   const confirm = (memberUuid: string) =>
     useApi<MemberConfirmationDto>(`/v1/admin/members/${memberUuid}/confirm`, { method: 'POST' })
 

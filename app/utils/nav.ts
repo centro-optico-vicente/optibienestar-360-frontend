@@ -54,7 +54,7 @@ export function isNavGroup(entry: NavEntry): entry is NavGroup {
 
 // Catálogos que viven en su vertical de negocio (Aliados) y por eso NO se repiten
 // en Datos maestros.
-const CATALOGS_IN_VERTICALS = new Set<string>(['ally-types', 'service-categories', 'medical-specialties'])
+const CATALOGS_IN_VERTICALS = new Set<string>(['ally-types', 'service-categories', 'medical-specialties', 'promoter-types'])
 
 // El resto de catálogos alimenta "Datos maestros": derivados del registro, así el
 // grupo y su mosaico quedan siempre sincronizados con lo que existe en el sistema.
@@ -109,9 +109,15 @@ export const MAIN_NAV: NavEntry[] = [
     descriptionKey: 'nav.groups.comercial.description',
     children: [
       { label: 'Promotores', labelKey: 'nav.items.promoters.label', to: '/dashboard/promoters', icon: 'i-lucide-megaphone', description: 'Equipo comercial y promotores.', descriptionKey: 'nav.items.promoters.description', requires: 'PROMOTER_VIEW_ALL' },
+<<<<<<< Updated upstream
       { label: 'Tipos de promotor', labelKey: 'nav.items.promoterTypes.label', to: '/dashboard/catalogs/promoter-types', icon: 'i-lucide-badge-percent', description: 'Clasificación de los promotores.', descriptionKey: 'nav.items.promoterTypes.description', requires: 'CATALOG_PROMOTER_TYPE_WRITE' },
       { label: 'Comisiones', labelKey: 'nav.items.commissions.label', to: '/dashboard/commissions', icon: 'i-lucide-percent', description: 'Liquidación y estado de comisiones.', descriptionKey: 'nav.items.commissions.description', requires: ['COMMISSION_VIEW_ALL', 'COMMISSION_VIEW_OWN'] },
       { label: 'Reglas de comisión', labelKey: 'nav.items.commissionRules.label', to: '/dashboard/commission-rules', icon: 'i-lucide-sliders-horizontal', description: 'Bandas de inscripción, bonos por escala y comisión de cobranza.', descriptionKey: 'nav.items.commissionRules.description', requires: ['COMMISSION_TIER_MANAGE', 'BONUS_RULE_MANAGE', 'COLLECTION_COMMISSION_TIER_MANAGE'] },
+=======
+      { label: 'Tipos de promotor', labelKey: 'nav.items.promoterTypes.label', to: '/dashboard/catalogs/promoter-types', icon: 'i-lucide-tags', description: 'Clasificación de los promotores.', descriptionKey: 'nav.items.promoterTypes.description', requires: 'CATALOG_PROMOTER_TYPE_WRITE' },
+      { label: 'Comisiones', labelKey: 'nav.items.commissions.label', to: '/dashboard/commissions', icon: 'i-lucide-percent', description: 'Liquidación y estado de comisiones.', descriptionKey: 'nav.items.commissions.description', requires: ['COMMISSION_VIEW_ALL', 'COMMISSION_VIEW_OWN'] },
+      { label: 'Comisión de cobranza', labelKey: 'nav.items.collectionCommissionTiers.label', to: '/dashboard/collection-commission-tiers', icon: 'i-lucide-hand-coins', description: 'Bandas de comisión por días de mora cobrados.', descriptionKey: 'nav.items.collectionCommissionTiers.description', requires: 'COLLECTION_COMMISSION_TIER_MANAGE' },
+>>>>>>> Stashed changes
     ],
   },
   {

@@ -41,6 +41,14 @@ export const usePromoters = () => {
   const get = (uuid: string) =>
     useApi<PromoterDto>(`/v1/admin/promoters/${uuid}`)
 
+  /** Cartera + salud de cobranza + comisiones del mes, vista admin de GET /v1/promoter/me. */
+  const portfolio = (uuid: string) =>
+    useApi<PromoterDashboardDto>(`/v1/admin/promoters/${uuid}/portfolio`)
+
+  /** Histórico mensual de comisiones del promotor, más reciente primero. */
+  const commissionsSummary = (uuid: string) =>
+    useApi<CommissionPeriodSummaryDto[]>(`/v1/admin/promoters/${uuid}/commissions/summary`)
+
   const create = (body: PromoterCreateRequest) =>
     useApi<PromoterDto>('/v1/admin/promoters', { method: 'POST', body })
 
@@ -50,6 +58,7 @@ export const usePromoters = () => {
   const remove = (uuid: string) =>
     useApi<null>(`/v1/admin/promoters/${uuid}`, { method: 'DELETE' })
 
+<<<<<<< Updated upstream
   /** Cartera de afiliados + salud de cobranza + comisiones del mes en curso. */
   const portfolio = (uuid: string) =>
     useApi<PromoterDashboardDto>(`/v1/admin/promoters/${uuid}/portfolio`)
@@ -59,4 +68,7 @@ export const usePromoters = () => {
     useApi<CommissionPeriodSummaryDto[]>(`/v1/admin/promoters/${uuid}/commissions/summary`)
 
   return { list, get, create, update, remove, portfolio, commissionsSummary }
+=======
+  return { list, get, portfolio, commissionsSummary, create, update, remove }
+>>>>>>> Stashed changes
 }
