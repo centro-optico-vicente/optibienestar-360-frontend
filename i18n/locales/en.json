@@ -308,6 +308,10 @@
       "scheduledJobs": {
         "label": "Scheduled jobs",
         "description": "Automated system tasks and their run history."
+      },
+      "commissionRules": {
+        "label": "Commission Rules",
+        "description": "Inscription bands, scale bonuses and collection commission."
       }
     },
     "other": {
@@ -1873,6 +1877,147 @@
         "customCodeHelp": "4 to 20 characters: letters A–Z, numbers and dashes.",
         "customCodeFormat": "Invalid format. Use 4–20 characters: A–Z, 0–9 or dashes.",
         "submit": "Issue"
+      }
+    }
+  },
+  "commissionRules": {
+    "title": "Commission Rules",
+    "subtitle": "Inscription bands, scale bonuses and collection commission the engine uses.",
+    "tabs": {
+      "tiers": "Inscription Bands",
+      "bonusRules": "Scale Bonuses",
+      "collectionTiers": "Collection Commission"
+    },
+    "appliesTo": {
+      "INSCRIPTION": "Inscription",
+      "MONTHLY": "Monthly",
+      "BOTH": "Both"
+    },
+    "periodStrategies": {
+      "DAILY": "Daily",
+      "WEEKLY": "Weekly",
+      "BIWEEKLY": "Biweekly",
+      "MONTHLY": "Monthly",
+      "QUARTERLY": "Quarterly",
+      "SEMIANNUAL": "Semiannual",
+      "ANNUAL": "Annual"
+    },
+    "bonusMetrics": {
+      "NEW_SUBSCRIBERS": "New subscribers",
+      "ACTIVE_SUBSCRIBERS": "Active subscribers"
+    },
+    "accrualModes": {
+      "PER_BLOCK": "Per block (repeats)",
+      "THRESHOLD": "Threshold (once)"
+    },
+    "windowStrategies": {
+      "LIFETIME": "Lifetime",
+      "DAILY": "Daily",
+      "WEEKLY": "Weekly",
+      "BIWEEKLY": "Biweekly",
+      "MONTHLY": "Monthly",
+      "QUARTERLY": "Quarterly",
+      "SEMIANNUAL": "Semiannual",
+      "ANNUAL": "Annual",
+      "CAMPAIGN": "Campaign (fixed range)"
+    },
+    "rewardTypes": {
+      "FLAT": "Flat amount",
+      "PERCENTAGE": "Percentage"
+    },
+    "form": {
+      "invalidAmount": "Invalid amount",
+      "integersOnly": "Integers only"
+    },
+    "tiers": {
+      "new": "New band",
+      "empty": "No commission bands configured",
+      "allPlans": "All plans",
+      "rewardKindPct": "Percentage",
+      "rewardKindFlat": "Flat amount",
+      "createdToast": "Band created",
+      "updatedToast": "Band updated",
+      "deletedToast": "Band deleted",
+      "deleteTitle": "Delete band",
+      "deleteConfirm": "Are you sure you want to delete band {name}? This deactivates it (soft-delete).",
+      "columns": {
+        "name": "Name",
+        "planType": "Plan",
+        "threshold": "Threshold",
+        "reward": "Reward",
+        "appliesTo": "Applies to"
+      },
+      "form": {
+        "createTitle": "New commission band",
+        "editTitle": "Edit commission band",
+        "name": "Name",
+        "planType": "Plan",
+        "planTypeHelp": "Empty = applies to every plan.",
+        "thresholdCount": "Threshold (monthly count)",
+        "thresholdHelp": "0 = base band, always qualifies.",
+        "periodStrategy": "Period strategy",
+        "appliesTo": "Applies to",
+        "rewardKind": "Reward type",
+        "commissionPct": "Percentage",
+        "flatAmount": "Flat amount",
+        "submitCreate": "Create band"
+      }
+    },
+    "bonusRules": {
+      "new": "New bonus rule",
+      "empty": "No bonus rules configured",
+      "createdToast": "Rule created",
+      "updatedToast": "Rule updated",
+      "deletedToast": "Rule deleted",
+      "deleteTitle": "Delete bonus rule",
+      "deleteConfirm": "Are you sure you want to delete rule {name}? This deactivates it (soft-delete).",
+      "columns": {
+        "name": "Name",
+        "metric": "Metric",
+        "accrual": "Accrual",
+        "threshold": "Threshold",
+        "window": "Window",
+        "reward": "Reward"
+      },
+      "form": {
+        "createTitle": "New bonus rule",
+        "editTitle": "Edit bonus rule",
+        "name": "Name",
+        "description": "Description",
+        "metric": "Metric",
+        "accrual": "Accrual",
+        "thresholdCount": "Threshold",
+        "windowStrategy": "Window",
+        "campaignStart": "Campaign start",
+        "campaignEnd": "Campaign end",
+        "rewardType": "Reward type",
+        "flatAmount": "Flat amount",
+        "rewardPct": "Percentage",
+        "includeSystemPromoters": "Include system promoters",
+        "submitCreate": "Create rule"
+      }
+    },
+    "collectionTiers": {
+      "new": "New collection bucket",
+      "empty": "No collection buckets configured",
+      "createdToast": "Bucket created",
+      "updatedToast": "Bucket updated",
+      "deletedToast": "Bucket deleted",
+      "deleteTitle": "Delete collection bucket",
+      "deleteConfirm": "Are you sure you want to delete bucket {name}? This deactivates it (soft-delete).",
+      "columns": {
+        "name": "Name",
+        "maxDays": "Max days",
+        "commissionPct": "Percentage"
+      },
+      "form": {
+        "createTitle": "New collection bucket",
+        "editTitle": "Edit collection bucket",
+        "name": "Name",
+        "maxDays": "Max days",
+        "maxDaysHelp": "Applies when days-to-collect <= this value.",
+        "commissionPct": "Percentage",
+        "submitCreate": "Create bucket"
       }
     }
   }

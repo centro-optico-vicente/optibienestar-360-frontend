@@ -308,6 +308,10 @@
       "scheduledJobs": {
         "label": "Trabajos programados",
         "description": "Tareas automáticas del sistema y su historial de ejecución."
+      },
+      "commissionRules": {
+        "label": "Reglas de comisión",
+        "description": "Bandas de inscripción, bonos por escala y comisión de cobranza."
       }
     },
     "other": {
@@ -1873,6 +1877,147 @@
         "customCodeHelp": "4 a 20 caracteres: letras A–Z, números y guiones.",
         "customCodeFormat": "Formato inválido. Usa 4–20 caracteres: A–Z, 0–9 o guiones.",
         "submit": "Emitir"
+      }
+    }
+  },
+  "commissionRules": {
+    "title": "Reglas de comisión",
+    "subtitle": "Bandas de inscripción, bonos por escala y comisión de cobranza que usa el motor de comisiones.",
+    "tabs": {
+      "tiers": "Bandas de inscripción",
+      "bonusRules": "Bonos por escala",
+      "collectionTiers": "Comisión de cobranza"
+    },
+    "appliesTo": {
+      "INSCRIPTION": "Inscripción",
+      "MONTHLY": "Mensualidad",
+      "BOTH": "Ambas"
+    },
+    "periodStrategies": {
+      "DAILY": "Diario",
+      "WEEKLY": "Semanal",
+      "BIWEEKLY": "Quincenal",
+      "MONTHLY": "Mensual",
+      "QUARTERLY": "Trimestral",
+      "SEMIANNUAL": "Semestral",
+      "ANNUAL": "Anual"
+    },
+    "bonusMetrics": {
+      "NEW_SUBSCRIBERS": "Nuevos suscriptores",
+      "ACTIVE_SUBSCRIBERS": "Suscriptores activos"
+    },
+    "accrualModes": {
+      "PER_BLOCK": "Por bloque (repite)",
+      "THRESHOLD": "Umbral (una vez)"
+    },
+    "windowStrategies": {
+      "LIFETIME": "De por vida",
+      "DAILY": "Diario",
+      "WEEKLY": "Semanal",
+      "BIWEEKLY": "Quincenal",
+      "MONTHLY": "Mensual",
+      "QUARTERLY": "Trimestral",
+      "SEMIANNUAL": "Semestral",
+      "ANNUAL": "Anual",
+      "CAMPAIGN": "Campaña (rango fijo)"
+    },
+    "rewardTypes": {
+      "FLAT": "Monto fijo",
+      "PERCENTAGE": "Porcentaje"
+    },
+    "form": {
+      "invalidAmount": "Monto no válido",
+      "integersOnly": "Solo números enteros"
+    },
+    "tiers": {
+      "new": "Nueva banda",
+      "empty": "Sin bandas de comisión configuradas",
+      "allPlans": "Todos los planes",
+      "rewardKindPct": "Porcentaje",
+      "rewardKindFlat": "Monto fijo",
+      "createdToast": "Banda creada",
+      "updatedToast": "Banda actualizada",
+      "deletedToast": "Banda eliminada",
+      "deleteTitle": "Eliminar banda",
+      "deleteConfirm": "¿Seguro que deseas eliminar la banda {name}? Esta acción la desactiva (soft-delete).",
+      "columns": {
+        "name": "Nombre",
+        "planType": "Plan",
+        "threshold": "Umbral",
+        "reward": "Recompensa",
+        "appliesTo": "Aplica a"
+      },
+      "form": {
+        "createTitle": "Nueva banda de comisión",
+        "editTitle": "Editar banda de comisión",
+        "name": "Nombre",
+        "planType": "Plan",
+        "planTypeHelp": "Vacío = aplica a todos los planes.",
+        "thresholdCount": "Umbral (conteo mensual)",
+        "thresholdHelp": "0 = banda base, siempre califica.",
+        "periodStrategy": "Estrategia de período",
+        "appliesTo": "Aplica a",
+        "rewardKind": "Tipo de recompensa",
+        "commissionPct": "Porcentaje",
+        "flatAmount": "Monto fijo",
+        "submitCreate": "Crear banda"
+      }
+    },
+    "bonusRules": {
+      "new": "Nueva regla de bono",
+      "empty": "Sin reglas de bono configuradas",
+      "createdToast": "Regla creada",
+      "updatedToast": "Regla actualizada",
+      "deletedToast": "Regla eliminada",
+      "deleteTitle": "Eliminar regla de bono",
+      "deleteConfirm": "¿Seguro que deseas eliminar la regla {name}? Esta acción la desactiva (soft-delete).",
+      "columns": {
+        "name": "Nombre",
+        "metric": "Métrica",
+        "accrual": "Acumulación",
+        "threshold": "Umbral",
+        "window": "Ventana",
+        "reward": "Recompensa"
+      },
+      "form": {
+        "createTitle": "Nueva regla de bono",
+        "editTitle": "Editar regla de bono",
+        "name": "Nombre",
+        "description": "Descripción",
+        "metric": "Métrica",
+        "accrual": "Acumulación",
+        "thresholdCount": "Umbral",
+        "windowStrategy": "Ventana",
+        "campaignStart": "Inicio de campaña",
+        "campaignEnd": "Fin de campaña",
+        "rewardType": "Tipo de recompensa",
+        "flatAmount": "Monto fijo",
+        "rewardPct": "Porcentaje",
+        "includeSystemPromoters": "Incluir promotores del sistema",
+        "submitCreate": "Crear regla"
+      }
+    },
+    "collectionTiers": {
+      "new": "Nuevo tramo de cobranza",
+      "empty": "Sin tramos de cobranza configurados",
+      "createdToast": "Tramo creado",
+      "updatedToast": "Tramo actualizado",
+      "deletedToast": "Tramo eliminado",
+      "deleteTitle": "Eliminar tramo de cobranza",
+      "deleteConfirm": "¿Seguro que deseas eliminar el tramo {name}? Esta acción lo desactiva (soft-delete).",
+      "columns": {
+        "name": "Nombre",
+        "maxDays": "Días máx.",
+        "commissionPct": "Porcentaje"
+      },
+      "form": {
+        "createTitle": "Nuevo tramo de cobranza",
+        "editTitle": "Editar tramo de cobranza",
+        "name": "Nombre",
+        "maxDays": "Días máximos",
+        "maxDaysHelp": "Aplica cuando días de cobro <= este valor.",
+        "commissionPct": "Porcentaje",
+        "submitCreate": "Crear tramo"
       }
     }
   }

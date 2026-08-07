@@ -111,6 +111,7 @@ export const MAIN_NAV: NavEntry[] = [
       { label: 'Promotores', labelKey: 'nav.items.promoters.label', to: '/dashboard/promoters', icon: 'i-lucide-megaphone', description: 'Equipo comercial y promotores.', descriptionKey: 'nav.items.promoters.description', requires: 'PROMOTER_VIEW_ALL' },
       { label: 'Tipos de promotor', labelKey: 'nav.items.promoterTypes.label', to: '/dashboard/catalogs/promoter-types', icon: 'i-lucide-badge-percent', description: 'Clasificación de los promotores.', descriptionKey: 'nav.items.promoterTypes.description', requires: 'CATALOG_PROMOTER_TYPE_WRITE' },
       { label: 'Comisiones', labelKey: 'nav.items.commissions.label', to: '/dashboard/commissions', icon: 'i-lucide-percent', description: 'Liquidación y estado de comisiones.', descriptionKey: 'nav.items.commissions.description', requires: ['COMMISSION_VIEW_ALL', 'COMMISSION_VIEW_OWN'] },
+      { label: 'Reglas de comisión', labelKey: 'nav.items.commissionRules.label', to: '/dashboard/commission-rules', icon: 'i-lucide-sliders-horizontal', description: 'Bandas de inscripción, bonos por escala y comisión de cobranza.', descriptionKey: 'nav.items.commissionRules.description', requires: ['COMMISSION_TIER_MANAGE', 'BONUS_RULE_MANAGE', 'COLLECTION_COMMISSION_TIER_MANAGE'] },
     ],
   },
   {
