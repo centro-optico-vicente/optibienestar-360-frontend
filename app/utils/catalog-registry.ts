@@ -178,11 +178,7 @@ export const CATALOGS: CatalogDef[] = [
     labelSingular: 'Tipo de promotor',
     labelKey: 'catalogs.registry.promoter-types.label',
     labelSingularKey: 'catalogs.registry.promoter-types.labelSingular',
-<<<<<<< Updated upstream
     icon: 'i-lucide-badge-percent',
-=======
-    icon: 'i-lucide-megaphone',
->>>>>>> Stashed changes
     codeField: 'code',
     fields: [
       { name: 'code', label: 'Código', labelKey: 'catalogs.fields.code', type: 'text', required: true, onlyCreate: true, regex: CODE_40, regexMsg: codeMsg(40), regexMsgKey: 'catalogs.validation.codeMax', max: 40, placeholder: 'INDEPENDIENTE' },

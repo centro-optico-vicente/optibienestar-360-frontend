@@ -38,6 +38,13 @@ const pageSizeItems = buildPageSizeItems(t)
 const search = ref('')
 const includeInactive = ref(false)
 
+function buildFilter(): string | undefined {
+  const term = search.value.trim()
+  if (!term) return undefined
+  // RSQL: OR entre fullName y email (coma = OR)
+  return `fullName=='*${term}*',email=='*${term}*'`
+}
+
 async function load() {
   loading.value = true
   try {
@@ -45,12 +52,8 @@ async function load() {
       page: page.value - 1,
       size: size.value,
       sort: 'createdAt,desc',
-<<<<<<< Updated upstream
       filter: buildFilter(),
       includeInactive: includeInactive.value,
-=======
-      q: search.value.trim() || undefined,
->>>>>>> Stashed changes
     })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0

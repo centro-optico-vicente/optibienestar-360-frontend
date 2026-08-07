@@ -34,7 +34,6 @@ const canUpdate = computed(() => can('MEMBER_UPDATE'))
 const canDelete = computed(() => can('MEMBER_DELETE'))
 const canViewMedical = computed(() => can('MEDICAL_RECORD_VIEW'))
 const canEditMedical = computed(() => can('MEDICAL_RECORD_UPDATE'))
-const canConfirm = computed(() => can('MEMBER_CONFIRM'))
 
 // Localized enum options + resolvers.
 const relationshipOptions = computed(() => RELATIONSHIP_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
@@ -71,27 +70,6 @@ const displayName = computed(() => {
   if (!m) return ''
   return m.fullName || [m.firstName, m.middleName, m.lastName, m.secondLastName].filter(Boolean).join(' ')
 })
-
-// ---- Manual confirmation (MEMBER_CONFIRM) ----
-const confirmOpen = ref(false)
-const confirming = ref(false)
-
-async function confirmMember() {
-  if (!member.value) return
-  confirming.value = true
-  try {
-    const res = await members.confirm(member.value.uuid)
-    member.value.confirmedAt = res.confirmedAt
-    toast.add({ title: t('members.confirmation.confirmedToast'), color: 'success', icon: 'i-lucide-check-circle' })
-    confirmOpen.value = false
-  }
-  catch {
-    // toast handled by useApi
-  }
-  finally {
-    confirming.value = false
-  }
-}
 
 // ---- Beneficiaries ----
 const beneficiaries = ref<BeneficiaryDto[]>([])
@@ -423,7 +401,7 @@ onMounted(async () => {
       <div class="bg-white rounded-2xl border border-prohealth-100 p-6">
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <div class="flex items-center gap-3 flex-wrap">
+            <div class="flex items-center gap-3">
               <h1 class="text-2xl font-extrabold text-prohealth-900">{{ displayName }}</h1>
               <UBadge
                 :color="member.status === 'ACTIVE' ? 'success' : 'warning'"
@@ -431,28 +409,11 @@ onMounted(async () => {
               >
                 {{ member.status ? statusLabel(member.status) : t('common.empty') }}
               </UBadge>
-              <UTooltip :text="member.confirmedAt ? t('members.confirmation.confirmedAt', { date: formatDate(member.confirmedAt, 'short') }) : ''">
-                <UBadge :color="member.confirmedAt ? 'success' : 'neutral'" variant="subtle">
-                  {{ member.confirmedAt ? t('members.confirmation.confirmed') : t('members.confirmation.pending') }}
-                </UBadge>
-              </UTooltip>
             </div>
             <p class="text-sm text-prohealth-500 mt-1">
               {{ member.documentType }} {{ member.documentNumber }} · {{ t('members.detail.memberSince', { date: formatDate(member.enrolledAt, 'short') }) }}
             </p>
           </div>
-
-          <UTooltip v-if="!member.confirmedAt" :text="canConfirm ? '' : t('members.confirmation.noPermission')">
-            <UButton
-              color="primary"
-              variant="soft"
-              icon="i-lucide-badge-check"
-              :disabled="!canConfirm"
-              @click="confirmOpen = true"
-            >
-              {{ t('members.confirmation.confirm') }}
-            </UButton>
-          </UTooltip>
         </div>
 
         <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 mt-6 text-sm">
@@ -627,17 +588,12 @@ onMounted(async () => {
       <!-- Referral code (self-gated by REFERRAL_CODE_CREATE) -->
       <MemberReferralCodeCard :member-uuid="memberUuid" />
 
-<<<<<<< Updated upstream
       <!-- Promoter link + history -->
-=======
-      <!-- Attributed promoter + reassignment (self-gated by MEMBER_ASSIGN_PROMOTER for the action) -->
->>>>>>> Stashed changes
       <MemberPromoterCard
         v-if="member"
         :member-uuid="memberUuid"
         :current-promoter-uuid="member.currentPromoterUuid"
         :current-promoter-name="member.currentPromoterName"
-<<<<<<< Updated upstream
         @changed="loadMember"
       />
 
@@ -649,9 +605,6 @@ onMounted(async () => {
         :created-at="member.createdAt"
         :confirmed-at="member.confirmedAt"
         @confirmed="loadMember"
-=======
-        @reassigned="(a) => { if (member) { member.currentPromoterUuid = a.toPromoterUuid ?? null; member.currentPromoterName = a.toPromoterName ?? null } }"
->>>>>>> Stashed changes
       />
 
       <!-- Medical record -->
@@ -958,25 +911,6 @@ onMounted(async () => {
           </UButton>
           <UButton color="error" :loading="medDeleting" icon="i-lucide-trash-2" @click="confirmMedicalDelete">
             {{ t('common.delete') }}
-          </UButton>
-        </div>
-      </template>
-    </UModal>
-
-    <!-- Manual confirmation modal -->
-    <UModal v-model:open="confirmOpen" :title="t('members.confirmation.confirmTitle')">
-      <template #body>
-        <i18n-t keypath="members.confirmation.confirmBody" tag="p" class="text-sm text-prohealth-700" scope="global">
-          <template #name>
-            <span class="font-semibold">{{ displayName }}</span>
-          </template>
-        </i18n-t>
-        <div class="flex items-center justify-end gap-3 pt-5">
-          <UButton color="neutral" variant="ghost" :disabled="confirming" @click="confirmOpen = false">
-            {{ t('common.cancel') }}
-          </UButton>
-          <UButton color="primary" :loading="confirming" icon="i-lucide-badge-check" @click="confirmMember">
-            {{ t('members.confirmation.confirm') }}
           </UButton>
         </div>
       </template>

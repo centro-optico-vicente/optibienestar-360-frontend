@@ -277,17 +277,9 @@
         "label": "Promotores",
         "description": "Equipo comercial y promotores."
       },
-      "promoterTypes": {
-        "label": "Tipos de promotor",
-        "description": "Clasificación de los promotores."
-      },
       "commissions": {
         "label": "Comisiones",
         "description": "Liquidación y estado de comisiones."
-      },
-      "collectionCommissionTiers": {
-        "label": "Comisión de cobranza",
-        "description": "Bandas de comisión por días de mora cobrados."
       },
       "roles": {
         "label": "Roles",
@@ -1352,7 +1344,6 @@
         "confirm": "¿Seguro que deseas eliminar el histórico médico de {name}? (soft-delete)"
       }
     },
-<<<<<<< Updated upstream
     "promoter": {
       "title": "Promotor",
       "subtitle": "Enlace permanente con el promotor y su histórico de reasignaciones.",
@@ -1397,42 +1388,6 @@
         "title": "Confirmar afiliado",
         "confirm": "¿Confirmar manualmente a {name}? Úsalo para afiliados cubiertos por subsidio que no generan pago."
       }
-=======
-    "promoterCard": {
-      "title": "Promotor asignado",
-      "subtitle": "Enlace permanente de atribución comercial.",
-      "reassign": "Reasignar",
-      "noPermission": "No tienes permiso para reasignar el promotor.",
-      "currentlyAttributed": "Atribuido actualmente",
-      "none": "Sin promotor",
-      "reassignedToast": "Promotor reasignado correctamente.",
-      "history": "Historial de reasignaciones",
-      "historyEmpty": "Este afiliado no tiene reasignaciones registradas.",
-      "form": {
-        "title": "Reasignar promotor",
-        "description": "El enlace es permanente y cada cambio queda auditado.",
-        "byPromoter": "Elegir promotor",
-        "byCode": "Código de referido",
-        "searchPromoter": "Buscar promotor",
-        "searchPromoterHelp": "Escribe nombre o código (mín. 2 caracteres).",
-        "searchPromoterPlaceholder": "Nombre o código…",
-        "searchFirst": "Busca primero un promotor",
-        "referralCode": "Código de referido",
-        "reason": "Motivo",
-        "submit": "Reasignar",
-        "targetRequired": "Selecciona un promotor o introduce un código de referido."
-      }
-    },
-    "confirmation": {
-      "confirmed": "Confirmado",
-      "pending": "Pendiente de confirmación",
-      "confirmedAt": "Confirmado el {date}",
-      "confirm": "Confirmar afiliado",
-      "noPermission": "No tienes permiso para confirmar afiliados.",
-      "confirmedToast": "Afiliado confirmado correctamente.",
-      "confirmTitle": "Confirmar afiliado",
-      "confirmBody": "¿Confirmar a {name} como afiliado? Esto también ocurre automáticamente al aprobar su primer pago."
->>>>>>> Stashed changes
     },
     "portal": {
       "seoTitle": "Mi carnet — OptiBienestar 360",
@@ -1655,30 +1610,7 @@
       "sections": {
         "contact": "Contacto e identidad",
         "metrics": "Métricas",
-        "portfolio": "Cartera y cobranza",
-        "commissionHistory": "Histórico de comisiones",
         "metadata": "Metadatos"
-      },
-      "portfolio": {
-        "activeAffiliates": "Afiliados activos",
-        "upToDate": "Al día",
-        "overdue": "En mora",
-        "withoutMembership": "Sin membresía activa",
-        "periodCommissions": "Comisiones del mes",
-        "empty": "Este promotor aún no tiene afiliados en su cartera.",
-        "loadError": "No se pudo cargar la cartera de este promotor.",
-        "noCommissions": "Sin comisiones registradas en ningún período.",
-        "noMembership": "Sin membresía activa",
-        "columns": {
-          "member": "Afiliado",
-          "status": "Estado",
-          "nextDueDate": "Próximo vencimiento",
-          "monthlyFee": "Mensualidad",
-          "period": "Período",
-          "strategy": "Estrategia",
-          "count": "Comisiones",
-          "total": "Total"
-        }
       },
       "fields": {
         "displayName": "Nombre",
@@ -1688,18 +1620,10 @@
         "description": "Descripción",
         "email": "Correo electrónico",
         "phone": "Teléfono",
-<<<<<<< Updated upstream
         "personFullName": "Nombre",
         "personRif": "RIF",
         "userEmail": "Usuario",
         "promoterTypeUuid": "Tipo de promotor",
-=======
-        "userUuid": "UUID de usuario",
-        "userEmail": "Correo del usuario",
-        "personFullName": "Nombre de la persona",
-        "personRif": "RIF/Cédula",
-        "promoterType": "Tipo de promotor",
->>>>>>> Stashed changes
         "totalReferrals": "Total de referidos",
         "totalCommissionPaid": "Comisión total pagada",
         "createdAt": "Creado",
@@ -1756,10 +1680,6 @@
         "displayName": "Nombre",
         "referralCode": "Código de referido",
         "userUuid": "Usuario",
-<<<<<<< Updated upstream
-=======
-        "promoterType": "Tipo de promotor",
->>>>>>> Stashed changes
         "description": "Descripción",
         "email": "Correo electrónico",
         "phone": "Teléfono",
@@ -1794,15 +1714,6 @@
     "appliesTo": {
       "INSCRIPTION": "Inscripción",
       "MONTHLY": "Mensualidad"
-    },
-    "periodStrategy": {
-      "DAILY": "Diaria",
-      "WEEKLY": "Semanal",
-      "BIWEEKLY": "Quincenal",
-      "MONTHLY": "Mensual",
-      "QUARTERLY": "Trimestral",
-      "SEMIANNUAL": "Semestral",
-      "ANNUAL": "Anual"
     },
     "detail": {
       "title": "Detalle de la comisión",
@@ -1973,45 +1884,6 @@
         "allowConcurrent": "Permitir concurrencia",
         "maxSyncSeconds": "Máx. segundos síncronos",
         "active": "Activo"
-      }
-    }
-  },
-  "collectionCommissionTiers": {
-    "title": "Comisión de cobranza",
-    "subtitle": "Bandas de comisión adicional según los días de mora que el promotor logra cobrar.",
-    "new": "Nueva banda",
-    "searchPlaceholder": "Buscar por nombre…",
-    "includeInactive": "Mostrar inactivas",
-    "empty": "No hay bandas de comisión de cobranza registradas.",
-    "noPermission": "No tienes permiso para gestionar comisión de cobranza.",
-    "upToDays": "Hasta {days} días",
-    "createdToast": "Banda creada correctamente.",
-    "updatedToast": "Banda actualizada correctamente.",
-    "deletedToast": "Banda eliminada correctamente.",
-    "deleteTitle": "Eliminar banda",
-    "deleteConfirm": "¿Seguro que deseas eliminar la banda {name}? Esta acción no se puede deshacer.",
-    "paginationSummary": "Mostrando {shown} de {total}",
-    "columns": {
-      "name": "Nombre",
-      "maxDays": "Días de mora",
-      "commissionPct": "Comisión",
-      "active": "Activa",
-      "updatedAt": "Actualizada"
-    },
-    "form": {
-      "createTitle": "Nueva banda de comisión",
-      "editTitle": "Editar banda de comisión",
-      "description": "Bandas por días de mora cobrados: a menor mora, mayor comisión.",
-      "submitCreate": "Crear banda",
-      "maxDaysHelp": "Días máximos de mora que cubre esta banda.",
-      "maxDaysInvalid": "Debe ser un número entero positivo.",
-      "commissionPctHelp": "Porcentaje de comisión aplicado (0.01–100).",
-      "commissionPctInvalid": "Debe estar entre 0.01 y 100.",
-      "fields": {
-        "name": "Nombre",
-        "maxDays": "Días de mora (máx.)",
-        "commissionPct": "Comisión (%)",
-        "active": "Activa"
       }
     }
   },

@@ -43,10 +43,6 @@ export const PERMISSIONS = [
   'MEMBER_UPLOAD_DOCUMENT',
   'MEDICAL_RECORD_VIEW',
   'MEDICAL_RECORD_UPDATE',
-  // Reassigns the permanent member↔promoter link; also gates the promoter-history read.
-  'MEMBER_ASSIGN_PROMOTER',
-  // Manual confirmation (POST /confirm) — separate from MEMBER_UPDATE per backend design.
-  'MEMBER_CONFIRM',
 
   // ALLIES
   'ALLY_CREATE',
@@ -89,11 +85,8 @@ export const PERMISSIONS = [
   'COMMISSION_VIEW_ALL',
   'COMMISSION_VIEW_OWN',
   'COMMISSION_PAYOUT',
-<<<<<<< Updated upstream
   'COMMISSION_TIER_MANAGE',
   'BONUS_RULE_MANAGE',
-=======
->>>>>>> Stashed changes
   'COLLECTION_COMMISSION_TIER_MANAGE',
 
   // REFERRALS
