@@ -11,6 +11,7 @@ interface ListParams {
   size?: number
   sort?: string
   filter?: string
+  includeInactive?: boolean
 }
 
 interface OptionsParams {
@@ -31,6 +32,7 @@ export const useUsers = () => {
         size: params.size ?? 20,
         sort: params.sort ?? 'createdAt,desc',
         ...(params.filter ? { filter: params.filter } : {}),
+        ...(params.includeInactive ? { includeInactive: 'true' } : {}),
       },
     })
 

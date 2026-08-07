@@ -37,6 +37,7 @@ const page = ref(1) // UPagination is 1-based; the API is 0-based
 const size = ref(DEFAULT_PAGE_SIZE)
 const pageSizeItems = buildPageSizeItems(t)
 const search = ref('')
+const includeInactive = ref(false)
 
 async function load() {
   loading.value = true
@@ -47,6 +48,7 @@ async function load() {
       sort: 'enrolledAt,desc',
       // The backend exposes free-text search (trigram, accent-insensitive)
       q: search.value.trim() || undefined,
+      includeInactive: includeInactive.value,
     })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
@@ -71,6 +73,7 @@ watch(search, () => {
     load()
   }, 400)
 })
+watch(includeInactive, () => { page.value = 1; load() })
 
 // Member status badge/select label; falls back to the raw value.
 function statusLabel(s?: string | null): string {
@@ -466,7 +469,7 @@ function displayName(m: MemberDto): string {
     </div>
 
     <!-- Search -->
-    <div class="bg-white rounded-2xl border border-prohealth-100 p-4">
+    <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
       <UInput
         v-model="search"
         :placeholder="t('members.searchPlaceholder')"
@@ -474,6 +477,7 @@ function displayName(m: MemberDto): string {
         size="lg"
         class="w-full max-w-md"
       />
+      <UCheckbox v-model="includeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
     </div>
 
     <!-- Table -->

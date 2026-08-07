@@ -13,6 +13,7 @@ interface ListParams {
   sort?: string
   filter?: string
   q?: string
+  includeInactive?: boolean
 }
 
 interface RunListParams {
@@ -39,6 +40,7 @@ export const useScheduledJobs = () => {
         sort: params.sort ?? 'code,asc',
         ...(params.filter ? { filter: params.filter } : {}),
         ...(params.q ? { q: params.q } : {}),
+        ...(params.includeInactive ? { includeInactive: 'true' } : {}),
       },
     })
 

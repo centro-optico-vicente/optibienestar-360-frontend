@@ -29,6 +29,7 @@ const page = ref(1) // UPagination is 1-based; the API is 0-based
 const size = ref(DEFAULT_PAGE_SIZE)
 const pageSizeItems = buildPageSizeItems(t)
 const search = ref('')
+const includeInactive = ref(false)
 
 async function load() {
   loading.value = true
@@ -38,6 +39,7 @@ async function load() {
       size: size.value,
       sort: 'code,asc',
       q: search.value.trim() || undefined,
+      includeInactive: includeInactive.value,
     })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
@@ -62,6 +64,7 @@ watch(search, () => {
     load()
   }, 400)
 })
+watch(includeInactive, () => { page.value = 1; load() })
 
 onMounted(load)
 
@@ -153,7 +156,7 @@ function onDeleteFromEdit(p: PlanDto) {
     </div>
 
     <!-- Search -->
-    <div class="bg-white rounded-2xl border border-prohealth-100 p-4">
+    <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
       <UInput
         v-model="search"
         :placeholder="t('plans.searchPlaceholder')"
@@ -161,6 +164,7 @@ function onDeleteFromEdit(p: PlanDto) {
         size="lg"
         class="w-full max-w-md"
       />
+      <UCheckbox v-model="includeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
     </div>
 
     <!-- Table -->

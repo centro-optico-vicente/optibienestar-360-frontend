@@ -36,6 +36,7 @@ const page = ref(1) // UPagination es 1-based; la API es 0-based
 const size = ref(DEFAULT_PAGE_SIZE)
 const pageSizeItems = buildPageSizeItems(t)
 const search = ref('')
+const includeInactive = ref(false)
 
 function buildFilter(): string | undefined {
   const term = search.value.trim()
@@ -52,6 +53,7 @@ async function load() {
       size: size.value,
       sort: 'createdAt,desc',
       filter: buildFilter(),
+      includeInactive: includeInactive.value,
     })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
@@ -76,6 +78,7 @@ watch(search, () => {
     load()
   }, 400)
 })
+watch(includeInactive, () => { page.value = 1; load() })
 
 // ---- Catálogo de roles para el selector ----
 const roleOptions = ref<{ label: string, value: string }[]>([])
@@ -332,7 +335,7 @@ async function confirmDelete() {
     </div>
 
     <!-- Búsqueda -->
-    <div class="bg-white rounded-2xl border border-prohealth-100 p-4">
+    <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
       <UInput
         v-model="search"
         :placeholder="$t('security.users.searchPlaceholder')"
@@ -340,6 +343,7 @@ async function confirmDelete() {
         size="lg"
         class="w-full max-w-md"
       />
+      <UCheckbox v-model="includeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
     </div>
 
     <!-- Tabla -->
