@@ -357,7 +357,7 @@ async function confirmDelete() {
     </div>
 
     <!-- Create/edit modal (shared with the detail page) -->
-    <ScheduledJobFormModal v-model:open="formOpen" :job="editingJob" @saved="onSaved" />
+    <ScheduledJobFormModal v-model:open="formOpen" :job="editingJob" @saved="onSaved" @delete="openDelete" />
 
     <!-- Delete confirmation modal -->
     <UModal v-model:open="deleteOpen" :title="t('scheduledJobs.deleteTitle')">

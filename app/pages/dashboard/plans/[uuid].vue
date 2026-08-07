@@ -200,6 +200,29 @@ async function confirmDelete() {
         </p>
       </div>
 
+      <!-- Beneficiaries and validity -->
+      <div class="bg-white rounded-2xl border border-prohealth-100 p-6">
+        <h2 class="font-bold text-prohealth-900 mb-4">{{ t('plans.sections.beneficiaries') }}</h2>
+        <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-4 text-sm">
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('plans.beneficiaries.included') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ plan.includedBeneficiaries }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('plans.beneficiaries.max') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ plan.maxBeneficiaries ?? t('plans.beneficiaries.noLimit') }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('plans.beneficiaries.graceDays') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ plan.gracePeriodDays }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('plans.beneficiaries.publishedAt') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ formatDate(plan.publishedAt, 'long') }}</dd>
+          </div>
+        </dl>
+      </div>
+
       <!-- Pricing -->
       <div class="bg-white rounded-2xl border border-prohealth-100 p-6">
         <h2 class="font-bold text-prohealth-900 mb-4">{{ t('plans.sections.pricing') }}</h2>
@@ -220,29 +243,6 @@ async function confirmDelete() {
               {{ plan.extraBeneficiaryInscriptionFee != null ? money(plan.extraBeneficiaryInscriptionFee) : t('plans.pricing.notAllowed') }}
             </dd>
             <dd class="text-xs text-prohealth-500">{{ t('plans.pricing.extraBeneficiaryHint') }}</dd>
-          </div>
-        </dl>
-      </div>
-
-      <!-- Beneficiaries and validity -->
-      <div class="bg-white rounded-2xl border border-prohealth-100 p-6">
-        <h2 class="font-bold text-prohealth-900 mb-4">{{ t('plans.sections.beneficiaries') }}</h2>
-        <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-4 text-sm">
-          <div>
-            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('plans.beneficiaries.included') }}</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ plan.includedBeneficiaries }}</dd>
-          </div>
-          <div>
-            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('plans.beneficiaries.max') }}</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ plan.maxBeneficiaries ?? t('plans.beneficiaries.noLimit') }}</dd>
-          </div>
-          <div>
-            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('plans.beneficiaries.graceDays') }}</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ plan.gracePeriodDays }}</dd>
-          </div>
-          <div>
-            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('plans.beneficiaries.publishedAt') }}</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ formatDate(plan.publishedAt, 'long') }}</dd>
           </div>
         </dl>
       </div>
@@ -268,7 +268,7 @@ async function confirmDelete() {
     </template>
 
     <!-- Edit modal (shared with the list) -->
-    <PlanFormModal v-model:open="formOpen" :plan="plan" @saved="onSaved" />
+    <PlanFormModal v-model:open="formOpen" :plan="plan" @saved="onSaved" @delete="deleteOpen = true" />
 
     <!-- Delete confirmation modal -->
     <UModal v-model:open="deleteOpen" :title="t('plans.deleteTitle')">

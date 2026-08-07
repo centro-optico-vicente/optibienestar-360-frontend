@@ -22,6 +22,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:open': [value: boolean]
   'saved': [plan: PlanDto]
+  /** Shortcut so the parent can close this modal and open its delete confirmation. */
+  'delete': [plan: PlanDto]
 }>()
 
 const { t } = useI18n()
@@ -203,6 +205,15 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     isSubmitting.value = false
   }
 }
+
+// Shortcut from the edit modal so the user doesn't have to close it first
+// and hunt for the row's trash icon. Closes this modal and lets the parent
+// open its own delete confirmation, so the two dialogs never stack.
+function openDeleteFromEdit() {
+  if (!props.plan) return
+  isOpen.value = false
+  emit('delete', props.plan)
+}
 </script>
 
 <template>
@@ -248,6 +259,18 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           <UTextarea v-model="state.description" :rows="3" class="w-full" />
         </UFormField>
 
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <UFormField :label="t('plans.beneficiaries.included')" name="includedBeneficiaries" :help="t('plans.form.includedHelp')">
+            <UInput v-model="state.includedBeneficiaries" inputmode="numeric" placeholder="0" class="w-full" />
+          </UFormField>
+          <UFormField :label="t('plans.beneficiaries.max')" name="maxBeneficiaries" :help="t('plans.form.maxHelp')">
+            <UInput v-model="state.maxBeneficiaries" inputmode="numeric" :placeholder="t('plans.beneficiaries.noLimit')" class="w-full" />
+          </UFormField>
+          <UFormField :label="t('plans.beneficiaries.graceDays')" name="gracePeriodDays" :help="t('plans.form.graceHelp')">
+            <UInput v-model="state.gracePeriodDays" inputmode="numeric" placeholder="7" class="w-full" />
+          </UFormField>
+        </div>
+
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('plans.form.fields.inscription')" name="inscriptionFee" required :help="t('plans.pricing.inscriptionHint')">
             <UInput v-model="state.inscriptionFee" placeholder="10.00" class="w-full">
@@ -265,36 +288,40 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           </UFormField>
         </div>
 
-        <UFormField
-          :label="t('plans.form.fields.extraBeneficiary')"
-          name="extraBeneficiaryInscriptionFee"
-          :help="t('plans.form.extraBeneficiaryHelp')"
-        >
-          <UInput v-model="state.extraBeneficiaryInscriptionFee" placeholder="5.00" class="w-full">
-            <template #leading>
-              <span class="text-prohealth-400 text-sm">$</span>
-            </template>
-          </UInput>
-        </UFormField>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <UFormField
+            :label="t('plans.form.fields.extraBeneficiary')"
+            name="extraBeneficiaryInscriptionFee"
+            :help="t('plans.form.extraBeneficiaryHelp')"
+          >
+            <UInput v-model="state.extraBeneficiaryInscriptionFee" placeholder="5.00" class="w-full">
+              <template #leading>
+                <span class="text-prohealth-400 text-sm">$</span>
+              </template>
+            </UInput>
+          </UFormField>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <UFormField :label="t('plans.beneficiaries.included')" name="includedBeneficiaries" :help="t('plans.form.includedHelp')">
-            <UInput v-model="state.includedBeneficiaries" inputmode="numeric" placeholder="0" class="w-full" />
-          </UFormField>
-          <UFormField :label="t('plans.beneficiaries.max')" name="maxBeneficiaries" :help="t('plans.form.maxHelp')">
-            <UInput v-model="state.maxBeneficiaries" inputmode="numeric" :placeholder="t('plans.beneficiaries.noLimit')" class="w-full" />
-          </UFormField>
-          <UFormField :label="t('plans.beneficiaries.graceDays')" name="gracePeriodDays" :help="t('plans.form.graceHelp')">
-            <UInput v-model="state.gracePeriodDays" inputmode="numeric" placeholder="7" class="w-full" />
+          <UFormField :label="t('plans.published')" name="published" :help="t('plans.form.publishedHelp')">
+            <USwitch v-model="state.published" />
           </UFormField>
         </div>
 
-        <UFormField :label="t('plans.published')" name="published" :help="t('plans.form.publishedHelp')">
-          <USwitch v-model="state.published" />
-        </UFormField>
+        <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
 
         <div class="flex items-center justify-between gap-3 pt-2">
-          <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
+          <div v-if="mode === 'edit' && plan">
+            <UButton
+              color="error"
+              variant="ghost"
+              icon="i-lucide-trash-2"
+              size="sm"
+              :label="t('common.delete')"
+              :disabled="isSubmitting"
+              @click="openDeleteFromEdit"
+            />
+          </div>
+          <div v-else />
+
           <div class="flex items-center gap-3">
             <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="isOpen = false">
               {{ t('common.cancel') }}

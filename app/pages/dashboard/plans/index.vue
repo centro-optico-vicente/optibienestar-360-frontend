@@ -122,6 +122,12 @@ async function confirmDelete() {
     deleting.value = false
   }
 }
+
+// Shortcut from the edit modal (PlanFormModal emits `delete`); the modal already
+// closed itself, so just open the confirmation.
+function onDeleteFromEdit(p: PlanDto) {
+  openDelete(p)
+}
 </script>
 
 <template>
@@ -272,7 +278,7 @@ async function confirmDelete() {
     </div>
 
     <!-- Create/edit modal (shared with the detail page) -->
-    <PlanFormModal v-model:open="formOpen" :plan="editingPlan" @saved="onSaved" />
+    <PlanFormModal v-model:open="formOpen" :plan="editingPlan" @saved="onSaved" @delete="onDeleteFromEdit" />
 
     <!-- Delete confirmation modal -->
     <UModal v-model:open="deleteOpen" :title="t('plans.deleteTitle')">

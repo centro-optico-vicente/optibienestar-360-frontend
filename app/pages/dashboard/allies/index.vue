@@ -131,6 +131,7 @@ onMounted(async () => {
 const formOpen = ref(false)
 const mode = ref<'create' | 'edit'>('create')
 const editingUuid = ref<string | null>(null)
+const editingItem = ref<AllyDto | null>(null)
 const isSubmitting = ref(false)
 // The list returns a compact projection (AllyListItemDto) with flat fields; on edit
 // the full detail is loaded, and this flag shows the loading state in the modal.
@@ -219,6 +220,7 @@ function openCreate() {
 async function openEdit(a: AllyDto) {
   mode.value = 'edit'
   editingUuid.value = a.uuid
+  editingItem.value = a
   resetForm()
   formOpen.value = true
   // The list row (AllyListItemDto) carries flat fields (allyTypeUuid, etc.) and omits
@@ -317,6 +319,15 @@ const target = ref<AllyDto | null>(null)
 function openDelete(a: AllyDto) {
   target.value = a
   deleteOpen.value = true
+}
+
+// Shortcut from the edit modal so the user doesn't have to close it first
+// and hunt for the row's trash icon. Closes the edit modal so the two
+// dialogs never stack.
+function openDeleteFromEdit() {
+  if (!editingItem.value) return
+  formOpen.value = false
+  openDelete(editingItem.value)
 }
 
 async function confirmDelete() {
@@ -619,8 +630,24 @@ async function confirmDelete() {
             </UFormField>
           </div>
 
+          <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
+
           <div class="flex items-center justify-between gap-3 pt-2">
-            <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
+            <div v-if="mode === 'edit' && editingItem">
+              <UTooltip :text="canDelete ? t('common.delete') : t('allies.noPermissionDelete')">
+                <UButton
+                  color="error"
+                  variant="ghost"
+                  icon="i-lucide-trash-2"
+                  size="sm"
+                  :label="t('common.delete')"
+                  :disabled="isSubmitting || !canDelete"
+                  @click="openDeleteFromEdit"
+                />
+              </UTooltip>
+            </div>
+            <div v-else />
+
             <div class="flex items-center gap-3">
               <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="formOpen = false">
                 {{ t('common.cancel') }}

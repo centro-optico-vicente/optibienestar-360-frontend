@@ -91,6 +91,7 @@ async function loadBeneficiaries() {
 const benFormOpen = ref(false)
 const benMode = ref<'create' | 'edit'>('create')
 const benEditingUuid = ref<string | null>(null)
+const benEditingItem = ref<BeneficiaryDto | null>(null)
 const benSubmitting = ref(false)
 
 const { options: documentTypeOptions, load: loadDocumentTypes } = useDocumentTypes()
@@ -155,6 +156,7 @@ function openBenCreate() {
 function openBenEdit(b: BeneficiaryDto) {
   benMode.value = 'edit'
   benEditingUuid.value = b.uuid
+  benEditingItem.value = b
   resetBenForm()
   benState.firstName = b.firstName ?? ''
   benState.middleName = b.middleName ?? ''
@@ -219,6 +221,15 @@ const benTarget = ref<BeneficiaryDto | null>(null)
 function openBenDelete(b: BeneficiaryDto) {
   benTarget.value = b
   benDeleteOpen.value = true
+}
+
+// Shortcut from the edit modal so the user doesn't have to close it first
+// and hunt for the row's trash icon. Closes the edit modal so the two
+// dialogs never stack.
+function openBenDeleteFromEdit() {
+  if (!benEditingItem.value) return
+  benFormOpen.value = false
+  openBenDelete(benEditingItem.value)
 }
 
 async function confirmBenDelete() {
@@ -734,8 +745,24 @@ onMounted(async () => {
             </UFormField>
           </div>
 
+          <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
+
           <div class="flex items-center justify-between gap-3 pt-2">
-            <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
+            <div v-if="benMode === 'edit' && benEditingItem">
+              <UTooltip :text="canDelete ? t('common.delete') : t('members.noPermission')">
+                <UButton
+                  color="error"
+                  variant="ghost"
+                  icon="i-lucide-trash-2"
+                  size="sm"
+                  :label="t('common.delete')"
+                  :disabled="benSubmitting || !canDelete"
+                  @click="openBenDeleteFromEdit"
+                />
+              </UTooltip>
+            </div>
+            <div v-else />
+
             <div class="flex items-center gap-3">
               <UButton color="neutral" variant="ghost" :disabled="benSubmitting" @click="benFormOpen = false">
                 {{ t('common.cancel') }}
@@ -822,13 +849,30 @@ onMounted(async () => {
             <UTextarea v-model="medState.notes" :rows="2" class="w-full" />
           </UFormField>
 
-          <div class="flex items-center justify-end gap-3 pt-2">
-            <UButton color="neutral" variant="ghost" :disabled="medSubmitting" @click="medFormOpen = false">
-              {{ t('common.cancel') }}
-            </UButton>
-            <UButton type="submit" color="primary" :loading="medSubmitting" icon="i-lucide-save">
-              {{ t('members.medical.form.submit') }}
-            </UButton>
+          <div class="flex items-center justify-between gap-3 pt-2">
+            <div v-if="medicalExists">
+              <UTooltip :text="canEditMedical ? t('members.medical.deleteTooltip') : t('members.noPermission')">
+                <UButton
+                  color="error"
+                  variant="ghost"
+                  icon="i-lucide-trash-2"
+                  size="sm"
+                  :label="t('common.delete')"
+                  :disabled="medSubmitting || !canEditMedical"
+                  @click="medFormOpen = false; medDeleteOpen = true"
+                />
+              </UTooltip>
+            </div>
+            <div v-else />
+
+            <div class="flex items-center gap-3">
+              <UButton color="neutral" variant="ghost" :disabled="medSubmitting" @click="medFormOpen = false">
+                {{ t('common.cancel') }}
+              </UButton>
+              <UButton type="submit" color="primary" :loading="medSubmitting" icon="i-lucide-save">
+                {{ t('members.medical.form.submit') }}
+              </UButton>
+            </div>
           </div>
         </UForm>
       </template>

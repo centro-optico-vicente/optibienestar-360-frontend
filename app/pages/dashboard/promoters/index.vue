@@ -279,7 +279,7 @@ async function confirmDelete() {
     </div>
 
     <!-- Create/edit modal (shared with the detail page) -->
-    <PromoterFormModal v-model:open="formOpen" :promoter="editingPromoter" @saved="onSaved" />
+    <PromoterFormModal v-model:open="formOpen" :promoter="editingPromoter" @saved="onSaved" @delete="openDelete" />
 
     <!-- Delete confirmation modal -->
     <UModal v-model:open="deleteOpen" :title="t('promoters.deleteTitle')">
