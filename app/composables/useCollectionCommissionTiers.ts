@@ -12,6 +12,7 @@ interface ListParams {
   filter?: string
   q?: string
   includeInactive?: boolean
+  promoterTypeUuid?: string
 }
 
 /**
@@ -29,6 +30,7 @@ export const useCollectionCommissionTiers = () => {
         ...(params.filter ? { filter: params.filter } : {}),
         ...(params.q ? { q: params.q } : {}),
         ...(params.includeInactive ? { includeInactive: 'true' } : {}),
+        ...(params.promoterTypeUuid ? { promoterTypeUuid: params.promoterTypeUuid } : {}),
       },
     })
 

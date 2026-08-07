@@ -52,6 +52,8 @@ export interface BonusRuleDto {
   rewardPct?: number | string | null
   rewardCurrency: string
   includeSystemPromoters: boolean
+  promoterTypeUuid?: string | null
+  promoterTypeName?: string | null
   active: boolean
   createdAt?: string
 }
@@ -71,4 +73,5 @@ export interface BonusRuleRequest {
   rewardPct?: string | null
   rewardCurrency?: string
   includeSystemPromoters?: boolean
+  promoterTypeUuid?: string | null
 }

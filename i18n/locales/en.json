@@ -1975,10 +1975,17 @@
       "invalidAmount": "Invalid amount",
       "integersOnly": "Integers only"
     },
+    "filters": {
+      "allPromoterTypes": "All promoter types",
+      "allPlanTypes": "All plans",
+      "allAppliesTo": "All"
+    },
     "tiers": {
       "new": "New band",
       "empty": "No commission bands configured",
       "allPlans": "All plans",
+      "searchPlaceholder": "Search by name...",
+      "paginationSummary": "Showing {shown} of {total}",
       "rewardKindPct": "Percentage",
       "rewardKindFlat": "Flat amount",
       "createdToast": "Band created",
@@ -2012,6 +2019,8 @@
     "bonusRules": {
       "new": "New bonus rule",
       "empty": "No bonus rules configured",
+      "searchPlaceholder": "Search by name...",
+      "paginationSummary": "Showing {shown} of {total}",
       "createdToast": "Rule created",
       "updatedToast": "Rule updated",
       "deletedToast": "Rule deleted",
@@ -2046,6 +2055,8 @@
     "collectionTiers": {
       "new": "New collection bucket",
       "empty": "No collection buckets configured",
+      "searchPlaceholder": "Search by name...",
+      "paginationSummary": "Showing {shown} of {total}",
       "createdToast": "Bucket created",
       "updatedToast": "Bucket updated",
       "deletedToast": "Bucket deleted",

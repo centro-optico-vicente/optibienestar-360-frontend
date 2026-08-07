@@ -1975,10 +1975,17 @@
       "invalidAmount": "Monto no válido",
       "integersOnly": "Solo números enteros"
     },
+    "filters": {
+      "allPromoterTypes": "Todos los tipos de promotor",
+      "allPlanTypes": "Todos los planes",
+      "allAppliesTo": "Todos"
+    },
     "tiers": {
       "new": "Nueva banda",
       "empty": "Sin bandas de comisión configuradas",
       "allPlans": "Todos los planes",
+      "searchPlaceholder": "Buscar por nombre...",
+      "paginationSummary": "Mostrando {shown} de {total}",
       "rewardKindPct": "Porcentaje",
       "rewardKindFlat": "Monto fijo",
       "createdToast": "Banda creada",
@@ -2012,6 +2019,8 @@
     "bonusRules": {
       "new": "Nueva regla de bono",
       "empty": "Sin reglas de bono configuradas",
+      "searchPlaceholder": "Buscar por nombre...",
+      "paginationSummary": "Mostrando {shown} de {total}",
       "createdToast": "Regla creada",
       "updatedToast": "Regla actualizada",
       "deletedToast": "Regla eliminada",
@@ -2046,6 +2055,8 @@
     "collectionTiers": {
       "new": "Nuevo tramo de cobranza",
       "empty": "Sin tramos de cobranza configurados",
+      "searchPlaceholder": "Buscar por nombre...",
+      "paginationSummary": "Mostrando {shown} de {total}",
       "createdToast": "Tramo creado",
       "updatedToast": "Tramo actualizado",
       "deletedToast": "Tramo eliminado",
