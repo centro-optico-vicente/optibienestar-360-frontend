@@ -100,6 +100,7 @@ onMounted(async () => {
 const formOpen = ref(false)
 const mode = ref<'create' | 'edit'>('create')
 const editingUuid = ref<string | null>(null)
+const editingItem = ref<UserDto | null>(null)
 const isSubmitting = ref(false)
 
 // Backend only accepts these (AdminUpdateUserRequest.status pattern).
@@ -207,6 +208,7 @@ function openCreate() {
 function openEdit(u: UserDto) {
   mode.value = 'edit'
   editingUuid.value = u.uuid
+  editingItem.value = u
   resetForm()
   state.email = u.email
   state.firstName = u.firstName ?? ''
@@ -276,6 +278,15 @@ const target = ref<UserDto | null>(null)
 function openDelete(u: UserDto) {
   target.value = u
   deleteOpen.value = true
+}
+
+// Shortcut from the edit modal so the user doesn't have to close it first
+// and hunt for the row's trash icon. Closes the edit modal so the two
+// dialogs never stack.
+function openDeleteFromEdit() {
+  if (!editingItem.value) return
+  formOpen.value = false
+  openDelete(editingItem.value)
 }
 
 async function confirmDelete() {
@@ -538,8 +549,24 @@ async function confirmDelete() {
             />
           </UFormField>
 
+          <p class="text-xs text-prohealth-500">{{ $t('common.requiredFieldsHint') }}</p>
+
           <div class="flex items-center justify-between gap-3 pt-2">
-            <p class="text-xs text-prohealth-500">{{ $t('common.requiredFieldsHint') }}</p>
+            <div v-if="mode === 'edit' && editingItem">
+              <UTooltip :text="canDelete ? $t('common.delete') : $t('security.users.noPermissionDelete')">
+                <UButton
+                  color="error"
+                  variant="ghost"
+                  icon="i-lucide-trash-2"
+                  size="sm"
+                  :label="$t('common.delete')"
+                  :disabled="isSubmitting || !canDelete"
+                  @click="openDeleteFromEdit"
+                />
+              </UTooltip>
+            </div>
+            <div v-else />
+
             <div class="flex items-center gap-3">
               <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="formOpen = false">
                 {{ $t('common.cancel') }}

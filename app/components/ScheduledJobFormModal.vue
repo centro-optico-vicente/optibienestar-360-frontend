@@ -21,6 +21,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:open': [value: boolean]
   'saved': [job: ScheduledJobDto]
+  /** Shortcut so the parent can close this modal and open its delete confirmation. */
+  'delete': [job: ScheduledJobDto]
 }>()
 
 const { t } = useI18n()
@@ -161,6 +163,15 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     isSubmitting.value = false
   }
 }
+
+// Shortcut from the edit modal so the user doesn't have to close it first
+// and hunt for the row's trash icon. Closes this modal and lets the parent
+// open its own delete confirmation, so the two dialogs never stack.
+function openDeleteFromEdit() {
+  if (!props.job) return
+  isOpen.value = false
+  emit('delete', props.job)
+}
 </script>
 
 <template>
@@ -241,8 +252,22 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           <USwitch v-model="state.active" />
         </UFormField>
 
+        <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
+
         <div class="flex items-center justify-between gap-3 pt-2">
-          <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
+          <div v-if="mode === 'edit' && job">
+            <UButton
+              color="error"
+              variant="ghost"
+              icon="i-lucide-trash-2"
+              size="sm"
+              :label="t('common.delete')"
+              :disabled="isSubmitting"
+              @click="openDeleteFromEdit"
+            />
+          </div>
+          <div v-else />
+
           <div class="flex items-center gap-3">
             <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="isOpen = false">
               {{ t('common.cancel') }}

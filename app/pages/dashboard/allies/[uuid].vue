@@ -150,6 +150,7 @@ async function loadCategories() {
 const svcFormOpen = ref(false)
 const svcMode = ref<'create' | 'edit'>('create')
 const svcEditingUuid = ref<string | null>(null)
+const svcEditingItem = ref<AllyServiceDto | null>(null)
 const svcSubmitting = ref(false)
 
 interface SvcFormState {
@@ -200,6 +201,7 @@ function openSvcCreate() {
 function openSvcEdit(s: AllyServiceDto) {
   svcMode.value = 'edit'
   svcEditingUuid.value = s.uuid
+  svcEditingItem.value = s
   resetSvcForm()
   svcState.serviceCategoryUuid = s.serviceCategory?.uuid
   svcState.name = s.name ?? ''
@@ -257,6 +259,15 @@ const svcTarget = ref<AllyServiceDto | null>(null)
 function openSvcDelete(s: AllyServiceDto) {
   svcTarget.value = s
   svcDeleteOpen.value = true
+}
+
+// Shortcut from the edit modal so the user doesn't have to close it first
+// and hunt for the row's trash icon. Closes the edit modal so the two
+// dialogs never stack.
+function openSvcDeleteFromEdit() {
+  if (!svcEditingItem.value) return
+  svcFormOpen.value = false
+  openSvcDelete(svcEditingItem.value)
 }
 
 async function confirmSvcDelete() {
@@ -374,6 +385,7 @@ async function loadAgreements() {
 const agrFormOpen = ref(false)
 const agrMode = ref<'create' | 'edit'>('create')
 const agrEditingUuid = ref<string | null>(null)
+const agrEditingItem = ref<AllyAgreementDto | null>(null)
 const agrSubmitting = ref(false)
 
 interface AgrFormState {
@@ -421,6 +433,7 @@ function openAgrCreate() {
 function openAgrEdit(a: AllyAgreementDto) {
   agrMode.value = 'edit'
   agrEditingUuid.value = a.uuid
+  agrEditingItem.value = a
   resetAgrForm()
   agrState.agreementType = a.agreementType as AgreementType
   agrState.startDate = a.startDate ?? ''
@@ -475,6 +488,15 @@ const agrTarget = ref<AllyAgreementDto | null>(null)
 function openAgrDelete(a: AllyAgreementDto) {
   agrTarget.value = a
   agrDeleteOpen.value = true
+}
+
+// Shortcut from the edit modal so the user doesn't have to close it first
+// and hunt for the row's trash icon. Closes the edit modal so the two
+// dialogs never stack.
+function openAgrDeleteFromEdit() {
+  if (!agrEditingItem.value) return
+  agrFormOpen.value = false
+  openAgrDelete(agrEditingItem.value)
 }
 
 async function confirmAgrDelete() {
@@ -534,6 +556,7 @@ async function loadUserOptions() {
 const staffFormOpen = ref(false)
 const staffMode = ref<'create' | 'edit'>('create')
 const staffEditingUuid = ref<string | null>(null)
+const staffEditingItem = ref<AllyUserDto | null>(null)
 const staffSubmitting = ref(false)
 
 interface StaffFormState {
@@ -581,6 +604,7 @@ function openStaffCreate() {
 function openStaffEdit(s: AllyUserDto) {
   staffMode.value = 'edit'
   staffEditingUuid.value = s.uuid
+  staffEditingItem.value = s
   resetStaffForm()
   staffState.userUuid = s.userUuid
   staffState.allyRole = s.allyRole as AllyRole
@@ -634,6 +658,15 @@ const staffTarget = ref<AllyUserDto | null>(null)
 function openStaffDelete(s: AllyUserDto) {
   staffTarget.value = s
   staffDeleteOpen.value = true
+}
+
+// Shortcut from the edit modal so the user doesn't have to close it first
+// and hunt for the row's icon. Closes the edit modal so the two dialogs
+// never stack.
+function openStaffDeleteFromEdit() {
+  if (!staffEditingItem.value) return
+  staffFormOpen.value = false
+  openStaffDelete(staffEditingItem.value)
 }
 
 async function confirmStaffDelete() {
@@ -1156,8 +1189,24 @@ onMounted(async () => {
             </UFormField>
           </div>
 
+          <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
+
           <div class="flex items-center justify-between gap-3 pt-2">
-            <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
+            <div v-if="svcMode === 'edit' && svcEditingItem">
+              <UTooltip :text="canDelete ? t('common.delete') : t('allies.noPermission')">
+                <UButton
+                  color="error"
+                  variant="ghost"
+                  icon="i-lucide-trash-2"
+                  size="sm"
+                  :label="t('common.delete')"
+                  :disabled="svcSubmitting || !canDelete"
+                  @click="openSvcDeleteFromEdit"
+                />
+              </UTooltip>
+            </div>
+            <div v-else />
+
             <div class="flex items-center gap-3">
               <UButton color="neutral" variant="ghost" :disabled="svcSubmitting" @click="svcFormOpen = false">
                 {{ t('common.cancel') }}
@@ -1241,8 +1290,22 @@ onMounted(async () => {
             />
           </UFormField>
 
+          <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
+
           <div class="flex items-center justify-between gap-3 pt-2">
-            <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
+            <div v-if="agrMode === 'edit' && agrEditingItem">
+              <UButton
+                color="error"
+                variant="ghost"
+                icon="i-lucide-trash-2"
+                size="sm"
+                :label="t('common.delete')"
+                :disabled="agrSubmitting"
+                @click="openAgrDeleteFromEdit"
+              />
+            </div>
+            <div v-else />
+
             <div class="flex items-center gap-3">
               <UButton color="neutral" variant="ghost" :disabled="agrSubmitting" @click="agrFormOpen = false">
                 {{ t('common.cancel') }}
@@ -1330,8 +1393,24 @@ onMounted(async () => {
             </UFormField>
           </div>
 
+          <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
+
           <div class="flex items-center justify-between gap-3 pt-2">
-            <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
+            <div v-if="staffMode === 'edit' && staffEditingItem">
+              <UTooltip :text="canUpdate ? t('allies.staff.unlinkTooltip') : t('allies.noPermission')">
+                <UButton
+                  color="error"
+                  variant="ghost"
+                  icon="i-lucide-user-minus"
+                  size="sm"
+                  :label="t('common.delete')"
+                  :disabled="staffSubmitting || !canUpdate"
+                  @click="openStaffDeleteFromEdit"
+                />
+              </UTooltip>
+            </div>
+            <div v-else />
+
             <div class="flex items-center gap-3">
               <UButton color="neutral" variant="ghost" :disabled="staffSubmitting" @click="staffFormOpen = false">
                 {{ t('common.cancel') }}
