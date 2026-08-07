@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import type { ApiError } from '~/types/auth'
-import type { PromoterDto, PromoterStatus } from '~/types/promoters'
+import type {
+  CommissionPeriodSummaryDto,
+  PromoterDashboardDto,
+  PromoterDto,
+  PromoterMemberRow,
+  PromoterStatus,
+} from '~/types/promoters'
 
 definePageMeta({
   layout: 'dashboard',
@@ -42,7 +48,10 @@ async function loadPromoter() {
   }
 }
 
-onMounted(loadPromoter)
+onMounted(async () => {
+  await loadPromoter()
+  await Promise.all([loadPortfolio(), loadCommissionsSummary()])
+})
 
 // Amount in USD, formatted in the VE convention (useFormatters). Empty → '—'.
 function money(v?: number | string | null): string {
@@ -88,6 +97,83 @@ async function confirmDelete() {
   }
   finally {
     deleting.value = false
+  }
+}
+
+// ---- Tabs ----
+const tabs = computed(() => [
+  { label: t('promoters.tabs.referrals'), value: 'referrals', icon: 'i-lucide-users' },
+  { label: t('promoters.tabs.commissions'), value: 'commissions', icon: 'i-lucide-hand-coins' },
+])
+const activeTab = ref('referrals')
+
+// =========================================================
+// Referidos (cartera + salud de cobranza)
+// =========================================================
+const dashboard = ref<PromoterDashboardDto | null>(null)
+const portfolioLoading = ref(false)
+
+async function loadPortfolio() {
+  portfolioLoading.value = true
+  try {
+    dashboard.value = await promoters.portfolio(promoterUuid)
+  }
+  catch {
+    // toast handled by useApi
+  }
+  finally {
+    portfolioLoading.value = false
+  }
+}
+
+type ReferralQuickFilter = 'all' | 'active' | 'overdue' | 'withoutMembership'
+const referralFilter = ref<ReferralQuickFilter>('all')
+
+function memberBucket(row: PromoterMemberRow): 'active' | 'overdue' | 'withoutMembership' {
+  if (row.membershipStatus === 'ACTIVE') return 'active'
+  if (row.membershipStatus === 'SUSPENDED' || row.membershipStatus === 'EXPIRED') return 'overdue'
+  return 'withoutMembership'
+}
+
+const filteredPortfolio = computed(() => {
+  const rows = dashboard.value?.portfolio ?? []
+  if (referralFilter.value === 'all') return rows
+  return rows.filter(r => memberBucket(r) === referralFilter.value)
+})
+
+function membershipStatusLabel(status: PromoterMemberRow['membershipStatus']): string {
+  if (status === 'ACTIVE') return t('promoters.detail.referrals.status.active')
+  if (status === 'SUSPENDED' || status === 'EXPIRED') return t('promoters.detail.referrals.status.overdue')
+  return t('promoters.detail.referrals.status.withoutMembership')
+}
+
+function membershipStatusColor(status: PromoterMemberRow['membershipStatus']): 'success' | 'warning' | 'neutral' {
+  if (status === 'ACTIVE') return 'success'
+  if (status === 'SUSPENDED' || status === 'EXPIRED') return 'warning'
+  return 'neutral'
+}
+
+// Date in the VE convention (useFormatters). Empty → '—'.
+function date(iso?: string | null): string {
+  return formatDate(iso, 'short')
+}
+
+// =========================================================
+// Comisiones por período
+// =========================================================
+const commissionsSummary = ref<CommissionPeriodSummaryDto[]>([])
+const commissionsLoading = ref(false)
+
+async function loadCommissionsSummary() {
+  commissionsLoading.value = true
+  try {
+    commissionsSummary.value = await promoters.commissionsSummary(promoterUuid)
+  }
+  catch {
+    // toast handled by useApi
+  }
+  finally {
+    commissionsLoading.value = false
   }
 }
 </script>
@@ -184,12 +270,16 @@ async function confirmDelete() {
             <dd class="text-prohealth-800 mt-0.5 font-mono">{{ promoter.referralCode }}</dd>
           </div>
           <div>
-            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.fields.userUuid') }}</dt>
-            <dd class="text-prohealth-800 mt-0.5 font-mono text-xs break-all">{{ promoter.userUuid || t('common.empty') }}</dd>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.fields.personFullName') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ promoter.personFullName || t('common.empty') }}</dd>
           </div>
           <div>
-            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.fields.personUuid') }}</dt>
-            <dd class="text-prohealth-800 mt-0.5 font-mono text-xs break-all">{{ promoter.personUuid || t('common.empty') }}</dd>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.fields.personRif') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ promoter.personRif || t('common.empty') }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.fields.userEmail') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ promoter.userEmail || t('common.empty') }}</dd>
           </div>
         </dl>
       </div>
@@ -226,6 +316,119 @@ async function confirmDelete() {
             <dd class="text-prohealth-800 mt-0.5 font-mono text-xs break-all">{{ promoter.uuid }}</dd>
           </div>
         </dl>
+      </div>
+
+      <!-- Sub-resource tabs -->
+      <UTabs v-model="activeTab" :items="tabs" :content="false" />
+
+      <!-- ============ Referidos ============ -->
+      <div v-show="activeTab === 'referrals'" class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
+        <div class="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-b border-prohealth-100">
+          <div>
+            <h2 class="font-bold text-prohealth-900">{{ t('promoters.detail.referrals.title') }}</h2>
+            <p class="text-xs text-prohealth-500 mt-0.5">{{ t('promoters.detail.referrals.hint') }}</p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <UButton
+              size="xs"
+              variant="soft"
+              :color="referralFilter === 'all' ? 'primary' : 'neutral'"
+              @click="referralFilter = 'all'"
+            >
+              {{ t('promoters.detail.referrals.filters.all') }} ({{ dashboard?.portfolio.length ?? 0 }})
+            </UButton>
+            <UButton
+              size="xs"
+              variant="soft"
+              :color="referralFilter === 'active' ? 'success' : 'neutral'"
+              @click="referralFilter = 'active'"
+            >
+              {{ t('promoters.detail.referrals.filters.active') }} ({{ dashboard?.affiliatesUpToDate ?? 0 }})
+            </UButton>
+            <UButton
+              size="xs"
+              variant="soft"
+              :color="referralFilter === 'overdue' ? 'warning' : 'neutral'"
+              @click="referralFilter = 'overdue'"
+            >
+              {{ t('promoters.detail.referrals.filters.overdue') }} ({{ dashboard?.affiliatesOverdue ?? 0 }})
+            </UButton>
+            <UButton
+              size="xs"
+              :variant="referralFilter === 'withoutMembership' ? 'solid' : 'soft'"
+              color="neutral"
+              @click="referralFilter = 'withoutMembership'"
+            >
+              {{ t('promoters.detail.referrals.filters.withoutMembership') }} ({{ dashboard?.affiliatesWithoutMembership ?? 0 }})
+            </UButton>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
+                <th class="px-6 py-3 font-semibold">{{ t('promoters.detail.referrals.columns.member') }}</th>
+                <th class="px-6 py-3 font-semibold">{{ t('promoters.detail.referrals.columns.status') }}</th>
+                <th class="px-6 py-3 font-semibold">{{ t('promoters.detail.referrals.columns.nextDueDate') }}</th>
+                <th class="px-6 py-3 font-semibold">{{ t('promoters.detail.referrals.columns.monthlyFee') }}</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-prohealth-100">
+              <TableSkeleton v-if="portfolioLoading" :rows="3" :cols="4" />
+              <tr v-else-if="filteredPortfolio.length === 0">
+                <td colspan="4" class="px-6 py-10 text-center text-prohealth-500">
+                  <UIcon name="i-lucide-users" class="w-7 h-7 mx-auto mb-2 text-prohealth-300" />
+                  {{ t('promoters.detail.referrals.empty') }}
+                </td>
+              </tr>
+              <tr v-for="m in filteredPortfolio" v-else :key="m.memberUuid" class="hover:bg-prohealth-50/50">
+                <td class="px-6 py-3 font-semibold text-prohealth-900">{{ m.memberName }}</td>
+                <td class="px-6 py-3">
+                  <UBadge :color="membershipStatusColor(m.membershipStatus)" variant="subtle" size="sm">
+                    {{ membershipStatusLabel(m.membershipStatus) }}
+                  </UBadge>
+                </td>
+                <td class="px-6 py-3 text-prohealth-600">{{ date(m.nextDueDate) }}</td>
+                <td class="px-6 py-3 text-prohealth-700">{{ money(m.monthlyFee) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ============ Comisiones por período ============ -->
+      <div v-show="activeTab === 'commissions'" class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
+        <div class="px-6 py-4 border-b border-prohealth-100">
+          <h2 class="font-bold text-prohealth-900">{{ t('promoters.detail.commissions.title') }}</h2>
+          <p class="text-xs text-prohealth-500 mt-0.5">{{ t('promoters.detail.commissions.hint') }}</p>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
+                <th class="px-6 py-3 font-semibold">{{ t('promoters.detail.commissions.columns.period') }}</th>
+                <th class="px-6 py-3 font-semibold">{{ t('promoters.detail.commissions.columns.count') }}</th>
+                <th class="px-6 py-3 font-semibold">{{ t('promoters.detail.commissions.columns.total') }}</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-prohealth-100">
+              <TableSkeleton v-if="commissionsLoading" :rows="3" :cols="3" />
+              <tr v-else-if="commissionsSummary.length === 0">
+                <td colspan="3" class="px-6 py-10 text-center text-prohealth-500">
+                  <UIcon name="i-lucide-hand-coins" class="w-7 h-7 mx-auto mb-2 text-prohealth-300" />
+                  {{ t('promoters.detail.commissions.empty') }}
+                </td>
+              </tr>
+              <tr v-for="s in commissionsSummary" v-else :key="`${s.periodStart}-${s.periodEnd}`" class="hover:bg-prohealth-50/50">
+                <td class="px-6 py-3 font-semibold text-prohealth-900">{{ date(s.periodStart) }} – {{ date(s.periodEnd) }}</td>
+                <td class="px-6 py-3 text-prohealth-700">{{ s.commissionCount }}</td>
+                <td class="px-6 py-3 text-prohealth-700">{{ money(s.totalAmount) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </template>
 

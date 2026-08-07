@@ -1,6 +1,8 @@
 import type { Page } from '~/types/admin'
 import type {
+  CommissionPeriodSummaryDto,
   PromoterCreateRequest,
+  PromoterDashboardDto,
   PromoterDto,
   PromoterUpdateRequest,
 } from '~/types/promoters'
@@ -48,5 +50,13 @@ export const usePromoters = () => {
   const remove = (uuid: string) =>
     useApi<null>(`/v1/admin/promoters/${uuid}`, { method: 'DELETE' })
 
-  return { list, get, create, update, remove }
+  /** Cartera de afiliados + salud de cobranza + comisiones del mes en curso. */
+  const portfolio = (uuid: string) =>
+    useApi<PromoterDashboardDto>(`/v1/admin/promoters/${uuid}/portfolio`)
+
+  /** Historial de comisiones por período, más reciente primero. */
+  const commissionsSummary = (uuid: string) =>
+    useApi<CommissionPeriodSummaryDto[]>(`/v1/admin/promoters/${uuid}/commissions/summary`)
+
+  return { list, get, create, update, remove, portfolio, commissionsSummary }
 }

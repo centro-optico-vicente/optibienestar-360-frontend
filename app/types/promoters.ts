@@ -55,7 +55,10 @@ export interface PromoterDto {
   /** true en la fila del sistema INSTITUCION (no editable ni eliminable). */
   system: boolean
   userUuid?: string | null
+  userEmail?: string | null
   personUuid?: string | null
+  personFullName?: string | null
+  personRif?: string | null
   promoterTypeUuid?: string | null
   promoterTypeName?: string | null
   email?: string
@@ -66,6 +69,43 @@ export interface PromoterDto {
   status: PromoterStatus
   createdAt: string
   updatedAt: string
+}
+
+/** Un afiliado en la cartera de un promotor — fila de `PromoterDashboardDto.portfolio`. */
+export interface PromoterMemberRow {
+  memberUuid: string
+  memberName: string
+  /** ACTIVE = al día; SUSPENDED/EXPIRED = vencida; null = sin membresía activa. */
+  membershipStatus: 'ACTIVE' | 'SUSPENDED' | 'EXPIRED' | null
+  nextDueDate: string | null
+  monthlyFee: number | null
+}
+
+/** Body de GET /v1/admin/promoters/{uuid}/portfolio — cartera + salud de cobranza del promotor. */
+export interface PromoterDashboardDto {
+  promoterUuid: string
+  promoterName: string
+  referralCode: string
+  activeAffiliates: number
+  affiliatesUpToDate: number
+  affiliatesOverdue: number
+  affiliatesWithoutMembership: number
+  periodCommissions: number
+  periodCurrency: string
+  periodStart: string
+  periodEnd: string
+  leaderboardPosition: number | null
+  portfolio: PromoterMemberRow[]
+}
+
+/** Una fila de GET /v1/admin/promoters/{uuid}/commissions/summary — comisiones agregadas por período. */
+export interface CommissionPeriodSummaryDto {
+  periodStrategy: CommissionPeriodStrategy
+  periodStart: string
+  periodEnd: string
+  commissionCount: number
+  totalAmount: number
+  currency: string
 }
 
 /** Body de POST /v1/admin/promoters (crea un promotor HUMANO; la fila INSTITUCION no se crea aquí). */
