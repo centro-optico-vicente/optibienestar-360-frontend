@@ -388,7 +388,7 @@ onMounted(() => {
           </tbody>
         </table>
       </div>
-      <div class="flex items-center flex-wrap justify-between gap-3 px-1">
+      <div class="flex items-center flex-wrap justify-between gap-3 px-5 py-3 border-t border-prohealth-100 shrink-0">
         <p class="text-xs text-prohealth-500">
           {{ t('commissionRules.tiers.paginationSummary', { shown: tierData.length, total: tierTotal }) }}
         </p>
@@ -475,7 +475,7 @@ onMounted(() => {
           </tbody>
         </table>
       </div>
-      <div class="flex items-center flex-wrap justify-between gap-3 px-1">
+      <div class="flex items-center flex-wrap justify-between gap-3 px-5 py-3 border-t border-prohealth-100 shrink-0">
         <p class="text-xs text-prohealth-500">
           {{ t('commissionRules.bonusRules.paginationSummary', { shown: bonusData.length, total: bonusTotal }) }}
         </p>
@@ -562,7 +562,7 @@ onMounted(() => {
           </tbody>
         </table>
       </div>
-      <div class="flex items-center flex-wrap justify-between gap-3 px-1">
+      <div class="flex items-center flex-wrap justify-between gap-3 px-5 py-3 border-t border-prohealth-100 shrink-0">
         <p class="text-xs text-prohealth-500">
           {{ t('commissionRules.collectionTiers.paginationSummary', { shown: collectionData.length, total: collectionTotal }) }}
         </p>
