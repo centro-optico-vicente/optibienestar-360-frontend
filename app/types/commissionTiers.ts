@@ -36,6 +36,8 @@ export interface CommissionTierDto {
   flatAmount?: number | string | null
   periodStrategy: PeriodStrategy
   appliesTo: AppliesTo
+  promoterTypeUuid?: string | null
+  promoterTypeName?: string | null
   active: boolean
   status?: string
   createdAt?: string
@@ -50,6 +52,7 @@ export interface CreateCommissionTierRequest {
   flatAmount?: string | null
   periodStrategy: PeriodStrategy
   appliesTo: AppliesTo
+  promoterTypeUuid?: string | null
 }
 
 /** PUT with PATCH semantics: only the fields present are applied. */

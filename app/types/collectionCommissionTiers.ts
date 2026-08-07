@@ -12,6 +12,8 @@ export interface CollectionCommissionTierDto {
   name: string
   maxDays: number
   commissionPct: number | string
+  promoterTypeUuid?: string | null
+  promoterTypeName?: string | null
   active: boolean
   status?: string
   createdAt?: string
@@ -22,6 +24,7 @@ export interface CreateCollectionCommissionTierRequest {
   name: string
   maxDays: number
   commissionPct: string
+  promoterTypeUuid?: string | null
 }
 
 /** PUT with PATCH semantics: only the fields present are applied. */

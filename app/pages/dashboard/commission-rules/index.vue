@@ -1,7 +1,12 @@
 <script setup lang="ts">
-import type { CommissionTierDto } from '~/types/commissionTiers'
+import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
+import type { SelectItem } from '~/types/options'
+import type { AppliesTo, CommissionTierDto } from '~/types/commissionTiers'
+import { APPLIES_TO_OPTIONS } from '~/types/commissionTiers'
 import type { BonusRuleDto } from '~/types/bonusRules'
 import type { CollectionCommissionTierDto } from '~/types/collectionCommissionTiers'
+import type { PlanType } from '~/types/plans'
+import { PLAN_TYPE_OPTIONS } from '~/types/plans'
 
 // Admin editor for the three commission-engine rule surfaces (ADR 0013):
 // inscription bands (commission_tiers, V42), scale bonuses (commission_bonus_rules,
@@ -25,6 +30,32 @@ const tabs = computed(() => [
   { label: t('commissionRules.tabs.collectionTiers'), value: 'collectionTiers', icon: 'i-lucide-calendar-clock' },
 ])
 const activeTab = ref('tiers')
+const pageSizeItems = buildPageSizeItems(t)
+
+// ---- Promoter-type quick filter (shared catalog, loaded once for all 3 tabs) ----
+const promoterTypeItems = ref<SelectItem[]>([])
+const promoterTypeOptions = useCatalogOptions('promoter-types')
+onMounted(async () => {
+  try {
+    const res = await promoterTypeOptions.options({ limit: 100 })
+    promoterTypeItems.value = res.map(o => ({ label: o.label, value: o.uuid }))
+  }
+  catch {
+    promoterTypeItems.value = []
+  }
+})
+const promoterTypeFilterItems = computed(() => [
+  { label: t('commissionRules.filters.allPromoterTypes'), value: undefined },
+  ...promoterTypeItems.value,
+])
+const planTypeFilterItems = computed(() => [
+  { label: t('commissionRules.filters.allPlanTypes'), value: undefined },
+  ...PLAN_TYPE_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })),
+])
+const appliesToFilterItems = computed(() => [
+  { label: t('commissionRules.filters.allAppliesTo'), value: undefined },
+  ...APPLIES_TO_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })),
+])
 
 // =========================================================
 // Tab 1 — Bandas de inscripción (commission_tiers)
@@ -32,21 +63,58 @@ const activeTab = ref('tiers')
 const tierApi = useCommissionTiers()
 const canManageTiers = computed(() => can('COMMISSION_TIER_MANAGE'))
 const tierData = ref<CommissionTierDto[]>([])
+const tierTotal = ref(0)
 const tierLoading = ref(false)
+const tierSearch = ref('')
+const tierIncludeInactive = ref(false)
+const tierPromoterTypeUuid = ref<string | undefined>(undefined)
+const tierPlanType = ref<PlanType | undefined>(undefined)
+const tierAppliesTo = ref<AppliesTo | undefined>(undefined)
+const tierPage = ref(1)
+const tierSize = ref(DEFAULT_PAGE_SIZE)
+
+// RSQL: planType/appliesTo equality, applied server-side so pagination stays consistent.
+function buildTierFilter(): string | undefined {
+  const clauses: string[] = []
+  if (tierPlanType.value) clauses.push(`planType==${tierPlanType.value}`)
+  if (tierAppliesTo.value) clauses.push(`appliesTo==${tierAppliesTo.value}`)
+  return clauses.length ? clauses.join(';') : undefined
+}
 
 async function loadTiers() {
   tierLoading.value = true
   try {
-    const res = await tierApi.list({ size: 100 })
+    const res = await tierApi.list({
+      page: tierPage.value - 1,
+      size: tierSize.value,
+      q: tierSearch.value.trim() || undefined,
+      filter: buildTierFilter(),
+      includeInactive: tierIncludeInactive.value,
+      promoterTypeUuid: tierPromoterTypeUuid.value,
+    })
     tierData.value = res.content ?? []
+    tierTotal.value = res.totalElements ?? 0
   }
   catch {
     tierData.value = []
+    tierTotal.value = 0
   }
   finally {
     tierLoading.value = false
   }
 }
+
+watch(tierSize, () => { tierPage.value = 1 })
+watch([tierPage, tierSize], loadTiers)
+let tierSearchTimer: ReturnType<typeof setTimeout> | undefined
+watch(tierSearch, () => {
+  clearTimeout(tierSearchTimer)
+  tierSearchTimer = setTimeout(() => { tierPage.value = 1; loadTiers() }, 400)
+})
+watch([tierIncludeInactive, tierPromoterTypeUuid, tierPlanType, tierAppliesTo], () => {
+  tierPage.value = 1
+  loadTiers()
+})
 
 const tierFormOpen = ref(false)
 const editingTier = ref<CommissionTierDto | null>(null)
@@ -84,21 +152,47 @@ function tierReward(tier: CommissionTierDto): string {
 const bonusApi = useBonusRules()
 const canManageBonus = computed(() => can('BONUS_RULE_MANAGE'))
 const bonusData = ref<BonusRuleDto[]>([])
+const bonusTotal = ref(0)
 const bonusLoading = ref(false)
+const bonusSearch = ref('')
+const bonusIncludeInactive = ref(false)
+const bonusPromoterTypeUuid = ref<string | undefined>(undefined)
+const bonusPage = ref(1)
+const bonusSize = ref(DEFAULT_PAGE_SIZE)
 
 async function loadBonusRules() {
   bonusLoading.value = true
   try {
-    const res = await bonusApi.list({ size: 100 })
+    const res = await bonusApi.list({
+      page: bonusPage.value - 1,
+      size: bonusSize.value,
+      q: bonusSearch.value.trim() || undefined,
+      includeInactive: bonusIncludeInactive.value,
+      promoterTypeUuid: bonusPromoterTypeUuid.value,
+    })
     bonusData.value = res.content ?? []
+    bonusTotal.value = res.totalElements ?? 0
   }
   catch {
     bonusData.value = []
+    bonusTotal.value = 0
   }
   finally {
     bonusLoading.value = false
   }
 }
+
+watch(bonusSize, () => { bonusPage.value = 1 })
+watch([bonusPage, bonusSize], loadBonusRules)
+let bonusSearchTimer: ReturnType<typeof setTimeout> | undefined
+watch(bonusSearch, () => {
+  clearTimeout(bonusSearchTimer)
+  bonusSearchTimer = setTimeout(() => { bonusPage.value = 1; loadBonusRules() }, 400)
+})
+watch([bonusIncludeInactive, bonusPromoterTypeUuid], () => {
+  bonusPage.value = 1
+  loadBonusRules()
+})
 
 const bonusFormOpen = ref(false)
 const editingBonus = ref<BonusRuleDto | null>(null)
@@ -135,23 +229,47 @@ function bonusReward(rule: BonusRuleDto): string {
 const collectionApi = useCollectionCommissionTiers()
 const canManageCollection = computed(() => can('COLLECTION_COMMISSION_TIER_MANAGE'))
 const collectionData = ref<CollectionCommissionTierDto[]>([])
+const collectionTotal = ref(0)
 const collectionLoading = ref(false)
+const collectionSearch = ref('')
 const collectionIncludeInactive = ref(false)
+const collectionPromoterTypeUuid = ref<string | undefined>(undefined)
+const collectionPage = ref(1)
+const collectionSize = ref(DEFAULT_PAGE_SIZE)
 
 async function loadCollectionTiers() {
   collectionLoading.value = true
   try {
-    const res = await collectionApi.list({ size: 100, includeInactive: collectionIncludeInactive.value })
+    const res = await collectionApi.list({
+      page: collectionPage.value - 1,
+      size: collectionSize.value,
+      q: collectionSearch.value.trim() || undefined,
+      includeInactive: collectionIncludeInactive.value,
+      promoterTypeUuid: collectionPromoterTypeUuid.value,
+    })
     collectionData.value = res.content ?? []
+    collectionTotal.value = res.totalElements ?? 0
   }
   catch {
     collectionData.value = []
+    collectionTotal.value = 0
   }
   finally {
     collectionLoading.value = false
   }
 }
-watch(collectionIncludeInactive, loadCollectionTiers)
+
+watch(collectionSize, () => { collectionPage.value = 1 })
+watch([collectionPage, collectionSize], loadCollectionTiers)
+let collectionSearchTimer: ReturnType<typeof setTimeout> | undefined
+watch(collectionSearch, () => {
+  clearTimeout(collectionSearchTimer)
+  collectionSearchTimer = setTimeout(() => { collectionPage.value = 1; loadCollectionTiers() }, 400)
+})
+watch([collectionIncludeInactive, collectionPromoterTypeUuid], () => {
+  collectionPage.value = 1
+  loadCollectionTiers()
+})
 
 const collectionFormOpen = ref(false)
 const editingCollectionTier = ref<CollectionCommissionTierDto | null>(null)
@@ -201,6 +319,40 @@ onMounted(() => {
           {{ t('commissionRules.tiers.new') }}
         </UButton>
       </div>
+      <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
+        <UInput
+          v-model="tierSearch"
+          :placeholder="t('commissionRules.tiers.searchPlaceholder')"
+          icon="i-lucide-search"
+          size="lg"
+          class="w-full max-w-md"
+        />
+        <USelectMenu
+          v-model="tierPromoterTypeUuid"
+          :items="promoterTypeFilterItems"
+          label-key="label"
+          value-key="value"
+          icon="i-lucide-users"
+          class="w-56"
+        />
+        <USelectMenu
+          v-model="tierPlanType"
+          :items="planTypeFilterItems"
+          label-key="label"
+          value-key="value"
+          icon="i-lucide-layout-grid"
+          class="w-56"
+        />
+        <USelectMenu
+          v-model="tierAppliesTo"
+          :items="appliesToFilterItems"
+          label-key="label"
+          value-key="value"
+          icon="i-lucide-target"
+          class="w-48"
+        />
+        <UCheckbox v-model="tierIncludeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
+      </div>
       <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
         <table class="w-full text-sm">
           <thead class="bg-prohealth-50/60">
@@ -236,6 +388,31 @@ onMounted(() => {
           </tbody>
         </table>
       </div>
+      <div class="flex items-center flex-wrap justify-between gap-3 px-1">
+        <p class="text-xs text-prohealth-500">
+          {{ t('commissionRules.tiers.paginationSummary', { shown: tierData.length, total: tierTotal }) }}
+        </p>
+        <div class="flex items-center gap-3">
+          <UPagination
+            v-if="tierSize !== UNPAGED_PAGE_SIZE"
+            v-model:page="tierPage"
+            :total="tierTotal"
+            :items-per-page="tierSize"
+          />
+          <UTooltip :text="$t('catalogs.pageSizeLabel')">
+            <USelectMenu
+              v-model="tierSize"
+              :items="pageSizeItems"
+              label-key="label"
+              value-key="value"
+              icon="i-lucide-list"
+              :search-input="false"
+              :aria-label="$t('catalogs.pageSizeLabel')"
+              class="w-40"
+            />
+          </UTooltip>
+        </div>
+      </div>
     </div>
 
     <!-- Tab 2: Bonos por escala -->
@@ -244,6 +421,24 @@ onMounted(() => {
         <UButton color="primary" icon="i-lucide-plus" :disabled="!canManageBonus" @click="openCreateBonus">
           {{ t('commissionRules.bonusRules.new') }}
         </UButton>
+      </div>
+      <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
+        <UInput
+          v-model="bonusSearch"
+          :placeholder="t('commissionRules.bonusRules.searchPlaceholder')"
+          icon="i-lucide-search"
+          size="lg"
+          class="w-full max-w-md"
+        />
+        <USelectMenu
+          v-model="bonusPromoterTypeUuid"
+          :items="promoterTypeFilterItems"
+          label-key="label"
+          value-key="value"
+          icon="i-lucide-users"
+          class="w-56"
+        />
+        <UCheckbox v-model="bonusIncludeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
       </div>
       <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
         <table class="w-full text-sm">
@@ -280,15 +475,57 @@ onMounted(() => {
           </tbody>
         </table>
       </div>
+      <div class="flex items-center flex-wrap justify-between gap-3 px-1">
+        <p class="text-xs text-prohealth-500">
+          {{ t('commissionRules.bonusRules.paginationSummary', { shown: bonusData.length, total: bonusTotal }) }}
+        </p>
+        <div class="flex items-center gap-3">
+          <UPagination
+            v-if="bonusSize !== UNPAGED_PAGE_SIZE"
+            v-model:page="bonusPage"
+            :total="bonusTotal"
+            :items-per-page="bonusSize"
+          />
+          <UTooltip :text="$t('catalogs.pageSizeLabel')">
+            <USelectMenu
+              v-model="bonusSize"
+              :items="pageSizeItems"
+              label-key="label"
+              value-key="value"
+              icon="i-lucide-list"
+              :search-input="false"
+              :aria-label="$t('catalogs.pageSizeLabel')"
+              class="w-40"
+            />
+          </UTooltip>
+        </div>
+      </div>
     </div>
 
     <!-- Tab 3: Comisión de cobranza -->
     <div v-show="activeTab === 'collectionTiers'" class="space-y-4">
-      <div class="flex items-center justify-between gap-3">
-        <UCheckbox v-model="collectionIncludeInactive" :label="t('catalogs.includeInactive')" />
+      <div class="flex items-center justify-end">
         <UButton color="primary" icon="i-lucide-plus" :disabled="!canManageCollection" @click="openCreateCollectionTier">
           {{ t('commissionRules.collectionTiers.new') }}
         </UButton>
+      </div>
+      <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
+        <UInput
+          v-model="collectionSearch"
+          :placeholder="t('commissionRules.collectionTiers.searchPlaceholder')"
+          icon="i-lucide-search"
+          size="lg"
+          class="w-full max-w-md"
+        />
+        <USelectMenu
+          v-model="collectionPromoterTypeUuid"
+          :items="promoterTypeFilterItems"
+          label-key="label"
+          value-key="value"
+          icon="i-lucide-users"
+          class="w-56"
+        />
+        <UCheckbox v-model="collectionIncludeInactive" :label="t('catalogs.includeInactive')" class="self-center" />
       </div>
       <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
         <table class="w-full text-sm">
@@ -324,6 +561,31 @@ onMounted(() => {
             </tr>
           </tbody>
         </table>
+      </div>
+      <div class="flex items-center flex-wrap justify-between gap-3 px-1">
+        <p class="text-xs text-prohealth-500">
+          {{ t('commissionRules.collectionTiers.paginationSummary', { shown: collectionData.length, total: collectionTotal }) }}
+        </p>
+        <div class="flex items-center gap-3">
+          <UPagination
+            v-if="collectionSize !== UNPAGED_PAGE_SIZE"
+            v-model:page="collectionPage"
+            :total="collectionTotal"
+            :items-per-page="collectionSize"
+          />
+          <UTooltip :text="$t('catalogs.pageSizeLabel')">
+            <USelectMenu
+              v-model="collectionSize"
+              :items="pageSizeItems"
+              label-key="label"
+              value-key="value"
+              icon="i-lucide-list"
+              :search-input="false"
+              :aria-label="$t('catalogs.pageSizeLabel')"
+              class="w-40"
+            />
+          </UTooltip>
+        </div>
       </div>
     </div>
 

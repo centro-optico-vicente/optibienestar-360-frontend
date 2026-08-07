@@ -7,6 +7,8 @@ interface ListParams {
   sort?: string
   filter?: string
   q?: string
+  includeInactive?: boolean
+  promoterTypeUuid?: string
 }
 
 /**
@@ -23,6 +25,8 @@ export const useBonusRules = () => {
         sort: params.sort ?? 'createdAt,desc',
         ...(params.filter ? { filter: params.filter } : {}),
         ...(params.q ? { q: params.q } : {}),
+        ...(params.includeInactive ? { includeInactive: 'true' } : {}),
+        ...(params.promoterTypeUuid ? { promoterTypeUuid: params.promoterTypeUuid } : {}),
       },
     })
 
