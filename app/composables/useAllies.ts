@@ -24,6 +24,7 @@ interface ListParams {
   sort?: string
   filter?: string
   q?: string
+  includeInactive?: boolean
 }
 
 /**
@@ -43,6 +44,7 @@ export const useAllies = () => {
         sort: params.sort ?? 'name,asc',
         ...(params.filter ? { filter: params.filter } : {}),
         ...(params.q ? { q: params.q } : {}),
+        ...(params.includeInactive ? { includeInactive: 'true' } : {}),
       },
     })
 

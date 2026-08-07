@@ -57,19 +57,42 @@ function canDeleteRole(r: RoleDto): boolean {
 const roles = ref<RoleDto[]>([])
 const domains = ref<PermissionDomainDto[]>([])
 const loading = ref(false)
+const search = ref('')
+const includeInactive = ref(false)
 
 // Client-side pagination: the backend endpoint (GET /v1/admin/roles) returns the
 // full list — it doesn't accept Pageable — so page/size are sliced here.
 const page = ref(1)
 const size = ref(DEFAULT_PAGE_SIZE)
 const pageSizeItems = buildPageSizeItems(t)
-const total = computed(() => roles.value.length)
+
+// The backend may still ignore `q` until the other session ships support for it;
+// this client-side filter keeps the search box working immediately either way.
+// Only applied when there's an active search term, to avoid double-filtering once
+// the backend does honor `q` for real.
+const filteredRoles = computed(() => {
+  const term = search.value.trim().toLowerCase()
+  if (!term) return roles.value
+  return roles.value.filter(r =>
+    r.name?.toLowerCase().includes(term) || r.description?.toLowerCase().includes(term),
+  )
+})
+const total = computed(() => filteredRoles.value.length)
 const pagedRoles = computed(() => {
-  if (size.value === UNPAGED_PAGE_SIZE) return roles.value
+  if (size.value === UNPAGED_PAGE_SIZE) return filteredRoles.value
   const start = (page.value - 1) * size.value
-  return roles.value.slice(start, start + size.value)
+  return filteredRoles.value.slice(start, start + size.value)
 })
 watch(size, () => { page.value = 1 })
+let searchTimer: ReturnType<typeof setTimeout> | undefined
+watch(search, () => {
+  clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => {
+    page.value = 1
+    loadRoles()
+  }, 400)
+})
+watch(includeInactive, () => { page.value = 1; loadRoles() })
 
 // Total de permisos del catálogo (para mostrar "n/total" por rol).
 const totalPermissions = computed(() =>
@@ -79,7 +102,7 @@ const totalPermissions = computed(() =>
 async function loadRoles() {
   loading.value = true
   try {
-    roles.value = await rolesApi.list()
+    roles.value = await rolesApi.list({ q: search.value.trim() || undefined, includeInactive: includeInactive.value })
   }
   catch {
     roles.value = []
@@ -302,6 +325,18 @@ async function onSave() {
       </UTooltip>
     </div>
 
+    <!-- Search -->
+    <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
+      <UInput
+        v-model="search"
+        :placeholder="$t('security.roles.searchPlaceholder')"
+        icon="i-lucide-search"
+        size="lg"
+        class="w-full max-w-md"
+      />
+      <UCheckbox v-model="includeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
+    </div>
+
     <!-- Tabla de roles -->
     <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-15rem)] min-h-[20rem]">
       <div class="overflow-auto flex-1">
@@ -315,7 +350,7 @@ async function onSave() {
           </thead>
           <tbody class="divide-y divide-prohealth-100">
             <TableSkeleton v-if="loading" :rows="5" :cols="3" />
-            <tr v-else-if="roles.length === 0">
+            <tr v-else-if="filteredRoles.length === 0">
               <td colspan="3" class="px-5 py-12 text-center text-prohealth-500">
                 <UIcon name="i-lucide-shield" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
                 {{ $t('security.roles.empty') }}

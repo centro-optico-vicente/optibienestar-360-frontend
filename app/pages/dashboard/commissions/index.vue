@@ -27,6 +27,7 @@ const size = ref(DEFAULT_PAGE_SIZE)
 const pageSizeItems = buildPageSizeItems(t)
 const search = ref('')
 const filter = ref('') // raw RSQL, e.g. `promoter.uuid==…;status==PENDING`
+const includeInactive = ref(false)
 
 async function load() {
   loading.value = true
@@ -37,6 +38,7 @@ async function load() {
       sort: 'earnedAt,desc',
       filter: filter.value.trim() || undefined,
       q: search.value.trim() || undefined,
+      includeInactive: includeInactive.value,
     })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
@@ -61,6 +63,7 @@ watch([search, filter], () => {
     load()
   }, 400)
 })
+watch(includeInactive, () => { page.value = 1; load() })
 
 onMounted(load)
 
@@ -168,6 +171,7 @@ async function onPayoutDone() {
         size="lg"
         class="w-full max-w-md font-mono"
       />
+      <UCheckbox v-model="includeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
     </div>
 
     <!-- Table -->

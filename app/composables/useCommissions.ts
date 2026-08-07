@@ -11,6 +11,7 @@ interface ListParams {
   sort?: string
   filter?: string
   q?: string
+  includeInactive?: boolean
 }
 
 /**
@@ -31,6 +32,7 @@ export const useCommissions = () => {
         sort: params.sort ?? 'earnedAt,desc',
         ...(params.filter ? { filter: params.filter } : {}),
         ...(params.q ? { q: params.q } : {}),
+        ...(params.includeInactive ? { includeInactive: 'true' } : {}),
       },
     })
 

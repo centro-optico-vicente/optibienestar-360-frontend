@@ -12,6 +12,7 @@ interface ListParams {
   sort?: string
   filter?: string
   q?: string
+  includeInactive?: boolean
 }
 
 interface OptionsParams {
@@ -36,6 +37,7 @@ export const usePlans = () => {
         sort: params.sort ?? 'code,asc',
         ...(params.filter ? { filter: params.filter } : {}),
         ...(params.q ? { q: params.q } : {}),
+        ...(params.includeInactive ? { includeInactive: 'true' } : {}),
       },
     })
 

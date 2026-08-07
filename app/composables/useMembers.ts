@@ -17,6 +17,7 @@ interface ListParams {
   sort?: string
   filter?: string
   q?: string
+  includeInactive?: boolean
 }
 
 interface OptionsParams {
@@ -42,6 +43,7 @@ export const useMembers = () => {
         sort: params.sort ?? 'enrolledAt,desc',
         ...(params.filter ? { filter: params.filter } : {}),
         ...(params.q ? { q: params.q } : {}),
+        ...(params.includeInactive ? { includeInactive: 'true' } : {}),
       },
     })
 

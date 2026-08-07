@@ -11,6 +11,7 @@ interface ListParams {
   sort?: string
   filter?: string
   q?: string
+  includeInactive?: boolean
 }
 
 /**
@@ -31,6 +32,7 @@ export const usePromoters = () => {
         sort: params.sort ?? 'displayName,asc',
         ...(params.filter ? { filter: params.filter } : {}),
         ...(params.q ? { q: params.q } : {}),
+        ...(params.includeInactive ? { includeInactive: 'true' } : {}),
       },
     })
 

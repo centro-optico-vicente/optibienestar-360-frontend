@@ -59,6 +59,7 @@ const search = ref('')
 
 // Parent filter (e.g. cities by state).
 const filterValue = ref<string>('')
+const includeInactive = ref(false)
 
 // Server-side pagination. `page` is 1-based (UPagination); the API is 0-based.
 // `pageSize === UNPAGED_PAGE_SIZE` (-1) is the backend's "return everything" sentinel.
@@ -82,6 +83,7 @@ async function load() {
       page: page.value - 1,
       size: pageSize.value,
       sort: 'name',
+      ...(includeInactive.value ? { includeInactive: 'true' } : {}),
       ...parentFilter,
       ...(searchTerm ? { q: searchTerm } : {}),
     }
@@ -139,6 +141,7 @@ async function init() {
   if (!def.value) return
   search.value = ''
   filterValue.value = ''
+  includeInactive.value = false
   page.value = 1
   await Promise.all([loadParents(), load()])
 }
@@ -146,6 +149,7 @@ async function init() {
 onMounted(init)
 watch(() => route.params.resource, init)
 watch(filterValue, () => { page.value = 1; load() })
+watch(includeInactive, () => { page.value = 1; load() })
 
 // ---- Create/edit form ----
 const formOpen = ref(false)
@@ -308,6 +312,7 @@ async function confirmDelete() {
         :placeholder="$t('catalogs.filterByParent')"
         class="w-full max-w-xs"
       />
+      <UCheckbox v-model="includeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
     </div>
 
     <!-- Table: fixed-height card so the pagination footer stays pinned at the

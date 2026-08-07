@@ -31,9 +31,19 @@ interface OptionsParams {
  * Roles y permisos son las excepciones que el backend mantiene como array plano. Aun así
  * normalizamos con `toItems` por si en el futuro pasan a respuesta paginada (`Page<T>`).
  */
+interface ListParams {
+  q?: string
+  includeInactive?: boolean
+}
+
 export const useRoles = () => {
-  const list = async (): Promise<RoleDto[]> =>
-    toItems(await useApi<Page<RoleDto> | RoleDto[]>('/v1/admin/roles'))
+  const list = async (params: ListParams = {}): Promise<RoleDto[]> =>
+    toItems(await useApi<Page<RoleDto> | RoleDto[]>('/v1/admin/roles', {
+      query: {
+        ...(params.q ? { q: params.q } : {}),
+        ...(params.includeInactive ? { includeInactive: 'true' } : {}),
+      },
+    }))
 
   /** Proyección liviana para selects (`GET /v1/admin/roles/options`), sin paginar. */
   const options = (params: OptionsParams = {}) =>
