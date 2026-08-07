@@ -1192,6 +1192,7 @@
       "document": "Document",
       "phone": "Phone",
       "enrolledAt": "Enrollment",
+      "promoter": "Promoter",
       "status": "Status"
     },
     "relationships": {
@@ -1341,6 +1342,51 @@
       "delete": {
         "title": "Delete medical record",
         "confirm": "Are you sure you want to delete {name}'s medical record? (soft-delete)"
+      }
+    },
+    "promoter": {
+      "title": "Promoter",
+      "subtitle": "Permanent link with the promoter and its reassignment history.",
+      "current": "Current promoter",
+      "none": "No promoter assigned",
+      "changeButton": "Change promoter",
+      "linkButton": "Link by code",
+      "changedToast": "Promoter updated",
+      "linkedToast": "Member linked to promoter",
+      "permanentNotice": "The link is permanent and not retroactive: it only affects future commission attribution, it does not recompute commissions already generated.",
+      "history": {
+        "title": "Reassignment history",
+        "empty": "No reassignments recorded",
+        "columns": {
+          "from": "From",
+          "to": "To",
+          "date": "Date",
+          "actor": "Performed by",
+          "reason": "Reason"
+        }
+      },
+      "form": {
+        "changeTitle": "Change promoter",
+        "changeDescription": "Select the new target promoter. This action is recorded in the history.",
+        "linkTitle": "Link by code",
+        "linkDescription": "Enter the promoter's referral code to link this member.",
+        "promoter": "Target promoter",
+        "referralCode": "Referral code",
+        "reason": "Reason",
+        "reasonPlaceholder": "E.g. portfolio transfer, referral correction…",
+        "submit": "Confirm change"
+      }
+    },
+    "confirmation": {
+      "title": "Confirmation status",
+      "createdAt": "Created",
+      "confirmedAt": "Confirmed",
+      "pending": "Pending confirmation",
+      "confirmButton": "Confirm manually",
+      "confirmedToast": "Member confirmed",
+      "confirm": {
+        "title": "Confirm member",
+        "confirm": "Manually confirm {name}? Use this for members covered by a subsidy that don't generate a payment."
       }
     },
     "portal": {

@@ -1,11 +1,14 @@
 import type { Page } from '~/types/admin'
 import type { Option } from '~/types/options'
 import type {
+  AssignPromoterRequest,
   BeneficiaryDto,
   CreateBeneficiaryRequest,
   CreateMemberRequest,
   MedicalRecordDto,
+  MemberConfirmationDto,
   MemberDto,
+  MemberPromoterAssignmentDto,
   UpdateBeneficiaryRequest,
   UpdateMemberRequest,
   UpsertMedicalRecordRequest,
@@ -99,6 +102,20 @@ export const useMembers = () => {
   const me = () =>
     useApi<MemberDto>('/v1/me/member', { silent: true })
 
+  // ---- Enlace permanente promotor (MEMBER_ASSIGN_PROMOTER) ----
+  /** Reasigna o vincula (si el afiliado no tenía) el promotor. `body` trae promoterUuid XOR referralCode. */
+  const assignPromoter = (memberUuid: string, body: AssignPromoterRequest) =>
+    useApi<MemberPromoterAssignmentDto>(`/v1/admin/members/${memberUuid}/assign-promoter`, { method: 'POST', body })
+
+  /** Histórico de reasignaciones del afiliado, más reciente primero. */
+  const promoterHistory = (memberUuid: string) =>
+    useApi<MemberPromoterAssignmentDto[]>(`/v1/admin/members/${memberUuid}/promoter-history`)
+
+  // ---- Confirmación manual del afiliado (MEMBER_CONFIRM) ----
+  /** Para afiliados cubiertos por subsidio que nunca generan pago (la confirmación normal ocurre al aprobar el primer pago). */
+  const confirm = (memberUuid: string) =>
+    useApi<MemberConfirmationDto>(`/v1/admin/members/${memberUuid}/confirm`, { method: 'POST' })
+
   return {
     list,
     options,
@@ -114,5 +131,8 @@ export const useMembers = () => {
     upsertMedicalRecord,
     removeMedicalRecord,
     me,
+    assignPromoter,
+    promoterHistory,
+    confirm,
   }
 }

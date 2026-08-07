@@ -1192,6 +1192,7 @@
       "document": "Documento",
       "phone": "Teléfono",
       "enrolledAt": "Afiliación",
+      "promoter": "Promotor",
       "status": "Estado"
     },
     "relationships": {
@@ -1341,6 +1342,51 @@
       "delete": {
         "title": "Eliminar histórico médico",
         "confirm": "¿Seguro que deseas eliminar el histórico médico de {name}? (soft-delete)"
+      }
+    },
+    "promoter": {
+      "title": "Promotor",
+      "subtitle": "Enlace permanente con el promotor y su histórico de reasignaciones.",
+      "current": "Promotor actual",
+      "none": "Sin promotor asignado",
+      "changeButton": "Cambiar promotor",
+      "linkButton": "Vincular por código",
+      "changedToast": "Promotor actualizado",
+      "linkedToast": "Afiliado vinculado al promotor",
+      "permanentNotice": "El enlace es permanente y no retroactivo: solo afecta la atribución de comisiones futuras, no recalcula comisiones ya generadas.",
+      "history": {
+        "title": "Histórico de reasignaciones",
+        "empty": "Sin reasignaciones registradas",
+        "columns": {
+          "from": "Desde",
+          "to": "Hacia",
+          "date": "Fecha",
+          "actor": "Realizado por",
+          "reason": "Motivo"
+        }
+      },
+      "form": {
+        "changeTitle": "Cambiar promotor",
+        "changeDescription": "Selecciona el nuevo promotor destino. Esta acción queda registrada en el histórico.",
+        "linkTitle": "Vincular por código",
+        "linkDescription": "Ingresa el código de referido del promotor para vincular este afiliado.",
+        "promoter": "Promotor destino",
+        "referralCode": "Código de referido",
+        "reason": "Motivo",
+        "reasonPlaceholder": "Ej. traslado de cartera, corrección de referido…",
+        "submit": "Confirmar cambio"
+      }
+    },
+    "confirmation": {
+      "title": "Estado de confirmación",
+      "createdAt": "Creado",
+      "confirmedAt": "Confirmado",
+      "pending": "Pendiente de confirmación",
+      "confirmButton": "Confirmar manualmente",
+      "confirmedToast": "Afiliado confirmado",
+      "confirm": {
+        "title": "Confirmar afiliado",
+        "confirm": "¿Confirmar manualmente a {name}? Úsalo para afiliados cubiertos por subsidio que no generan pago."
       }
     },
     "portal": {
