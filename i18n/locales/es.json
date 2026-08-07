@@ -1549,6 +1549,10 @@
       "INACTIVE": "Inactivo",
       "SUSPENDED": "Suspendido"
     },
+    "tabs": {
+      "referrals": "Referidos",
+      "commissions": "Comisiones"
+    },
     "detail": {
       "seoPage": "Detalle de promotor",
       "notFoundTitle": "Promotor no encontrado",
@@ -1566,14 +1570,47 @@
         "description": "Descripción",
         "email": "Correo electrónico",
         "phone": "Teléfono",
-        "userUuid": "UUID de usuario",
-        "personUuid": "UUID de persona",
+        "personFullName": "Nombre",
+        "personRif": "RIF",
+        "userEmail": "Usuario",
         "promoterTypeUuid": "Tipo de promotor",
         "totalReferrals": "Total de referidos",
         "totalCommissionPaid": "Comisión total pagada",
         "createdAt": "Creado",
         "updatedAt": "Actualizado",
         "uuid": "UUID"
+      },
+      "referrals": {
+        "title": "Referidos",
+        "hint": "Afiliados traídos por este promotor y su estado de cobranza.",
+        "empty": "Este promotor no tiene referidos.",
+        "filters": {
+          "all": "Todos",
+          "active": "Activos",
+          "overdue": "Vencidos",
+          "withoutMembership": "Sin membresía"
+        },
+        "status": {
+          "active": "Al día",
+          "overdue": "Vencida",
+          "withoutMembership": "Sin membresía"
+        },
+        "columns": {
+          "member": "Afiliado",
+          "status": "Estado",
+          "nextDueDate": "Próximo vencimiento",
+          "monthlyFee": "Mensualidad"
+        }
+      },
+      "commissions": {
+        "title": "Comisiones por período",
+        "hint": "Historial de comisiones liquidadas y pendientes, agrupadas por período.",
+        "empty": "Este promotor no tiene comisiones registradas.",
+        "columns": {
+          "period": "Período",
+          "count": "Cantidad",
+          "total": "Total"
+        }
       }
     },
     "form": {

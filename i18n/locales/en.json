@@ -1549,6 +1549,10 @@
       "INACTIVE": "Inactive",
       "SUSPENDED": "Suspended"
     },
+    "tabs": {
+      "referrals": "Referrals",
+      "commissions": "Commissions"
+    },
     "detail": {
       "seoPage": "Promoter detail",
       "notFoundTitle": "Promoter not found",
@@ -1566,14 +1570,47 @@
         "description": "Description",
         "email": "Email",
         "phone": "Phone",
-        "userUuid": "User UUID",
-        "personUuid": "Person UUID",
+        "personFullName": "Name",
+        "personRif": "Tax ID",
+        "userEmail": "User",
         "promoterTypeUuid": "Promoter type",
         "totalReferrals": "Total referrals",
         "totalCommissionPaid": "Total commission paid",
         "createdAt": "Created",
         "updatedAt": "Updated",
         "uuid": "UUID"
+      },
+      "referrals": {
+        "title": "Referrals",
+        "hint": "Affiliates brought in by this promoter and their collection status.",
+        "empty": "This promoter has no referrals.",
+        "filters": {
+          "all": "All",
+          "active": "Active",
+          "overdue": "Overdue",
+          "withoutMembership": "No membership"
+        },
+        "status": {
+          "active": "Up to date",
+          "overdue": "Overdue",
+          "withoutMembership": "No membership"
+        },
+        "columns": {
+          "member": "Affiliate",
+          "status": "Status",
+          "nextDueDate": "Next due date",
+          "monthlyFee": "Monthly fee"
+        }
+      },
+      "commissions": {
+        "title": "Commissions by period",
+        "hint": "History of settled and pending commissions, grouped by period.",
+        "empty": "This promoter has no commissions on record.",
+        "columns": {
+          "period": "Period",
+          "count": "Count",
+          "total": "Total"
+        }
       }
     },
     "form": {
