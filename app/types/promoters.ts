@@ -204,6 +204,38 @@ export interface CommissionPayoutResponse {
   perPromoter: CommissionPayoutPerPromoter[]
 }
 
+/** Body de POST /v1/admin/commissions/re-rate (`dryRun` previsualiza sin escribir). */
+export interface CommissionReRatingRequest {
+  periodStart: string
+  periodEnd: string
+  dryRun?: boolean
+}
+
+/** Detalle por promotor dentro de la respuesta de re-rating. */
+export interface CommissionReRatingPerPromoter {
+  promoterUuid: string
+  promoterCode: string
+  promoterDisplayName: string
+  inscriptionCount: number
+  targetTierUuid: string
+  targetTierName: string
+  commissionsChanged: number
+  deltaAmount: number
+}
+
+/** Respuesta de POST /v1/admin/commissions/re-rate (@JsonInclude(NON_NULL)). */
+export interface CommissionReRatingResponse {
+  periodStart: string
+  periodEnd: string
+  dryRun: boolean
+  totalPromoters: number
+  commissionsUpdated: number
+  totalDeltaAmount: number
+  currency: string
+  executedAt: string
+  perPromoter: CommissionReRatingPerPromoter[]
+}
+
 // ---- Referidos ----
 
 /** Body de POST /v1/admin/referral-codes (emite o regenera el código de referido de un afiliado). */

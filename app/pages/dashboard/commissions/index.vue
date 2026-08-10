@@ -17,6 +17,7 @@ const commissions = useCommissions()
 const { can } = usePermissions()
 
 const canPayout = computed(() => can('COMMISSION_PAYOUT'))
+const canReRate = computed(() => can('COMMISSION_RE_RATE'))
 
 // ---- Listing + filters + pagination (read-only ledger; no create/edit/delete) ----
 const data = ref<CommissionDto[]>([])
@@ -133,6 +134,15 @@ async function onPayoutDone() {
   page.value = 1
   await load()
 }
+
+// ---- Re-rating (month-close retroactive band bump; modal) ----
+const reRatingOpen = ref(false)
+
+async function onReRatingDone() {
+  // PENDING inscription commissions in the range were recomputed; reload.
+  page.value = 1
+  await load()
+}
 </script>
 
 <template>
@@ -145,14 +155,25 @@ async function onPayoutDone() {
           {{ t('commissions.subtitle') }}
         </p>
       </div>
-      <UButton
-        v-if="canPayout"
-        color="primary"
-        icon="i-lucide-wallet"
-        @click="payoutOpen = true"
-      >
-        {{ t('commissions.payout.button') }}
-      </UButton>
+      <div class="flex items-center gap-2">
+        <UButton
+          v-if="canReRate"
+          color="neutral"
+          variant="outline"
+          icon="i-lucide-refresh-cw"
+          @click="reRatingOpen = true"
+        >
+          {{ t('commissions.reRating.button') }}
+        </UButton>
+        <UButton
+          v-if="canPayout"
+          color="primary"
+          icon="i-lucide-wallet"
+          @click="payoutOpen = true"
+        >
+          {{ t('commissions.payout.button') }}
+        </UButton>
+      </div>
     </div>
 
     <!-- Filters -->
@@ -413,5 +434,8 @@ async function onPayoutDone() {
 
     <!-- Period payout modal -->
     <CommissionPayoutModal v-model:open="payoutOpen" @done="onPayoutDone" />
+
+    <!-- Month-close retroactive re-rating modal -->
+    <CommissionReRatingModal v-model:open="reRatingOpen" @done="onReRatingDone" />
   </div>
 </template>

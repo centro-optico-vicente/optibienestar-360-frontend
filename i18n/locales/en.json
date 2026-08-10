@@ -1786,6 +1786,38 @@
       "confirmDescription": "Confirming marks the commissions as PAID and emails a breakdown to each promoter. This action cannot be undone.",
       "successToast": "Period settled: {promoters} promoters, {commissions} commissions, {amount}.",
       "invalidRange": "The period end must be on or after the start."
+    },
+    "reRating": {
+      "button": "Re-rate month close",
+      "title": "Retroactive commission re-rating",
+      "description": "Recomputes pending inscription commissions in the period to the highest band each promoter reached that month.",
+      "dryRunNote": "The preview only computes the deltas: it does not modify any commission.",
+      "fields": {
+        "periodStart": "Period start",
+        "periodEnd": "Period end"
+      },
+      "preview": "Preview",
+      "previewTitle": "Re-rating summary",
+      "totals": {
+        "promoters": "Promoters",
+        "commissionsUpdated": "Commissions to update",
+        "delta": "Total delta",
+        "executedAt": "Executed"
+      },
+      "perPromoter": {
+        "name": "Promoter",
+        "code": "Code",
+        "count": "Inscriptions",
+        "tier": "Band reached",
+        "changed": "Commissions",
+        "delta": "Delta"
+      },
+      "emptyPreview": "There are no pending inscription commissions in this period.",
+      "back": "Back",
+      "confirm": "Confirm re-rating",
+      "confirmDescription": "Confirming rewrites the percentage, amount and band of every PENDING INSCRIPTION commission in the period. Only affects PENDING commissions, never PAID ones. This action cannot be undone.",
+      "successToast": "Re-rating applied: {promoters} promoters, {commissions} commissions updated.",
+      "invalidRange": "The period end must be on or after the start."
     }
   },
   "scheduledJobs": {
