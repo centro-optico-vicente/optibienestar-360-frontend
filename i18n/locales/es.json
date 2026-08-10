@@ -1786,6 +1786,38 @@
       "confirmDescription": "Al confirmar se marcarán las comisiones como PAGADAS y se enviará un correo con el desglose a cada promotor. Esta acción no se puede deshacer.",
       "successToast": "Período liquidado: {promoters} promotores, {commissions} comisiones, {amount}.",
       "invalidRange": "El fin del período debe ser posterior o igual al inicio."
+    },
+    "reRating": {
+      "button": "Re-ratear cierre de mes",
+      "title": "Re-rating retroactivo de comisiones",
+      "description": "Recalcula las comisiones de inscripción pendientes del período a la banda más alta que alcanzó cada promotor en el mes.",
+      "dryRunNote": "La previsualización solo calcula los deltas: no modifica ninguna comisión.",
+      "fields": {
+        "periodStart": "Inicio del período",
+        "periodEnd": "Fin del período"
+      },
+      "preview": "Previsualizar",
+      "previewTitle": "Resumen del re-rating",
+      "totals": {
+        "promoters": "Promotores",
+        "commissionsUpdated": "Comisiones a actualizar",
+        "delta": "Delta total",
+        "executedAt": "Ejecutado"
+      },
+      "perPromoter": {
+        "name": "Promotor",
+        "code": "Código",
+        "count": "Inscripciones",
+        "tier": "Banda alcanzada",
+        "changed": "Comisiones",
+        "delta": "Delta"
+      },
+      "emptyPreview": "No hay comisiones de inscripción pendientes en este período.",
+      "back": "Volver",
+      "confirm": "Confirmar re-rating",
+      "confirmDescription": "Al confirmar se reescribirá el porcentaje, monto y banda de cada comisión INSCRIPTION pendiente del período. Solo afecta comisiones PENDING, nunca PAGADAS. Esta acción no se puede deshacer.",
+      "successToast": "Re-rating aplicado: {promoters} promotores, {commissions} comisiones actualizadas.",
+      "invalidRange": "El fin del período debe ser posterior o igual al inicio."
     }
   },
   "scheduledJobs": {

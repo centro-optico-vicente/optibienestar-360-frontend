@@ -3,6 +3,8 @@ import type {
   CommissionDto,
   CommissionPayoutRequest,
   CommissionPayoutResponse,
+  CommissionReRatingRequest,
+  CommissionReRatingResponse,
 } from '~/types/promoters'
 
 interface ListParams {
@@ -17,7 +19,7 @@ interface ListParams {
 /**
  * Acceso al ledger de Comisiones (/v1/admin/commissions).
  * Permisos del backend por acción:
- * - list/get → COMMISSION_VIEW_ALL · payout → COMMISSION_PAYOUT
+ * - list/get → COMMISSION_VIEW_ALL · payout → COMMISSION_PAYOUT · re-rate → COMMISSION_RE_RATE
  *
  * Las comisiones no se editan ni se borran: se generan al aprobar pagos y se liquidan
  * cerrando un período con `payout`. La consulta canónica de liquidación es
@@ -47,5 +49,13 @@ export const useCommissions = () => {
   const payout = (body: CommissionPayoutRequest) =>
     useApi<CommissionPayoutResponse>('/v1/admin/commissions/payout', { method: 'POST', body })
 
-  return { list, get, payout }
+  /**
+   * Cierre de mes: recalcula todas las comisiones INSCRIPTION PENDING del rango a la
+   * banda más alta que alcanzó cada promotor (no un mix progresivo por pago).
+   * Usar `dryRun: true` para previsualizar los deltas sin escribir en BD.
+   */
+  const reRate = (body: CommissionReRatingRequest) =>
+    useApi<CommissionReRatingResponse>('/v1/admin/commissions/re-rate', { method: 'POST', body })
+
+  return { list, get, payout, reRate }
 }
