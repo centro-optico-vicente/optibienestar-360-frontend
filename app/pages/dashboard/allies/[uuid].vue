@@ -748,6 +748,9 @@ onMounted(async () => {
               · {{ t('allies.detail.memberSince', { date: date(ally.joinedAt) }) }}
             </p>
           </div>
+          <div class="flex items-center gap-2">
+            <ReportPrintButton :record-uuid="allyUuid" />
+          </div>
         </div>
 
         <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 mt-6 text-sm">
