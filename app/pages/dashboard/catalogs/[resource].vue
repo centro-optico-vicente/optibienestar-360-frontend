@@ -158,6 +158,8 @@ const editingUuid = ref<string | null>(null)
 const editingItem = ref<CatalogItem | null>(null)
 const isSubmitting = ref(false)
 const state = reactive<Record<string, string>>({})
+// Kept outside `state` (a Record<string, string>) so the boolean isn't coerced.
+const isActive = ref(true)
 
 // Fields visible in the current form (onlyCreate fields are hidden on edit).
 const formFields = computed(() =>
@@ -194,6 +196,7 @@ function openEdit(item: CatalogItem) {
   for (const f of def.value?.fields ?? []) {
     state[f.name] = String((item as unknown as Record<string, unknown>)[f.name] ?? '')
   }
+  isActive.value = item.active
   formOpen.value = true
 }
 
@@ -205,6 +208,7 @@ function buildBody(forCreate: boolean): Record<string, unknown> {
     if (f.required) body[f.name] = v
     else if (v) body[f.name] = v
   }
+  if (!forCreate) body.active = isActive.value
   return body
 }
 
@@ -235,10 +239,24 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
 const deleteOpen = ref(false)
 const deleting = ref(false)
 const target = ref<CatalogItem | null>(null)
+const usageChecking = ref(false)
+const usageInfo = ref<{ inUse: boolean, count: number } | null>(null)
 
-function openDelete(item: CatalogItem) {
+async function openDelete(item: CatalogItem) {
   target.value = item
   deleteOpen.value = true
+  usageChecking.value = true
+  usageInfo.value = null
+  try {
+    usageInfo.value = await api().usage(item.uuid)
+  }
+  catch {
+    // Fallback: treat as "in use" for safety (soft-delete instead of physical).
+    usageInfo.value = null
+  }
+  finally {
+    usageChecking.value = false
+  }
 }
 
 // Shortcut from the edit modal so the user doesn't have to close it first
@@ -253,9 +271,16 @@ function openDeleteFromEdit() {
 async function confirmDelete() {
   if (!target.value || !def.value) return
   deleting.value = true
+  const wasPhysical = usageInfo.value?.inUse === false
   try {
-    await api().remove(target.value.uuid)
-    toast.add({ title: t('catalogs.deletedToast', { entity: catLabelSingular(def.value) }), color: 'success', icon: 'i-lucide-check-circle' })
+    await api().remove(target.value.uuid, wasPhysical)
+    toast.add({
+      title: wasPhysical
+        ? t('catalogs.deletedPermanentToast', { entity: catLabelSingular(def.value) })
+        : t('catalogs.deactivatedToast', { entity: catLabelSingular(def.value) }),
+      color: wasPhysical ? 'success' : 'info',
+      icon: wasPhysical ? 'i-lucide-check-circle' : 'i-lucide-info',
+    })
     deleteOpen.value = false
     await load()
   }
@@ -338,7 +363,13 @@ async function confirmDelete() {
                 {{ $t('catalogs.empty') }}
               </td>
             </tr>
-            <tr v-for="item in items" v-else :key="item.uuid" class="hover:bg-prohealth-50/50">
+            <tr
+              v-for="item in items"
+              v-else
+              :key="item.uuid"
+              class="hover:bg-prohealth-50/50"
+              :class="{ 'opacity-60': !item.active }"
+            >
               <td v-if="def.codeField" class="px-5 py-3">
                 <UBadge color="neutral" variant="subtle">{{ item[def.codeField] }}</UBadge>
               </td>
@@ -434,6 +465,10 @@ async function confirmDelete() {
             />
           </UFormField>
 
+          <UFormField v-if="mode === 'edit'" :label="$t('catalogs.fields.active')">
+            <USwitch v-model="isActive" />
+          </UFormField>
+
           <p class="text-xs text-prohealth-500">{{ $t('common.requiredFieldsHint') }}</p>
 
           <div class="flex items-center justify-between gap-3 pt-2">
@@ -467,14 +502,22 @@ async function confirmDelete() {
     <!-- Delete modal -->
     <UModal v-model:open="deleteOpen" :title="$t('catalogs.deleteTitle', { entity: catLabelSingular(def).toLowerCase() })">
       <template #body>
-        <p class="text-sm text-prohealth-700">
-          {{ $t('catalogs.deleteConfirm', { name: target?.name ?? '' }) }}
+        <div v-if="usageChecking" class="flex items-center gap-2 text-sm text-prohealth-600">
+          <UIcon name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
+          {{ $t('common.loading') }}
+        </div>
+        <p v-else class="text-sm text-prohealth-700">
+          {{
+            usageInfo?.inUse === false
+              ? t('catalogs.deleteConfirmPermanent')
+              : t('catalogs.deleteConfirmDeactivate', { count: usageInfo?.count ?? 0 })
+          }}
         </p>
         <div class="flex items-center justify-end gap-3 pt-5">
           <UButton color="neutral" variant="ghost" :disabled="deleting" @click="deleteOpen = false">
             {{ $t('common.cancel') }}
           </UButton>
-          <UButton color="error" :loading="deleting" icon="i-lucide-trash-2" @click="confirmDelete">
+          <UButton color="error" :loading="deleting" :disabled="usageChecking" icon="i-lucide-trash-2" @click="confirmDelete">
             {{ $t('common.delete') }}
           </UButton>
         </div>

@@ -544,9 +544,13 @@
     "modalEditTitle": "Edit: {entity}",
     "deleteTitle": "Delete {entity}",
     "deleteConfirm": "Are you sure you want to delete {name}?",
+    "deleteConfirmPermanent": "This record is not in use. It will be permanently deleted. Confirm?",
+    "deleteConfirmDeactivate": "This record is in use by {count} record(s). It will be deactivated (not deleted). Confirm?",
     "createdToast": "{entity} created",
     "updatedToast": "{entity} updated",
     "deletedToast": "{entity} deleted",
+    "deletedPermanentToast": "{entity} permanently deleted",
+    "deactivatedToast": "{entity} deactivated",
     "columns": {
       "code": "Code",
       "name": "Name",
@@ -564,7 +568,8 @@
       "code": "Code",
       "description": "Description",
       "country": "Country",
-      "state": "State"
+      "state": "State",
+      "active": "Active"
     },
     "validation": {
       "isoCode": "Two uppercase letters (ISO 3166-1, e.g. VE)",

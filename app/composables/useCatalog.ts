@@ -37,8 +37,12 @@ export const useCatalog = (basePath: string) => {
   const update = (uuid: string, body: Record<string, unknown>) =>
     useApi<CatalogItem>(`${basePath}/${uuid}`, { method: 'PUT', body })
 
-  const remove = (uuid: string) =>
-    useApi<null>(`${basePath}/${uuid}`, { method: 'DELETE' })
+  const remove = (uuid: string, physical = false) =>
+    useApi<null>(`${basePath}/${uuid}`, { method: 'DELETE', query: physical ? { physical: true } : {} })
 
-  return { list, get, create, update, remove }
+  /** "Ping" of FK usage before deleting: lets the UI offer a physical delete vs. a deactivation. */
+  const usage = (uuid: string) =>
+    useApi<{ inUse: boolean, count: number }>(`${basePath}/${uuid}/usage`)
+
+  return { list, get, create, update, remove, usage }
 }
