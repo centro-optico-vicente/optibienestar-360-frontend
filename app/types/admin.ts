@@ -19,6 +19,7 @@ export interface RoleDto {
   uuid: string
   name: string
   description?: string
+  active?: boolean
 }
 
 export interface UserDto {
@@ -88,7 +89,7 @@ export interface CreateRoleRequest {
 }
 
 /** Body de PUT /v1/admin/roles/{uuid} (no aplica al rol SYSTEM). */
-export type UpdateRoleRequest = Partial<CreateRoleRequest>
+export type UpdateRoleRequest = Partial<CreateRoleRequest> & { active?: boolean }
 
 /** Permiso individual (llave de acción). */
 export interface PermissionDto {

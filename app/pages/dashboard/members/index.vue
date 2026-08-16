@@ -202,6 +202,9 @@ const state = reactive<FormState>({
   status: 'ACTIVE',
   notes: '',
 })
+// Kept outside `state` (a string-only-friendly form-state map) so the boolean isn't coerced.
+// Distinct from `state.status` (business workflow value) — this is the soft-delete/reactivation flag.
+const isActive = ref(true)
 
 /** The holder must be of legal age (@MinimumAge=18 in the backend). */
 function isAdult(iso: string): boolean {
@@ -267,6 +270,7 @@ function resetForm() {
   state.enrolledAt = ''
   state.status = 'ACTIVE'
   state.notes = ''
+  isActive.value = true
   selectedStateUuid.value = undefined
   pendingCityUuid.value = undefined
 }
@@ -318,6 +322,7 @@ async function openEdit(m: MemberDto) {
     state.enrolledAt = full.enrolledAt ?? ''
     state.status = full.status || 'ACTIVE'
     state.notes = full.notes ?? ''
+    isActive.value = full.active ?? true
   }
   catch {
     // The detail failed to load (useApi already notified); close the modal.
@@ -385,6 +390,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         employerAddress: state.employerAddress || undefined,
         enrolledAt: state.enrolledAt || undefined,
         status: state.status,
+        active: isActive.value,
         notes: state.notes || undefined,
       }
       await members.update(editingUuid.value, body)
@@ -405,10 +411,24 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
 const deleteOpen = ref(false)
 const deleting = ref(false)
 const target = ref<MemberDto | null>(null)
+const usageChecking = ref(false)
+const usageInfo = ref<{ inUse: boolean, count: number } | null>(null)
 
-function openDelete(m: MemberDto) {
+async function openDelete(m: MemberDto) {
   target.value = m
   deleteOpen.value = true
+  usageChecking.value = true
+  usageInfo.value = null
+  try {
+    usageInfo.value = await members.usage(m.uuid)
+  }
+  catch {
+    // Fallback: treat as "in use" for safety (soft-deactivate instead of physical delete).
+    usageInfo.value = null
+  }
+  finally {
+    usageChecking.value = false
+  }
 }
 
 // Shortcut from the edit modal so the user doesn't have to close it first
@@ -423,9 +443,16 @@ function openDeleteFromEdit() {
 async function confirmDelete() {
   if (!target.value) return
   deleting.value = true
+  const wasPhysical = usageInfo.value?.inUse === false
   try {
-    await members.remove(target.value.uuid)
-    toast.add({ title: t('members.deletedToast'), color: 'success', icon: 'i-lucide-check-circle' })
+    await members.remove(target.value.uuid, wasPhysical)
+    toast.add({
+      title: wasPhysical
+        ? t('members.deletedPermanentToast')
+        : t('members.deactivatedToast'),
+      color: wasPhysical ? 'success' : 'info',
+      icon: wasPhysical ? 'i-lucide-check-circle' : 'i-lucide-info',
+    })
     deleteOpen.value = false
     // If the page is left empty after deleting, step back one.
     if (data.value.length === 1 && page.value > 1) page.value -= 1
@@ -508,6 +535,7 @@ function displayName(m: MemberDto): string {
               v-else
               :key="m.uuid"
               class="hover:bg-prohealth-50/50 cursor-pointer"
+              :class="{ 'opacity-60': m.active === false }"
               @click="navigateTo(`/dashboard/members/${m.uuid}`)"
             >
               <td class="px-5 py-3">
@@ -765,15 +793,20 @@ function displayName(m: MemberDto): string {
             <UInput v-model="state.address" class="w-full" />
           </UFormField>
 
-          <UFormField v-if="mode === 'edit'" :label="t('members.form.fields.status')" name="status">
-            <USelectMenu
-              v-model="state.status"
-              :items="statusOptions"
-              label-key="label"
-              value-key="value"
-              class="w-full"
-            />
-          </UFormField>
+          <div v-if="mode === 'edit'" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <UFormField :label="t('members.form.fields.status')" name="status">
+              <USelectMenu
+                v-model="state.status"
+                :items="statusOptions"
+                label-key="label"
+                value-key="value"
+                class="w-full"
+              />
+            </UFormField>
+            <UFormField :label="t('members.form.fields.active')">
+              <USwitch v-model="isActive" />
+            </UFormField>
+          </div>
 
           <UFormField :label="t('members.form.fields.notes')" name="notes">
             <UTextarea v-model="state.notes" :rows="2" class="w-full" />
@@ -813,19 +846,22 @@ function displayName(m: MemberDto): string {
     <!-- Delete confirmation modal -->
     <UModal v-model:open="deleteOpen" :title="t('members.delete.title')">
       <template #body>
-        <i18n-t keypath="members.delete.confirm" tag="p" class="text-sm text-prohealth-700" scope="global">
-          <template #name>
-            <span class="font-semibold">{{ target ? displayName(target) : '' }}</span>
-          </template>
-          <template #document>
-            {{ target?.documentType }} {{ target?.documentNumber }}
-          </template>
-        </i18n-t>
+        <div v-if="usageChecking" class="flex items-center gap-2 text-sm text-prohealth-600">
+          <UIcon name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
+          {{ t('common.loading') }}
+        </div>
+        <p v-else class="text-sm text-prohealth-700">
+          {{
+            usageInfo?.inUse === false
+              ? t('members.deleteConfirmPermanent')
+              : t('members.deleteConfirmDeactivate', { count: usageInfo?.count ?? 0 })
+          }}
+        </p>
         <div class="flex items-center justify-end gap-3 pt-5">
           <UButton color="neutral" variant="ghost" :disabled="deleting" @click="deleteOpen = false">
             {{ t('common.cancel') }}
           </UButton>
-          <UButton color="error" :loading="deleting" icon="i-lucide-trash-2" @click="confirmDelete">
+          <UButton color="error" :loading="deleting" :disabled="usageChecking" icon="i-lucide-trash-2" @click="confirmDelete">
             {{ t('common.delete') }}
           </UButton>
         </div>

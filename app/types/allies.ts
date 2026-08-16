@@ -25,6 +25,8 @@ export interface AllyDto {
   published?: boolean
   publishedAt?: string | null
   status?: string
+  /** Soft-delete/reactivation flag — distinct from `status` (a business workflow value). */
+  active?: boolean
   specialties?: CatalogRef[]
   services?: AllyServiceDto[]
   createdAt?: string
@@ -49,6 +51,7 @@ export interface CreateAllyRequest {
 /** PUT with PATCH semantics; `specialtyUuids` REPLACES the set when sent. */
 export interface UpdateAllyRequest extends Partial<CreateAllyRequest> {
   status?: string
+  active?: boolean
 }
 
 // ---- Partner services ----

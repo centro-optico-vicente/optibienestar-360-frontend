@@ -277,10 +277,24 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
 const deleteOpen = ref(false)
 const deleting = ref(false)
 const target = ref<UserDto | null>(null)
+const usageChecking = ref(false)
+const usageInfo = ref<{ inUse: boolean, count: number } | null>(null)
 
-function openDelete(u: UserDto) {
+async function openDelete(u: UserDto) {
   target.value = u
   deleteOpen.value = true
+  usageChecking.value = true
+  usageInfo.value = null
+  try {
+    usageInfo.value = await users.usage(u.uuid)
+  }
+  catch {
+    // Fallback: treat as "in use" for safety (soft-deactivate instead of physical delete).
+    usageInfo.value = null
+  }
+  finally {
+    usageChecking.value = false
+  }
 }
 
 // Shortcut from the edit modal so the user doesn't have to close it first
@@ -295,9 +309,16 @@ function openDeleteFromEdit() {
 async function confirmDelete() {
   if (!target.value) return
   deleting.value = true
+  const wasPhysical = usageInfo.value?.inUse === false
   try {
-    await users.remove(target.value.uuid)
-    toast.add({ title: t('security.users.deletedToast'), color: 'success', icon: 'i-lucide-check-circle' })
+    await users.remove(target.value.uuid, wasPhysical)
+    toast.add({
+      title: wasPhysical
+        ? t('security.users.deletedPermanentToast')
+        : t('security.users.deactivatedToast'),
+      color: wasPhysical ? 'success' : 'info',
+      icon: wasPhysical ? 'i-lucide-check-circle' : 'i-lucide-info',
+    })
     deleteOpen.value = false
     // Si la página queda vacía tras borrar, retrocede una.
     if (data.value.length === 1 && page.value > 1) page.value -= 1
@@ -373,6 +394,7 @@ async function confirmDelete() {
               v-else
               :key="u.uuid"
               class="hover:bg-prohealth-50/50"
+              :class="{ 'opacity-60': u.active === false }"
             >
               <td class="px-5 py-3">
                 <div class="font-semibold text-prohealth-900">{{ u.fullName }}</div>
@@ -587,14 +609,22 @@ async function confirmDelete() {
     <!-- Modal confirmar eliminación -->
     <UModal v-model:open="deleteOpen" :title="$t('security.users.deleteTitle')">
       <template #body>
-        <p class="text-sm text-prohealth-700">
-          {{ $t('security.users.deleteConfirm', { name: target?.fullName ?? '', email: target?.email ?? '' }) }}
+        <div v-if="usageChecking" class="flex items-center gap-2 text-sm text-prohealth-600">
+          <UIcon name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
+          {{ $t('common.loading') }}
+        </div>
+        <p v-else class="text-sm text-prohealth-700">
+          {{
+            usageInfo?.inUse === false
+              ? t('security.users.deleteConfirmPermanent')
+              : t('security.users.deleteConfirmDeactivate', { count: usageInfo?.count ?? 0 })
+          }}
         </p>
         <div class="flex items-center justify-end gap-3 pt-5">
           <UButton color="neutral" variant="ghost" :disabled="deleting" @click="deleteOpen = false">
             {{ $t('common.cancel') }}
           </UButton>
-          <UButton color="error" :loading="deleting" icon="i-lucide-trash-2" @click="confirmDelete">
+          <UButton color="error" :loading="deleting" :disabled="usageChecking" icon="i-lucide-trash-2" @click="confirmDelete">
             {{ $t('common.delete') }}
           </UButton>
         </div>

@@ -125,14 +125,38 @@ async function onTierSaved() { await loadTiers() }
 const tierDeleteOpen = ref(false)
 const tierDeleting = ref(false)
 const tierTarget = ref<CommissionTierDto | null>(null)
-function openDeleteTier(tier: CommissionTierDto) { tierTarget.value = tier; tierDeleteOpen.value = true }
+const tierUsageChecking = ref(false)
+const tierUsageInfo = ref<{ inUse: boolean, count: number } | null>(null)
+async function openDeleteTier(tier: CommissionTierDto) {
+  tierTarget.value = tier
+  tierDeleteOpen.value = true
+  tierUsageChecking.value = true
+  tierUsageInfo.value = null
+  try {
+    tierUsageInfo.value = await tierApi.usage(tier.uuid)
+  }
+  catch {
+    // Fallback: treat as "in use" for safety (soft-deactivate instead of physical delete).
+    tierUsageInfo.value = null
+  }
+  finally {
+    tierUsageChecking.value = false
+  }
+}
 function onDeleteTierFromEdit(tier: CommissionTierDto) { openDeleteTier(tier) }
 async function confirmDeleteTier() {
   if (!tierTarget.value) return
   tierDeleting.value = true
+  const wasPhysical = tierUsageInfo.value?.inUse === false
   try {
-    await tierApi.remove(tierTarget.value.uuid)
-    toast.add({ title: t('commissionRules.tiers.deletedToast'), color: 'success', icon: 'i-lucide-check-circle' })
+    await tierApi.remove(tierTarget.value.uuid, wasPhysical)
+    toast.add({
+      title: wasPhysical
+        ? t('commissionRules.tiers.deletedPermanentToast')
+        : t('commissionRules.tiers.deactivatedToast'),
+      color: wasPhysical ? 'success' : 'info',
+      icon: wasPhysical ? 'i-lucide-check-circle' : 'i-lucide-info',
+    })
     tierDeleteOpen.value = false
     await loadTiers()
   }
@@ -280,14 +304,38 @@ async function onCollectionTierSaved() { await loadCollectionTiers() }
 const collectionDeleteOpen = ref(false)
 const collectionDeleting = ref(false)
 const collectionTarget = ref<CollectionCommissionTierDto | null>(null)
-function openDeleteCollectionTier(tier: CollectionCommissionTierDto) { collectionTarget.value = tier; collectionDeleteOpen.value = true }
+const collectionUsageChecking = ref(false)
+const collectionUsageInfo = ref<{ inUse: boolean, count: number } | null>(null)
+async function openDeleteCollectionTier(tier: CollectionCommissionTierDto) {
+  collectionTarget.value = tier
+  collectionDeleteOpen.value = true
+  collectionUsageChecking.value = true
+  collectionUsageInfo.value = null
+  try {
+    collectionUsageInfo.value = await collectionApi.usage(tier.uuid)
+  }
+  catch {
+    // Fallback: treat as "in use" for safety (soft-deactivate instead of physical delete).
+    collectionUsageInfo.value = null
+  }
+  finally {
+    collectionUsageChecking.value = false
+  }
+}
 function onDeleteCollectionTierFromEdit(tier: CollectionCommissionTierDto) { openDeleteCollectionTier(tier) }
 async function confirmDeleteCollectionTier() {
   if (!collectionTarget.value) return
   collectionDeleting.value = true
+  const wasPhysical = collectionUsageInfo.value?.inUse === false
   try {
-    await collectionApi.remove(collectionTarget.value.uuid)
-    toast.add({ title: t('commissionRules.collectionTiers.deletedToast'), color: 'success', icon: 'i-lucide-check-circle' })
+    await collectionApi.remove(collectionTarget.value.uuid, wasPhysical)
+    toast.add({
+      title: wasPhysical
+        ? t('commissionRules.collectionTiers.deletedPermanentToast')
+        : t('commissionRules.collectionTiers.deactivatedToast'),
+      color: wasPhysical ? 'success' : 'info',
+      icon: wasPhysical ? 'i-lucide-check-circle' : 'i-lucide-info',
+    })
     collectionDeleteOpen.value = false
     await loadCollectionTiers()
   }
@@ -370,7 +418,7 @@ onMounted(() => {
             <tr v-else-if="tierData.length === 0">
               <td colspan="6" class="px-5 py-10 text-center text-prohealth-500">{{ t('commissionRules.tiers.empty') }}</td>
             </tr>
-            <tr v-for="tier in tierData" v-else :key="tier.uuid" class="hover:bg-prohealth-50/50">
+            <tr v-for="tier in tierData" v-else :key="tier.uuid" class="hover:bg-prohealth-50/50" :class="{ 'opacity-60': !tier.active }">
               <td class="px-5 py-3 font-medium text-prohealth-900">{{ tier.name }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ tier.planType ? t(`plans.types.${tier.planType}`) : t('commissionRules.tiers.allPlans') }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ tier.thresholdCount }}</td>
@@ -543,7 +591,7 @@ onMounted(() => {
             <tr v-else-if="collectionData.length === 0">
               <td colspan="5" class="px-5 py-10 text-center text-prohealth-500">{{ t('commissionRules.collectionTiers.empty') }}</td>
             </tr>
-            <tr v-for="tier in collectionData" v-else :key="tier.uuid" class="hover:bg-prohealth-50/50">
+            <tr v-for="tier in collectionData" v-else :key="tier.uuid" class="hover:bg-prohealth-50/50" :class="{ 'opacity-60': !tier.active }">
               <td class="px-5 py-3 font-medium text-prohealth-900">{{ tier.name }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ tier.maxDays }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ tier.commissionPct }}%</td>
@@ -597,10 +645,20 @@ onMounted(() => {
     <!-- Delete confirmations -->
     <UModal v-model:open="tierDeleteOpen" :title="t('commissionRules.tiers.deleteTitle')">
       <template #body>
-        <p class="text-sm text-prohealth-700">{{ t('commissionRules.tiers.deleteConfirm', { name: tierTarget?.name ?? '' }) }}</p>
+        <div v-if="tierUsageChecking" class="flex items-center gap-2 text-sm text-prohealth-600">
+          <UIcon name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
+          {{ t('common.loading') }}
+        </div>
+        <p v-else class="text-sm text-prohealth-700">
+          {{
+            tierUsageInfo?.inUse === false
+              ? t('commissionRules.tiers.deleteConfirmPermanent')
+              : t('commissionRules.tiers.deleteConfirmDeactivate', { count: tierUsageInfo?.count ?? 0 })
+          }}
+        </p>
         <div class="flex items-center justify-end gap-3 pt-5">
           <UButton color="neutral" variant="ghost" :disabled="tierDeleting" @click="tierDeleteOpen = false">{{ t('common.cancel') }}</UButton>
-          <UButton color="error" :loading="tierDeleting" icon="i-lucide-trash-2" @click="confirmDeleteTier">{{ t('common.delete') }}</UButton>
+          <UButton color="error" :loading="tierDeleting" :disabled="tierUsageChecking" icon="i-lucide-trash-2" @click="confirmDeleteTier">{{ t('common.delete') }}</UButton>
         </div>
       </template>
     </UModal>
@@ -617,10 +675,20 @@ onMounted(() => {
 
     <UModal v-model:open="collectionDeleteOpen" :title="t('commissionRules.collectionTiers.deleteTitle')">
       <template #body>
-        <p class="text-sm text-prohealth-700">{{ t('commissionRules.collectionTiers.deleteConfirm', { name: collectionTarget?.name ?? '' }) }}</p>
+        <div v-if="collectionUsageChecking" class="flex items-center gap-2 text-sm text-prohealth-600">
+          <UIcon name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
+          {{ t('common.loading') }}
+        </div>
+        <p v-else class="text-sm text-prohealth-700">
+          {{
+            collectionUsageInfo?.inUse === false
+              ? t('commissionRules.collectionTiers.deleteConfirmPermanent')
+              : t('commissionRules.collectionTiers.deleteConfirmDeactivate', { count: collectionUsageInfo?.count ?? 0 })
+          }}
+        </p>
         <div class="flex items-center justify-end gap-3 pt-5">
           <UButton color="neutral" variant="ghost" :disabled="collectionDeleting" @click="collectionDeleteOpen = false">{{ t('common.cancel') }}</UButton>
-          <UButton color="error" :loading="collectionDeleting" icon="i-lucide-trash-2" @click="confirmDeleteCollectionTier">{{ t('common.delete') }}</UButton>
+          <UButton color="error" :loading="collectionDeleting" :disabled="collectionUsageChecking" icon="i-lucide-trash-2" @click="confirmDeleteCollectionTier">{{ t('common.delete') }}</UButton>
         </div>
       </template>
     </UModal>

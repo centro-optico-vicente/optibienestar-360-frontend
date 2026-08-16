@@ -38,6 +38,8 @@ interface FormState {
 }
 
 const state = reactive<FormState>({ name: '', maxDays: '', commissionPct: '' })
+// Kept outside `state` (a string-only form-state map) so the boolean isn't coerced.
+const isActive = ref(true)
 
 const schema = computed(() => z.object({
   name: z.string().min(3, t('validation.minChars', { n: 3 })).max(80, t('validation.maxChars', { n: 80 })),
@@ -50,11 +52,13 @@ function populateFrom(tier: CollectionCommissionTierDto | null) {
     state.name = ''
     state.maxDays = ''
     state.commissionPct = ''
+    isActive.value = true
     return
   }
   state.name = tier.name
   state.maxDays = String(tier.maxDays)
   state.commissionPct = String(tier.commissionPct)
+  isActive.value = tier.active ?? true
 }
 
 watch(() => props.open, (open) => { if (open) populateFrom(props.tier ?? null) })
@@ -78,6 +82,7 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
         maxDays: Number(state.maxDays),
         commissionPct: state.commissionPct.trim(),
       }
+      body.active = isActive.value
       result = await tiers.update(props.tier!.uuid, body)
       toast.add({ title: t('commissionRules.collectionTiers.updatedToast'), color: 'success', icon: 'i-lucide-check-circle' })
     }
@@ -121,6 +126,10 @@ function openDeleteFromEdit() {
             </UInput>
           </UFormField>
         </div>
+
+        <UFormField v-if="mode === 'edit'" :label="t('commissionRules.collectionTiers.form.active')">
+          <USwitch v-model="isActive" />
+        </UFormField>
 
         <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
 

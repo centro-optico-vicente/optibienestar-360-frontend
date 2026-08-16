@@ -57,8 +57,12 @@ export const useAllies = () => {
   const update = (uuid: string, body: UpdateAllyRequest) =>
     useApi<AllyDto>(`/v1/admin/allies/${uuid}`, { method: 'PUT', body })
 
-  const remove = (uuid: string) =>
-    useApi<null>(`/v1/admin/allies/${uuid}`, { method: 'DELETE' })
+  const remove = (uuid: string, physical = false) =>
+    useApi<null>(`/v1/admin/allies/${uuid}`, { method: 'DELETE', query: physical ? { physical: true } : {} })
+
+  /** "Ping" of FK usage before deleting: lets the UI offer a physical delete vs. a deactivation. */
+  const usage = (uuid: string) =>
+    useApi<{ inUse: boolean, count: number }>(`/v1/admin/allies/${uuid}/usage`)
 
   // ---- Especialidades (ManyToMany: añadir/quitar sin body) ----
   const listSpecialties = (allyUuid: string) =>
@@ -120,6 +124,7 @@ export const useAllies = () => {
     create,
     update,
     remove,
+    usage,
     listSpecialties,
     addSpecialty,
     removeSpecialty,
