@@ -544,9 +544,13 @@
     "modalEditTitle": "Editar: {entity}",
     "deleteTitle": "Eliminar {entity}",
     "deleteConfirm": "¿Seguro que deseas eliminar {name}?",
+    "deleteConfirmPermanent": "Este registro no está en uso. Se eliminará permanentemente. ¿Confirmar?",
+    "deleteConfirmDeactivate": "Este registro está en uso por {count} registro(s). Se desactivará (no se eliminará). ¿Confirmar?",
     "createdToast": "{entity} creado",
     "updatedToast": "{entity} actualizado",
     "deletedToast": "{entity} eliminado",
+    "deletedPermanentToast": "{entity} eliminado permanentemente",
+    "deactivatedToast": "{entity} desactivado",
     "columns": {
       "code": "Código",
       "name": "Nombre",
@@ -564,7 +568,8 @@
       "code": "Código",
       "description": "Descripción",
       "country": "País",
-      "state": "Estado"
+      "state": "Estado",
+      "active": "Activo"
     },
     "validation": {
       "isoCode": "Dos letras mayúsculas (ISO 3166-1, p.ej. VE)",
