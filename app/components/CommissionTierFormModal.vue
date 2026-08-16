@@ -68,6 +68,8 @@ const state = reactive<FormState>({
   periodStrategy: 'MONTHLY',
   appliesTo: 'BOTH',
 })
+// Kept outside `state` (a string-only form-state map) so the boolean isn't coerced.
+const isActive = ref(true)
 
 const schema = computed(() => {
   const money = z.string().regex(/^\d+(\.\d{1,2})?$/, t('commissionRules.form.invalidAmount'))
@@ -92,6 +94,7 @@ function populateFrom(tier: CommissionTierDto | null) {
     state.flatAmount = ''
     state.periodStrategy = 'MONTHLY'
     state.appliesTo = 'BOTH'
+    isActive.value = true
     return
   }
   state.name = tier.name
@@ -102,6 +105,7 @@ function populateFrom(tier: CommissionTierDto | null) {
   state.flatAmount = tier.flatAmount != null ? String(tier.flatAmount) : ''
   state.periodStrategy = tier.periodStrategy
   state.appliesTo = tier.appliesTo
+  isActive.value = tier.active ?? true
 }
 
 watch(() => props.open, (open) => { if (open) populateFrom(props.tier ?? null) })
@@ -124,7 +128,7 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
       toast.add({ title: t('commissionRules.tiers.createdToast'), color: 'success', icon: 'i-lucide-check-circle' })
     }
     else {
-      result = await tiers.update(props.tier!.uuid, base as UpdateCommissionTierRequest)
+      result = await tiers.update(props.tier!.uuid, { ...base, active: isActive.value } as UpdateCommissionTierRequest)
       toast.add({ title: t('commissionRules.tiers.updatedToast'), color: 'success', icon: 'i-lucide-check-circle' })
     }
     emit('saved', result)
@@ -190,6 +194,10 @@ function openDeleteFromEdit() {
             </UInput>
           </UFormField>
         </div>
+
+        <UFormField v-if="mode === 'edit'" :label="t('commissionRules.tiers.form.active')">
+          <USwitch v-model="isActive" />
+        </UFormField>
 
         <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
 

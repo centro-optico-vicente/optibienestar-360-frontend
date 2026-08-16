@@ -47,8 +47,12 @@ export const usePromoters = () => {
   const update = (uuid: string, body: PromoterUpdateRequest) =>
     useApi<PromoterDto>(`/v1/admin/promoters/${uuid}`, { method: 'PUT', body })
 
-  const remove = (uuid: string) =>
-    useApi<null>(`/v1/admin/promoters/${uuid}`, { method: 'DELETE' })
+  const remove = (uuid: string, physical = false) =>
+    useApi<null>(`/v1/admin/promoters/${uuid}`, { method: 'DELETE', query: physical ? { physical: true } : {} })
+
+  /** "Ping" of FK usage before deleting: lets the UI offer a physical delete vs. a deactivation. */
+  const usage = (uuid: string) =>
+    useApi<{ inUse: boolean, count: number }>(`/v1/admin/promoters/${uuid}/usage`)
 
   /** Cartera de afiliados + salud de cobranza + comisiones del mes en curso. */
   const portfolio = (uuid: string) =>
@@ -58,5 +62,5 @@ export const usePromoters = () => {
   const commissionsSummary = (uuid: string) =>
     useApi<CommissionPeriodSummaryDto[]>(`/v1/admin/promoters/${uuid}/commissions/summary`)
 
-  return { list, get, create, update, remove, portfolio, commissionsSummary }
+  return { list, get, create, update, remove, usage, portfolio, commissionsSummary }
 }

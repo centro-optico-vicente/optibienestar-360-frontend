@@ -101,18 +101,39 @@ async function onSaved() {
 const deleteOpen = ref(false)
 const deleting = ref(false)
 const target = ref<PlanDto | null>(null)
+const usageChecking = ref(false)
+const usageInfo = ref<{ inUse: boolean, count: number } | null>(null)
 
-function openDelete(p: PlanDto) {
+async function openDelete(p: PlanDto) {
   target.value = p
   deleteOpen.value = true
+  usageChecking.value = true
+  usageInfo.value = null
+  try {
+    usageInfo.value = await plans.usage(p.uuid)
+  }
+  catch {
+    // Fallback: treat as "in use" for safety (soft-deactivate instead of physical delete).
+    usageInfo.value = null
+  }
+  finally {
+    usageChecking.value = false
+  }
 }
 
 async function confirmDelete() {
   if (!target.value) return
   deleting.value = true
+  const wasPhysical = usageInfo.value?.inUse === false
   try {
-    await plans.remove(target.value.uuid)
-    toast.add({ title: t('plans.deletedToast'), color: 'success', icon: 'i-lucide-check-circle' })
+    await plans.remove(target.value.uuid, wasPhysical)
+    toast.add({
+      title: wasPhysical
+        ? t('plans.deletedPermanentToast')
+        : t('plans.deactivatedToast'),
+      color: wasPhysical ? 'success' : 'info',
+      icon: wasPhysical ? 'i-lucide-check-circle' : 'i-lucide-info',
+    })
     deleteOpen.value = false
     // If the page is left empty after deleting, step back one.
     if (data.value.length === 1 && page.value > 1) page.value -= 1
@@ -195,6 +216,7 @@ function onDeleteFromEdit(p: PlanDto) {
               v-else
               :key="p.uuid"
               class="hover:bg-prohealth-50/50 cursor-pointer"
+              :class="{ 'opacity-60': p.active === false }"
               @click="navigateTo(`/dashboard/plans/${p.uuid}`)"
             >
               <td class="px-5 py-3">
@@ -287,16 +309,22 @@ function onDeleteFromEdit(p: PlanDto) {
     <!-- Delete confirmation modal -->
     <UModal v-model:open="deleteOpen" :title="t('plans.deleteTitle')">
       <template #body>
-        <i18n-t keypath="plans.deleteConfirm" tag="p" class="text-sm text-prohealth-700" scope="global">
-          <template #name>
-            <span class="font-semibold">{{ target?.name }}</span>
-          </template>
-        </i18n-t>
+        <div v-if="usageChecking" class="flex items-center gap-2 text-sm text-prohealth-600">
+          <UIcon name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
+          {{ t('common.loading') }}
+        </div>
+        <p v-else class="text-sm text-prohealth-700">
+          {{
+            usageInfo?.inUse === false
+              ? t('plans.deleteConfirmPermanent')
+              : t('plans.deleteConfirmDeactivate', { count: usageInfo?.count ?? 0 })
+          }}
+        </p>
         <div class="flex items-center justify-end gap-3 pt-5">
           <UButton color="neutral" variant="ghost" :disabled="deleting" @click="deleteOpen = false">
             {{ t('common.cancel') }}
           </UButton>
-          <UButton color="error" :loading="deleting" icon="i-lucide-trash-2" @click="confirmDelete">
+          <UButton color="error" :loading="deleting" :disabled="usageChecking" icon="i-lucide-trash-2" @click="confirmDelete">
             {{ t('common.delete') }}
           </UButton>
         </div>

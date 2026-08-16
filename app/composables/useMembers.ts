@@ -69,8 +69,12 @@ export const useMembers = () => {
   const update = (uuid: string, body: UpdateMemberRequest) =>
     useApi<MemberDto>(`/v1/admin/members/${uuid}`, { method: 'PUT', body })
 
-  const remove = (uuid: string) =>
-    useApi<null>(`/v1/admin/members/${uuid}`, { method: 'DELETE' })
+  const remove = (uuid: string, physical = false) =>
+    useApi<null>(`/v1/admin/members/${uuid}`, { method: 'DELETE', query: physical ? { physical: true } : {} })
+
+  /** "Ping" of FK usage before deleting: lets the UI offer a physical delete vs. a deactivation. */
+  const usage = (uuid: string) =>
+    useApi<{ inUse: boolean, count: number }>(`/v1/admin/members/${uuid}/usage`)
 
   // ---- Beneficiarios (sub-recurso) ----
   const listBeneficiaries = (memberUuid: string) =>
@@ -123,6 +127,7 @@ export const useMembers = () => {
     create,
     update,
     remove,
+    usage,
     listBeneficiaries,
     createBeneficiary,
     updateBeneficiary,

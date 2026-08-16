@@ -69,6 +69,8 @@ const state = reactive<FormState>({
   gracePeriodDays: '',
   published: false,
 })
+// Kept outside `state` (a string-only-friendly form-state map) so the boolean isn't coerced.
+const isActive = ref(true)
 
 // Locale-reactive schema. Amounts: BigDecimal(10,2) → up to 2 decimals. Required vs
 // optional (allows empty). Wrapped in computed so validation messages follow the UI locale.
@@ -111,6 +113,7 @@ function populateFrom(p: PlanDto | null) {
     state.maxBeneficiaries = ''
     state.gracePeriodDays = ''
     state.published = false
+    isActive.value = true
     return
   }
   state.code = p.code ?? ''
@@ -124,6 +127,7 @@ function populateFrom(p: PlanDto | null) {
   state.maxBeneficiaries = p.maxBeneficiaries != null ? String(p.maxBeneficiaries) : ''
   state.gracePeriodDays = p.gracePeriodDays != null ? String(p.gracePeriodDays) : ''
   state.published = p.published ?? false
+  isActive.value = p.active ?? true
 }
 
 // On open: in create mode clear the form; in edit mode load the full detail by UUID
@@ -192,6 +196,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         gracePeriodDays: toInt(state.gracePeriodDays),
         published: state.published,
       }
+      body.active = isActive.value
       result = await plans.update(props.plan!.uuid, body)
       toast.add({ title: t('plans.updatedToast'), color: 'success', icon: 'i-lucide-check-circle' })
     }
@@ -305,6 +310,10 @@ function openDeleteFromEdit() {
             <USwitch v-model="state.published" />
           </UFormField>
         </div>
+
+        <UFormField v-if="mode === 'edit'" :label="t('plans.form.fields.active')">
+          <USwitch v-model="isActive" />
+        </UFormField>
 
         <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
 

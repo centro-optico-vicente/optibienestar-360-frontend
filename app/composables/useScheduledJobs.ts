@@ -53,8 +53,12 @@ export const useScheduledJobs = () => {
   const update = (uuid: string, body: ScheduledJobUpdateRequest) =>
     useApi<ScheduledJobDto>(`/v1/admin/scheduled-jobs/${uuid}`, { method: 'PUT', body })
 
-  const remove = (uuid: string) =>
-    useApi<null>(`/v1/admin/scheduled-jobs/${uuid}`, { method: 'DELETE' })
+  const remove = (uuid: string, physical = false) =>
+    useApi<null>(`/v1/admin/scheduled-jobs/${uuid}`, { method: 'DELETE', query: physical ? { physical: true } : {} })
+
+  /** "Ping" of FK usage before deleting: lets the UI offer a physical delete vs. a deactivation. */
+  const usage = (uuid: string) =>
+    useApi<{ inUse: boolean, count: number }>(`/v1/admin/scheduled-jobs/${uuid}/usage`)
 
   /** Dispara el job ahora (sync 200 o async 202 → poll con getRun). */
   const runNow = (uuid: string) =>
@@ -74,5 +78,5 @@ export const useScheduledJobs = () => {
   const getRun = (uuid: string, runUuid: string) =>
     useApi<ScheduledJobRunDto>(`/v1/admin/scheduled-jobs/${uuid}/runs/${runUuid}`)
 
-  return { list, get, create, update, remove, runNow, listRuns, getRun }
+  return { list, get, create, update, remove, usage, runNow, listRuns, getRun }
 }

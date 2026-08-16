@@ -81,6 +81,8 @@ export interface MemberDto {
   employerAddress?: string
   enrolledAt?: string
   status?: string
+  /** Soft-delete/reactivation flag — distinct from `status` (a business workflow value). */
+  active?: boolean
   notes?: string
   beneficiaries?: BeneficiaryDto[]
   // Promoter attribution — null/undefined cuando el afiliado no está vinculado.
@@ -149,6 +151,7 @@ export interface CreateMemberRequest {
 /** PUT with PATCH semantics: only the sent fields are applied. */
 export interface UpdateMemberRequest extends Partial<CreateMemberRequest> {
   status?: string
+  active?: boolean
 }
 
 export interface CreateBeneficiaryRequest {

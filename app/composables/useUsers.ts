@@ -55,8 +55,12 @@ export const useUsers = () => {
   const update = (uuid: string, body: AdminUpdateUserRequest) =>
     useApi<UserDto>(`/v1/admin/users/${uuid}`, { method: 'PUT', body })
 
-  const remove = (uuid: string) =>
-    useApi<null>(`/v1/admin/users/${uuid}`, { method: 'DELETE' })
+  const remove = (uuid: string, physical = false) =>
+    useApi<null>(`/v1/admin/users/${uuid}`, { method: 'DELETE', query: physical ? { physical: true } : {} })
 
-  return { list, options, get, create, update, remove }
+  /** "Ping" of FK usage before deleting: lets the UI offer a physical delete vs. a deactivation. */
+  const usage = (uuid: string) =>
+    useApi<{ inUse: boolean, count: number }>(`/v1/admin/users/${uuid}/usage`)
+
+  return { list, options, get, create, update, remove, usage }
 }

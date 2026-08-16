@@ -148,7 +148,11 @@
         "ACTIVE": "Activo",
         "SUSPENDED": "Suspendido",
         "LOCKED": "Bloqueado"
-      }
+      },
+      "deleteConfirmPermanent": "Este usuario no está en uso. Se eliminará permanentemente. ¿Confirmar?",
+      "deleteConfirmDeactivate": "Este usuario está en uso por {count} registro(s). Se desactivará (no se eliminará). ¿Confirmar?",
+      "deletedPermanentToast": "Usuario eliminado permanentemente",
+      "deactivatedToast": "Usuario desactivado"
     },
     "roles": {
       "seoTitle": "Roles — OptiBienestar 360",
@@ -190,8 +194,13 @@
       },
       "fields": {
         "name": "Nombre",
-        "description": "Descripción"
-      }
+        "description": "Descripción",
+        "active": "Activo"
+      },
+      "deleteConfirmPermanent": "Este rol no está en uso. Se eliminará permanentemente. ¿Confirmar?",
+      "deleteConfirmDeactivate": "Este rol está en uso por {count} usuario(s). Se desactivará (no se eliminará). ¿Confirmar?",
+      "deletedPermanentToast": "Rol eliminado permanentemente",
+      "deactivatedToast": "Rol desactivado"
     }
   },
   "nav": {
@@ -721,9 +730,14 @@
         "description": "Descripción",
         "inscription": "Inscripción (USD)",
         "monthly": "Mensualidad (USD)",
-        "extraBeneficiary": "Inscripción por beneficiario extra (USD)"
+        "extraBeneficiary": "Inscripción por beneficiario extra (USD)",
+        "active": "Activo"
       }
-    }
+    },
+    "deleteConfirmPermanent": "Este plan no está en uso. Se eliminará permanentemente. ¿Confirmar?",
+    "deleteConfirmDeactivate": "Este plan está en uso por {count} registro(s). Se desactivará (no se eliminará). ¿Confirmar?",
+    "deletedPermanentToast": "Plan eliminado permanentemente",
+    "deactivatedToast": "Plan desactivado"
   },
   "allies": {
     "title": "Aliados",
@@ -781,7 +795,8 @@
         "specialties": "Especialidades",
         "joinedAt": "Fecha de alianza",
         "published": "Publicado en directorio",
-        "status": "Estado"
+        "status": "Estado",
+        "active": "Activo"
       }
     },
     "delete": {
@@ -1012,7 +1027,11 @@
       },
       "noAllyTitle": "No estás asociado a ninguna empresa aliada",
       "noAllyDescription": "Pide al equipo de OptiBienestar 360 que te vincule a tu empresa aliada para poder proponer servicios."
-    }
+    },
+    "deleteConfirmPermanent": "Este aliado no está en uso. Se eliminará permanentemente. ¿Confirmar?",
+    "deleteConfirmDeactivate": "Este aliado está en uso por {count} registro(s). Se desactivará (no se eliminará). ¿Confirmar?",
+    "deletedPermanentToast": "Aliado eliminado permanentemente",
+    "deactivatedToast": "Aliado desactivado"
   },
   "payments": {
     "title": "Pagos",
@@ -1240,7 +1259,8 @@
         "city": "Ciudad",
         "address": "Dirección",
         "status": "Estado",
-        "notes": "Notas"
+        "notes": "Notas",
+        "active": "Activo"
       },
       "validation": {
         "documentMin": "Mínimo 5 dígitos",
@@ -1425,7 +1445,11 @@
         "network": "red de aliados",
         "button": "Ver directorio"
       }
-    }
+    },
+    "deleteConfirmPermanent": "Este afiliado no está en uso. Se eliminará permanentemente. ¿Confirmar?",
+    "deleteConfirmDeactivate": "Este afiliado está en uso por {count} registro(s). Se desactivará (no se eliminará). ¿Confirmar?",
+    "deletedPermanentToast": "Afiliado eliminado permanentemente",
+    "deactivatedToast": "Afiliado desactivado"
   },
   "memberships": {
     "title": "Membresías",
@@ -1687,7 +1711,11 @@
         "status": "Estado",
         "active": "Activo"
       }
-    }
+    },
+    "deleteConfirmPermanent": "Este promotor no está en uso. Se eliminará permanentemente. ¿Confirmar?",
+    "deleteConfirmDeactivate": "Este promotor está en uso por {count} registro(s). Se desactivará (no se eliminará). ¿Confirmar?",
+    "deletedPermanentToast": "Promotor eliminado permanentemente",
+    "deactivatedToast": "Promotor desactivado"
   },
   "commissions": {
     "title": "Comisiones",
@@ -1917,7 +1945,11 @@
         "maxSyncSeconds": "Máx. segundos síncronos",
         "active": "Activo"
       }
-    }
+    },
+    "deleteConfirmPermanent": "Este trabajo no está en uso. Se eliminará permanentemente. ¿Confirmar?",
+    "deleteConfirmDeactivate": "Este trabajo está en uso por {count} registro(s). Se desactivará (no se eliminará). ¿Confirmar?",
+    "deletedPermanentToast": "Trabajo eliminado permanentemente",
+    "deactivatedToast": "Trabajo desactivado"
   },
   "referrals": {
     "mine": {
@@ -2045,8 +2077,13 @@
         "rewardKind": "Tipo de recompensa",
         "commissionPct": "Porcentaje",
         "flatAmount": "Monto fijo",
-        "submitCreate": "Crear banda"
-      }
+        "submitCreate": "Crear banda",
+        "active": "Activo"
+      },
+      "deleteConfirmPermanent": "Esta banda no está en uso. Se eliminará permanentemente. ¿Confirmar?",
+      "deleteConfirmDeactivate": "Esta banda está en uso por {count} registro(s). Se desactivará (no se eliminará). ¿Confirmar?",
+      "deletedPermanentToast": "Banda eliminada permanentemente",
+      "deactivatedToast": "Banda desactivada"
     },
     "bonusRules": {
       "new": "Nueva regla de bono",
@@ -2106,8 +2143,13 @@
         "maxDays": "Días máximos",
         "maxDaysHelp": "Aplica cuando días de cobro <= este valor.",
         "commissionPct": "Porcentaje",
-        "submitCreate": "Crear tramo"
-      }
+        "submitCreate": "Crear tramo",
+        "active": "Activo"
+      },
+      "deleteConfirmPermanent": "Este tramo no está en uso. Se eliminará permanentemente. ¿Confirmar?",
+      "deleteConfirmDeactivate": "Este tramo está en uso por {count} registro(s). Se desactivará (no se eliminará). ¿Confirmar?",
+      "deletedPermanentToast": "Tramo eliminado permanentemente",
+      "deactivatedToast": "Tramo desactivado"
     }
   }
 }

@@ -43,8 +43,12 @@ export const useCommissionTiers = () => {
   const update = (uuid: string, body: UpdateCommissionTierRequest) =>
     useApi<CommissionTierDto>(`/v1/admin/commission-tiers/${uuid}`, { method: 'PUT', body })
 
-  const remove = (uuid: string) =>
-    useApi<null>(`/v1/admin/commission-tiers/${uuid}`, { method: 'DELETE' })
+  const remove = (uuid: string, physical = false) =>
+    useApi<null>(`/v1/admin/commission-tiers/${uuid}`, { method: 'DELETE', query: physical ? { physical: true } : {} })
 
-  return { list, get, create, update, remove }
+  /** "Ping" of FK usage before deleting: lets the UI offer a physical delete vs. a deactivation. */
+  const usage = (uuid: string) =>
+    useApi<{ inUse: boolean, count: number }>(`/v1/admin/commission-tiers/${uuid}/usage`)
+
+  return { list, get, create, update, remove, usage }
 }

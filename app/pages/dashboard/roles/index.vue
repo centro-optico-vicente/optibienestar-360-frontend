@@ -134,6 +134,8 @@ const roleEditing = ref<RoleDto | null>(null)
 const roleSubmitting = ref(false)
 
 const roleState = reactive({ name: '', description: '' })
+// Kept outside `roleState` (a string-only form-state map) so the boolean isn't coerced.
+const roleIsActive = ref(true)
 
 const roleSchema = computed(() => z.object({
   name: z
@@ -149,6 +151,7 @@ function openRoleCreate() {
   roleEditing.value = null
   roleState.name = ''
   roleState.description = ''
+  roleIsActive.value = true
   roleFormOpen.value = true
 }
 
@@ -158,6 +161,7 @@ function openRoleEdit(r: RoleDto) {
   roleEditing.value = r
   roleState.name = r.name
   roleState.description = r.description ?? ''
+  roleIsActive.value = r.active ?? true
   roleFormOpen.value = true
 }
 
@@ -191,6 +195,7 @@ async function onRoleSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       await rolesApi.update(roleEditingUuid.value, {
         name: roleState.name,
         description: roleState.description || undefined,
+        active: roleIsActive.value,
       })
       toast.add({ title: t('security.roles.updatedToast'), color: 'success', icon: 'i-lucide-check-circle' })
     }
@@ -208,18 +213,39 @@ async function onRoleSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
 const roleDeleteOpen = ref(false)
 const roleDeleting = ref(false)
 const roleTarget = ref<RoleDto | null>(null)
+const roleUsageChecking = ref(false)
+const roleUsageInfo = ref<{ inUse: boolean, count: number } | null>(null)
 
-function openRoleDelete(r: RoleDto) {
+async function openRoleDelete(r: RoleDto) {
   roleTarget.value = r
   roleDeleteOpen.value = true
+  roleUsageChecking.value = true
+  roleUsageInfo.value = null
+  try {
+    roleUsageInfo.value = await rolesApi.usage(r.uuid)
+  }
+  catch {
+    // Fallback: treat as "in use" for safety (soft-deactivate instead of physical delete).
+    roleUsageInfo.value = null
+  }
+  finally {
+    roleUsageChecking.value = false
+  }
 }
 
 async function confirmRoleDelete() {
   if (!roleTarget.value) return
   roleDeleting.value = true
+  const wasPhysical = roleUsageInfo.value?.inUse === false
   try {
-    await rolesApi.remove(roleTarget.value.uuid)
-    toast.add({ title: t('security.roles.deletedToast'), color: 'success', icon: 'i-lucide-check-circle' })
+    await rolesApi.remove(roleTarget.value.uuid, wasPhysical)
+    toast.add({
+      title: wasPhysical
+        ? t('security.roles.deletedPermanentToast')
+        : t('security.roles.deactivatedToast'),
+      color: wasPhysical ? 'success' : 'info',
+      icon: wasPhysical ? 'i-lucide-check-circle' : 'i-lucide-info',
+    })
     roleDeleteOpen.value = false
     await loadRoles()
   }
@@ -356,7 +382,13 @@ async function onSave() {
                 {{ $t('security.roles.empty') }}
               </td>
             </tr>
-            <tr v-for="r in pagedRoles" v-else :key="r.uuid" class="hover:bg-prohealth-50/50">
+            <tr
+              v-for="r in pagedRoles"
+              v-else
+              :key="r.uuid"
+              class="hover:bg-prohealth-50/50"
+              :class="{ 'opacity-60': r.active === false }"
+            >
               <td class="px-5 py-3">
                 <UBadge color="primary" variant="subtle">{{ r.name }}</UBadge>
               </td>
@@ -452,6 +484,10 @@ async function onSave() {
             <UTextarea v-model="roleState.description" :rows="2" class="w-full" />
           </UFormField>
 
+          <UFormField v-if="roleMode === 'edit'" :label="$t('security.roles.fields.active')">
+            <USwitch v-model="roleIsActive" />
+          </UFormField>
+
           <p class="text-xs text-prohealth-500">{{ $t('common.requiredFieldsHint') }}</p>
 
           <div class="flex items-center justify-between gap-3 pt-2">
@@ -498,14 +534,22 @@ async function onSave() {
     <!-- Modal confirmar eliminación de rol -->
     <UModal v-model:open="roleDeleteOpen" :title="$t('security.roles.deleteTitle')">
       <template #body>
-        <p class="text-sm text-prohealth-700">
-          {{ $t('security.roles.deleteConfirm', { name: roleTarget?.name ?? '' }) }}
+        <div v-if="roleUsageChecking" class="flex items-center gap-2 text-sm text-prohealth-600">
+          <UIcon name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
+          {{ $t('common.loading') }}
+        </div>
+        <p v-else class="text-sm text-prohealth-700">
+          {{
+            roleUsageInfo?.inUse === false
+              ? t('security.roles.deleteConfirmPermanent')
+              : t('security.roles.deleteConfirmDeactivate', { count: roleUsageInfo?.count ?? 0 })
+          }}
         </p>
         <div class="flex items-center justify-end gap-3 pt-5">
           <UButton color="neutral" variant="ghost" :disabled="roleDeleting" @click="roleDeleteOpen = false">
             {{ $t('common.cancel') }}
           </UButton>
-          <UButton color="error" :loading="roleDeleting" icon="i-lucide-trash-2" @click="confirmRoleDelete">
+          <UButton color="error" :loading="roleDeleting" :disabled="roleUsageChecking" icon="i-lucide-trash-2" @click="confirmRoleDelete">
             {{ $t('common.delete') }}
           </UButton>
         </div>

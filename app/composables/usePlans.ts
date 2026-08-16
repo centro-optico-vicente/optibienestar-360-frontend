@@ -60,8 +60,12 @@ export const usePlans = () => {
   const update = (uuid: string, body: UpdatePlanRequest) =>
     useApi<PlanDto>(`/v1/admin/plans/${uuid}`, { method: 'PUT', body })
 
-  const remove = (uuid: string) =>
-    useApi<null>(`/v1/admin/plans/${uuid}`, { method: 'DELETE' })
+  const remove = (uuid: string, physical = false) =>
+    useApi<null>(`/v1/admin/plans/${uuid}`, { method: 'DELETE', query: physical ? { physical: true } : {} })
 
-  return { list, options, get, create, update, remove }
+  /** "Ping" of FK usage before deleting: lets the UI offer a physical delete vs. a deactivation. */
+  const usage = (uuid: string) =>
+    useApi<{ inUse: boolean, count: number }>(`/v1/admin/plans/${uuid}/usage`)
+
+  return { list, options, get, create, update, remove, usage }
 }

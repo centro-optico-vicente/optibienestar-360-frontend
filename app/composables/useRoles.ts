@@ -64,8 +64,12 @@ export const useRoles = () => {
   const update = (uuid: string, body: UpdateRoleRequest) =>
     useApi<RoleDto>(`/v1/admin/roles/${uuid}`, { method: 'PUT', body })
 
-  const remove = (uuid: string) =>
-    useApi<null>(`/v1/admin/roles/${uuid}`, { method: 'DELETE' })
+  const remove = (uuid: string, physical = false) =>
+    useApi<null>(`/v1/admin/roles/${uuid}`, { method: 'DELETE', query: physical ? { physical: true } : {} })
+
+  /** "Ping" of FK usage before deleting: lets the UI offer a physical delete vs. a deactivation. */
+  const usage = (uuid: string) =>
+    useApi<{ inUse: boolean, count: number }>(`/v1/admin/roles/${uuid}/usage`)
 
   /** UUIDs de los permisos actualmente asignados al rol. */
   const getRolePermissions = (uuid: string) =>
@@ -82,5 +86,5 @@ export const useRoles = () => {
   const permissions = async (): Promise<PermissionDomainDto[]> =>
     toItems(await useApi<Page<PermissionDomainDto> | PermissionDomainDto[]>('/v1/admin/permissions'))
 
-  return { list, options, get, create, update, remove, getRolePermissions, updateRolePermissions, permissions }
+  return { list, options, get, create, update, remove, usage, getRolePermissions, updateRolePermissions, permissions }
 }
