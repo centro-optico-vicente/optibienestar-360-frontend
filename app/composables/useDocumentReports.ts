@@ -1,6 +1,7 @@
 import { useAuthStore } from '~/stores/auth'
 
 export const useDocumentReports = () => {
+  const { t } = useI18n()
   const config = useRuntimeConfig()
   const auth = useAuthStore()
   const toast = useToast()
@@ -55,20 +56,20 @@ export const useDocumentReports = () => {
       })
 
       if (!response.ok) {
-        throw new Error(`Error ${response.status}: No se pudo generar el reporte de la tabla`)
+        throw new Error(t('reports.tableError'))
       }
 
       const blob = await response.blob()
       const ext = format === 'XLSX' ? 'xlsx' : 'pdf'
       triggerBlobDownload(blob, `listado_${cleanTable}.${ext}`)
       toast.add({
-        title: 'Reporte generado con éxito',
+        title: t('reports.tableSuccess'),
         color: 'success',
         icon: 'i-lucide-check-circle',
       })
     } catch (err: any) {
       toast.add({
-        title: err?.message || 'Error al generar el reporte de la tabla',
+        title: err?.message || t('reports.tableError'),
         color: 'error',
         icon: 'i-lucide-circle-alert',
       })
@@ -101,20 +102,20 @@ export const useDocumentReports = () => {
       })
 
       if (!response.ok) {
-        throw new Error(`Error ${response.status}: No se pudo generar el reporte del registro`)
+        throw new Error(t('reports.recordError'))
       }
 
       const blob = await response.blob()
       const ext = format === 'XLSX' ? 'xlsx' : 'pdf'
       triggerBlobDownload(blob, `ficha_${cleanTable}_${uuid}.${ext}`)
       toast.add({
-        title: 'Ficha generada con éxito',
+        title: t('reports.recordSuccess'),
         color: 'success',
         icon: 'i-lucide-check-circle',
       })
     } catch (err: any) {
       toast.add({
-        title: err?.message || 'Error al generar la ficha del registro',
+        title: err?.message || t('reports.recordError'),
         color: 'error',
         icon: 'i-lucide-circle-alert',
       })

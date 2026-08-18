@@ -2109,5 +2109,14 @@
         "submitCreate": "Crear tramo"
       }
     }
+  },
+  "reports": {
+    "printRecord": "Imprimir Ficha",
+    "printList": "Imprimir Listado",
+    "exportExcel": "Exportar a Excel (XLSX)",
+    "tableSuccess": "Reporte generado con éxito",
+    "tableError": "Error al generar el reporte de la tabla",
+    "recordSuccess": "Ficha generada con éxito",
+    "recordError": "Error al generar la ficha del registro"
   }
 }

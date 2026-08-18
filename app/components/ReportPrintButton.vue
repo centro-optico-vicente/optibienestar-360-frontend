@@ -20,6 +20,7 @@ const props = withDefaults(
   }
 )
 
+const { t } = useI18n()
 const route = useRoute()
 const reports = useDocumentReports()
 const loading = ref(false)
@@ -55,7 +56,7 @@ async function handleDownload(format: 'PDF' | 'XLSX') {
       :loading="loading"
       @click="handleDownload('PDF')"
     >
-      {{ label || (recordUuid ? 'Imprimir Ficha' : 'Imprimir Listado') }}
+      {{ label || (recordUuid ? t('reports.printRecord') : t('reports.printList')) }}
     </UButton>
 
     <UButton
@@ -64,7 +65,7 @@ async function handleDownload(format: 'PDF' | 'XLSX') {
       icon="i-lucide-file-spreadsheet"
       :loading="loading"
       square
-      title="Exportar a Excel (XLSX)"
+      :title="t('reports.exportExcel')"
       @click="handleDownload('XLSX')"
     />
   </div>
