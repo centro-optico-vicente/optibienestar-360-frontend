@@ -2117,6 +2117,8 @@
     "tableSuccess": "Reporte generado con éxito",
     "tableError": "Error al generar el reporte de la tabla",
     "recordSuccess": "Ficha generada con éxito",
-    "recordError": "Error al generar la ficha del registro"
+    "recordError": "Error al generar la ficha del registro",
+    "listFilePrefix": "listado",
+    "recordFilePrefix": "ficha"
   }
 }

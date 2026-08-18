@@ -2117,6 +2117,8 @@
     "tableSuccess": "Report generated successfully",
     "tableError": "Failed to generate table report",
     "recordSuccess": "Record generated successfully",
-    "recordError": "Failed to generate record report"
+    "recordError": "Failed to generate record report",
+    "listFilePrefix": "list",
+    "recordFilePrefix": "record"
   }
 }

@@ -61,7 +61,7 @@ export const useDocumentReports = () => {
 
       const blob = await response.blob()
       const ext = format === 'XLSX' ? 'xlsx' : 'pdf'
-      triggerBlobDownload(blob, `listado_${cleanTable}.${ext}`)
+      triggerBlobDownload(blob, `${t('reports.listFilePrefix')}_${cleanTable}.${ext}`)
       toast.add({
         title: t('reports.tableSuccess'),
         color: 'success',
@@ -107,7 +107,7 @@ export const useDocumentReports = () => {
 
       const blob = await response.blob()
       const ext = format === 'XLSX' ? 'xlsx' : 'pdf'
-      triggerBlobDownload(blob, `ficha_${cleanTable}_${uuid}.${ext}`)
+      triggerBlobDownload(blob, `${t('reports.recordFilePrefix')}_${cleanTable}_${uuid}.${ext}`)
       toast.add({
         title: t('reports.recordSuccess'),
         color: 'success',
