@@ -26,11 +26,12 @@ const props = withDefaults(
   }
 )
 
+import type { Permission } from '~/types/permissions'
+
 const { t } = useI18n()
 const route = useRoute()
 const reports = useDocumentReports()
 const { can } = usePermissions()
-const canPrint = computed(() => can('REPORT_PRINT'))
 const loading = ref(false)
 
 // Deduce table name automatically from current route path if not passed explicitly
@@ -39,6 +40,35 @@ const effectiveTableName = computed(() => {
   const cleanPath = route.path.replace(/^\/dashboard\//, '').split('?')[0] || ''
   return cleanPath.split('/')[0] || ''
 })
+
+const requiredPermission = computed<Permission>(() => {
+  const table = effectiveTableName.value.toLowerCase().replace(/[-_]/g, '')
+  const map: Record<string, Permission> = {
+    allies: 'ALLY_REPORT_GENERATE',
+    ally: 'ALLY_REPORT_GENERATE',
+    members: 'MEMBER_REPORT_GENERATE',
+    member: 'MEMBER_REPORT_GENERATE',
+    users: 'USER_REPORT_GENERATE',
+    user: 'USER_REPORT_GENERATE',
+    plans: 'PLAN_REPORT_GENERATE',
+    plan: 'PLAN_REPORT_GENERATE',
+    memberships: 'MEMBERSHIP_REPORT_GENERATE',
+    membership: 'MEMBERSHIP_REPORT_GENERATE',
+    payments: 'PAYMENT_REPORT_GENERATE',
+    payment: 'PAYMENT_REPORT_GENERATE',
+    promoters: 'PROMOTER_REPORT_GENERATE',
+    promoter: 'PROMOTER_REPORT_GENERATE',
+    commissions: 'COMMISSION_REPORT_GENERATE',
+    commission: 'COMMISSION_REPORT_GENERATE',
+    referrals: 'REFERRAL_REPORT_GENERATE',
+    referral: 'REFERRAL_REPORT_GENERATE',
+    scheduledjobs: 'JOB_REPORT_GENERATE',
+    scheduledjob: 'JOB_REPORT_GENERATE',
+  }
+  return map[table] || 'REPORT_REPORT_GENERATE'
+})
+
+const canPrint = computed(() => can(requiredPermission.value) || can('REPORT_PRINT'))
 
 async function handleDownload(format: 'PDF' | 'XLSX') {
   if (!effectiveTableName.value) return
