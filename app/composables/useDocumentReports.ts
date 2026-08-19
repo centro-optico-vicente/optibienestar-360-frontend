@@ -7,8 +7,8 @@ export const useDocumentReports = () => {
   const toast = useToast()
 
   /**
-   * Limpia y normaliza el nombre de la tabla o recurso desde la ruta.
-   * Ej: '/dashboard/allies' -> 'allies', 'scheduled-jobs' -> 'scheduled_jobs'.
+   * Cleans and normalizes the table or resource name from a route path.
+   * E.g. '/dashboard/allies' -> 'allies', 'scheduled-jobs' -> 'scheduled_jobs'.
    */
   function normalizeTableName(nameOrRoute: string): string {
     if (!nameOrRoute) return ''
@@ -18,7 +18,16 @@ export const useDocumentReports = () => {
   }
 
   /**
-   * Dispara la descarga del archivo Blob recibido desde el backend.
+   * Formats the current local date and time as YYYY-MM-DD_HH-mm.
+   */
+  function getTimestampString(): string {
+    const d = new Date()
+    const tzOffset = d.getTimezoneOffset() * 60000
+    return new Date(d.getTime() - tzOffset).toISOString().slice(0, 16).replace('T', '_').replace(':', '-')
+  }
+
+  /**
+   * Triggers browser download for a Blob payload received from the backend API.
    */
   function triggerBlobDownload(blob: Blob, defaultFilename: string) {
     const url = window.URL.createObjectURL(blob)
@@ -32,7 +41,7 @@ export const useDocumentReports = () => {
   }
 
   /**
-   * Descarga el reporte de listado completo de una tabla (PDF o XLSX).
+   * Downloads a full table report (PDF or XLSX).
    */
   async function downloadTableReport(
     tableName: string,
@@ -61,7 +70,8 @@ export const useDocumentReports = () => {
 
       const blob = await response.blob()
       const ext = format === 'XLSX' ? 'xlsx' : 'pdf'
-      triggerBlobDownload(blob, `${t('reports.listFilePrefix')}_${cleanTable}.${ext}`)
+      const timestamp = getTimestampString()
+      triggerBlobDownload(blob, `${t('reports.listFilePrefix')}_${cleanTable}_${timestamp}.${ext}`)
       toast.add({
         title: t('reports.tableSuccess'),
         color: 'success',
@@ -77,7 +87,7 @@ export const useDocumentReports = () => {
   }
 
   /**
-   * Descarga la ficha/reporte de un registro individual por su UUID (PDF o XLSX).
+   * Downloads a record-specific report by UUID (PDF or XLSX).
    */
   async function downloadRecordReport(
     tableName: string,
@@ -107,7 +117,8 @@ export const useDocumentReports = () => {
 
       const blob = await response.blob()
       const ext = format === 'XLSX' ? 'xlsx' : 'pdf'
-      triggerBlobDownload(blob, `${t('reports.recordFilePrefix')}_${cleanTable}_${uuid}.${ext}`)
+      const timestamp = getTimestampString()
+      triggerBlobDownload(blob, `${t('reports.recordFilePrefix')}_${cleanTable}_${uuid}_${timestamp}.${ext}`)
       toast.add({
         title: t('reports.recordSuccess'),
         color: 'success',

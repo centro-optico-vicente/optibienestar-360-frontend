@@ -1,17 +1,17 @@
 <script setup lang="ts">
 const props = withDefaults(
   defineProps<{
-    /** Nombre de la tabla o slug del recurso (ej: 'allies', 'members', 'payments'). Opcional: si se omite, se deduce automáticamente de la ruta. */
+    /** Table or resource slug (e.g. 'allies', 'members', 'payments'). Inferred from route if omitted. */
     tableName?: string
-    /** UUID del registro para la ficha individual. Si se omite, genera el reporte del listado completo de la tabla. */
+    /** Record UUID for individual record report. Generates full table list report if omitted. */
     recordUuid?: string
-    /** Título opcional para personalizar el reporte */
+    /** Optional title to customize the report header */
     title?: string
-    /** Color del botón (estilo Nuxt UI) */
+    /** Button color (Nuxt UI style) */
     color?: string
-    /** Variante del botón */
+    /** Button variant style */
     variant?: string
-    /** Etiqueta del botón */
+    /** Button label */
     label?: string
   }>(),
   {
@@ -25,7 +25,7 @@ const route = useRoute()
 const reports = useDocumentReports()
 const loading = ref(false)
 
-// Deducción automática del nombre de la tabla desde la ruta actual si no se pasa explícitamente
+// Deduce table name automatically from current route path if not passed explicitly
 const effectiveTableName = computed(() => {
   if (props.tableName) return props.tableName
   const cleanPath = route.path.replace(/^\/dashboard\//, '').split('?')[0] || ''
