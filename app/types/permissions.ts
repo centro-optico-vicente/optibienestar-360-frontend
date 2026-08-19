@@ -105,6 +105,7 @@ export const PERMISSIONS = [
   // REPORTS
   'REPORT_VIEW_DASHBOARD',
   'REPORT_EXPORT',
+  'REPORT_PRINT',
 ] as const
 
 export type Permission = (typeof PERMISSIONS)[number]

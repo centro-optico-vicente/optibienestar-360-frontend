@@ -135,6 +135,7 @@ export const MAIN_NAV: NavEntry[] = [
     descriptionKey: 'nav.groups.sistema.description',
     children: [
       { label: 'Trabajos programados', labelKey: 'nav.items.scheduledJobs.label', to: '/dashboard/scheduled-jobs', icon: 'i-lucide-timer', description: 'Tareas automáticas del sistema y su historial de ejecución.', descriptionKey: 'nav.items.scheduledJobs.description', requires: 'JOB_VIEW_ALL' },
+      { label: 'Configuración del sistema', labelKey: 'nav.items.systemConfig.label', to: '/dashboard/system-config', icon: 'i-lucide-sliders', description: 'Parámetros globales del sistema como el pie de página de reportes.', descriptionKey: 'nav.items.systemConfig.description', requires: 'JOB_VIEW_ALL' },
     ],
   },
   {

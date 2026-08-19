@@ -176,9 +176,6 @@ const state = reactive<FormState>({
   status: 'ACTIVE',
   specialtyUuids: [],
 })
-// Kept outside `state` (a string-only-friendly form-state map) so the boolean isn't coerced.
-// Distinct from `state.status` (business workflow value) — this is the soft-delete/reactivation flag.
-const isActive = ref(true)
 
 // Locale-reactive schema so validation messages follow the UI locale.
 const schema = computed(() => {
@@ -212,7 +209,6 @@ function resetForm() {
   state.published = false
   state.status = 'ACTIVE'
   state.specialtyUuids = []
-  isActive.value = true
   selectedStateUuid.value = undefined
   pendingCityUuid.value = undefined
 }
@@ -254,7 +250,6 @@ async function openEdit(a: AllyDto) {
     state.published = full.published ?? false
     state.status = full.status || 'ACTIVE'
     state.specialtyUuids = (full.specialties ?? []).map(s => s.uuid)
-    isActive.value = full.active ?? true
   }
   catch {
     // The detail failed to load (useApi already notified); close the modal.
@@ -302,7 +297,6 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         joinedAt: state.joinedAt || undefined,
         published: state.published,
         status: state.status,
-        active: isActive.value,
         // Replaces the full specialties set.
         specialtyUuids: state.specialtyUuids,
       }
@@ -324,24 +318,10 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
 const deleteOpen = ref(false)
 const deleting = ref(false)
 const target = ref<AllyDto | null>(null)
-const usageChecking = ref(false)
-const usageInfo = ref<{ inUse: boolean, count: number } | null>(null)
 
-async function openDelete(a: AllyDto) {
+function openDelete(a: AllyDto) {
   target.value = a
   deleteOpen.value = true
-  usageChecking.value = true
-  usageInfo.value = null
-  try {
-    usageInfo.value = await allies.usage(a.uuid)
-  }
-  catch {
-    // Fallback: treat as "in use" for safety (soft-deactivate instead of physical delete).
-    usageInfo.value = null
-  }
-  finally {
-    usageChecking.value = false
-  }
 }
 
 // Shortcut from the edit modal so the user doesn't have to close it first
@@ -356,16 +336,9 @@ function openDeleteFromEdit() {
 async function confirmDelete() {
   if (!target.value) return
   deleting.value = true
-  const wasPhysical = usageInfo.value?.inUse === false
   try {
-    await allies.remove(target.value.uuid, wasPhysical)
-    toast.add({
-      title: wasPhysical
-        ? t('allies.deletedPermanentToast')
-        : t('allies.deactivatedToast'),
-      color: wasPhysical ? 'success' : 'info',
-      icon: wasPhysical ? 'i-lucide-check-circle' : 'i-lucide-info',
-    })
+    await allies.remove(target.value.uuid)
+    toast.add({ title: t('allies.deletedToast'), color: 'success', icon: 'i-lucide-check-circle' })
     deleteOpen.value = false
     // If the page is left empty after deleting, step back one.
     if (data.value.length === 1 && page.value > 1) page.value -= 1
@@ -445,7 +418,6 @@ async function confirmDelete() {
               v-else
               :key="a.uuid"
               class="hover:bg-prohealth-50/50 cursor-pointer"
-              :class="{ 'opacity-60': a.active === false }"
               @click="navigateTo(`/dashboard/allies/${a.uuid}`)"
             >
               <td class="px-5 py-3">
@@ -483,6 +455,13 @@ async function confirmDelete() {
                       :to="`/dashboard/allies/${a.uuid}`"
                     />
                   </UTooltip>
+                  <ReportPrintButton
+                    table-name="allies"
+                    :record-uuid="a.uuid"
+                    icon-only
+                    variant="ghost"
+                    size="sm"
+                  />
                   <UTooltip :text="canUpdate ? t('common.edit') : t('allies.noPermissionEdit')">
                     <UButton
                       color="neutral"
@@ -663,9 +642,6 @@ async function confirmDelete() {
                 class="w-full"
               />
             </UFormField>
-            <UFormField v-if="mode === 'edit'" :label="t('allies.form.fields.active')">
-              <USwitch v-model="isActive" />
-            </UFormField>
           </div>
 
           <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
@@ -702,22 +678,16 @@ async function confirmDelete() {
     <!-- Delete confirmation modal -->
     <UModal v-model:open="deleteOpen" :title="t('allies.delete.title')">
       <template #body>
-        <div v-if="usageChecking" class="flex items-center gap-2 text-sm text-prohealth-600">
-          <UIcon name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
-          {{ t('common.loading') }}
-        </div>
-        <p v-else class="text-sm text-prohealth-700">
-          {{
-            usageInfo?.inUse === false
-              ? t('allies.deleteConfirmPermanent')
-              : t('allies.deleteConfirmDeactivate', { count: usageInfo?.count ?? 0 })
-          }}
-        </p>
+        <i18n-t keypath="allies.delete.confirm" tag="p" class="text-sm text-prohealth-700" scope="global">
+          <template #name>
+            <span class="font-semibold">{{ target?.name }}</span>
+          </template>
+        </i18n-t>
         <div class="flex items-center justify-end gap-3 pt-5">
           <UButton color="neutral" variant="ghost" :disabled="deleting" @click="deleteOpen = false">
             {{ t('common.cancel') }}
           </UButton>
-          <UButton color="error" :loading="deleting" :disabled="usageChecking" icon="i-lucide-trash-2" @click="confirmDelete">
+          <UButton color="error" :loading="deleting" icon="i-lucide-trash-2" @click="confirmDelete">
             {{ t('common.delete') }}
           </UButton>
         </div>
