@@ -68,7 +68,7 @@ const requiredPermission = computed<Permission>(() => {
   return map[table] || 'REPORT_REPORT_GENERATE'
 })
 
-const canPrint = computed(() => can(requiredPermission.value) || can('REPORT_PRINT'))
+const canPrint = computed(() => can(requiredPermission.value))
 
 async function handleDownload(format: 'PDF' | 'XLSX') {
   if (!effectiveTableName.value) return
