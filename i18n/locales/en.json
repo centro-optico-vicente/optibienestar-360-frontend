@@ -148,11 +148,7 @@
         "ACTIVE": "Active",
         "SUSPENDED": "Suspended",
         "LOCKED": "Locked"
-      },
-      "deleteConfirmPermanent": "This user is not in use. It will be permanently deleted. Confirm?",
-      "deleteConfirmDeactivate": "This user is in use by {count} record(s). It will be deactivated (not deleted). Confirm?",
-      "deletedPermanentToast": "User permanently deleted",
-      "deactivatedToast": "User deactivated"
+      }
     },
     "roles": {
       "seoTitle": "Roles — OptiBienestar 360",
@@ -194,13 +190,8 @@
       },
       "fields": {
         "name": "Name",
-        "description": "Description",
-        "active": "Active"
-      },
-      "deleteConfirmPermanent": "This role is not in use. It will be permanently deleted. Confirm?",
-      "deleteConfirmDeactivate": "This role is in use by {count} user(s). It will be deactivated (not deleted). Confirm?",
-      "deletedPermanentToast": "Role permanently deleted",
-      "deactivatedToast": "Role deactivated"
+        "description": "Description"
+      }
     }
   },
   "nav": {
@@ -317,6 +308,10 @@
       "scheduledJobs": {
         "label": "Scheduled jobs",
         "description": "Automated system tasks and their run history."
+      },
+      "systemConfig": {
+        "label": "System configuration",
+        "description": "Global system parameters such as report footers."
       },
       "commissionRules": {
         "label": "Commission Rules",
@@ -553,13 +548,9 @@
     "modalEditTitle": "Edit: {entity}",
     "deleteTitle": "Delete {entity}",
     "deleteConfirm": "Are you sure you want to delete {name}?",
-    "deleteConfirmPermanent": "This record is not in use. It will be permanently deleted. Confirm?",
-    "deleteConfirmDeactivate": "This record is in use by {count} record(s). It will be deactivated (not deleted). Confirm?",
     "createdToast": "{entity} created",
     "updatedToast": "{entity} updated",
     "deletedToast": "{entity} deleted",
-    "deletedPermanentToast": "{entity} permanently deleted",
-    "deactivatedToast": "{entity} deactivated",
     "columns": {
       "code": "Code",
       "name": "Name",
@@ -577,8 +568,7 @@
       "code": "Code",
       "description": "Description",
       "country": "Country",
-      "state": "State",
-      "active": "Active"
+      "state": "State"
     },
     "validation": {
       "isoCode": "Two uppercase letters (ISO 3166-1, e.g. VE)",
@@ -735,14 +725,9 @@
         "description": "Description",
         "inscription": "Enrollment (USD)",
         "monthly": "Monthly (USD)",
-        "extraBeneficiary": "Extra beneficiary enrollment (USD)",
-        "active": "Active"
+        "extraBeneficiary": "Extra beneficiary enrollment (USD)"
       }
-    },
-    "deleteConfirmPermanent": "This plan is not in use. It will be permanently deleted. Confirm?",
-    "deleteConfirmDeactivate": "This plan is in use by {count} record(s). It will be deactivated (not deleted). Confirm?",
-    "deletedPermanentToast": "Plan permanently deleted",
-    "deactivatedToast": "Plan deactivated"
+    }
   },
   "allies": {
     "title": "Partners",
@@ -800,8 +785,7 @@
         "specialties": "Specialties",
         "joinedAt": "Partnership date",
         "published": "Published in directory",
-        "status": "Status",
-        "active": "Active"
+        "status": "Status"
       }
     },
     "delete": {
@@ -1032,11 +1016,7 @@
       },
       "noAllyTitle": "You are not linked to any partner company",
       "noAllyDescription": "Ask the OptiBienestar 360 team to link you to your partner company so you can propose services."
-    },
-    "deleteConfirmPermanent": "This ally is not in use. It will be permanently deleted. Confirm?",
-    "deleteConfirmDeactivate": "This ally is in use by {count} record(s). It will be deactivated (not deleted). Confirm?",
-    "deletedPermanentToast": "Ally permanently deleted",
-    "deactivatedToast": "Ally deactivated"
+    }
   },
   "payments": {
     "title": "Payments",
@@ -1264,8 +1244,7 @@
         "city": "City",
         "address": "Address",
         "status": "Status",
-        "notes": "Notes",
-        "active": "Active"
+        "notes": "Notes"
       },
       "validation": {
         "documentMin": "At least 5 digits",
@@ -1450,11 +1429,7 @@
         "network": "partner network",
         "button": "View directory"
       }
-    },
-    "deleteConfirmPermanent": "This member is not in use. It will be permanently deleted. Confirm?",
-    "deleteConfirmDeactivate": "This member is in use by {count} record(s). It will be deactivated (not deleted). Confirm?",
-    "deletedPermanentToast": "Member permanently deleted",
-    "deactivatedToast": "Member deactivated"
+    }
   },
   "memberships": {
     "title": "Memberships",
@@ -1716,11 +1691,7 @@
         "status": "Status",
         "active": "Active"
       }
-    },
-    "deleteConfirmPermanent": "This promoter is not in use. It will be permanently deleted. Confirm?",
-    "deleteConfirmDeactivate": "This promoter is in use by {count} record(s). It will be deactivated (not deleted). Confirm?",
-    "deletedPermanentToast": "Promoter permanently deleted",
-    "deactivatedToast": "Promoter deactivated"
+    }
   },
   "commissions": {
     "title": "Commissions",
@@ -1950,11 +1921,7 @@
         "maxSyncSeconds": "Max sync seconds",
         "active": "Active"
       }
-    },
-    "deleteConfirmPermanent": "This job is not in use. It will be permanently deleted. Confirm?",
-    "deleteConfirmDeactivate": "This job is in use by {count} record(s). It will be deactivated (not deleted). Confirm?",
-    "deletedPermanentToast": "Job permanently deleted",
-    "deactivatedToast": "Job deactivated"
+    }
   },
   "referrals": {
     "mine": {
@@ -2082,13 +2049,8 @@
         "rewardKind": "Reward type",
         "commissionPct": "Percentage",
         "flatAmount": "Flat amount",
-        "submitCreate": "Create band",
-        "active": "Active"
-      },
-      "deleteConfirmPermanent": "This tier is not in use. It will be permanently deleted. Confirm?",
-      "deleteConfirmDeactivate": "This tier is in use by {count} record(s). It will be deactivated (not deleted). Confirm?",
-      "deletedPermanentToast": "Tier permanently deleted",
-      "deactivatedToast": "Tier deactivated"
+        "submitCreate": "Create band"
+      }
     },
     "bonusRules": {
       "new": "New bonus rule",
@@ -2148,24 +2110,33 @@
         "maxDays": "Max days",
         "maxDaysHelp": "Applies when days-to-collect <= this value.",
         "commissionPct": "Percentage",
-        "submitCreate": "Create bucket",
-        "active": "Active"
-      },
-      "deleteConfirmPermanent": "This tier is not in use. It will be permanently deleted. Confirm?",
-      "deleteConfirmDeactivate": "This tier is in use by {count} record(s). It will be deactivated (not deleted). Confirm?",
-      "deletedPermanentToast": "Tier permanently deleted",
-      "deactivatedToast": "Tier deactivated"
+        "submitCreate": "Create bucket"
+      }
     }
   },
   "reports": {
     "printRecord": "Print Record",
     "printList": "Print List",
+    "exportPdf": "Export to PDF (PDF)",
     "exportExcel": "Export to Excel (XLSX)",
+    "printOptions": "Print options",
     "tableSuccess": "Report generated successfully",
     "tableError": "Failed to generate table report",
     "recordSuccess": "Record generated successfully",
     "recordError": "Failed to generate record report",
     "listFilePrefix": "list",
     "recordFilePrefix": "record"
+  },
+  "systemConfig": {
+    "title": "System Configuration",
+    "subtitle": "Global system settings and document customization.",
+    "seoTitle": "System Configuration — OptiBienestar 360",
+    "fields": {
+      "reportFooter": "Report Footer",
+      "reportFooterHelp": "Text displayed in the footer of all generated PDF documents.",
+      "reportFooterPlaceholder": "e.g. Created from example company"
+    },
+    "updatedToast": "Configuration updated successfully",
+    "saveButton": "Save changes"
   }
 }
