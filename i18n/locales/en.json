@@ -2156,5 +2156,16 @@
       "deletedPermanentToast": "Tier permanently deleted",
       "deactivatedToast": "Tier deactivated"
     }
+  },
+  "reports": {
+    "printRecord": "Print Record",
+    "printList": "Print List",
+    "exportExcel": "Export to Excel (XLSX)",
+    "tableSuccess": "Report generated successfully",
+    "tableError": "Failed to generate table report",
+    "recordSuccess": "Record generated successfully",
+    "recordError": "Failed to generate record report",
+    "listFilePrefix": "list",
+    "recordFilePrefix": "record"
   }
 }

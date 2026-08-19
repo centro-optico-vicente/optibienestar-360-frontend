@@ -390,16 +390,19 @@ async function confirmDelete() {
           {{ t('allies.subtitle') }}
         </p>
       </div>
-      <UTooltip :text="canCreate ? t('allies.createTooltip') : t('allies.noPermissionCreate')">
-        <UButton
-          color="primary"
-          icon="i-lucide-handshake"
-          :disabled="!canCreate"
-          @click="openCreate"
-        >
-          {{ t('allies.new') }}
-        </UButton>
-      </UTooltip>
+      <div class="flex items-center gap-2">
+        <ReportPrintButton />
+        <UTooltip :text="canCreate ? t('allies.createTooltip') : t('allies.noPermissionCreate')">
+          <UButton
+            color="primary"
+            icon="i-lucide-handshake"
+            :disabled="!canCreate"
+            @click="openCreate"
+          >
+            {{ t('allies.new') }}
+          </UButton>
+        </UTooltip>
+      </div>
     </div>
 
     <!-- Search -->
