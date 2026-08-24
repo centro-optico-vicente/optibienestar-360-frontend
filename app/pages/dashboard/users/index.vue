@@ -27,6 +27,18 @@ const toast = useToast()
 const canCreate = computed(() => can('USER_CREATE'))
 const canUpdate = computed(() => can('USER_UPDATE'))
 const canDelete = computed(() => can('USER_DELETE'))
+const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('USER_AUDIT_VIEW'))
+const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('USER_REPORT_AUDIT_VIEW'))
+const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
+
+// ---- Auditoría ----
+const auditOpen = ref(false)
+const auditTarget = ref<UserDto | null>(null)
+
+function openAudit(u: UserDto) {
+  auditTarget.value = u
+  auditOpen.value = true
+}
 
 // ---- Listado + paginación + búsqueda ----
 const data = ref<UserDto[]>([])
@@ -450,6 +462,15 @@ async function confirmDelete() {
                       @click="openDelete(u)"
                     />
                   </UTooltip>
+                  <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
+                    <UButton
+                      color="neutral"
+                      variant="ghost"
+                      icon="i-lucide-history"
+                      size="sm"
+                      @click="openAudit(u)"
+                    />
+                  </UTooltip>
                 </div>
               </td>
             </tr>
@@ -630,5 +651,17 @@ async function confirmDelete() {
         </div>
       </template>
     </UModal>
+
+    <!-- Audit modal -->
+    <AuditModal
+      v-if="auditTarget"
+      v-model:open="auditOpen"
+      entity-key="user"
+      :entity-uuid="auditTarget.uuid"
+      :entity-label="auditTarget.fullName"
+      :entity-code="auditTarget.email"
+      :can-view-changes="canViewAuditChanges"
+      :can-view-reports="canViewAuditReports"
+    />
   </div>
 </template>

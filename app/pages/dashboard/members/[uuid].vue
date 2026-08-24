@@ -32,6 +32,10 @@ const toast = useToast()
 
 const canUpdate = computed(() => can('MEMBER_UPDATE'))
 const canDelete = computed(() => can('MEMBER_DELETE'))
+const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('MEMBER_AUDIT_VIEW'))
+const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('MEMBER_REPORT_AUDIT_VIEW'))
+const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
+const auditOpen = ref(false)
 const canViewMedical = computed(() => can('MEDICAL_RECORD_VIEW'))
 const canEditMedical = computed(() => can('MEDICAL_RECORD_UPDATE'))
 
@@ -414,6 +418,9 @@ onMounted(async () => {
               {{ member.documentType }} {{ member.documentNumber }} · {{ t('members.detail.memberSince', { date: formatDate(member.enrolledAt, 'short') }) }}
             </p>
           </div>
+          <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
+            <UButton color="neutral" variant="ghost" icon="i-lucide-history" @click="auditOpen = true" />
+          </UTooltip>
         </div>
 
         <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 mt-6 text-sm">
@@ -915,5 +922,16 @@ onMounted(async () => {
         </div>
       </template>
     </UModal>
+
+    <!-- Audit modal -->
+    <AuditModal
+      v-if="member"
+      v-model:open="auditOpen"
+      entity-key="member"
+      :entity-uuid="member.uuid"
+      :entity-label="displayName"
+      :can-view-changes="canViewAuditChanges"
+      :can-view-reports="canViewAuditReports"
+    />
   </div>
 </template>

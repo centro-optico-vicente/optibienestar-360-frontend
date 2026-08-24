@@ -22,6 +22,10 @@ const { can } = usePermissions()
 const toast = useToast()
 
 const canUpdate = computed(() => can('JOB_UPDATE'))
+const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL'))
+const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL'))
+const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
+const auditOpen = ref(false)
 const canRun = computed(() => can('JOB_RUN_NOW'))
 
 // ---- Job load ----
@@ -240,6 +244,9 @@ onBeforeUnmount(stopPolling)
                 {{ t('common.edit') }}
               </UButton>
             </UTooltip>
+            <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
+              <UButton color="neutral" variant="ghost" icon="i-lucide-history" @click="auditOpen = true" />
+            </UTooltip>
           </div>
         </div>
 
@@ -394,5 +401,17 @@ onBeforeUnmount(stopPolling)
 
     <!-- Edit modal (shared with the list) -->
     <ScheduledJobFormModal v-model:open="formOpen" :job="job" @saved="onSaved" />
+
+    <!-- Audit modal -->
+    <AuditModal
+      v-if="job"
+      v-model:open="auditOpen"
+      entity-key="scheduled_job"
+      :entity-uuid="job.uuid"
+      :entity-label="job.displayName"
+      :entity-code="job.code"
+      :can-view-changes="canViewAuditChanges"
+      :can-view-reports="canViewAuditReports"
+    />
   </div>
 </template>

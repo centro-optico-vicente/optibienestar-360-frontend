@@ -21,6 +21,19 @@ const toast = useToast()
 const canCreate = computed(() => can('JOB_CREATE'))
 const canUpdate = computed(() => can('JOB_UPDATE'))
 const canDelete = computed(() => can('JOB_DELETE'))
+// No hay dominio de permisos granular para "scheduled_job" (V66/V72 cubren 10 dominios de
+// negocio; los trabajos programados son un recurso de sistema) — solo el genérico aplica.
+const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL'))
+const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL'))
+const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
+
+const auditOpen = ref(false)
+const auditTarget = ref<ScheduledJobDto | null>(null)
+
+function openAudit(j: ScheduledJobDto) {
+  auditTarget.value = j
+  auditOpen.value = true
+}
 const canRun = computed(() => can('JOB_RUN_NOW'))
 
 // ---- List + pagination + search ----
@@ -347,6 +360,15 @@ async function confirmDelete() {
                       @click="openDelete(j)"
                     />
                   </UTooltip>
+                  <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
+                    <UButton
+                      color="neutral"
+                      variant="ghost"
+                      icon="i-lucide-history"
+                      size="sm"
+                      @click="openAudit(j)"
+                    />
+                  </UTooltip>
                 </div>
               </td>
             </tr>
@@ -409,5 +431,17 @@ async function confirmDelete() {
         </div>
       </template>
     </UModal>
+
+    <!-- Audit modal -->
+    <AuditModal
+      v-if="auditTarget"
+      v-model:open="auditOpen"
+      entity-key="scheduled_job"
+      :entity-uuid="auditTarget.uuid"
+      :entity-label="auditTarget.displayName"
+      :entity-code="auditTarget.code"
+      :can-view-changes="canViewAuditChanges"
+      :can-view-reports="canViewAuditReports"
+    />
   </div>
 </template>

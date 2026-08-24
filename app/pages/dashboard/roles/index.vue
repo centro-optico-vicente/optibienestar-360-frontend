@@ -25,6 +25,20 @@ const canCreate = computed(() => can('ROLE_CREATE'))
 const canUpdate = computed(() => can('ROLE_UPDATE'))
 const canDelete = computed(() => can('ROLE_DELETE'))
 const canEditPermissions = computed(() => can('ROLE_PERMISSION_EDIT'))
+// No hay dominio de permisos granular para "role" en el catálogo de auditoría (V66/V72
+// cubren 10 dominios de negocio, ninguno es ROLES) — solo el permiso genérico aplica.
+const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL'))
+const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL'))
+const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
+
+const auditOpen = ref(false)
+const auditTarget = ref<RoleDto | null>(null)
+
+function openAudit(r: RoleDto) {
+  roleFormOpen.value = false
+  auditTarget.value = r
+  auditOpen.value = true
+}
 
 const isSystemUser = computed(() => hasRole('SYSTEM'))
 
@@ -428,6 +442,15 @@ async function onSave() {
                       @click="openRoleDelete(r)"
                     />
                   </UTooltip>
+                  <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
+                    <UButton
+                      color="neutral"
+                      variant="ghost"
+                      icon="i-lucide-history"
+                      size="sm"
+                      @click="openAudit(r)"
+                    />
+                  </UTooltip>
                 </div>
               </td>
             </tr>
@@ -513,6 +536,15 @@ async function onSave() {
                   :label="$t('common.delete')"
                   :disabled="roleSubmitting || !canDeleteRole(roleEditing)"
                   @click="openDeleteFromEdit"
+                />
+              </UTooltip>
+              <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
+                <UButton
+                  color="neutral"
+                  variant="ghost"
+                  icon="i-lucide-history"
+                  size="sm"
+                  @click="openAudit(roleEditing)"
                 />
               </UTooltip>
             </div>
@@ -638,5 +670,16 @@ async function onSave() {
         </div>
       </template>
     </UModal>
+
+    <!-- Audit modal -->
+    <AuditModal
+      v-if="auditTarget"
+      v-model:open="auditOpen"
+      entity-key="role"
+      :entity-uuid="auditTarget.uuid"
+      :entity-label="auditTarget.name"
+      :can-view-changes="canViewAuditChanges"
+      :can-view-reports="canViewAuditReports"
+    />
   </div>
 </template>

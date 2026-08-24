@@ -42,6 +42,10 @@ const toast = useToast()
 
 const canUpdate = computed(() => can('ALLY_UPDATE'))
 const canDelete = computed(() => can('ALLY_DELETE'))
+const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('ALLY_AUDIT_VIEW'))
+const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('ALLY_REPORT_AUDIT_VIEW'))
+const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
+const auditOpen = ref(false)
 const canManageAgreements = computed(() => can('ALLY_AGREEMENT_MANAGE'))
 
 // ---- Ally load ----
@@ -750,6 +754,9 @@ onMounted(async () => {
           </div>
           <div class="flex items-center gap-2">
             <ReportPrintButton :record-uuid="allyUuid" />
+            <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
+              <UButton color="neutral" variant="ghost" icon="i-lucide-history" @click="auditOpen = true" />
+            </UTooltip>
           </div>
         </div>
 
@@ -1445,5 +1452,16 @@ onMounted(async () => {
         </div>
       </template>
     </UModal>
+
+    <!-- Audit modal -->
+    <AuditModal
+      v-if="ally"
+      v-model:open="auditOpen"
+      entity-key="ally"
+      :entity-uuid="ally.uuid"
+      :entity-label="ally.name"
+      :can-view-changes="canViewAuditChanges"
+      :can-view-reports="canViewAuditReports"
+    />
   </div>
 </template>

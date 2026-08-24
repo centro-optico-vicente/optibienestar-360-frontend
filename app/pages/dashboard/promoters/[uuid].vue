@@ -28,6 +28,10 @@ const toast = useToast()
 
 const canUpdate = computed(() => can('PROMOTER_UPDATE'))
 const canDelete = computed(() => can('PROMOTER_DELETE'))
+const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('PROMOTER_AUDIT_VIEW'))
+const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('PROMOTER_REPORT_AUDIT_VIEW'))
+const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
+const auditOpen = ref(false)
 
 // ---- Promoter load ----
 const promoter = ref<PromoterDto | null>(null)
@@ -271,6 +275,14 @@ async function loadCommissionsSummary() {
                 @click="openDelete"
               />
             </UTooltip>
+            <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
+              <UButton
+                color="neutral"
+                variant="ghost"
+                icon="i-lucide-history"
+                @click="auditOpen = true"
+              />
+            </UTooltip>
           </div>
         </div>
 
@@ -485,5 +497,17 @@ async function loadCommissionsSummary() {
         </div>
       </template>
     </UModal>
+
+    <!-- Audit modal -->
+    <AuditModal
+      v-if="promoter"
+      v-model:open="auditOpen"
+      entity-key="promoter"
+      :entity-uuid="promoter.uuid"
+      :entity-label="promoter.displayName"
+      :entity-code="promoter.referralCode"
+      :can-view-changes="canViewAuditChanges"
+      :can-view-reports="canViewAuditReports"
+    />
   </div>
 </template>

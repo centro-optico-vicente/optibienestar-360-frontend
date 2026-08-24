@@ -22,6 +22,10 @@ const { can } = usePermissions()
 
 const canApprove = computed(() => can('PAYMENT_APPROVE'))
 const canReject = computed(() => can('PAYMENT_REJECT'))
+const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('PAYMENT_AUDIT_VIEW'))
+const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('PAYMENT_REPORT_AUDIT_VIEW'))
+const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
+const auditOpen = ref(false)
 
 // ---- Payment load ----
 const payment = ref<PaymentDto | null>(null)
@@ -148,27 +152,32 @@ function onReviewed(updated: PaymentDto) {
             </p>
           </div>
 
-          <div v-if="isPending" class="flex items-center gap-2">
-            <UTooltip :text="canReject ? t('payments.detail.rejectTooltip') : t('payments.tooltips.noPermissionReject')">
-              <UButton
-                color="error"
-                variant="soft"
-                icon="i-lucide-x"
-                :disabled="!canReject"
-                @click="openReview('reject')"
-              >
-                {{ t('payments.detail.reject') }}
-              </UButton>
-            </UTooltip>
-            <UTooltip :text="canApprove ? t('payments.detail.approveTooltip') : t('payments.tooltips.noPermissionApprove')">
-              <UButton
-                color="success"
-                icon="i-lucide-check"
-                :disabled="!canApprove"
-                @click="openReview('approve')"
-              >
-                {{ t('payments.detail.approve') }}
-              </UButton>
+          <div class="flex items-center gap-2">
+            <template v-if="isPending">
+              <UTooltip :text="canReject ? t('payments.detail.rejectTooltip') : t('payments.tooltips.noPermissionReject')">
+                <UButton
+                  color="error"
+                  variant="soft"
+                  icon="i-lucide-x"
+                  :disabled="!canReject"
+                  @click="openReview('reject')"
+                >
+                  {{ t('payments.detail.reject') }}
+                </UButton>
+              </UTooltip>
+              <UTooltip :text="canApprove ? t('payments.detail.approveTooltip') : t('payments.tooltips.noPermissionApprove')">
+                <UButton
+                  color="success"
+                  icon="i-lucide-check"
+                  :disabled="!canApprove"
+                  @click="openReview('approve')"
+                >
+                  {{ t('payments.detail.approve') }}
+                </UButton>
+              </UTooltip>
+            </template>
+            <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
+              <UButton color="neutral" variant="ghost" icon="i-lucide-history" @click="auditOpen = true" />
             </UTooltip>
           </div>
         </div>
@@ -319,6 +328,18 @@ function onReviewed(updated: PaymentDto) {
       :action="reviewAction"
       :payment="payment"
       @reviewed="onReviewed"
+    />
+
+    <!-- Audit modal -->
+    <AuditModal
+      v-if="payment"
+      v-model:open="auditOpen"
+      entity-key="payment"
+      :entity-uuid="payment.uuid"
+      :entity-label="payment.planCode"
+      :entity-code="payment.referenceNumber"
+      :can-view-changes="canViewAuditChanges"
+      :can-view-reports="canViewAuditReports"
     />
   </div>
 </template>

@@ -164,6 +164,9 @@ export const CATALOGS: CatalogDef[] = [
     labelSingularKey: 'catalogs.registry.ally-types.labelSingular',
     icon: 'i-lucide-handshake',
     codeField: 'code',
+    auditEntityKey: 'ally_type',
+    auditPermission: 'ALLY_AUDIT_VIEW',
+    auditReportPermission: 'ALLY_REPORT_AUDIT_VIEW',
     fields: [
       { name: 'code', label: 'Código', labelKey: 'catalogs.fields.code', type: 'text', required: true, onlyCreate: true, regex: CODE_40, regexMsg: codeMsg(40), regexMsgKey: 'catalogs.validation.codeMax', max: 40, placeholder: 'OPTICA' },
       { name: 'name', label: 'Nombre', labelKey: 'catalogs.fields.name', type: 'text', required: true, max: 100 },
