@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
+import type { AuditMode } from '~/composables/useSystemConfig'
 
 definePageMeta({
   layout: 'dashboard',
@@ -16,13 +17,28 @@ const systemConfigApi = useSystemConfig()
 const { can } = usePermissions()
 const toast = useToast()
 
-const canUpdate = computed(() => can('JOB_UPDATE') || can('ROLE_UPDATE') || can('USER_UPDATE'))
+// AUDIT_MANAGE_CONFIG is the specific permission for the PUT /v1/system-configs
+// endpoint's audit-related fields (see backend SystemConfigController); reused
+// here to gate the whole "Auditoría" section, on top of the general update
+// permissions that already guard reportFooter on this page.
+const canUpdate = computed(() => can('JOB_UPDATE') || can('ROLE_UPDATE') || can('USER_UPDATE') || can('AUDIT_MANAGE_CONFIG'))
+const canUpdateAudit = computed(() => can('AUDIT_MANAGE_CONFIG'))
+
+const AUDIT_MODE_OPTIONS: { label: string, value: AuditMode }[] = [
+  { label: t('systemConfig.audit.modes.PER_ENTITY'), value: 'PER_ENTITY' },
+  { label: t('systemConfig.audit.modes.FORCE_ENABLED'), value: 'FORCE_ENABLED' },
+  { label: t('systemConfig.audit.modes.FORCE_DISABLED'), value: 'FORCE_DISABLED' },
+]
 
 const loading = ref(false)
 const isSubmitting = ref(false)
 
 const state = reactive({
   reportFooter: '',
+  dataChangeAuditMode: 'PER_ENTITY' as AuditMode,
+  reportAuditMode: 'PER_ENTITY' as AuditMode,
+  loginAuditEnabled: true,
+  loginSessionExpirationDays: 30,
 })
 
 const schema = computed(() =>
@@ -32,6 +48,13 @@ const schema = computed(() =>
       .max(500, t('validation.maxChars', { n: 500 }))
       .optional()
       .or(z.literal('')),
+    dataChangeAuditMode: z.enum(['PER_ENTITY', 'FORCE_ENABLED', 'FORCE_DISABLED']),
+    reportAuditMode: z.enum(['PER_ENTITY', 'FORCE_ENABLED', 'FORCE_DISABLED']),
+    loginAuditEnabled: z.boolean(),
+    loginSessionExpirationDays: z
+      .number()
+      .int()
+      .positive(t('validation.positive')),
   })
 )
 
@@ -40,6 +63,10 @@ async function load() {
   try {
     const res = await systemConfigApi.get()
     state.reportFooter = res.reportFooter || ''
+    state.dataChangeAuditMode = res.dataChangeAuditMode
+    state.reportAuditMode = res.reportAuditMode
+    state.loginAuditEnabled = res.loginAuditEnabled
+    state.loginSessionExpirationDays = res.loginSessionExpirationDays
   }
   catch {
     state.reportFooter = ''
@@ -55,8 +82,20 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
   try {
     const updated = await systemConfigApi.update({
       reportFooter: state.reportFooter,
+      ...(canUpdateAudit.value
+        ? {
+            dataChangeAuditMode: state.dataChangeAuditMode,
+            reportAuditMode: state.reportAuditMode,
+            loginAuditEnabled: state.loginAuditEnabled,
+            loginSessionExpirationDays: state.loginSessionExpirationDays,
+          }
+        : {}),
     })
     state.reportFooter = updated.reportFooter
+    state.dataChangeAuditMode = updated.dataChangeAuditMode
+    state.reportAuditMode = updated.reportAuditMode
+    state.loginAuditEnabled = updated.loginAuditEnabled
+    state.loginSessionExpirationDays = updated.loginSessionExpirationDays
     toast.add({
       title: t('systemConfig.updatedToast'),
       color: 'success',
@@ -111,6 +150,66 @@ onMounted(load)
             :disabled="!canUpdate || isSubmitting"
           />
         </UFormField>
+
+        <div v-if="canUpdateAudit" class="space-y-4 pt-3 border-t border-prohealth-100">
+          <div>
+            <h2 class="text-base font-bold text-prohealth-900">{{ t('systemConfig.audit.sectionTitle') }}</h2>
+            <p class="text-xs text-prohealth-700/70 mt-0.5">{{ t('systemConfig.audit.sectionSubtitle') }}</p>
+          </div>
+
+          <UFormField
+            :label="t('systemConfig.audit.dataChangeAuditMode')"
+            :help="t('systemConfig.audit.dataChangeAuditModeHelp')"
+            name="dataChangeAuditMode"
+          >
+            <USelectMenu
+              v-model="state.dataChangeAuditMode"
+              :items="AUDIT_MODE_OPTIONS"
+              label-key="label"
+              value-key="value"
+              :search-input="false"
+              class="w-full sm:w-72"
+              :disabled="isSubmitting"
+            />
+          </UFormField>
+
+          <UFormField
+            :label="t('systemConfig.audit.reportAuditMode')"
+            :help="t('systemConfig.audit.reportAuditModeHelp')"
+            name="reportAuditMode"
+          >
+            <USelectMenu
+              v-model="state.reportAuditMode"
+              :items="AUDIT_MODE_OPTIONS"
+              label-key="label"
+              value-key="value"
+              :search-input="false"
+              class="w-full sm:w-72"
+              :disabled="isSubmitting"
+            />
+          </UFormField>
+
+          <UFormField
+            :label="t('systemConfig.audit.loginAuditEnabled')"
+            :help="t('systemConfig.audit.loginAuditEnabledHelp')"
+            name="loginAuditEnabled"
+          >
+            <USwitch v-model="state.loginAuditEnabled" :disabled="isSubmitting" />
+          </UFormField>
+
+          <UFormField
+            :label="t('systemConfig.audit.loginSessionExpirationDays')"
+            :help="t('systemConfig.audit.loginSessionExpirationDaysHelp')"
+            name="loginSessionExpirationDays"
+          >
+            <UInputNumber
+              v-model="state.loginSessionExpirationDays"
+              :min="1"
+              class="w-full sm:w-40"
+              :disabled="isSubmitting || !state.loginAuditEnabled"
+            />
+          </UFormField>
+        </div>
 
         <div class="flex items-center justify-end gap-3 pt-3 border-t border-prohealth-100">
           <UButton

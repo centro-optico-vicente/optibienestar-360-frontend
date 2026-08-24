@@ -29,6 +29,7 @@
     "emailInvalid": "Email no válido",
     "minChars": "Mínimo {n} caracteres",
     "maxChars": "Máximo {n} caracteres",
+    "positive": "Debe ser un número positivo",
     "passwordUppercase": "Debe incluir una mayúscula",
     "passwordLowercase": "Debe incluir una minúscula",
     "passwordNumber": "Debe incluir un número",
@@ -192,6 +193,97 @@
         "name": "Nombre",
         "description": "Descripción"
       }
+    },
+    "sessions": {
+      "seoTitle": "Accesos y sesiones — OptiBienestar 360",
+      "title": "Accesos y sesiones",
+      "subtitle": "Historial global de intentos de acceso y sesiones del sistema.",
+      "searchPlaceholder": "Buscar por correo…",
+      "empty": "Sin accesos registrados.",
+      "paginationSummary": "{shown} de {total} accesos",
+      "filters": {
+        "result": "Resultado",
+        "resultAll": "Todos los resultados",
+        "from": "Desde",
+        "to": "Hasta"
+      },
+      "results": {
+        "SUCCESS": "Exitoso",
+        "FAILED_CREDENTIALS": "Credenciales inválidas",
+        "FAILED_LOCKED": "Cuenta bloqueada",
+        "FAILED_INACTIVE": "Cuenta inactiva"
+      },
+      "sessionStatus": {
+        "ACTIVE": "Activa",
+        "LOGGED_OUT": "Cerrada",
+        "EXPIRED": "Expirada",
+        "REVOKED": "Revocada"
+      },
+      "columns": {
+        "user": "Usuario",
+        "ip": "IP",
+        "userAgent": "Agente",
+        "result": "Resultado",
+        "sessionStatus": "Sesión",
+        "attemptedAt": "Fecha"
+      },
+      "unknownUser": "Usuario desconocido"
+    },
+    "dataChanges": {
+      "seoTitle": "Cambios de datos — OptiBienestar 360",
+      "title": "Cambios de datos",
+      "subtitle": "Historial global de cambios (creación, actualización, eliminación) sobre cualquier registro del sistema.",
+      "empty": "Sin cambios registrados.",
+      "paginationSummary": "{shown} de {total} cambios",
+      "filters": {
+        "entityKey": "Entidad",
+        "entityKeyAll": "Todas las entidades",
+        "entityUuid": "UUID de la entidad",
+        "action": "Acción",
+        "actionAll": "Todas las acciones",
+        "from": "Desde",
+        "to": "Hasta",
+        "entityKeys": "Entidades",
+        "actor": "Actor",
+        "actorPlaceholder": "Buscar por nombre o correo…"
+      },
+      "columns": {
+        "entity": "Entidad",
+        "action": "Acción",
+        "actor": "Actor",
+        "occurredAt": "Fecha"
+      }
+    },
+    "reportsAudit": {
+      "seoTitle": "Reportes generados — OptiBienestar 360",
+      "title": "Reportes generados",
+      "subtitle": "Historial global de reportes generados por los usuarios del sistema.",
+      "empty": "No se han generado reportes.",
+      "paginationSummary": "{shown} de {total} reportes",
+      "filters": {
+        "entityKey": "Entidad",
+        "entityKeyAll": "Todas las entidades",
+        "entityUuid": "UUID de la entidad",
+        "format": "Formato",
+        "formatAll": "Todos los formatos",
+        "formats": {
+          "PDF": "PDF",
+          "XLSX": "Excel (XLSX)"
+        },
+        "from": "Desde",
+        "to": "Hasta",
+        "entityKeys": "Entidades",
+        "actor": "Actor",
+        "actorPlaceholder": "Buscar por nombre o correo…"
+      },
+      "columns": {
+        "reportType": "Tipo de reporte",
+        "entity": "Entidad",
+        "actor": "Actor",
+        "format": "Formato",
+        "generatedAt": "Fecha",
+        "size": "Tamaño"
+      }
     }
   },
   "nav": {
@@ -288,6 +380,18 @@
       "users": {
         "label": "Usuarios",
         "description": "Cuentas y accesos al sistema."
+      },
+      "auditSessions": {
+        "label": "Accesos y sesiones",
+        "description": "Historial de inicios de sesión y sesiones activas."
+      },
+      "auditDataChanges": {
+        "label": "Cambios de datos",
+        "description": "Historial global de cambios sobre cualquier registro."
+      },
+      "auditReports": {
+        "label": "Reportes generados",
+        "description": "Historial global de reportes generados."
       },
       "myCard": {
         "label": "Mi carnet",
@@ -650,6 +754,34 @@
     "reports": {
       "empty": "No se han generado reportes para este registro.",
       "downloadError": "No se pudo descargar el reporte."
+    },
+    "dateRange": {
+      "placeholder": "Selecciona un rango de fechas",
+      "fromTime": "Hora desde",
+      "toTime": "Hora hasta"
+    },
+    "entityKeys": {
+      "role": "Rol",
+      "user": "Usuario",
+      "plan": "Plan",
+      "ally": "Aliado",
+      "ally_type": "Tipo de aliado",
+      "member": "Afiliado",
+      "payment": "Pago",
+      "promoter": "Promotor",
+      "scheduled_job": "Tarea programada",
+      "commission_tier": "Escala de comisión",
+      "bonus_rule": "Regla de bono",
+      "country": "País",
+      "state": "Estado",
+      "city": "Ciudad",
+      "gender": "Género",
+      "document_type": "Tipo de documento",
+      "marital_status": "Estado civil",
+      "occupation": "Ocupación",
+      "medical_specialty": "Especialidad médica",
+      "service_category": "Categoría de servicio",
+      "promoter_type": "Tipo de promotor"
     }
   },
   "plans": {
@@ -2165,6 +2297,23 @@
       "reportFooter": "Pie de página de los reportes",
       "reportFooterHelp": "Texto que aparecerá en el pie de página de todos los documentos y fichas PDF generados.",
       "reportFooterPlaceholder": "Ej. Creado desde compañía de ejemplo"
+    },
+    "audit": {
+      "sectionTitle": "Auditoría",
+      "sectionSubtitle": "Overrides globales de auditoría y control de sesiones de acceso.",
+      "dataChangeAuditMode": "Auditoría de cambios de datos",
+      "dataChangeAuditModeHelp": "Controla el registro de auditoría de creación/edición/eliminación en todas las entidades, salvo que se elija \"Según cada entidad\".",
+      "reportAuditMode": "Auditoría de generación de reportes",
+      "reportAuditModeHelp": "Controla el registro de auditoría de reportes y documentos generados, salvo que se elija \"Según cada entidad\".",
+      "loginAuditEnabled": "Auditoría de inicio de sesión",
+      "loginAuditEnabledHelp": "Registra los inicios y cierres de sesión de los usuarios del sistema.",
+      "loginSessionExpirationDays": "Expiración de sesión de acceso (días)",
+      "loginSessionExpirationDaysHelp": "Días que una sesión de inicio de sesión permanece activa antes de expirar automáticamente.",
+      "modes": {
+        "PER_ENTITY": "Según cada entidad",
+        "FORCE_ENABLED": "Forzar habilitada",
+        "FORCE_DISABLED": "Forzar deshabilitada"
+      }
     },
     "updatedToast": "Configuración actualizada correctamente",
     "saveButton": "Guardar cambios"

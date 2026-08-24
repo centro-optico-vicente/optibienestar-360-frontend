@@ -1,8 +1,49 @@
 // Tipos de auditoría, alineados con el OpenAPI del backend (AdminDataChangeAuditController /
-// AdminReportAuditController). Bitácora de cambios (data-change) y bitácora de reportes
-// generados (report), ambas filtrables por entityKey + entityUuid.
+// AdminReportAuditController / AdminLoginAuditController). Bitácora de cambios (data-change),
+// bitácora de reportes generados (report) y bitácora de accesos/sesiones (login) — las dos
+// primeras filtrables por entityKey + entityUuid (o globales si se omiten), la de logins
+// filtrable por email/userUuid/result/rango de fechas.
 
 export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE'
+
+/** Matches backend enum `LoginAuditResult` (V61). */
+export type LoginAuditResult = 'SUCCESS' | 'FAILED_CREDENTIALS' | 'FAILED_LOCKED' | 'FAILED_INACTIVE'
+
+/** Matches backend enum `LoginSessionStatus` (V61) — only set for SUCCESS rows. */
+export type LoginSessionStatus = 'ACTIVE' | 'LOGGED_OUT' | 'EXPIRED' | 'REVOKED'
+
+/** GET /v1/admin/audit/logins — one login attempt / session row. */
+export interface LoginAuditLogDto {
+  uuid: string
+  userUuid?: string | null
+  attemptedEmail: string
+  result: LoginAuditResult
+  result_Display?: string | null
+  roles?: string[] | null
+  locale?: string | null
+  ipAddress?: string | null
+  userAgent?: string | null
+  hostname?: string | null
+  failureReason?: string | null
+  sessionStatus?: LoginSessionStatus | null
+  sessionExpiresAt?: string | null
+  valid: boolean
+  loggedOutAt?: string | null
+  logoutReason?: string | null
+  attemptedAt: string
+}
+
+export interface LoginAuditLogPageDto {
+  content: LoginAuditLogDto[]
+  totalElements: number
+  totalPages: number
+  size: number
+  number: number
+  numberOfElements: number
+  first: boolean
+  last: boolean
+  empty: boolean
+}
 
 /** GET /v1/admin/audit/data-changes — un cambio individual sobre una entidad. */
 export interface DataChangeAuditLogDto {
