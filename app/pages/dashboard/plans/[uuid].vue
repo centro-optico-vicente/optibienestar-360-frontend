@@ -22,6 +22,10 @@ const toast = useToast()
 
 const canUpdate = computed(() => can('PLAN_UPDATE'))
 const canDelete = computed(() => can('PLAN_DELETE'))
+const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('PLAN_AUDIT_VIEW'))
+const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('PLAN_REPORT_AUDIT_VIEW'))
+const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
+const auditOpen = ref(false)
 
 // ---- Plan load ----
 const plan = ref<PlanDto | null>(null)
@@ -218,6 +222,14 @@ async function confirmDelete() {
                 @click="openDelete"
               />
             </UTooltip>
+            <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
+              <UButton
+                color="neutral"
+                variant="ghost"
+                icon="i-lucide-history"
+                @click="auditOpen = true"
+              />
+            </UTooltip>
           </div>
         </div>
 
@@ -320,5 +332,17 @@ async function confirmDelete() {
         </div>
       </template>
     </UModal>
+
+    <!-- Audit modal -->
+    <AuditModal
+      v-if="plan"
+      v-model:open="auditOpen"
+      entity-key="plan"
+      :entity-uuid="plan.uuid"
+      :entity-label="plan.name"
+      :entity-code="plan.code"
+      :can-view-changes="canViewAuditChanges"
+      :can-view-reports="canViewAuditReports"
+    />
   </div>
 </template>

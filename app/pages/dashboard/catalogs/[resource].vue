@@ -16,6 +16,19 @@ definePageMeta({
 const { t } = useI18n()
 const route = useRoute()
 const toast = useToast()
+const { can } = usePermissions()
+const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || (def.value?.auditPermission ? can(def.value.auditPermission) : false))
+const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || (def.value?.auditReportPermission ? can(def.value.auditReportPermission) : false))
+const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
+
+// ---- Audit ----
+const auditOpen = ref(false)
+const auditTarget = ref<CatalogItem | null>(null)
+
+function openAudit(item: CatalogItem) {
+  auditTarget.value = item
+  auditOpen.value = true
+}
 
 // Catalog definition from the route segment. Reactive: the component is reused
 // when navigating between catalogs.
@@ -393,6 +406,9 @@ async function confirmDelete() {
                   <UTooltip :text="$t('common.delete')">
                     <UButton color="error" variant="ghost" icon="i-lucide-trash-2" size="sm" @click="openDelete(item)" />
                   </UTooltip>
+                  <UTooltip v-if="def.auditEntityKey && canViewAudit" :text="t('audit.trigger')">
+                    <UButton color="neutral" variant="ghost" icon="i-lucide-history" size="sm" @click="openAudit(item)" />
+                  </UTooltip>
                 </div>
               </td>
             </tr>
@@ -523,5 +539,17 @@ async function confirmDelete() {
         </div>
       </template>
     </UModal>
+
+    <!-- Audit modal -->
+    <AuditModal
+      v-if="auditTarget && def.auditEntityKey"
+      v-model:open="auditOpen"
+      :entity-key="def.auditEntityKey"
+      :entity-uuid="auditTarget.uuid"
+      :entity-label="auditTarget.name"
+      :entity-code="auditTarget.code ?? auditTarget.isoCode"
+      :can-view-changes="canViewAuditChanges"
+      :can-view-reports="canViewAuditReports"
+    />
   </div>
 </template>

@@ -16,6 +16,7 @@
 | 08 | [Tables](08-tables.md) | Paginación + RSQL + export |
 | 09 | [Permissions](09-permissions.md) | usePermissions + v-permission |
 | 10 | [Design system](10-design-system.md) | Nuxt UI overrides + componentes propios |
+| 12 | [Auditoría](12-audit.md) | Config de auditoría, bitácoras de login/reportes, timeline de cambios |
 
 ## Specs cross-stack relevantes
 

@@ -311,7 +311,7 @@ function openDeleteFromEdit() {
           </UFormField>
         </div>
 
-        <UFormField v-if="mode === 'edit'" :label="t('plans.form.fields.active')">
+        <UFormField v-if="mode === 'edit'" :label="t('plans.form.fields.active')" :help="t('plans.form.activeHelp')">
           <USwitch v-model="isActive" />
         </UFormField>
 

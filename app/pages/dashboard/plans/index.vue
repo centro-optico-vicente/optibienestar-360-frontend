@@ -20,6 +20,9 @@ const toast = useToast()
 const canCreate = computed(() => can('PLAN_CREATE'))
 const canUpdate = computed(() => can('PLAN_UPDATE'))
 const canDelete = computed(() => can('PLAN_DELETE'))
+const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('PLAN_AUDIT_VIEW'))
+const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('PLAN_REPORT_AUDIT_VIEW'))
+const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
 
 // ---- List + pagination + search ----
 const data = ref<PlanDto[]>([])
@@ -152,6 +155,15 @@ async function confirmDelete() {
 function onDeleteFromEdit(p: PlanDto) {
   openDelete(p)
 }
+
+// ---- Audit ----
+const auditOpen = ref(false)
+const auditTarget = ref<PlanDto | null>(null)
+
+function openAudit(p: PlanDto) {
+  auditTarget.value = p
+  auditOpen.value = true
+}
 </script>
 
 <template>
@@ -268,6 +280,15 @@ function onDeleteFromEdit(p: PlanDto) {
                       @click="openDelete(p)"
                     />
                   </UTooltip>
+                  <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
+                    <UButton
+                      color="neutral"
+                      variant="ghost"
+                      icon="i-lucide-history"
+                      size="sm"
+                      @click="openAudit(p)"
+                    />
+                  </UTooltip>
                 </div>
               </td>
             </tr>
@@ -330,5 +351,17 @@ function onDeleteFromEdit(p: PlanDto) {
         </div>
       </template>
     </UModal>
+
+    <!-- Audit modal -->
+    <AuditModal
+      v-if="auditTarget"
+      v-model:open="auditOpen"
+      entity-key="plan"
+      :entity-uuid="auditTarget.uuid"
+      :entity-label="auditTarget.name"
+      :entity-code="auditTarget.code"
+      :can-view-changes="canViewAuditChanges"
+      :can-view-reports="canViewAuditReports"
+    />
   </div>
 </template>

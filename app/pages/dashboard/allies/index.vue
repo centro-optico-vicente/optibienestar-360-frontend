@@ -27,6 +27,17 @@ const toast = useToast()
 const canCreate = computed(() => can('ALLY_CREATE'))
 const canUpdate = computed(() => can('ALLY_UPDATE'))
 const canDelete = computed(() => can('ALLY_DELETE'))
+const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('ALLY_AUDIT_VIEW'))
+const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('ALLY_REPORT_AUDIT_VIEW'))
+const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
+
+const auditOpen = ref(false)
+const auditTarget = ref<AllyDto | null>(null)
+
+function openAudit(a: AllyDto) {
+  auditTarget.value = a
+  auditOpen.value = true
+}
 
 // ---- List + pagination + search ----
 const data = ref<AllyDto[]>([])
@@ -482,6 +493,15 @@ async function confirmDelete() {
                       @click="openDelete(a)"
                     />
                   </UTooltip>
+                  <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
+                    <UButton
+                      color="neutral"
+                      variant="ghost"
+                      icon="i-lucide-history"
+                      size="sm"
+                      @click="openAudit(a)"
+                    />
+                  </UTooltip>
                 </div>
               </td>
             </tr>
@@ -693,5 +713,16 @@ async function confirmDelete() {
         </div>
       </template>
     </UModal>
+
+    <!-- Audit modal -->
+    <AuditModal
+      v-if="auditTarget"
+      v-model:open="auditOpen"
+      entity-key="ally"
+      :entity-uuid="auditTarget.uuid"
+      :entity-label="auditTarget.name"
+      :can-view-changes="canViewAuditChanges"
+      :can-view-reports="canViewAuditReports"
+    />
   </div>
 </template>

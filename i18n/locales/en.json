@@ -624,6 +624,34 @@
       }
     }
   },
+  "audit": {
+    "title": "Record audit",
+    "trigger": "View audit",
+    "entityUuid": "UUID",
+    "entityUuidHint": "This record's unique, immutable identifier in the database. Click to copy it.",
+    "entityCode": "Code",
+    "refresh": "Refresh",
+    "tabs": {
+      "log": "Change log",
+      "reports": "Generated reports"
+    },
+    "actions": {
+      "CREATE": "Created",
+      "UPDATE": "Updated",
+      "DELETE": "Deleted"
+    },
+    "log": {
+      "empty": "No changes recorded.",
+      "unknownActor": "Unknown user",
+      "noFieldChanges": "No field changes were recorded for this event.",
+      "expandAll": "Expand all",
+      "collapseAll": "Collapse all"
+    },
+    "reports": {
+      "empty": "No reports have been generated for this record.",
+      "downloadError": "Could not download the report."
+    }
+  },
   "plans": {
     "title": "Plans",
     "subtitle": "Coverage plans: pricing, beneficiaries and grace period.",
@@ -717,6 +745,7 @@
       "maxHelp": "Empty = no limit.",
       "graceHelp": "Defaults to 7.",
       "publishedHelp": "Visible in the public plans directory.",
+      "activeHelp": "Deactivates the plan (soft delete) without removing it.",
       "submitCreate": "Create plan",
       "fields": {
         "code": "Code",
@@ -725,7 +754,8 @@
         "description": "Description",
         "inscription": "Enrollment (USD)",
         "monthly": "Monthly (USD)",
-        "extraBeneficiary": "Extra beneficiary enrollment (USD)"
+        "extraBeneficiary": "Extra beneficiary enrollment (USD)",
+        "active": "Active"
       }
     }
   },

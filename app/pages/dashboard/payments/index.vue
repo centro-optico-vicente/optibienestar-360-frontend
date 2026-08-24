@@ -23,6 +23,17 @@ const { can } = usePermissions()
 const canRegister = computed(() => can('PAYMENT_REGISTER'))
 const canApprove = computed(() => can('PAYMENT_APPROVE'))
 const canReject = computed(() => can('PAYMENT_REJECT'))
+const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('PAYMENT_AUDIT_VIEW'))
+const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('PAYMENT_REPORT_AUDIT_VIEW'))
+const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
+
+const auditOpen = ref(false)
+const auditTarget = ref<PaymentDto | null>(null)
+
+function openAudit(p: PaymentDto) {
+  auditTarget.value = p
+  auditOpen.value = true
+}
 
 // ---- Listing + filters + pagination ----
 const data = ref<PaymentDto[]>([])
@@ -260,6 +271,15 @@ function isPending(p: PaymentDto): boolean {
                       />
                     </UTooltip>
                   </template>
+                  <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
+                    <UButton
+                      color="neutral"
+                      variant="ghost"
+                      icon="i-lucide-history"
+                      size="sm"
+                      @click="openAudit(p)"
+                    />
+                  </UTooltip>
                 </div>
               </td>
             </tr>
@@ -304,6 +324,18 @@ function isPending(p: PaymentDto): boolean {
       :action="reviewAction"
       :payment="reviewTarget"
       @reviewed="onReviewed"
+    />
+
+    <!-- Audit modal -->
+    <AuditModal
+      v-if="auditTarget"
+      v-model:open="auditOpen"
+      entity-key="payment"
+      :entity-uuid="auditTarget.uuid"
+      :entity-label="auditTarget.planCode"
+      :entity-code="auditTarget.referenceNumber"
+      :can-view-changes="canViewAuditChanges"
+      :can-view-reports="canViewAuditReports"
     />
   </div>
 </template>

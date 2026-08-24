@@ -624,6 +624,34 @@
       }
     }
   },
+  "audit": {
+    "title": "Auditoría del registro",
+    "trigger": "Ver auditoría",
+    "entityUuid": "UUID",
+    "entityUuidHint": "Identificador único e inmutable de este registro en la base de datos. Haz clic para copiarlo.",
+    "entityCode": "Código",
+    "refresh": "Actualizar",
+    "tabs": {
+      "log": "Bitácora de cambios",
+      "reports": "Reportes generados"
+    },
+    "actions": {
+      "CREATE": "Creación",
+      "UPDATE": "Actualización",
+      "DELETE": "Eliminación"
+    },
+    "log": {
+      "empty": "Sin cambios registrados.",
+      "unknownActor": "Usuario desconocido",
+      "noFieldChanges": "No se registraron cambios de campos para este evento.",
+      "expandAll": "Expandir todo",
+      "collapseAll": "Contraer todo"
+    },
+    "reports": {
+      "empty": "No se han generado reportes para este registro.",
+      "downloadError": "No se pudo descargar el reporte."
+    }
+  },
   "plans": {
     "title": "Planes",
     "subtitle": "Planes de cobertura: pricing, beneficiarios y periodo de gracia.",
@@ -717,6 +745,7 @@
       "maxHelp": "Vacío = sin tope.",
       "graceHelp": "Por defecto 7.",
       "publishedHelp": "Visible en el directorio público de planes.",
+      "activeHelp": "Desactiva el plan (borrado lógico) sin eliminarlo.",
       "submitCreate": "Crear plan",
       "fields": {
         "code": "Código",
@@ -725,7 +754,8 @@
         "description": "Descripción",
         "inscription": "Inscripción (USD)",
         "monthly": "Mensualidad (USD)",
-        "extraBeneficiary": "Inscripción por beneficiario extra (USD)"
+        "extraBeneficiary": "Inscripción por beneficiario extra (USD)",
+        "active": "Activo"
       }
     }
   },

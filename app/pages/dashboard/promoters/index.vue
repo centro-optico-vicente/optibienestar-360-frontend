@@ -20,6 +20,9 @@ const toast = useToast()
 const canCreate = computed(() => can('PROMOTER_CREATE'))
 const canUpdate = computed(() => can('PROMOTER_UPDATE'))
 const canDelete = computed(() => can('PROMOTER_DELETE'))
+const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('PROMOTER_AUDIT_VIEW'))
+const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('PROMOTER_REPORT_AUDIT_VIEW'))
+const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
 
 // ---- List + pagination + search ----
 const data = ref<PromoterDto[]>([])
@@ -124,6 +127,15 @@ async function openDelete(p: PromoterDto) {
   finally {
     usageChecking.value = false
   }
+}
+
+// ---- Audit ----
+const auditOpen = ref(false)
+const auditTarget = ref<PromoterDto | null>(null)
+
+function openAudit(p: PromoterDto) {
+  auditTarget.value = p
+  auditOpen.value = true
 }
 
 async function confirmDelete() {
@@ -269,6 +281,15 @@ async function confirmDelete() {
                       @click="openDelete(p)"
                     />
                   </UTooltip>
+                  <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
+                    <UButton
+                      color="neutral"
+                      variant="ghost"
+                      icon="i-lucide-history"
+                      size="sm"
+                      @click="openAudit(p)"
+                    />
+                  </UTooltip>
                 </div>
               </td>
             </tr>
@@ -331,5 +352,17 @@ async function confirmDelete() {
         </div>
       </template>
     </UModal>
+
+    <!-- Audit modal -->
+    <AuditModal
+      v-if="auditTarget"
+      v-model:open="auditOpen"
+      entity-key="promoter"
+      :entity-uuid="auditTarget.uuid"
+      :entity-label="auditTarget.displayName"
+      :entity-code="auditTarget.referralCode"
+      :can-view-changes="canViewAuditChanges"
+      :can-view-reports="canViewAuditReports"
+    />
   </div>
 </template>

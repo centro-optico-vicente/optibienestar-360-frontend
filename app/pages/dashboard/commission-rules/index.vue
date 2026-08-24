@@ -22,6 +22,21 @@ const { t } = useI18n()
 const { can } = usePermissions()
 const toast = useToast()
 
+// commission_tier and bonus_rule share the COMMISSIONS permission domain (V66/V72).
+const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('COMMISSION_AUDIT_VIEW'))
+const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('COMMISSION_REPORT_AUDIT_VIEW'))
+const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
+
+const auditOpen = ref(false)
+const auditEntityKey = ref<'commission_tier' | 'bonus_rule'>('commission_tier')
+const auditTarget = ref<{ uuid: string, name: string } | null>(null)
+
+function openAudit(entityKey: 'commission_tier' | 'bonus_rule', item: { uuid: string, name: string }) {
+  auditEntityKey.value = entityKey
+  auditTarget.value = item
+  auditOpen.value = true
+}
+
 useSeoMeta({ title: () => t('common.seoTitle', { page: t('nav.items.commissionRules.label') }) })
 
 const tabs = computed(() => [
@@ -430,6 +445,9 @@ onMounted(() => {
                 <div class="flex items-center justify-end gap-1">
                   <UButton color="neutral" variant="ghost" icon="i-lucide-pencil" size="sm" :disabled="!canManageTiers" @click="openEditTier(tier)" />
                   <UButton color="error" variant="ghost" icon="i-lucide-trash-2" size="sm" :disabled="!canManageTiers" @click="openDeleteTier(tier)" />
+                  <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
+                    <UButton color="neutral" variant="ghost" icon="i-lucide-history" size="sm" @click="openAudit('commission_tier', tier)" />
+                  </UTooltip>
                 </div>
               </td>
             </tr>
@@ -517,6 +535,9 @@ onMounted(() => {
                 <div class="flex items-center justify-end gap-1">
                   <UButton color="neutral" variant="ghost" icon="i-lucide-pencil" size="sm" :disabled="!canManageBonus" @click="openEditBonus(rule)" />
                   <UButton color="error" variant="ghost" icon="i-lucide-trash-2" size="sm" :disabled="!canManageBonus" @click="openDeleteBonus(rule)" />
+                  <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
+                    <UButton color="neutral" variant="ghost" icon="i-lucide-history" size="sm" @click="openAudit('bonus_rule', rule)" />
+                  </UTooltip>
                 </div>
               </td>
             </tr>
@@ -692,5 +713,16 @@ onMounted(() => {
         </div>
       </template>
     </UModal>
+
+    <!-- Audit modal -->
+    <AuditModal
+      v-if="auditTarget"
+      v-model:open="auditOpen"
+      :entity-key="auditEntityKey"
+      :entity-uuid="auditTarget.uuid"
+      :entity-label="auditTarget.name"
+      :can-view-changes="canViewAuditChanges"
+      :can-view-reports="canViewAuditReports"
+    />
   </div>
 </template>
