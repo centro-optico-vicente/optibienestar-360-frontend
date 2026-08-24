@@ -260,6 +260,13 @@
           "permissions": "Permisos",
           "users": "Usuarios asignados"
         },
+        "permissionsTab": {
+          "columns": {
+            "entity": "Entidad",
+            "permissions": "Permisos"
+          },
+          "empty": "Este rol no tiene permisos asignados."
+        },
         "usersTab": {
           "title": "Usuarios asignados",
           "hint": "Usuarios que tienen este rol.",
