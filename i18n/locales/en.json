@@ -29,6 +29,7 @@
     "emailInvalid": "Invalid email",
     "minChars": "At least {n} characters",
     "maxChars": "At most {n} characters",
+    "positive": "Must be a positive number",
     "passwordUppercase": "Must include an uppercase letter",
     "passwordLowercase": "Must include a lowercase letter",
     "passwordNumber": "Must include a number",
@@ -265,6 +266,10 @@
         "entityUuid": "Entity UUID",
         "format": "Format",
         "formatAll": "All formats",
+        "formats": {
+          "PDF": "PDF",
+          "XLSX": "Excel (XLSX)"
+        },
         "from": "From",
         "to": "To",
         "entityKeys": "Entities",
@@ -766,7 +771,17 @@
       "promoter": "Promoter",
       "scheduled_job": "Scheduled job",
       "commission_tier": "Commission tier",
-      "bonus_rule": "Bonus rule"
+      "bonus_rule": "Bonus rule",
+      "country": "Country",
+      "state": "State",
+      "city": "City",
+      "gender": "Gender",
+      "document_type": "Document type",
+      "marital_status": "Marital status",
+      "occupation": "Occupation",
+      "medical_specialty": "Medical specialty",
+      "service_category": "Service category",
+      "promoter_type": "Promoter type"
     }
   },
   "plans": {
@@ -2282,6 +2297,23 @@
       "reportFooter": "Report Footer",
       "reportFooterHelp": "Text displayed in the footer of all generated PDF documents.",
       "reportFooterPlaceholder": "e.g. Created from example company"
+    },
+    "audit": {
+      "sectionTitle": "Audit",
+      "sectionSubtitle": "Global audit overrides and login session controls.",
+      "dataChangeAuditMode": "Data change audit",
+      "dataChangeAuditModeHelp": "Controls the create/update/delete audit trail across all entities, unless \"Per entity\" is selected.",
+      "reportAuditMode": "Report generation audit",
+      "reportAuditModeHelp": "Controls the audit trail for generated reports and documents, unless \"Per entity\" is selected.",
+      "loginAuditEnabled": "Login audit",
+      "loginAuditEnabledHelp": "Logs user sign-ins and sign-outs across the system.",
+      "loginSessionExpirationDays": "Login session expiration (days)",
+      "loginSessionExpirationDaysHelp": "Days a login session stays active before it expires automatically.",
+      "modes": {
+        "PER_ENTITY": "Per entity",
+        "FORCE_ENABLED": "Force enabled",
+        "FORCE_DISABLED": "Force disabled"
+      }
     },
     "updatedToast": "Configuration updated successfully",
     "saveButton": "Save changes"

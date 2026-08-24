@@ -29,6 +29,7 @@
     "emailInvalid": "Email no válido",
     "minChars": "Mínimo {n} caracteres",
     "maxChars": "Máximo {n} caracteres",
+    "positive": "Debe ser un número positivo",
     "passwordUppercase": "Debe incluir una mayúscula",
     "passwordLowercase": "Debe incluir una minúscula",
     "passwordNumber": "Debe incluir un número",
@@ -265,6 +266,10 @@
         "entityUuid": "UUID de la entidad",
         "format": "Formato",
         "formatAll": "Todos los formatos",
+        "formats": {
+          "PDF": "PDF",
+          "XLSX": "Excel (XLSX)"
+        },
         "from": "Desde",
         "to": "Hasta",
         "entityKeys": "Entidades",
@@ -766,7 +771,17 @@
       "promoter": "Promotor",
       "scheduled_job": "Tarea programada",
       "commission_tier": "Escala de comisión",
-      "bonus_rule": "Regla de bono"
+      "bonus_rule": "Regla de bono",
+      "country": "País",
+      "state": "Estado",
+      "city": "Ciudad",
+      "gender": "Género",
+      "document_type": "Tipo de documento",
+      "marital_status": "Estado civil",
+      "occupation": "Ocupación",
+      "medical_specialty": "Especialidad médica",
+      "service_category": "Categoría de servicio",
+      "promoter_type": "Tipo de promotor"
     }
   },
   "plans": {
@@ -2282,6 +2297,23 @@
       "reportFooter": "Pie de página de los reportes",
       "reportFooterHelp": "Texto que aparecerá en el pie de página de todos los documentos y fichas PDF generados.",
       "reportFooterPlaceholder": "Ej. Creado desde compañía de ejemplo"
+    },
+    "audit": {
+      "sectionTitle": "Auditoría",
+      "sectionSubtitle": "Overrides globales de auditoría y control de sesiones de acceso.",
+      "dataChangeAuditMode": "Auditoría de cambios de datos",
+      "dataChangeAuditModeHelp": "Controla el registro de auditoría de creación/edición/eliminación en todas las entidades, salvo que se elija \"Según cada entidad\".",
+      "reportAuditMode": "Auditoría de generación de reportes",
+      "reportAuditModeHelp": "Controla el registro de auditoría de reportes y documentos generados, salvo que se elija \"Según cada entidad\".",
+      "loginAuditEnabled": "Auditoría de inicio de sesión",
+      "loginAuditEnabledHelp": "Registra los inicios y cierres de sesión de los usuarios del sistema.",
+      "loginSessionExpirationDays": "Expiración de sesión de acceso (días)",
+      "loginSessionExpirationDaysHelp": "Días que una sesión de inicio de sesión permanece activa antes de expirar automáticamente.",
+      "modes": {
+        "PER_ENTITY": "Según cada entidad",
+        "FORCE_ENABLED": "Forzar habilitada",
+        "FORCE_DISABLED": "Forzar deshabilitada"
+      }
     },
     "updatedToast": "Configuración actualizada correctamente",
     "saveButton": "Guardar cambios"

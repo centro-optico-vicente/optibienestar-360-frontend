@@ -17,7 +17,8 @@ interface EntityAuditParams {
   entityKey?: string | string[]
   entityUuid?: string
   actorUuid?: string
-  action?: AuditAction
+  /** Accepts one or more actions — see the fan-out TODO on `listDataChanges`. */
+  action?: AuditAction | AuditAction[]
   from?: string
   to?: string
   filter?: string
@@ -26,13 +27,20 @@ interface EntityAuditParams {
   sort?: string
 }
 
-/** Normalizes `entityKey` (string | string[] | undefined) into a deduped, trimmed array. */
-function normalizeEntityKeys(entityKey?: string | string[]): string[] {
-  const raw = Array.isArray(entityKey) ? entityKey : entityKey ? [entityKey] : []
-  return [...new Set(raw.map(k => k.trim()).filter(Boolean))]
+/** Normalizes a `string | string[] | undefined` filter into a deduped, trimmed array. */
+function normalizeValues<T extends string>(value?: T | T[]): T[] {
+  const raw = Array.isArray(value) ? value : value ? [value] : []
+  return [...new Set(raw.map(v => v.trim()).filter(Boolean))] as T[]
 }
 
-/** Fan-out fetch size used when merging multiple single-entityKey requests client-side. */
+/** Cartesian product of two filter-value arrays, using `undefined` as "no filter" for an empty side. */
+function crossProduct<A extends string, B extends string>(as: A[], bs: B[]): Array<[A | undefined, B | undefined]> {
+  const left = as.length ? as : [undefined]
+  const right = bs.length ? bs : [undefined]
+  return left.flatMap(a => right.map((b): [A | undefined, B | undefined] => [a, b]))
+}
+
+/** Fan-out fetch size used when merging multiple single-filter requests client-side. */
 const MULTI_ENTITY_FETCH_SIZE = 1000
 
 function sliceMergedPage<T>(
@@ -58,15 +66,17 @@ function sliceMergedPage<T>(
   }
 }
 
-interface ReportAuditParams extends EntityAuditParams {
+interface ReportAuditParams extends Omit<EntityAuditParams, 'action'> {
   reportType?: string
-  format?: string
+  /** Accepts one or more formats — see the fan-out TODO on `listReports`. */
+  format?: string | string[]
 }
 
 interface LoginAuditParams {
   email?: string
   userUuid?: string
-  result?: LoginAuditResult
+  /** Accepts one or more results — see the fan-out TODO on `listLogins`. */
+  result?: LoginAuditResult | LoginAuditResult[]
   from?: string
   to?: string
   filter?: string
@@ -82,13 +92,19 @@ interface LoginAuditParams {
  * logins es siempre global (AUDIT_VIEW_LOGIN).
  */
 export const useAudit = () => {
-  const fetchDataChangesPage = (params: EntityAuditParams, entityKey: string | undefined, page: number, size: number) =>
+  const fetchDataChangesPage = (
+    params: EntityAuditParams,
+    entityKey: string | undefined,
+    action: AuditAction | undefined,
+    page: number,
+    size: number,
+  ) =>
     useApi<DataChangeAuditLogPageDto>('/v1/admin/audit/data-changes', {
       query: {
         entityKey,
         entityUuid: params.entityUuid,
         actorUuid: params.actorUuid,
-        action: params.action,
+        action,
         from: params.from,
         to: params.to,
         filter: params.filter,
@@ -99,17 +115,23 @@ export const useAudit = () => {
     })
 
   const listDataChanges = async (params: EntityAuditParams = {}): Promise<DataChangeAuditLogPageDto> => {
-    const keys = normalizeEntityKeys(params.entityKey)
+    const keys = normalizeValues(params.entityKey)
+    const actions = normalizeValues(params.action)
     const page = params.page ?? 0
     const size = params.size ?? 20
-    if (keys.length <= 1) {
-      return fetchDataChangesPage(params, keys[0], page, size)
+    const combos = crossProduct(keys, actions)
+    if (combos.length <= 1) {
+      const [key, action] = combos[0] ?? [undefined, undefined]
+      return fetchDataChangesPage(params, key, action, page, size)
     }
-    // TODO: AdminDataChangeAuditController#list only accepts a single String `entityKey`
-    // @RequestParam (not List<String>/repeatable) — see backend source. Until it supports
-    // multi-value entityKey, fan out one request per selected key and merge/paginate
-    // client-side. Move this fan-out server-side once the backend supports it.
-    const pages = await Promise.all(keys.map(k => fetchDataChangesPage(params, k, 0, MULTI_ENTITY_FETCH_SIZE)))
+    // TODO: AdminDataChangeAuditController#list only accepts single String/enum
+    // `entityKey`/`action` @RequestParam (not List<...>/repeatable) — see backend
+    // source. Until it supports multi-value filters, fan out one request per
+    // selected entityKey×action combination and merge/paginate client-side. Move
+    // this fan-out server-side once the backend supports it.
+    const pages = await Promise.all(
+      combos.map(([key, action]) => fetchDataChangesPage(params, key, action, 0, MULTI_ENTITY_FETCH_SIZE)),
+    )
     const merged = pages.flatMap(p => p.content ?? [])
     return { ...sliceMergedPage(merged, item => item.occurredAt, page, size), firstChange: null }
   }
@@ -119,14 +141,20 @@ export const useAudit = () => {
       query: { entityKey, entityUuid },
     })
 
-  const fetchReportsPage = (params: ReportAuditParams, entityKey: string | undefined, page: number, size: number) =>
+  const fetchReportsPage = (
+    params: ReportAuditParams,
+    entityKey: string | undefined,
+    format: string | undefined,
+    page: number,
+    size: number,
+  ) =>
     useApi<Page<ReportAuditLogDto>>('/v1/admin/audit/reports', {
       query: {
         reportType: params.reportType,
         entityKey,
         entityUuid: params.entityUuid,
         actorUuid: params.actorUuid,
-        format: params.format,
+        format,
         from: params.from,
         to: params.to,
         filter: params.filter,
@@ -137,17 +165,23 @@ export const useAudit = () => {
     })
 
   const listReports = async (params: ReportAuditParams = {}): Promise<Page<ReportAuditLogDto>> => {
-    const keys = normalizeEntityKeys(params.entityKey)
+    const keys = normalizeValues(params.entityKey)
+    const formats = normalizeValues(params.format)
     const page = params.page ?? 0
     const size = params.size ?? 20
-    if (keys.length <= 1) {
-      return fetchReportsPage(params, keys[0], page, size)
+    const combos = crossProduct(keys, formats)
+    if (combos.length <= 1) {
+      const [key, format] = combos[0] ?? [undefined, undefined]
+      return fetchReportsPage(params, key, format, page, size)
     }
-    // TODO: AdminReportAuditController#list only accepts a single String `entityKey`
-    // @RequestParam (not List<String>/repeatable) — see backend source. Until it supports
-    // multi-value entityKey, fan out one request per selected key and merge/paginate
-    // client-side. Move this fan-out server-side once the backend supports it.
-    const pages = await Promise.all(keys.map(k => fetchReportsPage(params, k, 0, MULTI_ENTITY_FETCH_SIZE)))
+    // TODO: AdminReportAuditController#list only accepts a single String
+    // `entityKey`/`format` @RequestParam (not List<String>/repeatable) — see
+    // backend source. Until it supports multi-value filters, fan out one request
+    // per selected entityKey×format combination and merge/paginate client-side.
+    // Move this fan-out server-side once the backend supports it.
+    const pages = await Promise.all(
+      combos.map(([key, format]) => fetchReportsPage(params, key, format, 0, MULTI_ENTITY_FETCH_SIZE)),
+    )
     const merged = pages.flatMap(p => p.content ?? [])
     return sliceMergedPage(merged, item => item.generatedAt, page, size)
   }
@@ -155,20 +189,36 @@ export const useAudit = () => {
   const downloadReportUrl = (uuid: string) =>
     useApi<{ url: string }>(`/v1/admin/audit/reports/${uuid}/download`)
 
-  const listLogins = (params: LoginAuditParams = {}) =>
+  const fetchLoginsPage = (params: LoginAuditParams, result: LoginAuditResult | undefined, page: number, size: number) =>
     useApi<LoginAuditLogPageDto>('/v1/admin/audit/logins', {
       query: {
         email: params.email,
         userUuid: params.userUuid,
-        result: params.result,
+        result,
         from: params.from,
         to: params.to,
         filter: params.filter,
-        page: params.page ?? 0,
-        size: params.size ?? 20,
+        page,
+        size,
         sort: params.sort ?? 'attemptedAt,DESC',
       },
     })
+
+  const listLogins = async (params: LoginAuditParams = {}): Promise<LoginAuditLogPageDto> => {
+    const results = normalizeValues(params.result)
+    const page = params.page ?? 0
+    const size = params.size ?? 20
+    if (results.length <= 1) {
+      return fetchLoginsPage(params, results[0], page, size)
+    }
+    // TODO: AdminLoginAuditController#list only accepts a single `LoginAuditResult`
+    // @RequestParam (not List<...>/repeatable) — see backend source. Until it
+    // supports multi-value `result`, fan out one request per selected result and
+    // merge/paginate client-side. Move this fan-out server-side once supported.
+    const pages = await Promise.all(results.map(r => fetchLoginsPage(params, r, 0, MULTI_ENTITY_FETCH_SIZE)))
+    const merged = pages.flatMap(p => p.content ?? [])
+    return sliceMergedPage(merged, item => item.attemptedAt, page, size)
+  }
 
   return { listDataChanges, firstChange, listReports, downloadReportUrl, listLogins }
 }

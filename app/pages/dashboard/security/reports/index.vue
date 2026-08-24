@@ -27,7 +27,11 @@ const downloadingUuid = ref<string | null>(null)
 
 const entityKeyFilter = ref<string[]>([])
 const actorUuidFilter = ref<string | undefined>(undefined)
-const formatFilter = ref('')
+const FORMAT_OPTIONS: { label: string, value: string }[] = [
+  { label: t('security.reportsAudit.filters.formats.PDF'), value: 'PDF' },
+  { label: t('security.reportsAudit.filters.formats.XLSX'), value: 'XLSX' },
+]
+const formatFilter = ref<string[]>([])
 const dateRange = ref(defaultTodayRange())
 
 function formatSize(bytes?: number | null): string {
@@ -42,7 +46,7 @@ async function load() {
     const res = await audit.listReports({
       entityKey: entityKeyFilter.value,
       actorUuid: actorUuidFilter.value,
-      format: formatFilter.value.trim() || undefined,
+      format: formatFilter.value,
       from: dateRange.value.from,
       to: dateRange.value.to,
       page: page.value - 1,
@@ -80,12 +84,7 @@ async function downloadReport(report: ReportAuditLogDto) {
 
 watch(size, () => { page.value = 1 })
 watch([page, size], load)
-let filterTimer: ReturnType<typeof setTimeout> | undefined
-watch(formatFilter, () => {
-  clearTimeout(filterTimer)
-  filterTimer = setTimeout(() => { page.value = 1; load() }, 400)
-})
-watch([entityKeyFilter, actorUuidFilter, dateRange], () => { page.value = 1; load() }, { deep: true })
+watch([entityKeyFilter, actorUuidFilter, formatFilter, dateRange], () => { page.value = 1; load() }, { deep: true })
 
 onMounted(load)
 </script>
@@ -106,11 +105,15 @@ onMounted(load)
     <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
       <AuditEntityKeyMultiSelect v-model="entityKeyFilter" />
       <AuditActorSelect v-model="actorUuidFilter" />
-      <UInput
+      <USelectMenu
         v-model="formatFilter"
-        :placeholder="$t('security.reportsAudit.filters.format')"
+        :items="FORMAT_OPTIONS"
+        label-key="label"
+        value-key="value"
+        multiple
+        clearable
         icon="i-lucide-file-type"
-        size="lg"
+        :placeholder="$t('security.reportsAudit.filters.format')"
         class="w-48"
       />
       <AuditDateRangePicker v-model="dateRange" />

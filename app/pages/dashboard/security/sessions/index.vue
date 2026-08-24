@@ -24,14 +24,13 @@ const size = ref(DEFAULT_PAGE_SIZE)
 const pageSizeItems = buildPageSizeItems(t)
 const search = ref('')
 
-const RESULT_OPTIONS: { label: string, value: LoginAuditResult | null }[] = [
-  { label: t('security.sessions.filters.resultAll'), value: null },
+const RESULT_OPTIONS: { label: string, value: LoginAuditResult }[] = [
   { label: t('security.sessions.results.SUCCESS'), value: 'SUCCESS' },
   { label: t('security.sessions.results.FAILED_CREDENTIALS'), value: 'FAILED_CREDENTIALS' },
   { label: t('security.sessions.results.FAILED_LOCKED'), value: 'FAILED_LOCKED' },
   { label: t('security.sessions.results.FAILED_INACTIVE'), value: 'FAILED_INACTIVE' },
 ]
-const resultFilter = ref<LoginAuditResult | null>(null)
+const resultFilter = ref<LoginAuditResult[]>([])
 const dateRange = ref(defaultTodayRange())
 
 const RESULT_META: Record<LoginAuditResult, { color: 'success' | 'error', icon: string }> = {
@@ -61,7 +60,7 @@ async function load() {
   try {
     const res = await audit.listLogins({
       email: search.value.trim() || undefined,
-      result: resultFilter.value ?? undefined,
+      result: resultFilter.value,
       from: dateRange.value.from,
       to: dateRange.value.to,
       page: page.value - 1,
@@ -118,6 +117,8 @@ onMounted(load)
         :items="RESULT_OPTIONS"
         label-key="label"
         value-key="value"
+        multiple
+        clearable
         :placeholder="$t('security.sessions.filters.result')"
         class="w-56"
       />

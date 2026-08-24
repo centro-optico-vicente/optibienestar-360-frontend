@@ -26,13 +26,12 @@ const expandedUuids = ref<Set<string>>(new Set())
 
 const entityKeyFilter = ref<string[]>([])
 const actorUuidFilter = ref<string | undefined>(undefined)
-const ACTION_OPTIONS: { label: string, value: AuditAction | null }[] = [
-  { label: t('security.dataChanges.filters.actionAll'), value: null },
+const ACTION_OPTIONS: { label: string, value: AuditAction }[] = [
   { label: t('audit.actions.CREATE'), value: 'CREATE' },
   { label: t('audit.actions.UPDATE'), value: 'UPDATE' },
   { label: t('audit.actions.DELETE'), value: 'DELETE' },
 ]
-const actionFilter = ref<AuditAction | null>(null)
+const actionFilter = ref<AuditAction[]>([])
 const dateRange = ref(defaultTodayRange())
 
 const ACTION_META: Record<AuditAction, { icon: string, color: 'success' | 'warning' | 'error' }> = {
@@ -90,7 +89,7 @@ async function load() {
     const res = await audit.listDataChanges({
       entityKey: entityKeyFilter.value,
       actorUuid: actorUuidFilter.value,
-      action: actionFilter.value ?? undefined,
+      action: actionFilter.value,
       from: dateRange.value.from,
       to: dateRange.value.to,
       page: page.value - 1,
@@ -136,6 +135,8 @@ onMounted(load)
         :items="ACTION_OPTIONS"
         label-key="label"
         value-key="value"
+        multiple
+        clearable
         :placeholder="$t('security.dataChanges.filters.action')"
         class="w-52"
       />
