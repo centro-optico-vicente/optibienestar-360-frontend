@@ -111,7 +111,7 @@ onMounted(load)
         label-key="label"
         value-key="value"
         multiple
-        clearable
+        clear
         icon="i-lucide-file-type"
         :placeholder="$t('security.reportsAudit.filters.format')"
         class="w-48"

@@ -118,7 +118,7 @@ onMounted(load)
         label-key="label"
         value-key="value"
         multiple
-        clearable
+        clear
         :placeholder="$t('security.sessions.filters.result')"
         class="w-56"
       />

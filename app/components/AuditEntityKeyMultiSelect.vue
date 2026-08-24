@@ -32,7 +32,7 @@ const items = computed((): { label: string, value: string }[] =>
     label-key="label"
     value-key="value"
     multiple
-    clearable
+    clear
     :placeholder="t('security.dataChanges.filters.entityKeyAll')"
     class="w-64"
     @update:model-value="(v: string[]) => $emit('update:modelValue', v)"

@@ -54,7 +54,7 @@ const value = computed({
     label-key="label"
     value-key="value"
     ignore-filter
-    clearable
+    clear
     icon="i-lucide-user-search"
     :loading="searching"
     :placeholder="t('security.dataChanges.filters.actorPlaceholder')"

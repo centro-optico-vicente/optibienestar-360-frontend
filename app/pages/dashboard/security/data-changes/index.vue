@@ -136,7 +136,7 @@ onMounted(load)
         label-key="label"
         value-key="value"
         multiple
-        clearable
+        clear
         :placeholder="$t('security.dataChanges.filters.action')"
         class="w-52"
       />
