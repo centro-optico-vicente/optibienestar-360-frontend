@@ -260,6 +260,13 @@
           "permissions": "Permissions",
           "users": "Assigned users"
         },
+        "permissionsTab": {
+          "columns": {
+            "entity": "Entity",
+            "permissions": "Permissions"
+          },
+          "empty": "This role has no permissions assigned."
+        },
         "usersTab": {
           "title": "Assigned users",
           "hint": "Users who have this role.",

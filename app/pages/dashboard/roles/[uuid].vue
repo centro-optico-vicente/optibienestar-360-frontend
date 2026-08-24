@@ -94,6 +94,32 @@ async function loadPermissionsCatalog() {
   }
 }
 
+// ---- Granted permissions summary (read-only table on the permissions tab) ----
+const grantedPermissionUuids = ref<string[]>([])
+const grantedPermissionsLoading = ref(false)
+
+async function loadGrantedPermissions() {
+  grantedPermissionsLoading.value = true
+  try {
+    grantedPermissionUuids.value = await rolesApi.getRolePermissions(roleUuid)
+  }
+  catch {
+    grantedPermissionUuids.value = []
+  }
+  finally {
+    grantedPermissionsLoading.value = false
+  }
+}
+
+const grantedPermissionsByDomain = computed(() =>
+  domains.value
+    .map(domain => ({
+      domain,
+      permissions: domain.permissions.filter(p => grantedPermissionUuids.value.includes(p.uuid)),
+    }))
+    .filter(entry => entry.permissions.length > 0),
+)
+
 function isChecked(uuid: string) {
   return selected.value.includes(uuid)
 }
@@ -192,6 +218,7 @@ async function onSavePermissions() {
     await rolesApi.updateRolePermissions(role.value.uuid, selected.value)
     toast.add({ title: t('security.roles.permissionsUpdatedToast'), color: 'success', icon: 'i-lucide-check-circle' })
     formOpen.value = false
+    await loadGrantedPermissions()
   }
   catch {
     // useApi ya notificó el error
@@ -389,6 +416,7 @@ onMounted(async () => {
   await loadRole()
   await Promise.all([
     loadPermissionsCatalog(),
+    loadGrantedPermissions(),
     loadRoleUsers(),
     loadUserOptions(),
   ])
@@ -495,6 +523,50 @@ onMounted(async () => {
               {{ t('security.roles.permissions') }}
             </UButton>
           </UTooltip>
+        </div>
+
+        <div class="mt-5 overflow-x-auto rounded-xl border border-prohealth-100">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
+                <th class="px-4 py-2.5 font-semibold w-56">{{ t('security.roles.detail.permissionsTab.columns.entity') }}</th>
+                <th class="px-4 py-2.5 font-semibold">{{ t('security.roles.detail.permissionsTab.columns.permissions') }}</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-prohealth-100">
+              <tr v-if="grantedPermissionsLoading">
+                <td colspan="2" class="px-4 py-4">
+                  <USkeleton class="h-4 w-full rounded" />
+                </td>
+              </tr>
+              <tr v-else-if="grantedPermissionsByDomain.length === 0">
+                <td colspan="2" class="px-4 py-8 text-center text-prohealth-500">
+                  <UIcon name="i-lucide-key-round" class="w-6 h-6 mx-auto mb-2 text-prohealth-300" />
+                  {{ t('security.roles.detail.permissionsTab.empty') }}
+                </td>
+              </tr>
+              <tr v-for="entry in grantedPermissionsByDomain" v-else :key="entry.domain.uuid" class="align-top">
+                <td class="px-4 py-3">
+                  <div class="flex items-center gap-2 font-semibold text-prohealth-800">
+                    <UIcon v-if="entry.domain.icon" :name="entry.domain.icon" class="w-4 h-4 text-prohealth-500" />
+                    {{ entry.domain.name }}
+                  </div>
+                </td>
+                <td class="px-4 py-3">
+                  <div class="flex flex-wrap gap-1.5">
+                    <UBadge
+                      v-for="p in entry.permissions"
+                      :key="p.uuid"
+                      color="primary"
+                      variant="subtle"
+                    >
+                      {{ p.name }}
+                    </UBadge>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -635,7 +707,7 @@ onMounted(async () => {
       v-model:open="formOpen"
       :title="t('security.roles.permissionsModalTitle', { name: role?.name ?? '' })"
       :description="t('security.roles.permissionsModalDescription')"
-      :ui="{ content: 'max-w-3xl' }"
+      :ui="{ content: 'max-w-5xl' }"
     >
       <template #body>
         <div v-if="loadingPerms" class="space-y-4 max-h-[60vh] overflow-hidden">

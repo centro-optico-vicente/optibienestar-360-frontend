@@ -647,7 +647,7 @@ async function onSave() {
       v-model:open="formOpen"
       :title="$t('security.roles.permissionsModalTitle', { name: editing?.name ?? '' })"
       :description="$t('security.roles.permissionsModalDescription')"
-      :ui="{ content: 'max-w-3xl' }"
+      :ui="{ content: 'max-w-5xl' }"
     >
       <template #body>
         <div v-if="loadingPerms" class="space-y-4 max-h-[60vh] overflow-hidden">
