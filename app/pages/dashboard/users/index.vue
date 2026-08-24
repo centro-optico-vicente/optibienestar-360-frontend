@@ -106,9 +106,23 @@ async function loadRoles() {
   }
 }
 
+// `?edit=<uuid>` lets the user detail page ("Edit user" button) reopen this
+// modal without duplicating the create/edit form on a second page.
+const route = useRoute()
+
 onMounted(async () => {
   await load()
   await Promise.all([loadRoles(), loadDocumentTypes()])
+  const editUuid = route.query.edit
+  if (typeof editUuid === 'string') {
+    try {
+      const target = await users.get(editUuid)
+      openEdit(target)
+    }
+    catch {
+      // Invalid/removed uuid: silently ignore, stay on the list.
+    }
+  }
 })
 
 // ---- Formulario crear/editar ----
@@ -407,6 +421,7 @@ async function confirmDelete() {
               :key="u.uuid"
               class="hover:bg-prohealth-50/50"
               :class="{ 'opacity-60': u.active === false }"
+              @dblclick="(e: MouseEvent) => { if (!(e.target as HTMLElement).closest('button, a')) navigateTo(`/dashboard/users/${u.uuid}`) }"
             >
               <td class="px-5 py-3">
                 <div class="font-semibold text-prohealth-900">{{ u.fullName }}</div>
@@ -442,6 +457,15 @@ async function confirmDelete() {
               <td class="px-5 py-3 text-prohealth-600">{{ formatDate(u.lastLoginAt, 'datetime') }}</td>
               <td class="px-5 py-3">
                 <div class="flex items-center justify-end gap-1">
+                  <UTooltip :text="$t('security.users.viewDetailTooltip')">
+                    <UButton
+                      color="neutral"
+                      variant="ghost"
+                      icon="i-lucide-eye"
+                      size="sm"
+                      :to="`/dashboard/users/${u.uuid}`"
+                    />
+                  </UTooltip>
                   <UTooltip :text="canUpdate ? $t('common.edit') : $t('security.users.noPermissionEdit')">
                     <UButton
                       color="neutral"

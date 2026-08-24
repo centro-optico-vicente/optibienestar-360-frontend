@@ -149,6 +149,57 @@
         "ACTIVE": "Activo",
         "SUSPENDED": "Suspendido",
         "LOCKED": "Bloqueado"
+      },
+      "viewDetailTooltip": "Ver detalle",
+      "detail": {
+        "seoPage": "Detalle de usuario",
+        "notFoundTitle": "Usuario no encontrado",
+        "notFoundBody": "El registro no existe o fue eliminado.",
+        "editButton": "Editar usuario",
+        "tabs": {
+          "roles": "Roles asignados",
+          "allies": "Aliados asociados"
+        },
+        "rolesTab": {
+          "title": "Roles asignados",
+          "hint": "Roles que tiene este usuario.",
+          "add": "Añadir",
+          "addTooltip": "Asignar rol a este usuario",
+          "selectRole": "Selecciona un rol",
+          "empty": "Sin roles asignados",
+          "assignedToast": "Rol asignado",
+          "unlinkedToast": "Rol removido",
+          "unlinkTooltip": "Quitar rol",
+          "delete": {
+            "title": "Quitar rol",
+            "confirm": "¿Seguro que deseas quitar el rol {name} de este usuario?"
+          },
+          "columns": {
+            "role": "Rol",
+            "description": "Descripción"
+          }
+        },
+        "alliesTab": {
+          "title": "Aliados asociados",
+          "hint": "Aliados en los que este usuario tiene membresía de personal.",
+          "add": "Añadir",
+          "addTooltip": "Asociar aliado a este usuario",
+          "selectAlly": "Selecciona un aliado",
+          "empty": "Sin aliados asociados",
+          "assignedToast": "Aliado asociado",
+          "unlinkedToast": "Aliado desvinculado",
+          "unlinkTooltip": "Desvincular",
+          "columns": {
+            "ally": "Aliado",
+            "role": "Rol en el aliado",
+            "primary": "Principal",
+            "since": "Desde"
+          },
+          "delete": {
+            "title": "Desvincular aliado",
+            "confirm": "¿Seguro que deseas desvincular a este usuario de {name}?"
+          }
+        }
       }
     },
     "roles": {
@@ -192,6 +243,44 @@
       "fields": {
         "name": "Nombre",
         "description": "Descripción"
+      },
+      "viewDetailTooltip": "Ver detalle",
+      "bulkActions": {
+        "label": "Marcar por acción:",
+        "create": "Crear",
+        "delete": "Eliminar",
+        "viewAll": "Ver datos",
+        "reportGenerate": "Generar reporte"
+      },
+      "detail": {
+        "seoPage": "Detalle de rol",
+        "notFoundTitle": "Rol no encontrado",
+        "notFoundBody": "El registro no existe o fue eliminado.",
+        "tabs": {
+          "permissions": "Permisos",
+          "users": "Usuarios asignados"
+        },
+        "usersTab": {
+          "title": "Usuarios asignados",
+          "hint": "Usuarios que tienen este rol.",
+          "add": "Añadir",
+          "addTooltip": "Asignar usuario a este rol",
+          "selectUser": "Selecciona un usuario",
+          "empty": "Sin usuarios asignados",
+          "assignedToast": "Usuario asignado",
+          "unlinkedToast": "Usuario removido del rol",
+          "columns": {
+            "user": "Usuario",
+            "email": "Correo",
+            "status": "Estado",
+            "since": "Desde"
+          },
+          "unlinkTooltip": "Quitar del rol",
+          "delete": {
+            "title": "Quitar usuario del rol",
+            "confirm": "¿Seguro que deseas quitar a {name} de este rol?"
+          }
+        }
       }
     },
     "sessions": {

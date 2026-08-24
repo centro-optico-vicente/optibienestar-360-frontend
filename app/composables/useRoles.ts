@@ -4,6 +4,7 @@ import {
   type Page,
   type PermissionDomainDto,
   type RoleDto,
+  type RoleUserDto,
   type UpdateRoleRequest,
 } from '~/types/admin'
 import type { Option } from '~/types/options'
@@ -86,5 +87,29 @@ export const useRoles = () => {
   const permissions = async (): Promise<PermissionDomainDto[]> =>
     toItems(await useApi<Page<PermissionDomainDto> | PermissionDomainDto[]>('/v1/admin/permissions'))
 
-  return { list, options, get, create, update, remove, usage, getRolePermissions, updateRolePermissions, permissions }
+  // ---- Usuarios asignados al rol (GET requiere USER_VIEW_ALL; POST/DELETE requieren ROLE_USERS_MANAGE) ----
+  const listUsers = (roleUuid: string) =>
+    useApi<RoleUserDto[]>(`/v1/admin/roles/${roleUuid}/users`)
+
+  const assignUser = (roleUuid: string, userUuid: string) =>
+    useApi<RoleUserDto>(`/v1/admin/roles/${roleUuid}/users`, { method: 'POST', body: { userUuid } })
+
+  const removeUser = (roleUuid: string, userUuid: string) =>
+    useApi<null>(`/v1/admin/roles/${roleUuid}/users/${userUuid}`, { method: 'DELETE' })
+
+  return {
+    list,
+    options,
+    get,
+    create,
+    update,
+    remove,
+    usage,
+    getRolePermissions,
+    updateRolePermissions,
+    permissions,
+    listUsers,
+    assignUser,
+    removeUser,
+  }
 }

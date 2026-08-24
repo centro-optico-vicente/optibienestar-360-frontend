@@ -430,6 +430,7 @@ async function confirmDelete() {
               :key="a.uuid"
               class="hover:bg-prohealth-50/50 cursor-pointer"
               @click="navigateTo(`/dashboard/allies/${a.uuid}`)"
+              @dblclick="navigateTo(`/dashboard/allies/${a.uuid}`)"
             >
               <td class="px-5 py-3">
                 <div class="font-semibold text-prohealth-900">{{ a.name }}</div>

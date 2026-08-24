@@ -310,6 +310,50 @@ function toggleDomain(domain: PermissionDomainDto, checked: boolean) {
   }
 }
 
+// ---- Bulk toggles by action, across every domain in the catalog ----
+interface ActionToggle {
+  key: string
+  labelKey: string
+  suffixes: string[]
+}
+
+const ACTION_TOGGLES: ActionToggle[] = [
+  { key: 'create', labelKey: 'security.roles.bulkActions.create', suffixes: ['_CREATE'] },
+  { key: 'delete', labelKey: 'security.roles.bulkActions.delete', suffixes: ['_DELETE'] },
+  { key: 'viewAll', labelKey: 'security.roles.bulkActions.viewAll', suffixes: ['_VIEW_ALL', '_VIEW'] },
+  { key: 'reportGenerate', labelKey: 'security.roles.bulkActions.reportGenerate', suffixes: ['_REPORT_GENERATE'] },
+]
+
+function permissionsForAction(suffixes: string[]): string[] {
+  const ids: string[] = []
+  for (const domain of domains.value) {
+    for (const p of domain.permissions) {
+      if (suffixes.some(sfx => p.name.endsWith(sfx))) ids.push(p.uuid)
+    }
+  }
+  return ids
+}
+
+function actionState(suffixes: string[]): boolean | 'indeterminate' {
+  const ids = permissionsForAction(suffixes)
+  if (ids.length === 0) return false
+  const count = ids.filter(id => selected.value.includes(id)).length
+  if (count === 0) return false
+  if (count === ids.length) return true
+  return 'indeterminate'
+}
+
+function toggleByAction(suffixes: string[], checked: boolean) {
+  const ids = permissionsForAction(suffixes)
+  if (checked) {
+    const set = new Set([...selected.value, ...ids])
+    selected.value = [...set]
+  }
+  else {
+    selected.value = selected.value.filter(u => !ids.includes(u))
+  }
+}
+
 async function openEdit(role: RoleDto) {
   editing.value = role
   selected.value = []
@@ -402,6 +446,7 @@ async function onSave() {
               :key="r.uuid"
               class="hover:bg-prohealth-50/50"
               :class="{ 'opacity-60': r.active === false }"
+              @dblclick="(e: MouseEvent) => { if (!(e.target as HTMLElement).closest('button, a')) navigateTo(`/dashboard/roles/${r.uuid}`) }"
             >
               <td class="px-5 py-3">
                 <UBadge color="primary" variant="subtle">{{ r.name }}</UBadge>
@@ -411,6 +456,15 @@ async function onSave() {
               </td>
               <td class="px-5 py-3">
                 <div class="flex items-center justify-end gap-1">
+                  <UTooltip :text="$t('security.roles.viewDetailTooltip')">
+                    <UButton
+                      color="neutral"
+                      variant="ghost"
+                      icon="i-lucide-eye"
+                      size="sm"
+                      :to="`/dashboard/roles/${r.uuid}`"
+                    />
+                  </UTooltip>
                   <UTooltip :text="!canEditPermissions ? $t('security.roles.noPermission') : (canEditRolePermissions(r) ? $t('security.roles.editPermissionsTooltip') : $t('security.roles.systemOnlySystemActor'))">
                     <UButton
                       color="neutral"
@@ -593,6 +647,7 @@ async function onSave() {
       v-model:open="formOpen"
       :title="$t('security.roles.permissionsModalTitle', { name: editing?.name ?? '' })"
       :description="$t('security.roles.permissionsModalDescription')"
+      :ui="{ content: 'max-w-3xl' }"
     >
       <template #body>
         <div v-if="loadingPerms" class="space-y-4 max-h-[60vh] overflow-hidden">
@@ -610,7 +665,26 @@ async function onSave() {
           </div>
         </div>
 
-        <div v-else class="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+        <div v-else class="space-y-4">
+          <!-- Bulk toggles by action, across all domains -->
+          <div class="flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl border border-prohealth-100 bg-prohealth-50/40 px-4 py-3">
+            <span class="text-xs font-semibold uppercase tracking-wide text-prohealth-400">
+              {{ $t('security.roles.bulkActions.label') }}
+            </span>
+            <label
+              v-for="action in ACTION_TOGGLES"
+              :key="action.key"
+              class="flex items-center gap-2 cursor-pointer"
+            >
+              <UCheckbox
+                :model-value="actionState(action.suffixes)"
+                @update:model-value="(v: boolean | 'indeterminate') => toggleByAction(action.suffixes, v === true)"
+              />
+              <span class="text-sm text-prohealth-700">{{ $t(action.labelKey) }}</span>
+            </label>
+          </div>
+
+          <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
           <div
             v-for="domain in domains"
             :key="domain.uuid"
@@ -645,6 +719,7 @@ async function onSave() {
           <p v-if="domains.length === 0" class="text-sm text-amber-600">
             {{ $t('security.roles.permissionsCatalogError') }}
           </p>
+          </div>
         </div>
 
         <div class="flex items-center justify-between gap-3 pt-4 mt-2 border-t border-prohealth-100">

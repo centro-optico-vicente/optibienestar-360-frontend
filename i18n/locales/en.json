@@ -149,6 +149,57 @@
         "ACTIVE": "Active",
         "SUSPENDED": "Suspended",
         "LOCKED": "Locked"
+      },
+      "viewDetailTooltip": "View detail",
+      "detail": {
+        "seoPage": "User detail",
+        "notFoundTitle": "User not found",
+        "notFoundBody": "The record doesn't exist or was deleted.",
+        "editButton": "Edit user",
+        "tabs": {
+          "roles": "Assigned roles",
+          "allies": "Associated allies"
+        },
+        "rolesTab": {
+          "title": "Assigned roles",
+          "hint": "Roles this user has.",
+          "add": "Add",
+          "addTooltip": "Assign a role to this user",
+          "selectRole": "Select a role",
+          "empty": "No roles assigned",
+          "assignedToast": "Role assigned",
+          "unlinkedToast": "Role removed",
+          "unlinkTooltip": "Remove role",
+          "delete": {
+            "title": "Remove role",
+            "confirm": "Are you sure you want to remove the {name} role from this user?"
+          },
+          "columns": {
+            "role": "Role",
+            "description": "Description"
+          }
+        },
+        "alliesTab": {
+          "title": "Associated allies",
+          "hint": "Allies where this user has a staff membership.",
+          "add": "Add",
+          "addTooltip": "Associate an ally with this user",
+          "selectAlly": "Select an ally",
+          "empty": "No associated allies",
+          "assignedToast": "Ally associated",
+          "unlinkedToast": "Ally unlinked",
+          "unlinkTooltip": "Unlink",
+          "columns": {
+            "ally": "Ally",
+            "role": "Role at the ally",
+            "primary": "Primary",
+            "since": "Since"
+          },
+          "delete": {
+            "title": "Unlink ally",
+            "confirm": "Are you sure you want to unlink this user from {name}?"
+          }
+        }
       }
     },
     "roles": {
@@ -192,6 +243,44 @@
       "fields": {
         "name": "Name",
         "description": "Description"
+      },
+      "viewDetailTooltip": "View detail",
+      "bulkActions": {
+        "label": "Toggle by action:",
+        "create": "Create",
+        "delete": "Delete",
+        "viewAll": "View data",
+        "reportGenerate": "Generate report"
+      },
+      "detail": {
+        "seoPage": "Role detail",
+        "notFoundTitle": "Role not found",
+        "notFoundBody": "The record doesn't exist or was deleted.",
+        "tabs": {
+          "permissions": "Permissions",
+          "users": "Assigned users"
+        },
+        "usersTab": {
+          "title": "Assigned users",
+          "hint": "Users who have this role.",
+          "add": "Add",
+          "addTooltip": "Assign a user to this role",
+          "selectUser": "Select a user",
+          "empty": "No users assigned",
+          "assignedToast": "User assigned",
+          "unlinkedToast": "User removed from role",
+          "columns": {
+            "user": "User",
+            "email": "Email",
+            "status": "Status",
+            "since": "Since"
+          },
+          "unlinkTooltip": "Remove from role",
+          "delete": {
+            "title": "Remove user from role",
+            "confirm": "Are you sure you want to remove {name} from this role?"
+          }
+        }
       }
     },
     "sessions": {
