@@ -16,6 +16,7 @@ import type {
   UpdateAllyRequest,
   UpdateAllyServiceRequest,
   UpdateAllyUserRequest,
+  UserAllyDto,
 } from '~/types/allies'
 
 interface ListParams {
@@ -113,6 +114,10 @@ export const useAllies = () => {
   const removeUser = (allyUuid: string, uuid: string) =>
     useApi<null>(`/v1/admin/allies/${allyUuid}/users/${uuid}`, { method: 'DELETE' })
 
+  /** Inverse of listUsers: allies a given user belongs to (ALLY_VIEW_ALL). Always 200, `[]` if none. */
+  const listAlliesForUser = (userUuid: string) =>
+    useApi<UserAllyDto[]>(`/v1/admin/users/${userUuid}/allies`)
+
   // ---- Como aliado (panel /aliado/*) ----
   /** Propone un servicio para mi ally (queda en reviewStatus=PROPOSED). */
   const proposeService = (body: ProposeAllyServiceRequest) =>
@@ -140,6 +145,7 @@ export const useAllies = () => {
     assignUser,
     updateUser,
     removeUser,
+    listAlliesForUser,
     proposeService,
   }
 }

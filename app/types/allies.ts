@@ -215,6 +215,20 @@ export function canOperateAtCounter(role?: AllyRole | string | null): boolean {
   return role === 'OWNER' || role === 'STAFF'
 }
 
+/**
+ * Response item of GET /v1/admin/users/{userUuid}/allies — the inverse of
+ * `AllyUserDto`: "which allies does this user belong to?", from the user's side.
+ * Gated by ALLY_VIEW_ALL. Always 200, `[]` if the user has no ally memberships.
+ */
+export interface UserAllyDto {
+  allyUuid: string
+  allyName: string
+  allyRole: AllyRole | string
+  primary?: boolean
+  joinedAt?: string
+  active?: boolean
+}
+
 // ---- Public directory ----
 
 /** Sanitized DTO of the public directory (only PUBLISHED + ACTIVE partners). */

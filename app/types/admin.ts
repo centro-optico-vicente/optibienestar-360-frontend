@@ -114,6 +114,23 @@ export interface UpdateRolePermissionsRequest {
   permissionUuids: string[]
 }
 
+/**
+ * A user membership under /v1/admin/roles/{roleUuid}/users.
+ *
+ * Mirrors AllyUserDto's flattening: the backend sends the User + Person fields
+ * needed to render the table without a round-trip, not a nested `user` object.
+ */
+export interface RoleUserDto {
+  uuid?: string
+  roleUuid?: string
+  userUuid: string
+  userEmail?: string
+  userFullName?: string
+  createdAt?: string
+  status?: string
+  active?: boolean
+}
+
 /** Normaliza una respuesta que puede venir como Page<T> o como T[] plano. */
 export function toItems<T>(res: Page<T> | T[] | null | undefined): T[] {
   if (!res) return []
