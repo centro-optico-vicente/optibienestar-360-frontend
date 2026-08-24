@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
+import { defaultTodayRange } from '~/utils/date'
 import type { LoginAuditLogDto, LoginAuditResult } from '~/types/audit'
 
 definePageMeta({
@@ -31,8 +32,7 @@ const RESULT_OPTIONS: { label: string, value: LoginAuditResult | null }[] = [
   { label: t('security.sessions.results.FAILED_INACTIVE'), value: 'FAILED_INACTIVE' },
 ]
 const resultFilter = ref<LoginAuditResult | null>(null)
-const fromFilter = ref<string>('')
-const toFilter = ref<string>('')
+const dateRange = ref(defaultTodayRange())
 
 const RESULT_META: Record<LoginAuditResult, { color: 'success' | 'error', icon: string }> = {
   SUCCESS: { color: 'success', icon: 'i-lucide-check-circle' },
@@ -56,20 +56,14 @@ function sessionStatusLabel(status: string): string {
   return t(`security.sessions.sessionStatus.${status}`, status)
 }
 
-/** ISO datetime (with time) for the `from`/`to` query params, from a `date` input's `yyyy-mm-dd`. */
-function toInstant(dateStr: string, endOfDay: boolean): string | undefined {
-  if (!dateStr) return undefined
-  return endOfDay ? `${dateStr}T23:59:59` : `${dateStr}T00:00:00`
-}
-
 async function load() {
   loading.value = true
   try {
     const res = await audit.listLogins({
       email: search.value.trim() || undefined,
       result: resultFilter.value ?? undefined,
-      from: toInstant(fromFilter.value, false),
-      to: toInstant(toFilter.value, true),
+      from: dateRange.value.from,
+      to: dateRange.value.to,
       page: page.value - 1,
       size: size.value,
     })
@@ -93,7 +87,7 @@ watch(search, () => {
   clearTimeout(searchTimer)
   searchTimer = setTimeout(() => { page.value = 1; load() }, 400)
 })
-watch([resultFilter, fromFilter, toFilter], () => { page.value = 1; load() })
+watch([resultFilter, dateRange], () => { page.value = 1; load() }, { deep: true })
 
 onMounted(load)
 </script>
@@ -127,12 +121,7 @@ onMounted(load)
         :placeholder="$t('security.sessions.filters.result')"
         class="w-56"
       />
-      <UFormField :label="$t('security.sessions.filters.from')">
-        <UInput v-model="fromFilter" type="date" />
-      </UFormField>
-      <UFormField :label="$t('security.sessions.filters.to')">
-        <UInput v-model="toFilter" type="date" />
-      </UFormField>
+      <AuditDateRangePicker v-model="dateRange" />
     </div>
 
     <!-- Tabla -->

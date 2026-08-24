@@ -241,7 +241,10 @@
         "action": "Acción",
         "actionAll": "Todas las acciones",
         "from": "Desde",
-        "to": "Hasta"
+        "to": "Hasta",
+        "entityKeys": "Entidades",
+        "actor": "Actor",
+        "actorPlaceholder": "Buscar por nombre o correo…"
       },
       "columns": {
         "entity": "Entidad",
@@ -263,7 +266,10 @@
         "format": "Formato",
         "formatAll": "Todos los formatos",
         "from": "Desde",
-        "to": "Hasta"
+        "to": "Hasta",
+        "entityKeys": "Entidades",
+        "actor": "Actor",
+        "actorPlaceholder": "Buscar por nombre o correo…"
       },
       "columns": {
         "reportType": "Tipo de reporte",
@@ -743,6 +749,24 @@
     "reports": {
       "empty": "No se han generado reportes para este registro.",
       "downloadError": "No se pudo descargar el reporte."
+    },
+    "dateRange": {
+      "placeholder": "Selecciona un rango de fechas",
+      "fromTime": "Hora desde",
+      "toTime": "Hora hasta"
+    },
+    "entityKeys": {
+      "role": "Rol",
+      "user": "Usuario",
+      "plan": "Plan",
+      "ally": "Aliado",
+      "ally_type": "Tipo de aliado",
+      "member": "Afiliado",
+      "payment": "Pago",
+      "promoter": "Promotor",
+      "scheduled_job": "Tarea programada",
+      "commission_tier": "Escala de comisión",
+      "bonus_rule": "Regla de bono"
     }
   },
   "plans": {

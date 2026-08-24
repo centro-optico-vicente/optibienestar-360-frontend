@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
+import { defaultTodayRange } from '~/utils/date'
 import type { AuditAction, DataChangeAuditLogDto } from '~/types/audit'
 
 definePageMeta({
@@ -23,7 +24,8 @@ const size = ref(DEFAULT_PAGE_SIZE)
 const pageSizeItems = buildPageSizeItems(t)
 const expandedUuids = ref<Set<string>>(new Set())
 
-const entityKeyFilter = ref('')
+const entityKeyFilter = ref<string[]>([])
+const actorUuidFilter = ref<string | undefined>(undefined)
 const ACTION_OPTIONS: { label: string, value: AuditAction | null }[] = [
   { label: t('security.dataChanges.filters.actionAll'), value: null },
   { label: t('audit.actions.CREATE'), value: 'CREATE' },
@@ -31,8 +33,7 @@ const ACTION_OPTIONS: { label: string, value: AuditAction | null }[] = [
   { label: t('audit.actions.DELETE'), value: 'DELETE' },
 ]
 const actionFilter = ref<AuditAction | null>(null)
-const fromFilter = ref('')
-const toFilter = ref('')
+const dateRange = ref(defaultTodayRange())
 
 const ACTION_META: Record<AuditAction, { icon: string, color: 'success' | 'warning' | 'error' }> = {
   CREATE: { icon: 'i-lucide-plus-circle', color: 'success' },
@@ -83,19 +84,15 @@ function toggleExpand(log: DataChangeAuditLogDto) {
   expandedUuids.value = next
 }
 
-function toInstant(dateStr: string, endOfDay: boolean): string | undefined {
-  if (!dateStr) return undefined
-  return endOfDay ? `${dateStr}T23:59:59` : `${dateStr}T00:00:00`
-}
-
 async function load() {
   loading.value = true
   try {
     const res = await audit.listDataChanges({
-      entityKey: entityKeyFilter.value.trim() || undefined,
+      entityKey: entityKeyFilter.value,
+      actorUuid: actorUuidFilter.value,
       action: actionFilter.value ?? undefined,
-      from: toInstant(fromFilter.value, false),
-      to: toInstant(toFilter.value, true),
+      from: dateRange.value.from,
+      to: dateRange.value.to,
       page: page.value - 1,
       size: size.value,
     })
@@ -113,12 +110,7 @@ async function load() {
 
 watch(size, () => { page.value = 1 })
 watch([page, size], load)
-let filterTimer: ReturnType<typeof setTimeout> | undefined
-watch(entityKeyFilter, () => {
-  clearTimeout(filterTimer)
-  filterTimer = setTimeout(() => { page.value = 1; load() }, 400)
-})
-watch([actionFilter, fromFilter, toFilter], () => { page.value = 1; load() })
+watch([entityKeyFilter, actorUuidFilter, actionFilter, dateRange], () => { page.value = 1; load() }, { deep: true })
 
 onMounted(load)
 </script>
@@ -137,13 +129,8 @@ onMounted(load)
 
     <!-- Filtros -->
     <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
-      <UInput
-        v-model="entityKeyFilter"
-        :placeholder="$t('security.dataChanges.filters.entityKey')"
-        icon="i-lucide-database"
-        size="lg"
-        class="w-full max-w-xs"
-      />
+      <AuditEntityKeyMultiSelect v-model="entityKeyFilter" />
+      <AuditActorSelect v-model="actorUuidFilter" />
       <USelectMenu
         v-model="actionFilter"
         :items="ACTION_OPTIONS"
@@ -152,12 +139,7 @@ onMounted(load)
         :placeholder="$t('security.dataChanges.filters.action')"
         class="w-52"
       />
-      <UFormField :label="$t('security.dataChanges.filters.from')">
-        <UInput v-model="fromFilter" type="date" />
-      </UFormField>
-      <UFormField :label="$t('security.dataChanges.filters.to')">
-        <UInput v-model="toFilter" type="date" />
-      </UFormField>
+      <AuditDateRangePicker v-model="dateRange" />
     </div>
 
     <!-- Listado -->

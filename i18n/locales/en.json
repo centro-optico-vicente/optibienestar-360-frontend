@@ -241,7 +241,10 @@
         "action": "Action",
         "actionAll": "All actions",
         "from": "From",
-        "to": "To"
+        "to": "To",
+        "entityKeys": "Entities",
+        "actor": "Actor",
+        "actorPlaceholder": "Search by name or email…"
       },
       "columns": {
         "entity": "Entity",
@@ -263,7 +266,10 @@
         "format": "Format",
         "formatAll": "All formats",
         "from": "From",
-        "to": "To"
+        "to": "To",
+        "entityKeys": "Entities",
+        "actor": "Actor",
+        "actorPlaceholder": "Search by name or email…"
       },
       "columns": {
         "reportType": "Report type",
@@ -743,6 +749,24 @@
     "reports": {
       "empty": "No reports have been generated for this record.",
       "downloadError": "Could not download the report."
+    },
+    "dateRange": {
+      "placeholder": "Select a date range",
+      "fromTime": "From time",
+      "toTime": "To time"
+    },
+    "entityKeys": {
+      "role": "Role",
+      "user": "User",
+      "plan": "Plan",
+      "ally": "Ally",
+      "ally_type": "Ally type",
+      "member": "Member",
+      "payment": "Payment",
+      "promoter": "Promoter",
+      "scheduled_job": "Scheduled job",
+      "commission_tier": "Commission tier",
+      "bonus_rule": "Bonus rule"
     }
   },
   "plans": {

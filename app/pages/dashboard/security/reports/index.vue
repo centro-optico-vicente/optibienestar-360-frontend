@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
+import { defaultTodayRange } from '~/utils/date'
 import type { ReportAuditLogDto } from '~/types/audit'
 
 definePageMeta({
@@ -24,10 +25,10 @@ const size = ref(DEFAULT_PAGE_SIZE)
 const pageSizeItems = buildPageSizeItems(t)
 const downloadingUuid = ref<string | null>(null)
 
-const entityKeyFilter = ref('')
+const entityKeyFilter = ref<string[]>([])
+const actorUuidFilter = ref<string | undefined>(undefined)
 const formatFilter = ref('')
-const fromFilter = ref('')
-const toFilter = ref('')
+const dateRange = ref(defaultTodayRange())
 
 function formatSize(bytes?: number | null): string {
   if (!bytes) return t('common.empty')
@@ -35,19 +36,15 @@ function formatSize(bytes?: number | null): string {
   return kb < 1024 ? `${formatNumber(Math.round(kb))} KB` : `${formatNumber(Math.round(kb / 1024))} MB`
 }
 
-function toInstant(dateStr: string, endOfDay: boolean): string | undefined {
-  if (!dateStr) return undefined
-  return endOfDay ? `${dateStr}T23:59:59` : `${dateStr}T00:00:00`
-}
-
 async function load() {
   loading.value = true
   try {
     const res = await audit.listReports({
-      entityKey: entityKeyFilter.value.trim() || undefined,
+      entityKey: entityKeyFilter.value,
+      actorUuid: actorUuidFilter.value,
       format: formatFilter.value.trim() || undefined,
-      from: toInstant(fromFilter.value, false),
-      to: toInstant(toFilter.value, true),
+      from: dateRange.value.from,
+      to: dateRange.value.to,
       page: page.value - 1,
       size: size.value,
     })
@@ -84,11 +81,11 @@ async function downloadReport(report: ReportAuditLogDto) {
 watch(size, () => { page.value = 1 })
 watch([page, size], load)
 let filterTimer: ReturnType<typeof setTimeout> | undefined
-watch([entityKeyFilter, formatFilter], () => {
+watch(formatFilter, () => {
   clearTimeout(filterTimer)
   filterTimer = setTimeout(() => { page.value = 1; load() }, 400)
 })
-watch([fromFilter, toFilter], () => { page.value = 1; load() })
+watch([entityKeyFilter, actorUuidFilter, dateRange], () => { page.value = 1; load() }, { deep: true })
 
 onMounted(load)
 </script>
@@ -107,13 +104,8 @@ onMounted(load)
 
     <!-- Filtros -->
     <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
-      <UInput
-        v-model="entityKeyFilter"
-        :placeholder="$t('security.reportsAudit.filters.entityKey')"
-        icon="i-lucide-database"
-        size="lg"
-        class="w-full max-w-xs"
-      />
+      <AuditEntityKeyMultiSelect v-model="entityKeyFilter" />
+      <AuditActorSelect v-model="actorUuidFilter" />
       <UInput
         v-model="formatFilter"
         :placeholder="$t('security.reportsAudit.filters.format')"
@@ -121,12 +113,7 @@ onMounted(load)
         size="lg"
         class="w-48"
       />
-      <UFormField :label="$t('security.reportsAudit.filters.from')">
-        <UInput v-model="fromFilter" type="date" />
-      </UFormField>
-      <UFormField :label="$t('security.reportsAudit.filters.to')">
-        <UInput v-model="toFilter" type="date" />
-      </UFormField>
+      <AuditDateRangePicker v-model="dateRange" />
     </div>
 
     <!-- Listado -->
