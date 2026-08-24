@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { CalendarDate } from '@internationalized/date'
+import { withCaracasOffset } from '~/utils/date'
 import type { DateTimeRange } from '~/utils/date'
 
 // `UCalendar`'s range model is typed against reka-ui's `DateValue` union (CalendarDate |
@@ -49,7 +50,7 @@ const open = ref(false)
 function toIso(date: LooseDateValue, time: string): string | undefined {
   if (!date) return undefined
   const safeTime = /^\d{2}:\d{2}$/.test(time) ? time : '00:00'
-  return `${date.toString()}T${safeTime}:00`
+  return withCaracasOffset(`${date.toString()}T${safeTime}`)
 }
 
 function emitChange() {
