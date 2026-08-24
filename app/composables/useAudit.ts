@@ -40,8 +40,13 @@ function crossProduct<A extends string, B extends string>(as: A[], bs: B[]): Arr
   return left.flatMap(a => right.map((b): [A | undefined, B | undefined] => [a, b]))
 }
 
-/** Fan-out fetch size used when merging multiple single-filter requests client-side. */
-const MULTI_ENTITY_FETCH_SIZE = 1000
+/**
+ * Fan-out fetch size used when merging multiple single-filter requests client-side.
+ * Must not exceed the backend's page size cap (MAX_PAGE_SIZE = 200 in
+ * ReportAuditQueryService/DataChangeAuditQueryService/LoginAuditQueryService),
+ * or the request is rejected with a 422 before any merging happens.
+ */
+const MULTI_ENTITY_FETCH_SIZE = 200
 
 function sliceMergedPage<T>(
   items: T[],

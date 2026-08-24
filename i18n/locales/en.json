@@ -849,7 +849,9 @@
     },
     "reports": {
       "empty": "No reports have been generated for this record.",
-      "downloadError": "Could not download the report."
+      "downloadError": "Could not download the report.",
+      "recordType": "Record",
+      "tableType": "List"
     },
     "dateRange": {
       "placeholder": "Select a date range",

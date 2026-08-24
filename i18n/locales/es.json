@@ -849,7 +849,9 @@
     },
     "reports": {
       "empty": "No se han generado reportes para este registro.",
-      "downloadError": "No se pudo descargar el reporte."
+      "downloadError": "No se pudo descargar el reporte.",
+      "recordType": "Ficha",
+      "tableType": "Listado"
     },
     "dateRange": {
       "placeholder": "Selecciona un rango de fechas",
