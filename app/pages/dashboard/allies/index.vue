@@ -139,7 +139,28 @@ watch(selectedStateUuid, async (stateUuid) => {
 onMounted(async () => {
   await load()
   await Promise.all([loadCatalogs(), loadDocumentTypes()])
+  await openFromQuery()
 })
+
+// Lets the ally detail page deep-link into this page's edit/delete modals
+// (they have no standalone equivalent on the detail page itself).
+const route = useRoute()
+const router = useRouter()
+async function openFromQuery() {
+  const editUuid = route.query.edit as string | undefined
+  const deleteUuid = route.query.delete as string | undefined
+  const targetUuid = editUuid || deleteUuid
+  if (!targetUuid) return
+  await router.replace({ query: {} })
+  try {
+    const full = await allies.get(targetUuid)
+    if (editUuid) await openEdit(full)
+    else openDelete(full)
+  }
+  catch {
+    // useApi already notified (e.g. 404); nothing else to do.
+  }
+}
 
 // ---- Create/edit form ----
 const formOpen = ref(false)

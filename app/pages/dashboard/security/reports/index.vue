@@ -16,6 +16,7 @@ useSeoMeta({ title: () => t('security.reportsAudit.seoTitle') })
 const audit = useAudit()
 const { formatDate, formatNumber } = useFormatters()
 const toast = useToast()
+const { copy: copyUuid } = useClipboardCopy()
 
 const data = ref<ReportAuditLogDto[]>([])
 const total = ref(0)
@@ -38,6 +39,25 @@ function formatSize(bytes?: number | null): string {
   if (!bytes) return t('common.empty')
   const kb = bytes / 1024
   return kb < 1024 ? `${formatNumber(Math.round(kb))} KB` : `${formatNumber(Math.round(kb / 1024))} MB`
+}
+
+function displayValue(value: unknown): string {
+  if (value === null || value === undefined || value === '') return t('common.empty')
+  if (typeof value === 'boolean') return value ? t('common.yes') : t('common.no')
+  if (typeof value === 'object') return JSON.stringify(value)
+  return String(value)
+}
+
+/** Etiqueta legible del sujeto del reporte: identificador/nombre para RECORD, filtros aplicados para TABLE. */
+function reportSubjectLabel(report: ReportAuditLogDto): string | null {
+  if (report.reportType === 'RECORD') {
+    return report.entityIdentifier || report.entityDisplay || null
+  }
+  const params = report.parametersJson
+  if (!params || Object.keys(params).length === 0) return null
+  return Object.entries(params)
+    .map(([key, value]) => `${key}: ${displayValue(value)}`)
+    .join(' · ')
 }
 
 async function load() {
@@ -133,12 +153,34 @@ onMounted(load)
           <div class="min-w-0">
             <div class="flex items-center gap-2">
               <UBadge color="primary" variant="subtle" size="sm">{{ report.format }}</UBadge>
-              <span class="text-sm font-medium text-prohealth-900 truncate">{{ report.reportType }}</span>
+              <span class="text-sm font-medium text-prohealth-900 truncate">
+                {{ report.reportType === 'RECORD' ? $t('audit.reports.recordType') : $t('audit.reports.tableType') }}
+              </span>
               <UBadge v-if="report.entityKey" color="neutral" variant="subtle" size="sm">{{ report.entityKey }}</UBadge>
             </div>
-            <div class="text-xs text-prohealth-500 mt-0.5">
-              {{ report.actor_Display || $t('audit.log.unknownActor') }} · {{ formatDate(report.generatedAt, 'datetime') }} · {{ formatSize(report.sizeBytes) }}
-              <span v-if="report.entityDisplay"> · {{ report.entityDisplay }}</span>
+            <div v-if="reportSubjectLabel(report)" class="text-xs text-prohealth-700 mt-0.5 truncate">
+              {{ reportSubjectLabel(report) }}
+            </div>
+            <div v-if="report.fileName" class="text-xs text-prohealth-500 mt-0.5 truncate">
+              {{ report.fileName }}
+            </div>
+            <div class="text-xs text-prohealth-500 mt-0.5 flex items-center gap-1">
+              <span class="truncate">
+                {{ report.actor_Display || $t('audit.log.unknownActor') }} · {{ formatDate(report.generatedAt, 'datetime') }} · {{ formatSize(report.sizeBytes) }}
+              </span>
+              <template v-if="report.entityUuid">
+                <span>·</span>
+                <span class="font-mono">{{ report.entityUuid }}</span>
+                <UButton
+                  color="neutral"
+                  variant="ghost"
+                  icon="i-lucide-copy"
+                  size="xs"
+                  :padded="false"
+                  class="p-0.5"
+                  @click="copyUuid(report.entityUuid!)"
+                />
+              </template>
             </div>
           </div>
           <UButton

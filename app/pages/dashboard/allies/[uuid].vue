@@ -754,6 +754,24 @@ onMounted(async () => {
           </div>
           <div class="flex items-center gap-2">
             <ReportPrintButton :record-uuid="allyUuid" />
+            <UTooltip :text="canUpdate ? t('common.edit') : t('allies.noPermissionEdit')">
+              <UButton
+                color="neutral"
+                variant="ghost"
+                icon="i-lucide-pencil"
+                :disabled="!canUpdate"
+                @click="navigateTo(`/dashboard/allies?edit=${allyUuid}`)"
+              />
+            </UTooltip>
+            <UTooltip :text="canDelete ? t('common.delete') : t('allies.noPermissionDelete')">
+              <UButton
+                color="error"
+                variant="ghost"
+                icon="i-lucide-trash-2"
+                :disabled="!canDelete"
+                @click="navigateTo(`/dashboard/allies?delete=${allyUuid}`)"
+              />
+            </UTooltip>
             <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
               <UButton color="neutral" variant="ghost" icon="i-lucide-history" @click="auditOpen = true" />
             </UTooltip>

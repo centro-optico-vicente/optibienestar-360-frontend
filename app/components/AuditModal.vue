@@ -179,6 +179,18 @@ function formatSize(bytes?: number | null): string {
   return kb < 1024 ? `${formatNumber(Math.round(kb))} KB` : `${formatNumber(Math.round(kb / 1024))} MB`
 }
 
+/** Etiqueta legible del sujeto del reporte: identificador/nombre para RECORD, filtros aplicados para TABLE. */
+function reportSubjectLabel(report: ReportAuditLogDto): string | null {
+  if (report.reportType === 'RECORD') {
+    return report.entityIdentifier || report.entityDisplay || null
+  }
+  const params = report.parametersJson
+  if (!params || Object.keys(params).length === 0) return null
+  return Object.entries(params)
+    .map(([key, value]) => `${key}: ${displayValue(value)}`)
+    .join(' · ')
+}
+
 watch(changesPage, loadChanges)
 watch(reportsPage, loadReports)
 
@@ -323,7 +335,15 @@ watch([() => props.open, () => props.entityUuid], ([open]) => {
             <div class="min-w-0">
               <div class="flex items-center gap-2">
                 <UBadge color="primary" variant="subtle" size="sm">{{ report.format }}</UBadge>
-                <span class="text-sm font-medium text-prohealth-900 truncate">{{ report.reportType }}</span>
+                <span class="text-sm font-medium text-prohealth-900 truncate">
+                  {{ report.reportType === 'RECORD' ? t('audit.reports.recordType') : t('audit.reports.tableType') }}
+                </span>
+              </div>
+              <div v-if="reportSubjectLabel(report)" class="text-xs text-prohealth-700 mt-0.5 truncate">
+                {{ reportSubjectLabel(report) }}
+              </div>
+              <div v-if="report.fileName" class="text-xs text-prohealth-500 mt-0.5 truncate">
+                {{ report.fileName }}
               </div>
               <div class="text-xs text-prohealth-500 mt-0.5">
                 {{ report.actor_Display || t('audit.log.unknownActor') }} · {{ formatDate(report.generatedAt, 'datetime') }} · {{ formatSize(report.sizeBytes) }}
