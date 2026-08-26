@@ -38,6 +38,10 @@ onMounted(() => {
 })
 
 const isSidebarOpen = ref<boolean>(false)
+
+// Colapso del sidebar en escritorio. Persistido para que la elección sobreviva
+// a una recarga de página.
+const isSidebarCollapsed = useLocalStorage<boolean>('dashboard-sidebar-collapsed', false)
 </script>
 
 <template>
@@ -45,8 +49,8 @@ const isSidebarOpen = ref<boolean>(false)
     <!-- Sidebar -->
     <aside
       :class="[
-        'fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-prohealth-100 flex flex-col transition-transform lg:translate-x-0',
-        isSidebarOpen ? 'translate-x-0' : '-translate-x-full',
+        'fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-prohealth-100 flex flex-col transition-transform',
+        (isSidebarOpen || !isSidebarCollapsed) ? 'translate-x-0' : '-translate-x-full',
       ]"
     >
       <div class="h-16 px-5 flex items-center gap-2 border-b border-prohealth-100">
@@ -135,7 +139,7 @@ const isSidebarOpen = ref<boolean>(false)
     />
 
     <!-- Contenido -->
-    <div class="lg:pl-64 flex flex-col min-h-screen">
+    <div class="flex flex-col min-h-screen transition-all" :class="isSidebarCollapsed ? 'lg:pl-0' : 'lg:pl-64'">
       <header class="sticky top-0 z-20 h-16 bg-white/80 backdrop-blur border-b border-prohealth-100">
         <div class="h-full px-4 lg:px-8 flex items-center gap-4">
           <UButton
@@ -145,6 +149,14 @@ const isSidebarOpen = ref<boolean>(false)
             icon="i-lucide-menu"
             square
             @click="isSidebarOpen = true"
+          />
+          <UButton
+            class="hidden lg:inline-flex"
+            color="neutral"
+            variant="ghost"
+            :icon="isSidebarCollapsed ? 'i-lucide-panel-left-open' : 'i-lucide-panel-left-close'"
+            square
+            @click="isSidebarCollapsed = !isSidebarCollapsed"
           />
           <div class="hidden md:flex items-center gap-2 flex-1 max-w-md bg-prohealth-50 px-3 py-2 rounded-lg">
             <UIcon name="i-lucide-search" class="w-4 h-4 text-prohealth-400" />

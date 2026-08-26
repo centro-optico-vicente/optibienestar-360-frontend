@@ -129,7 +129,7 @@ function onRegistered(usage: BenefitUsageDto) {
 </script>
 
 <template>
-  <div class="space-y-6 max-w-3xl">
+  <div class="space-y-6 max-w-5xl">
     <div>
       <h1 class="text-2xl font-extrabold text-prohealth-900">{{ t('validator.title') }}</h1>
       <p class="text-sm text-prohealth-700/70 mt-1">{{ t('validator.subtitle') }}</p>
@@ -282,9 +282,19 @@ function onRegistered(usage: BenefitUsageDto) {
           </div>
         </dl>
 
-        <div v-if="canRegisterUsage" class="pt-2">
-          <UButton color="primary" size="lg" icon="i-lucide-clipboard-check" @click="usageModalOpen = true">
+        <div v-if="canRegisterUsage || result.memberFullName" class="pt-2 flex flex-wrap items-center gap-3">
+          <UButton v-if="canRegisterUsage" color="primary" size="lg" icon="i-lucide-clipboard-check" @click="usageModalOpen = true">
             {{ t('validator.usage.openButton') }}
+          </UButton>
+          <UButton
+            v-if="result.memberFullName"
+            to="/aliado/history"
+            color="neutral"
+            variant="soft"
+            size="lg"
+            icon="i-lucide-clipboard-list"
+          >
+            {{ t('validator.result.viewUsageHistory') }}
           </UButton>
         </div>
       </div>

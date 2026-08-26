@@ -16,10 +16,15 @@ import type { ValidationResultDto } from '~/types/validator'
  */
 export const useValidator = () => {
   /**
-   * Validate by document number. Never 404s on an unknown document — the
-   * backend answers 200 with `status: NOT_FOUND`.
+   * Validate by document number, or by a bare member UUID — the backend
+   * routes a UUID-shaped input to a direct member lookup instead of the
+   * document funnel. That's the path a future member-card QR scan will use
+   * (the card can encode `memberUuid`, already present in
+   * `ValidationResultDto`); no frontend change will be needed for it, this
+   * same input/endpoint accepts the scanned value as-is. Never 404s on an
+   * unknown document/UUID — the backend answers 200 with `status: NOT_FOUND`.
    *
-   * @param document the affiliate's document number, as typed/scanned.
+   * @param document the affiliate's document number or member UUID, as typed/scanned.
    */
   const validate = (document: string) =>
     useApi<ValidationResultDto>(`/v1/ally/validate/${encodeURIComponent(document.trim())}`, {

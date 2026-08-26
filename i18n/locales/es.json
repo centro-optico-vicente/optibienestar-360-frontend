@@ -238,6 +238,8 @@
       "permissionsCount": "{selected} / {total} permisos",
       "selectAtLeastOnePermission": "Selecciona al menos un permiso",
       "savePermissions": "Guardar permisos",
+      "expandAllGroups": "Expandir todo",
+      "collapseAllGroups": "Contraer todo",
       "columns": {
         "role": "Rol",
         "description": "Descripción"
@@ -1808,7 +1810,8 @@
       "member": "Afiliado",
       "document": "Documento",
       "plan": "Plan",
-      "nextDueDate": "Próximo vencimiento"
+      "nextDueDate": "Próximo vencimiento",
+      "viewUsageHistory": "Ver consumos"
     },
     "usage": {
       "openButton": "Registrar uso",
@@ -1837,6 +1840,8 @@
       "title": "Consumos registrados",
       "subtitle": "Beneficios que registraste en tus empresas aliadas.",
       "empty": "Aún no has registrado consumos",
+      "emptySearch": "Ningún consumo coincide con la búsqueda",
+      "searchPlaceholder": "Buscar por cédula o nombre del afiliado...",
       "copayLabel": "Copago",
       "validateCta": "Validar afiliado"
     }

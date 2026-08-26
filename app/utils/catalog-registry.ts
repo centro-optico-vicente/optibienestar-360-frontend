@@ -70,7 +70,7 @@ export const CATALOGS: CatalogDef[] = [
     labelSingular: 'Género',
     labelKey: 'catalogs.registry.genders.label',
     labelSingularKey: 'catalogs.registry.genders.labelSingular',
-    icon: 'i-lucide-venus-mars',
+    icon: 'i-lucide-venus-and-mars',
     codeField: 'code',
     fields: [
       { name: 'code', label: 'Código', labelKey: 'catalogs.fields.code', type: 'text', required: true, onlyCreate: true, regex: /^[A-Z]$/, regexMsg: 'Una letra mayúscula (p.ej. M, F)', regexMsgKey: 'catalogs.validation.genderCode', max: 1, placeholder: 'M' },

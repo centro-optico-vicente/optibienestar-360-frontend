@@ -17,6 +17,9 @@ export interface BenefitUsageDto {
   // Subject (flat refs resolved by the mapper)
   membershipUuid: string
   memberUuid?: string | null
+  memberFullName?: string | null
+  memberDocumentType?: string | null
+  memberDocumentNumber?: string | null
   planUuid?: string | null
   planCode?: string | null
 
