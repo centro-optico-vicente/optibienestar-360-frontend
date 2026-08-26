@@ -28,6 +28,8 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const jobs = useScheduledJobs()
 const toast = useToast()
+const { can } = usePermissions()
+const canDelete = computed(() => can('JOB_DELETE'))
 
 const isOpen = computed({
   get: () => props.open,
@@ -172,6 +174,26 @@ function openDeleteFromEdit() {
   isOpen.value = false
   emit('delete', props.job)
 }
+
+// ---- Restore (reverses a soft-deactivation) ----
+const restoring = ref(false)
+
+async function restoreJob() {
+  if (!props.job) return
+  restoring.value = true
+  try {
+    const result = await jobs.update(props.job.uuid, { active: true })
+    toast.add({ title: t('scheduledJobs.restoredToast'), color: 'success', icon: 'i-lucide-check-circle' })
+    emit('saved', result)
+    isOpen.value = false
+  }
+  catch {
+    // toast handled by useApi
+  }
+  finally {
+    restoring.value = false
+  }
+}
 </script>
 
 <template>
@@ -256,7 +278,16 @@ function openDeleteFromEdit() {
 
         <div class="flex items-center justify-between gap-3 pt-2">
           <div v-if="mode === 'edit' && job">
+            <RestoreButton
+              v-if="job.active === false"
+              :active="job.active"
+              :allowed="canDelete"
+              :loading="restoring"
+              :disabled="isSubmitting"
+              @restore="restoreJob"
+            />
             <UButton
+              v-else
               color="error"
               variant="ghost"
               icon="i-lucide-trash-2"

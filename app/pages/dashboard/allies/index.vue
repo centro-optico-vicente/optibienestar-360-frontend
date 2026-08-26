@@ -374,20 +374,21 @@ function openDeleteFromEdit() {
 }
 
 // ---- Restore (undo soft-delete) ----
-const restoring = ref<string | null>(null)
+const restoring = ref(false)
 
 async function restoreAlly(a: AllyDto) {
-  restoring.value = a.uuid
+  restoring.value = true
   try {
     await allies.restore(a.uuid)
     toast.add({ title: t('allies.restoredToast'), color: 'success', icon: 'i-lucide-check-circle' })
+    formOpen.value = false
     await load()
   }
   catch {
     // toast handled by useApi
   }
   finally {
-    restoring.value = null
+    restoring.value = false
   }
 }
 
@@ -531,18 +532,7 @@ async function confirmDelete() {
                       @click="openEdit(a)"
                     />
                   </UTooltip>
-                  <UTooltip v-if="a.active === false" :text="canDelete ? t('allies.restoreTooltip') : t('allies.noPermissionDelete')">
-                    <UButton
-                      color="success"
-                      variant="ghost"
-                      icon="i-lucide-rotate-ccw"
-                      size="sm"
-                      :loading="restoring === a.uuid"
-                      :disabled="!canDelete || restoring === a.uuid"
-                      @click="restoreAlly(a)"
-                    />
-                  </UTooltip>
-                  <UTooltip v-else :text="canDelete ? t('common.delete') : t('allies.noPermissionDelete')">
+                  <UTooltip :text="canDelete ? t('common.delete') : t('allies.noPermissionDelete')">
                     <UButton
                       color="error"
                       variant="ghost"
@@ -727,7 +717,15 @@ async function confirmDelete() {
 
           <div class="flex items-center justify-between gap-3 pt-2">
             <div v-if="mode === 'edit' && editingItem">
-              <UTooltip :text="canDelete ? t('common.delete') : t('allies.noPermissionDelete')">
+              <RestoreButton
+                v-if="editingItem.active === false"
+                :active="editingItem.active"
+                :allowed="canDelete"
+                :loading="restoring"
+                :disabled="isSubmitting"
+                @restore="restoreAlly(editingItem)"
+              />
+              <UTooltip v-else :text="canDelete ? t('common.delete') : t('allies.noPermissionDelete')">
                 <UButton
                   color="error"
                   variant="ghost"

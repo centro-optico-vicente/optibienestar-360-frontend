@@ -302,6 +302,24 @@ async function onRoleSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
   }
 }
 
+// ---- Restore role ----
+const restoring = ref(false)
+
+async function restoreRole() {
+  if (!role.value) return
+  restoring.value = true
+  try {
+    role.value = await rolesApi.update(role.value.uuid, { active: true })
+    toast.add({ title: t('security.roles.restoredToast'), color: 'success', icon: 'i-lucide-check-circle' })
+  }
+  catch {
+    // toast handled by useApi
+  }
+  finally {
+    restoring.value = false
+  }
+}
+
 // ---- Audit ----
 const auditOpen = ref(false)
 
@@ -379,7 +397,14 @@ onMounted(async () => {
                 {{ t('security.roles.permissions') }}
               </UButton>
             </UTooltip>
-            <UTooltip :text="!canDelete ? t('security.roles.noPermission') : (isSystemRole(role) ? t('security.roles.systemNotDeletable') : t('security.roles.deleteRoleTooltip'))">
+            <RestoreButton
+              v-if="role.active === false"
+              :active="role.active"
+              :allowed="canDeleteRole"
+              :loading="restoring"
+              @restore="restoreRole"
+            />
+            <UTooltip v-else :text="!canDelete ? t('security.roles.noPermission') : (isSystemRole(role) ? t('security.roles.systemNotDeletable') : t('security.roles.deleteRoleTooltip'))">
               <UButton
                 color="error"
                 variant="ghost"
