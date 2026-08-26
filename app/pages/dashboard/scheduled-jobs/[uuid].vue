@@ -222,6 +222,7 @@ onBeforeUnmount(stopPolling)
           </div>
 
           <div class="flex items-center gap-2">
+            <ReportPrintButton :record-uuid="jobUuid" />
             <UTooltip :text="canRun ? t('scheduledJobs.runNow.button') : t('scheduledJobs.noPermissionRun')">
               <UButton
                 color="primary"

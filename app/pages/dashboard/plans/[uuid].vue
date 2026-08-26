@@ -191,6 +191,7 @@ async function confirmDelete() {
           </div>
 
           <div class="flex items-center gap-2">
+            <ReportPrintButton :record-uuid="planUuid" />
             <UTooltip :text="canUpdate ? (plan.published ? t('plans.unpublishTooltip') : t('plans.publishTooltip')) : t('plans.noPermissionEdit')">
               <UButton
                 :color="plan.published ? 'neutral' : 'primary'"

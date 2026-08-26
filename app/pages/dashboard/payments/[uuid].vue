@@ -153,6 +153,7 @@ function onReviewed(updated: PaymentDto) {
           </div>
 
           <div class="flex items-center gap-2">
+            <ReportPrintButton :record-uuid="paymentUuid" />
             <template v-if="isPending">
               <UTooltip :text="canReject ? t('payments.detail.rejectTooltip') : t('payments.tooltips.noPermissionReject')">
                 <UButton

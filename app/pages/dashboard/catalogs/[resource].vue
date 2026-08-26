@@ -327,9 +327,12 @@ async function confirmDelete() {
           {{ catLabel(def) }}
         </h1>
       </div>
-      <UButton color="primary" icon="i-lucide-plus" @click="openCreate">
-        {{ $t('catalogs.new') }}
-      </UButton>
+      <div class="flex items-center gap-2">
+        <ReportPrintButton :table-name="def.key" />
+        <UButton color="primary" icon="i-lucide-plus" @click="openCreate">
+          {{ $t('catalogs.new') }}
+        </UButton>
+      </div>
     </div>
 
     <!-- Filters -->
@@ -400,6 +403,13 @@ async function confirmDelete() {
               </td>
               <td class="px-5 py-3">
                 <div class="flex items-center justify-end gap-1">
+                  <ReportPrintButton
+                    :table-name="def.key"
+                    :record-uuid="item.uuid"
+                    icon-only
+                    variant="ghost"
+                    size="sm"
+                  />
                   <UTooltip :text="$t('common.edit')">
                     <UButton color="neutral" variant="ghost" icon="i-lucide-pencil" size="sm" @click="openEdit(item)" />
                   </UTooltip>

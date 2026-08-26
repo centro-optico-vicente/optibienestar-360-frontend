@@ -465,6 +465,7 @@ onMounted(async () => {
             </p>
           </div>
           <div class="flex items-center gap-2">
+            <ReportPrintButton :record-uuid="roleUuid" />
             <UTooltip :text="!canUpdate ? t('security.roles.noPermission') : (canEditRole ? t('security.roles.editRoleTooltip') : t('security.roles.systemOnlySystemActor'))">
               <UButton
                 color="neutral"

@@ -156,6 +156,7 @@ async function onReRatingDone() {
         </p>
       </div>
       <div class="flex items-center gap-2">
+        <ReportPrintButton />
         <UButton
           v-if="canReRate"
           color="neutral"

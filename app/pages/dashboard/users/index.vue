@@ -369,16 +369,19 @@ async function confirmDelete() {
           {{ $t('security.users.subtitle') }}
         </p>
       </div>
-      <UTooltip :text="canCreate ? $t('security.users.createTooltip') : $t('security.users.noPermissionCreate')">
-        <UButton
-          color="primary"
-          icon="i-lucide-user-plus"
-          :disabled="!canCreate"
-          @click="openCreate"
-        >
-          {{ $t('security.users.new') }}
-        </UButton>
-      </UTooltip>
+      <div class="flex items-center gap-2">
+        <ReportPrintButton />
+        <UTooltip :text="canCreate ? $t('security.users.createTooltip') : $t('security.users.noPermissionCreate')">
+          <UButton
+            color="primary"
+            icon="i-lucide-user-plus"
+            :disabled="!canCreate"
+            @click="openCreate"
+          >
+            {{ $t('security.users.new') }}
+          </UButton>
+        </UTooltip>
+      </div>
     </div>
 
     <!-- Búsqueda -->
@@ -466,6 +469,13 @@ async function confirmDelete() {
                       :to="`/dashboard/users/${u.uuid}`"
                     />
                   </UTooltip>
+                  <ReportPrintButton
+                    table-name="users"
+                    :record-uuid="u.uuid"
+                    icon-only
+                    variant="ghost"
+                    size="sm"
+                  />
                   <UTooltip :text="canUpdate ? $t('common.edit') : $t('security.users.noPermissionEdit')">
                     <UButton
                       color="neutral"

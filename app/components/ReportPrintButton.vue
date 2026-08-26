@@ -38,7 +38,11 @@ const loading = ref(false)
 const effectiveTableName = computed(() => {
   if (props.tableName) return props.tableName
   const cleanPath = route.path.replace(/^\/dashboard\//, '').split('?')[0] || ''
-  return cleanPath.split('/')[0] || ''
+  const segments = cleanPath.split('/')
+  if (segments[0] === 'catalogs' && segments[1]) {
+    return segments[1]
+  }
+  return segments[0] || ''
 })
 
 const requiredPermission = computed<Permission>(() => {
@@ -46,10 +50,14 @@ const requiredPermission = computed<Permission>(() => {
   const map: Record<string, Permission> = {
     allies: 'ALLY_REPORT_GENERATE',
     ally: 'ALLY_REPORT_GENERATE',
+    allytypes: 'ALLY_REPORT_GENERATE',
+    allytype: 'ALLY_REPORT_GENERATE',
     members: 'MEMBER_REPORT_GENERATE',
     member: 'MEMBER_REPORT_GENERATE',
     users: 'USER_REPORT_GENERATE',
     user: 'USER_REPORT_GENERATE',
+    roles: 'USER_REPORT_GENERATE',
+    role: 'USER_REPORT_GENERATE',
     plans: 'PLAN_REPORT_GENERATE',
     plan: 'PLAN_REPORT_GENERATE',
     memberships: 'MEMBERSHIP_REPORT_GENERATE',
@@ -58,6 +66,8 @@ const requiredPermission = computed<Permission>(() => {
     payment: 'PAYMENT_REPORT_GENERATE',
     promoters: 'PROMOTER_REPORT_GENERATE',
     promoter: 'PROMOTER_REPORT_GENERATE',
+    promotertypes: 'PROMOTER_REPORT_GENERATE',
+    promotertype: 'PROMOTER_REPORT_GENERATE',
     commissions: 'COMMISSION_REPORT_GENERATE',
     commission: 'COMMISSION_REPORT_GENERATE',
     referrals: 'REFERRAL_REPORT_GENERATE',

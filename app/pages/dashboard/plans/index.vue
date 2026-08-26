@@ -176,16 +176,19 @@ function openAudit(p: PlanDto) {
           {{ t('plans.subtitle') }}
         </p>
       </div>
-      <UTooltip :text="canCreate ? t('plans.createTooltip') : t('plans.noPermissionCreate')">
-        <UButton
-          color="primary"
-          icon="i-lucide-package-plus"
-          :disabled="!canCreate"
-          @click="openCreate"
-        >
-          {{ t('plans.new') }}
-        </UButton>
-      </UTooltip>
+      <div class="flex items-center gap-2">
+        <ReportPrintButton />
+        <UTooltip :text="canCreate ? t('plans.createTooltip') : t('plans.noPermissionCreate')">
+          <UButton
+            color="primary"
+            icon="i-lucide-package-plus"
+            :disabled="!canCreate"
+            @click="openCreate"
+          >
+            {{ t('plans.new') }}
+          </UButton>
+        </UTooltip>
+      </div>
     </div>
 
     <!-- Search -->
@@ -260,6 +263,13 @@ function openAudit(p: PlanDto) {
                       :to="`/dashboard/plans/${p.uuid}`"
                     />
                   </UTooltip>
+                  <ReportPrintButton
+                    table-name="plans"
+                    :record-uuid="p.uuid"
+                    icon-only
+                    variant="ghost"
+                    size="sm"
+                  />
                   <UTooltip :text="canUpdate ? t('common.edit') : t('plans.noPermissionEdit')">
                     <UButton
                       color="neutral"

@@ -231,16 +231,19 @@ async function confirmDelete() {
           {{ t('scheduledJobs.subtitle') }}
         </p>
       </div>
-      <UTooltip :text="canCreate ? t('scheduledJobs.new') : t('scheduledJobs.noPermissionCreate')">
-        <UButton
-          color="primary"
-          icon="i-lucide-plus"
-          :disabled="!canCreate"
-          @click="openCreate"
-        >
-          {{ t('scheduledJobs.new') }}
-        </UButton>
-      </UTooltip>
+      <div class="flex items-center gap-2">
+        <ReportPrintButton />
+        <UTooltip :text="canCreate ? t('scheduledJobs.new') : t('scheduledJobs.noPermissionCreate')">
+          <UButton
+            color="primary"
+            icon="i-lucide-plus"
+            :disabled="!canCreate"
+            @click="openCreate"
+          >
+            {{ t('scheduledJobs.new') }}
+          </UButton>
+        </UTooltip>
+      </div>
     </div>
 
     <!-- Search -->
@@ -340,6 +343,13 @@ async function confirmDelete() {
                       :to="`/dashboard/scheduled-jobs/${j.uuid}`"
                     />
                   </UTooltip>
+                  <ReportPrintButton
+                    table-name="scheduled-jobs"
+                    :record-uuid="j.uuid"
+                    icon-only
+                    variant="ghost"
+                    size="sm"
+                  />
                   <UTooltip :text="canUpdate ? t('common.edit') : t('scheduledJobs.noPermissionEdit')">
                     <UButton
                       color="neutral"

@@ -175,16 +175,19 @@ async function confirmDelete() {
           {{ t('promoters.subtitle') }}
         </p>
       </div>
-      <UTooltip :text="canCreate ? t('promoters.createTooltip') : t('promoters.noPermissionCreate')">
-        <UButton
-          color="primary"
-          icon="i-lucide-user-plus"
-          :disabled="!canCreate"
-          @click="openCreate"
-        >
-          {{ t('promoters.new') }}
-        </UButton>
-      </UTooltip>
+      <div class="flex items-center gap-2">
+        <ReportPrintButton />
+        <UTooltip :text="canCreate ? t('promoters.createTooltip') : t('promoters.noPermissionCreate')">
+          <UButton
+            color="primary"
+            icon="i-lucide-user-plus"
+            :disabled="!canCreate"
+            @click="openCreate"
+          >
+            {{ t('promoters.new') }}
+          </UButton>
+        </UTooltip>
+      </div>
     </div>
 
     <!-- Search -->
@@ -261,6 +264,13 @@ async function confirmDelete() {
                       :to="`/dashboard/promoters/${p.uuid}`"
                     />
                   </UTooltip>
+                  <ReportPrintButton
+                    table-name="promoters"
+                    :record-uuid="p.uuid"
+                    icon-only
+                    variant="ghost"
+                    size="sm"
+                  />
                   <UTooltip :text="p.system ? t('promoters.systemLocked') : (canUpdate ? t('common.edit') : t('promoters.noPermissionEdit'))">
                     <UButton
                       color="neutral"

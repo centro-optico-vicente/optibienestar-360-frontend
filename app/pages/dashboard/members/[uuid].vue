@@ -418,9 +418,12 @@ onMounted(async () => {
               {{ member.documentType }} {{ member.documentNumber }} · {{ t('members.detail.memberSince', { date: formatDate(member.enrolledAt, 'short') }) }}
             </p>
           </div>
-          <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
-            <UButton color="neutral" variant="ghost" icon="i-lucide-history" @click="auditOpen = true" />
-          </UTooltip>
+          <div class="flex items-center gap-2">
+            <ReportPrintButton :record-uuid="memberUuid" />
+            <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
+              <UButton color="neutral" variant="ghost" icon="i-lucide-history" @click="auditOpen = true" />
+            </UTooltip>
+          </div>
         </div>
 
         <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 mt-6 text-sm">

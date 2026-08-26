@@ -397,16 +397,19 @@ async function onSave() {
           {{ $t('security.roles.subtitle') }}
         </p>
       </div>
-      <UTooltip :text="canCreate ? $t('security.roles.createTooltip') : $t('security.roles.noPermissionCreate')">
-        <UButton
-          color="primary"
-          icon="i-lucide-shield-plus"
-          :disabled="!canCreate"
-          @click="openRoleCreate"
-        >
-          {{ $t('security.roles.new') }}
-        </UButton>
-      </UTooltip>
+      <div class="flex items-center gap-2">
+        <ReportPrintButton />
+        <UTooltip :text="canCreate ? $t('security.roles.createTooltip') : $t('security.roles.noPermissionCreate')">
+          <UButton
+            color="primary"
+            icon="i-lucide-shield-plus"
+            :disabled="!canCreate"
+            @click="openRoleCreate"
+          >
+            {{ $t('security.roles.new') }}
+          </UButton>
+        </UTooltip>
+      </div>
     </div>
 
     <!-- Search -->
@@ -454,7 +457,7 @@ async function onSave() {
               <td class="px-5 py-3 text-prohealth-700">
                 {{ r.description || $t('common.empty') }}
               </td>
-              <td class="px-5 py-3">
+              <td class="px-5 py-3" @click.stop>
                 <div class="flex items-center justify-end gap-1">
                   <UTooltip :text="$t('security.roles.viewDetailTooltip')">
                     <UButton
@@ -465,6 +468,13 @@ async function onSave() {
                       :to="`/dashboard/roles/${r.uuid}`"
                     />
                   </UTooltip>
+                  <ReportPrintButton
+                    table-name="roles"
+                    :record-uuid="r.uuid"
+                    icon-only
+                    variant="ghost"
+                    size="sm"
+                  />
                   <UTooltip :text="!canEditPermissions ? $t('security.roles.noPermission') : (canEditRolePermissions(r) ? $t('security.roles.editPermissionsTooltip') : $t('security.roles.systemOnlySystemActor'))">
                     <UButton
                       color="neutral"
