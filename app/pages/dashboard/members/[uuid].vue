@@ -69,6 +69,24 @@ async function loadMember() {
   }
 }
 
+const restoring = ref(false)
+
+async function restoreMember() {
+  if (!member.value) return
+  restoring.value = true
+  try {
+    await members.update(member.value.uuid, { active: true })
+    toast.add({ title: t('members.restoredToast'), color: 'success', icon: 'i-lucide-check-circle' })
+    await loadMember()
+  }
+  catch {
+    // toast handled by useApi
+  }
+  finally {
+    restoring.value = false
+  }
+}
+
 const displayName = computed(() => {
   const m = member.value
   if (!m) return ''
@@ -408,19 +426,28 @@ onMounted(async () => {
             <div class="flex items-center gap-3">
               <h1 class="text-2xl font-extrabold text-prohealth-900">{{ displayName }}</h1>
               <UBadge
-                :color="member.status === 'ACTIVE' ? 'success' : 'warning'"
+                :color="member.active === false ? 'neutral' : (member.status === 'ACTIVE' ? 'success' : 'warning')"
                 variant="subtle"
               >
-                {{ member.status ? statusLabel(member.status) : t('common.empty') }}
+                {{ member.active === false ? t('members.status.INACTIVE') : (member.status ? statusLabel(member.status) : t('common.empty')) }}
               </UBadge>
             </div>
             <p class="text-sm text-prohealth-500 mt-1">
               {{ member.documentType }} {{ member.documentNumber }} · {{ t('members.detail.memberSince', { date: formatDate(member.enrolledAt, 'short') }) }}
             </p>
           </div>
-          <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
-            <UButton color="neutral" variant="ghost" icon="i-lucide-history" @click="auditOpen = true" />
-          </UTooltip>
+          <div class="flex items-center gap-2">
+            <RestoreButton
+              v-if="member.active === false"
+              :active="member.active"
+              :allowed="canDelete"
+              :loading="restoring"
+              @restore="restoreMember"
+            />
+            <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
+              <UButton color="neutral" variant="ghost" icon="i-lucide-history" @click="auditOpen = true" />
+            </UTooltip>
+          </div>
         </div>
 
         <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 mt-6 text-sm">

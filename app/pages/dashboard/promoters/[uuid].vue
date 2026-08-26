@@ -84,6 +84,24 @@ function onSaved(updated: PromoterDto) {
   promoter.value = updated
 }
 
+// ---- Restore ----
+const restoring = ref(false)
+
+async function restorePromoter() {
+  if (!promoter.value) return
+  restoring.value = true
+  try {
+    promoter.value = await promoters.update(promoter.value.uuid, { active: true })
+    toast.add({ title: t('promoters.restoredToast'), color: 'success', icon: 'i-lucide-check-circle' })
+  }
+  catch {
+    // toast handled by useApi
+  }
+  finally {
+    restoring.value = false
+  }
+}
+
 // ---- Delete ----
 const deleteOpen = ref(false)
 const deleting = ref(false)
@@ -266,7 +284,14 @@ async function loadCommissionsSummary() {
                 {{ t('common.edit') }}
               </UButton>
             </UTooltip>
-            <UTooltip :text="promoter.system ? t('promoters.systemLocked') : (canDelete ? t('promoters.deleteTooltip') : t('promoters.noPermissionDelete'))">
+            <RestoreButton
+              v-if="promoter.active === false"
+              :active="promoter.active"
+              :allowed="canDelete"
+              :loading="restoring"
+              @restore="restorePromoter"
+            />
+            <UTooltip v-else :text="promoter.system ? t('promoters.systemLocked') : (canDelete ? t('promoters.deleteTooltip') : t('promoters.noPermissionDelete'))">
               <UButton
                 color="error"
                 variant="ghost"

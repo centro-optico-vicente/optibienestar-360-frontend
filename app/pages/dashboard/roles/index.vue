@@ -207,6 +207,24 @@ async function onRoleSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
   }
 }
 
+const restoring = ref(false)
+
+async function restoreRole(r: RoleDto) {
+  restoring.value = true
+  try {
+    await rolesApi.update(r.uuid, { active: true })
+    toast.add({ title: t('security.roles.restoredToast'), color: 'success', icon: 'i-lucide-check-circle' })
+    roleFormOpen.value = false
+    await loadRoles()
+  }
+  catch {
+    // toast handled by useApi
+  }
+  finally {
+    restoring.value = false
+  }
+}
+
 const roleDeleteOpen = ref(false)
 const roleDeleting = ref(false)
 const roleTarget = ref<RoleDto | null>(null)
@@ -458,7 +476,15 @@ function openEdit(role: RoleDto) {
                   @click="openPermissionsFromEdit"
                 />
               </UTooltip>
-              <UTooltip :text="!canDelete ? $t('security.roles.noPermission') : (isSystemRole(roleEditing) ? $t('security.roles.systemNotDeletable') : $t('security.roles.deleteRoleTooltip'))">
+              <RestoreButton
+                v-if="roleEditing.active === false"
+                :active="roleEditing.active"
+                :allowed="canDeleteRole(roleEditing)"
+                :loading="restoring"
+                :disabled="roleSubmitting"
+                @restore="restoreRole(roleEditing)"
+              />
+              <UTooltip v-else :text="!canDelete ? $t('security.roles.noPermission') : (isSystemRole(roleEditing) ? $t('security.roles.systemNotDeletable') : $t('security.roles.deleteRoleTooltip'))">
                 <UButton
                   color="error"
                   variant="ghost"

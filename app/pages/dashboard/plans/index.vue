@@ -245,7 +245,10 @@ function openAudit(p: PlanDto) {
                 <span class="text-prohealth-400">· {{ t('plans.maxShort', { n: p.maxBeneficiaries ?? '∞' }) }}</span>
               </td>
               <td class="px-5 py-3">
-                <UBadge :color="p.published ? 'success' : 'neutral'" variant="subtle" size="sm">
+                <UBadge v-if="p.active === false" color="neutral" variant="subtle" size="sm">
+                  {{ t('plans.status.INACTIVE') }}
+                </UBadge>
+                <UBadge v-else :color="p.published ? 'success' : 'neutral'" variant="subtle" size="sm">
                   {{ p.published ? t('plans.published') : t('plans.draft') }}
                 </UBadge>
               </td>

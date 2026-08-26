@@ -37,6 +37,9 @@ const promoters = usePromoters()
 const users = useUsers()
 const promoterTypeOptions = useCatalogOptions('promoter-types')
 const toast = useToast()
+const { can } = usePermissions()
+
+const canDelete = computed(() => can('PROMOTER_DELETE'))
 
 const isOpen = computed({
   get: () => props.open,
@@ -260,6 +263,28 @@ function openDeleteFromEdit() {
   isOpen.value = false
   emit('delete', props.promoter)
 }
+
+// One-click reactivation for soft-deleted (active === false) promoters — a shortcut
+// on top of the `active` switch above, kept consistent with the pattern used across
+// every other entity's edit modal.
+const restoring = ref(false)
+
+async function restorePromoter() {
+  if (!props.promoter) return
+  restoring.value = true
+  try {
+    const result = await promoters.update(props.promoter.uuid, { active: true })
+    toast.add({ title: t('promoters.restoredToast'), color: 'success', icon: 'i-lucide-check-circle' })
+    emit('saved', result)
+    isOpen.value = false
+  }
+  catch {
+    // toast handled by useApi
+  }
+  finally {
+    restoring.value = false
+  }
+}
 </script>
 
 <template>
@@ -385,7 +410,16 @@ function openDeleteFromEdit() {
 
         <div class="flex items-center justify-between gap-3 pt-2">
           <div v-if="mode === 'edit' && promoter">
+            <RestoreButton
+              v-if="promoter.active === false"
+              :active="promoter.active"
+              :allowed="canDelete"
+              :loading="restoring"
+              :disabled="isSubmitting"
+              @restore="restorePromoter"
+            />
             <UButton
+              v-else
               color="error"
               variant="ghost"
               icon="i-lucide-trash-2"

@@ -98,6 +98,24 @@ async function togglePublish() {
   }
 }
 
+// ---- Restore (reactivate a soft-deleted plan) ----
+const restoring = ref(false)
+
+async function restorePlan() {
+  if (!plan.value) return
+  restoring.value = true
+  try {
+    plan.value = await plans.update(plan.value.uuid, { active: true })
+    toast.add({ title: t('plans.restoredToast'), color: 'success', icon: 'i-lucide-check-circle' })
+  }
+  catch {
+    // toast handled by useApi
+  }
+  finally {
+    restoring.value = false
+  }
+}
+
 // ---- Delete ----
 const deleteOpen = ref(false)
 const deleting = ref(false)
@@ -183,7 +201,10 @@ async function confirmDelete() {
               <UBadge :color="plan.published ? 'success' : 'neutral'" variant="subtle">
                 {{ plan.published ? t('plans.published') : t('plans.draft') }}
               </UBadge>
-              <UBadge v-if="plan.status" :color="plan.status === 'ACTIVE' ? 'success' : 'warning'" variant="subtle">
+              <UBadge v-if="plan.active === false" color="neutral" variant="subtle">
+                {{ t('plans.status.INACTIVE') }}
+              </UBadge>
+              <UBadge v-else-if="plan.status" :color="plan.status === 'ACTIVE' ? 'success' : 'warning'" variant="subtle">
                 {{ statusLabel(plan.status) }}
               </UBadge>
             </div>
@@ -213,7 +234,14 @@ async function confirmDelete() {
                 {{ t('common.edit') }}
               </UButton>
             </UTooltip>
-            <UTooltip :text="canDelete ? t('plans.deleteTooltip') : t('plans.noPermissionDelete')">
+            <RestoreButton
+              v-if="plan.active === false"
+              :active="plan.active"
+              :allowed="canDelete"
+              :loading="restoring"
+              @restore="restorePlan"
+            />
+            <UTooltip v-else :text="canDelete ? t('plans.deleteTooltip') : t('plans.noPermissionDelete')">
               <UButton
                 color="error"
                 variant="ghost"

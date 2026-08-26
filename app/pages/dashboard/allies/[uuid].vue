@@ -68,6 +68,23 @@ async function loadAlly() {
   }
 }
 
+const restoring = ref(false)
+
+async function restoreAlly() {
+  restoring.value = true
+  try {
+    await allies.restore(allyUuid)
+    toast.add({ title: t('allies.restoredToast'), color: 'success', icon: 'i-lucide-check-circle' })
+    await loadAlly()
+  }
+  catch {
+    // toast handled by useApi
+  }
+  finally {
+    restoring.value = false
+  }
+}
+
 // Date in the VE convention (useFormatters). Empty → '—'.
 function date(iso?: string | null): string {
   return formatDate(iso, 'short')
@@ -763,7 +780,14 @@ onMounted(async () => {
                 @click="navigateTo(`/dashboard/allies?edit=${allyUuid}`)"
               />
             </UTooltip>
-            <UTooltip :text="canDelete ? t('common.delete') : t('allies.noPermissionDelete')">
+            <RestoreButton
+              v-if="ally.active === false"
+              :active="ally.active"
+              :allowed="canDelete"
+              :loading="restoring"
+              @restore="restoreAlly"
+            />
+            <UTooltip v-else :text="canDelete ? t('common.delete') : t('allies.noPermissionDelete')">
               <UButton
                 color="error"
                 variant="ghost"
