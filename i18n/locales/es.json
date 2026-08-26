@@ -1007,6 +1007,8 @@
     "createdToast": "Aliado creado",
     "updatedToast": "Aliado actualizado",
     "deletedToast": "Aliado eliminado",
+    "restoredToast": "Aliado reactivado",
+    "restoreTooltip": "Reactivar",
     "fallbackName": "Aliado",
     "columns": {
       "ally": "Aliado",

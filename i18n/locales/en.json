@@ -1007,6 +1007,8 @@
     "createdToast": "Partner created",
     "updatedToast": "Partner updated",
     "deletedToast": "Partner deleted",
+    "restoredToast": "Ally restored",
+    "restoreTooltip": "Restore",
     "fallbackName": "Partner",
     "columns": {
       "ally": "Partner",
