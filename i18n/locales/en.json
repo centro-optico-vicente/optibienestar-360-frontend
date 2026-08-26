@@ -238,6 +238,8 @@
       "permissionsCount": "{selected} / {total} permissions",
       "selectAtLeastOnePermission": "Select at least one permission",
       "savePermissions": "Save permissions",
+      "expandAllGroups": "Expand all",
+      "collapseAllGroups": "Collapse all",
       "columns": {
         "role": "Role",
         "description": "Description"
@@ -1808,7 +1810,8 @@
       "member": "Affiliate",
       "document": "Document",
       "plan": "Plan",
-      "nextDueDate": "Next due date"
+      "nextDueDate": "Next due date",
+      "viewUsageHistory": "View usages"
     },
     "usage": {
       "openButton": "Register usage",
@@ -1837,6 +1840,8 @@
       "title": "Registered usages",
       "subtitle": "Benefits you registered at your partner companies.",
       "empty": "You have not registered any usage yet",
+      "emptySearch": "No usage matches the search",
+      "searchPlaceholder": "Search by member ID or name...",
       "copayLabel": "Co-pay",
       "validateCta": "Validate affiliate"
     }

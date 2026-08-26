@@ -5,6 +5,8 @@ interface HistoryParams {
   page?: number
   size?: number
   sort?: string
+  /** Free-text match against the member's document number or full name. */
+  search?: string
 }
 
 /**
@@ -31,7 +33,8 @@ export const useBenefitUsage = () => {
   /**
    * Usage history for every ally the caller operates on — scope is implicit in
    * the JWT (the backend resolves "my allies" through the AllyUser pivot), so
-   * there is no ally filter to pass. No RSQL nor free-text search.
+   * there is no ally filter to pass. `search` matches the member's document
+   * number or full name (backend `?search=`), no RSQL.
    */
   const history = (params: HistoryParams = {}) =>
     useApi<Page<BenefitUsageDto>>('/v1/ally/usage-history', {
@@ -39,6 +42,7 @@ export const useBenefitUsage = () => {
         page: params.page ?? 0,
         size: params.size ?? 20,
         sort: params.sort ?? 'usageDate,desc',
+        search: params.search?.trim() || undefined,
       },
     })
 

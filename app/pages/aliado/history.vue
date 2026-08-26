@@ -22,11 +22,12 @@ const total = ref(0)
 const loading = ref(false)
 const page = ref(1) // UPagination is 1-based; the API is 0-based
 const size = ref(20)
+const search = ref('')
 
 async function load() {
   loading.value = true
   try {
-    const res = await benefitUsage.history({ page: page.value - 1, size: size.value })
+    const res = await benefitUsage.history({ page: page.value - 1, size: size.value, search: search.value })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
   }
@@ -41,6 +42,12 @@ async function load() {
 }
 
 watch(page, load)
+// Typing resets to page 1 — a filtered result set on page 3 would render empty.
+const debouncedSearch = useDebounceFn(() => {
+  if (page.value !== 1) page.value = 1
+  else load()
+}, 350)
+watch(search, debouncedSearch)
 onMounted(load)
 
 // Co-pay in its own currency, formatted in the VE convention. Absent → '—'.
@@ -51,7 +58,7 @@ function money(v?: number | string | null, currency?: string | null): string {
 </script>
 
 <template>
-  <div class="space-y-6 max-w-3xl">
+  <div class="space-y-6 max-w-5xl">
     <div class="flex items-start justify-between gap-4">
       <div>
         <h1 class="text-2xl font-extrabold text-prohealth-900">{{ t('validator.history.title') }}</h1>
@@ -61,6 +68,15 @@ function money(v?: number | string | null, currency?: string | null): string {
         {{ t('validator.history.validateCta') }}
       </UButton>
     </div>
+
+    <UInput
+      v-model="search"
+      :placeholder="t('validator.history.searchPlaceholder')"
+      icon="i-lucide-search"
+      size="lg"
+      autocomplete="off"
+      class="max-w-sm"
+    />
 
     <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
       <!-- Loading -->
@@ -72,18 +88,24 @@ function money(v?: number | string | null, currency?: string | null): string {
       <!-- Empty -->
       <div v-else-if="data.length === 0" class="px-6 py-10 text-center text-prohealth-500">
         <UIcon name="i-lucide-clipboard-list" class="w-7 h-7 mx-auto mb-2 text-prohealth-300" />
-        <p class="text-sm">{{ t('validator.history.empty') }}</p>
+        <p class="text-sm">{{ search ? t('validator.history.emptySearch') : t('validator.history.empty') }}</p>
       </div>
 
       <!-- List -->
       <ul v-else class="divide-y divide-prohealth-100">
         <li v-for="u in data" :key="u.uuid" class="px-6 py-3.5 flex items-center justify-between gap-3">
           <div class="min-w-0">
-            <p class="font-semibold text-prohealth-900">{{ formatDate(u.usageDate) }}</p>
+            <p class="font-semibold text-prohealth-900">
+              {{ u.memberFullName || t('common.empty') }}
+              <span v-if="u.memberDocumentNumber" class="font-normal text-prohealth-500">
+                · {{ [u.memberDocumentType, u.memberDocumentNumber].filter(Boolean).join('-') }}
+              </span>
+            </p>
             <p class="text-xs text-prohealth-500 truncate">
+              {{ formatDate(u.usageDate) }}
               <!-- allyName only matters when the operator spans several allies, but it's
                    cheap to always show and avoids a conditional that reads as a bug. -->
-              {{ [u.allyName, u.planCode].filter(Boolean).join(' · ') || t('common.empty') }}
+              · {{ [u.allyName, u.planCode].filter(Boolean).join(' · ') || t('common.empty') }}
             </p>
             <p v-if="u.notes" class="text-xs text-prohealth-400 truncate mt-0.5">{{ u.notes }}</p>
           </div>
