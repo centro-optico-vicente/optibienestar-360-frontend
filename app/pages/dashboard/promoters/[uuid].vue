@@ -274,6 +274,7 @@ async function loadCommissionsSummary() {
           </div>
 
           <div class="flex items-center gap-2">
+            <ReportPrintButton :record-uuid="promoterUuid" />
             <UTooltip :text="promoter.system ? t('promoters.systemLocked') : (canUpdate ? t('promoters.editTooltip') : t('promoters.noPermissionEdit'))">
               <UButton
                 color="primary"

@@ -437,6 +437,7 @@ onMounted(async () => {
             </p>
           </div>
           <div class="flex items-center gap-2">
+            <ReportPrintButton :record-uuid="memberUuid" />
             <RestoreButton
               v-if="member.active === false"
               :active="member.active"

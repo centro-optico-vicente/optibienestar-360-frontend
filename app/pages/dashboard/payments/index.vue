@@ -153,16 +153,19 @@ function isPending(p: PaymentDto): boolean {
           {{ t('payments.subtitle') }}
         </p>
       </div>
-      <UTooltip :text="canRegister ? t('payments.createTooltip') : t('payments.noPermissionRegister')">
-        <UButton
-          color="primary"
-          icon="i-lucide-plus"
-          :disabled="!canRegister"
-          @click="formOpen = true"
-        >
-          {{ t('payments.new') }}
-        </UButton>
-      </UTooltip>
+      <div class="flex items-center gap-2">
+        <ReportPrintButton />
+        <UTooltip :text="canRegister ? t('payments.createTooltip') : t('payments.noPermissionRegister')">
+          <UButton
+            color="primary"
+            icon="i-lucide-plus"
+            :disabled="!canRegister"
+            @click="formOpen = true"
+          >
+            {{ t('payments.new') }}
+          </UButton>
+        </UTooltip>
+      </div>
     </div>
 
     <!-- Filters -->
@@ -249,6 +252,13 @@ function isPending(p: PaymentDto): boolean {
                       :to="`/dashboard/payments/${p.uuid}`"
                     />
                   </UTooltip>
+                  <ReportPrintButton
+                    table-name="payments"
+                    :record-uuid="p.uuid"
+                    icon-only
+                    variant="ghost"
+                    size="sm"
+                  />
                   <template v-if="isPending(p)">
                     <UTooltip :text="canApprove ? t('payments.tooltips.approve') : t('payments.tooltips.noPermissionApprove')">
                       <UButton

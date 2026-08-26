@@ -519,16 +519,19 @@ function displayName(m: MemberDto): string {
           {{ t('members.subtitle') }}
         </p>
       </div>
-      <UTooltip :text="canCreate ? t('members.createTooltip') : t('members.noPermissionCreate')">
-        <UButton
-          color="primary"
-          icon="i-lucide-user-plus"
-          :disabled="!canCreate"
-          @click="openCreate"
-        >
-          {{ t('members.new') }}
-        </UButton>
-      </UTooltip>
+      <div class="flex items-center gap-2">
+        <ReportPrintButton />
+        <UTooltip :text="canCreate ? t('members.createTooltip') : t('members.noPermissionCreate')">
+          <UButton
+            color="primary"
+            icon="i-lucide-user-plus"
+            :disabled="!canCreate"
+            @click="openCreate"
+          >
+            {{ t('members.new') }}
+          </UButton>
+        </UTooltip>
+      </div>
     </div>
 
     <!-- Search -->
@@ -614,6 +617,13 @@ function displayName(m: MemberDto): string {
                       :to="`/dashboard/members/${m.uuid}`"
                     />
                   </UTooltip>
+                  <ReportPrintButton
+                    table-name="members"
+                    :record-uuid="m.uuid"
+                    icon-only
+                    variant="ghost"
+                    size="sm"
+                  />
                   <UTooltip :text="canUpdate ? t('common.edit') : t('members.noPermissionEdit')">
                     <UButton
                       color="neutral"

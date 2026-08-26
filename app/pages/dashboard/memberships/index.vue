@@ -57,11 +57,16 @@ const selectedMemberLabel = computed(() =>
 <template>
   <div class="space-y-5">
     <!-- Header -->
-    <div>
-      <h1 class="text-2xl font-extrabold text-prohealth-900">{{ t('memberships.page.title') }}</h1>
-      <p class="text-sm text-prohealth-700/70 mt-1">
-        {{ t('memberships.page.description') }}
-      </p>
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-extrabold text-prohealth-900">{{ t('memberships.page.title') }}</h1>
+        <p class="text-sm text-prohealth-700/70 mt-1">
+          {{ t('memberships.page.description') }}
+        </p>
+      </div>
+      <div class="flex items-center gap-2">
+        <ReportPrintButton table-name="memberships" />
+      </div>
     </div>
 
     <!-- Member picker -->
