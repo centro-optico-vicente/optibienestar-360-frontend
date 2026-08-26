@@ -32,6 +32,7 @@ const catalogLoaded = ref(false)
 async function loadCatalog() {
   try {
     domains.value = await rolesApi.permissions()
+    expandedDomains.value = new Set(domains.value.map(d => d.uuid))
   }
   catch {
     domains.value = []
@@ -44,6 +45,28 @@ async function loadCatalog() {
 const totalPermissions = computed(() =>
   domains.value.reduce((acc, d) => acc + d.permissions.length, 0),
 )
+
+// ---- Collapsible groups, same pattern as AuditModal's change log ----
+const expandedDomains = ref<Set<string>>(new Set())
+
+function isExpanded(domainUuid: string) {
+  return expandedDomains.value.has(domainUuid)
+}
+
+function toggleExpanded(domainUuid: string) {
+  const next = new Set(expandedDomains.value)
+  if (next.has(domainUuid)) next.delete(domainUuid)
+  else next.add(domainUuid)
+  expandedDomains.value = next
+}
+
+function expandAllDomains() {
+  expandedDomains.value = new Set(domains.value.map(d => d.uuid))
+}
+
+function collapseAllDomains() {
+  expandedDomains.value = new Set()
+}
 
 const isSubmitting = ref(false)
 const loadingPerms = ref(false)
@@ -212,6 +235,15 @@ async function onSave() {
           </label>
         </div>
 
+        <div v-if="domains.length > 0" class="flex justify-end gap-3">
+          <UButton color="neutral" variant="link" size="xs" @click="expandAllDomains">
+            {{ t('security.roles.expandAllGroups') }}
+          </UButton>
+          <UButton color="neutral" variant="link" size="xs" @click="collapseAllDomains">
+            {{ t('security.roles.collapseAllGroups') }}
+          </UButton>
+        </div>
+
         <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
           <div
             v-for="domain in domains"
@@ -222,11 +254,23 @@ async function onSave() {
               <UCheckbox
                 :model-value="domainState(domain)"
                 @update:model-value="(v: boolean | 'indeterminate') => toggleDomain(domain, v === true)"
+                @click.stop
               />
-              <UIcon v-if="domain.icon" :name="domain.icon" class="w-4 h-4 text-prohealth-500" />
-              <span class="font-semibold text-prohealth-800">{{ domain.name }}</span>
+              <button
+                type="button"
+                class="flex flex-1 items-center gap-2 text-left cursor-pointer"
+                @click="toggleExpanded(domain.uuid)"
+              >
+                <UIcon v-if="domain.icon" :name="domain.icon" class="w-4 h-4 text-prohealth-500" />
+                <span class="font-semibold text-prohealth-800">{{ domain.name }}</span>
+                <span class="text-xs text-prohealth-400">({{ domain.permissions.length }})</span>
+                <UIcon
+                  :name="isExpanded(domain.uuid) ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
+                  class="w-4 h-4 text-prohealth-400 ml-auto"
+                />
+              </button>
             </div>
-            <div class="p-4 grid sm:grid-cols-2 gap-x-4 gap-y-3">
+            <div v-if="isExpanded(domain.uuid)" class="p-4 grid sm:grid-cols-2 gap-x-4 gap-y-3">
               <label
                 v-for="p in domain.permissions"
                 :key="p.uuid"
