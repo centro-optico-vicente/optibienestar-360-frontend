@@ -23,7 +23,7 @@ const { can } = usePermissions()
 const toast = useToast()
 
 // commission_tier and bonus_rule share the COMMISSIONS permission domain (V66/V72).
-const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('COMMISSION_AUDIT_VIEW'))
+const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('COMMISSION_RECORD_AUDIT_VIEW'))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('COMMISSION_REPORT_AUDIT_VIEW'))
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
 

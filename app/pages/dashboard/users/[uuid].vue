@@ -25,7 +25,7 @@ const toast = useToast()
 const canUpdate = computed(() => can('USER_UPDATE'))
 const canManageRoles = computed(() => can('ROLE_USERS_MANAGE'))
 const canManageAllies = computed(() => can('ALLY_USERS_MANAGE'))
-const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('USER_AUDIT_VIEW'))
+const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('USER_RECORD_AUDIT_VIEW'))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('USER_REPORT_AUDIT_VIEW'))
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
 

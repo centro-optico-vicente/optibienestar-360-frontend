@@ -248,9 +248,12 @@
       "bulkActions": {
         "label": "Toggle by action:",
         "create": "Create",
+        "update": "Edit",
         "delete": "Delete",
         "viewAll": "View data",
-        "reportGenerate": "Generate report"
+        "reportGenerate": "Generate report",
+        "auditView": "View change history",
+        "reportAuditView": "View report history"
       },
       "detail": {
         "seoPage": "Role detail",
