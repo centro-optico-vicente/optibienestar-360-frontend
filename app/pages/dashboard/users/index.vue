@@ -332,7 +332,7 @@ function openDeleteFromEdit() {
   openDelete(editingItem.value)
 }
 
-// ---- Restaurar ----
+// ---- Restore (undo soft-delete) ----
 const restoring = ref(false)
 
 async function restoreUser(u: UserDto) {
@@ -344,7 +344,7 @@ async function restoreUser(u: UserDto) {
     await load()
   }
   catch {
-    // toast por useApi
+    // toast handled by useApi
   }
   finally {
     restoring.value = false
