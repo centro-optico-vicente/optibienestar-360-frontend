@@ -61,6 +61,10 @@ export const useAllies = () => {
   const remove = (uuid: string, physical = false) =>
     useApi<null>(`/v1/admin/allies/${uuid}`, { method: 'DELETE', query: physical ? { physical: true } : {} })
 
+  /** Reverses a soft-delete (sets `active` back to true). */
+  const restore = (uuid: string) =>
+    useApi<AllyDto>(`/v1/admin/allies/${uuid}/restore`, { method: 'POST' })
+
   /** "Ping" of FK usage before deleting: lets the UI offer a physical delete vs. a deactivation. */
   const usage = (uuid: string) =>
     useApi<{ inUse: boolean, count: number }>(`/v1/admin/allies/${uuid}/usage`)
@@ -129,6 +133,7 @@ export const useAllies = () => {
     create,
     update,
     remove,
+    restore,
     usage,
     listSpecialties,
     addSpecialty,
