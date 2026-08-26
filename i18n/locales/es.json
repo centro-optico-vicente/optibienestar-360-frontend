@@ -248,9 +248,12 @@
       "bulkActions": {
         "label": "Marcar por acción:",
         "create": "Crear",
+        "update": "Editar",
         "delete": "Eliminar",
         "viewAll": "Ver datos",
-        "reportGenerate": "Generar reporte"
+        "reportGenerate": "Generar reporte",
+        "auditView": "Ver historial de cambios",
+        "reportAuditView": "Ver historial de reportes"
       },
       "detail": {
         "seoPage": "Detalle de rol",

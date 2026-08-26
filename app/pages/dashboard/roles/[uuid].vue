@@ -25,8 +25,8 @@ const canDelete = computed(() => can('ROLE_DELETE'))
 const canEditPermissions = computed(() => can('ROLE_PERMISSION_EDIT'))
 const canManageUsers = computed(() => can('ROLE_USERS_MANAGE'))
 const canViewUsers = computed(() => can('USER_VIEW_ALL'))
-const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL'))
-const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL'))
+const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('ROLE_RECORD_AUDIT_VIEW'))
+const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('ROLE_REPORT_AUDIT_VIEW'))
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
 
 const isSystemUser = computed(() => hasRole('SYSTEM'))
@@ -73,17 +73,10 @@ const tabs = computed(() => [
 const activeTab = ref('permissions')
 
 // =========================================================
-// Permissions (modal, reusing roles/index.vue logic)
+// Permissions
 // =========================================================
 const domains = ref<PermissionDomainDto[]>([])
 const formOpen = ref(false)
-const isSubmitting = ref(false)
-const loadingPerms = ref(false)
-const selected = ref<string[]>([])
-
-const totalPermissions = computed(() =>
-  domains.value.reduce((acc, d) => acc + d.permissions.length, 0),
-)
 
 async function loadPermissionsCatalog() {
   try {
@@ -120,112 +113,13 @@ const grantedPermissionsByDomain = computed(() =>
     .filter(entry => entry.permissions.length > 0),
 )
 
-function isChecked(uuid: string) {
-  return selected.value.includes(uuid)
-}
-
-function togglePermission(uuid: string, checked: boolean) {
-  if (checked) {
-    if (!selected.value.includes(uuid)) selected.value.push(uuid)
-  }
-  else {
-    selected.value = selected.value.filter(u => u !== uuid)
-  }
-}
-
-function domainState(domain: PermissionDomainDto): boolean | 'indeterminate' {
-  const ids = domain.permissions.map(p => p.uuid)
-  const count = ids.filter(id => selected.value.includes(id)).length
-  if (count === 0) return false
-  if (count === ids.length) return true
-  return 'indeterminate'
-}
-
-function toggleDomain(domain: PermissionDomainDto, checked: boolean) {
-  const ids = domain.permissions.map(p => p.uuid)
-  if (checked) {
-    const set = new Set([...selected.value, ...ids])
-    selected.value = [...set]
-  }
-  else {
-    selected.value = selected.value.filter(u => !ids.includes(u))
-  }
-}
-
-interface ActionToggle {
-  key: string
-  labelKey: string
-  suffixes: string[]
-}
-
-const ACTION_TOGGLES: ActionToggle[] = [
-  { key: 'create', labelKey: 'security.roles.bulkActions.create', suffixes: ['_CREATE'] },
-  { key: 'delete', labelKey: 'security.roles.bulkActions.delete', suffixes: ['_DELETE'] },
-  { key: 'viewAll', labelKey: 'security.roles.bulkActions.viewAll', suffixes: ['_VIEW_ALL', '_VIEW'] },
-  { key: 'reportGenerate', labelKey: 'security.roles.bulkActions.reportGenerate', suffixes: ['_REPORT_GENERATE'] },
-]
-
-function permissionsForAction(suffixes: string[]): string[] {
-  const ids: string[] = []
-  for (const domain of domains.value) {
-    for (const p of domain.permissions) {
-      if (suffixes.some(sfx => p.name.endsWith(sfx))) ids.push(p.uuid)
-    }
-  }
-  return ids
-}
-
-function actionState(suffixes: string[]): boolean | 'indeterminate' {
-  const ids = permissionsForAction(suffixes)
-  if (ids.length === 0) return false
-  const count = ids.filter(id => selected.value.includes(id)).length
-  if (count === 0) return false
-  if (count === ids.length) return true
-  return 'indeterminate'
-}
-
-function toggleByAction(suffixes: string[], checked: boolean) {
-  const ids = permissionsForAction(suffixes)
-  if (checked) {
-    const set = new Set([...selected.value, ...ids])
-    selected.value = [...set]
-  }
-  else {
-    selected.value = selected.value.filter(u => !ids.includes(u))
-  }
-}
-
-async function openPermissionsModal() {
+function openPermissionsModal() {
   if (!role.value) return
-  selected.value = []
   formOpen.value = true
-  loadingPerms.value = true
-  try {
-    selected.value = await rolesApi.getRolePermissions(role.value.uuid)
-  }
-  catch {
-    selected.value = []
-  }
-  finally {
-    loadingPerms.value = false
-  }
 }
 
-async function onSavePermissions() {
-  if (!role.value || selected.value.length === 0) return
-  isSubmitting.value = true
-  try {
-    await rolesApi.updateRolePermissions(role.value.uuid, selected.value)
-    toast.add({ title: t('security.roles.permissionsUpdatedToast'), color: 'success', icon: 'i-lucide-check-circle' })
-    formOpen.value = false
-    await loadGrantedPermissions()
-  }
-  catch {
-    // useApi ya notificó el error
-  }
-  finally {
-    isSubmitting.value = false
-  }
+async function onPermissionsSaved() {
+  await loadGrantedPermissions()
 }
 
 // =========================================================
@@ -546,14 +440,14 @@ onMounted(async () => {
                 </td>
               </tr>
               <tr v-for="entry in grantedPermissionsByDomain" v-else :key="entry.domain.uuid" class="align-top">
-                <td class="px-4 py-3">
+                <td class="px-4 py-4">
                   <div class="flex items-center gap-2 font-semibold text-prohealth-800">
                     <UIcon v-if="entry.domain.icon" :name="entry.domain.icon" class="w-4 h-4 text-prohealth-500" />
                     {{ entry.domain.name }}
                   </div>
                 </td>
-                <td class="px-4 py-3">
-                  <div class="flex flex-wrap gap-1.5">
+                <td class="px-4 py-4">
+                  <div class="flex flex-wrap gap-2.5">
                     <UBadge
                       v-for="p in entry.permissions"
                       :key="p.uuid"
@@ -702,96 +596,8 @@ onMounted(async () => {
       </template>
     </UModal>
 
-    <!-- Permissions modal (mirrors roles/index.vue) -->
-    <UModal
-      v-model:open="formOpen"
-      :title="t('security.roles.permissionsModalTitle', { name: role?.name ?? '' })"
-      :description="t('security.roles.permissionsModalDescription')"
-      :ui="{ content: 'max-w-5xl' }"
-    >
-      <template #body>
-        <div v-if="loadingPerms" class="space-y-4 max-h-[60vh] overflow-hidden">
-          <div v-for="i in 3" :key="i" class="rounded-xl border border-prohealth-100 overflow-hidden">
-            <div class="px-4 py-2.5 bg-prohealth-50/60 border-b border-prohealth-100">
-              <USkeleton class="h-4 w-40 rounded" />
-            </div>
-            <div class="p-3 grid sm:grid-cols-2 gap-3">
-              <USkeleton v-for="j in 4" :key="j" class="h-5 w-full rounded" />
-            </div>
-          </div>
-        </div>
-
-        <div v-else class="space-y-4">
-          <div class="flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl border border-prohealth-100 bg-prohealth-50/40 px-4 py-3">
-            <span class="text-xs font-semibold uppercase tracking-wide text-prohealth-400">
-              {{ t('security.roles.bulkActions.label') }}
-            </span>
-            <label v-for="action in ACTION_TOGGLES" :key="action.key" class="flex items-center gap-2 cursor-pointer">
-              <UCheckbox
-                :model-value="actionState(action.suffixes)"
-                @update:model-value="(v: boolean | 'indeterminate') => toggleByAction(action.suffixes, v === true)"
-              />
-              <span class="text-sm text-prohealth-700">{{ t(action.labelKey) }}</span>
-            </label>
-          </div>
-
-          <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
-            <div v-for="domain in domains" :key="domain.uuid" class="rounded-xl border border-prohealth-100 overflow-hidden">
-              <div class="flex items-center gap-2 px-4 py-2.5 bg-prohealth-50/60 border-b border-prohealth-100">
-                <UCheckbox
-                  :model-value="domainState(domain)"
-                  @update:model-value="(v: boolean | 'indeterminate') => toggleDomain(domain, v === true)"
-                />
-                <UIcon v-if="domain.icon" :name="domain.icon" class="w-4 h-4 text-prohealth-500" />
-                <span class="font-semibold text-prohealth-800">{{ domain.name }}</span>
-              </div>
-              <div class="p-3 grid sm:grid-cols-2 gap-2">
-                <label
-                  v-for="p in domain.permissions"
-                  :key="p.uuid"
-                  class="flex items-start gap-2 rounded-lg px-2 py-1.5 hover:bg-prohealth-50/50 cursor-pointer"
-                >
-                  <UCheckbox
-                    :model-value="isChecked(p.uuid)"
-                    @update:model-value="(v: boolean | 'indeterminate') => togglePermission(p.uuid, v === true)"
-                  />
-                  <span class="text-sm">
-                    <span class="font-medium text-prohealth-800">{{ p.name }}</span>
-                    <span v-if="p.description" class="block text-xs text-prohealth-500">{{ p.description }}</span>
-                  </span>
-                </label>
-              </div>
-            </div>
-
-            <p v-if="domains.length === 0" class="text-sm text-amber-600">
-              {{ t('security.roles.permissionsCatalogError') }}
-            </p>
-          </div>
-        </div>
-
-        <div class="flex items-center justify-between gap-3 pt-4 mt-2 border-t border-prohealth-100">
-          <span class="text-xs text-prohealth-500">
-            {{ t('security.roles.permissionsCount', { selected: selected.length, total: totalPermissions }) }}
-          </span>
-          <div class="flex items-center gap-3">
-            <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="formOpen = false">
-              {{ t('common.cancel') }}
-            </UButton>
-            <UTooltip :text="selected.length === 0 ? t('security.roles.selectAtLeastOnePermission') : ''">
-              <UButton
-                color="primary"
-                icon="i-lucide-save"
-                :loading="isSubmitting"
-                :disabled="selected.length === 0 || loadingPerms"
-                @click="onSavePermissions"
-              >
-                {{ t('security.roles.savePermissions') }}
-              </UButton>
-            </UTooltip>
-          </div>
-        </div>
-      </template>
-    </UModal>
+    <!-- Permissions modal -->
+    <RolePermissionsModal v-model:open="formOpen" :role="role" @saved="onPermissionsSaved" />
 
     <!-- Remove user from role modal -->
     <UModal v-model:open="roleUserDeleteOpen" :title="t('security.roles.detail.usersTab.delete.title')">

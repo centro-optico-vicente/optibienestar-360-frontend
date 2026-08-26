@@ -74,7 +74,7 @@ export interface CatalogDef {
   listFilter?: { param: string, field: keyof CatalogItem }
   /** Backend `@Auditable(entity = ...)` key, if this catalog has change auditing. */
   auditEntityKey?: string
-  /** Granular audit-view permission for this catalog's domain (e.g. 'ALLY_AUDIT_VIEW'); AUDIT_VIEW_ALL always overrides. */
+  /** Granular audit-view permission for this catalog's domain (e.g. 'ALLY_RECORD_AUDIT_VIEW'); AUDIT_VIEW_ALL always overrides. */
   auditPermission?: Permission
   /** Granular report-audit-view permission for this catalog's domain (e.g. 'ALLY_REPORT_AUDIT_VIEW'); REPORT_AUDIT_VIEW_ALL always overrides. */
   auditReportPermission?: Permission
