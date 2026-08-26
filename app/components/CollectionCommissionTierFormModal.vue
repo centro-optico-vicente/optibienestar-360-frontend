@@ -23,6 +23,8 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const tiers = useCollectionCommissionTiers()
 const toast = useToast()
+const { can } = usePermissions()
+const canManage = computed(() => can('COLLECTION_COMMISSION_TIER_MANAGE'))
 
 const isOpen = computed({
   get: () => props.open,
@@ -102,6 +104,26 @@ function openDeleteFromEdit() {
   isOpen.value = false
   emit('delete', props.tier)
 }
+
+// One-click reactivation bypassing full-form validation, so a tier with stale
+// data in other fields isn't blocked from being restored.
+const restoring = ref(false)
+async function restoreTier() {
+  if (!props.tier) return
+  restoring.value = true
+  try {
+    const result = await tiers.update(props.tier.uuid, { active: true })
+    toast.add({ title: t('commissionRules.collectionTiers.restoredToast'), color: 'success', icon: 'i-lucide-check-circle' })
+    emit('saved', result)
+    isOpen.value = false
+  }
+  catch {
+    // useApi already notified the error
+  }
+  finally {
+    restoring.value = false
+  }
+}
 </script>
 
 <template>
@@ -135,7 +157,15 @@ function openDeleteFromEdit() {
 
         <div class="flex items-center justify-between gap-3 pt-2">
           <div v-if="mode === 'edit' && tier">
-            <UButton color="error" variant="ghost" icon="i-lucide-trash-2" size="sm" :label="t('common.delete')" :disabled="isSubmitting" @click="openDeleteFromEdit" />
+            <RestoreButton
+              v-if="tier.active === false"
+              :active="tier.active"
+              :allowed="canManage"
+              :loading="restoring"
+              :disabled="isSubmitting"
+              @restore="restoreTier"
+            />
+            <UButton v-else color="error" variant="ghost" icon="i-lucide-trash-2" size="sm" :label="t('common.delete')" :disabled="isSubmitting" @click="openDeleteFromEdit" />
           </div>
           <div v-else />
           <div class="flex items-center gap-3">

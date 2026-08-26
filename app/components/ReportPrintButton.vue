@@ -17,6 +17,10 @@ const props = withDefaults(
     label?: string
     /** Render only icon (for table row actions) */
     iconOnly?: boolean
+    /** Current search text from the list page, forwarded to the table report so it matches what's on screen. */
+    searchQuery?: string
+    /** Current "include inactive" toggle from the list page, forwarded to the table report. */
+    includeInactive?: boolean
   }>(),
   {
     color: 'neutral',
@@ -87,7 +91,10 @@ async function handleDownload(format: 'PDF' | 'XLSX') {
     if (props.recordUuid) {
       await reports.downloadRecordReport(effectiveTableName.value, props.recordUuid, format, props.title)
     } else {
-      await reports.downloadTableReport(effectiveTableName.value, format, props.title)
+      await reports.downloadTableReport(effectiveTableName.value, format, props.title, {
+        q: props.searchQuery,
+        includeInactive: props.includeInactive,
+      })
     }
   } finally {
     loading.value = false

@@ -28,7 +28,7 @@ const toast = useToast()
 const canCreate = computed(() => can('MEMBER_CREATE'))
 const canUpdate = computed(() => can('MEMBER_UPDATE'))
 const canDelete = computed(() => can('MEMBER_DELETE'))
-const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('MEMBER_AUDIT_VIEW'))
+const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('MEMBER_RECORD_AUDIT_VIEW'))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('MEMBER_REPORT_AUDIT_VIEW'))
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
 
@@ -89,6 +89,14 @@ watch(includeInactive, () => { page.value = 1; load() })
 // Member status badge/select label; falls back to the raw value.
 function statusLabel(s?: string | null): string {
   return s ? t(`members.status.${s}`, s) : t('common.empty')
+}
+
+// Effective status label for the table row: `active` (soft-delete flag) wins over the
+// business `status` field, so a soft-deleted record always reads "Inactivo" instead of
+// whatever business status it happened to have (or "Sin información" when status is null).
+function effectiveStatusLabel(m: MemberDto): string {
+  if (m.active === false) return t('members.status.INACTIVE')
+  return m.status ? statusLabel(m.status) : t('common.empty')
 }
 
 // ---- Catalogs for the form selects ----
@@ -156,6 +164,23 @@ const isSubmitting = ref(false)
 // The list returns a compact projection (MemberListItemDto); on edit the full detail
 // is loaded, and this flag shows the loading state in the modal.
 const editLoading = ref(false)
+const restoring = ref(false)
+
+async function restoreMember(m: MemberDto) {
+  restoring.value = true
+  try {
+    await members.update(m.uuid, { active: true })
+    toast.add({ title: t('members.restoredToast'), color: 'success', icon: 'i-lucide-check-circle' })
+    formOpen.value = false
+    await load()
+  }
+  catch {
+    // toast handled by useApi
+  }
+  finally {
+    restoring.value = false
+  }
+}
 
 const STATUS_OPTIONS = ['ACTIVE', 'INACTIVE', 'SUSPENDED']
 const statusOptions = computed(() => STATUS_OPTIONS.map(s => ({ label: statusLabel(s), value: s })))
@@ -574,11 +599,11 @@ function displayName(m: MemberDto): string {
               </td>
               <td class="px-5 py-3">
                 <UBadge
-                  :color="m.status === 'ACTIVE' ? 'success' : 'warning'"
+                  :color="m.active === false ? 'neutral' : (m.status === 'ACTIVE' ? 'success' : 'warning')"
                   variant="subtle"
                   size="sm"
                 >
-                  {{ m.status ? statusLabel(m.status) : t('common.empty') }}
+                  {{ effectiveStatusLabel(m) }}
                 </UBadge>
               </td>
               <td class="px-5 py-3" @click.stop>
@@ -846,7 +871,15 @@ function displayName(m: MemberDto): string {
 
           <div class="flex items-center justify-between gap-3 pt-2">
             <div v-if="mode === 'edit' && editingItem">
-              <UTooltip :text="canDelete ? t('common.delete') : t('members.noPermissionDelete')">
+              <RestoreButton
+                v-if="editingItem.active === false"
+                :active="editingItem.active"
+                :allowed="canDelete"
+                :loading="restoring"
+                :disabled="isSubmitting"
+                @restore="restoreMember(editingItem)"
+              />
+              <UTooltip v-else :text="canDelete ? t('common.delete') : t('members.noPermissionDelete')">
                 <UButton
                   color="error"
                   variant="ghost"

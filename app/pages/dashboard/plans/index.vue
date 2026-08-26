@@ -20,7 +20,7 @@ const toast = useToast()
 const canCreate = computed(() => can('PLAN_CREATE'))
 const canUpdate = computed(() => can('PLAN_UPDATE'))
 const canDelete = computed(() => can('PLAN_DELETE'))
-const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('PLAN_AUDIT_VIEW'))
+const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('PLAN_RECORD_AUDIT_VIEW'))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('PLAN_REPORT_AUDIT_VIEW'))
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
 
@@ -248,7 +248,10 @@ function openAudit(p: PlanDto) {
                 <span class="text-prohealth-400">· {{ t('plans.maxShort', { n: p.maxBeneficiaries ?? '∞' }) }}</span>
               </td>
               <td class="px-5 py-3">
-                <UBadge :color="p.published ? 'success' : 'neutral'" variant="subtle" size="sm">
+                <UBadge v-if="p.active === false" color="neutral" variant="subtle" size="sm">
+                  {{ t('plans.status.INACTIVE') }}
+                </UBadge>
+                <UBadge v-else :color="p.published ? 'success' : 'neutral'" variant="subtle" size="sm">
                   {{ p.published ? t('plans.published') : t('plans.draft') }}
                 </UBadge>
               </td>

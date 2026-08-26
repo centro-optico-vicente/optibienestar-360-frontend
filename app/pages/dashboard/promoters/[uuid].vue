@@ -28,7 +28,7 @@ const toast = useToast()
 
 const canUpdate = computed(() => can('PROMOTER_UPDATE'))
 const canDelete = computed(() => can('PROMOTER_DELETE'))
-const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('PROMOTER_AUDIT_VIEW'))
+const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('PROMOTER_RECORD_AUDIT_VIEW'))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('PROMOTER_REPORT_AUDIT_VIEW'))
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
 const auditOpen = ref(false)
@@ -82,6 +82,24 @@ function openEdit() {
 
 function onSaved(updated: PromoterDto) {
   promoter.value = updated
+}
+
+// ---- Restore ----
+const restoring = ref(false)
+
+async function restorePromoter() {
+  if (!promoter.value) return
+  restoring.value = true
+  try {
+    promoter.value = await promoters.update(promoter.value.uuid, { active: true })
+    toast.add({ title: t('promoters.restoredToast'), color: 'success', icon: 'i-lucide-check-circle' })
+  }
+  catch {
+    // toast handled by useApi
+  }
+  finally {
+    restoring.value = false
+  }
 }
 
 // ---- Delete ----
@@ -267,7 +285,14 @@ async function loadCommissionsSummary() {
                 {{ t('common.edit') }}
               </UButton>
             </UTooltip>
-            <UTooltip :text="promoter.system ? t('promoters.systemLocked') : (canDelete ? t('promoters.deleteTooltip') : t('promoters.noPermissionDelete'))">
+            <RestoreButton
+              v-if="promoter.active === false"
+              :active="promoter.active"
+              :allowed="canDelete"
+              :loading="restoring"
+              @restore="restorePromoter"
+            />
+            <UTooltip v-else :text="promoter.system ? t('promoters.systemLocked') : (canDelete ? t('promoters.deleteTooltip') : t('promoters.noPermissionDelete'))">
               <UButton
                 color="error"
                 variant="ghost"

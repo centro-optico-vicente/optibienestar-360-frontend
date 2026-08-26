@@ -27,7 +27,7 @@ const toast = useToast()
 const canCreate = computed(() => can('ALLY_CREATE'))
 const canUpdate = computed(() => can('ALLY_UPDATE'))
 const canDelete = computed(() => can('ALLY_DELETE'))
-const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('ALLY_AUDIT_VIEW'))
+const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('ALLY_RECORD_AUDIT_VIEW'))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('ALLY_REPORT_AUDIT_VIEW'))
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
 
@@ -87,6 +87,14 @@ watch(includeInactive, () => { page.value = 1; load() })
 // Partner status badge/select label; falls back to the raw value.
 function statusLabel(status?: string | null): string {
   return status ? t(`allies.status.${status}`, status) : t('common.empty')
+}
+
+// Effective status label for the table row: `active` (soft-delete flag) wins over the
+// business `status` field, so a soft-deleted record always reads "Inactivo" instead of
+// whatever business status it happened to have (or "Sin información" when status is null).
+function effectiveStatusLabel(a: AllyDto): string {
+  if (a.active === false) return t('allies.status.INACTIVE')
+  return a.status ? statusLabel(a.status) : t('common.empty')
 }
 
 // ---- Catalogs for the form selects ----
@@ -365,6 +373,25 @@ function openDeleteFromEdit() {
   openDelete(editingItem.value)
 }
 
+// ---- Restore (undo soft-delete) ----
+const restoring = ref(false)
+
+async function restoreAlly(a: AllyDto) {
+  restoring.value = true
+  try {
+    await allies.restore(a.uuid)
+    toast.add({ title: t('allies.restoredToast'), color: 'success', icon: 'i-lucide-check-circle' })
+    formOpen.value = false
+    await load()
+  }
+  catch {
+    // toast handled by useApi
+  }
+  finally {
+    restoring.value = false
+  }
+}
+
 async function confirmDelete() {
   if (!target.value) return
   deleting.value = true
@@ -396,7 +423,7 @@ async function confirmDelete() {
         </p>
       </div>
       <div class="flex items-center gap-2">
-        <ReportPrintButton />
+        <ReportPrintButton :search-query="search" :include-inactive="includeInactive" />
         <UTooltip :text="canCreate ? t('allies.createTooltip') : t('allies.noPermissionCreate')">
           <UButton
             color="primary"
@@ -470,11 +497,11 @@ async function confirmDelete() {
               </td>
               <td class="px-5 py-3">
                 <UBadge
-                  :color="a.status === 'ACTIVE' ? 'success' : 'warning'"
+                  :color="a.active === false ? 'neutral' : (a.status === 'ACTIVE' ? 'success' : 'warning')"
                   variant="subtle"
                   size="sm"
                 >
-                  {{ a.status ? statusLabel(a.status) : t('common.empty') }}
+                  {{ effectiveStatusLabel(a) }}
                 </UBadge>
               </td>
               <td class="px-5 py-3" @click.stop>
@@ -690,7 +717,15 @@ async function confirmDelete() {
 
           <div class="flex items-center justify-between gap-3 pt-2">
             <div v-if="mode === 'edit' && editingItem">
-              <UTooltip :text="canDelete ? t('common.delete') : t('allies.noPermissionDelete')">
+              <RestoreButton
+                v-if="editingItem.active === false"
+                :active="editingItem.active"
+                :allowed="canDelete"
+                :loading="restoring"
+                :disabled="isSubmitting"
+                @restore="restoreAlly(editingItem)"
+              />
+              <UTooltip v-else :text="canDelete ? t('common.delete') : t('allies.noPermissionDelete')">
                 <UButton
                   color="error"
                   variant="ghost"

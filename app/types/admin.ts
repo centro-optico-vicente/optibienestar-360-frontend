@@ -94,6 +94,8 @@ export type UpdateRoleRequest = Partial<CreateRoleRequest> & { active?: boolean 
 /** Permiso individual (llave de acción). */
 export interface PermissionDto {
   uuid: string
+  /** Código técnico (ej. USER_CREATE) — usado para agrupar/marcar por acción, nunca mostrado. */
+  code: string
   name: string
   description?: string
 }

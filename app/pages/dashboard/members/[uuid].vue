@@ -32,7 +32,7 @@ const toast = useToast()
 
 const canUpdate = computed(() => can('MEMBER_UPDATE'))
 const canDelete = computed(() => can('MEMBER_DELETE'))
-const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('MEMBER_AUDIT_VIEW'))
+const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('MEMBER_RECORD_AUDIT_VIEW'))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('MEMBER_REPORT_AUDIT_VIEW'))
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
 const auditOpen = ref(false)
@@ -66,6 +66,24 @@ async function loadMember() {
   }
   finally {
     loading.value = false
+  }
+}
+
+const restoring = ref(false)
+
+async function restoreMember() {
+  if (!member.value) return
+  restoring.value = true
+  try {
+    await members.update(member.value.uuid, { active: true })
+    toast.add({ title: t('members.restoredToast'), color: 'success', icon: 'i-lucide-check-circle' })
+    await loadMember()
+  }
+  catch {
+    // toast handled by useApi
+  }
+  finally {
+    restoring.value = false
   }
 }
 
@@ -408,10 +426,10 @@ onMounted(async () => {
             <div class="flex items-center gap-3">
               <h1 class="text-2xl font-extrabold text-prohealth-900">{{ displayName }}</h1>
               <UBadge
-                :color="member.status === 'ACTIVE' ? 'success' : 'warning'"
+                :color="member.active === false ? 'neutral' : (member.status === 'ACTIVE' ? 'success' : 'warning')"
                 variant="subtle"
               >
-                {{ member.status ? statusLabel(member.status) : t('common.empty') }}
+                {{ member.active === false ? t('members.status.INACTIVE') : (member.status ? statusLabel(member.status) : t('common.empty')) }}
               </UBadge>
             </div>
             <p class="text-sm text-prohealth-500 mt-1">
@@ -420,6 +438,13 @@ onMounted(async () => {
           </div>
           <div class="flex items-center gap-2">
             <ReportPrintButton :record-uuid="memberUuid" />
+            <RestoreButton
+              v-if="member.active === false"
+              :active="member.active"
+              :allowed="canDelete"
+              :loading="restoring"
+              @restore="restoreMember"
+            />
             <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
               <UButton color="neutral" variant="ghost" icon="i-lucide-history" @click="auditOpen = true" />
             </UTooltip>

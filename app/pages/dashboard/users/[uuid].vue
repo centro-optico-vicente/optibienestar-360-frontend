@@ -23,9 +23,10 @@ const { formatDate } = useFormatters()
 const toast = useToast()
 
 const canUpdate = computed(() => can('USER_UPDATE'))
+const canDelete = computed(() => can('USER_DELETE'))
 const canManageRoles = computed(() => can('ROLE_USERS_MANAGE'))
 const canManageAllies = computed(() => can('ALLY_USERS_MANAGE'))
-const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('USER_AUDIT_VIEW'))
+const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('USER_RECORD_AUDIT_VIEW'))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('USER_REPORT_AUDIT_VIEW'))
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
 
@@ -227,6 +228,24 @@ async function confirmAllyDelete() {
   }
 }
 
+// ---- Restore ----
+const restoring = ref(false)
+
+async function restoreUser() {
+  restoring.value = true
+  try {
+    await usersApi.update(userUuid, { active: true })
+    toast.add({ title: t('security.users.restoredToast'), color: 'success', icon: 'i-lucide-check-circle' })
+    await loadUser()
+  }
+  catch {
+    // toast handled by useApi
+  }
+  finally {
+    restoring.value = false
+  }
+}
+
 // ---- Reach the existing edit modal on users/index.vue ----
 function goEditUser() {
   navigateTo(`/dashboard/users?edit=${userUuid}`)
@@ -304,6 +323,13 @@ onMounted(async () => {
                 {{ t('security.users.detail.editButton') }}
               </UButton>
             </UTooltip>
+            <RestoreButton
+              v-if="user.active === false"
+              :active="user.active"
+              :allowed="canDelete"
+              :loading="restoring"
+              @restore="restoreUser"
+            />
             <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
               <UButton color="neutral" variant="ghost" icon="i-lucide-history" @click="auditOpen = true" />
             </UTooltip>

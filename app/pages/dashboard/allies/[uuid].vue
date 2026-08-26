@@ -42,7 +42,7 @@ const toast = useToast()
 
 const canUpdate = computed(() => can('ALLY_UPDATE'))
 const canDelete = computed(() => can('ALLY_DELETE'))
-const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('ALLY_AUDIT_VIEW'))
+const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('ALLY_RECORD_AUDIT_VIEW'))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('ALLY_REPORT_AUDIT_VIEW'))
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
 const auditOpen = ref(false)
@@ -65,6 +65,23 @@ async function loadAlly() {
   }
   finally {
     loading.value = false
+  }
+}
+
+const restoring = ref(false)
+
+async function restoreAlly() {
+  restoring.value = true
+  try {
+    await allies.restore(allyUuid)
+    toast.add({ title: t('allies.restoredToast'), color: 'success', icon: 'i-lucide-check-circle' })
+    await loadAlly()
+  }
+  catch {
+    // toast handled by useApi
+  }
+  finally {
+    restoring.value = false
   }
 }
 
@@ -763,7 +780,14 @@ onMounted(async () => {
                 @click="navigateTo(`/dashboard/allies?edit=${allyUuid}`)"
               />
             </UTooltip>
-            <UTooltip :text="canDelete ? t('common.delete') : t('allies.noPermissionDelete')">
+            <RestoreButton
+              v-if="ally.active === false"
+              :active="ally.active"
+              :allowed="canDelete"
+              :loading="restoring"
+              @restore="restoreAlly"
+            />
+            <UTooltip v-else :text="canDelete ? t('common.delete') : t('allies.noPermissionDelete')">
               <UButton
                 color="error"
                 variant="ghost"

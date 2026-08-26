@@ -22,6 +22,7 @@ const { can } = usePermissions()
 const toast = useToast()
 
 const canUpdate = computed(() => can('JOB_UPDATE'))
+const canDelete = computed(() => can('JOB_DELETE'))
 const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL'))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL'))
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
@@ -103,6 +104,24 @@ const formOpen = ref(false)
 
 async function onSaved(updated: ScheduledJobDto) {
   job.value = updated
+}
+
+// ---- Restore (reverses a soft-deactivation) ----
+const restoring = ref(false)
+
+async function restoreJob() {
+  if (!job.value) return
+  restoring.value = true
+  try {
+    job.value = await jobs.update(job.value.uuid, { active: true })
+    toast.add({ title: t('scheduledJobs.restoredToast'), color: 'success', icon: 'i-lucide-check-circle' })
+  }
+  catch {
+    // toast handled by useApi
+  }
+  finally {
+    restoring.value = false
+  }
 }
 
 // ---- Run now + polling (hybrid: sync outcome or async RUNNING) ----
@@ -245,6 +264,13 @@ onBeforeUnmount(stopPolling)
                 {{ t('common.edit') }}
               </UButton>
             </UTooltip>
+            <RestoreButton
+              v-if="job.active === false"
+              :active="job.active"
+              :allowed="canDelete"
+              :loading="restoring"
+              @restore="restoreJob"
+            />
             <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
               <UButton color="neutral" variant="ghost" icon="i-lucide-history" @click="auditOpen = true" />
             </UTooltip>

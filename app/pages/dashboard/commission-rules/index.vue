@@ -23,7 +23,7 @@ const { can } = usePermissions()
 const toast = useToast()
 
 // commission_tier and bonus_rule share the COMMISSIONS permission domain (V66/V72).
-const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('COMMISSION_AUDIT_VIEW'))
+const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('COMMISSION_RECORD_AUDIT_VIEW'))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('COMMISSION_REPORT_AUDIT_VIEW'))
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
 
@@ -516,21 +516,27 @@ onMounted(() => {
               <th class="px-5 py-3 font-semibold">{{ t('commissionRules.bonusRules.columns.threshold') }}</th>
               <th class="px-5 py-3 font-semibold">{{ t('commissionRules.bonusRules.columns.window') }}</th>
               <th class="px-5 py-3 font-semibold">{{ t('commissionRules.bonusRules.columns.reward') }}</th>
+              <th class="px-5 py-3 font-semibold">{{ t('catalogs.columns.status') }}</th>
               <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-prohealth-100">
-            <TableSkeleton v-if="bonusLoading" :rows="4" :cols="7" />
+            <TableSkeleton v-if="bonusLoading" :rows="4" :cols="8" />
             <tr v-else-if="bonusData.length === 0">
-              <td colspan="7" class="px-5 py-10 text-center text-prohealth-500">{{ t('commissionRules.bonusRules.empty') }}</td>
+              <td colspan="8" class="px-5 py-10 text-center text-prohealth-500">{{ t('commissionRules.bonusRules.empty') }}</td>
             </tr>
-            <tr v-for="rule in bonusData" v-else :key="rule.uuid" class="hover:bg-prohealth-50/50">
+            <tr v-for="rule in bonusData" v-else :key="rule.uuid" class="hover:bg-prohealth-50/50" :class="{ 'opacity-60': !rule.active }">
               <td class="px-5 py-3 font-medium text-prohealth-900">{{ rule.name }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ t(`commissionRules.bonusMetrics.${rule.metric}`) }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ t(`commissionRules.accrualModes.${rule.accrual}`) }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ rule.thresholdCount }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ t(`commissionRules.windowStrategies.${rule.windowStrategy}`) }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ bonusReward(rule) }}</td>
+              <td class="px-5 py-3">
+                <UBadge :color="rule.active ? 'success' : 'neutral'" variant="subtle" size="sm">
+                  {{ rule.active ? t('catalogs.status.active') : t('catalogs.status.inactive') }}
+                </UBadge>
+              </td>
               <td class="px-5 py-3" @click.stop>
                 <div class="flex items-center justify-end gap-1">
                   <UButton color="neutral" variant="ghost" icon="i-lucide-pencil" size="sm" :disabled="!canManageBonus" @click="openEditBonus(rule)" />

@@ -46,11 +46,16 @@ export const useDocumentReports = () => {
   async function downloadTableReport(
     tableName: string,
     format: 'PDF' | 'XLSX' = 'PDF',
-    customTitle?: string
+    customTitle?: string,
+    filters?: { q?: string; includeInactive?: boolean }
   ) {
     const cleanTable = normalizeTableName(tableName)
     const baseURL = config.public.apiBaseUrl || ''
-    const endpoint = `${baseURL}/v1/documents/tables/${cleanTable}?format=${format}${customTitle ? `&title=${encodeURIComponent(customTitle)}` : ''}`
+    const params = new URLSearchParams({ format })
+    if (customTitle) params.set('title', customTitle)
+    if (filters?.q) params.set('q', filters.q)
+    if (filters?.includeInactive) params.set('includeInactive', 'true')
+    const endpoint = `${baseURL}/v1/documents/tables/${cleanTable}?${params.toString()}`
 
     try {
       if (auth.refreshToken && auth.isAccessExpiringSoon()) {
