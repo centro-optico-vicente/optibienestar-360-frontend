@@ -17,7 +17,7 @@ interface ListParams {
 
 /**
  * Acceso a los tramos de comisión de cobranza por días (/v1/admin/collection-commission-tiers,
- * V44, ADR 0013 §3). Todas las operaciones requieren COLLECTION_COMMISSION_TIER_MANAGE.
+ * V44, ADR 0013 §3). Granular per V79: VIEW_ALL/CREATE/UPDATE/DELETE instead of one combined permission.
  * DELETE es soft-delete (active=false).
  */
 export const useCollectionCommissionTiers = () => {

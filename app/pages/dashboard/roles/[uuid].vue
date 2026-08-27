@@ -23,8 +23,9 @@ const toast = useToast()
 const canUpdate = computed(() => can('ROLE_UPDATE'))
 const canDelete = computed(() => can('ROLE_DELETE'))
 const canEditPermissions = computed(() => can('ROLE_PERMISSION_EDIT'))
-const canManageUsers = computed(() => can('ROLE_USERS_MANAGE'))
-const canViewUsers = computed(() => can('USER_VIEW_ALL'))
+const canAssignUsers = computed(() => can('ROLE_USER_CREATE'))
+const canRemoveUsers = computed(() => can('ROLE_USER_DELETE'))
+const canViewUsers = computed(() => can('ROLE_USER_VIEW_ALL'))
 const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('ROLE_RECORD_AUDIT_VIEW'))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('ROLE_REPORT_AUDIT_VIEW'))
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
@@ -505,7 +506,7 @@ onMounted(async () => {
 
         <div class="p-6 space-y-5">
           <!-- Add -->
-          <div v-if="canManageUsers" class="flex items-end gap-3 max-w-md">
+          <div v-if="canAssignUsers" class="flex items-end gap-3 max-w-md">
             <UFormField :label="t('security.roles.detail.usersTab.add')" class="flex-1">
               <USelectMenu
                 v-model="userToAdd"
@@ -563,13 +564,13 @@ onMounted(async () => {
                   <td class="px-6 py-3 text-prohealth-600">{{ ru.createdAt ? ru.createdAt.slice(0, 10) : t('common.empty') }}</td>
                   <td class="px-6 py-3">
                     <div class="flex items-center justify-end gap-1">
-                      <UTooltip :text="canManageUsers ? t('security.roles.detail.usersTab.unlinkTooltip') : t('security.roles.noPermission')">
+                      <UTooltip :text="canRemoveUsers ? t('security.roles.detail.usersTab.unlinkTooltip') : t('security.roles.noPermission')">
                         <UButton
                           color="error"
                           variant="ghost"
                           icon="i-lucide-user-minus"
                           size="sm"
-                          :disabled="!canManageUsers"
+                          :disabled="!canRemoveUsers"
                           @click="openRoleUserDelete(ru)"
                         />
                       </UTooltip>

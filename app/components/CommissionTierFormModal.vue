@@ -29,13 +29,13 @@ const { t } = useI18n()
 const tiers = useCommissionTiers()
 const toast = useToast()
 const { can } = usePermissions()
-const canManage = computed(() => can('COMMISSION_TIER_MANAGE'))
 
 const isOpen = computed({
   get: () => props.open,
   set: (v: boolean) => emit('update:open', v),
 })
 const mode = computed<'create' | 'edit'>(() => (props.tier ? 'edit' : 'create'))
+const canManage = computed(() => can(mode.value === 'edit' ? 'COMMISSION_TIER_UPDATE' : 'COMMISSION_TIER_CREATE'))
 const isSubmitting = ref(false)
 
 const planTypeOptions = computed(() => [

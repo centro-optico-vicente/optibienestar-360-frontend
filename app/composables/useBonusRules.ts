@@ -13,7 +13,7 @@ interface ListParams {
 
 /**
  * Acceso a las reglas de bono por escala (/v1/admin/bonus-rules, V37, ADR 0013
- * §2). Todas las operaciones requieren BONUS_RULE_MANAGE. PUT es reemplazo
+ * §2). Granular per V79: VIEW_ALL/CREATE/UPDATE/DELETE instead of one combined permission. PUT es reemplazo
  * completo (no PATCH). DELETE es soft-delete (active=false).
  */
 export const useBonusRules = () => {

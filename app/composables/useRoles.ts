@@ -87,7 +87,7 @@ export const useRoles = () => {
   const permissions = async (): Promise<PermissionDomainDto[]> =>
     toItems(await useApi<Page<PermissionDomainDto> | PermissionDomainDto[]>('/v1/admin/permissions'))
 
-  // ---- Usuarios asignados al rol (GET requiere USER_VIEW_ALL; POST/DELETE requieren ROLE_USERS_MANAGE) ----
+  // ---- Usuarios asignados al rol (V79: GET requires ROLE_USER_VIEW_ALL; POST requires ROLE_USER_CREATE; DELETE requires ROLE_USER_DELETE) ----
   const listUsers = (roleUuid: string) =>
     useApi<RoleUserDto[]>(`/v1/admin/roles/${roleUuid}/users`)
 

@@ -24,13 +24,13 @@ const { t } = useI18n()
 const tiers = useCollectionCommissionTiers()
 const toast = useToast()
 const { can } = usePermissions()
-const canManage = computed(() => can('COLLECTION_COMMISSION_TIER_MANAGE'))
 
 const isOpen = computed({
   get: () => props.open,
   set: (v: boolean) => emit('update:open', v),
 })
 const mode = computed<'create' | 'edit'>(() => (props.tier ? 'edit' : 'create'))
+const canManage = computed(() => can(mode.value === 'edit' ? 'COLLECTION_COMMISSION_TIER_UPDATE' : 'COLLECTION_COMMISSION_TIER_CREATE'))
 const isSubmitting = ref(false)
 
 interface FormState {

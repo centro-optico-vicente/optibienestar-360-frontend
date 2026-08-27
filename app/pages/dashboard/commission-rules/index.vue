@@ -15,7 +15,7 @@ import { PLAN_TYPE_OPTIONS } from '~/types/plans'
 definePageMeta({
   layout: 'dashboard',
   middleware: 'can',
-  permission: ['COMMISSION_TIER_MANAGE', 'BONUS_RULE_MANAGE', 'COLLECTION_COMMISSION_TIER_MANAGE'],
+  permission: ['COMMISSION_TIER_VIEW_ALL', 'BONUS_RULE_VIEW_ALL', 'COLLECTION_COMMISSION_TIER_VIEW_ALL'],
 })
 
 const { t } = useI18n()
@@ -76,7 +76,10 @@ const appliesToFilterItems = computed(() => [
 // Tab 1 — Bandas de inscripción (commission_tiers)
 // =========================================================
 const tierApi = useCommissionTiers()
-const canManageTiers = computed(() => can('COMMISSION_TIER_MANAGE'))
+const canViewTiers = computed(() => can('COMMISSION_TIER_VIEW_ALL'))
+const canCreateTiers = computed(() => can('COMMISSION_TIER_CREATE'))
+const canUpdateTiers = computed(() => can('COMMISSION_TIER_UPDATE'))
+const canDeleteTiers = computed(() => can('COMMISSION_TIER_DELETE'))
 const tierData = ref<CommissionTierDto[]>([])
 const tierTotal = ref(0)
 const tierLoading = ref(false)
@@ -189,7 +192,10 @@ function tierReward(tier: CommissionTierDto): string {
 // Tab 2 — Bonos por escala (commission_bonus_rules)
 // =========================================================
 const bonusApi = useBonusRules()
-const canManageBonus = computed(() => can('BONUS_RULE_MANAGE'))
+const canViewBonus = computed(() => can('BONUS_RULE_VIEW_ALL'))
+const canCreateBonus = computed(() => can('BONUS_RULE_CREATE'))
+const canUpdateBonus = computed(() => can('BONUS_RULE_UPDATE'))
+const canDeleteBonus = computed(() => can('BONUS_RULE_DELETE'))
 const bonusData = ref<BonusRuleDto[]>([])
 const bonusTotal = ref(0)
 const bonusLoading = ref(false)
@@ -266,7 +272,10 @@ function bonusReward(rule: BonusRuleDto): string {
 // Tab 3 — Comisión de cobranza (collection_commission_tiers)
 // =========================================================
 const collectionApi = useCollectionCommissionTiers()
-const canManageCollection = computed(() => can('COLLECTION_COMMISSION_TIER_MANAGE'))
+const canViewCollection = computed(() => can('COLLECTION_COMMISSION_TIER_VIEW_ALL'))
+const canCreateCollection = computed(() => can('COLLECTION_COMMISSION_TIER_CREATE'))
+const canUpdateCollection = computed(() => can('COLLECTION_COMMISSION_TIER_UPDATE'))
+const canDeleteCollection = computed(() => can('COLLECTION_COMMISSION_TIER_DELETE'))
 const collectionData = ref<CollectionCommissionTierDto[]>([])
 const collectionTotal = ref(0)
 const collectionLoading = ref(false)
@@ -359,9 +368,9 @@ async function confirmDeleteCollectionTier() {
 }
 
 onMounted(() => {
-  if (canManageTiers.value) loadTiers()
-  if (canManageBonus.value) loadBonusRules()
-  if (canManageCollection.value) loadCollectionTiers()
+  if (canViewTiers.value) loadTiers()
+  if (canViewBonus.value) loadBonusRules()
+  if (canViewCollection.value) loadCollectionTiers()
 })
 </script>
 
@@ -378,7 +387,7 @@ onMounted(() => {
     <!-- Tab 1: Bandas de inscripción -->
     <div v-show="activeTab === 'tiers'" class="space-y-4">
       <div class="flex items-center justify-end">
-        <UButton color="primary" icon="i-lucide-plus" :disabled="!canManageTiers" @click="openCreateTier">
+        <UButton v-if="canCreateTiers" color="primary" icon="i-lucide-plus" @click="openCreateTier">
           {{ t('commissionRules.tiers.new') }}
         </UButton>
       </div>
@@ -443,8 +452,8 @@ onMounted(() => {
               </td>
               <td class="px-5 py-3" @click.stop>
                 <div class="flex items-center justify-end gap-1">
-                  <UButton color="neutral" variant="ghost" icon="i-lucide-pencil" size="sm" :disabled="!canManageTiers" @click="openEditTier(tier)" />
-                  <UButton color="error" variant="ghost" icon="i-lucide-trash-2" size="sm" :disabled="!canManageTiers" @click="openDeleteTier(tier)" />
+                  <UButton v-if="canUpdateTiers" color="neutral" variant="ghost" icon="i-lucide-pencil" size="sm" @click="openEditTier(tier)" />
+                  <UButton v-if="canDeleteTiers" color="error" variant="ghost" icon="i-lucide-trash-2" size="sm" @click="openDeleteTier(tier)" />
                   <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
                     <UButton color="neutral" variant="ghost" icon="i-lucide-history" size="sm" @click="openAudit('commission_tier', tier)" />
                   </UTooltip>
@@ -484,7 +493,7 @@ onMounted(() => {
     <!-- Tab 2: Bonos por escala -->
     <div v-show="activeTab === 'bonusRules'" class="space-y-4">
       <div class="flex items-center justify-end">
-        <UButton color="primary" icon="i-lucide-plus" :disabled="!canManageBonus" @click="openCreateBonus">
+        <UButton v-if="canCreateBonus" color="primary" icon="i-lucide-plus" @click="openCreateBonus">
           {{ t('commissionRules.bonusRules.new') }}
         </UButton>
       </div>
@@ -539,8 +548,8 @@ onMounted(() => {
               </td>
               <td class="px-5 py-3" @click.stop>
                 <div class="flex items-center justify-end gap-1">
-                  <UButton color="neutral" variant="ghost" icon="i-lucide-pencil" size="sm" :disabled="!canManageBonus" @click="openEditBonus(rule)" />
-                  <UButton color="error" variant="ghost" icon="i-lucide-trash-2" size="sm" :disabled="!canManageBonus" @click="openDeleteBonus(rule)" />
+                  <UButton v-if="canUpdateBonus" color="neutral" variant="ghost" icon="i-lucide-pencil" size="sm" @click="openEditBonus(rule)" />
+                  <UButton v-if="canDeleteBonus" color="error" variant="ghost" icon="i-lucide-trash-2" size="sm" @click="openDeleteBonus(rule)" />
                   <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
                     <UButton color="neutral" variant="ghost" icon="i-lucide-history" size="sm" @click="openAudit('bonus_rule', rule)" />
                   </UTooltip>
@@ -580,7 +589,7 @@ onMounted(() => {
     <!-- Tab 3: Comisión de cobranza -->
     <div v-show="activeTab === 'collectionTiers'" class="space-y-4">
       <div class="flex items-center justify-end">
-        <UButton color="primary" icon="i-lucide-plus" :disabled="!canManageCollection" @click="openCreateCollectionTier">
+        <UButton v-if="canCreateCollection" color="primary" icon="i-lucide-plus" @click="openCreateCollectionTier">
           {{ t('commissionRules.collectionTiers.new') }}
         </UButton>
       </div>
@@ -629,8 +638,8 @@ onMounted(() => {
               </td>
               <td class="px-5 py-3" @click.stop>
                 <div class="flex items-center justify-end gap-1">
-                  <UButton color="neutral" variant="ghost" icon="i-lucide-pencil" size="sm" :disabled="!canManageCollection" @click="openEditCollectionTier(tier)" />
-                  <UButton color="error" variant="ghost" icon="i-lucide-trash-2" size="sm" :disabled="!canManageCollection" @click="openDeleteCollectionTier(tier)" />
+                  <UButton v-if="canUpdateCollection" color="neutral" variant="ghost" icon="i-lucide-pencil" size="sm" @click="openEditCollectionTier(tier)" />
+                  <UButton v-if="canDeleteCollection" color="error" variant="ghost" icon="i-lucide-trash-2" size="sm" @click="openDeleteCollectionTier(tier)" />
                 </div>
               </td>
             </tr>

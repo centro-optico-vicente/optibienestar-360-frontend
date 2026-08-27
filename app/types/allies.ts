@@ -2,8 +2,9 @@
 // aligned with the backend integration guide (V11–V12, PRs #57–#67).
 //
 // The admin list is paged (Page<AllyDto>) with RSQL + `q`. The detail includes
-// specialties[]. Sub-resources: services, agreements (ALLY_AGREEMENT_MANAGE) and
-// users (staff with OWNER/STAFF/VIEWER membership). PUT uses PATCH semantics.
+// specialties[]. Sub-resources: services, agreements (ALLY_AGREEMENT_VIEW_ALL/
+// CREATE/UPDATE/DELETE) and users (staff with OWNER/STAFF/VIEWER membership,
+// ALLY_USER_VIEW_ALL/CREATE/UPDATE/DELETE). PUT uses PATCH semantics.
 
 import type { CatalogRef, CityRef } from '~/types/members'
 

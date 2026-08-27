@@ -17,7 +17,7 @@ interface ListParams {
 
 /**
  * Acceso a las bandas de comisión por inscripción (/v1/admin/commission-tiers,
- * V42, ADR 0013 §1). Todas las operaciones requieren COMMISSION_TIER_MANAGE.
+ * V42, ADR 0013 §1). Granular per V79: VIEW_ALL/CREATE/UPDATE/DELETE instead of one combined permission.
  * DELETE es soft-delete (active=false).
  */
 export const useCommissionTiers = () => {

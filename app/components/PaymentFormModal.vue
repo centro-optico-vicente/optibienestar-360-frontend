@@ -10,7 +10,7 @@ import { PAYMENT_METHOD_OPTIONS } from '~/types/payments'
 // Register a manual payment (POST /v1/admin/payments, multipart). There is no edit:
 // a payment is registered and then approved/rejected. The flow is a cascade —
 // search member -> pick one of their memberships -> capture the payment + proof.
-// The parent controls opening (v-model:open) and gates PAYMENT_REGISTER on the button.
+// The parent controls opening (v-model:open) and gates PAYMENT_CREATE on the button.
 const props = defineProps<{ open: boolean }>()
 
 const emit = defineEmits<{
