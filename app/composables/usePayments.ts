@@ -17,7 +17,7 @@ interface ListParams {
  * Access to the manual payments vertical (/v1/admin/payments + /v1/me/payments).
  * Backend permissions per action:
  * - list/get/support -> PAYMENT_VIEW_ALL
- * - register (multipart) -> PAYMENT_REGISTER
+ * - register (multipart) -> PAYMENT_CREATE
  * - approve -> PAYMENT_APPROVE · reject -> PAYMENT_REJECT
  * - mine() -> PAYMENT_VIEW_OWN (authenticated member's history)
  *

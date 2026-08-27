@@ -20,7 +20,7 @@ useSeoMeta({ title: () => t('common.seoTitle', { page: t('payments.title') }) })
 const payments = usePayments()
 const { can } = usePermissions()
 
-const canRegister = computed(() => can('PAYMENT_REGISTER'))
+const canRegister = computed(() => can('PAYMENT_CREATE'))
 const canApprove = computed(() => can('PAYMENT_APPROVE'))
 const canReject = computed(() => can('PAYMENT_REJECT'))
 const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('PAYMENT_RECORD_AUDIT_VIEW'))

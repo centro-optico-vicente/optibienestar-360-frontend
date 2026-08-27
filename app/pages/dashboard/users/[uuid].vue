@@ -24,8 +24,10 @@ const toast = useToast()
 
 const canUpdate = computed(() => can('USER_UPDATE'))
 const canDelete = computed(() => can('USER_DELETE'))
-const canManageRoles = computed(() => can('ROLE_USERS_MANAGE'))
-const canManageAllies = computed(() => can('ALLY_USERS_MANAGE'))
+const canAssignRoles = computed(() => can('ROLE_USER_CREATE'))
+const canRemoveRoles = computed(() => can('ROLE_USER_DELETE'))
+const canAssignAllies = computed(() => can('ALLY_USER_CREATE'))
+const canRemoveAllies = computed(() => can('ALLY_USER_DELETE'))
 const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('USER_RECORD_AUDIT_VIEW'))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('USER_REPORT_AUDIT_VIEW'))
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
@@ -361,7 +363,7 @@ onMounted(async () => {
         </div>
 
         <div class="p-6 space-y-5">
-          <div v-if="canManageRoles" class="flex items-end gap-3 max-w-md">
+          <div v-if="canAssignRoles" class="flex items-end gap-3 max-w-md">
             <UFormField :label="t('security.users.detail.rolesTab.add')" class="flex-1">
               <USelectMenu
                 v-model="roleToAdd"
@@ -403,13 +405,13 @@ onMounted(async () => {
                   <td class="px-6 py-3 text-prohealth-600">{{ r.description || t('common.empty') }}</td>
                   <td class="px-6 py-3">
                     <div class="flex items-center justify-end gap-1">
-                      <UTooltip :text="canManageRoles ? t('security.users.detail.rolesTab.unlinkTooltip') : t('security.roles.noPermission')">
+                      <UTooltip :text="canRemoveRoles ? t('security.users.detail.rolesTab.unlinkTooltip') : t('security.roles.noPermission')">
                         <UButton
                           color="error"
                           variant="ghost"
                           icon="i-lucide-user-minus"
                           size="sm"
-                          :disabled="!canManageRoles"
+                          :disabled="!canRemoveRoles"
                           @click="openRoleDelete(r)"
                         />
                       </UTooltip>
@@ -432,7 +434,7 @@ onMounted(async () => {
         </div>
 
         <div class="p-6 space-y-5">
-          <div v-if="canManageAllies" class="flex items-end gap-3 max-w-md">
+          <div v-if="canAssignAllies" class="flex items-end gap-3 max-w-md">
             <UFormField :label="t('security.users.detail.alliesTab.add')" class="flex-1">
               <USelectMenu
                 v-model="allyToAdd"
@@ -491,13 +493,13 @@ onMounted(async () => {
                   <td class="px-6 py-3 text-prohealth-600">{{ formatDate(row.joinedAt, 'short') }}</td>
                   <td class="px-6 py-3">
                     <div class="flex items-center justify-end gap-1">
-                      <UTooltip :text="canManageAllies ? t('security.users.detail.alliesTab.unlinkTooltip') : t('security.roles.noPermission')">
+                      <UTooltip :text="canRemoveAllies ? t('security.users.detail.alliesTab.unlinkTooltip') : t('security.roles.noPermission')">
                         <UButton
                           color="error"
                           variant="ghost"
                           icon="i-lucide-user-minus"
                           size="sm"
-                          :disabled="!canManageAllies"
+                          :disabled="!canRemoveAllies"
                           @click="openAllyDelete(row)"
                         />
                       </UTooltip>

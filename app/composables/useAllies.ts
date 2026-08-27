@@ -33,7 +33,8 @@ interface ListParams {
  * Permisos del backend por acción:
  * - list/get y sub-recursos (read) → ALLY_VIEW_ALL
  * - create → ALLY_CREATE · update → ALLY_UPDATE · remove → ALLY_DELETE
- * - agreements (CRUD completo) → ALLY_AGREEMENT_MANAGE
+ * - agreements → ALLY_AGREEMENT_VIEW_ALL/CREATE/UPDATE/DELETE (V79, decoupled from ALLY_VIEW_ALL)
+ * - staff (users) → ALLY_USER_VIEW_ALL/CREATE/UPDATE/DELETE (V79, decoupled from ALLY_VIEW_ALL/ALLY_UPDATE)
  * - proposeService → isAuthenticated() con membresía OWNER/STAFF en el ally
  */
 export const useAllies = () => {
@@ -92,7 +93,7 @@ export const useAllies = () => {
   const removeService = (allyUuid: string, uuid: string) =>
     useApi<null>(`/v1/admin/allies/${allyUuid}/services/${uuid}`, { method: 'DELETE' })
 
-  // ---- Acuerdos (ALLY_AGREEMENT_MANAGE) ----
+  // ---- Acuerdos (ALLY_AGREEMENT_VIEW_ALL / _CREATE / _UPDATE / _DELETE) ----
   const listAgreements = (allyUuid: string) =>
     useApi<AllyAgreementDto[]>(`/v1/admin/allies/${allyUuid}/agreements`)
 
@@ -105,7 +106,7 @@ export const useAllies = () => {
   const removeAgreement = (allyUuid: string, uuid: string) =>
     useApi<null>(`/v1/admin/allies/${allyUuid}/agreements/${uuid}`, { method: 'DELETE' })
 
-  // ---- Staff (usuarios del aliado) ----
+  // ---- Staff (ALLY_USER_VIEW_ALL / _CREATE / _UPDATE / _DELETE) ----
   const listUsers = (allyUuid: string) =>
     useApi<AllyUserDto[]>(`/v1/admin/allies/${allyUuid}/users`)
 

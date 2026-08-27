@@ -8,8 +8,9 @@ import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/util
 
 definePageMeta({
   layout: 'dashboard',
-  // Resolves the catalog's own write key from the route param (V33): reaching a
-  // catalog screen means being able to manage it.
+  // Resolves the catalog's own view key from the route param (V78): reaching a
+  // catalog screen only requires read access — create/edit/delete buttons are
+  // gated individually below by their own granular permission.
   middleware: 'catalog-access',
 })
 
@@ -20,6 +21,11 @@ const { can } = usePermissions()
 const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || (def.value?.auditPermission ? can(def.value.auditPermission) : false))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || (def.value?.auditReportPermission ? can(def.value.auditReportPermission) : false))
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
+
+// ---- Per-action permission gates (V78) ----
+const canCreate = computed(() => (def.value ? can(def.value.createPermission) : false))
+const canUpdate = computed(() => (def.value ? can(def.value.updatePermission) : false))
+const canDelete = computed(() => (def.value ? can(def.value.deletePermission) : false))
 
 // ---- Audit ----
 const auditOpen = ref(false)
@@ -329,7 +335,7 @@ async function confirmDelete() {
       </div>
       <div class="flex items-center gap-2">
         <ReportPrintButton :table-name="def.key" />
-        <UButton color="primary" icon="i-lucide-plus" @click="openCreate">
+        <UButton v-if="canCreate" color="primary" icon="i-lucide-plus" @click="openCreate">
           {{ $t('catalogs.new') }}
         </UButton>
       </div>
@@ -410,10 +416,10 @@ async function confirmDelete() {
                     variant="ghost"
                     size="sm"
                   />
-                  <UTooltip :text="$t('common.edit')">
+                  <UTooltip v-if="canUpdate" :text="$t('common.edit')">
                     <UButton color="neutral" variant="ghost" icon="i-lucide-pencil" size="sm" @click="openEdit(item)" />
                   </UTooltip>
-                  <UTooltip :text="$t('common.delete')">
+                  <UTooltip v-if="canDelete" :text="$t('common.delete')">
                     <UButton color="error" variant="ghost" icon="i-lucide-trash-2" size="sm" @click="openDelete(item)" />
                   </UTooltip>
                   <UTooltip v-if="def.auditEntityKey && canViewAudit" :text="t('audit.trigger')">
@@ -499,7 +505,7 @@ async function confirmDelete() {
 
           <div class="flex items-center justify-between gap-3 pt-2">
             <!-- Shortcut to delete the record being edited; meaningless while creating one that does not exist yet. -->
-            <div v-if="mode === 'edit' && editingItem">
+            <div v-if="mode === 'edit' && editingItem && canDelete">
               <UButton
                 color="error"
                 variant="ghost"

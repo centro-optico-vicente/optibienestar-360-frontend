@@ -46,7 +46,14 @@ const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('ALLY_RE
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('ALLY_REPORT_AUDIT_VIEW'))
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
 const auditOpen = ref(false)
-const canManageAgreements = computed(() => can('ALLY_AGREEMENT_MANAGE'))
+const canViewAgreements = computed(() => can('ALLY_AGREEMENT_VIEW_ALL'))
+const canCreateAgreements = computed(() => can('ALLY_AGREEMENT_CREATE'))
+const canUpdateAgreements = computed(() => can('ALLY_AGREEMENT_UPDATE'))
+const canDeleteAgreements = computed(() => can('ALLY_AGREEMENT_DELETE'))
+const canViewStaff = computed(() => can('ALLY_USER_VIEW_ALL'))
+const canCreateStaff = computed(() => can('ALLY_USER_CREATE'))
+const canUpdateStaff = computed(() => can('ALLY_USER_UPDATE'))
+const canDeleteStaff = computed(() => can('ALLY_USER_DELETE'))
 
 // ---- Ally load ----
 const ally = ref<AllyDto | null>(null)
@@ -128,10 +135,12 @@ const staffStatusOptions = computed(() => STAFF_STATUS_OPTIONS.map(s => ({ label
 const tabs = computed(() => [
   { label: t('allies.tabs.services'), value: 'services', icon: 'i-lucide-briefcase-medical' },
   { label: t('allies.tabs.specialties'), value: 'specialties', icon: 'i-lucide-stethoscope' },
-  ...(canManageAgreements.value
+  ...(canViewAgreements.value
     ? [{ label: t('allies.tabs.agreements'), value: 'agreements', icon: 'i-lucide-file-signature' }]
     : []),
-  { label: t('allies.tabs.staff'), value: 'users', icon: 'i-lucide-users' },
+  ...(canViewStaff.value
+    ? [{ label: t('allies.tabs.staff'), value: 'users', icon: 'i-lucide-users' }]
+    : []),
 ])
 const activeTab = ref('services')
 
@@ -384,13 +393,13 @@ async function removeSpecialty(specialtyUuid: string) {
 }
 
 // =========================================================
-// Agreements (ALLY_AGREEMENT_MANAGE)
+// Agreements (ALLY_AGREEMENT_VIEW_ALL / _CREATE / _UPDATE / _DELETE)
 // =========================================================
 const agreements = ref<AllyAgreementDto[]>([])
 const agreementsLoading = ref(false)
 
 async function loadAgreements() {
-  if (!canManageAgreements.value) return
+  if (!canViewAgreements.value) return
   agreementsLoading.value = true
   try {
     agreements.value = await allies.listAgreements(allyUuid)
@@ -538,12 +547,13 @@ async function confirmAgrDelete() {
 }
 
 // =========================================================
-// Staff (partner users)
+// Staff (partner users) — ALLY_USER_VIEW_ALL / _CREATE / _UPDATE / _DELETE
 // =========================================================
 const staff = ref<AllyUserDto[]>([])
 const staffLoading = ref(false)
 
 async function loadStaff() {
+  if (!canViewStaff.value) return
   staffLoading.value = true
   try {
     staff.value = await allies.listUsers(allyUuid)
@@ -1003,7 +1013,7 @@ onMounted(async () => {
 
       <!-- ============ Agreements ============ -->
       <div
-        v-if="canManageAgreements"
+        v-if="canViewAgreements"
         v-show="activeTab === 'agreements'"
         class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden"
       >
@@ -1013,6 +1023,7 @@ onMounted(async () => {
             <p class="text-xs text-prohealth-500 mt-0.5">{{ t('allies.agreements.hint') }}</p>
           </div>
           <UButton
+            v-if="canCreateAgreements"
             color="primary"
             variant="soft"
             icon="i-lucide-plus"
@@ -1071,6 +1082,7 @@ onMounted(async () => {
                 <td class="px-6 py-3">
                   <div class="flex items-center justify-end gap-1">
                     <UButton
+                      v-if="canUpdateAgreements"
                       color="neutral"
                       variant="ghost"
                       icon="i-lucide-pencil"
@@ -1078,6 +1090,7 @@ onMounted(async () => {
                       @click="openAgrEdit(a)"
                     />
                     <UButton
+                      v-if="canDeleteAgreements"
                       color="error"
                       variant="ghost"
                       icon="i-lucide-trash-2"
@@ -1099,13 +1112,13 @@ onMounted(async () => {
             <h2 class="font-bold text-prohealth-900">{{ t('allies.staff.title') }}</h2>
             <p class="text-xs text-prohealth-500 mt-0.5">{{ t('allies.staff.hint') }}</p>
           </div>
-          <UTooltip :text="canUpdate ? t('allies.staff.assignTooltip') : t('allies.noPermission')">
+          <UTooltip :text="canCreateStaff ? t('allies.staff.assignTooltip') : t('allies.noPermission')">
             <UButton
               color="primary"
               variant="soft"
               icon="i-lucide-user-plus"
               size="sm"
-              :disabled="!canUpdate"
+              :disabled="!canCreateStaff"
               @click="openStaffCreate"
             >
               {{ t('allies.staff.assign') }}
@@ -1162,23 +1175,23 @@ onMounted(async () => {
                 </td>
                 <td class="px-6 py-3">
                   <div class="flex items-center justify-end gap-1">
-                    <UTooltip :text="canUpdate ? t('common.edit') : t('allies.noPermission')">
+                    <UTooltip :text="canUpdateStaff ? t('common.edit') : t('allies.noPermission')">
                       <UButton
                         color="neutral"
                         variant="ghost"
                         icon="i-lucide-pencil"
                         size="sm"
-                        :disabled="!canUpdate"
+                        :disabled="!canUpdateStaff"
                         @click="openStaffEdit(s)"
                       />
                     </UTooltip>
-                    <UTooltip :text="canUpdate ? t('allies.staff.unlinkTooltip') : t('allies.noPermission')">
+                    <UTooltip :text="canDeleteStaff ? t('allies.staff.unlinkTooltip') : t('allies.noPermission')">
                       <UButton
                         color="error"
                         variant="ghost"
                         icon="i-lucide-user-minus"
                         size="sm"
-                        :disabled="!canUpdate"
+                        :disabled="!canDeleteStaff"
                         @click="openStaffDelete(s)"
                       />
                     </UTooltip>
@@ -1345,7 +1358,7 @@ onMounted(async () => {
           <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
 
           <div class="flex items-center justify-between gap-3 pt-2">
-            <div v-if="agrMode === 'edit' && agrEditingItem">
+            <div v-if="agrMode === 'edit' && agrEditingItem && canDeleteAgreements">
               <UButton
                 color="error"
                 variant="ghost"
@@ -1448,15 +1461,15 @@ onMounted(async () => {
           <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
 
           <div class="flex items-center justify-between gap-3 pt-2">
-            <div v-if="staffMode === 'edit' && staffEditingItem">
-              <UTooltip :text="canUpdate ? t('allies.staff.unlinkTooltip') : t('allies.noPermission')">
+            <div v-if="staffMode === 'edit' && staffEditingItem && canDeleteStaff">
+              <UTooltip :text="t('allies.staff.unlinkTooltip')">
                 <UButton
                   color="error"
                   variant="ghost"
                   icon="i-lucide-user-minus"
                   size="sm"
                   :label="t('common.delete')"
-                  :disabled="staffSubmitting || !canUpdate"
+                  :disabled="staffSubmitting"
                   @click="openStaffDeleteFromEdit"
                 />
               </UTooltip>

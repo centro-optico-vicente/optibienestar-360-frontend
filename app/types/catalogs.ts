@@ -53,11 +53,15 @@ export interface CatalogDef {
   /** Resource base path, e.g. '/v1/admin/catalogs/countries'. */
   basePath: string
   /**
-   * Write key this catalog requires (V33) — one per catalog, so access is
-   * delegated per catalog. Drives the nav gate and the `catalog-access`
-   * middleware, so managing a catalog is granted by a single permission.
+   * Granular per-action permissions (V78) — one per CRUD action, so a role
+   * can have read-only access to one catalog and full CRUD on another.
+   * `viewPermission` drives the nav gate and the `catalog-access` middleware;
+   * the other three gate the create/edit/delete buttons on the page.
    */
-  permission: Permission
+  viewPermission: Permission
+  createPermission: Permission
+  updatePermission: Permission
+  deletePermission: Permission
   label: string
   labelSingular: string
   /** i18n keys for the labels; resolved on the page (and in the nav via `useNav`). */
