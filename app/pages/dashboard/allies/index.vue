@@ -48,7 +48,7 @@ const size = ref(DEFAULT_PAGE_SIZE)
 const pageSizeItems = buildPageSizeItems(t)
 const search = ref('')
 const includeInactive = ref(false)
-const sort = useTableSort([{ field: 'name', direction: 'asc' }])
+const sort = useTableSort([{ field: 'createdAt', direction: 'desc' }])
 
 async function load() {
   loading.value = true
