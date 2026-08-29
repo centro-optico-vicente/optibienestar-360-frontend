@@ -44,7 +44,7 @@ export const useAllies = () => {
       query: {
         page: params.page ?? 0,
         size: params.size ?? 20,
-        sort: params.sort?.length ? params.sort : ['name,asc'],
+        sort: params.sort?.length ? params.sort : ['createdAt,desc'],
         ...(params.filter ? { filter: params.filter } : {}),
         ...(params.q ? { q: params.q } : {}),
         ...(params.includeInactive ? { includeInactive: 'true' } : {}),
