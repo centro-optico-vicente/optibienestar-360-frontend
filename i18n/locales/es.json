@@ -520,6 +520,10 @@
         "label": "Configuración del sistema",
         "description": "Parámetros globales del sistema como el pie de página de reportes."
       },
+      "entityConfig": {
+        "label": "Configuración de entidades",
+        "description": "Auditoría y orden predeterminado por entidad (solo SYSTEM)."
+      },
       "commissionRules": {
         "label": "Reglas de comisión",
         "description": "Bandas de inscripción, bonos por escala y comisión de cobranza."
@@ -2446,7 +2450,75 @@
         "FORCE_DISABLED": "Forzar deshabilitada"
       }
     },
+    "defaultSort": {
+      "sectionTitle": "Orden predeterminado global",
+      "sectionSubtitle": "Se aplica a cualquier entidad sin orden propio configurado en \"Configuración de entidades\".",
+      "addRow": "Agregar columna",
+      "field": "Columna",
+      "direction": "Dirección",
+      "remove": "Quitar",
+      "ascLabel": "Ascendente",
+      "descLabel": "Descendente",
+      "empty": "Sin orden global configurado — se usará \"Fecha de creación\" descendente.",
+      "fields": {
+        "id": "ID",
+        "uuid": "UUID",
+        "createdAt": "Fecha de creación",
+        "updatedAt": "Última actualización",
+        "createdBy": "Creado por",
+        "updatedBy": "Actualizado por"
+      }
+    },
     "updatedToast": "Configuración actualizada correctamente",
     "saveButton": "Guardar cambios"
+  },
+  "entityConfig": {
+    "title": "Configuración de entidades",
+    "subtitle": "Auditoría y orden predeterminado por entidad. Solo visible para el rol SYSTEM.",
+    "seoTitle": "Configuración de entidades — OptiBienestar 360",
+    "columns": {
+      "entity": "Entidad",
+      "enabled": "Auditoría",
+      "defaultSort": "Orden predeterminado",
+      "actions": "Acciones"
+    },
+    "empty": "No hay entidades configuradas.",
+    "editTitle": "Configurar {entity}",
+    "editDescription": "Auditoría y orden predeterminado de listado para esta entidad.",
+    "fields": {
+      "enabled": "Auditoría habilitada",
+      "auditCreate": "Auditar creación",
+      "auditUpdate": "Auditar edición",
+      "auditDelete": "Auditar eliminación",
+      "auditReport": "Auditar generación de reportes",
+      "captureBeforeAfter": "Guardar valores antes/después del cambio",
+      "notes": "Notas",
+      "notesPlaceholder": "Notas internas sobre esta configuración (opcional)",
+      "defaultSortHelp": "Orden aplicado cuando la tabla se abre sin ordenar por click. Si se deja vacío, se usa el orden global (\"Configuración del sistema\") o \"Fecha de creación\" descendente.",
+      "defaultSortField": "Campo",
+      "defaultSortFieldPlaceholder": "ej. name, allyTypeName, createdAt",
+      "defaultSortDirection": "Dirección",
+      "addSortRow": "Agregar columna",
+      "removeSortRow": "Quitar"
+    },
+    "ascLabel": "Ascendente",
+    "descLabel": "Descendente",
+    "updatedToast": "Configuración de la entidad actualizada",
+    "saveButton": "Guardar cambios",
+    "new": "Nueva entidad",
+    "createTitle": "Registrar entidad",
+    "createDescription": "Da de alta la configuración de una entidad nueva — auditoría en true y sin orden predeterminado por defecto.",
+    "deleteTitle": "Eliminar configuración",
+    "deleteConfirm": "¿Eliminar la configuración de {entity}? No afecta los datos de esa entidad, solo esta configuración.",
+    "createdToast": "Entidad registrada",
+    "deletedToast": "Configuración eliminada",
+    "entityKey": "Clave de entidad",
+    "entityKeyHelp": "Debe coincidir con el atributo entity de {'@'}Auditable en el backend (ej. ally, member).",
+    "entityKeyPlaceholder": "ej. ally",
+    "displayName": "Nombre visible",
+    "displayNamePlaceholder": "ej. Aliados",
+    "tableName": "Tabla (opcional)",
+    "tableNamePlaceholder": "ej. allies",
+    "searchPlaceholder": "Buscar por clave o nombre..."
   }
 }
