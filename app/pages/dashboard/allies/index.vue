@@ -48,6 +48,7 @@ const size = ref(DEFAULT_PAGE_SIZE)
 const pageSizeItems = buildPageSizeItems(t)
 const search = ref('')
 const includeInactive = ref(false)
+const sort = useTableSort([{ field: 'name', direction: 'asc' }])
 
 async function load() {
   loading.value = true
@@ -55,7 +56,7 @@ async function load() {
     const res = await allies.list({
       page: page.value - 1,
       size: size.value,
-      sort: 'name,asc',
+      sort: sort.sortParam.value,
       q: search.value.trim() || undefined,
       includeInactive: includeInactive.value,
     })
@@ -83,6 +84,7 @@ watch(search, () => {
   }, 400)
 })
 watch(includeInactive, () => { page.value = 1; load() })
+watch(sort.orders, load, { deep: true })
 
 // Partner status badge/select label; falls back to the raw value.
 function statusLabel(status?: string | null): string {
@@ -455,12 +457,30 @@ async function confirmDelete() {
         <table class="w-full text-sm">
           <thead class="sticky top-0 bg-white z-10">
             <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
-              <th class="px-5 py-3 font-semibold">{{ t('allies.columns.ally') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('allies.columns.type') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('allies.columns.taxId') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('allies.columns.city') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('allies.columns.published') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('allies.columns.status') }}</th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('name')">
+                {{ t('allies.columns.ally') }}
+                <SortIndicator :state="sort.stateOf('name')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('allyTypeName')">
+                {{ t('allies.columns.type') }}
+                <SortIndicator :state="sort.stateOf('allyTypeName')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('taxDocumentNumber')">
+                {{ t('allies.columns.taxId') }}
+                <SortIndicator :state="sort.stateOf('taxDocumentNumber')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('cityName')">
+                {{ t('allies.columns.city') }}
+                <SortIndicator :state="sort.stateOf('cityName')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('published')">
+                {{ t('allies.columns.published') }}
+                <SortIndicator :state="sort.stateOf('published')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('status')">
+                {{ t('allies.columns.status') }}
+                <SortIndicator :state="sort.stateOf('status')" />
+              </th>
               <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
             </tr>
           </thead>
