@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
-import type { AuditMode } from '~/composables/useSystemConfig'
+import type { AuditMode, ConfigSortOrder } from '~/composables/useSystemConfig'
+import { COMMON_SORT_FIELDS } from '~/composables/useSystemConfig'
 
 definePageMeta({
   layout: 'dashboard',
@@ -30,6 +31,21 @@ const AUDIT_MODE_OPTIONS: { label: string, value: AuditMode }[] = [
   { label: t('systemConfig.audit.modes.FORCE_DISABLED'), value: 'FORCE_DISABLED' },
 ]
 
+// Whitelisted at the backend too (CommonSortFields) — this global default sort applies
+// to any entity without its own configured default, so it can't rely on a per-entity
+// sortable-fields map like entity_config.defaultSort can.
+// Typed as plain string (not the COMMON_SORT_FIELDS literal union) so USelectMenu's
+// v-model matches ConfigSortOrder.field's own `string` type — the whitelist is still
+// enforced (these are the only selectable items, and the backend validates too).
+const SORT_FIELD_OPTIONS: { label: string, value: string }[] = COMMON_SORT_FIELDS.map(f => ({
+  label: t(`systemConfig.defaultSort.fields.${f}`),
+  value: f,
+}))
+const SORT_DIRECTION_OPTIONS = [
+  { label: t('systemConfig.defaultSort.ascLabel'), value: 'ASC' as const },
+  { label: t('systemConfig.defaultSort.descLabel'), value: 'DESC' as const },
+]
+
 const loading = ref(false)
 const isSubmitting = ref(false)
 
@@ -38,6 +54,7 @@ const state = reactive({
   dataChangeAuditMode: 'PER_ENTITY' as AuditMode,
   reportAuditMode: 'PER_ENTITY' as AuditMode,
   loginAuditEnabled: true,
+  defaultSort: [] as ConfigSortOrder[],
   loginSessionExpirationDays: 30,
 })
 
@@ -55,6 +72,14 @@ const schema = computed(() =>
       .number()
       .int()
       .positive(t('validation.positive')),
+    // Loosely typed on purpose (not z.enum(COMMON_SORT_FIELDS)) — the
+    // USelectMenu below already constrains input to that whitelist; a
+    // stricter literal-union type here just fights ConfigSortOrder's plain
+    // `string` field across the rest of the file for no real safety gain.
+    defaultSort: z.array(z.object({
+      field: z.string(),
+      direction: z.enum(['ASC', 'DESC']),
+    })),
   })
 )
 
@@ -67,6 +92,7 @@ async function load() {
     state.reportAuditMode = res.reportAuditMode
     state.loginAuditEnabled = res.loginAuditEnabled
     state.loginSessionExpirationDays = res.loginSessionExpirationDays
+    state.defaultSort = res.defaultSort ?? []
   }
   catch {
     state.reportFooter = ''
@@ -74,6 +100,14 @@ async function load() {
   finally {
     loading.value = false
   }
+}
+
+function addSortRow() {
+  state.defaultSort.push({ field: COMMON_SORT_FIELDS[0], direction: 'ASC' })
+}
+
+function removeSortRow(index: number) {
+  state.defaultSort.splice(index, 1)
 }
 
 async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
@@ -88,6 +122,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
             reportAuditMode: state.reportAuditMode,
             loginAuditEnabled: state.loginAuditEnabled,
             loginSessionExpirationDays: state.loginSessionExpirationDays,
+            defaultSort: state.defaultSort,
           }
         : {}),
     })
@@ -96,6 +131,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     state.reportAuditMode = updated.reportAuditMode
     state.loginAuditEnabled = updated.loginAuditEnabled
     state.loginSessionExpirationDays = updated.loginSessionExpirationDays
+    state.defaultSort = updated.defaultSort ?? []
     toast.add({
       title: t('systemConfig.updatedToast'),
       color: 'success',
@@ -209,6 +245,64 @@ onMounted(load)
               :disabled="isSubmitting || !state.loginAuditEnabled"
             />
           </UFormField>
+
+          <div class="space-y-3 pt-3 border-t border-prohealth-100">
+            <div>
+              <h3 class="text-sm font-bold text-prohealth-900">{{ t('systemConfig.defaultSort.sectionTitle') }}</h3>
+              <p class="text-xs text-prohealth-700/70 mt-0.5">{{ t('systemConfig.defaultSort.sectionSubtitle') }}</p>
+            </div>
+
+            <p v-if="state.defaultSort.length === 0" class="text-xs text-prohealth-500">
+              {{ t('systemConfig.defaultSort.empty') }}
+            </p>
+
+            <div
+              v-for="(row, index) in state.defaultSort"
+              :key="index"
+              class="flex flex-wrap items-center gap-2"
+            >
+              <USelectMenu
+                v-model="row.field"
+                :items="SORT_FIELD_OPTIONS"
+                label-key="label"
+                value-key="value"
+                :search-input="false"
+                :aria-label="t('systemConfig.defaultSort.field')"
+                class="w-full sm:w-56"
+                :disabled="isSubmitting"
+              />
+              <USelectMenu
+                v-model="row.direction"
+                :items="SORT_DIRECTION_OPTIONS"
+                label-key="label"
+                value-key="value"
+                :search-input="false"
+                :aria-label="t('systemConfig.defaultSort.direction')"
+                class="w-full sm:w-44"
+                :disabled="isSubmitting"
+              />
+              <UButton
+                color="error"
+                variant="ghost"
+                icon="i-lucide-trash-2"
+                size="sm"
+                :disabled="isSubmitting"
+                :aria-label="t('systemConfig.defaultSort.remove')"
+                @click="removeSortRow(index)"
+              />
+            </div>
+
+            <UButton
+              color="neutral"
+              variant="outline"
+              icon="i-lucide-plus"
+              size="sm"
+              :disabled="isSubmitting"
+              @click="addSortRow"
+            >
+              {{ t('systemConfig.defaultSort.addRow') }}
+            </UButton>
+          </div>
         </div>
 
         <div class="flex items-center justify-end gap-3 pt-3 border-t border-prohealth-100">

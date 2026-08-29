@@ -520,6 +520,10 @@
         "label": "System configuration",
         "description": "Global system parameters such as report footers."
       },
+      "entityConfig": {
+        "label": "Entity configuration",
+        "description": "Audit and default sort per entity (SYSTEM only)."
+      },
       "commissionRules": {
         "label": "Commission Rules",
         "description": "Inscription bands, scale bonuses and collection commission."
@@ -2446,7 +2450,75 @@
         "FORCE_DISABLED": "Force disabled"
       }
     },
+    "defaultSort": {
+      "sectionTitle": "Global default sort",
+      "sectionSubtitle": "Applied to any entity without its own configured sort in \"Entity configuration\".",
+      "addRow": "Add column",
+      "field": "Column",
+      "direction": "Direction",
+      "remove": "Remove",
+      "ascLabel": "Ascending",
+      "descLabel": "Descending",
+      "empty": "No global default configured — falls back to \"Created at\" descending.",
+      "fields": {
+        "id": "ID",
+        "uuid": "UUID",
+        "createdAt": "Created at",
+        "updatedAt": "Updated at",
+        "createdBy": "Created by",
+        "updatedBy": "Updated by"
+      }
+    },
     "updatedToast": "Configuration updated successfully",
     "saveButton": "Save changes"
+  },
+  "entityConfig": {
+    "title": "Entity configuration",
+    "subtitle": "Audit and default list sort per entity. SYSTEM role only.",
+    "seoTitle": "Entity configuration — OptiBienestar 360",
+    "columns": {
+      "entity": "Entity",
+      "enabled": "Audit",
+      "defaultSort": "Default sort",
+      "actions": "Actions"
+    },
+    "empty": "No entities configured.",
+    "editTitle": "Configure {entity}",
+    "editDescription": "Audit and default list sort for this entity.",
+    "fields": {
+      "enabled": "Audit enabled",
+      "auditCreate": "Audit create",
+      "auditUpdate": "Audit update",
+      "auditDelete": "Audit delete",
+      "auditReport": "Audit report generation",
+      "captureBeforeAfter": "Store before/after values",
+      "notes": "Notes",
+      "notesPlaceholder": "Internal notes about this config (optional)",
+      "defaultSortHelp": "Sort applied when the table opens with no column clicked. Empty falls back to the global default (\"System configuration\") or \"Created at\" descending.",
+      "defaultSortField": "Field",
+      "defaultSortFieldPlaceholder": "e.g. name, allyTypeName, createdAt",
+      "defaultSortDirection": "Direction",
+      "addSortRow": "Add column",
+      "removeSortRow": "Remove"
+    },
+    "ascLabel": "Ascending",
+    "descLabel": "Descending",
+    "updatedToast": "Entity configuration updated",
+    "saveButton": "Save changes",
+    "new": "New entity",
+    "createTitle": "Register entity",
+    "createDescription": "Registers a new entity's config — audit defaults to true, no default sort yet.",
+    "deleteTitle": "Delete configuration",
+    "deleteConfirm": "Delete {entity}'s configuration? Doesn't affect that entity's data, only this config.",
+    "createdToast": "Entity registered",
+    "deletedToast": "Configuration deleted",
+    "entityKey": "Entity key",
+    "entityKeyHelp": "Must match the entity attribute of @Auditable in the backend (e.g. ally, member).",
+    "entityKeyPlaceholder": "e.g. ally",
+    "displayName": "Display name",
+    "displayNamePlaceholder": "e.g. Allies",
+    "tableName": "Table (optional)",
+    "tableNamePlaceholder": "e.g. allies",
+    "searchPlaceholder": "Search by key or name..."
   }
 }
