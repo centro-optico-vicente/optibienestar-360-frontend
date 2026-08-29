@@ -2513,7 +2513,7 @@
     "createdToast": "Entidad registrada",
     "deletedToast": "Configuración eliminada",
     "entityKey": "Clave de entidad",
-    "entityKeyHelp": "Debe coincidir con el atributo entity de @Auditable en el backend (ej. ally, member).",
+    "entityKeyHelp": "Debe coincidir con el atributo entity de {'@'}Auditable en el backend (ej. ally, member).",
     "entityKeyPlaceholder": "ej. ally",
     "displayName": "Nombre visible",
     "displayNamePlaceholder": "ej. Aliados",
