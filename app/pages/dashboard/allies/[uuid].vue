@@ -800,12 +800,18 @@ onMounted(async () => {
             </p>
           </div>
           <div class="flex items-center gap-2">
+            <!-- Refrescar + herramientas de consulta -->
             <RefreshButton
               :loading="refreshingAll"
               :title="t('common.refreshRecord')"
               @refresh="refreshAll"
             />
             <ReportPrintButton :record-uuid="allyUuid" />
+            <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
+              <UButton color="neutral" variant="ghost" icon="i-lucide-history" @click="auditOpen = true" />
+            </UTooltip>
+
+            <!-- Acción principal -->
             <UTooltip :text="canUpdate ? t('common.edit') : t('allies.noPermissionEdit')">
               <UButton
                 color="neutral"
@@ -815,12 +821,15 @@ onMounted(async () => {
                 @click="navigateTo(`/dashboard/allies?edit=${allyUuid}`)"
               />
             </UTooltip>
+
+            <!-- Acción peligrosa, separada del resto -->
             <RestoreButton
               v-if="ally.active === false"
               :active="ally.active"
               :allowed="canDelete"
               :loading="restoring"
               icon-only
+              class="ms-2"
               @restore="restoreAlly"
             />
             <UTooltip v-else :text="canDelete ? t('common.delete') : t('allies.noPermissionDelete')">
@@ -828,12 +837,10 @@ onMounted(async () => {
                 color="error"
                 variant="ghost"
                 icon="i-lucide-trash-2"
+                class="ms-2"
                 :disabled="!canDelete"
                 @click="navigateTo(`/dashboard/allies?delete=${allyUuid}`)"
               />
-            </UTooltip>
-            <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
-              <UButton color="neutral" variant="ghost" icon="i-lucide-history" @click="auditOpen = true" />
             </UTooltip>
           </div>
         </div>
