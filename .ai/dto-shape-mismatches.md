@@ -72,6 +72,25 @@ a mano vuelve a mentir. Opciones, de menos a más ambiciosa:
 **Recomendación:** (1) ahora para parar el sangrado, (2) como tarea de hardening en
 [`checklists/vertical-10-optimizacion-reportes-hardening.md`](checklists/vertical-10-optimizacion-reportes-hardening.md).
 
+## Convención `_Display` para FK y escalares ([hub ADR 0014](../../centro-optico-vicente/.ai/decisions/0014-display-value-convention.md))
+
+Relacionado con "espejar el cable": el contrato objetivo para list/detail DTOs es que el **backend
+resuelva la etiqueta y el formato**, no el frontend.
+
+- **FK:** el tipo TS declara el par `<rel>_Uuid: string` + `<rel>_Display: string | null`. Se
+  **eliminan** `<rel>Name` y `<rel>?: CatalogRef` de los tipos de listado. El objeto anidado
+  `CatalogRef` sobrevive solo en los tipos de request/response de edición (el `<select>` necesita
+  `<rel>.uuid`).
+- **Escalares presentacionales** (fecha, fecha-hora, monto, decimal, enum/estado, boolean): el tipo
+  declara `<campo>` (crudo, tipado) + `<campo>_Display: string | null`. Render: `row.allyType_Display
+  ?? t('common.empty')`, `row.createdAt_Display`. **No** pasar datos del servidor por
+  `useFormatters` / `money()` — esos quedan solo para valores derivados en el cliente.
+- Clave de columna para el sort = `<rel>_Display` (no `<rel>_Uuid`).
+- `_Display` es de solo lectura: nunca se manda en un request.
+- **Estado:** piloto en Aliados (`app/types/allies.ts`, `app/pages/dashboard/allies/index.vue`,
+  junto al sort multi-columna ya en curso). `dashboard/security/*` ya consume `_Display`. Resto de
+  módulos: PRs posteriores.
+
 ## Cómo re-auditar
 
 Cuando se agregue un `*Dto` nuevo al frontend, verificar contra estas tres fuentes (en este orden):
