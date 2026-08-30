@@ -26,24 +26,6 @@ env:
   NGINX_VERSION: ${{ vars.NGINX_VERSION || '1.31.0' }}
 
 jobs:
-  # Detect whether anything that affects the Docker image changed in this ref.
-  changes:
-    name: Detect Docker-related changes
-    runs-on: ubuntu-latest
-    outputs:
-      docker: ${{ steps.filter.outputs.docker }}
-    steps:
-      - name: Check out the repo
-        uses: actions/checkout@v7
-
-      - name: Filter changed paths
-        uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            docker:
-              - 'docker/**'
-              - '.github/workflows/ci.yaml'
 
   build-and-test:
     name: Typecheck & Build
@@ -78,6 +60,30 @@ jobs:
           name: nuxt-output
           path: .output/public/
           retention-days: 3
+
+  # Only after the code build passes: check whether anything that affects the
+  # Docker image changed in this ref. Skipped if build-and-test failed.
+  changes:
+    name: Detect Docker-related changes
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      docker: ${{ steps.filter.outputs.docker }}
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v7
+
+      - name: Filter changed paths
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            docker:
+              - 'docker/**'
+              - '.github/workflows/ci.yaml'
 
   # Validate both Dockerfiles build and the SPA actually serves. No images are pushed.
   # Only runs when Docker-related files change (Dockerfiles, nginx conf, entrypoint
