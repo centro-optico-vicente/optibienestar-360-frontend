@@ -19,7 +19,17 @@
     "yes": "Sí",
     "no": "No",
     "seoTitle": "{page} — OptiBienestar 360",
-    "requiredFieldsHint": "Los campos marcados con * son obligatorios."
+    "requiredFieldsHint": "Los campos marcados con * son obligatorios.",
+    "refresh": "Actualizar",
+    "refreshKeepFilters": "Actualizar",
+    "refreshKeepFiltersHint": "Recarga la lista con los filtros actuales",
+    "clearFiltersAndRefresh": "Limpiar filtros y actualizar",
+    "clearFiltersAndRefreshHint": "Restablece búsqueda, inactivos, orden y página, y recarga",
+    "refreshSection": "Actualizar esta sección",
+    "refreshRecord": "Actualizar ficha y asociaciones",
+    "discardChangesTitle": "¿Descartar cambios sin guardar?",
+    "discardChangesBody": "Al actualizar se recargarán los datos del servidor y se perderán los cambios que no hayas guardado.",
+    "discardAndRefresh": "Descartar y actualizar"
   },
   "locale": {
     "change": "Cambiar idioma"

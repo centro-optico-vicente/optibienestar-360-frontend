@@ -78,18 +78,36 @@ async function load() {
   }
 }
 
-watch(size, () => { page.value = 1 })
-watch([page, size], load)
+// Set while resetFilters() clears several refs at once, so their watchers don't
+// each fire a redundant load() before the single explicit one.
+const resetting = ref(false)
+
+watch(size, () => { if (!resetting.value) page.value = 1 })
+watch([page, size], () => { if (!resetting.value) load() })
 let searchTimer: ReturnType<typeof setTimeout> | undefined
 watch(search, () => {
+  if (resetting.value) return
   clearTimeout(searchTimer)
   searchTimer = setTimeout(() => {
     page.value = 1
     load()
   }, 400)
 })
-watch(includeInactive, () => { page.value = 1; load() })
-watch(sort.orders, load, { deep: true })
+watch(includeInactive, () => { if (!resetting.value) { page.value = 1; load() } })
+watch(sort.orders, () => { if (!resetting.value) load() }, { deep: true })
+
+// "Limpiar filtros y actualizar" from the list refresh menu.
+async function resetFilters() {
+  resetting.value = true
+  search.value = ''
+  includeInactive.value = false
+  sort.reset()
+  size.value = DEFAULT_PAGE_SIZE
+  page.value = 1
+  await nextTick()
+  resetting.value = false
+  load()
+}
 
 // Partner status badge/select label; falls back to the raw value.
 function statusLabel(status?: string | null): string {
@@ -270,36 +288,51 @@ function openCreate() {
   formOpen.value = true
 }
 
+// Serialized snapshot of the edit form right after it was populated from the
+// server, used to detect unsaved changes before a manual refresh discards them.
+const editSnapshot = ref('')
+function snapshotEditState() {
+  return JSON.stringify({ ...state, selectedStateUuid: selectedStateUuid.value })
+}
+const isEditDirty = computed(() => editSnapshot.value !== '' && snapshotEditState() !== editSnapshot.value)
+const discardConfirmOpen = ref(false)
+
+// Maps a full AllyDto (GET /{uuid}) into the reactive form state.
+function populateEditForm(full: AllyDto) {
+  state.name = full.name ?? ''
+  state.allyTypeUuid = full.allyType?.uuid
+  state.taxDocumentType = full.taxDocumentType || undefined
+  state.taxDocumentNumber = full.taxDocumentNumber ?? ''
+  state.email = full.email ?? ''
+  state.phone = full.phone ?? ''
+  state.website = full.website ?? ''
+  state.address = full.address ?? ''
+  // The city select is populated by a cascade that keys off the selected state; set the
+  // state first (from the embedded CityDto's own stateUuid) and stash the city so the
+  // cascade watcher can apply it once that state's cities finish loading.
+  pendingCityUuid.value = full.city?.uuid
+  selectedStateUuid.value = full.city?.stateUuid
+  state.description = full.description ?? ''
+  state.joinedAt = full.joinedAt ?? ''
+  state.published = full.published ?? false
+  state.status = full.status || 'ACTIVE'
+  state.specialtyUuids = (full.specialties ?? []).map(s => s.uuid)
+  editSnapshot.value = snapshotEditState()
+}
+
 async function openEdit(a: AllyRow) {
   mode.value = 'edit'
   editingUuid.value = a.uuid
   editingItem.value = a
   resetForm()
+  editSnapshot.value = ''
   formOpen.value = true
   // The list row (AllyListItemDto) carries flat fields (allyTypeUuid, etc.) and omits
   // email, tax ID, website, specialties…; the form also expects the nested shape
   // (allyType.uuid). The full detail is loaded to populate reliably.
   editLoading.value = true
   try {
-    const full = await allies.get(a.uuid)
-    state.name = full.name ?? ''
-    state.allyTypeUuid = full.allyType?.uuid
-    state.taxDocumentType = full.taxDocumentType || undefined
-    state.taxDocumentNumber = full.taxDocumentNumber ?? ''
-    state.email = full.email ?? ''
-    state.phone = full.phone ?? ''
-    state.website = full.website ?? ''
-    state.address = full.address ?? ''
-    // The city select is populated by a cascade that keys off the selected state; set the
-    // state first (from the embedded CityDto's own stateUuid) and stash the city so the
-    // cascade watcher can apply it once that state's cities finish loading.
-    pendingCityUuid.value = full.city?.uuid
-    selectedStateUuid.value = full.city?.stateUuid
-    state.description = full.description ?? ''
-    state.joinedAt = full.joinedAt ?? ''
-    state.published = full.published ?? false
-    state.status = full.status || 'ACTIVE'
-    state.specialtyUuids = (full.specialties ?? []).map(s => s.uuid)
+    populateEditForm(await allies.get(a.uuid))
   }
   catch {
     // The detail failed to load (useApi already notified); close the modal.
@@ -308,6 +341,28 @@ async function openEdit(a: AllyRow) {
   finally {
     editLoading.value = false
   }
+}
+
+// Re-fetches the ally and repopulates the form, discarding any local edits.
+async function reloadEditForm() {
+  if (!editingUuid.value) return
+  discardConfirmOpen.value = false
+  editLoading.value = true
+  try {
+    populateEditForm(await allies.get(editingUuid.value))
+  }
+  catch {
+    // useApi already notified; keep the modal open with the current values.
+  }
+  finally {
+    editLoading.value = false
+  }
+}
+
+// "Actualizar" button in the edit modal: confirm first if there are unsaved edits.
+function onEditRefresh() {
+  if (isEditDirty.value) discardConfirmOpen.value = true
+  else reloadEditForm()
 }
 
 async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
@@ -433,6 +488,7 @@ async function confirmDelete() {
         </p>
       </div>
       <div class="flex items-center gap-2">
+        <ListRefreshMenu :loading="loading" @refresh="load" @reset="resetFilters" />
         <ReportPrintButton :search-query="search" :include-inactive="includeInactive" />
         <UTooltip :text="canCreate ? t('allies.createTooltip') : t('allies.noPermissionCreate')">
           <UButton
@@ -743,7 +799,15 @@ async function confirmDelete() {
           <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
 
           <div class="flex items-center justify-between gap-3 pt-2">
-            <div v-if="mode === 'edit' && editingItem">
+            <div v-if="mode === 'edit' && editingItem" class="flex items-center gap-2">
+              <RefreshButton
+                :loading="editLoading"
+                :disabled="isSubmitting"
+                :icon-only="false"
+                :label="t('common.refresh')"
+                :title="t('common.refresh')"
+                @refresh="onEditRefresh"
+              />
               <RestoreButton
                 v-if="editingItem.active === false"
                 :active="editingItem.active"
@@ -793,6 +857,21 @@ async function confirmDelete() {
           </UButton>
           <UButton color="error" :loading="deleting" icon="i-lucide-trash-2" @click="confirmDelete">
             {{ t('common.delete') }}
+          </UButton>
+        </div>
+      </template>
+    </UModal>
+
+    <!-- Discard-unsaved-changes confirmation for the edit modal's refresh button -->
+    <UModal v-model:open="discardConfirmOpen" :title="t('common.discardChangesTitle')">
+      <template #body>
+        <p class="text-sm text-prohealth-700">{{ t('common.discardChangesBody') }}</p>
+        <div class="flex items-center justify-end gap-3 pt-5">
+          <UButton color="neutral" variant="ghost" @click="discardConfirmOpen = false">
+            {{ t('common.cancel') }}
+          </UButton>
+          <UButton color="warning" icon="i-lucide-refresh-cw" @click="reloadEditForm">
+            {{ t('common.discardAndRefresh') }}
           </UButton>
         </div>
       </template>

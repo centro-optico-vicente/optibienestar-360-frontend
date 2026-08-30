@@ -19,7 +19,17 @@
     "yes": "Yes",
     "no": "No",
     "seoTitle": "{page} — OptiBienestar 360",
-    "requiredFieldsHint": "Fields marked with * are required."
+    "requiredFieldsHint": "Fields marked with * are required.",
+    "refresh": "Refresh",
+    "refreshKeepFilters": "Refresh",
+    "refreshKeepFiltersHint": "Reload the list with the current filters",
+    "clearFiltersAndRefresh": "Clear filters and refresh",
+    "clearFiltersAndRefreshHint": "Reset search, inactive, sort and page, then reload",
+    "refreshSection": "Refresh this section",
+    "refreshRecord": "Refresh record and associations",
+    "discardChangesTitle": "Discard unsaved changes?",
+    "discardChangesBody": "Refreshing reloads data from the server and discards your unsaved changes.",
+    "discardAndRefresh": "Discard and refresh"
   },
   "locale": {
     "change": "Change language"
