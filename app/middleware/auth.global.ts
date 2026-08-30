@@ -1,4 +1,4 @@
-const PUBLIC_ROUTES = new Set<string>(['/', '/login', '/recover-password', '/reset-password'])
+const PUBLIC_ROUTES = new Set<string>(['/', '/recover-password', '/reset-password'])
 // Prefijos públicos (rutas dinámicas): directorio de aliados (/aliados, /aliados/{uuid}).
 // Ojo: NO confundir con /aliado (panel autenticado del aliado).
 const PUBLIC_PREFIXES = ['/aliados']
@@ -12,10 +12,10 @@ export default defineNuxtRouteMiddleware((to) => {
   const isAuthed = auth.isAuthenticated
 
   if (!isPublic && !isAuthed) {
-    return navigateTo({ path: '/login', query: { redirect: to.fullPath } })
+    return navigateTo({ path: '/', query: { redirect: to.fullPath } })
   }
 
-  if (to.path === '/login' && isAuthed) {
+  if (to.path === '/' && isAuthed) {
     return navigateTo('/dashboard')
   }
 })

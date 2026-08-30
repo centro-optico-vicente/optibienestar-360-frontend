@@ -62,7 +62,7 @@ const onSubmit = async (event: FormSubmitEvent<Schema>): Promise<void> => {
       color: 'success',
       icon: 'i-lucide-check-circle',
     })
-    // changePassword limpia la sesión y redirige a /login (el backend invalida los tokens).
+    // changePassword limpia la sesión y redirige al login en `/` (el backend invalida los tokens).
     await changePassword({
       currentPassword: event.data.currentPassword,
       newPassword: event.data.newPassword,

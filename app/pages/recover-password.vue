@@ -100,7 +100,7 @@ const onSubmit = async (event: FormSubmitEvent<Schema>): Promise<void> => {
     </UForm>
 
     <p class="text-center text-sm text-prohealth-700/70 pt-6">
-      <NuxtLink to="/login" class="text-prohealth-600 hover:text-prohealth-700 font-medium">
+      <NuxtLink to="/" class="text-prohealth-600 hover:text-prohealth-700 font-medium">
         {{ $t('auth.backToLogin') }}
       </NuxtLink>
     </p>
