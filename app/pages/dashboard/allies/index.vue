@@ -615,7 +615,16 @@ async function confirmDelete() {
                       @click="openEdit(a)"
                     />
                   </UTooltip>
-                  <UTooltip :text="canDelete ? t('common.delete') : t('allies.noPermissionDelete')">
+                  <RestoreButton
+                    v-if="a.active === false"
+                    :active="a.active"
+                    :allowed="canDelete"
+                    :loading="restoring"
+                    size="sm"
+                    icon-only
+                    @restore="restoreAlly(a)"
+                  />
+                  <UTooltip v-else :text="canDelete ? t('common.delete') : t('allies.noPermissionDelete')">
                     <UButton
                       color="error"
                       variant="ghost"
