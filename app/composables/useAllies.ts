@@ -3,6 +3,7 @@ import type { CatalogRef } from '~/types/members'
 import type {
   AllyAgreementDto,
   AllyDto,
+  AllyListItemDto,
   AllyServiceDto,
   AllyUserDto,
   AssignAllyUserRequest,
@@ -40,7 +41,7 @@ interface ListParams {
  */
 export const useAllies = () => {
   const list = (params: ListParams = {}) =>
-    useApi<Page<AllyDto>>('/v1/admin/allies', {
+    useApi<Page<AllyListItemDto>>('/v1/admin/allies', {
       query: {
         page: params.page ?? 0,
         size: params.size ?? 20,

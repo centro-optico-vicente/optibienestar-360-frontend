@@ -33,6 +33,48 @@ export interface AllyDto {
   createdAt?: string
 }
 
+/**
+ * Row of the admin list `GET /v1/admin/allies` (`Page<AllyListItemDto>`).
+ *
+ * Pilot for the `_Display` convention (hub ADR 0014): every foreign key
+ * travels as the pair `<rel>_Uuid` + `<rel>_Display`, and every
+ * presentational scalar as the raw, typed value + a server-resolved,
+ * locale-aware `<field>_Display` sibling. Render the `_Display` string
+ * directly (`row.allyType_Display ?? t('common.empty')`); keep the raw value
+ * for sorting and logic. `_Display` fields are read-only — never sent back.
+ *
+ * Compact projection: omits email, tax ID, website, specialties… The edit
+ * form loads the full {@link AllyDto} via `GET /v1/admin/allies/{uuid}`.
+ */
+export interface AllyListItemDto {
+  uuid: string
+  name: string
+
+  allyType_Uuid: string | null
+  allyType_Display: string | null
+  city_Uuid: string | null
+  city_Display: string | null
+
+  taxDocumentType?: string | null
+  taxDocumentNumber?: string | null
+
+  logoUrl?: string | null
+  phone?: string | null
+
+  published: boolean
+  published_Display: string | null
+  publishedAt?: string | null
+  publishedAt_Display: string | null
+
+  active: boolean
+  active_Display: string | null
+  status?: string | null
+  status_Display: string | null
+
+  createdAt?: string | null
+  createdAt_Display: string | null
+}
+
 export interface CreateAllyRequest {
   name: string
   allyTypeUuid: string
