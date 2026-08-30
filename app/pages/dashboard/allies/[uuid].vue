@@ -779,8 +779,15 @@ onMounted(async () => {
           <div>
             <div class="flex items-center gap-3 flex-wrap">
               <h1 class="text-2xl font-extrabold text-prohealth-900">{{ ally.name }}</h1>
-              <UBadge :color="ally.status === 'ACTIVE' ? 'success' : 'warning'" variant="subtle">
-                {{ ally.status ? allyStatusLabel(ally.status) : t('common.empty') }}
+              <!-- `active === false` (soft-delete) wins over the business `status`,
+                   mirroring effectiveStatusLabel() on the list. -->
+              <UBadge
+                :color="ally.active === false ? 'warning' : (ally.status === 'ACTIVE' ? 'success' : 'warning')"
+                variant="subtle"
+              >
+                {{ ally.active === false
+                  ? t('allies.status.INACTIVE')
+                  : (ally.status ? allyStatusLabel(ally.status) : t('common.empty')) }}
               </UBadge>
               <UBadge :color="ally.published ? 'success' : 'neutral'" variant="subtle">
                 {{ ally.published ? t('allies.published') : t('allies.draft') }}

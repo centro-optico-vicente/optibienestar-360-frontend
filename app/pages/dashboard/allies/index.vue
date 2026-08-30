@@ -793,6 +793,11 @@ async function confirmDelete() {
                 value-key="value"
                 class="w-full"
               />
+              <!-- `status` is the business state; `active === false` means the record
+                   is soft-deleted. Clarify the distinction next to Restaurar. -->
+              <template v-if="editingItem?.active === false" #help>
+                <span class="text-amber-600">{{ t('allies.form.softDeletedHint') }}</span>
+              </template>
             </UFormField>
           </div>
 
