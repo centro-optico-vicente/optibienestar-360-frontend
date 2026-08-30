@@ -6,9 +6,14 @@ import type { SelectItem } from '~/types/options'
 import { toSelectItems } from '~/types/options'
 import type {
   AllyDto,
+  AllyListItemDto,
   CreateAllyRequest,
   UpdateAllyRequest,
 } from '~/types/allies'
+
+// The admin table renders AllyListItemDto rows; openEdit / openDelete are also
+// reachable from openFromQuery with a full AllyDto loaded by GET /{uuid}.
+type AllyRow = AllyListItemDto | AllyDto
 
 definePageMeta({
   layout: 'dashboard',
@@ -32,15 +37,15 @@ const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
 
 const auditOpen = ref(false)
-const auditTarget = ref<AllyDto | null>(null)
+const auditTarget = ref<AllyRow | null>(null)
 
-function openAudit(a: AllyDto) {
+function openAudit(a: AllyRow) {
   auditTarget.value = a
   auditOpen.value = true
 }
 
 // ---- List + pagination + search ----
-const data = ref<AllyDto[]>([])
+const data = ref<AllyListItemDto[]>([])
 const total = ref(0)
 const loading = ref(false)
 const page = ref(1) // UPagination is 1-based; the API is 0-based
@@ -94,9 +99,12 @@ function statusLabel(status?: string | null): string {
 // Effective status label for the table row: `active` (soft-delete flag) wins over the
 // business `status` field, so a soft-deleted record always reads "Inactivo" instead of
 // whatever business status it happened to have (or "Sin información" when status is null).
-function effectiveStatusLabel(a: AllyDto): string {
+function effectiveStatusLabel(a: AllyRow): string {
   if (a.active === false) return t('allies.status.INACTIVE')
-  return a.status ? statusLabel(a.status) : t('common.empty')
+  // Prefer the server-resolved `_Display` (ADR 0014); fall back to the local
+  // label map for a full AllyDto loaded via GET /{uuid} (no `_Display` there).
+  const display = 'status_Display' in a ? a.status_Display : null
+  return display ?? (a.status ? statusLabel(a.status) : t('common.empty'))
 }
 
 // ---- Catalogs for the form selects ----
@@ -176,7 +184,7 @@ async function openFromQuery() {
 const formOpen = ref(false)
 const mode = ref<'create' | 'edit'>('create')
 const editingUuid = ref<string | null>(null)
-const editingItem = ref<AllyDto | null>(null)
+const editingItem = ref<AllyRow | null>(null)
 const isSubmitting = ref(false)
 // The list returns a compact projection (AllyListItemDto) with flat fields; on edit
 // the full detail is loaded, and this flag shows the loading state in the modal.
@@ -262,7 +270,7 @@ function openCreate() {
   formOpen.value = true
 }
 
-async function openEdit(a: AllyDto) {
+async function openEdit(a: AllyRow) {
   mode.value = 'edit'
   editingUuid.value = a.uuid
   editingItem.value = a
@@ -359,9 +367,9 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
 // ---- Delete ----
 const deleteOpen = ref(false)
 const deleting = ref(false)
-const target = ref<AllyDto | null>(null)
+const target = ref<AllyRow | null>(null)
 
-function openDelete(a: AllyDto) {
+function openDelete(a: AllyRow) {
   target.value = a
   deleteOpen.value = true
 }
@@ -378,7 +386,7 @@ function openDeleteFromEdit() {
 // ---- Restore (undo soft-delete) ----
 const restoring = ref(false)
 
-async function restoreAlly(a: AllyDto) {
+async function restoreAlly(a: AllyRow) {
   restoring.value = true
   try {
     await allies.restore(a.uuid)
@@ -461,17 +469,17 @@ async function confirmDelete() {
                 {{ t('allies.columns.ally') }}
                 <SortIndicator :state="sort.stateOf('name')" />
               </th>
-              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('allyTypeName')">
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('allyType_Display')">
                 {{ t('allies.columns.type') }}
-                <SortIndicator :state="sort.stateOf('allyTypeName')" />
+                <SortIndicator :state="sort.stateOf('allyType_Display')" />
               </th>
               <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('taxDocumentNumber')">
                 {{ t('allies.columns.taxId') }}
                 <SortIndicator :state="sort.stateOf('taxDocumentNumber')" />
               </th>
-              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('cityName')">
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('city_Display')">
                 {{ t('allies.columns.city') }}
-                <SortIndicator :state="sort.stateOf('cityName')" />
+                <SortIndicator :state="sort.stateOf('city_Display')" />
               </th>
               <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('published')">
                 {{ t('allies.columns.published') }}
@@ -502,14 +510,13 @@ async function confirmDelete() {
             >
               <td class="px-5 py-3">
                 <div class="font-semibold text-prohealth-900">{{ a.name }}</div>
-                <div class="text-xs text-prohealth-500">{{ a.email || t('common.empty') }}</div>
               </td>
-              <td class="px-5 py-3 text-prohealth-700">{{ a.allyType?.name || t('common.empty') }}</td>
+              <td class="px-5 py-3 text-prohealth-700">{{ a.allyType_Display ?? t('common.empty') }}</td>
               <td class="px-5 py-3 text-prohealth-700">
                 <span v-if="a.taxDocumentNumber">{{ a.taxDocumentType }}-{{ a.taxDocumentNumber }}</span>
                 <span v-else class="text-prohealth-400">{{ t('common.empty') }}</span>
               </td>
-              <td class="px-5 py-3 text-prohealth-700">{{ a.city?.name || t('common.empty') }}</td>
+              <td class="px-5 py-3 text-prohealth-700">{{ a.city_Display ?? t('common.empty') }}</td>
               <td class="px-5 py-3">
                 <UBadge :color="a.published ? 'success' : 'neutral'" variant="subtle" size="sm">
                   {{ a.published ? t('allies.published') : t('allies.draft') }}

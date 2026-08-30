@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { RoleDto, UserDto } from '~/types/admin'
-import type { AllyDto, AssignAllyUserRequest, UserAllyDto } from '~/types/allies'
+import type { AllyListItemDto, AssignAllyUserRequest, UserAllyDto } from '~/types/allies'
 
 definePageMeta({
   layout: 'dashboard',
@@ -145,7 +145,7 @@ type UserAllyRow = UserAllyDto
 
 const userAllies = ref<UserAllyRow[]>([])
 const userAlliesLoading = ref(false)
-const allAllies = ref<AllyDto[]>([])
+const allAllies = ref<AllyListItemDto[]>([])
 
 async function loadUserAllies() {
   userAlliesLoading.value = true
