@@ -803,6 +803,8 @@ onMounted(async () => {
             <!-- Refrescar + herramientas de consulta -->
             <RefreshButton
               size="md"
+              variant="outline"
+              :icon-only="false"
               :loading="refreshingAll"
               :title="t('common.refreshRecord')"
               @refresh="refreshAll"
