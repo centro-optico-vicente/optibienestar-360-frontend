@@ -11,6 +11,7 @@ const props = withDefaults(defineProps<{
   label?: string
   size?: 'xs' | 'sm' | 'md' | 'lg'
   variant?: 'solid' | 'outline' | 'soft' | 'subtle' | 'ghost' | 'link'
+  iconOnly?: boolean
 }>(), {
   active: undefined,
   loading: false,
@@ -18,6 +19,7 @@ const props = withDefaults(defineProps<{
   label: undefined,
   size: 'sm',
   variant: 'ghost',
+  iconOnly: false,
 })
 
 const emit = defineEmits<{ restore: [] }>()
@@ -37,7 +39,7 @@ const visible = computed(() => props.active === false)
       :variant="variant"
       icon="i-lucide-rotate-ccw"
       :size="size"
-      :label="label ?? t('common.restore')"
+      :label="iconOnly ? undefined : (label ?? t('common.restore'))"
       :loading="loading"
       :disabled="disabled || !allowed || loading"
       @click="emit('restore')"

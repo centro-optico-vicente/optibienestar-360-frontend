@@ -820,6 +820,7 @@ onMounted(async () => {
               :active="ally.active"
               :allowed="canDelete"
               :loading="restoring"
+              icon-only
               @restore="restoreAlly"
             />
             <UTooltip v-else :text="canDelete ? t('common.delete') : t('allies.noPermissionDelete')">
