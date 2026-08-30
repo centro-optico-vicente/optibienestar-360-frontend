@@ -26,7 +26,12 @@ export interface SortState {
  * sort.sortParam.value                // → ['name,desc']
  */
 export function useTableSort(initial: SortOrder[] = []) {
-  const orders = ref<SortOrder[]>(initial)
+  const orders = ref<SortOrder[]>(structuredClone(toRaw(initial)))
+
+  /** Restores the sort to the `initial` order it was created with. */
+  function reset() {
+    orders.value = structuredClone(toRaw(initial))
+  }
 
   function toggle(field: string) {
     const idx = orders.value.findIndex(o => o.field === field)
@@ -49,5 +54,5 @@ export function useTableSort(initial: SortOrder[] = []) {
   /** e.g. `['name,asc', 'active,desc']` — passed straight through as `query.sort`. */
   const sortParam = computed(() => orders.value.map(o => `${o.field},${o.direction}`))
 
-  return { orders, toggle, stateOf, sortParam }
+  return { orders, toggle, stateOf, sortParam, reset }
 }

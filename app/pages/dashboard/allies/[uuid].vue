@@ -717,6 +717,19 @@ async function confirmStaffDelete() {
   }
 }
 
+// ---- Refresh whole record (header button) ----
+const refreshingAll = ref(false)
+async function refreshAll() {
+  refreshingAll.value = true
+  try {
+    // loadAgreements / loadStaff early-return without the view permission.
+    await Promise.all([loadAlly(), loadServices(), loadSpecialties(), loadAgreements(), loadStaff()])
+  }
+  finally {
+    refreshingAll.value = false
+  }
+}
+
 // ---- Init ----
 onMounted(async () => {
   await loadAlly()
@@ -766,8 +779,15 @@ onMounted(async () => {
           <div>
             <div class="flex items-center gap-3 flex-wrap">
               <h1 class="text-2xl font-extrabold text-prohealth-900">{{ ally.name }}</h1>
-              <UBadge :color="ally.status === 'ACTIVE' ? 'success' : 'warning'" variant="subtle">
-                {{ ally.status ? allyStatusLabel(ally.status) : t('common.empty') }}
+              <!-- `active === false` (soft-delete) wins over the business `status`,
+                   mirroring effectiveStatusLabel() on the list. -->
+              <UBadge
+                :color="ally.active === false ? 'warning' : (ally.status === 'ACTIVE' ? 'success' : 'warning')"
+                variant="subtle"
+              >
+                {{ ally.active === false
+                  ? t('allies.status.INACTIVE')
+                  : (ally.status ? allyStatusLabel(ally.status) : t('common.empty')) }}
               </UBadge>
               <UBadge :color="ally.published ? 'success' : 'neutral'" variant="subtle">
                 {{ ally.published ? t('allies.published') : t('allies.draft') }}
@@ -780,6 +800,11 @@ onMounted(async () => {
             </p>
           </div>
           <div class="flex items-center gap-2">
+            <RefreshButton
+              :loading="refreshingAll"
+              :title="t('common.refreshRecord')"
+              @refresh="refreshAll"
+            />
             <ReportPrintButton :record-uuid="allyUuid" />
             <UTooltip :text="canUpdate ? t('common.edit') : t('allies.noPermissionEdit')">
               <UButton
@@ -855,18 +880,25 @@ onMounted(async () => {
             <h2 class="font-bold text-prohealth-900">{{ t('allies.services.title') }}</h2>
             <p class="text-xs text-prohealth-500 mt-0.5">{{ t('allies.services.hint') }}</p>
           </div>
-          <UTooltip :text="canUpdate ? t('allies.services.addTooltip') : t('allies.noPermission')">
-            <UButton
-              color="primary"
-              variant="soft"
-              icon="i-lucide-plus"
-              size="sm"
-              :disabled="!canUpdate"
-              @click="openSvcCreate"
-            >
-              {{ t('allies.services.add') }}
-            </UButton>
-          </UTooltip>
+          <div class="flex items-center gap-2">
+            <RefreshButton
+              :loading="servicesLoading"
+              :title="t('common.refreshSection')"
+              @refresh="loadServices"
+            />
+            <UTooltip :text="canUpdate ? t('allies.services.addTooltip') : t('allies.noPermission')">
+              <UButton
+                color="primary"
+                variant="soft"
+                icon="i-lucide-plus"
+                size="sm"
+                :disabled="!canUpdate"
+                @click="openSvcCreate"
+              >
+                {{ t('allies.services.add') }}
+              </UButton>
+            </UTooltip>
+          </div>
         </div>
 
         <div class="overflow-x-auto">
@@ -953,6 +985,11 @@ onMounted(async () => {
             <h2 class="font-bold text-prohealth-900">{{ t('allies.specialties.title') }}</h2>
             <p class="text-xs text-prohealth-500 mt-0.5">{{ t('allies.specialties.hint') }}</p>
           </div>
+          <RefreshButton
+            :loading="specialtiesLoading"
+            :title="t('common.refreshSection')"
+            @refresh="loadSpecialties"
+          />
         </div>
 
         <div class="p-6 space-y-5">
@@ -1022,16 +1059,23 @@ onMounted(async () => {
             <h2 class="font-bold text-prohealth-900">{{ t('allies.agreements.title') }}</h2>
             <p class="text-xs text-prohealth-500 mt-0.5">{{ t('allies.agreements.hint') }}</p>
           </div>
-          <UButton
-            v-if="canCreateAgreements"
-            color="primary"
-            variant="soft"
-            icon="i-lucide-plus"
-            size="sm"
-            @click="openAgrCreate"
-          >
-            {{ t('allies.agreements.add') }}
-          </UButton>
+          <div class="flex items-center gap-2">
+            <RefreshButton
+              :loading="agreementsLoading"
+              :title="t('common.refreshSection')"
+              @refresh="loadAgreements"
+            />
+            <UButton
+              v-if="canCreateAgreements"
+              color="primary"
+              variant="soft"
+              icon="i-lucide-plus"
+              size="sm"
+              @click="openAgrCreate"
+            >
+              {{ t('allies.agreements.add') }}
+            </UButton>
+          </div>
         </div>
 
         <div class="overflow-x-auto">
@@ -1112,18 +1156,25 @@ onMounted(async () => {
             <h2 class="font-bold text-prohealth-900">{{ t('allies.staff.title') }}</h2>
             <p class="text-xs text-prohealth-500 mt-0.5">{{ t('allies.staff.hint') }}</p>
           </div>
-          <UTooltip :text="canCreateStaff ? t('allies.staff.assignTooltip') : t('allies.noPermission')">
-            <UButton
-              color="primary"
-              variant="soft"
-              icon="i-lucide-user-plus"
-              size="sm"
-              :disabled="!canCreateStaff"
-              @click="openStaffCreate"
-            >
-              {{ t('allies.staff.assign') }}
-            </UButton>
-          </UTooltip>
+          <div class="flex items-center gap-2">
+            <RefreshButton
+              :loading="staffLoading"
+              :title="t('common.refreshSection')"
+              @refresh="loadStaff"
+            />
+            <UTooltip :text="canCreateStaff ? t('allies.staff.assignTooltip') : t('allies.noPermission')">
+              <UButton
+                color="primary"
+                variant="soft"
+                icon="i-lucide-user-plus"
+                size="sm"
+                :disabled="!canCreateStaff"
+                @click="openStaffCreate"
+              >
+                {{ t('allies.staff.assign') }}
+              </UButton>
+            </UTooltip>
+          </div>
         </div>
 
         <div class="overflow-x-auto">

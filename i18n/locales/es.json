@@ -19,7 +19,19 @@
     "yes": "Sí",
     "no": "No",
     "seoTitle": "{page} — OptiBienestar 360",
-    "requiredFieldsHint": "Los campos marcados con * son obligatorios."
+    "requiredFieldsHint": "Los campos marcados con * son obligatorios.",
+    "refresh": "Refrescar",
+    "refreshKeepFilters": "Refrescar",
+    "refreshKeepFiltersHint": "Refresca la lista con los filtros actuales",
+    "clearFiltersAndRefresh": "Limpiar filtros y refrescar",
+    "clearFiltersAndRefreshHint": "Restablece búsqueda, inactivos, orden y página, y refresca",
+    "refreshSection": "Refrescar esta sección",
+    "refreshRecord": "Refrescar ficha y asociaciones",
+    "discardChangesTitle": "¿Descartar cambios sin guardar?",
+    "discardChangesBody": "Al refrescar se traerán los datos del servidor y se perderán los cambios que no hayas guardado.",
+    "discardAndRefresh": "Descartar y refrescar",
+    "restore": "Restaurar",
+    "noPermissionRestore": "No tienes permiso para restaurar"
   },
   "locale": {
     "change": "Cambiar idioma"
@@ -1047,6 +1059,7 @@
       "submitCreate": "Crear aliado",
       "selectCityFirst": "Selecciona un estado primero",
       "selectMultiple": "Selecciona una o más",
+      "softDeletedHint": "Este aliado está eliminado (inactivo). Usa Restaurar para reactivarlo.",
       "fields": {
         "name": "Nombre",
         "allyType": "Tipo de aliado",
