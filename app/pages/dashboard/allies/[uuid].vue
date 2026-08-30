@@ -802,13 +802,14 @@ onMounted(async () => {
           <div class="flex items-center gap-2">
             <!-- Refrescar + herramientas de consulta -->
             <RefreshButton
+              size="md"
               :loading="refreshingAll"
               :title="t('common.refreshRecord')"
               @refresh="refreshAll"
             />
-            <ReportPrintButton :record-uuid="allyUuid" />
+            <ReportPrintButton :record-uuid="allyUuid" size="md" />
             <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
-              <UButton color="neutral" variant="ghost" icon="i-lucide-history" @click="auditOpen = true" />
+              <UButton color="neutral" variant="ghost" icon="i-lucide-history" size="md" @click="auditOpen = true" />
             </UTooltip>
 
             <!-- Acción principal -->
@@ -817,6 +818,7 @@ onMounted(async () => {
                 color="neutral"
                 variant="ghost"
                 icon="i-lucide-pencil"
+                size="md"
                 :disabled="!canUpdate"
                 @click="navigateTo(`/dashboard/allies?edit=${allyUuid}`)"
               />
@@ -828,6 +830,7 @@ onMounted(async () => {
               :active="ally.active"
               :allowed="canDelete"
               :loading="restoring"
+              size="md"
               icon-only
               class="ms-2"
               @restore="restoreAlly"
@@ -836,6 +839,7 @@ onMounted(async () => {
               <UButton
                 color="error"
                 variant="ghost"
+                size="md"
                 icon="i-lucide-trash-2"
                 class="ms-2"
                 :disabled="!canDelete"
