@@ -38,7 +38,7 @@ export const useAuth = () => {
     }
     finally {
       store.clearSession()
-      await router.push('/login')
+      await router.push('/')
     }
   }
 
@@ -50,7 +50,7 @@ export const useAuth = () => {
     })
     // El backend invalida las sesiones previas → forzar re-login.
     store.clearSession()
-    await router.push('/login')
+    await router.push('/')
   }
 
   /**

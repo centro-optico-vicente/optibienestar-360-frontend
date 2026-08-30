@@ -4,11 +4,7 @@ import logoUrl from '~/assets/centro-optico-vicente-logo.png'
 const auth = useAuthStore()
 
 const navLinks = [
-  { labelKey: 'layout.public.nav.home', to: '/' },
-  { labelKey: 'layout.public.nav.about', to: '/#about' },
-  { labelKey: 'layout.public.nav.departments', to: '/#departments' },
   { labelKey: 'layout.public.nav.allies', to: '/aliados' },
-  { labelKey: 'layout.public.nav.contact', to: '/#contact' },
 ]
 
 const scrolled = ref<boolean>(false)
@@ -59,7 +55,7 @@ onMounted(async () => {
         <div class="flex items-center gap-3">
           <UButton
             v-if="!auth.isAuthenticated"
-            to="/login"
+            to="/"
             color="primary"
             variant="solid"
             size="sm"
