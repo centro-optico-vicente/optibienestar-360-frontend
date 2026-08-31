@@ -94,16 +94,31 @@ const pagedRoles = computed(() => {
   const start = (page.value - 1) * size.value
   return filteredRoles.value.slice(start, start + size.value)
 })
-watch(size, () => { page.value = 1 })
+// Guards the filter watchers so "clear filters and refresh" fires a single reload.
+const resetting = ref(false)
+
+watch(size, () => { if (!resetting.value) page.value = 1 })
 let searchTimer: ReturnType<typeof setTimeout> | undefined
 watch(search, () => {
+  if (resetting.value) return
   clearTimeout(searchTimer)
   searchTimer = setTimeout(() => {
     page.value = 1
     loadRoles()
   }, 400)
 })
-watch(includeInactive, () => { page.value = 1; loadRoles() })
+watch(includeInactive, () => { if (!resetting.value) { page.value = 1; loadRoles() } })
+
+async function resetFilters() {
+  resetting.value = true
+  search.value = ''
+  includeInactive.value = false
+  size.value = DEFAULT_PAGE_SIZE
+  page.value = 1
+  await nextTick()
+  resetting.value = false
+  loadRoles()
+}
 
 async function loadRoles() {
   loading.value = true
@@ -152,14 +167,43 @@ function openRoleCreate() {
   roleFormOpen.value = true
 }
 
-function openRoleEdit(r: RoleDto) {
-  roleMode.value = 'edit'
+// Snapshot of the last-loaded edit state, used to warn before a refresh
+// discards unsaved changes.
+const roleEditSnapshot = ref('')
+function snapRoleEditState() { return JSON.stringify({ ...roleState, roleIsActive: roleIsActive.value }) }
+const isRoleEditDirty = computed(() => roleEditSnapshot.value !== '' && snapRoleEditState() !== roleEditSnapshot.value)
+const roleDiscardConfirmOpen = ref(false)
+const roleEditReloading = ref(false)
+
+function populateRoleEditForm(r: RoleDto) {
   roleEditingUuid.value = r.uuid
   roleEditing.value = r
   roleState.name = r.name
   roleState.description = r.description ?? ''
   roleIsActive.value = r.active ?? true
+  roleEditSnapshot.value = snapRoleEditState()
+}
+
+function openRoleEdit(r: RoleDto) {
+  roleMode.value = 'edit'
+  populateRoleEditForm(r)
   roleFormOpen.value = true
+}
+
+async function reloadRoleEditForm() {
+  if (!roleEditingUuid.value) return
+  roleEditReloading.value = true
+  try { populateRoleEditForm(await rolesApi.get(roleEditingUuid.value)) }
+  catch { /* useApi already notified */ }
+  finally { roleEditReloading.value = false }
+}
+function onRoleEditRefresh() {
+  if (isRoleEditDirty.value) roleDiscardConfirmOpen.value = true
+  else reloadRoleEditForm()
+}
+function discardAndRefreshRole() {
+  roleDiscardConfirmOpen.value = false
+  reloadRoleEditForm()
 }
 
 // Shortcuts from the edit modal to the role's other two actions. They close this
@@ -293,15 +337,17 @@ function openEdit(role: RoleDto) {
         </p>
       </div>
       <div class="flex items-center gap-2">
-        <ReportPrintButton />
+        <ListRefreshMenu :loading="loading" variant="ghost" @refresh="loadRoles" @reset="resetFilters" />
+        <ReportPrintButton variant="ghost" />
         <UTooltip :text="canCreate ? $t('security.roles.createTooltip') : $t('security.roles.noPermissionCreate')">
           <UButton
             color="primary"
-            icon="i-lucide-shield-plus"
+            variant="outline"
+            icon="i-lucide-plus"
             :disabled="!canCreate"
             @click="openRoleCreate"
           >
-            {{ $t('security.roles.new') }}
+            {{ $t('common.new') }}
           </UButton>
         </UTooltip>
       </div>
@@ -363,13 +409,16 @@ function openEdit(role: RoleDto) {
                       :to="`/dashboard/roles/${r.uuid}`"
                     />
                   </UTooltip>
-                  <ReportPrintButton
-                    table-name="roles"
-                    :record-uuid="r.uuid"
-                    icon-only
-                    variant="ghost"
-                    size="sm"
-                  />
+                  <UTooltip :text="!canUpdate ? $t('security.roles.noPermission') : (canEditRole(r) ? $t('security.roles.editRoleTooltip') : $t('security.roles.systemOnlySystemActor'))">
+                    <UButton
+                      color="info"
+                      variant="ghost"
+                      icon="i-lucide-pencil"
+                      size="sm"
+                      :disabled="!canEditRole(r)"
+                      @click="openRoleEdit(r)"
+                    />
+                  </UTooltip>
                   <UTooltip :text="!canEditPermissions ? $t('security.roles.noPermission') : (canEditRolePermissions(r) ? $t('security.roles.editPermissionsTooltip') : $t('security.roles.systemOnlySystemActor'))">
                     <UButton
                       color="neutral"
@@ -381,14 +430,20 @@ function openEdit(role: RoleDto) {
                       @click="openEdit(r)"
                     />
                   </UTooltip>
-                  <UTooltip :text="!canUpdate ? $t('security.roles.noPermission') : (canEditRole(r) ? $t('security.roles.editRoleTooltip') : $t('security.roles.systemOnlySystemActor'))">
+                  <ReportPrintButton
+                    table-name="roles"
+                    :record-uuid="r.uuid"
+                    icon-only
+                    variant="ghost"
+                    size="sm"
+                  />
+                  <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
                     <UButton
                       color="neutral"
                       variant="ghost"
-                      icon="i-lucide-pencil"
+                      icon="i-lucide-history"
                       size="sm"
-                      :disabled="!canEditRole(r)"
-                      @click="openRoleEdit(r)"
+                      @click="openAudit(r)"
                     />
                   </UTooltip>
                   <UTooltip :text="!canDelete ? $t('security.roles.noPermission') : (isSystemRole(r) ? $t('security.roles.systemNotDeletable') : $t('security.roles.deleteRoleTooltip'))">
@@ -397,17 +452,9 @@ function openEdit(role: RoleDto) {
                       variant="ghost"
                       icon="i-lucide-trash-2"
                       size="sm"
+                      class="ms-2"
                       :disabled="!canDeleteRole(r)"
                       @click="openRoleDelete(r)"
-                    />
-                  </UTooltip>
-                  <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
-                    <UButton
-                      color="neutral"
-                      variant="ghost"
-                      icon="i-lucide-history"
-                      size="sm"
-                      @click="openAudit(r)"
                     />
                   </UTooltip>
                 </div>
@@ -450,6 +497,7 @@ function openEdit(role: RoleDto) {
       v-model:open="roleFormOpen"
       :title="roleMode === 'create' ? $t('security.roles.modalCreateTitle') : $t('security.roles.modalEditTitle')"
       :description="roleMode === 'create' ? $t('security.roles.modalCreateDescription') : $t('security.roles.modalEditDescription')"
+      :ui="{ content: 'max-w-xl' }"
     >
       <template #body>
         <UForm
@@ -505,28 +553,39 @@ function openEdit(role: RoleDto) {
                   @click="openDeleteFromEdit"
                 />
               </UTooltip>
-              <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
-                <UButton
-                  color="neutral"
-                  variant="ghost"
-                  icon="i-lucide-history"
-                  size="sm"
-                  @click="openAudit(roleEditing)"
-                />
-              </UTooltip>
             </div>
             <div v-else />
 
             <div class="flex items-center gap-3">
+              <RefreshButton
+                v-if="roleMode === 'edit'"
+                :icon-only="false"
+                :label="$t('common.refresh')"
+                :title="$t('common.refresh')"
+                :loading="roleEditReloading"
+                :disabled="roleSubmitting"
+                @refresh="onRoleEditRefresh"
+              />
               <UButton color="neutral" variant="ghost" :disabled="roleSubmitting" @click="roleFormOpen = false">
                 {{ $t('common.cancel') }}
               </UButton>
-              <UButton type="submit" color="primary" :loading="roleSubmitting" icon="i-lucide-save">
-                {{ roleMode === 'create' ? $t('security.roles.submitCreate') : $t('common.saveChanges') }}
+              <UButton type="submit" :color="roleMode === 'create' ? 'primary' : 'info'" variant="outline" :loading="roleSubmitting" icon="i-lucide-save">
+                {{ roleMode === 'create' ? $t('common.saveNew') : $t('common.saveChanges') }}
               </UButton>
             </div>
           </div>
         </UForm>
+
+        <!-- Discard unsaved changes before refreshing -->
+        <UModal v-model:open="roleDiscardConfirmOpen" :title="$t('common.discardChangesTitle')">
+          <template #body>
+            <p class="text-sm text-prohealth-700">{{ $t('common.discardChangesBody') }}</p>
+            <div class="flex items-center justify-end gap-3 pt-5">
+              <UButton color="neutral" variant="ghost" @click="roleDiscardConfirmOpen = false">{{ $t('common.cancel') }}</UButton>
+              <UButton color="warning" icon="i-lucide-refresh-cw" @click="discardAndRefreshRole">{{ $t('common.discardAndRefresh') }}</UButton>
+            </div>
+          </template>
+        </UModal>
       </template>
     </UModal>
 

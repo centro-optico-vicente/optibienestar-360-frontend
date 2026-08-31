@@ -275,9 +275,7 @@ const roleSchema = computed(() => z.object({
 
 function openRoleEdit() {
   if (!role.value) return
-  roleState.name = role.value.name
-  roleState.description = role.value.description ?? ''
-  roleIsActive.value = role.value.active ?? true
+  populateRoleEditForm(role.value)
   roleFormOpen.value = true
 }
 
@@ -334,6 +332,49 @@ onMounted(async () => {
     loadUserOptions(),
   ])
 })
+
+// Header "Refrescar": re-fetch the role + both tabs at once.
+const refreshingAll = ref(false)
+async function refreshAll() {
+  refreshingAll.value = true
+  try {
+    await Promise.all([loadRole(), loadGrantedPermissions(), loadRoleUsers()])
+  }
+  finally {
+    refreshingAll.value = false
+  }
+}
+
+// Snapshot of the last-loaded edit state, used to warn before a refresh
+// discards unsaved changes.
+const roleEditSnapshot = ref('')
+function snapRoleEditState() { return JSON.stringify({ ...roleState, roleIsActive: roleIsActive.value }) }
+const isRoleEditDirty = computed(() => roleEditSnapshot.value !== '' && snapRoleEditState() !== roleEditSnapshot.value)
+const roleDiscardConfirmOpen = ref(false)
+const roleEditReloading = ref(false)
+
+function populateRoleEditForm(r: RoleDto) {
+  roleState.name = r.name
+  roleState.description = r.description ?? ''
+  roleIsActive.value = r.active ?? true
+  roleEditSnapshot.value = snapRoleEditState()
+}
+
+async function reloadRoleEditForm() {
+  if (!role.value) return
+  roleEditReloading.value = true
+  try { populateRoleEditForm(await rolesApi.get(role.value.uuid)) }
+  catch { /* useApi already notified */ }
+  finally { roleEditReloading.value = false }
+}
+function onRoleEditRefresh() {
+  if (isRoleEditDirty.value) roleDiscardConfirmOpen.value = true
+  else reloadRoleEditForm()
+}
+function discardAndRefreshRole() {
+  roleDiscardConfirmOpen.value = false
+  reloadRoleEditForm()
+}
 </script>
 
 <template>
@@ -378,10 +419,18 @@ onMounted(async () => {
             </p>
           </div>
           <div class="flex items-center gap-2">
-            <ReportPrintButton :record-uuid="roleUuid" />
+            <RefreshButton
+              size="md"
+              variant="ghost"
+              :icon-only="false"
+              :loading="refreshingAll"
+              :title="t('common.refreshRecord')"
+              @refresh="refreshAll"
+            />
+            <ReportPrintButton :record-uuid="roleUuid" variant="ghost" />
             <UTooltip :text="!canUpdate ? t('security.roles.noPermission') : (canEditRole ? t('security.roles.editRoleTooltip') : t('security.roles.systemOnlySystemActor'))">
               <UButton
-                color="neutral"
+                color="info"
                 variant="ghost"
                 icon="i-lucide-pencil"
                 :disabled="!canEditRole"
@@ -404,6 +453,7 @@ onMounted(async () => {
               :active="role.active"
               :allowed="canDeleteRole"
               :loading="restoring"
+              class="ms-2"
               @restore="restoreRole"
             />
             <UTooltip v-else :text="!canDelete ? t('security.roles.noPermission') : (isSystemRole(role) ? t('security.roles.systemNotDeletable') : t('security.roles.deleteRoleTooltip'))">
@@ -411,6 +461,7 @@ onMounted(async () => {
                 color="error"
                 variant="ghost"
                 icon="i-lucide-trash-2"
+                class="ms-2"
                 :disabled="!canDeleteRole"
                 @click="openRoleDelete"
               />
@@ -432,18 +483,21 @@ onMounted(async () => {
             <h2 class="font-bold text-prohealth-900">{{ t('security.roles.detail.tabs.permissions') }}</h2>
             <p class="text-xs text-prohealth-500 mt-0.5">{{ t('security.roles.permissionsModalDescription') }}</p>
           </div>
-          <UTooltip :text="!canEditPermissions ? t('security.roles.noPermission') : (canEditRolePermissions ? t('security.roles.editPermissionsTooltip') : t('security.roles.systemOnlySystemActor'))">
-            <UButton
-              color="primary"
-              variant="soft"
-              icon="i-lucide-key-round"
-              size="sm"
-              :disabled="!canEditRolePermissions"
-              @click="openPermissionsModal"
-            >
-              {{ t('security.roles.permissions') }}
-            </UButton>
-          </UTooltip>
+          <div class="flex items-center gap-2">
+            <UTooltip :text="!canEditPermissions ? t('security.roles.noPermission') : (canEditRolePermissions ? t('security.roles.editPermissionsTooltip') : t('security.roles.systemOnlySystemActor'))">
+              <UButton
+                color="primary"
+                variant="soft"
+                icon="i-lucide-key-round"
+                size="sm"
+                :disabled="!canEditRolePermissions"
+                @click="openPermissionsModal"
+              >
+                {{ t('security.roles.permissions') }}
+              </UButton>
+            </UTooltip>
+            <RefreshButton :loading="grantedPermissionsLoading" :title="t('common.refreshSection')" @refresh="loadGrantedPermissions" />
+          </div>
         </div>
 
         <div class="mt-5 overflow-x-auto rounded-xl border border-prohealth-100">
@@ -497,39 +551,38 @@ onMounted(async () => {
         v-show="activeTab === 'users'"
         class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden"
       >
-        <div class="flex items-center justify-between px-6 py-4 border-b border-prohealth-100">
+        <div class="flex flex-wrap items-center justify-between gap-4 px-6 py-4 border-b border-prohealth-100">
           <div>
             <h2 class="font-bold text-prohealth-900">{{ t('security.roles.detail.usersTab.title') }}</h2>
             <p class="text-xs text-prohealth-500 mt-0.5">{{ t('security.roles.detail.usersTab.hint') }}</p>
           </div>
-        </div>
-
-        <div class="p-6 space-y-5">
-          <!-- Add -->
-          <div v-if="canAssignUsers" class="flex items-end gap-3 max-w-md">
-            <UFormField :label="t('security.roles.detail.usersTab.add')" class="flex-1">
-              <USelectMenu
-                v-model="userToAdd"
-                :items="availableUserOptions"
-                label-key="label"
-                value-key="value"
-                :placeholder="t('security.roles.detail.usersTab.selectUser')"
-                class="w-full"
-              />
-            </UFormField>
-            <UTooltip :text="t('security.roles.detail.usersTab.addTooltip')">
+          <div class="flex items-center gap-2">
+            <USelectMenu
+              v-model="userToAdd"
+              :items="availableUserOptions"
+              label-key="label"
+              value-key="value"
+              :placeholder="t('security.roles.detail.usersTab.selectUser')"
+              :disabled="!canAssignUsers"
+              class="w-48"
+            />
+            <UTooltip :text="canAssignUsers ? t('security.roles.detail.usersTab.addTooltip') : t('security.roles.noPermission')">
               <UButton
                 color="primary"
+                variant="soft"
                 icon="i-lucide-plus"
-                :disabled="!userToAdd"
+                :disabled="!canAssignUsers || !userToAdd"
                 :loading="userMutating"
                 @click="addRoleUser"
               >
                 {{ t('security.roles.detail.usersTab.add') }}
               </UButton>
             </UTooltip>
+            <RefreshButton :loading="roleUsersLoading" :title="t('common.refreshSection')" @refresh="loadRoleUsers" />
           </div>
+        </div>
 
+        <div class="p-6 space-y-5">
           <div class="overflow-x-auto">
             <table class="w-full text-sm">
               <thead>
@@ -589,6 +642,7 @@ onMounted(async () => {
       v-model:open="roleFormOpen"
       :title="t('security.roles.modalEditTitle')"
       :description="t('security.roles.modalEditDescription')"
+      :ui="{ content: 'max-w-xl' }"
     >
       <template #body>
         <UForm
@@ -612,14 +666,33 @@ onMounted(async () => {
           <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
 
           <div class="flex items-center justify-end gap-3 pt-2">
+            <RefreshButton
+              :icon-only="false"
+              :label="t('common.refresh')"
+              :title="t('common.refresh')"
+              :loading="roleEditReloading"
+              :disabled="roleSubmitting"
+              @refresh="onRoleEditRefresh"
+            />
             <UButton color="neutral" variant="ghost" :disabled="roleSubmitting" @click="roleFormOpen = false">
               {{ t('common.cancel') }}
             </UButton>
-            <UButton type="submit" color="primary" :loading="roleSubmitting" icon="i-lucide-save">
+            <UButton type="submit" color="info" variant="outline" :loading="roleSubmitting" icon="i-lucide-save">
               {{ t('common.saveChanges') }}
             </UButton>
           </div>
         </UForm>
+
+        <!-- Discard unsaved changes before refreshing -->
+        <UModal v-model:open="roleDiscardConfirmOpen" :title="t('common.discardChangesTitle')">
+          <template #body>
+            <p class="text-sm text-prohealth-700">{{ t('common.discardChangesBody') }}</p>
+            <div class="flex items-center justify-end gap-3 pt-5">
+              <UButton color="neutral" variant="ghost" @click="roleDiscardConfirmOpen = false">{{ t('common.cancel') }}</UButton>
+              <UButton color="warning" icon="i-lucide-refresh-cw" @click="discardAndRefreshRole">{{ t('common.discardAndRefresh') }}</UButton>
+            </div>
+          </template>
+        </UModal>
       </template>
     </UModal>
 

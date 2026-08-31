@@ -260,7 +260,8 @@
       },
       "fields": {
         "name": "Nombre",
-        "description": "Descripción"
+        "description": "Descripción",
+        "active": "Activo"
       },
       "viewDetailTooltip": "Ver detalle",
       "bulkActions": {

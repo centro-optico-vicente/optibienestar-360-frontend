@@ -168,8 +168,17 @@ const schema = computed(() => {
 // True while the detail loads when opening in edit mode.
 const loadingDetail = ref(false)
 
+// Snapshot of the last-loaded edit state, used to warn before a refresh
+// discards unsaved changes.
+const editSnapshot = ref('')
+function snapEditState() { return JSON.stringify(state) }
+const isEditDirty = computed(() => editSnapshot.value !== '' && snapEditState() !== editSnapshot.value)
+const discardConfirmOpen = ref(false)
+const reloading = ref(false)
+
 function populateFrom(p: PromoterDto | null) {
   if (!p) {
+    editSnapshot.value = ''
     state.displayName = ''
     state.referralCode = ''
     state.userUuid = ''
@@ -190,6 +199,23 @@ function populateFrom(p: PromoterDto | null) {
   state.promoterTypeUuid = p.promoterTypeUuid ?? ''
   state.status = (p.status as PromoterStatus) ?? 'ACTIVE'
   state.active = p.active ?? true
+  editSnapshot.value = snapEditState()
+}
+
+async function reloadForm() {
+  if (!props.promoter) return
+  reloading.value = true
+  try { populateFrom(await promoters.get(props.promoter.uuid)) }
+  catch { /* useApi already notified */ }
+  finally { reloading.value = false }
+}
+function onRefresh() {
+  if (isEditDirty.value) discardConfirmOpen.value = true
+  else reloadForm()
+}
+function discardAndRefresh() {
+  discardConfirmOpen.value = false
+  reloadForm()
 }
 
 // On open: in create mode clear the form; in edit mode load the full detail by UUID
@@ -432,19 +458,40 @@ async function restorePromoter() {
           <div v-else />
 
           <div class="flex items-center gap-3">
+            <RefreshButton
+              v-if="mode === 'edit'"
+              :icon-only="false"
+              :label="t('common.refresh')"
+              :title="t('common.refresh')"
+              :loading="reloading"
+              :disabled="isSubmitting"
+              @refresh="onRefresh"
+            />
             <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="isOpen = false">
               {{ t('common.cancel') }}
             </UButton>
             <UButton
               type="submit"
-              color="primary"
+              :color="mode === 'create' ? 'primary' : 'info'"
+              variant="outline"
               :loading="isSubmitting"
               icon="i-lucide-save"
             >
-              {{ mode === 'create' ? t('promoters.form.submitCreate') : t('common.saveChanges') }}
+              {{ mode === 'create' ? t('common.saveNew') : t('common.saveChanges') }}
             </UButton>
           </div>
         </div>
+
+        <!-- Discard unsaved changes before refreshing -->
+        <UModal v-model:open="discardConfirmOpen" :title="t('common.discardChangesTitle')">
+          <template #body>
+            <p class="text-sm text-prohealth-700">{{ t('common.discardChangesBody') }}</p>
+            <div class="flex items-center justify-end gap-3 pt-5">
+              <UButton color="neutral" variant="ghost" @click="discardConfirmOpen = false">{{ t('common.cancel') }}</UButton>
+              <UButton color="warning" icon="i-lucide-refresh-cw" @click="discardAndRefresh">{{ t('common.discardAndRefresh') }}</UButton>
+            </div>
+          </template>
+        </UModal>
       </UForm>
     </template>
   </UModal>
