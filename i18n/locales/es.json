@@ -1200,8 +1200,8 @@
     "staff": {
       "title": "Personal",
       "hint": "Usuarios con acceso al panel del aliado.",
-      "assignTooltip": "Asignar usuario",
-      "assign": "Asignar",
+      "assignTooltip": "Añadir usuario",
+      "assign": "Añadir",
       "empty": "Sin personal asignado",
       "editTooltip": "Editar",
       "unlinkTooltip": "Desvincular",

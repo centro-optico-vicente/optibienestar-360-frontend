@@ -363,7 +363,7 @@ onMounted(async () => {
         </div>
 
         <div class="p-6 space-y-5">
-          <div v-if="canAssignRoles" class="flex items-end gap-3 max-w-md">
+          <div class="flex items-end gap-3 max-w-md">
             <UFormField :label="t('security.users.detail.rolesTab.add')" class="flex-1">
               <USelectMenu
                 v-model="roleToAdd"
@@ -371,14 +371,16 @@ onMounted(async () => {
                 label-key="label"
                 value-key="value"
                 :placeholder="t('security.users.detail.rolesTab.selectRole')"
+                :disabled="!canAssignRoles"
                 class="w-full"
               />
             </UFormField>
             <UTooltip :text="t('security.users.detail.rolesTab.addTooltip')">
               <UButton
                 color="primary"
+                variant="soft"
                 icon="i-lucide-plus"
-                :disabled="!roleToAdd"
+                :disabled="!canAssignRoles || !roleToAdd"
                 :loading="roleMutating"
                 @click="addUserRole"
               >
@@ -387,10 +389,7 @@ onMounted(async () => {
             </UTooltip>
           </div>
 
-          <p v-if="userRoles.length === 0" class="text-sm text-prohealth-500">
-            {{ t('security.users.detail.rolesTab.empty') }}
-          </p>
-          <div v-else class="overflow-x-auto">
+          <div class="overflow-x-auto">
             <table class="w-full text-sm">
               <thead>
                 <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
@@ -400,7 +399,13 @@ onMounted(async () => {
                 </tr>
               </thead>
               <tbody class="divide-y divide-prohealth-100">
-                <tr v-for="r in userRoles" :key="r.uuid" class="hover:bg-prohealth-50/50">
+                <tr v-if="userRoles.length === 0">
+                  <td colspan="3" class="px-6 py-10 text-center text-prohealth-500">
+                    <UIcon name="i-lucide-shield" class="w-7 h-7 mx-auto mb-2 text-prohealth-300" />
+                    {{ t('security.users.detail.rolesTab.empty') }}
+                  </td>
+                </tr>
+                <tr v-for="r in userRoles" v-else :key="r.uuid" class="hover:bg-prohealth-50/50">
                   <td class="px-6 py-3 font-semibold text-prohealth-900">{{ r.name }}</td>
                   <td class="px-6 py-3 text-prohealth-600">{{ r.description || t('common.empty') }}</td>
                   <td class="px-6 py-3">
@@ -434,7 +439,7 @@ onMounted(async () => {
         </div>
 
         <div class="p-6 space-y-5">
-          <div v-if="canAssignAllies" class="flex items-end gap-3 max-w-md">
+          <div class="flex items-end gap-3 max-w-md">
             <UFormField :label="t('security.users.detail.alliesTab.add')" class="flex-1">
               <USelectMenu
                 v-model="allyToAdd"
@@ -442,14 +447,16 @@ onMounted(async () => {
                 label-key="label"
                 value-key="value"
                 :placeholder="t('security.users.detail.alliesTab.selectAlly')"
+                :disabled="!canAssignAllies"
                 class="w-full"
               />
             </UFormField>
             <UTooltip :text="t('security.users.detail.alliesTab.addTooltip')">
               <UButton
                 color="primary"
+                variant="soft"
                 icon="i-lucide-plus"
-                :disabled="!allyToAdd"
+                :disabled="!canAssignAllies || !allyToAdd"
                 :loading="allyMutating"
                 @click="addUserAlly"
               >
@@ -458,13 +465,7 @@ onMounted(async () => {
             </UTooltip>
           </div>
 
-          <div v-if="userAlliesLoading" class="flex gap-2">
-            <USkeleton v-for="i in 3" :key="i" class="h-7 w-28 rounded-full" />
-          </div>
-          <p v-else-if="userAllies.length === 0" class="text-sm text-prohealth-500">
-            {{ t('security.users.detail.alliesTab.empty') }}
-          </p>
-          <div v-else class="overflow-x-auto">
+          <div class="overflow-x-auto">
             <table class="w-full text-sm">
               <thead>
                 <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
@@ -476,7 +477,14 @@ onMounted(async () => {
                 </tr>
               </thead>
               <tbody class="divide-y divide-prohealth-100">
-                <tr v-for="row in userAllies" :key="row.allyUuid" class="hover:bg-prohealth-50/50">
+                <TableSkeleton v-if="userAlliesLoading" :rows="3" :cols="5" />
+                <tr v-else-if="userAllies.length === 0">
+                  <td colspan="5" class="px-6 py-10 text-center text-prohealth-500">
+                    <UIcon name="i-lucide-handshake" class="w-7 h-7 mx-auto mb-2 text-prohealth-300" />
+                    {{ t('security.users.detail.alliesTab.empty') }}
+                  </td>
+                </tr>
+                <tr v-for="row in userAllies" v-else :key="row.allyUuid" class="hover:bg-prohealth-50/50">
                   <td class="px-6 py-3 font-semibold text-prohealth-900">{{ row.allyName }}</td>
                   <td class="px-6 py-3">
                     <UBadge color="primary" variant="subtle" size="sm">

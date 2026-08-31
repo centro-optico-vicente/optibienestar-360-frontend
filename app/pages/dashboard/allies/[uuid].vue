@@ -1007,16 +1007,11 @@ onMounted(async () => {
             <h2 class="font-bold text-prohealth-900">{{ t('allies.specialties.title') }}</h2>
             <p class="text-xs text-prohealth-500 mt-0.5">{{ t('allies.specialties.hint') }}</p>
           </div>
-          <RefreshButton
-            :loading="specialtiesLoading"
-            :title="t('common.refreshSection')"
-            @refresh="loadSpecialties"
-          />
         </div>
 
         <div class="p-6 space-y-5">
-          <!-- Add -->
-          <div v-if="canUpdate" class="flex items-end gap-3 max-w-md">
+          <!-- Add + Refresh, on the same row -->
+          <div class="flex items-end gap-3 max-w-xl">
             <UFormField :label="t('allies.specialties.add')" class="flex-1">
               <USelectMenu
                 v-model="specialtyToAdd"
@@ -1024,18 +1019,26 @@ onMounted(async () => {
                 label-key="label"
                 value-key="value"
                 :placeholder="t('common.select')"
+                :disabled="!canUpdate"
                 class="w-full"
               />
             </UFormField>
             <UButton
               color="primary"
+              variant="soft"
               icon="i-lucide-plus"
-              :disabled="!specialtyToAdd"
+              :disabled="!canUpdate || !specialtyToAdd"
               :loading="specialtyMutating"
               @click="addSpecialty"
             >
               {{ t('allies.specialties.addButton') }}
             </UButton>
+            <RefreshButton
+              size="md"
+              :loading="specialtiesLoading"
+              :title="t('common.refreshSection')"
+              @refresh="loadSpecialties"
+            />
           </div>
 
           <!-- List -->

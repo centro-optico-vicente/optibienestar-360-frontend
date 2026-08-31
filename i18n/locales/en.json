@@ -1200,8 +1200,8 @@
     "staff": {
       "title": "Staff",
       "hint": "Users with access to the partner panel.",
-      "assignTooltip": "Assign user",
-      "assign": "Assign",
+      "assignTooltip": "Add user",
+      "assign": "Add",
       "empty": "No staff assigned",
       "editTooltip": "Edit",
       "unlinkTooltip": "Unlink",
