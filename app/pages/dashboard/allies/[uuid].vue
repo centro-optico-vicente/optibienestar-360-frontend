@@ -824,7 +824,7 @@ onMounted(async () => {
             <UTooltip :text="canUpdate ? t('common.edit') : t('allies.noPermissionEdit')">
               <UButton
                 color="info"
-                variant="outline"
+                variant="ghost"
                 icon="i-lucide-pencil"
                 size="md"
                 :label="t('common.edit')"
@@ -840,14 +840,14 @@ onMounted(async () => {
               :allowed="canDelete"
               :loading="restoring"
               size="md"
-              variant="outline"
+              variant="ghost"
               class="ms-2"
               @restore="restoreAlly"
             />
             <UTooltip v-else :text="canDelete ? t('common.delete') : t('allies.noPermissionDelete')">
               <UButton
                 color="error"
-                variant="outline"
+                variant="ghost"
                 size="md"
                 icon="i-lucide-trash-2"
                 :label="t('common.delete')"

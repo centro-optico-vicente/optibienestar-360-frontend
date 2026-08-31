@@ -602,7 +602,7 @@ async function confirmDelete() {
                   </UTooltip>
                   <UTooltip :text="canUpdate ? t('common.edit') : t('allies.noPermissionEdit')">
                     <UButton
-                      color="neutral"
+                      color="info"
                       variant="ghost"
                       icon="i-lucide-pencil"
                       size="sm"
