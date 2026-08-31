@@ -1051,7 +1051,8 @@
     "status": {
       "ACTIVE": "Activo",
       "INACTIVE": "Inactivo",
-      "SUSPENDED": "Suspendido"
+      "SUSPENDED": "Suspendido",
+      "AGREEMENT_EXPIRED": "Acuerdo vencido"
     },
     "form": {
       "createTitle": "Nuevo aliado",
@@ -2357,7 +2358,8 @@
         "rewardKind": "Tipo de recompensa",
         "commissionPct": "Porcentaje",
         "flatAmount": "Monto fijo",
-        "submitCreate": "Crear banda"
+        "submitCreate": "Crear banda",
+        "active": "Activo"
       }
     },
     "bonusRules": {
@@ -2423,7 +2425,8 @@
         "maxDays": "Días máximos",
         "maxDaysHelp": "Aplica cuando días de cobro <= este valor.",
         "commissionPct": "Porcentaje",
-        "submitCreate": "Crear tramo"
+        "submitCreate": "Crear tramo",
+        "active": "Activo"
       }
     }
   },
