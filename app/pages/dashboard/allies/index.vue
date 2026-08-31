@@ -493,7 +493,7 @@ async function confirmDelete() {
         <UTooltip :text="canCreate ? t('allies.createTooltip') : t('allies.noPermissionCreate')">
           <UButton
             color="primary"
-            icon="i-lucide-handshake"
+            icon="i-lucide-plus"
             :disabled="!canCreate"
             @click="openCreate"
           >
