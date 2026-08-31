@@ -1002,27 +1002,21 @@ onMounted(async () => {
 
       <!-- ============ Specialties ============ -->
       <div v-show="activeTab === 'specialties'" class="bg-white rounded-2xl border border-prohealth-100">
-        <div class="flex items-center justify-between px-6 py-4 border-b border-prohealth-100">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-prohealth-100 gap-4">
           <div>
             <h2 class="font-bold text-prohealth-900">{{ t('allies.specialties.title') }}</h2>
             <p class="text-xs text-prohealth-500 mt-0.5">{{ t('allies.specialties.hint') }}</p>
           </div>
-        </div>
-
-        <div class="p-6 space-y-5">
-          <!-- Add + Refresh, on the same row -->
-          <div class="flex items-end gap-3 max-w-xl">
-            <UFormField :label="t('allies.specialties.add')" class="flex-1">
-              <USelectMenu
-                v-model="specialtyToAdd"
-                :items="availableSpecialtyOptions"
-                label-key="label"
-                value-key="value"
-                :placeholder="t('common.select')"
-                :disabled="!canUpdate"
-                class="w-full"
-              />
-            </UFormField>
+          <div class="flex items-center gap-2">
+            <USelectMenu
+              v-model="specialtyToAdd"
+              :items="availableSpecialtyOptions"
+              label-key="label"
+              value-key="value"
+              :placeholder="t('common.select')"
+              :disabled="!canUpdate"
+              class="w-48"
+            />
             <UButton
               color="primary"
               variant="soft"
@@ -1040,7 +1034,9 @@ onMounted(async () => {
               @refresh="loadSpecialties"
             />
           </div>
+        </div>
 
+        <div class="p-6 space-y-5">
           <!-- List -->
           <div v-if="specialtiesLoading" class="flex gap-2">
             <USkeleton v-for="i in 3" :key="i" class="h-7 w-28 rounded-full" />

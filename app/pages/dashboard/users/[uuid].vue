@@ -355,26 +355,21 @@ onMounted(async () => {
 
       <!-- ============ Roles ============ -->
       <div v-show="activeTab === 'roles'" class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
-        <div class="flex items-center justify-between px-6 py-4 border-b border-prohealth-100">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-prohealth-100 gap-4">
           <div>
             <h2 class="font-bold text-prohealth-900">{{ t('security.users.detail.rolesTab.title') }}</h2>
             <p class="text-xs text-prohealth-500 mt-0.5">{{ t('security.users.detail.rolesTab.hint') }}</p>
           </div>
-        </div>
-
-        <div class="p-6 space-y-5">
-          <div class="flex items-end gap-3 max-w-md">
-            <UFormField :label="t('security.users.detail.rolesTab.add')" class="flex-1">
-              <USelectMenu
-                v-model="roleToAdd"
-                :items="availableRoleOptions"
-                label-key="label"
-                value-key="value"
-                :placeholder="t('security.users.detail.rolesTab.selectRole')"
-                :disabled="!canAssignRoles"
-                class="w-full"
-              />
-            </UFormField>
+          <div class="flex items-center gap-2">
+            <USelectMenu
+              v-model="roleToAdd"
+              :items="availableRoleOptions"
+              label-key="label"
+              value-key="value"
+              :placeholder="t('security.users.detail.rolesTab.selectRole')"
+              :disabled="!canAssignRoles"
+              class="w-48"
+            />
             <UTooltip :text="t('security.users.detail.rolesTab.addTooltip')">
               <UButton
                 color="primary"
@@ -388,7 +383,9 @@ onMounted(async () => {
               </UButton>
             </UTooltip>
           </div>
+        </div>
 
+        <div class="p-6 space-y-5">
           <div class="overflow-x-auto">
             <table class="w-full text-sm">
               <thead>
@@ -431,26 +428,21 @@ onMounted(async () => {
 
       <!-- ============ Allies (always visible) ============ -->
       <div v-show="activeTab === 'allies'" class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
-        <div class="flex items-center justify-between px-6 py-4 border-b border-prohealth-100">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-prohealth-100 gap-4">
           <div>
             <h2 class="font-bold text-prohealth-900">{{ t('security.users.detail.alliesTab.title') }}</h2>
             <p class="text-xs text-prohealth-500 mt-0.5">{{ t('security.users.detail.alliesTab.hint') }}</p>
           </div>
-        </div>
-
-        <div class="p-6 space-y-5">
-          <div class="flex items-end gap-3 max-w-md">
-            <UFormField :label="t('security.users.detail.alliesTab.add')" class="flex-1">
-              <USelectMenu
-                v-model="allyToAdd"
-                :items="availableAllyOptions"
-                label-key="label"
-                value-key="value"
-                :placeholder="t('security.users.detail.alliesTab.selectAlly')"
-                :disabled="!canAssignAllies"
-                class="w-full"
-              />
-            </UFormField>
+          <div class="flex items-center gap-2">
+            <USelectMenu
+              v-model="allyToAdd"
+              :items="availableAllyOptions"
+              label-key="label"
+              value-key="value"
+              :placeholder="t('security.users.detail.alliesTab.selectAlly')"
+              :disabled="!canAssignAllies"
+              class="w-48"
+            />
             <UTooltip :text="t('security.users.detail.alliesTab.addTooltip')">
               <UButton
                 color="primary"
@@ -464,7 +456,9 @@ onMounted(async () => {
               </UButton>
             </UTooltip>
           </div>
+        </div>
 
+        <div class="p-6 space-y-5">
           <div class="overflow-x-auto">
             <table class="w-full text-sm">
               <thead>
