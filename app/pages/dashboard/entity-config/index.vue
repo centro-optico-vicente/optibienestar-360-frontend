@@ -134,7 +134,15 @@ const editState = reactive<EditState>({
   notes: '',
 })
 
-function openEdit(e: EntityConfigDto) {
+// Snapshot of the last-loaded edit state, used to warn before a refresh
+// discards unsaved changes.
+const editSnapshot = ref('')
+function snapEditState() { return JSON.stringify(editState) }
+const isEditDirty = computed(() => editSnapshot.value !== '' && snapEditState() !== editSnapshot.value)
+const discardConfirmOpen = ref(false)
+const editReloading = ref(false)
+
+function populateEditForm(e: EntityConfigDto) {
   editingKey.value = e.entityKey
   editingDisplayName.value = e.displayName
   editState.enabled = e.enabled
@@ -145,7 +153,28 @@ function openEdit(e: EntityConfigDto) {
   editState.captureBeforeAfter = e.captureBeforeAfter
   editState.defaultSort = e.defaultSort ? [...e.defaultSort] : []
   editState.notes = e.notes || ''
+  editSnapshot.value = snapEditState()
+}
+
+function openEdit(e: EntityConfigDto) {
+  populateEditForm(e)
   editOpen.value = true
+}
+
+async function reloadEditForm() {
+  if (!editingKey.value) return
+  editReloading.value = true
+  try { populateEditForm(await entityConfigApi.get(editingKey.value)) }
+  catch { /* useApi already notified */ }
+  finally { editReloading.value = false }
+}
+function onEditRefresh() {
+  if (isEditDirty.value) discardConfirmOpen.value = true
+  else reloadEditForm()
+}
+function discardAndRefresh() {
+  discardConfirmOpen.value = false
+  reloadEditForm()
 }
 
 function addSortRow() {
@@ -407,6 +436,14 @@ async function confirmDelete() {
           </UFormField>
 
           <div class="flex items-center justify-end gap-3 pt-2">
+            <RefreshButton
+              :icon-only="false"
+              :label="t('common.refresh')"
+              :title="t('common.refresh')"
+              :loading="editReloading"
+              :disabled="isSubmitting"
+              @refresh="onEditRefresh"
+            />
             <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="editOpen = false">
               {{ t('common.cancel') }}
             </UButton>
@@ -433,6 +470,17 @@ async function confirmDelete() {
           <UButton color="error" :loading="deleting" icon="i-lucide-trash-2" @click="confirmDelete">
             {{ t('common.delete') }}
           </UButton>
+        </div>
+      </template>
+    </UModal>
+
+    <!-- Discard unsaved changes before refreshing the edit form -->
+    <UModal v-model:open="discardConfirmOpen" :title="t('common.discardChangesTitle')">
+      <template #body>
+        <p class="text-sm text-prohealth-700">{{ t('common.discardChangesBody') }}</p>
+        <div class="flex items-center justify-end gap-3 pt-5">
+          <UButton color="neutral" variant="ghost" @click="discardConfirmOpen = false">{{ t('common.cancel') }}</UButton>
+          <UButton color="warning" icon="i-lucide-refresh-cw" @click="discardAndRefresh">{{ t('common.discardAndRefresh') }}</UButton>
         </div>
       </template>
     </UModal>

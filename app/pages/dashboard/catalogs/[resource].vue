@@ -224,8 +224,15 @@ function openCreate() {
   formOpen.value = true
 }
 
-function openEdit(item: CatalogItem) {
-  mode.value = 'edit'
+// Snapshot of the last-loaded edit state, used to warn before a refresh
+// discards unsaved changes.
+const editSnapshot = ref('')
+function snapEditState() { return JSON.stringify({ ...state, isActive: isActive.value }) }
+const isEditDirty = computed(() => editSnapshot.value !== '' && snapEditState() !== editSnapshot.value)
+const discardConfirmOpen = ref(false)
+const editReloading = ref(false)
+
+function populateEditForm(item: CatalogItem) {
   editingUuid.value = item.uuid
   editingItem.value = item
   resetForm()
@@ -233,7 +240,29 @@ function openEdit(item: CatalogItem) {
     state[f.name] = String((item as unknown as Record<string, unknown>)[f.name] ?? '')
   }
   isActive.value = item.active
+  editSnapshot.value = snapEditState()
+}
+
+function openEdit(item: CatalogItem) {
+  mode.value = 'edit'
+  populateEditForm(item)
   formOpen.value = true
+}
+
+async function reloadEditForm() {
+  if (!def.value || !editingUuid.value) return
+  editReloading.value = true
+  try { populateEditForm(await api().get(editingUuid.value)) }
+  catch { /* useApi already notified */ }
+  finally { editReloading.value = false }
+}
+function onEditRefresh() {
+  if (isEditDirty.value) discardConfirmOpen.value = true
+  else reloadEditForm()
+}
+function discardAndRefresh() {
+  discardConfirmOpen.value = false
+  reloadEditForm()
 }
 
 function buildBody(forCreate: boolean): Record<string, unknown> {
@@ -537,6 +566,15 @@ async function confirmDelete() {
             <div v-else />
 
             <div class="flex items-center gap-3">
+              <RefreshButton
+                v-if="mode === 'edit'"
+                :icon-only="false"
+                :label="$t('common.refresh')"
+                :title="$t('common.refresh')"
+                :loading="editReloading"
+                :disabled="isSubmitting"
+                @refresh="onEditRefresh"
+              />
               <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="formOpen = false">
                 {{ $t('common.cancel') }}
               </UButton>
@@ -546,6 +584,17 @@ async function confirmDelete() {
             </div>
           </div>
         </UForm>
+      </template>
+    </UModal>
+
+    <!-- Discard unsaved changes before refreshing the edit form -->
+    <UModal v-model:open="discardConfirmOpen" :title="$t('common.discardChangesTitle')">
+      <template #body>
+        <p class="text-sm text-prohealth-700">{{ $t('common.discardChangesBody') }}</p>
+        <div class="flex items-center justify-end gap-3 pt-5">
+          <UButton color="neutral" variant="ghost" @click="discardConfirmOpen = false">{{ $t('common.cancel') }}</UButton>
+          <UButton color="warning" icon="i-lucide-refresh-cw" @click="discardAndRefresh">{{ $t('common.discardAndRefresh') }}</UButton>
+        </div>
       </template>
     </UModal>
 
