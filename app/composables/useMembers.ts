@@ -8,6 +8,7 @@ import type {
   MedicalRecordDto,
   MemberConfirmationDto,
   MemberDto,
+  MemberListItemDto,
   MemberPromoterAssignmentDto,
   UpdateBeneficiaryRequest,
   UpdateMemberRequest,
@@ -39,7 +40,7 @@ interface OptionsParams {
  */
 export const useMembers = () => {
   const list = (params: ListParams = {}) =>
-    useApi<Page<MemberDto>>('/v1/admin/members', {
+    useApi<Page<MemberListItemDto>>('/v1/admin/members', {
       query: {
         page: params.page ?? 0,
         size: params.size ?? 20,

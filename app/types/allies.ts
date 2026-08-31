@@ -244,8 +244,8 @@ export interface UpdateAllyUserRequest {
 export interface MyAllyDto {
   uuid: string
   name: string
-  allyTypeUuid?: string | null
-  allyTypeName?: string | null
+  allyType_Uuid?: string | null
+  allyType_Display?: string | null
   logoUrl?: string | null
   phone?: string | null
   allyRole: AllyRole | string

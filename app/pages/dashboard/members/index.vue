@@ -7,6 +7,7 @@ import { toSelectItems } from '~/types/options'
 import type {
   CreateMemberRequest,
   MemberDto,
+  MemberListItemDto,
   UpdateMemberRequest,
 } from '~/types/members'
 
@@ -17,7 +18,6 @@ definePageMeta({
 })
 
 const { t } = useI18n()
-const { formatDate } = useFormatters()
 
 useSeoMeta({ title: () => t('common.seoTitle', { page: t('members.title') }) })
 
@@ -33,15 +33,15 @@ const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
 
 const auditOpen = ref(false)
-const auditTarget = ref<MemberDto | null>(null)
+const auditTarget = ref<MemberListItemDto | null>(null)
 
-function openAudit(m: MemberDto) {
+function openAudit(m: MemberListItemDto) {
   auditTarget.value = m
   auditOpen.value = true
 }
 
 // ---- List + pagination + search ----
-const data = ref<MemberDto[]>([])
+const data = ref<MemberListItemDto[]>([])
 const total = ref(0)
 const loading = ref(false)
 const page = ref(1) // UPagination is 1-based; the API is 0-based
@@ -101,17 +101,18 @@ async function resetFilters() {
   load()
 }
 
-// Member status badge/select label; falls back to the raw value.
+// Member status select label (form dropdown, not server-resolved); falls back to the raw value.
 function statusLabel(s?: string | null): string {
   return s ? t(`members.status.${s}`, s) : t('common.empty')
 }
 
 // Effective status label for the table row: `active` (soft-delete flag) wins over the
 // business `status` field, so a soft-deleted record always reads "Inactivo" instead of
-// whatever business status it happened to have (or "Sin información" when status is null).
-function effectiveStatusLabel(m: MemberDto): string {
-  if (m.active === false) return t('members.status.INACTIVE')
-  return m.status ? statusLabel(m.status) : t('common.empty')
+// whatever business status it happened to have. Prefers the server-resolved `_Display`
+// siblings (hub ADR 0014) over local i18n lookups.
+function effectiveStatusLabel(m: MemberListItemDto): string {
+  if (m.active === false) return m.active_Display ?? t('members.status.INACTIVE')
+  return m.status_Display ?? t('common.empty')
 }
 
 // ---- Catalogs for the form selects ----
@@ -175,7 +176,7 @@ onMounted(async () => {
   const editUuid = route.query.edit
   if (typeof editUuid === 'string') {
     try {
-      await openEdit({ uuid: editUuid } as MemberDto)
+      await openEdit({ uuid: editUuid } as MemberListItemDto)
     }
     catch {
       // Invalid/removed uuid: silently ignore, stay on the list.
@@ -187,14 +188,14 @@ onMounted(async () => {
 const formOpen = ref(false)
 const mode = ref<'create' | 'edit'>('create')
 const editingUuid = ref<string | null>(null)
-const editingItem = ref<MemberDto | null>(null)
+const editingItem = ref<MemberListItemDto | null>(null)
 const isSubmitting = ref(false)
 // The list returns a compact projection (MemberListItemDto); on edit the full detail
 // is loaded, and this flag shows the loading state in the modal.
 const editLoading = ref(false)
 const restoring = ref(false)
 
-async function restoreMember(m: MemberDto) {
+async function restoreMember(m: MemberListItemDto) {
   restoring.value = true
   try {
     await members.update(m.uuid, { active: true })
@@ -386,7 +387,7 @@ function populateEditForm(full: MemberDto) {
   editSnapshot.value = snapEditState()
 }
 
-async function openEdit(m: MemberDto) {
+async function openEdit(m: MemberListItemDto) {
   mode.value = 'edit'
   editingUuid.value = m.uuid
   editingItem.value = m
@@ -501,11 +502,11 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
 // ---- Delete ----
 const deleteOpen = ref(false)
 const deleting = ref(false)
-const target = ref<MemberDto | null>(null)
+const target = ref<MemberListItemDto | null>(null)
 const usageChecking = ref(false)
 const usageInfo = ref<{ inUse: boolean, count: number } | null>(null)
 
-async function openDelete(m: MemberDto) {
+async function openDelete(m: MemberListItemDto) {
   target.value = m
   deleteOpen.value = true
   usageChecking.value = true
@@ -558,9 +559,8 @@ async function confirmDelete() {
 }
 
 // ---- Presentation helpers ----
-function displayName(m: MemberDto): string {
-  if (m.fullName) return m.fullName
-  return [m.firstName, m.middleName, m.lastName, m.secondLastName].filter(Boolean).join(' ') || t('common.empty')
+function displayName(m: MemberListItemDto): string {
+  return m.fullName || t('common.empty')
 }
 </script>
 
@@ -636,21 +636,20 @@ function displayName(m: MemberDto): string {
             >
               <td class="px-5 py-3">
                 <div class="font-semibold text-prohealth-900">{{ displayName(m) }}</div>
-                <div class="text-xs text-prohealth-500">{{ m.email || t('common.empty') }}</div>
               </td>
               <td class="px-5 py-3 text-prohealth-700">
                 <span v-if="m.documentNumber">{{ m.documentType }} {{ m.documentNumber }}</span>
                 <span v-else class="text-prohealth-400">{{ t('common.empty') }}</span>
               </td>
               <td class="px-5 py-3 text-prohealth-700">{{ m.phone || t('common.empty') }}</td>
-              <td class="px-5 py-3 text-prohealth-600">{{ formatDate(m.enrolledAt, 'short') }}</td>
+              <td class="px-5 py-3 text-prohealth-600">{{ m.enrolledAt_Display || t('common.empty') }}</td>
               <td class="px-5 py-3" @click.stop>
                 <NuxtLink
-                  v-if="m.currentPromoterUuid"
-                  :to="`/dashboard/promoters/${m.currentPromoterUuid}`"
+                  v-if="m.currentPromoter_Uuid"
+                  :to="`/dashboard/promoters/${m.currentPromoter_Uuid}`"
                   class="text-primary-600 hover:underline"
                 >
-                  {{ m.currentPromoterName || t('common.empty') }}
+                  {{ m.currentPromoter_Display || t('common.empty') }}
                 </NuxtLink>
                 <span v-else class="text-prohealth-400">{{ t('common.empty') }}</span>
               </td>

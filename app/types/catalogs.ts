@@ -8,11 +8,20 @@ import type { Permission } from '~/types/permissions'
 // (or `isoCode` for countries), `description`, and hierarchical dependencies
 // (State → countryUuid/countryIsoCode, City → stateUuid/stateCode).
 
-/** Permissive shape covering all 10 catalogs. */
+/**
+ * Permissive shape covering all 10 catalogs.
+ *
+ * `active_Display` is the server-resolved, locale-aware label for `active`
+ * (hub ADR 0014) — render it directly instead of computing "Activo"/"Inactivo"
+ * client-side. The FK fields (`countryUuid`/`stateUuid`/`stateCode`) stay raw:
+ * the backend only added `_Display` to `active` for these DTOs, not to the
+ * denormalized parent code.
+ */
 export interface CatalogItem {
   uuid: string
   name: string
   active: boolean
+  active_Display?: string | null
   code?: string
   isoCode?: string
   description?: string
