@@ -177,18 +177,25 @@ async function confirmLifecycle() {
         <h2 class="font-bold text-prohealth-900">{{ t('memberships.title') }}</h2>
         <p class="text-xs text-prohealth-500 mt-0.5">{{ t('memberships.subtitle') }}</p>
       </div>
-      <UTooltip :text="canEnroll ? t('memberships.enrollTooltip') : t('memberships.noPermissionEnroll')">
-        <UButton
-          color="primary"
-          variant="soft"
-          icon="i-lucide-badge-plus"
-          size="sm"
-          :disabled="!canEnroll"
-          @click="openEnroll"
-        >
-          {{ t('memberships.enroll') }}
-        </UButton>
-      </UTooltip>
+      <div class="flex items-center gap-2">
+        <UTooltip :text="canEnroll ? t('memberships.enrollTooltip') : t('memberships.noPermissionEnroll')">
+          <UButton
+            color="primary"
+            variant="soft"
+            icon="i-lucide-badge-plus"
+            size="sm"
+            :disabled="!canEnroll"
+            @click="openEnroll"
+          >
+            {{ t('memberships.enroll') }}
+          </UButton>
+        </UTooltip>
+        <RefreshButton
+          :loading="loading"
+          :title="t('common.refreshSection')"
+          @refresh="load"
+        />
+      </div>
     </div>
 
     <div class="overflow-x-auto">

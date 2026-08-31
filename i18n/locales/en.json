@@ -7,6 +7,7 @@
     "loading": "Loading…",
     "save": "Save",
     "saveChanges": "Save changes",
+    "new": "New",
     "cancel": "Cancel",
     "confirm": "Confirm",
     "back": "Back",
@@ -795,7 +796,8 @@
       "code": "Code",
       "description": "Description",
       "country": "Country",
-      "state": "State"
+      "state": "State",
+      "active": "Active"
     },
     "validation": {
       "isoCode": "Two uppercase letters (ISO 3166-1, e.g. VE)",

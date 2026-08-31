@@ -79,14 +79,32 @@ async function load() {
   }
 }
 
-watch(size, () => { page.value = 1 })
-watch([page, size], load)
+// Guards the filter watchers so "clear filters and refresh" fires a single reload.
+const resetting = ref(false)
+
+watch(size, () => { if (!resetting.value) page.value = 1 })
+watch([page, size], () => { if (!resetting.value) load() })
 let searchTimer: ReturnType<typeof setTimeout> | undefined
 watch(search, () => {
+  if (resetting.value) return
   clearTimeout(searchTimer)
   searchTimer = setTimeout(() => { page.value = 1; load() }, 400)
 })
-watch([resultFilter, dateRange], () => { page.value = 1; load() }, { deep: true })
+watch([resultFilter, dateRange], () => {
+  if (!resetting.value) { page.value = 1; load() }
+}, { deep: true })
+
+async function resetFilters() {
+  resetting.value = true
+  search.value = ''
+  resultFilter.value = []
+  dateRange.value = defaultTodayRange()
+  size.value = DEFAULT_PAGE_SIZE
+  page.value = 1
+  await nextTick()
+  resetting.value = false
+  load()
+}
 
 onMounted(load)
 </script>
@@ -101,6 +119,7 @@ onMounted(load)
           {{ $t('security.sessions.subtitle') }}
         </p>
       </div>
+      <ListRefreshMenu :loading="loading" variant="ghost" @refresh="load" @reset="resetFilters" />
     </div>
 
     <!-- Filtros -->

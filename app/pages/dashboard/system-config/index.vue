@@ -83,6 +83,13 @@ const schema = computed(() =>
   })
 )
 
+// Snapshot of the last server-loaded state, used to warn before a refresh
+// throws away unsaved edits.
+const snapshot = ref('')
+function snapshotState() { return JSON.stringify(state) }
+const isDirty = computed(() => snapshot.value !== '' && snapshotState() !== snapshot.value)
+const discardConfirmOpen = ref(false)
+
 async function load() {
   loading.value = true
   try {
@@ -99,7 +106,18 @@ async function load() {
   }
   finally {
     loading.value = false
+    snapshot.value = snapshotState()
   }
+}
+
+function onRefresh() {
+  if (isDirty.value) discardConfirmOpen.value = true
+  else load()
+}
+
+function discardAndRefresh() {
+  discardConfirmOpen.value = false
+  load()
 }
 
 function addSortRow() {
@@ -132,6 +150,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     state.loginAuditEnabled = updated.loginAuditEnabled
     state.loginSessionExpirationDays = updated.loginSessionExpirationDays
     state.defaultSort = updated.defaultSort ?? []
+    snapshot.value = snapshotState()
     toast.add({
       title: t('systemConfig.updatedToast'),
       color: 'success',
@@ -152,11 +171,20 @@ onMounted(load)
 <template>
   <div class="space-y-5 max-w-4xl">
     <!-- Header -->
-    <div>
-      <h1 class="text-2xl font-extrabold text-prohealth-900">{{ t('systemConfig.title') }}</h1>
-      <p class="text-sm text-prohealth-700/70 mt-1">
-        {{ t('systemConfig.subtitle') }}
-      </p>
+    <div class="flex flex-wrap items-start justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-extrabold text-prohealth-900">{{ t('systemConfig.title') }}</h1>
+        <p class="text-sm text-prohealth-700/70 mt-1">
+          {{ t('systemConfig.subtitle') }}
+        </p>
+      </div>
+      <RefreshButton
+        :loading="loading"
+        :icon-only="false"
+        :label="t('common.refresh')"
+        :title="t('common.refreshRecord')"
+        @refresh="onRefresh"
+      />
     </div>
 
     <!-- Main Card -->
@@ -318,5 +346,20 @@ onMounted(load)
         </div>
       </UForm>
     </div>
+
+    <!-- Discard unsaved changes before refreshing -->
+    <UModal v-model:open="discardConfirmOpen" :title="t('common.discardChangesTitle')">
+      <template #body>
+        <p class="text-sm text-prohealth-700">{{ t('common.discardChangesBody') }}</p>
+        <div class="flex items-center justify-end gap-3 pt-5">
+          <UButton color="neutral" variant="ghost" @click="discardConfirmOpen = false">
+            {{ t('common.cancel') }}
+          </UButton>
+          <UButton color="warning" icon="i-lucide-refresh-cw" @click="discardAndRefresh">
+            {{ t('common.discardAndRefresh') }}
+          </UButton>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>

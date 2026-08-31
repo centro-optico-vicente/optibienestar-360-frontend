@@ -60,6 +60,12 @@ async function load() {
 }
 onMounted(load)
 
+// "Clear filters and refresh": the only filter here is the client-side search box.
+function resetFilters() {
+  search.value = ''
+  load()
+}
+
 // ---- Create ----
 const createOpen = ref(false)
 const isCreating = ref(false)
@@ -214,11 +220,14 @@ async function confirmDelete() {
         <h1 class="text-2xl font-extrabold text-prohealth-900">{{ t('entityConfig.title') }}</h1>
         <p class="text-sm text-prohealth-700/70 mt-1">{{ t('entityConfig.subtitle') }}</p>
       </div>
-      <UTooltip v-if="canCreate" :text="t('entityConfig.createTitle')">
-        <UButton color="primary" icon="i-lucide-plus" @click="openCreate">
-          {{ t('entityConfig.new') }}
-        </UButton>
-      </UTooltip>
+      <div class="flex items-center gap-2">
+        <ListRefreshMenu :loading="loading" variant="ghost" @refresh="load" @reset="resetFilters" />
+        <UTooltip v-if="canCreate" :text="t('entityConfig.createTitle')">
+          <UButton color="primary" variant="outline" icon="i-lucide-plus" @click="openCreate">
+            {{ t('common.new') }}
+          </UButton>
+        </UTooltip>
+      </div>
     </div>
 
     <!-- Search -->
@@ -267,7 +276,7 @@ async function confirmDelete() {
                 <div class="flex items-center justify-end gap-1">
                   <UTooltip :text="canUpdate ? t('common.edit') : ''">
                     <UButton
-                      color="neutral"
+                      color="info"
                       variant="ghost"
                       icon="i-lucide-pencil"
                       size="sm"
@@ -281,6 +290,7 @@ async function confirmDelete() {
                       variant="ghost"
                       icon="i-lucide-trash-2"
                       size="sm"
+                      class="ms-2"
                       :disabled="!canDelete"
                       @click="openDelete(e)"
                     />
@@ -315,7 +325,7 @@ async function confirmDelete() {
             <UButton color="neutral" variant="ghost" :disabled="isCreating" @click="createOpen = false">
               {{ t('common.cancel') }}
             </UButton>
-            <UButton type="submit" color="primary" :loading="isCreating" icon="i-lucide-save">
+            <UButton type="submit" color="info" variant="outline" :loading="isCreating" icon="i-lucide-save">
               {{ t('common.save') }}
             </UButton>
           </div>
@@ -400,7 +410,7 @@ async function confirmDelete() {
             <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="editOpen = false">
               {{ t('common.cancel') }}
             </UButton>
-            <UButton type="submit" color="primary" :loading="isSubmitting" icon="i-lucide-save">
+            <UButton type="submit" color="info" variant="outline" :loading="isSubmitting" icon="i-lucide-save">
               {{ t('entityConfig.saveButton') }}
             </UButton>
           </div>

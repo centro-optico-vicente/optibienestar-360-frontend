@@ -102,9 +102,27 @@ async function downloadReport(report: ReportAuditLogDto) {
   }
 }
 
-watch(size, () => { page.value = 1 })
-watch([page, size], load)
-watch([entityKeyFilter, actorUuidFilter, formatFilter, dateRange], () => { page.value = 1; load() }, { deep: true })
+// Guards the filter watchers so "clear filters and refresh" fires a single reload.
+const resetting = ref(false)
+
+watch(size, () => { if (!resetting.value) page.value = 1 })
+watch([page, size], () => { if (!resetting.value) load() })
+watch([entityKeyFilter, actorUuidFilter, formatFilter, dateRange], () => {
+  if (!resetting.value) { page.value = 1; load() }
+}, { deep: true })
+
+async function resetFilters() {
+  resetting.value = true
+  entityKeyFilter.value = []
+  actorUuidFilter.value = undefined
+  formatFilter.value = []
+  dateRange.value = defaultTodayRange()
+  size.value = DEFAULT_PAGE_SIZE
+  page.value = 1
+  await nextTick()
+  resetting.value = false
+  load()
+}
 
 onMounted(load)
 </script>
@@ -119,6 +137,7 @@ onMounted(load)
           {{ $t('security.reportsAudit.subtitle') }}
         </p>
       </div>
+      <ListRefreshMenu :loading="loading" variant="ghost" @refresh="load" @reset="resetFilters" />
     </div>
 
     <!-- Filtros -->

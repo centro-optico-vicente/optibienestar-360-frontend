@@ -22,6 +22,10 @@ const { t } = useI18n()
 const { can } = usePermissions()
 const toast = useToast()
 
+// Guards the per-tab filter watchers so "clear filters and refresh" fires a
+// single reload instead of one per changed ref.
+const resetting = ref(false)
+
 // commission_tier and bonus_rule share the COMMISSIONS permission domain (V66/V72).
 const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('COMMISSION_RECORD_AUDIT_VIEW'))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('COMMISSION_REPORT_AUDIT_VIEW'))
@@ -122,17 +126,33 @@ async function loadTiers() {
   }
 }
 
-watch(tierSize, () => { tierPage.value = 1 })
-watch([tierPage, tierSize], loadTiers)
+watch(tierSize, () => { if (!resetting.value) tierPage.value = 1 })
+watch([tierPage, tierSize], () => { if (!resetting.value) loadTiers() })
 let tierSearchTimer: ReturnType<typeof setTimeout> | undefined
 watch(tierSearch, () => {
+  if (resetting.value) return
   clearTimeout(tierSearchTimer)
   tierSearchTimer = setTimeout(() => { tierPage.value = 1; loadTiers() }, 400)
 })
 watch([tierIncludeInactive, tierPromoterTypeUuid, tierPlanType, tierAppliesTo], () => {
+  if (resetting.value) return
   tierPage.value = 1
   loadTiers()
 })
+
+async function resetTierFilters() {
+  resetting.value = true
+  tierSearch.value = ''
+  tierIncludeInactive.value = false
+  tierPromoterTypeUuid.value = undefined
+  tierPlanType.value = undefined
+  tierAppliesTo.value = undefined
+  tierSize.value = DEFAULT_PAGE_SIZE
+  tierPage.value = 1
+  await nextTick()
+  resetting.value = false
+  loadTiers()
+}
 
 const tierFormOpen = ref(false)
 const editingTier = ref<CommissionTierDto | null>(null)
@@ -227,17 +247,31 @@ async function loadBonusRules() {
   }
 }
 
-watch(bonusSize, () => { bonusPage.value = 1 })
-watch([bonusPage, bonusSize], loadBonusRules)
+watch(bonusSize, () => { if (!resetting.value) bonusPage.value = 1 })
+watch([bonusPage, bonusSize], () => { if (!resetting.value) loadBonusRules() })
 let bonusSearchTimer: ReturnType<typeof setTimeout> | undefined
 watch(bonusSearch, () => {
+  if (resetting.value) return
   clearTimeout(bonusSearchTimer)
   bonusSearchTimer = setTimeout(() => { bonusPage.value = 1; loadBonusRules() }, 400)
 })
 watch([bonusIncludeInactive, bonusPromoterTypeUuid], () => {
+  if (resetting.value) return
   bonusPage.value = 1
   loadBonusRules()
 })
+
+async function resetBonusFilters() {
+  resetting.value = true
+  bonusSearch.value = ''
+  bonusIncludeInactive.value = false
+  bonusPromoterTypeUuid.value = undefined
+  bonusSize.value = DEFAULT_PAGE_SIZE
+  bonusPage.value = 1
+  await nextTick()
+  resetting.value = false
+  loadBonusRules()
+}
 
 const bonusFormOpen = ref(false)
 const editingBonus = ref<BonusRuleDto | null>(null)
@@ -307,17 +341,31 @@ async function loadCollectionTiers() {
   }
 }
 
-watch(collectionSize, () => { collectionPage.value = 1 })
-watch([collectionPage, collectionSize], loadCollectionTiers)
+watch(collectionSize, () => { if (!resetting.value) collectionPage.value = 1 })
+watch([collectionPage, collectionSize], () => { if (!resetting.value) loadCollectionTiers() })
 let collectionSearchTimer: ReturnType<typeof setTimeout> | undefined
 watch(collectionSearch, () => {
+  if (resetting.value) return
   clearTimeout(collectionSearchTimer)
   collectionSearchTimer = setTimeout(() => { collectionPage.value = 1; loadCollectionTiers() }, 400)
 })
 watch([collectionIncludeInactive, collectionPromoterTypeUuid], () => {
+  if (resetting.value) return
   collectionPage.value = 1
   loadCollectionTiers()
 })
+
+async function resetCollectionFilters() {
+  resetting.value = true
+  collectionSearch.value = ''
+  collectionIncludeInactive.value = false
+  collectionPromoterTypeUuid.value = undefined
+  collectionSize.value = DEFAULT_PAGE_SIZE
+  collectionPage.value = 1
+  await nextTick()
+  resetting.value = false
+  loadCollectionTiers()
+}
 
 const collectionFormOpen = ref(false)
 const editingCollectionTier = ref<CollectionCommissionTierDto | null>(null)
@@ -386,9 +434,10 @@ onMounted(() => {
 
     <!-- Tab 1: Bandas de inscripción -->
     <div v-show="activeTab === 'tiers'" class="space-y-4">
-      <div class="flex items-center justify-end">
-        <UButton v-if="canCreateTiers" color="primary" icon="i-lucide-plus" @click="openCreateTier">
-          {{ t('commissionRules.tiers.new') }}
+      <div class="flex items-center justify-end gap-2">
+        <ListRefreshMenu :loading="tierLoading" variant="ghost" @refresh="loadTiers" @reset="resetTierFilters" />
+        <UButton v-if="canCreateTiers" color="primary" variant="outline" icon="i-lucide-plus" @click="openCreateTier">
+          {{ t('common.new') }}
         </UButton>
       </div>
       <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
@@ -452,11 +501,11 @@ onMounted(() => {
               </td>
               <td class="px-5 py-3" @click.stop>
                 <div class="flex items-center justify-end gap-1">
-                  <UButton v-if="canUpdateTiers" color="neutral" variant="ghost" icon="i-lucide-pencil" size="sm" @click="openEditTier(tier)" />
-                  <UButton v-if="canDeleteTiers" color="error" variant="ghost" icon="i-lucide-trash-2" size="sm" @click="openDeleteTier(tier)" />
+                  <UButton v-if="canUpdateTiers" color="info" variant="ghost" icon="i-lucide-pencil" size="sm" @click="openEditTier(tier)" />
                   <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
                     <UButton color="neutral" variant="ghost" icon="i-lucide-history" size="sm" @click="openAudit('commission_tier', tier)" />
                   </UTooltip>
+                  <UButton v-if="canDeleteTiers" color="error" variant="ghost" icon="i-lucide-trash-2" size="sm" class="ms-2" @click="openDeleteTier(tier)" />
                 </div>
               </td>
             </tr>
@@ -492,9 +541,10 @@ onMounted(() => {
 
     <!-- Tab 2: Bonos por escala -->
     <div v-show="activeTab === 'bonusRules'" class="space-y-4">
-      <div class="flex items-center justify-end">
-        <UButton v-if="canCreateBonus" color="primary" icon="i-lucide-plus" @click="openCreateBonus">
-          {{ t('commissionRules.bonusRules.new') }}
+      <div class="flex items-center justify-end gap-2">
+        <ListRefreshMenu :loading="bonusLoading" variant="ghost" @refresh="loadBonusRules" @reset="resetBonusFilters" />
+        <UButton v-if="canCreateBonus" color="primary" variant="outline" icon="i-lucide-plus" @click="openCreateBonus">
+          {{ t('common.new') }}
         </UButton>
       </div>
       <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
@@ -548,11 +598,11 @@ onMounted(() => {
               </td>
               <td class="px-5 py-3" @click.stop>
                 <div class="flex items-center justify-end gap-1">
-                  <UButton v-if="canUpdateBonus" color="neutral" variant="ghost" icon="i-lucide-pencil" size="sm" @click="openEditBonus(rule)" />
-                  <UButton v-if="canDeleteBonus" color="error" variant="ghost" icon="i-lucide-trash-2" size="sm" @click="openDeleteBonus(rule)" />
+                  <UButton v-if="canUpdateBonus" color="info" variant="ghost" icon="i-lucide-pencil" size="sm" @click="openEditBonus(rule)" />
                   <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
                     <UButton color="neutral" variant="ghost" icon="i-lucide-history" size="sm" @click="openAudit('bonus_rule', rule)" />
                   </UTooltip>
+                  <UButton v-if="canDeleteBonus" color="error" variant="ghost" icon="i-lucide-trash-2" size="sm" class="ms-2" @click="openDeleteBonus(rule)" />
                 </div>
               </td>
             </tr>
@@ -588,9 +638,10 @@ onMounted(() => {
 
     <!-- Tab 3: Comisión de cobranza -->
     <div v-show="activeTab === 'collectionTiers'" class="space-y-4">
-      <div class="flex items-center justify-end">
-        <UButton v-if="canCreateCollection" color="primary" icon="i-lucide-plus" @click="openCreateCollectionTier">
-          {{ t('commissionRules.collectionTiers.new') }}
+      <div class="flex items-center justify-end gap-2">
+        <ListRefreshMenu :loading="collectionLoading" variant="ghost" @refresh="loadCollectionTiers" @reset="resetCollectionFilters" />
+        <UButton v-if="canCreateCollection" color="primary" variant="outline" icon="i-lucide-plus" @click="openCreateCollectionTier">
+          {{ t('common.new') }}
         </UButton>
       </div>
       <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
@@ -638,8 +689,8 @@ onMounted(() => {
               </td>
               <td class="px-5 py-3" @click.stop>
                 <div class="flex items-center justify-end gap-1">
-                  <UButton v-if="canUpdateCollection" color="neutral" variant="ghost" icon="i-lucide-pencil" size="sm" @click="openEditCollectionTier(tier)" />
-                  <UButton v-if="canDeleteCollection" color="error" variant="ghost" icon="i-lucide-trash-2" size="sm" @click="openDeleteCollectionTier(tier)" />
+                  <UButton v-if="canUpdateCollection" color="info" variant="ghost" icon="i-lucide-pencil" size="sm" @click="openEditCollectionTier(tier)" />
+                  <UButton v-if="canDeleteCollection" color="error" variant="ghost" icon="i-lucide-trash-2" size="sm" class="ms-2" @click="openDeleteCollectionTier(tier)" />
                 </div>
               </td>
             </tr>
