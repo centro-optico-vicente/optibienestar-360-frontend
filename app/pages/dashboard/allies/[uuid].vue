@@ -800,7 +800,7 @@ onMounted(async () => {
             </p>
           </div>
           <div class="flex items-center gap-2">
-            <!-- Refrescar + herramientas de consulta -->
+            <!-- Refresh + read-only tools -->
             <RefreshButton
               size="md"
               variant="outline"
@@ -820,7 +820,7 @@ onMounted(async () => {
               @click="auditOpen = true"
             />
 
-            <!-- Acción principal -->
+            <!-- Primary action -->
             <UTooltip :text="canUpdate ? t('common.edit') : t('allies.noPermissionEdit')">
               <UButton
                 color="neutral"
@@ -833,7 +833,7 @@ onMounted(async () => {
               />
             </UTooltip>
 
-            <!-- Acción peligrosa, separada del resto -->
+            <!-- Destructive action, separated from the rest -->
             <RestoreButton
               v-if="ally.active === false"
               :active="ally.active"

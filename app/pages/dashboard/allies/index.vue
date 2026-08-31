@@ -590,7 +590,7 @@ async function confirmDelete() {
               </td>
               <td class="px-5 py-3" @click.stop>
                 <div class="flex items-center justify-end gap-1">
-                  <!-- Acciones principales -->
+                  <!-- Primary actions -->
                   <UTooltip :text="t('allies.viewDetailTooltip')">
                     <UButton
                       color="neutral"
@@ -611,7 +611,7 @@ async function confirmDelete() {
                     />
                   </UTooltip>
 
-                  <!-- Herramientas de consulta -->
+                  <!-- Read-only tools -->
                   <ReportPrintButton
                     table-name="allies"
                     :record-uuid="a.uuid"
@@ -629,7 +629,7 @@ async function confirmDelete() {
                     />
                   </UTooltip>
 
-                  <!-- Acción peligrosa, separada del resto -->
+                  <!-- Destructive action, separated from the rest -->
                   <RestoreButton
                     v-if="a.active === false"
                     :active="a.active"
