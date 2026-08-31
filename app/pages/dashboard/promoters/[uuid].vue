@@ -57,6 +57,18 @@ onMounted(async () => {
   await Promise.all([loadPortfolio(), loadCommissionsSummary()])
 })
 
+// Header "Refrescar": re-fetch the promoter + both tabs at once.
+const refreshingAll = ref(false)
+async function refreshAll() {
+  refreshingAll.value = true
+  try {
+    await Promise.all([loadPromoter(), loadPortfolio(), loadCommissionsSummary()])
+  }
+  finally {
+    refreshingAll.value = false
+  }
+}
+
 // Amount in USD, formatted in the VE convention (useFormatters). Empty → '—'.
 function money(v?: number | string | null): string {
   if (v === null || v === undefined || v === '') return t('common.empty')
@@ -274,10 +286,19 @@ async function loadCommissionsSummary() {
           </div>
 
           <div class="flex items-center gap-2">
-            <ReportPrintButton :record-uuid="promoterUuid" />
+            <RefreshButton
+              size="md"
+              variant="ghost"
+              :icon-only="false"
+              :loading="refreshingAll"
+              :title="t('common.refreshRecord')"
+              @refresh="refreshAll"
+            />
+            <ReportPrintButton :record-uuid="promoterUuid" variant="ghost" />
             <UTooltip :text="promoter.system ? t('promoters.systemLocked') : (canUpdate ? t('promoters.editTooltip') : t('promoters.noPermissionEdit'))">
               <UButton
-                color="primary"
+                color="info"
+                variant="ghost"
                 icon="i-lucide-pencil"
                 :disabled="!canUpdate || promoter.system"
                 @click="openEdit"
@@ -290,6 +311,7 @@ async function loadCommissionsSummary() {
               :active="promoter.active"
               :allowed="canDelete"
               :loading="restoring"
+              class="ms-2"
               @restore="restorePromoter"
             />
             <UTooltip v-else :text="promoter.system ? t('promoters.systemLocked') : (canDelete ? t('promoters.deleteTooltip') : t('promoters.noPermissionDelete'))">
@@ -297,6 +319,7 @@ async function loadCommissionsSummary() {
                 color="error"
                 variant="ghost"
                 icon="i-lucide-trash-2"
+                class="ms-2"
                 :disabled="!canDelete || promoter.system"
                 @click="openDelete"
               />
@@ -392,7 +415,8 @@ async function loadCommissionsSummary() {
             <h2 class="font-bold text-prohealth-900">{{ t('promoters.detail.referrals.title') }}</h2>
             <p class="text-xs text-prohealth-500 mt-0.5">{{ t('promoters.detail.referrals.hint') }}</p>
           </div>
-          <div class="flex flex-wrap gap-2">
+          <div class="flex flex-wrap items-center gap-2">
+            <RefreshButton :loading="portfolioLoading" :title="t('common.refreshSection')" @refresh="loadPortfolio" />
             <UButton
               size="xs"
               variant="soft"
@@ -463,9 +487,12 @@ async function loadCommissionsSummary() {
 
       <!-- ============ Comisiones por período ============ -->
       <div v-show="activeTab === 'commissions'" class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
-        <div class="px-6 py-4 border-b border-prohealth-100">
-          <h2 class="font-bold text-prohealth-900">{{ t('promoters.detail.commissions.title') }}</h2>
-          <p class="text-xs text-prohealth-500 mt-0.5">{{ t('promoters.detail.commissions.hint') }}</p>
+        <div class="flex items-center justify-between px-6 py-4 border-b border-prohealth-100">
+          <div>
+            <h2 class="font-bold text-prohealth-900">{{ t('promoters.detail.commissions.title') }}</h2>
+            <p class="text-xs text-prohealth-500 mt-0.5">{{ t('promoters.detail.commissions.hint') }}</p>
+          </div>
+          <RefreshButton :loading="commissionsLoading" :title="t('common.refreshSection')" @refresh="loadCommissionsSummary" />
         </div>
 
         <div class="overflow-x-auto">

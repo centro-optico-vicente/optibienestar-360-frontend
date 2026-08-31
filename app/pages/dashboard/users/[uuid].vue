@@ -265,6 +265,18 @@ onMounted(async () => {
     loadAllAllies(),
   ])
 })
+
+// Header "Refrescar": re-fetch the user (roles come with it) + the allies tab.
+const refreshingAll = ref(false)
+async function refreshAll() {
+  refreshingAll.value = true
+  try {
+    await Promise.all([loadUser(), loadUserAllies()])
+  }
+  finally {
+    refreshingAll.value = false
+  }
+}
 </script>
 
 <template>
@@ -313,10 +325,18 @@ onMounted(async () => {
             </p>
           </div>
           <div class="flex items-center gap-2">
-            <ReportPrintButton :record-uuid="userUuid" />
+            <RefreshButton
+              size="md"
+              variant="ghost"
+              :icon-only="false"
+              :loading="refreshingAll"
+              :title="t('common.refreshRecord')"
+              @refresh="refreshAll"
+            />
+            <ReportPrintButton :record-uuid="userUuid" variant="ghost" />
             <UTooltip :text="canUpdate ? t('common.edit') : t('security.users.noPermissionEdit')">
               <UButton
-                color="neutral"
+                color="info"
                 variant="ghost"
                 icon="i-lucide-pencil"
                 :disabled="!canUpdate"
@@ -330,6 +350,7 @@ onMounted(async () => {
               :active="user.active"
               :allowed="canDelete"
               :loading="restoring"
+              class="ms-2"
               @restore="restoreUser"
             />
             <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">

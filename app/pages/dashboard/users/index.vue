@@ -80,17 +80,32 @@ async function load() {
   }
 }
 
-watch(size, () => { page.value = 1 })
-watch([page, size], load)
+// Guards the filter watchers so "clear filters and refresh" fires a single reload.
+const resetting = ref(false)
+
+watch(size, () => { if (!resetting.value) page.value = 1 })
+watch([page, size], () => { if (!resetting.value) load() })
 let searchTimer: ReturnType<typeof setTimeout> | undefined
 watch(search, () => {
+  if (resetting.value) return
   clearTimeout(searchTimer)
   searchTimer = setTimeout(() => {
     page.value = 1
     load()
   }, 400)
 })
-watch(includeInactive, () => { page.value = 1; load() })
+watch(includeInactive, () => { if (!resetting.value) { page.value = 1; load() } })
+
+async function resetFilters() {
+  resetting.value = true
+  search.value = ''
+  includeInactive.value = false
+  size.value = DEFAULT_PAGE_SIZE
+  page.value = 1
+  await nextTick()
+  resetting.value = false
+  load()
+}
 
 // ---- Catálogo de roles para el selector ----
 const roleOptions = ref<{ label: string, value: string }[]>([])
@@ -234,8 +249,15 @@ function openCreate() {
   formOpen.value = true
 }
 
-function openEdit(u: UserDto) {
-  mode.value = 'edit'
+// Snapshot of the last-loaded edit state, used to warn before a refresh
+// discards unsaved changes.
+const editSnapshot = ref('')
+function snapEditState() { return JSON.stringify(state) }
+const isEditDirty = computed(() => editSnapshot.value !== '' && snapEditState() !== editSnapshot.value)
+const discardConfirmOpen = ref(false)
+const editReloading = ref(false)
+
+function populateEditForm(u: UserDto) {
   editingUuid.value = u.uuid
   editingItem.value = u
   resetForm()
@@ -250,7 +272,29 @@ function openEdit(u: UserDto) {
   state.status = u.status || 'ACTIVE'
   state.active = u.active ?? true
   state.roleIds = (u.roles ?? []).map(r => r.uuid)
+  editSnapshot.value = snapEditState()
+}
+
+function openEdit(u: UserDto) {
+  mode.value = 'edit'
+  populateEditForm(u)
   formOpen.value = true
+}
+
+async function reloadEditForm() {
+  if (!editingUuid.value) return
+  editReloading.value = true
+  try { populateEditForm(await users.get(editingUuid.value)) }
+  catch { /* useApi already notified */ }
+  finally { editReloading.value = false }
+}
+function onEditRefresh() {
+  if (isEditDirty.value) discardConfirmOpen.value = true
+  else reloadEditForm()
+}
+function discardAndRefresh() {
+  discardConfirmOpen.value = false
+  reloadEditForm()
 }
 
 async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
@@ -389,15 +433,17 @@ async function confirmDelete() {
         </p>
       </div>
       <div class="flex items-center gap-2">
-        <ReportPrintButton />
+        <ListRefreshMenu :loading="loading" variant="ghost" @refresh="load" @reset="resetFilters" />
+        <ReportPrintButton variant="ghost" />
         <UTooltip :text="canCreate ? $t('security.users.createTooltip') : $t('security.users.noPermissionCreate')">
           <UButton
             color="primary"
-            icon="i-lucide-user-plus"
+            variant="outline"
+            icon="i-lucide-plus"
             :disabled="!canCreate"
             @click="openCreate"
           >
-            {{ $t('security.users.new') }}
+            {{ $t('common.new') }}
           </UButton>
         </UTooltip>
       </div>
@@ -488,6 +534,16 @@ async function confirmDelete() {
                       :to="`/dashboard/users/${u.uuid}`"
                     />
                   </UTooltip>
+                  <UTooltip :text="canUpdate ? $t('common.edit') : $t('security.users.noPermissionEdit')">
+                    <UButton
+                      color="info"
+                      variant="ghost"
+                      icon="i-lucide-pencil"
+                      size="sm"
+                      :disabled="!canUpdate"
+                      @click="openEdit(u)"
+                    />
+                  </UTooltip>
                   <ReportPrintButton
                     table-name="users"
                     :record-uuid="u.uuid"
@@ -495,14 +551,13 @@ async function confirmDelete() {
                     variant="ghost"
                     size="sm"
                   />
-                  <UTooltip :text="canUpdate ? $t('common.edit') : $t('security.users.noPermissionEdit')">
+                  <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
                     <UButton
                       color="neutral"
                       variant="ghost"
-                      icon="i-lucide-pencil"
+                      icon="i-lucide-history"
                       size="sm"
-                      :disabled="!canUpdate"
-                      @click="openEdit(u)"
+                      @click="openAudit(u)"
                     />
                   </UTooltip>
                   <UTooltip :text="canDelete ? $t('common.delete') : $t('security.users.noPermissionDelete')">
@@ -511,17 +566,9 @@ async function confirmDelete() {
                       variant="ghost"
                       icon="i-lucide-trash-2"
                       size="sm"
+                      class="ms-2"
                       :disabled="!canDelete"
                       @click="openDelete(u)"
-                    />
-                  </UTooltip>
-                  <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
-                    <UButton
-                      color="neutral"
-                      variant="ghost"
-                      icon="i-lucide-history"
-                      size="sm"
-                      @click="openAudit(u)"
                     />
                   </UTooltip>
                 </div>
@@ -676,15 +723,35 @@ async function confirmDelete() {
             <div v-else />
 
             <div class="flex items-center gap-3">
+              <RefreshButton
+                v-if="mode === 'edit'"
+                :icon-only="false"
+                :label="$t('common.refresh')"
+                :title="$t('common.refresh')"
+                :loading="editReloading"
+                :disabled="isSubmitting"
+                @refresh="onEditRefresh"
+              />
               <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="formOpen = false">
                 {{ $t('common.cancel') }}
               </UButton>
-              <UButton type="submit" color="primary" :loading="isSubmitting" icon="i-lucide-save">
-                {{ mode === 'create' ? $t('security.users.submitCreate') : $t('common.saveChanges') }}
+              <UButton type="submit" :color="mode === 'create' ? 'primary' : 'info'" variant="outline" :loading="isSubmitting" icon="i-lucide-save">
+                {{ mode === 'create' ? $t('common.saveNew') : $t('common.saveChanges') }}
               </UButton>
             </div>
           </div>
         </UForm>
+
+        <!-- Discard unsaved changes before refreshing -->
+        <UModal v-model:open="discardConfirmOpen" :title="$t('common.discardChangesTitle')">
+          <template #body>
+            <p class="text-sm text-prohealth-700">{{ $t('common.discardChangesBody') }}</p>
+            <div class="flex items-center justify-end gap-3 pt-5">
+              <UButton color="neutral" variant="ghost" @click="discardConfirmOpen = false">{{ $t('common.cancel') }}</UButton>
+              <UButton color="warning" icon="i-lucide-refresh-cw" @click="discardAndRefresh">{{ $t('common.discardAndRefresh') }}</UButton>
+            </div>
+          </template>
+        </UModal>
       </template>
     </UModal>
 

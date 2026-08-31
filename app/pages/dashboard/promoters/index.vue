@@ -57,17 +57,32 @@ async function load() {
   }
 }
 
-watch(size, () => { page.value = 1 })
-watch([page, size], load)
+// Guards the filter watchers so "clear filters and refresh" fires a single reload.
+const resetting = ref(false)
+
+watch(size, () => { if (!resetting.value) page.value = 1 })
+watch([page, size], () => { if (!resetting.value) load() })
 let searchTimer: ReturnType<typeof setTimeout> | undefined
 watch(search, () => {
+  if (resetting.value) return
   clearTimeout(searchTimer)
   searchTimer = setTimeout(() => {
     page.value = 1
     load()
   }, 400)
 })
-watch(includeInactive, () => { page.value = 1; load() })
+watch(includeInactive, () => { if (!resetting.value) { page.value = 1; load() } })
+
+async function resetFilters() {
+  resetting.value = true
+  search.value = ''
+  includeInactive.value = false
+  size.value = DEFAULT_PAGE_SIZE
+  page.value = 1
+  await nextTick()
+  resetting.value = false
+  load()
+}
 
 onMounted(load)
 
@@ -176,15 +191,17 @@ async function confirmDelete() {
         </p>
       </div>
       <div class="flex items-center gap-2">
-        <ReportPrintButton />
+        <ListRefreshMenu :loading="loading" variant="ghost" @refresh="load" @reset="resetFilters" />
+        <ReportPrintButton variant="ghost" />
         <UTooltip :text="canCreate ? t('promoters.createTooltip') : t('promoters.noPermissionCreate')">
           <UButton
             color="primary"
-            icon="i-lucide-user-plus"
+            variant="outline"
+            icon="i-lucide-plus"
             :disabled="!canCreate"
             @click="openCreate"
           >
-            {{ t('promoters.new') }}
+            {{ t('common.new') }}
           </UButton>
         </UTooltip>
       </div>
@@ -264,6 +281,16 @@ async function confirmDelete() {
                       :to="`/dashboard/promoters/${p.uuid}`"
                     />
                   </UTooltip>
+                  <UTooltip :text="p.system ? t('promoters.systemLocked') : (canUpdate ? t('common.edit') : t('promoters.noPermissionEdit'))">
+                    <UButton
+                      color="info"
+                      variant="ghost"
+                      icon="i-lucide-pencil"
+                      size="sm"
+                      :disabled="!canUpdate || p.system"
+                      @click="openEdit(p)"
+                    />
+                  </UTooltip>
                   <ReportPrintButton
                     table-name="promoters"
                     :record-uuid="p.uuid"
@@ -271,14 +298,13 @@ async function confirmDelete() {
                     variant="ghost"
                     size="sm"
                   />
-                  <UTooltip :text="p.system ? t('promoters.systemLocked') : (canUpdate ? t('common.edit') : t('promoters.noPermissionEdit'))">
+                  <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
                     <UButton
                       color="neutral"
                       variant="ghost"
-                      icon="i-lucide-pencil"
+                      icon="i-lucide-history"
                       size="sm"
-                      :disabled="!canUpdate || p.system"
-                      @click="openEdit(p)"
+                      @click="openAudit(p)"
                     />
                   </UTooltip>
                   <UTooltip :text="p.system ? t('promoters.systemLocked') : (canDelete ? t('common.delete') : t('promoters.noPermissionDelete'))">
@@ -287,17 +313,9 @@ async function confirmDelete() {
                       variant="ghost"
                       icon="i-lucide-trash-2"
                       size="sm"
+                      class="ms-2"
                       :disabled="!canDelete || p.system"
                       @click="openDelete(p)"
-                    />
-                  </UTooltip>
-                  <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
-                    <UButton
-                      color="neutral"
-                      variant="ghost"
-                      icon="i-lucide-history"
-                      size="sm"
-                      @click="openAudit(p)"
                     />
                   </UTooltip>
                 </div>
