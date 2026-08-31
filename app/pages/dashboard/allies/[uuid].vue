@@ -810,9 +810,15 @@ onMounted(async () => {
               @refresh="refreshAll"
             />
             <ReportPrintButton :record-uuid="allyUuid" size="md" />
-            <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
-              <UButton color="neutral" variant="ghost" icon="i-lucide-history" size="md" @click="auditOpen = true" />
-            </UTooltip>
+            <UButton
+              v-if="canViewAudit"
+              color="neutral"
+              variant="outline"
+              icon="i-lucide-history"
+              size="md"
+              :label="t('audit.trigger')"
+              @click="auditOpen = true"
+            />
 
             <!-- Acción principal -->
             <UTooltip :text="canUpdate ? t('common.edit') : t('allies.noPermissionEdit')">
