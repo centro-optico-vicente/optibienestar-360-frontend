@@ -800,40 +800,61 @@ onMounted(async () => {
             </p>
           </div>
           <div class="flex items-center gap-2">
+            <!-- Refresh + read-only tools -->
             <RefreshButton
+              size="md"
+              variant="ghost"
+              :icon-only="false"
               :loading="refreshingAll"
               :title="t('common.refreshRecord')"
               @refresh="refreshAll"
             />
-            <ReportPrintButton :record-uuid="allyUuid" />
+            <ReportPrintButton :record-uuid="allyUuid" size="md" variant="ghost" />
+            <UButton
+              v-if="canViewAudit"
+              color="neutral"
+              variant="ghost"
+              icon="i-lucide-history"
+              size="md"
+              :label="t('audit.trigger')"
+              @click="auditOpen = true"
+            />
+
+            <!-- Primary action -->
             <UTooltip :text="canUpdate ? t('common.edit') : t('allies.noPermissionEdit')">
               <UButton
-                color="neutral"
+                color="info"
                 variant="ghost"
                 icon="i-lucide-pencil"
+                size="md"
+                :label="t('common.edit')"
                 :disabled="!canUpdate"
                 @click="navigateTo(`/dashboard/allies?edit=${allyUuid}`)"
               />
             </UTooltip>
+
+            <!-- Destructive action, separated from the rest -->
             <RestoreButton
               v-if="ally.active === false"
               :active="ally.active"
               :allowed="canDelete"
               :loading="restoring"
-              icon-only
+              size="md"
+              variant="ghost"
+              class="ms-2"
               @restore="restoreAlly"
             />
             <UTooltip v-else :text="canDelete ? t('common.delete') : t('allies.noPermissionDelete')">
               <UButton
                 color="error"
                 variant="ghost"
+                size="md"
                 icon="i-lucide-trash-2"
+                :label="t('common.delete')"
+                class="ms-2"
                 :disabled="!canDelete"
                 @click="navigateTo(`/dashboard/allies?delete=${allyUuid}`)"
               />
-            </UTooltip>
-            <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
-              <UButton color="neutral" variant="ghost" icon="i-lucide-history" @click="auditOpen = true" />
             </UTooltip>
           </div>
         </div>

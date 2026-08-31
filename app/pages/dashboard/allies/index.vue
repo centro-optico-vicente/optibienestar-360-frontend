@@ -488,12 +488,13 @@ async function confirmDelete() {
         </p>
       </div>
       <div class="flex items-center gap-2">
-        <ListRefreshMenu :loading="loading" @refresh="load" @reset="resetFilters" />
-        <ReportPrintButton :search-query="search" :include-inactive="includeInactive" />
+        <ListRefreshMenu variant="ghost" :loading="loading" @refresh="load" @reset="resetFilters" />
+        <ReportPrintButton variant="ghost" :search-query="search" :include-inactive="includeInactive" />
         <UTooltip :text="canCreate ? t('allies.createTooltip') : t('allies.noPermissionCreate')">
           <UButton
             color="primary"
-            icon="i-lucide-handshake"
+            variant="outline"
+            icon="i-lucide-plus"
             :disabled="!canCreate"
             @click="openCreate"
           >
@@ -589,6 +590,7 @@ async function confirmDelete() {
               </td>
               <td class="px-5 py-3" @click.stop>
                 <div class="flex items-center justify-end gap-1">
+                  <!-- Primary actions -->
                   <UTooltip :text="t('allies.viewDetailTooltip')">
                     <UButton
                       color="neutral"
@@ -598,16 +600,9 @@ async function confirmDelete() {
                       :to="`/dashboard/allies/${a.uuid}`"
                     />
                   </UTooltip>
-                  <ReportPrintButton
-                    table-name="allies"
-                    :record-uuid="a.uuid"
-                    icon-only
-                    variant="ghost"
-                    size="sm"
-                  />
                   <UTooltip :text="canUpdate ? t('common.edit') : t('allies.noPermissionEdit')">
                     <UButton
-                      color="neutral"
+                      color="info"
                       variant="ghost"
                       icon="i-lucide-pencil"
                       size="sm"
@@ -615,6 +610,26 @@ async function confirmDelete() {
                       @click="openEdit(a)"
                     />
                   </UTooltip>
+
+                  <!-- Read-only tools -->
+                  <ReportPrintButton
+                    table-name="allies"
+                    :record-uuid="a.uuid"
+                    icon-only
+                    variant="ghost"
+                    size="sm"
+                  />
+                  <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
+                    <UButton
+                      color="neutral"
+                      variant="ghost"
+                      icon="i-lucide-history"
+                      size="sm"
+                      @click="openAudit(a)"
+                    />
+                  </UTooltip>
+
+                  <!-- Destructive action, separated from the rest -->
                   <RestoreButton
                     v-if="a.active === false"
                     :active="a.active"
@@ -622,6 +637,7 @@ async function confirmDelete() {
                     :loading="restoring"
                     size="sm"
                     icon-only
+                    class="ms-2"
                     @restore="restoreAlly(a)"
                   />
                   <UTooltip v-else :text="canDelete ? t('common.delete') : t('allies.noPermissionDelete')">
@@ -630,17 +646,9 @@ async function confirmDelete() {
                       variant="ghost"
                       icon="i-lucide-trash-2"
                       size="sm"
+                      class="ms-2"
                       :disabled="!canDelete"
                       @click="openDelete(a)"
-                    />
-                  </UTooltip>
-                  <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
-                    <UButton
-                      color="neutral"
-                      variant="ghost"
-                      icon="i-lucide-history"
-                      size="sm"
-                      @click="openAudit(a)"
                     />
                   </UTooltip>
                 </div>
@@ -814,14 +822,6 @@ async function confirmDelete() {
 
           <div class="flex items-center justify-between gap-3 pt-2">
             <div v-if="mode === 'edit' && editingItem" class="flex items-center gap-2">
-              <RefreshButton
-                :loading="editLoading"
-                :disabled="isSubmitting"
-                :icon-only="false"
-                :label="t('common.refresh')"
-                :title="t('common.refresh')"
-                @refresh="onEditRefresh"
-              />
               <RestoreButton
                 v-if="editingItem.active === false"
                 :active="editingItem.active"
@@ -845,10 +845,19 @@ async function confirmDelete() {
             <div v-else />
 
             <div class="flex items-center gap-3">
+              <RefreshButton
+                v-if="mode === 'edit'"
+                :loading="editLoading"
+                :disabled="isSubmitting"
+                :icon-only="false"
+                :label="t('common.refresh')"
+                :title="t('common.refresh')"
+                @refresh="onEditRefresh"
+              />
               <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="formOpen = false">
                 {{ t('common.cancel') }}
               </UButton>
-              <UButton type="submit" color="primary" :loading="isSubmitting" icon="i-lucide-save">
+              <UButton type="submit" color="info" variant="outline" :loading="isSubmitting" icon="i-lucide-save">
                 {{ mode === 'create' ? t('allies.form.submitCreate') : t('common.saveChanges') }}
               </UButton>
             </div>

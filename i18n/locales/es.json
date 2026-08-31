@@ -1020,7 +1020,7 @@
   "allies": {
     "title": "Aliados",
     "subtitle": "Empresas y profesionales aliados: servicios, acuerdos y personal.",
-    "new": "Nuevo aliado",
+    "new": "Nuevo",
     "createTooltip": "Registrar un nuevo aliado",
     "noPermissionCreate": "No tienes permiso para crear aliados",
     "noPermissionEdit": "No tienes permiso para editar",

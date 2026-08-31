@@ -1020,7 +1020,7 @@
   "allies": {
     "title": "Partners",
     "subtitle": "Partner companies and professionals: services, agreements and staff.",
-    "new": "New partner",
+    "new": "New",
     "createTooltip": "Register a new partner",
     "noPermissionCreate": "You don't have permission to create partners",
     "noPermissionEdit": "You don't have permission to edit",
