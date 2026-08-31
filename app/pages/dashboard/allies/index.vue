@@ -488,8 +488,8 @@ async function confirmDelete() {
         </p>
       </div>
       <div class="flex items-center gap-2">
-        <ListRefreshMenu :loading="loading" @refresh="load" @reset="resetFilters" />
-        <ReportPrintButton :search-query="search" :include-inactive="includeInactive" />
+        <ListRefreshMenu variant="ghost" :loading="loading" @refresh="load" @reset="resetFilters" />
+        <ReportPrintButton variant="ghost" :search-query="search" :include-inactive="includeInactive" />
         <UTooltip :text="canCreate ? t('allies.createTooltip') : t('allies.noPermissionCreate')">
           <UButton
             color="primary"
@@ -857,7 +857,7 @@ async function confirmDelete() {
               <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="formOpen = false">
                 {{ t('common.cancel') }}
               </UButton>
-              <UButton type="submit" color="primary" :loading="isSubmitting" icon="i-lucide-save">
+              <UButton type="submit" color="primary" variant="outline" :loading="isSubmitting" icon="i-lucide-save">
                 {{ mode === 'create' ? t('allies.form.submitCreate') : t('common.saveChanges') }}
               </UButton>
             </div>
