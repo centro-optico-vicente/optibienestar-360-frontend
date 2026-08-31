@@ -48,6 +48,22 @@ async function loadPlan() {
 
 onMounted(loadPlan)
 
+// Header "Refrescar": re-fetch the plan without blanking the page (unlike the
+// initial `loading` skeleton).
+const refreshing = ref(false)
+async function refreshAll() {
+  refreshing.value = true
+  try {
+    plan.value = await plans.get(planUuid)
+  }
+  catch {
+    // useApi already notified
+  }
+  finally {
+    refreshing.value = false
+  }
+}
+
 // Amount in USD, formatted in the VE convention (useFormatters). Empty → '—'.
 function money(v?: number | string | null): string {
   if (v === null || v === undefined || v === '') return t('common.empty')
@@ -212,7 +228,15 @@ async function confirmDelete() {
           </div>
 
           <div class="flex items-center gap-2">
-            <ReportPrintButton :record-uuid="planUuid" />
+            <RefreshButton
+              size="md"
+              variant="ghost"
+              :icon-only="false"
+              :loading="refreshing"
+              :title="t('common.refreshRecord')"
+              @refresh="refreshAll"
+            />
+            <ReportPrintButton :record-uuid="planUuid" variant="ghost" />
             <UTooltip :text="canUpdate ? (plan.published ? t('plans.unpublishTooltip') : t('plans.publishTooltip')) : t('plans.noPermissionEdit')">
               <UButton
                 :color="plan.published ? 'neutral' : 'primary'"
@@ -227,7 +251,8 @@ async function confirmDelete() {
             </UTooltip>
             <UTooltip :text="canUpdate ? t('plans.editTooltip') : t('plans.noPermissionEdit')">
               <UButton
-                color="primary"
+                color="info"
+                variant="ghost"
                 icon="i-lucide-pencil"
                 :disabled="!canUpdate"
                 @click="openEdit"
@@ -240,6 +265,7 @@ async function confirmDelete() {
               :active="plan.active"
               :allowed="canDelete"
               :loading="restoring"
+              class="ms-2"
               @restore="restorePlan"
             />
             <UTooltip v-else :text="canDelete ? t('plans.deleteTooltip') : t('plans.noPermissionDelete')">
@@ -247,6 +273,7 @@ async function confirmDelete() {
                 color="error"
                 variant="ghost"
                 icon="i-lucide-trash-2"
+                class="ms-2"
                 :disabled="!canDelete"
                 @click="openDelete"
               />

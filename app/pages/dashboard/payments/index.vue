@@ -80,20 +80,34 @@ async function load() {
   }
 }
 
-watch(size, () => { page.value = 1 })
-watch([page, size], load)
+// Guards the filter watchers so "clear filters and refresh" fires a single reload.
+const resetting = ref(false)
+
+watch(size, () => { if (!resetting.value) page.value = 1 })
+watch([page, size], () => { if (!resetting.value) load() })
 watch(statusFilter, () => {
-  page.value = 1
-  load()
+  if (!resetting.value) { page.value = 1; load() }
 })
 let searchTimer: ReturnType<typeof setTimeout> | undefined
 watch(search, () => {
+  if (resetting.value) return
   clearTimeout(searchTimer)
   searchTimer = setTimeout(() => {
     page.value = 1
     load()
   }, 400)
 })
+
+async function resetFilters() {
+  resetting.value = true
+  search.value = ''
+  statusFilter.value = ''
+  size.value = DEFAULT_PAGE_SIZE
+  page.value = 1
+  await nextTick()
+  resetting.value = false
+  load()
+}
 
 onMounted(load)
 
@@ -154,15 +168,17 @@ function isPending(p: PaymentDto): boolean {
         </p>
       </div>
       <div class="flex items-center gap-2">
-        <ReportPrintButton />
+        <ListRefreshMenu :loading="loading" variant="ghost" @refresh="load" @reset="resetFilters" />
+        <ReportPrintButton variant="ghost" />
         <UTooltip :text="canRegister ? t('payments.createTooltip') : t('payments.noPermissionRegister')">
           <UButton
             color="primary"
+            variant="outline"
             icon="i-lucide-plus"
             :disabled="!canRegister"
             @click="formOpen = true"
           >
-            {{ t('payments.new') }}
+            {{ t('common.new') }}
           </UButton>
         </UTooltip>
       </div>

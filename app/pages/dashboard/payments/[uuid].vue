@@ -48,6 +48,21 @@ async function loadPayment() {
 
 onMounted(loadPayment)
 
+// Header "Refrescar": re-fetch the payment without blanking the page.
+const refreshing = ref(false)
+async function refreshAll() {
+  refreshing.value = true
+  try {
+    payment.value = await payments.get(paymentUuid)
+  }
+  catch {
+    // useApi already notified
+  }
+  finally {
+    refreshing.value = false
+  }
+}
+
 const isPending = computed(() => payment.value?.status === 'PENDING')
 
 // ---- Presentation helpers ----
@@ -153,7 +168,15 @@ function onReviewed(updated: PaymentDto) {
           </div>
 
           <div class="flex items-center gap-2">
-            <ReportPrintButton :record-uuid="paymentUuid" />
+            <RefreshButton
+              size="md"
+              variant="ghost"
+              :icon-only="false"
+              :loading="refreshing"
+              :title="t('common.refreshRecord')"
+              @refresh="refreshAll"
+            />
+            <ReportPrintButton :record-uuid="paymentUuid" variant="ghost" />
             <template v-if="isPending">
               <UTooltip :text="canReject ? t('payments.detail.rejectTooltip') : t('payments.tooltips.noPermissionReject')">
                 <UButton
