@@ -7,6 +7,7 @@
     "loading": "Cargando…",
     "save": "Guardar",
     "saveChanges": "Guardar cambios",
+    "new": "Nuevo",
     "cancel": "Cancelar",
     "confirm": "Confirmar",
     "back": "Volver",
@@ -795,7 +796,8 @@
       "code": "Código",
       "description": "Descripción",
       "country": "País",
-      "state": "Estado"
+      "state": "Estado",
+      "active": "Activo"
     },
     "validation": {
       "isoCode": "Dos letras mayúsculas (ISO 3166-1, p.ej. VE)",

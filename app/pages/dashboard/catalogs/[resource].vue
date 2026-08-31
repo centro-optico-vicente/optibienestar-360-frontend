@@ -119,16 +119,33 @@ async function load() {
   }
 }
 
+// Guards the filter watchers so "clear filters and refresh" fires a single
+// reload instead of one per changed ref.
+const resetting = ref(false)
+
 let searchTimer: ReturnType<typeof setTimeout> | undefined
 watch(search, () => {
+  if (resetting.value) return
   clearTimeout(searchTimer)
   searchTimer = setTimeout(() => {
     page.value = 1
     load()
   }, 300)
 })
-watch(pageSize, () => { page.value = 1; load() })
-watch(page, load)
+watch(pageSize, () => { if (!resetting.value) { page.value = 1; load() } })
+watch(page, () => { if (!resetting.value) load() })
+
+async function resetFilters() {
+  resetting.value = true
+  search.value = ''
+  filterValue.value = ''
+  includeInactive.value = false
+  pageSize.value = DEFAULT_PAGE_SIZE
+  page.value = 1
+  await nextTick()
+  resetting.value = false
+  load()
+}
 
 // ---- Parent catalog options (for FK selects and the filter) ----
 const parentOptions = ref<Record<string, { label: string, value: string }[]>>({})
@@ -167,8 +184,8 @@ async function init() {
 
 onMounted(init)
 watch(() => route.params.resource, init)
-watch(filterValue, () => { page.value = 1; load() })
-watch(includeInactive, () => { page.value = 1; load() })
+watch(filterValue, () => { if (!resetting.value) { page.value = 1; load() } })
+watch(includeInactive, () => { if (!resetting.value) { page.value = 1; load() } })
 
 // ---- Create/edit form ----
 const formOpen = ref(false)
@@ -207,8 +224,15 @@ function openCreate() {
   formOpen.value = true
 }
 
-function openEdit(item: CatalogItem) {
-  mode.value = 'edit'
+// Snapshot of the last-loaded edit state, used to warn before a refresh
+// discards unsaved changes.
+const editSnapshot = ref('')
+function snapEditState() { return JSON.stringify({ ...state, isActive: isActive.value }) }
+const isEditDirty = computed(() => editSnapshot.value !== '' && snapEditState() !== editSnapshot.value)
+const discardConfirmOpen = ref(false)
+const editReloading = ref(false)
+
+function populateEditForm(item: CatalogItem) {
   editingUuid.value = item.uuid
   editingItem.value = item
   resetForm()
@@ -216,7 +240,29 @@ function openEdit(item: CatalogItem) {
     state[f.name] = String((item as unknown as Record<string, unknown>)[f.name] ?? '')
   }
   isActive.value = item.active
+  editSnapshot.value = snapEditState()
+}
+
+function openEdit(item: CatalogItem) {
+  mode.value = 'edit'
+  populateEditForm(item)
   formOpen.value = true
+}
+
+async function reloadEditForm() {
+  if (!def.value || !editingUuid.value) return
+  editReloading.value = true
+  try { populateEditForm(await api().get(editingUuid.value)) }
+  catch { /* useApi already notified */ }
+  finally { editReloading.value = false }
+}
+function onEditRefresh() {
+  if (isEditDirty.value) discardConfirmOpen.value = true
+  else reloadEditForm()
+}
+function discardAndRefresh() {
+  discardConfirmOpen.value = false
+  reloadEditForm()
 }
 
 function buildBody(forCreate: boolean): Record<string, unknown> {
@@ -334,9 +380,10 @@ async function confirmDelete() {
         </h1>
       </div>
       <div class="flex items-center gap-2">
-        <ReportPrintButton :table-name="def.key" />
-        <UButton v-if="canCreate" color="primary" icon="i-lucide-plus" @click="openCreate">
-          {{ $t('catalogs.new') }}
+        <ListRefreshMenu :loading="loading" variant="ghost" @refresh="load" @reset="resetFilters" />
+        <ReportPrintButton :table-name="def.key" variant="ghost" />
+        <UButton v-if="canCreate" color="primary" variant="outline" icon="i-lucide-plus" @click="openCreate">
+          {{ $t('common.new') }}
         </UButton>
       </div>
     </div>
@@ -409,6 +456,9 @@ async function confirmDelete() {
               </td>
               <td class="px-5 py-3">
                 <div class="flex items-center justify-end gap-1">
+                  <UTooltip v-if="canUpdate" :text="$t('common.edit')">
+                    <UButton color="info" variant="ghost" icon="i-lucide-pencil" size="sm" @click="openEdit(item)" />
+                  </UTooltip>
                   <ReportPrintButton
                     :table-name="def.key"
                     :record-uuid="item.uuid"
@@ -416,14 +466,11 @@ async function confirmDelete() {
                     variant="ghost"
                     size="sm"
                   />
-                  <UTooltip v-if="canUpdate" :text="$t('common.edit')">
-                    <UButton color="neutral" variant="ghost" icon="i-lucide-pencil" size="sm" @click="openEdit(item)" />
-                  </UTooltip>
-                  <UTooltip v-if="canDelete" :text="$t('common.delete')">
-                    <UButton color="error" variant="ghost" icon="i-lucide-trash-2" size="sm" @click="openDelete(item)" />
-                  </UTooltip>
                   <UTooltip v-if="def.auditEntityKey && canViewAudit" :text="t('audit.trigger')">
                     <UButton color="neutral" variant="ghost" icon="i-lucide-history" size="sm" @click="openAudit(item)" />
+                  </UTooltip>
+                  <UTooltip v-if="canDelete" :text="$t('common.delete')">
+                    <UButton color="error" variant="ghost" icon="i-lucide-trash-2" size="sm" class="ms-2" @click="openDelete(item)" />
                   </UTooltip>
                 </div>
               </td>
@@ -519,15 +566,35 @@ async function confirmDelete() {
             <div v-else />
 
             <div class="flex items-center gap-3">
+              <RefreshButton
+                v-if="mode === 'edit'"
+                :icon-only="false"
+                :label="$t('common.refresh')"
+                :title="$t('common.refresh')"
+                :loading="editReloading"
+                :disabled="isSubmitting"
+                @refresh="onEditRefresh"
+              />
               <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="formOpen = false">
                 {{ $t('common.cancel') }}
               </UButton>
-              <UButton type="submit" color="primary" :loading="isSubmitting" icon="i-lucide-save">
+              <UButton type="submit" color="info" variant="outline" :loading="isSubmitting" icon="i-lucide-save">
                 {{ mode === 'create' ? $t('catalogs.create') : $t('common.save') }}
               </UButton>
             </div>
           </div>
         </UForm>
+      </template>
+    </UModal>
+
+    <!-- Discard unsaved changes before refreshing the edit form -->
+    <UModal v-model:open="discardConfirmOpen" :title="$t('common.discardChangesTitle')">
+      <template #body>
+        <p class="text-sm text-prohealth-700">{{ $t('common.discardChangesBody') }}</p>
+        <div class="flex items-center justify-end gap-3 pt-5">
+          <UButton color="neutral" variant="ghost" @click="discardConfirmOpen = false">{{ $t('common.cancel') }}</UButton>
+          <UButton color="warning" icon="i-lucide-refresh-cw" @click="discardAndRefresh">{{ $t('common.discardAndRefresh') }}</UButton>
+        </div>
       </template>
     </UModal>
 

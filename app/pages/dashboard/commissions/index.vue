@@ -54,17 +54,34 @@ async function load() {
   }
 }
 
-watch(size, () => { page.value = 1 })
-watch([page, size], load)
+// Guards the watchers below so restoring the default filters fires a single
+// reload instead of one per changed ref.
+const resetting = ref(false)
+
+watch(size, () => { if (!resetting.value) page.value = 1 })
+watch([page, size], () => { if (!resetting.value) load() })
 let searchTimer: ReturnType<typeof setTimeout> | undefined
 watch([search, filter], () => {
+  if (resetting.value) return
   clearTimeout(searchTimer)
   searchTimer = setTimeout(() => {
     page.value = 1
     load()
   }, 400)
 })
-watch(includeInactive, () => { page.value = 1; load() })
+watch(includeInactive, () => { if (!resetting.value) { page.value = 1; load() } })
+
+async function resetFilters() {
+  resetting.value = true
+  search.value = ''
+  filter.value = ''
+  includeInactive.value = false
+  size.value = DEFAULT_PAGE_SIZE
+  page.value = 1
+  await nextTick()
+  resetting.value = false
+  load()
+}
 
 onMounted(load)
 
@@ -156,7 +173,8 @@ async function onReRatingDone() {
         </p>
       </div>
       <div class="flex items-center gap-2">
-        <ReportPrintButton />
+        <ListRefreshMenu :loading="loading" variant="ghost" @refresh="load" @reset="resetFilters" />
+        <ReportPrintButton variant="ghost" />
         <UButton
           v-if="canReRate"
           color="neutral"

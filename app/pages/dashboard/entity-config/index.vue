@@ -60,6 +60,12 @@ async function load() {
 }
 onMounted(load)
 
+// "Clear filters and refresh": the only filter here is the client-side search box.
+function resetFilters() {
+  search.value = ''
+  load()
+}
+
 // ---- Create ----
 const createOpen = ref(false)
 const isCreating = ref(false)
@@ -128,7 +134,15 @@ const editState = reactive<EditState>({
   notes: '',
 })
 
-function openEdit(e: EntityConfigDto) {
+// Snapshot of the last-loaded edit state, used to warn before a refresh
+// discards unsaved changes.
+const editSnapshot = ref('')
+function snapEditState() { return JSON.stringify(editState) }
+const isEditDirty = computed(() => editSnapshot.value !== '' && snapEditState() !== editSnapshot.value)
+const discardConfirmOpen = ref(false)
+const editReloading = ref(false)
+
+function populateEditForm(e: EntityConfigDto) {
   editingKey.value = e.entityKey
   editingDisplayName.value = e.displayName
   editState.enabled = e.enabled
@@ -139,7 +153,28 @@ function openEdit(e: EntityConfigDto) {
   editState.captureBeforeAfter = e.captureBeforeAfter
   editState.defaultSort = e.defaultSort ? [...e.defaultSort] : []
   editState.notes = e.notes || ''
+  editSnapshot.value = snapEditState()
+}
+
+function openEdit(e: EntityConfigDto) {
+  populateEditForm(e)
   editOpen.value = true
+}
+
+async function reloadEditForm() {
+  if (!editingKey.value) return
+  editReloading.value = true
+  try { populateEditForm(await entityConfigApi.get(editingKey.value)) }
+  catch { /* useApi already notified */ }
+  finally { editReloading.value = false }
+}
+function onEditRefresh() {
+  if (isEditDirty.value) discardConfirmOpen.value = true
+  else reloadEditForm()
+}
+function discardAndRefresh() {
+  discardConfirmOpen.value = false
+  reloadEditForm()
 }
 
 function addSortRow() {
@@ -214,11 +249,14 @@ async function confirmDelete() {
         <h1 class="text-2xl font-extrabold text-prohealth-900">{{ t('entityConfig.title') }}</h1>
         <p class="text-sm text-prohealth-700/70 mt-1">{{ t('entityConfig.subtitle') }}</p>
       </div>
-      <UTooltip v-if="canCreate" :text="t('entityConfig.createTitle')">
-        <UButton color="primary" icon="i-lucide-plus" @click="openCreate">
-          {{ t('entityConfig.new') }}
-        </UButton>
-      </UTooltip>
+      <div class="flex items-center gap-2">
+        <ListRefreshMenu :loading="loading" variant="ghost" @refresh="load" @reset="resetFilters" />
+        <UTooltip v-if="canCreate" :text="t('entityConfig.createTitle')">
+          <UButton color="primary" variant="outline" icon="i-lucide-plus" @click="openCreate">
+            {{ t('common.new') }}
+          </UButton>
+        </UTooltip>
+      </div>
     </div>
 
     <!-- Search -->
@@ -267,7 +305,7 @@ async function confirmDelete() {
                 <div class="flex items-center justify-end gap-1">
                   <UTooltip :text="canUpdate ? t('common.edit') : ''">
                     <UButton
-                      color="neutral"
+                      color="info"
                       variant="ghost"
                       icon="i-lucide-pencil"
                       size="sm"
@@ -281,6 +319,7 @@ async function confirmDelete() {
                       variant="ghost"
                       icon="i-lucide-trash-2"
                       size="sm"
+                      class="ms-2"
                       :disabled="!canDelete"
                       @click="openDelete(e)"
                     />
@@ -315,7 +354,7 @@ async function confirmDelete() {
             <UButton color="neutral" variant="ghost" :disabled="isCreating" @click="createOpen = false">
               {{ t('common.cancel') }}
             </UButton>
-            <UButton type="submit" color="primary" :loading="isCreating" icon="i-lucide-save">
+            <UButton type="submit" color="info" variant="outline" :loading="isCreating" icon="i-lucide-save">
               {{ t('common.save') }}
             </UButton>
           </div>
@@ -397,10 +436,18 @@ async function confirmDelete() {
           </UFormField>
 
           <div class="flex items-center justify-end gap-3 pt-2">
+            <RefreshButton
+              :icon-only="false"
+              :label="t('common.refresh')"
+              :title="t('common.refresh')"
+              :loading="editReloading"
+              :disabled="isSubmitting"
+              @refresh="onEditRefresh"
+            />
             <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="editOpen = false">
               {{ t('common.cancel') }}
             </UButton>
-            <UButton type="submit" color="primary" :loading="isSubmitting" icon="i-lucide-save">
+            <UButton type="submit" color="info" variant="outline" :loading="isSubmitting" icon="i-lucide-save">
               {{ t('entityConfig.saveButton') }}
             </UButton>
           </div>
@@ -423,6 +470,17 @@ async function confirmDelete() {
           <UButton color="error" :loading="deleting" icon="i-lucide-trash-2" @click="confirmDelete">
             {{ t('common.delete') }}
           </UButton>
+        </div>
+      </template>
+    </UModal>
+
+    <!-- Discard unsaved changes before refreshing the edit form -->
+    <UModal v-model:open="discardConfirmOpen" :title="t('common.discardChangesTitle')">
+      <template #body>
+        <p class="text-sm text-prohealth-700">{{ t('common.discardChangesBody') }}</p>
+        <div class="flex items-center justify-end gap-3 pt-5">
+          <UButton color="neutral" variant="ghost" @click="discardConfirmOpen = false">{{ t('common.cancel') }}</UButton>
+          <UButton color="warning" icon="i-lucide-refresh-cw" @click="discardAndRefresh">{{ t('common.discardAndRefresh') }}</UButton>
         </div>
       </template>
     </UModal>
