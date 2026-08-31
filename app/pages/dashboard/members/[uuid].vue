@@ -87,6 +87,69 @@ async function restoreMember() {
   }
 }
 
+// ---- Edit (reopens the shared list modal via ?edit=<uuid>) ----
+function goEditMember() {
+  navigateTo(`/dashboard/members?edit=${memberUuid}`)
+}
+
+// ---- Delete ----
+const deleteOpen = ref(false)
+const deleting = ref(false)
+const usageChecking = ref(false)
+const usageInfo = ref<{ inUse: boolean, count: number } | null>(null)
+
+async function openDelete() {
+  if (!member.value) return
+  deleteOpen.value = true
+  usageChecking.value = true
+  usageInfo.value = null
+  try {
+    usageInfo.value = await members.usage(member.value.uuid)
+  }
+  catch {
+    // Fallback: treat as "in use" for safety (soft-deactivate instead of physical delete).
+    usageInfo.value = null
+  }
+  finally {
+    usageChecking.value = false
+  }
+}
+
+async function confirmDelete() {
+  if (!member.value) return
+  deleting.value = true
+  const wasPhysical = usageInfo.value?.inUse === false
+  try {
+    await members.remove(member.value.uuid, wasPhysical)
+    toast.add({
+      title: wasPhysical
+        ? t('members.deletedPermanentToast')
+        : t('members.deactivatedToast'),
+      color: wasPhysical ? 'success' : 'info',
+      icon: wasPhysical ? 'i-lucide-check-circle' : 'i-lucide-info',
+    })
+    await navigateTo('/dashboard/members')
+  }
+  catch {
+    // toast handled by useApi
+  }
+  finally {
+    deleting.value = false
+  }
+}
+
+// ---- Tabs ----
+const tabs = computed(() => [
+  { label: t('members.beneficiaries.title'), value: 'beneficiaries', icon: 'i-lucide-users' },
+  { label: t('memberships.title'), value: 'memberships', icon: 'i-lucide-badge-check' },
+  { label: t('referrals.code.title'), value: 'referral', icon: 'i-lucide-ticket' },
+  { label: t('members.promoter.title'), value: 'promoter', icon: 'i-lucide-megaphone' },
+  ...(canViewMedical.value
+    ? [{ label: t('members.medical.title'), value: 'medical', icon: 'i-lucide-heart-pulse' }]
+    : []),
+])
+const activeTab = ref('beneficiaries')
+
 const displayName = computed(() => {
   const m = member.value
   if (!m) return ''
@@ -175,8 +238,15 @@ function openBenCreate() {
   benFormOpen.value = true
 }
 
-function openBenEdit(b: BeneficiaryDto) {
-  benMode.value = 'edit'
+// Snapshot of the last-loaded edit state, used to warn before a refresh
+// discards unsaved changes.
+const benEditSnapshot = ref('')
+function snapBenEditState() { return JSON.stringify(benState) }
+const isBenEditDirty = computed(() => benEditSnapshot.value !== '' && snapBenEditState() !== benEditSnapshot.value)
+const benDiscardConfirmOpen = ref(false)
+const benReloading = ref(false)
+
+function populateBenEditForm(b: BeneficiaryDto) {
   benEditingUuid.value = b.uuid
   benEditingItem.value = b
   resetBenForm()
@@ -190,7 +260,35 @@ function openBenEdit(b: BeneficiaryDto) {
   benState.relationship = b.relationship
   benState.extraInscriptionPaid = b.extraInscriptionPaid ?? false
   benState.status = b.status || 'ACTIVE'
+  benEditSnapshot.value = snapBenEditState()
+}
+
+function openBenEdit(b: BeneficiaryDto) {
+  benMode.value = 'edit'
+  populateBenEditForm(b)
   benFormOpen.value = true
+}
+
+// No single-beneficiary GET endpoint — reload the whole list and pick this row back out.
+async function reloadBenEditForm() {
+  if (!benEditingUuid.value) return
+  benReloading.value = true
+  try {
+    await loadBeneficiaries()
+    const fresh = beneficiaries.value.find(b => b.uuid === benEditingUuid.value)
+    if (fresh) populateBenEditForm(fresh)
+  }
+  finally {
+    benReloading.value = false
+  }
+}
+function onBenEditRefresh() {
+  if (isBenEditDirty.value) benDiscardConfirmOpen.value = true
+  else reloadBenEditForm()
+}
+function discardAndRefreshBen() {
+  benDiscardConfirmOpen.value = false
+  reloadBenEditForm()
 }
 
 async function onBenSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
@@ -389,6 +487,18 @@ onMounted(async () => {
   await loadMember()
   await Promise.all([loadMedicalRecord(), loadDocumentTypes()])
 })
+
+// Header "Refrescar": re-fetch the member + beneficiaries + medical record at once.
+const refreshingAll = ref(false)
+async function refreshAll() {
+  refreshingAll.value = true
+  try {
+    await Promise.all([loadMember(), loadBeneficiaries(), loadMedicalRecord()])
+  }
+  finally {
+    refreshingAll.value = false
+  }
+}
 </script>
 
 <template>
@@ -437,14 +547,44 @@ onMounted(async () => {
             </p>
           </div>
           <div class="flex items-center gap-2">
-            <ReportPrintButton :record-uuid="memberUuid" />
+            <RefreshButton
+              size="md"
+              variant="ghost"
+              :icon-only="false"
+              :loading="refreshingAll"
+              :title="t('common.refreshRecord')"
+              @refresh="refreshAll"
+            />
+            <ReportPrintButton :record-uuid="memberUuid" variant="ghost" />
+            <UTooltip :text="canUpdate ? t('common.edit') : t('members.noPermissionEdit')">
+              <UButton
+                color="info"
+                variant="ghost"
+                icon="i-lucide-pencil"
+                :disabled="!canUpdate"
+                @click="goEditMember"
+              >
+                {{ t('common.edit') }}
+              </UButton>
+            </UTooltip>
             <RestoreButton
               v-if="member.active === false"
               :active="member.active"
               :allowed="canDelete"
               :loading="restoring"
+              class="ms-2"
               @restore="restoreMember"
             />
+            <UTooltip v-else :text="canDelete ? t('common.delete') : t('members.noPermissionDelete')">
+              <UButton
+                color="error"
+                variant="ghost"
+                icon="i-lucide-trash-2"
+                class="ms-2"
+                :disabled="!canDelete"
+                @click="openDelete"
+              />
+            </UTooltip>
             <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
               <UButton color="neutral" variant="ghost" icon="i-lucide-history" @click="auditOpen = true" />
             </UTooltip>
@@ -519,25 +659,43 @@ onMounted(async () => {
         </dl>
       </div>
 
+      <!-- Confirmation status: quick-glance strip (creation/confirmation + linked promoter), above the tabs -->
+      <MemberConfirmationCard
+        v-if="member"
+        :member-uuid="memberUuid"
+        :member-name="displayName"
+        :created-at="member.createdAt"
+        :confirmed-at="member.confirmedAt"
+        :current-promoter-uuid="member.currentPromoterUuid"
+        :current-promoter-name="member.currentPromoterName"
+        @confirmed="loadMember"
+      />
+
+      <!-- Sub-resource tabs -->
+      <UTabs v-model="activeTab" :items="tabs" :content="false" />
+
       <!-- Beneficiaries -->
-      <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
+      <div v-show="activeTab === 'beneficiaries'" class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
         <div class="flex items-center justify-between px-6 py-4 border-b border-prohealth-100">
           <div>
             <h2 class="font-bold text-prohealth-900">{{ t('members.beneficiaries.title') }}</h2>
             <p class="text-xs text-prohealth-500 mt-0.5">{{ t('members.beneficiaries.subtitle') }}</p>
           </div>
-          <UTooltip :text="canUpdate ? t('members.beneficiaries.addTooltip') : t('members.noPermission')">
-            <UButton
-              color="primary"
-              variant="soft"
-              icon="i-lucide-user-plus"
-              size="sm"
-              :disabled="!canUpdate"
-              @click="openBenCreate"
-            >
-              {{ t('members.beneficiaries.add') }}
-            </UButton>
-          </UTooltip>
+          <div class="flex items-center gap-2">
+            <UTooltip :text="canUpdate ? t('members.beneficiaries.addTooltip') : t('members.noPermission')">
+              <UButton
+                color="primary"
+                variant="soft"
+                icon="i-lucide-user-plus"
+                size="sm"
+                :disabled="!canUpdate"
+                @click="openBenCreate"
+              >
+                {{ t('members.beneficiaries.add') }}
+              </UButton>
+            </UTooltip>
+            <RefreshButton :loading="beneficiariesLoading" :title="t('common.refreshSection')" @refresh="loadBeneficiaries" />
+          </div>
         </div>
 
         <div class="overflow-x-auto">
@@ -618,32 +776,28 @@ onMounted(async () => {
       </div>
 
       <!-- Memberships (self-gated by MEMBERSHIP_VIEW_ALL) -->
-      <MemberMembershipsCard :member-uuid="memberUuid" />
+      <div v-show="activeTab === 'memberships'">
+        <MemberMembershipsCard :member-uuid="memberUuid" />
+      </div>
 
       <!-- Referral code (self-gated by REFERRAL_CODE_CREATE) -->
-      <MemberReferralCodeCard :member-uuid="memberUuid" />
+      <div v-show="activeTab === 'referral'">
+        <MemberReferralCodeCard :member-uuid="memberUuid" />
+      </div>
 
       <!-- Promoter link + history -->
-      <MemberPromoterCard
-        v-if="member"
-        :member-uuid="memberUuid"
-        :current-promoter-uuid="member.currentPromoterUuid"
-        :current-promoter-name="member.currentPromoterName"
-        @changed="loadMember"
-      />
-
-      <!-- Confirmation status (self-gated by MEMBER_CONFIRM for the action) -->
-      <MemberConfirmationCard
-        v-if="member"
-        :member-uuid="memberUuid"
-        :member-name="displayName"
-        :created-at="member.createdAt"
-        :confirmed-at="member.confirmedAt"
-        @confirmed="loadMember"
-      />
+      <div v-show="activeTab === 'promoter'">
+        <MemberPromoterCard
+          v-if="member"
+          :member-uuid="memberUuid"
+          :current-promoter-uuid="member.currentPromoterUuid"
+          :current-promoter-name="member.currentPromoterName"
+          @changed="loadMember"
+        />
+      </div>
 
       <!-- Medical record -->
-      <div v-if="canViewMedical" class="bg-white rounded-2xl border border-prohealth-100">
+      <div v-if="canViewMedical" v-show="activeTab === 'medical'" class="bg-white rounded-2xl border border-prohealth-100">
         <div class="flex items-center justify-between px-6 py-4 border-b border-prohealth-100">
           <div>
             <h2 class="font-bold text-prohealth-900">{{ t('members.medical.title') }}</h2>
@@ -818,15 +972,35 @@ onMounted(async () => {
             <div v-else />
 
             <div class="flex items-center gap-3">
+              <RefreshButton
+                v-if="benMode === 'edit'"
+                :icon-only="false"
+                :label="t('common.refresh')"
+                :title="t('common.refresh')"
+                :loading="benReloading"
+                :disabled="benSubmitting"
+                @refresh="onBenEditRefresh"
+              />
               <UButton color="neutral" variant="ghost" :disabled="benSubmitting" @click="benFormOpen = false">
                 {{ t('common.cancel') }}
               </UButton>
-              <UButton type="submit" color="primary" :loading="benSubmitting" icon="i-lucide-save">
-                {{ benMode === 'create' ? t('members.beneficiaries.add') : t('common.saveChanges') }}
+              <UButton type="submit" :color="benMode === 'create' ? 'primary' : 'info'" variant="outline" :loading="benSubmitting" icon="i-lucide-save">
+                {{ benMode === 'create' ? t('common.saveNew') : t('common.saveChanges') }}
               </UButton>
             </div>
           </div>
         </UForm>
+
+        <!-- Discard unsaved changes before refreshing -->
+        <UModal v-model:open="benDiscardConfirmOpen" :title="t('common.discardChangesTitle')">
+          <template #body>
+            <p class="text-sm text-prohealth-700">{{ t('common.discardChangesBody') }}</p>
+            <div class="flex items-center justify-end gap-3 pt-5">
+              <UButton color="neutral" variant="ghost" @click="benDiscardConfirmOpen = false">{{ t('common.cancel') }}</UButton>
+              <UButton color="warning" icon="i-lucide-refresh-cw" @click="discardAndRefreshBen">{{ t('common.discardAndRefresh') }}</UButton>
+            </div>
+          </template>
+        </UModal>
       </template>
     </UModal>
 
@@ -923,7 +1097,7 @@ onMounted(async () => {
               <UButton color="neutral" variant="ghost" :disabled="medSubmitting" @click="medFormOpen = false">
                 {{ t('common.cancel') }}
               </UButton>
-              <UButton type="submit" color="primary" :loading="medSubmitting" icon="i-lucide-save">
+              <UButton type="submit" :color="medicalExists ? 'info' : 'primary'" variant="outline" :loading="medSubmitting" icon="i-lucide-save">
                 {{ t('members.medical.form.submit') }}
               </UButton>
             </div>
@@ -945,6 +1119,31 @@ onMounted(async () => {
             {{ t('common.cancel') }}
           </UButton>
           <UButton color="error" :loading="medDeleting" icon="i-lucide-trash-2" @click="confirmMedicalDelete">
+            {{ t('common.delete') }}
+          </UButton>
+        </div>
+      </template>
+    </UModal>
+
+    <!-- Delete confirmation modal -->
+    <UModal v-model:open="deleteOpen" :title="t('members.delete.title')">
+      <template #body>
+        <div v-if="usageChecking" class="flex items-center gap-2 text-sm text-prohealth-600">
+          <UIcon name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
+          {{ t('common.loading') }}
+        </div>
+        <p v-else class="text-sm text-prohealth-700">
+          {{
+            usageInfo?.inUse === false
+              ? t('members.deleteConfirmPermanent')
+              : t('members.deleteConfirmDeactivate', { count: usageInfo?.count ?? 0 })
+          }}
+        </p>
+        <div class="flex items-center justify-end gap-3 pt-5">
+          <UButton color="neutral" variant="ghost" :disabled="deleting" @click="deleteOpen = false">
+            {{ t('common.cancel') }}
+          </UButton>
+          <UButton color="error" :loading="deleting" :disabled="usageChecking" icon="i-lucide-trash-2" @click="confirmDelete">
             {{ t('common.delete') }}
           </UButton>
         </div>

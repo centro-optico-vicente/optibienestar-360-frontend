@@ -1540,7 +1540,8 @@
         "city": "City",
         "address": "Address",
         "status": "Status",
-        "notes": "Notes"
+        "notes": "Notes",
+        "active": "Active"
       },
       "validation": {
         "documentMin": "At least 5 digits",
