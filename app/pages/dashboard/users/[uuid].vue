@@ -382,6 +382,11 @@ onMounted(async () => {
                 {{ t('security.users.detail.rolesTab.add') }}
               </UButton>
             </UTooltip>
+            <RefreshButton
+              :loading="loading"
+              :title="t('common.refreshSection')"
+              @refresh="loadUser"
+            />
           </div>
         </div>
 
@@ -455,6 +460,11 @@ onMounted(async () => {
                 {{ t('security.users.detail.alliesTab.add') }}
               </UButton>
             </UTooltip>
+            <RefreshButton
+              :loading="userAlliesLoading"
+              :title="t('common.refreshSection')"
+              @refresh="loadUserAllies"
+            />
           </div>
         </div>
 
