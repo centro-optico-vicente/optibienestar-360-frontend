@@ -1540,7 +1540,8 @@
         "city": "Ciudad",
         "address": "Dirección",
         "status": "Estado",
-        "notes": "Notas"
+        "notes": "Notas",
+        "active": "Activo"
       },
       "validation": {
         "documentMin": "Mínimo 5 dígitos",

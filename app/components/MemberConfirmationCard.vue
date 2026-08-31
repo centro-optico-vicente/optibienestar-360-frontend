@@ -8,6 +8,8 @@ const props = defineProps<{
   memberName?: string | null
   createdAt?: string | null
   confirmedAt?: string | null
+  currentPromoterUuid?: string | null
+  currentPromoterName?: string | null
 }>()
 
 const emit = defineEmits<{ confirmed: [] }>()
@@ -56,7 +58,7 @@ async function doConfirm() {
       </UButton>
     </div>
 
-    <dl class="px-6 py-4 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+    <dl class="px-6 py-4 grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-3 text-sm">
       <div>
         <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('members.confirmation.createdAt') }}</dt>
         <dd class="text-prohealth-800 mt-0.5">{{ formatDate(createdAt, 'short') }}</dd>
@@ -66,6 +68,19 @@ async function doConfirm() {
         <dd class="mt-0.5">
           <span v-if="confirmedAt" class="text-prohealth-800">{{ formatDate(confirmedAt, 'short') }}</span>
           <UBadge v-else color="warning" variant="subtle" size="sm">{{ t('members.confirmation.pending') }}</UBadge>
+        </dd>
+      </div>
+      <div>
+        <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('members.promoter.title') }}</dt>
+        <dd class="mt-0.5">
+          <NuxtLink
+            v-if="currentPromoterUuid"
+            :to="`/dashboard/promoters/${currentPromoterUuid}`"
+            class="text-primary-600 hover:underline"
+          >
+            {{ currentPromoterName || t('common.empty') }}
+          </NuxtLink>
+          <span v-else class="text-prohealth-400">{{ t('common.empty') }}</span>
         </dd>
       </div>
     </dl>

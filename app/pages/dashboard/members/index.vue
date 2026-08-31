@@ -74,17 +74,32 @@ async function load() {
   }
 }
 
-watch(size, () => { page.value = 1 })
-watch([page, size], load)
+// Guards the filter watchers so "clear filters and refresh" fires a single reload.
+const resetting = ref(false)
+
+watch(size, () => { if (!resetting.value) page.value = 1 })
+watch([page, size], () => { if (!resetting.value) load() })
 let searchTimer: ReturnType<typeof setTimeout> | undefined
 watch(search, () => {
+  if (resetting.value) return
   clearTimeout(searchTimer)
   searchTimer = setTimeout(() => {
     page.value = 1
     load()
   }, 400)
 })
-watch(includeInactive, () => { page.value = 1; load() })
+watch(includeInactive, () => { if (!resetting.value) { page.value = 1; load() } })
+
+async function resetFilters() {
+  resetting.value = true
+  search.value = ''
+  includeInactive.value = false
+  size.value = DEFAULT_PAGE_SIZE
+  page.value = 1
+  await nextTick()
+  resetting.value = false
+  load()
+}
 
 // Member status badge/select label; falls back to the raw value.
 function statusLabel(s?: string | null): string {
@@ -150,9 +165,22 @@ watch(selectedStateUuid, async (stateUuid) => {
   }
 })
 
+// `?edit=<uuid>` lets the member detail page ("Editar" button) reopen this
+// modal without duplicating the create/edit form on a second page.
+const route = useRoute()
+
 onMounted(async () => {
   await load()
   await Promise.all([loadCatalogs(), loadDocumentTypes()])
+  const editUuid = route.query.edit
+  if (typeof editUuid === 'string') {
+    try {
+      await openEdit({ uuid: editUuid } as MemberDto)
+    }
+    catch {
+      // Invalid/removed uuid: silently ignore, stay on the list.
+    }
+  }
 })
 
 // ---- Create/edit form ----
@@ -318,6 +346,46 @@ function openCreate() {
   formOpen.value = true
 }
 
+// Snapshot of the last-loaded edit state, used to warn before a refresh
+// discards unsaved changes.
+const editSnapshot = ref('')
+function snapEditState() { return JSON.stringify({ ...state, isActive: isActive.value, selectedStateUuid: selectedStateUuid.value }) }
+const isEditDirty = computed(() => editSnapshot.value !== '' && snapEditState() !== editSnapshot.value)
+const discardConfirmOpen = ref(false)
+
+function populateEditForm(full: MemberDto) {
+  state.firstName = full.firstName ?? ''
+  state.middleName = full.middleName ?? ''
+  state.lastName = full.lastName ?? ''
+  state.secondLastName = full.secondLastName ?? ''
+  state.documentType = full.documentType || undefined
+  state.documentNumber = full.documentNumber ?? ''
+  state.birthDate = full.birthDate ?? ''
+  state.genderUuid = full.gender?.uuid
+  state.maritalStatusUuid = full.maritalStatus?.uuid
+  state.occupationUuid = full.occupation?.uuid
+  // The city select is populated by a cascade that keys off the selected state; set the
+  // state first (from the embedded CityDto's own stateUuid) and stash the city so the
+  // cascade watcher can apply it once that state's cities finish loading.
+  pendingCityUuid.value = full.city?.uuid
+  selectedStateUuid.value = full.city?.stateUuid
+  state.birthplace = full.birthplace ?? ''
+  state.numberOfChildren = full.numberOfChildren != null ? String(full.numberOfChildren) : ''
+  state.spouseName = full.spouseName ?? ''
+  state.phone = full.phone ?? ''
+  state.landlinePhone = full.landlinePhone ?? ''
+  state.email = full.email ?? ''
+  state.address = full.address ?? ''
+  state.employerName = full.employerName ?? ''
+  state.jobPosition = full.jobPosition ?? ''
+  state.employerAddress = full.employerAddress ?? ''
+  state.enrolledAt = full.enrolledAt ?? ''
+  state.status = full.status || 'ACTIVE'
+  state.notes = full.notes ?? ''
+  isActive.value = full.active ?? true
+  editSnapshot.value = snapEditState()
+}
+
 async function openEdit(m: MemberDto) {
   mode.value = 'edit'
   editingUuid.value = m.uuid
@@ -329,36 +397,7 @@ async function openEdit(m: MemberDto) {
   // detail. The full record is loaded to populate.
   editLoading.value = true
   try {
-    const full = await members.get(m.uuid)
-    state.firstName = full.firstName ?? ''
-    state.middleName = full.middleName ?? ''
-    state.lastName = full.lastName ?? ''
-    state.secondLastName = full.secondLastName ?? ''
-    state.documentType = full.documentType || undefined
-    state.documentNumber = full.documentNumber ?? ''
-    state.birthDate = full.birthDate ?? ''
-    state.genderUuid = full.gender?.uuid
-    state.maritalStatusUuid = full.maritalStatus?.uuid
-    state.occupationUuid = full.occupation?.uuid
-    // The city select is populated by a cascade that keys off the selected state; set the
-    // state first (from the embedded CityDto's own stateUuid) and stash the city so the
-    // cascade watcher can apply it once that state's cities finish loading.
-    pendingCityUuid.value = full.city?.uuid
-    selectedStateUuid.value = full.city?.stateUuid
-    state.birthplace = full.birthplace ?? ''
-    state.numberOfChildren = full.numberOfChildren != null ? String(full.numberOfChildren) : ''
-    state.spouseName = full.spouseName ?? ''
-    state.phone = full.phone ?? ''
-    state.landlinePhone = full.landlinePhone ?? ''
-    state.email = full.email ?? ''
-    state.address = full.address ?? ''
-    state.employerName = full.employerName ?? ''
-    state.jobPosition = full.jobPosition ?? ''
-    state.employerAddress = full.employerAddress ?? ''
-    state.enrolledAt = full.enrolledAt ?? ''
-    state.status = full.status || 'ACTIVE'
-    state.notes = full.notes ?? ''
-    isActive.value = full.active ?? true
+    populateEditForm(await members.get(m.uuid))
   }
   catch {
     // The detail failed to load (useApi already notified); close the modal.
@@ -367,6 +406,22 @@ async function openEdit(m: MemberDto) {
   finally {
     editLoading.value = false
   }
+}
+
+async function reloadEditForm() {
+  if (!editingUuid.value) return
+  editLoading.value = true
+  try { populateEditForm(await members.get(editingUuid.value)) }
+  catch { /* useApi already notified */ }
+  finally { editLoading.value = false }
+}
+function onEditRefresh() {
+  if (isEditDirty.value) discardConfirmOpen.value = true
+  else reloadEditForm()
+}
+function discardAndRefresh() {
+  discardConfirmOpen.value = false
+  reloadEditForm()
 }
 
 async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
@@ -520,15 +575,17 @@ function displayName(m: MemberDto): string {
         </p>
       </div>
       <div class="flex items-center gap-2">
-        <ReportPrintButton />
+        <ListRefreshMenu :loading="loading" variant="ghost" @refresh="load" @reset="resetFilters" />
+        <ReportPrintButton variant="ghost" />
         <UTooltip :text="canCreate ? t('members.createTooltip') : t('members.noPermissionCreate')">
           <UButton
             color="primary"
-            icon="i-lucide-user-plus"
+            variant="outline"
+            icon="i-lucide-plus"
             :disabled="!canCreate"
             @click="openCreate"
           >
-            {{ t('members.new') }}
+            {{ t('common.new') }}
           </UButton>
         </UTooltip>
       </div>
@@ -617,6 +674,16 @@ function displayName(m: MemberDto): string {
                       :to="`/dashboard/members/${m.uuid}`"
                     />
                   </UTooltip>
+                  <UTooltip :text="canUpdate ? t('common.edit') : t('members.noPermissionEdit')">
+                    <UButton
+                      color="info"
+                      variant="ghost"
+                      icon="i-lucide-pencil"
+                      size="sm"
+                      :disabled="!canUpdate"
+                      @click="openEdit(m)"
+                    />
+                  </UTooltip>
                   <ReportPrintButton
                     table-name="members"
                     :record-uuid="m.uuid"
@@ -624,14 +691,13 @@ function displayName(m: MemberDto): string {
                     variant="ghost"
                     size="sm"
                   />
-                  <UTooltip :text="canUpdate ? t('common.edit') : t('members.noPermissionEdit')">
+                  <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
                     <UButton
                       color="neutral"
                       variant="ghost"
-                      icon="i-lucide-pencil"
+                      icon="i-lucide-history"
                       size="sm"
-                      :disabled="!canUpdate"
-                      @click="openEdit(m)"
+                      @click="openAudit(m)"
                     />
                   </UTooltip>
                   <UTooltip :text="canDelete ? t('common.delete') : t('members.noPermissionDelete')">
@@ -640,17 +706,9 @@ function displayName(m: MemberDto): string {
                       variant="ghost"
                       icon="i-lucide-trash-2"
                       size="sm"
+                      class="ms-2"
                       :disabled="!canDelete"
                       @click="openDelete(m)"
-                    />
-                  </UTooltip>
-                  <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
-                    <UButton
-                      color="neutral"
-                      variant="ghost"
-                      icon="i-lucide-history"
-                      size="sm"
-                      @click="openAudit(m)"
                     />
                   </UTooltip>
                 </div>
@@ -693,7 +751,7 @@ function displayName(m: MemberDto): string {
       v-model:open="formOpen"
       :title="mode === 'create' ? t('members.form.createTitle') : t('members.form.editTitle')"
       :description="mode === 'create' ? t('members.form.createDescription') : t('members.form.editDescription')"
-      :ui="{ content: 'max-w-2xl' }"
+      :ui="{ content: 'max-w-3xl' }"
     >
       <template #body>
         <div v-if="editLoading" class="py-12 flex flex-col items-center justify-center gap-2 text-prohealth-500">
@@ -894,15 +952,35 @@ function displayName(m: MemberDto): string {
             <div v-else />
 
             <div class="flex items-center gap-3">
+              <RefreshButton
+                v-if="mode === 'edit'"
+                :icon-only="false"
+                :label="t('common.refresh')"
+                :title="t('common.refresh')"
+                :loading="editLoading"
+                :disabled="isSubmitting"
+                @refresh="onEditRefresh"
+              />
               <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="formOpen = false">
                 {{ t('common.cancel') }}
               </UButton>
-              <UButton type="submit" color="primary" :loading="isSubmitting" icon="i-lucide-save">
-                {{ mode === 'create' ? t('members.form.submitCreate') : t('common.saveChanges') }}
+              <UButton type="submit" :color="mode === 'create' ? 'primary' : 'info'" variant="outline" :loading="isSubmitting" icon="i-lucide-save">
+                {{ mode === 'create' ? t('common.saveNew') : t('common.saveChanges') }}
               </UButton>
             </div>
           </div>
         </UForm>
+
+        <!-- Discard unsaved changes before refreshing -->
+        <UModal v-model:open="discardConfirmOpen" :title="t('common.discardChangesTitle')">
+          <template #body>
+            <p class="text-sm text-prohealth-700">{{ t('common.discardChangesBody') }}</p>
+            <div class="flex items-center justify-end gap-3 pt-5">
+              <UButton color="neutral" variant="ghost" @click="discardConfirmOpen = false">{{ t('common.cancel') }}</UButton>
+              <UButton color="warning" icon="i-lucide-refresh-cw" @click="discardAndRefresh">{{ t('common.discardAndRefresh') }}</UButton>
+            </div>
+          </template>
+        </UModal>
       </template>
     </UModal>
 
