@@ -803,17 +803,17 @@ onMounted(async () => {
             <!-- Refresh + read-only tools -->
             <RefreshButton
               size="md"
-              variant="outline"
+              variant="ghost"
               :icon-only="false"
               :loading="refreshingAll"
               :title="t('common.refreshRecord')"
               @refresh="refreshAll"
             />
-            <ReportPrintButton :record-uuid="allyUuid" size="md" />
+            <ReportPrintButton :record-uuid="allyUuid" size="md" variant="ghost" />
             <UButton
               v-if="canViewAudit"
               color="neutral"
-              variant="outline"
+              variant="ghost"
               icon="i-lucide-history"
               size="md"
               :label="t('audit.trigger')"
@@ -823,7 +823,7 @@ onMounted(async () => {
             <!-- Primary action -->
             <UTooltip :text="canUpdate ? t('common.edit') : t('allies.noPermissionEdit')">
               <UButton
-                color="neutral"
+                color="info"
                 variant="outline"
                 icon="i-lucide-pencil"
                 size="md"

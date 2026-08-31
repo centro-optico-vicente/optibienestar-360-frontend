@@ -857,7 +857,7 @@ async function confirmDelete() {
               <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="formOpen = false">
                 {{ t('common.cancel') }}
               </UButton>
-              <UButton type="submit" color="primary" variant="outline" :loading="isSubmitting" icon="i-lucide-save">
+              <UButton type="submit" color="info" variant="outline" :loading="isSubmitting" icon="i-lucide-save">
                 {{ mode === 'create' ? t('allies.form.submitCreate') : t('common.saveChanges') }}
               </UButton>
             </div>
