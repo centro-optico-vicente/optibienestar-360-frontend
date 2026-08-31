@@ -7,6 +7,7 @@
     "loading": "Loading…",
     "save": "Save",
     "saveChanges": "Save changes",
+    "saveNew": "Save new",
     "new": "New",
     "cancel": "Cancel",
     "confirm": "Confirm",
@@ -1050,7 +1051,8 @@
     "status": {
       "ACTIVE": "Active",
       "INACTIVE": "Inactive",
-      "SUSPENDED": "Suspended"
+      "SUSPENDED": "Suspended",
+      "AGREEMENT_EXPIRED": "Agreement expired"
     },
     "form": {
       "createTitle": "New partner",
@@ -2356,7 +2358,8 @@
         "rewardKind": "Reward type",
         "commissionPct": "Percentage",
         "flatAmount": "Flat amount",
-        "submitCreate": "Create band"
+        "submitCreate": "Create band",
+        "active": "Active"
       }
     },
     "bonusRules": {
@@ -2422,7 +2425,8 @@
         "maxDays": "Max days",
         "maxDaysHelp": "Applies when days-to-collect <= this value.",
         "commissionPct": "Percentage",
-        "submitCreate": "Create bucket"
+        "submitCreate": "Create bucket",
+        "active": "Active"
       }
     }
   },

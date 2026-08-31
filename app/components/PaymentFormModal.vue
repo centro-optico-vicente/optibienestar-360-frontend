@@ -344,8 +344,8 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
             <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="isOpen = false">
               {{ t('common.cancel') }}
             </UButton>
-            <UButton type="submit" color="primary" :loading="isSubmitting" icon="i-lucide-save">
-              {{ t('payments.form.submit') }}
+            <UButton type="submit" color="primary" variant="outline" :loading="isSubmitting" icon="i-lucide-save">
+              {{ t('common.saveNew') }}
             </UButton>
           </div>
         </div>

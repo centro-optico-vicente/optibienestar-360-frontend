@@ -354,8 +354,8 @@ async function confirmDelete() {
             <UButton color="neutral" variant="ghost" :disabled="isCreating" @click="createOpen = false">
               {{ t('common.cancel') }}
             </UButton>
-            <UButton type="submit" color="info" variant="outline" :loading="isCreating" icon="i-lucide-save">
-              {{ t('common.save') }}
+            <UButton type="submit" color="primary" variant="outline" :loading="isCreating" icon="i-lucide-save">
+              {{ t('common.saveNew') }}
             </UButton>
           </div>
         </UForm>

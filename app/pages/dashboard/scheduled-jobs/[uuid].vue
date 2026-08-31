@@ -70,6 +70,18 @@ onMounted(async () => {
   await Promise.all([loadJob(), loadRuns()])
 })
 
+// Header "Refrescar": re-fetch the job record and its runs history at once.
+const refreshing = ref(false)
+async function refreshAll() {
+  refreshing.value = true
+  try {
+    await Promise.all([loadJob(), loadRuns()])
+  }
+  finally {
+    refreshing.value = false
+  }
+}
+
 // ---- Presentation helpers ----
 function outcomeColor(status?: string | null): 'success' | 'error' | 'info' | 'neutral' {
   switch (status) {
@@ -241,7 +253,15 @@ onBeforeUnmount(stopPolling)
           </div>
 
           <div class="flex items-center gap-2">
-            <ReportPrintButton :record-uuid="jobUuid" />
+            <RefreshButton
+              size="md"
+              variant="ghost"
+              :icon-only="false"
+              :loading="refreshing"
+              :title="t('common.refreshRecord')"
+              @refresh="refreshAll"
+            />
+            <ReportPrintButton :record-uuid="jobUuid" variant="ghost" />
             <UTooltip :text="canRun ? t('scheduledJobs.runNow.button') : t('scheduledJobs.noPermissionRun')">
               <UButton
                 color="primary"
@@ -256,7 +276,8 @@ onBeforeUnmount(stopPolling)
             </UTooltip>
             <UTooltip :text="canUpdate ? t('common.edit') : t('scheduledJobs.noPermissionEdit')">
               <UButton
-                color="primary"
+                color="info"
+                variant="ghost"
                 icon="i-lucide-pencil"
                 :disabled="!canUpdate"
                 @click="formOpen = true"
@@ -269,6 +290,7 @@ onBeforeUnmount(stopPolling)
               :active="job.active"
               :allowed="canDelete"
               :loading="restoring"
+              class="ms-2"
               @restore="restoreJob"
             />
             <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
@@ -376,16 +398,11 @@ onBeforeUnmount(stopPolling)
       <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
         <div class="flex items-center justify-between px-5 py-4 border-b border-prohealth-100">
           <h2 class="font-bold text-prohealth-900">{{ t('scheduledJobs.detail.runsTitle') }}</h2>
-          <UButton
-            color="neutral"
-            variant="ghost"
-            icon="i-lucide-refresh-cw"
-            size="sm"
+          <RefreshButton
             :loading="runsLoading"
-            @click="loadRuns"
-          >
-            {{ t('scheduledJobs.detail.reload') }}
-          </UButton>
+            :title="t('common.refreshSection')"
+            @refresh="loadRuns"
+          />
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-sm">

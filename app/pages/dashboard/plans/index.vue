@@ -57,17 +57,32 @@ async function load() {
   }
 }
 
-watch(size, () => { page.value = 1 })
-watch([page, size], load)
+// Guards the filter watchers so "clear filters and refresh" fires a single reload.
+const resetting = ref(false)
+
+watch(size, () => { if (!resetting.value) page.value = 1 })
+watch([page, size], () => { if (!resetting.value) load() })
 let searchTimer: ReturnType<typeof setTimeout> | undefined
 watch(search, () => {
+  if (resetting.value) return
   clearTimeout(searchTimer)
   searchTimer = setTimeout(() => {
     page.value = 1
     load()
   }, 400)
 })
-watch(includeInactive, () => { page.value = 1; load() })
+watch(includeInactive, () => { if (!resetting.value) { page.value = 1; load() } })
+
+async function resetFilters() {
+  resetting.value = true
+  search.value = ''
+  includeInactive.value = false
+  size.value = DEFAULT_PAGE_SIZE
+  page.value = 1
+  await nextTick()
+  resetting.value = false
+  load()
+}
 
 onMounted(load)
 
@@ -177,15 +192,17 @@ function openAudit(p: PlanDto) {
         </p>
       </div>
       <div class="flex items-center gap-2">
-        <ReportPrintButton />
+        <ListRefreshMenu :loading="loading" variant="ghost" @refresh="load" @reset="resetFilters" />
+        <ReportPrintButton variant="ghost" />
         <UTooltip :text="canCreate ? t('plans.createTooltip') : t('plans.noPermissionCreate')">
           <UButton
             color="primary"
-            icon="i-lucide-package-plus"
+            variant="outline"
+            icon="i-lucide-plus"
             :disabled="!canCreate"
             @click="openCreate"
           >
-            {{ t('plans.new') }}
+            {{ t('common.new') }}
           </UButton>
         </UTooltip>
       </div>
@@ -266,6 +283,16 @@ function openAudit(p: PlanDto) {
                       :to="`/dashboard/plans/${p.uuid}`"
                     />
                   </UTooltip>
+                  <UTooltip :text="canUpdate ? t('common.edit') : t('plans.noPermissionEdit')">
+                    <UButton
+                      color="info"
+                      variant="ghost"
+                      icon="i-lucide-pencil"
+                      size="sm"
+                      :disabled="!canUpdate"
+                      @click="openEdit(p)"
+                    />
+                  </UTooltip>
                   <ReportPrintButton
                     table-name="plans"
                     :record-uuid="p.uuid"
@@ -273,14 +300,13 @@ function openAudit(p: PlanDto) {
                     variant="ghost"
                     size="sm"
                   />
-                  <UTooltip :text="canUpdate ? t('common.edit') : t('plans.noPermissionEdit')">
+                  <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
                     <UButton
                       color="neutral"
                       variant="ghost"
-                      icon="i-lucide-pencil"
+                      icon="i-lucide-history"
                       size="sm"
-                      :disabled="!canUpdate"
-                      @click="openEdit(p)"
+                      @click="openAudit(p)"
                     />
                   </UTooltip>
                   <UTooltip :text="canDelete ? t('common.delete') : t('plans.noPermissionDelete')">
@@ -289,17 +315,9 @@ function openAudit(p: PlanDto) {
                       variant="ghost"
                       icon="i-lucide-trash-2"
                       size="sm"
+                      class="ms-2"
                       :disabled="!canDelete"
                       @click="openDelete(p)"
-                    />
-                  </UTooltip>
-                  <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
-                    <UButton
-                      color="neutral"
-                      variant="ghost"
-                      icon="i-lucide-history"
-                      size="sm"
-                      @click="openAudit(p)"
                     />
                   </UTooltip>
                 </div>
