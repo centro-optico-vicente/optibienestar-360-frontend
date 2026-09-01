@@ -10,6 +10,7 @@ import type {
   CreateAllyRequest,
   UpdateAllyRequest,
 } from '~/types/allies'
+import type { SortDirection } from '~/composables/useTableSort'
 
 // The admin table renders AllyListItemDto rows; openEdit / openDelete are also
 // reachable from openFromQuery with a full AllyDto loaded by GET /{uuid}.
@@ -53,7 +54,14 @@ const size = ref(DEFAULT_PAGE_SIZE)
 const pageSizeItems = buildPageSizeItems(t)
 const search = ref('')
 const includeInactive = ref(false)
-const sort = useTableSort([{ field: 'createdAt', direction: 'desc' }])
+// Empty by default: no `sort=` is sent until the user clicks a column, so the
+// backend's own default-sort fallback (entity_config → system_configs →
+// createdAt DESC) applies. A pre-loaded entry here would never clear — this
+// table has no "Creado" header to toggle it off — so it would silently stick
+// as a phantom secondary sort behind whatever column the user picks.
+const sort = useTableSort([])
+const hasActiveSort = computed(() => sort.orders.value.length > 0)
+const isMultiSort = computed(() => sort.orders.value.length > 1)
 
 async function load() {
   loading.value = true
@@ -67,6 +75,18 @@ async function load() {
     })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
+    // No column clicked yet → reflect the server's own default (entity_config
+    // → system_configs → createdAt DESC) in the header arrows, so the table
+    // never looks "unsorted" when it actually isn't. Guarded by `resetting`
+    // so this assignment doesn't re-trigger `watch(sort.orders, ...)` below —
+    // once populated, sort.orders is non-empty and this branch simply stops
+    // running, so a later user click is never overwritten by it.
+    if (sort.orders.value.length === 0 && res.appliedSort?.length) {
+      resetting.value = true
+      sort.orders.value = res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection }))
+      await nextTick()
+      resetting.value = false
+    }
   }
   catch {
     // useApi already shows the error toast
@@ -514,6 +534,17 @@ async function confirmDelete() {
         class="w-full max-w-md"
       />
       <UCheckbox v-model="includeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
+      <UButton
+        v-if="hasActiveSort"
+        variant="link"
+        color="neutral"
+        size="sm"
+        icon="i-lucide-list-restart"
+        :title="t('allies.clearSortHint')"
+        @click="sort.reset()"
+      >
+        {{ t('allies.clearSort') }}
+      </UButton>
     </div>
 
     <!-- Table -->
@@ -524,27 +555,27 @@ async function confirmDelete() {
             <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
               <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('name')">
                 {{ t('allies.columns.ally') }}
-                <SortIndicator :state="sort.stateOf('name')" />
+                <SortIndicator :state="sort.stateOf('name')" :multi-active="isMultiSort" @clear="sort.remove('name')" />
               </th>
               <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('allyType_Display')">
                 {{ t('allies.columns.type') }}
-                <SortIndicator :state="sort.stateOf('allyType_Display')" />
+                <SortIndicator :state="sort.stateOf('allyType_Display')" :multi-active="isMultiSort" @clear="sort.remove('allyType_Display')" />
               </th>
               <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('taxDocumentNumber')">
                 {{ t('allies.columns.taxId') }}
-                <SortIndicator :state="sort.stateOf('taxDocumentNumber')" />
+                <SortIndicator :state="sort.stateOf('taxDocumentNumber')" :multi-active="isMultiSort" @clear="sort.remove('taxDocumentNumber')" />
               </th>
               <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('city_Display')">
                 {{ t('allies.columns.city') }}
-                <SortIndicator :state="sort.stateOf('city_Display')" />
+                <SortIndicator :state="sort.stateOf('city_Display')" :multi-active="isMultiSort" @clear="sort.remove('city_Display')" />
               </th>
               <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('published')">
                 {{ t('allies.columns.published') }}
-                <SortIndicator :state="sort.stateOf('published')" />
+                <SortIndicator :state="sort.stateOf('published')" :multi-active="isMultiSort" @clear="sort.remove('published')" />
               </th>
               <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('status')">
                 {{ t('allies.columns.status') }}
-                <SortIndicator :state="sort.stateOf('status')" />
+                <SortIndicator :state="sort.stateOf('status')" :multi-active="isMultiSort" @clear="sort.remove('status')" />
               </th>
               <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
             </tr>

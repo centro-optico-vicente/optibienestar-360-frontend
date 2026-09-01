@@ -42,8 +42,8 @@ const SORT_FIELD_OPTIONS: { label: string, value: string }[] = COMMON_SORT_FIELD
   value: f,
 }))
 const SORT_DIRECTION_OPTIONS = [
-  { label: t('systemConfig.defaultSort.ascLabel'), value: 'ASC' as const },
-  { label: t('systemConfig.defaultSort.descLabel'), value: 'DESC' as const },
+  { label: t('systemConfig.defaultSort.ascLabel'), value: 'ASC' as const, icon: 'i-lucide-list-sort-ascending' },
+  { label: t('systemConfig.defaultSort.descLabel'), value: 'DESC' as const, icon: 'i-lucide-list-sort-descending' },
 ]
 
 const loading = ref(false)
@@ -304,6 +304,7 @@ onMounted(load)
                 :items="SORT_DIRECTION_OPTIONS"
                 label-key="label"
                 value-key="value"
+                :icon="row.direction === 'ASC' ? 'i-lucide-list-sort-ascending' : 'i-lucide-list-sort-descending'"
                 :search-input="false"
                 :aria-label="t('systemConfig.defaultSort.direction')"
                 class="w-full sm:w-44"
