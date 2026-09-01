@@ -87,12 +87,12 @@ function referredName(r: MyReferralDto): string {
           <p class="font-semibold text-prohealth-900 truncate">{{ referredName(r) }}</p>
           <p class="text-xs text-prohealth-500">
             <span class="font-mono">{{ r.referralCode }}</span>
-            <template v-if="r.enrolledAt"> · {{ t('referrals.mine.enrolledOn', { date: formatDate(r.enrolledAt, 'short') }) }}</template>
+            <template v-if="r.enrolledAt"> · {{ t('referrals.mine.enrolledOn', { date: r.enrolledAt_Display ?? formatDate(r.enrolledAt, 'short') }) }}</template>
             <template v-if="r.status === 'REWARD_GRANTED'"> · {{ t('referrals.mine.reward', { reward: rewardLabel(r) }) }}</template>
           </p>
         </div>
         <UBadge :color="referralStatusColor(r.status)" variant="subtle" size="sm">
-          {{ statusLabel(r.status) }}
+          {{ r.status_Display ?? statusLabel(r.status) }}
         </UBadge>
       </li>
     </ul>
