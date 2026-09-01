@@ -331,13 +331,13 @@ async function confirmDelete() {
                     size="sm"
                     class="w-fit"
                   >
-                    {{ outcomeLabel(j.lastRunStatus) }}
+                    {{ j.lastRunStatus_Display ?? outcomeLabel(j.lastRunStatus) }}
                   </UBadge>
                   <span v-else class="text-prohealth-300">{{ t('common.empty') }}</span>
-                  <span class="text-xs text-prohealth-400">{{ formatDate(j.lastRunAt, 'datetime') }}</span>
+                  <span class="text-xs text-prohealth-400">{{ j.lastRunAt_Display ?? formatDate(j.lastRunAt, 'datetime') }}</span>
                 </div>
               </td>
-              <td class="px-5 py-3 text-prohealth-700">{{ j.nextRunAt ? formatDate(j.nextRunAt, 'datetime') : t('common.empty') }}</td>
+              <td class="px-5 py-3 text-prohealth-700">{{ j.nextRunAt ? (j.nextRunAt_Display ?? formatDate(j.nextRunAt, 'datetime')) : t('common.empty') }}</td>
               <td class="px-5 py-3" @click.stop>
                 <div class="flex items-center justify-end gap-1">
                   <UTooltip :text="canRun ? t('scheduledJobs.runNow.button') : t('scheduledJobs.noPermissionRun')">

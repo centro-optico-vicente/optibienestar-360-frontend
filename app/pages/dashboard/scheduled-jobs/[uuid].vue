@@ -240,10 +240,10 @@ onBeforeUnmount(stopPolling)
             <div class="flex items-center gap-3 flex-wrap">
               <h1 class="text-2xl font-extrabold text-prohealth-900">{{ job.displayName }}</h1>
               <UBadge :color="job.enabled ? 'success' : 'neutral'" variant="subtle">
-                {{ job.enabled ? t('scheduledJobs.form.fields.enabled') : t('common.no') }}
+                {{ job.enabled_Display ?? (job.enabled ? t('scheduledJobs.form.fields.enabled') : t('common.no')) }}
               </UBadge>
               <UBadge v-if="job.lastRunStatus" :color="outcomeColor(job.lastRunStatus)" variant="subtle">
-                {{ outcomeLabel(job.lastRunStatus) }}
+                {{ job.lastRunStatus_Display ?? outcomeLabel(job.lastRunStatus) }}
               </UBadge>
               <UBadge v-if="job.lockHeld" color="warning" variant="subtle">
                 {{ t('scheduledJobs.detail.lockHeld') }}
@@ -324,13 +324,13 @@ onBeforeUnmount(stopPolling)
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('scheduledJobs.form.fields.enabled') }}</dt>
             <dd class="mt-0.5">
               <UBadge :color="job.enabled ? 'success' : 'neutral'" variant="subtle" size="sm">
-                {{ job.enabled ? t('common.yes') : t('common.no') }}
+                {{ job.enabled_Display ?? (job.enabled ? t('common.yes') : t('common.no')) }}
               </UBadge>
             </dd>
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('scheduledJobs.detail.nextRun') }}</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ job.nextRunAt ? formatDate(job.nextRunAt, 'datetime') : t('common.empty') }}</dd>
+            <dd class="text-prohealth-800 mt-0.5">{{ job.nextRunAt ? (job.nextRunAt_Display ?? formatDate(job.nextRunAt, 'datetime')) : t('common.empty') }}</dd>
           </div>
         </dl>
       </div>
@@ -370,22 +370,22 @@ onBeforeUnmount(stopPolling)
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('scheduledJobs.detail.lastRun') }}</dt>
             <dd class="mt-0.5">
               <UBadge v-if="job.lastRunStatus" :color="outcomeColor(job.lastRunStatus)" variant="subtle" size="sm">
-                {{ outcomeLabel(job.lastRunStatus) }}
+                {{ job.lastRunStatus_Display ?? outcomeLabel(job.lastRunStatus) }}
               </UBadge>
               <span v-else class="text-prohealth-300">{{ t('common.empty') }}</span>
             </dd>
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('scheduledJobs.detail.lastRunAt') }}</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ formatDate(job.lastRunAt, 'datetime') }}</dd>
+            <dd class="text-prohealth-800 mt-0.5">{{ job.lastRunAt_Display ?? formatDate(job.lastRunAt, 'datetime') }}</dd>
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('scheduledJobs.detail.created') }}</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ formatDate(job.createdAt, 'datetime') }}</dd>
+            <dd class="text-prohealth-800 mt-0.5">{{ job.createdAt_Display ?? formatDate(job.createdAt, 'datetime') }}</dd>
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('scheduledJobs.detail.updated') }}</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ formatDate(job.updatedAt, 'datetime') }}</dd>
+            <dd class="text-prohealth-800 mt-0.5">{{ job.updatedAt_Display ?? formatDate(job.updatedAt, 'datetime') }}</dd>
           </div>
           <div class="sm:col-span-2 lg:col-span-4">
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('scheduledJobs.detail.uuid') }}</dt>
@@ -426,11 +426,11 @@ onBeforeUnmount(stopPolling)
               <tr v-for="r in runs" v-else :key="r.uuid" class="hover:bg-prohealth-50/50">
                 <td class="px-5 py-3">
                   <UBadge :color="outcomeColor(r.outcome)" variant="subtle" size="sm">
-                    {{ outcomeLabel(r.outcome) }}
+                    {{ r.outcome_Display ?? outcomeLabel(r.outcome) }}
                   </UBadge>
                 </td>
                 <td class="px-5 py-3 text-prohealth-700">{{ triggerLabel(r.triggeredBy) }}</td>
-                <td class="px-5 py-3 text-prohealth-600">{{ formatDate(r.startedAt, 'datetime') }}</td>
+                <td class="px-5 py-3 text-prohealth-600">{{ r.startedAt_Display ?? formatDate(r.startedAt, 'datetime') }}</td>
                 <td class="px-5 py-3 text-prohealth-700 font-mono">{{ formatDuration(r.durationMs) }}</td>
                 <td class="px-5 py-3 text-prohealth-600 max-w-xs">
                   <span v-if="r.errorMessage" :title="r.errorMessage" class="block truncate text-red-600">{{ r.errorMessage }}</span>
