@@ -22,6 +22,11 @@ export interface RoleDto {
   active?: boolean
 }
 
+/**
+ * Edit-response shape (person name parts + nested `roles` stay as-is). The
+ * presentational scalars (`status`, `active`, `lastLoginAt`) carry a
+ * localized `_Display` sibling (hub ADR 0014).
+ */
 export interface UserDto {
   uuid: string
   email: string
@@ -38,8 +43,11 @@ export interface UserDto {
   phone?: string | null
   locale?: string | null
   status?: string
+  status_Display?: string | null
   active?: boolean
+  active_Display?: string | null
   lastLoginAt?: string | null
+  lastLoginAt_Display?: string | null
   roles: RoleDto[]
 }
 
@@ -121,16 +129,17 @@ export interface UpdateRolePermissionsRequest {
  *
  * Mirrors AllyUserDto's flattening: the backend sends the User + Person fields
  * needed to render the table without a round-trip, not a nested `user` object.
+ * `status`/`active` carry a localized `_Display` sibling (hub ADR 0014) —
+ * render it directly instead of computing the badge label client-side.
  */
 export interface RoleUserDto {
-  uuid?: string
-  roleUuid?: string
   userUuid: string
-  userEmail?: string
-  userFullName?: string
-  createdAt?: string
+  email?: string
+  fullName?: string
   status?: string
-  active?: boolean
+  status_Display?: string | null
+  active: boolean
+  active_Display?: string | null
 }
 
 /** Normaliza una respuesta que puede venir como Page<T> o como T[] plano. */
