@@ -48,6 +48,14 @@ export function isMembershipReactivatable(status?: string | null): boolean {
 
 // ---- Membership ----
 
+/**
+ * Scalars carry a localized `_Display` sibling (hub ADR 0014). NOTE:
+ * `inscriptionFee`/`monthlyFee` intentionally have NO `_Display` consumed
+ * here — the backend's `MONEY` formatter is hardcoded to VES, but the
+ * frontend's local `money()` helper renders these in USD (the actual plan
+ * pricing currency). Wiring `_Display` for these would silently show the
+ * wrong currency; flagged as a backend bug, not fixed here.
+ */
 export interface MembershipDto {
   uuid: string
   memberUuid: string
@@ -56,23 +64,33 @@ export interface MembershipDto {
   planCode: string
   planName: string
   planType?: string
+  planType_Display?: string | null
   // Lifecycle
   enrolledAt?: string | null
+  enrolledAt_Display?: string | null
   expiresAt?: string | null
+  expiresAt_Display?: string | null
   nextDueDate?: string | null
+  nextDueDate_Display?: string | null
   lastPaidThrough?: string | null
+  lastPaidThrough_Display?: string | null
   // Pricing snapshot
   inscriptionFee: number | string
   monthlyFee: number | string
   gracePeriodDays: number
   // Status
   status: MembershipStatus | string
+  status_Display?: string | null
   lastStatusChangeAt?: string | null
+  lastStatusChangeAt_Display?: string | null
   lastStatusChangeReason?: string | null
   // Audit
   active?: boolean
+  active_Display?: string | null
   createdAt?: string
+  createdAt_Display?: string | null
   updatedAt?: string
+  updatedAt_Display?: string | null
 }
 
 /**
