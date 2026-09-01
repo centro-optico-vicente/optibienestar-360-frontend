@@ -86,9 +86,10 @@ export interface PromoterDto {
 }
 
 /**
- * Un afiliado en la cartera de un promotor — fila de `PromoterDashboardDto.portfolio`.
- * `membershipStatus`/`nextDueDate` llevan `_Display` (hub ADR 0014); `monthlyFee`
- * NO — mismo caso conocido de `MONEY`→VES vs. precios reales en USD (ver `PromoterDto`).
+ * One affiliate in a promoter's portfolio — row of `PromoterDashboardDto.portfolio`.
+ * `membershipStatus`/`nextDueDate` carry a `_Display` sibling (hub ADR 0014);
+ * `monthlyFee` does NOT — same known `MONEY`→VES vs. real USD pricing case
+ * (see `PromoterDto`).
  */
 export interface PromoterMemberRow {
   memberUuid: string
@@ -102,8 +103,9 @@ export interface PromoterMemberRow {
 }
 
 /**
- * Body de GET /v1/admin/promoters/{uuid}/portfolio — cartera + salud de cobranza del promotor.
- * `periodStart`/`periodEnd` llevan `_Display`; `periodCommissions` NO (mismo caso MONEY→VES).
+ * Body of GET /v1/admin/promoters/{uuid}/portfolio — a promoter's portfolio +
+ * collection health. `periodStart`/`periodEnd` carry a `_Display` sibling;
+ * `periodCommissions` does NOT (same MONEY→VES case).
  */
 export interface PromoterDashboardDto {
   promoterUuid: string
@@ -124,8 +126,9 @@ export interface PromoterDashboardDto {
 }
 
 /**
- * Una fila de GET /v1/admin/promoters/{uuid}/commissions/summary — comisiones agregadas por período.
- * `periodStrategy`/`periodStart`/`periodEnd` llevan `_Display`; `totalAmount` NO (mismo caso MONEY→VES).
+ * One row of GET /v1/admin/promoters/{uuid}/commissions/summary — commissions
+ * aggregated by period. `periodStrategy`/`periodStart`/`periodEnd` carry a
+ * `_Display` sibling; `totalAmount` does NOT (same MONEY→VES case).
  */
 export interface CommissionPeriodSummaryDto {
   periodStrategy: CommissionPeriodStrategy
@@ -168,10 +171,11 @@ export interface PromoterUpdateRequest {
 // ---- Comisiones ----
 
 /**
- * Fila del ledger de comisiones (DTO con @JsonInclude(NON_NULL): los null se omiten).
- * Escalares llevan `_Display` (hub ADR 0014). `amount`/`calculationBasis`/`flatAmount`
- * NO se consumen vía `_Display` — mismo caso conocido MONEY→VES vs. montos reales en
- * USD (ver `PromoterDto`); `commissionPct` sí (es `NUMBER`, no depende de moneda).
+ * Row of the commission ledger (DTO with @JsonInclude(NON_NULL): nulls are
+ * omitted). Scalars carry a `_Display` sibling (hub ADR 0014).
+ * `amount`/`calculationBasis`/`flatAmount` are NOT consumed via `_Display` —
+ * same known MONEY→VES vs. real USD amounts case (see `PromoterDto`);
+ * `commissionPct` is (it's `NUMBER`, currency-independent).
  */
 export interface CommissionDto {
   uuid: string
@@ -224,7 +228,7 @@ export interface CommissionPayoutRequest {
   dryRun?: boolean
 }
 
-/** Detalle por promotor dentro de la respuesta de payout. `emailDispatched` lleva `_Display`. */
+/** Per-promoter breakdown inside the payout response. `emailDispatched` carries a `_Display` sibling. */
 export interface CommissionPayoutPerPromoter {
   promoterUuid: string
   promoterCode: string
@@ -240,9 +244,9 @@ export interface CommissionPayoutPerPromoter {
 }
 
 /**
- * Respuesta de POST /v1/admin/commissions/payout (@JsonInclude(NON_NULL)).
- * `periodStart`/`periodEnd`/`dryRun`/`executedAt` llevan `_Display`; `totalAmount`
- * NO (mismo caso MONEY→VES, ver `PromoterDto`).
+ * Response of POST /v1/admin/commissions/payout (@JsonInclude(NON_NULL)).
+ * `periodStart`/`periodEnd`/`dryRun`/`executedAt` carry a `_Display` sibling;
+ * `totalAmount` does NOT (same MONEY→VES case, see `PromoterDto`).
  */
 export interface CommissionPayoutResponse {
   periodStart: string
@@ -281,9 +285,9 @@ export interface CommissionReRatingPerPromoter {
 }
 
 /**
- * Respuesta de POST /v1/admin/commissions/re-rate (@JsonInclude(NON_NULL)).
- * `periodStart`/`periodEnd`/`dryRun`/`executedAt` llevan `_Display`; `totalDeltaAmount`
- * NO (mismo caso MONEY→VES, ver `PromoterDto`).
+ * Response of POST /v1/admin/commissions/re-rate (@JsonInclude(NON_NULL)).
+ * `periodStart`/`periodEnd`/`dryRun`/`executedAt` carry a `_Display` sibling;
+ * `totalDeltaAmount` does NOT (same MONEY→VES case, see `PromoterDto`).
  */
 export interface CommissionReRatingResponse {
   periodStart: string
@@ -333,10 +337,10 @@ export function referralStatusColor(status?: ReferralStatus | string | null) {
 }
 
 /**
- * Fila del histórico de referidos del afiliado autenticado (@JsonInclude(NON_NULL)).
- * Escalares llevan `_Display` (hub ADR 0014); `rewardFlatAmount` NO — mismo caso
- * conocido MONEY→VES vs. montos reales en USD (ver `PromoterDto`); `rewardPct` sí
- * (es `NUMBER`).
+ * Row of the authenticated affiliate's referral history (@JsonInclude(NON_NULL)).
+ * Scalars carry a `_Display` sibling (hub ADR 0014); `rewardFlatAmount` does
+ * NOT — same known MONEY→VES vs. real USD amounts case (see `PromoterDto`);
+ * `rewardPct` does (it's `NUMBER`).
  */
 export interface MyReferralDto {
   uuid: string

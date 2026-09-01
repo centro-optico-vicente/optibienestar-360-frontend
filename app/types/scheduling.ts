@@ -22,7 +22,7 @@ export const JOB_RUN_OUTCOME_OPTIONS: { label: string, value: JobRunOutcome, lab
 /** Origen del disparo de una ejecución. */
 export type JobTriggerSource = 'SCHEDULED' | 'MANUAL' | 'STARTUP'
 
-/** Escalares llevan un `_Display` localizado (hub ADR 0014) — renderizarlo directo. */
+/** Scalars carry a localized `_Display` sibling (hub ADR 0014) — render it directly. */
 export interface ScheduledJobDto {
   uuid: string
   code: string
@@ -88,7 +88,7 @@ export interface ScheduledJobUpdateRequest {
   status?: string
 }
 
-/** Fila del histórico de ejecuciones de un job. Escalares llevan un `_Display` localizado (hub ADR 0014). */
+/** Row of a job's execution history. Scalars carry a localized `_Display` sibling (hub ADR 0014). */
 export interface ScheduledJobRunDto {
   uuid: string
   jobUuid: string
