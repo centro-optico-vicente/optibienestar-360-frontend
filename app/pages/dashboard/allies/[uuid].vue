@@ -962,12 +962,12 @@ onMounted(async () => {
                 </td>
                 <td class="px-6 py-3">
                   <UBadge :color="reviewStatusColor(s.reviewStatus)" variant="subtle" size="sm">
-                    {{ s.reviewStatus ? reviewStatusLabel(s.reviewStatus) : t('common.empty') }}
+                    {{ s.reviewStatus_Display ?? (s.reviewStatus ? reviewStatusLabel(s.reviewStatus) : t('common.empty')) }}
                   </UBadge>
                 </td>
                 <td class="px-6 py-3">
                   <UBadge :color="s.published ? 'success' : 'neutral'" variant="subtle" size="sm">
-                    {{ s.published ? t('common.yes') : t('common.no') }}
+                    {{ s.published_Display ?? (s.published ? t('common.yes') : t('common.no')) }}
                   </UBadge>
                 </td>
                 <td class="px-6 py-3">
@@ -1120,9 +1120,9 @@ onMounted(async () => {
                 </td>
               </tr>
               <tr v-for="a in agreements" v-else :key="a.uuid" class="hover:bg-prohealth-50/50">
-                <td class="px-6 py-3 font-semibold text-prohealth-900">{{ agrTypeLabel(a.agreementType) }}</td>
-                <td class="px-6 py-3 text-prohealth-600">{{ date(a.startDate) }}</td>
-                <td class="px-6 py-3 text-prohealth-600">{{ date(a.endDate) }}</td>
+                <td class="px-6 py-3 font-semibold text-prohealth-900">{{ a.agreementType_Display ?? agrTypeLabel(a.agreementType) }}</td>
+                <td class="px-6 py-3 text-prohealth-600">{{ a.startDate_Display ?? date(a.startDate) }}</td>
+                <td class="px-6 py-3 text-prohealth-600">{{ a.endDate_Display ?? date(a.endDate) }}</td>
                 <td class="px-6 py-3">
                   <a
                     v-if="a.signedPdfUrl"
@@ -1141,7 +1141,7 @@ onMounted(async () => {
                     variant="subtle"
                     size="sm"
                   >
-                    {{ a.status ? agreementStatusLabel(a.status) : t('common.empty') }}
+                    {{ a.status_Display ?? (a.status ? agreementStatusLabel(a.status) : t('common.empty')) }}
                   </UBadge>
                 </td>
                 <td class="px-6 py-3">
@@ -1461,7 +1461,7 @@ onMounted(async () => {
       <template #body>
         <i18n-t keypath="allies.agreements.delete.confirm" tag="p" class="text-sm text-prohealth-700" scope="global">
           <template #type>
-            <span class="font-semibold">{{ agrTypeLabel(agrTarget?.agreementType) }}</span>
+            <span class="font-semibold">{{ agrTarget?.agreementType_Display ?? agrTypeLabel(agrTarget?.agreementType) }}</span>
           </template>
         </i18n-t>
         <div class="flex items-center justify-end gap-3 pt-5">
