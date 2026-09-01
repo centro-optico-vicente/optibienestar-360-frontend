@@ -46,6 +46,14 @@ export function useTableSort(initial: SortOrder[] = []) {
     }
   }
 
+  /** Drops a single column from the sort immediately, regardless of its current direction — skips the asc→desc→removed cycle `toggle` would otherwise require. No-op if the column isn't active. */
+  function remove(field: string) {
+    const idx = orders.value.findIndex(o => o.field === field)
+    if (idx !== -1) {
+      orders.value.splice(idx, 1)
+    }
+  }
+
   function stateOf(field: string): SortState | null {
     const idx = orders.value.findIndex(o => o.field === field)
     return idx === -1 ? null : { direction: orders.value[idx]!.direction, priority: idx + 1 }
@@ -54,5 +62,5 @@ export function useTableSort(initial: SortOrder[] = []) {
   /** e.g. `['name,asc', 'active,desc']` — passed straight through as `query.sort`. */
   const sortParam = computed(() => orders.value.map(o => `${o.field},${o.direction}`))
 
-  return { orders, toggle, stateOf, sortParam, reset }
+  return { orders, toggle, remove, stateOf, sortParam, reset }
 }

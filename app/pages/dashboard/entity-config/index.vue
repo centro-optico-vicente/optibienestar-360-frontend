@@ -25,8 +25,8 @@ const canDelete = computed(() => can('ENTITY_CONFIG_DELETE'))
 
 const SORT_FIELD_OPTIONS = COMMON_SORT_FIELDS.map(f => ({ label: f, value: f }))
 const SORT_DIRECTION_OPTIONS = [
-  { label: t('entityConfig.ascLabel'), value: 'ASC' as const },
-  { label: t('entityConfig.descLabel'), value: 'DESC' as const },
+  { label: t('entityConfig.ascLabel'), value: 'ASC' as const, icon: 'i-lucide-list-sort-ascending' },
+  { label: t('entityConfig.descLabel'), value: 'DESC' as const, icon: 'i-lucide-list-sort-descending' },
 ]
 
 // ---- List ----
@@ -396,6 +396,12 @@ async function confirmDelete() {
             <p class="text-xs text-prohealth-700/70">{{ t('entityConfig.fields.defaultSortHelp') }}</p>
 
             <div v-for="(row, index) in editState.defaultSort" :key="index" class="flex flex-wrap items-center gap-2">
+              <span
+                :title="t('entityConfig.fields.sortRowPriority', { n: index + 1 })"
+                class="shrink-0 text-[11px] leading-none font-semibold text-prohealth-500 bg-prohealth-100 rounded-full w-5 h-5 flex items-center justify-center"
+              >
+                {{ index + 1 }}
+              </span>
               <UInput
                 v-model="row.field"
                 :placeholder="t('entityConfig.fields.defaultSortFieldPlaceholder')"
@@ -407,6 +413,7 @@ async function confirmDelete() {
                 :items="SORT_DIRECTION_OPTIONS"
                 label-key="label"
                 value-key="value"
+                :icon="row.direction === 'ASC' ? 'i-lucide-list-sort-ascending' : 'i-lucide-list-sort-descending'"
                 :search-input="false"
                 :aria-label="t('entityConfig.fields.defaultSortDirection')"
                 class="w-full sm:w-44"

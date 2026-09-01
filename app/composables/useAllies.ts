@@ -45,7 +45,11 @@ export const useAllies = () => {
       query: {
         page: params.page ?? 0,
         size: params.size ?? 20,
-        sort: params.sort?.length ? params.sort : ['createdAt,desc'],
+        // Omitted entirely when empty — the backend applies its own default
+        // sort (entity_config → system_configs → createdAt DESC) only when
+        // no `sort=` is present at all; sending a hardcoded default here
+        // would fight the click-to-sort state (see allies/index.vue).
+        ...(params.sort?.length ? { sort: params.sort } : {}),
         ...(params.filter ? { filter: params.filter } : {}),
         ...(params.q ? { q: params.q } : {}),
         ...(params.includeInactive ? { includeInactive: 'true' } : {}),

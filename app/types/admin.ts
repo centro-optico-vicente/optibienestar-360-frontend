@@ -2,6 +2,8 @@
 // Usuarios: CRUD completo (/v1/admin/users). Roles: CRUD (smart delete; el rol SYSTEM
 // es inmutable) + gestión de permisos (/v1/admin/roles/{uuid}/permissions, /v1/admin/permissions).
 
+import type { ConfigSortOrder } from '~/composables/useSystemConfig'
+
 /** Página estándar de Spring Data (camelCase). */
 export interface Page<T> {
   content: T[]
@@ -13,6 +15,13 @@ export interface Page<T> {
   first: boolean
   last: boolean
   empty: boolean
+  /**
+   * The sort actually applied — present only on endpoints backed by
+   * `AppliedSortPage` (currently just `/v1/admin/allies`). Lets the table
+   * reflect a server-side default (entity_config/system_configs) in its
+   * header arrows even when the user hasn't clicked any column.
+   */
+  appliedSort?: ConfigSortOrder[]
 }
 
 export interface RoleDto {
