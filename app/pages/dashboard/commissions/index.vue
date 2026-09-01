@@ -251,15 +251,15 @@ async function onReRatingDone() {
               <td class="px-5 py-3 font-semibold text-prohealth-900">{{ money(c.amount, c.currency) }}</td>
               <td class="px-5 py-3 text-prohealth-700">{{ calcLabel(c) }}</td>
               <td class="px-5 py-3">
-                <UBadge color="primary" variant="subtle" size="sm">{{ appliesToLabel(c.appliesTo) }}</UBadge>
+                <UBadge color="primary" variant="subtle" size="sm">{{ c.appliesTo_Display ?? appliesToLabel(c.appliesTo) }}</UBadge>
               </td>
               <td class="px-5 py-3">
                 <UBadge :color="statusColor(c.status)" variant="subtle" size="sm">
-                  {{ statusLabel(c.status) }}
+                  {{ c.status_Display ?? statusLabel(c.status) }}
                 </UBadge>
               </td>
-              <td class="px-5 py-3 text-prohealth-600">{{ formatDate(c.earnedAt, 'short') }}</td>
-              <td class="px-5 py-3 text-prohealth-600">{{ c.paidAt ? formatDate(c.paidAt, 'short') : t('common.empty') }}</td>
+              <td class="px-5 py-3 text-prohealth-600">{{ c.earnedAt_Display ?? formatDate(c.earnedAt, 'short') }}</td>
+              <td class="px-5 py-3 text-prohealth-600">{{ c.paidAt ? (c.paidAt_Display ?? formatDate(c.paidAt, 'short')) : t('common.empty') }}</td>
             </tr>
           </tbody>
         </table>
@@ -321,14 +321,14 @@ async function onReRatingDone() {
                 <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.status') }}</dt>
                 <dd class="mt-0.5">
                   <UBadge :color="statusColor(detail.status)" variant="subtle" size="sm">
-                    {{ statusLabel(detail.status) }}
+                    {{ detail.status_Display ?? statusLabel(detail.status) }}
                   </UBadge>
                 </dd>
               </div>
               <div>
                 <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.appliesTo') }}</dt>
                 <dd class="mt-0.5">
-                  <UBadge color="primary" variant="subtle" size="sm">{{ appliesToLabel(detail.appliesTo) }}</UBadge>
+                  <UBadge color="primary" variant="subtle" size="sm">{{ detail.appliesTo_Display ?? appliesToLabel(detail.appliesTo) }}</UBadge>
                 </dd>
               </div>
               <div>
@@ -371,15 +371,15 @@ async function onReRatingDone() {
               </div>
               <div>
                 <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.earnedAt') }}</dt>
-                <dd class="text-prohealth-800 mt-0.5">{{ formatDate(detail.earnedAt, 'datetime') }}</dd>
+                <dd class="text-prohealth-800 mt-0.5">{{ detail.earnedAt_Display ?? formatDate(detail.earnedAt, 'datetime') }}</dd>
               </div>
               <div>
                 <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.periodStart') }}</dt>
-                <dd class="text-prohealth-800 mt-0.5">{{ formatDate(detail.periodStart, 'short') }}</dd>
+                <dd class="text-prohealth-800 mt-0.5">{{ detail.periodStart_Display ?? formatDate(detail.periodStart, 'short') }}</dd>
               </div>
               <div>
                 <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.periodEnd') }}</dt>
-                <dd class="text-prohealth-800 mt-0.5">{{ formatDate(detail.periodEnd, 'short') }}</dd>
+                <dd class="text-prohealth-800 mt-0.5">{{ detail.periodEnd_Display ?? formatDate(detail.periodEnd, 'short') }}</dd>
               </div>
             </dl>
           </div>
@@ -394,11 +394,11 @@ async function onReRatingDone() {
               </div>
               <div>
                 <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.paidAt') }}</dt>
-                <dd class="text-prohealth-800 mt-0.5">{{ formatDate(detail.paidAt, 'datetime') }}</dd>
+                <dd class="text-prohealth-800 mt-0.5">{{ detail.paidAt_Display ?? formatDate(detail.paidAt, 'datetime') }}</dd>
               </div>
               <div>
                 <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.voidedAt') }}</dt>
-                <dd class="text-prohealth-800 mt-0.5">{{ formatDate(detail.voidedAt, 'datetime') }}</dd>
+                <dd class="text-prohealth-800 mt-0.5">{{ detail.voidedAt_Display ?? formatDate(detail.voidedAt, 'datetime') }}</dd>
               </div>
               <div>
                 <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.voidReason') }}</dt>
@@ -433,11 +433,11 @@ async function onReRatingDone() {
               </div>
               <div>
                 <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.createdAt') }}</dt>
-                <dd class="text-prohealth-800 mt-0.5">{{ formatDate(detail.createdAt, 'datetime') }}</dd>
+                <dd class="text-prohealth-800 mt-0.5">{{ detail.createdAt_Display ?? formatDate(detail.createdAt, 'datetime') }}</dd>
               </div>
               <div>
                 <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.updatedAt') }}</dt>
-                <dd class="text-prohealth-800 mt-0.5">{{ formatDate(detail.updatedAt, 'datetime') }}</dd>
+                <dd class="text-prohealth-800 mt-0.5">{{ detail.updatedAt_Display ?? formatDate(detail.updatedAt, 'datetime') }}</dd>
               </div>
             </dl>
           </div>

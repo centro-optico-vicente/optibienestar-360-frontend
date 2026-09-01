@@ -51,6 +51,45 @@ export interface BeneficiaryDto {
   createdAt?: string
 }
 
+/**
+ * Row of the admin list `GET /v1/admin/members` (`Page<MemberListItemDto>`).
+ *
+ * Compact projection following the `_Display` convention (hub ADR 0014):
+ * every foreign key travels as `<rel>_Uuid` + `<rel>_Display`, every
+ * presentational scalar as the raw value + a server-resolved, locale-aware
+ * `<field>_Display` sibling. Render the `_Display` string directly; keep the
+ * raw value for sorting/logic. `_Display` fields are read-only.
+ *
+ * Compact: no `email`/name-parts/catalogs — the edit form loads the full
+ * {@link MemberDto} via `GET /v1/admin/members/{uuid}`.
+ */
+export interface MemberListItemDto {
+  uuid: string
+  fullName: string
+  documentType?: string | null
+  documentNumber?: string | null
+  phone?: string | null
+
+  city_Uuid: string | null
+  city_Display: string | null
+
+  enrolledAt?: string | null
+  enrolledAt_Display: string | null
+
+  currentPromoter_Uuid: string | null
+  currentPromoter_Display: string | null
+
+  active: boolean
+  active_Display: string | null
+  status?: string | null
+  status_Display: string | null
+
+  createdAt?: string | null
+  createdAt_Display: string | null
+  confirmedAt?: string | null
+  confirmedAt_Display: string | null
+}
+
 export interface MemberDto {
   uuid: string
   /** Solo presente en el detalle (GET /v1/admin/members/{uuid}), no en el listado. */

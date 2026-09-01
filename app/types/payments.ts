@@ -70,12 +70,16 @@ export interface PaymentDto {
   currency: string
   // Method + reference
   paymentMethod: PaymentMethod | string
+  paymentMethod_Display?: string | null
   referenceNumber?: string | null
   // Dates
   paymentDate: string
+  paymentDate_Display?: string | null
   receivedAt?: string | null
+  receivedAt_Display?: string | null
   // Allocation
   inscription: boolean
+  inscription_Display?: string | null
   /** First day of the covered month (recurring only); null when it is an inscription. */
   appliedPeriod?: string | null
   // Proof (metadata only; the URL is requested via /support)
@@ -86,13 +90,18 @@ export interface PaymentDto {
   adminNotes?: string | null
   // Review
   status: PaymentStatus | string
+  status_Display?: string | null
   reviewedByUserUuid?: string | null
   reviewedAt?: string | null
+  reviewedAt_Display?: string | null
   reviewReason?: string | null
   // Audit
   active?: boolean
+  active_Display?: string | null
   createdAt?: string
+  createdAt_Display?: string | null
   updatedAt?: string
+  updatedAt_Display?: string | null
 }
 
 /**

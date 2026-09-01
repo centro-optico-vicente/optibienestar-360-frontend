@@ -153,11 +153,11 @@ const statusOptions = computed(() =>
   STATUS_VALUES.map(s => ({ label: t(`security.users.status.${s}`), value: s })),
 )
 
-/** Localized status label; unknown statuses are shown raw. */
+/** Prefers the server-resolved `_Display` sibling (hub ADR 0014); falls back to the local i18n lookup. */
 function statusLabel(u: UserDto): string {
-  if (u.active === false) return t('security.users.inactive')
+  if (u.active === false) return u.active_Display ?? t('security.users.inactive')
   if (!u.status) return t('common.empty')
-  return STATUS_VALUES.includes(u.status) ? t(`security.users.status.${u.status}`) : u.status
+  return u.status_Display ?? (STATUS_VALUES.includes(u.status) ? t(`security.users.status.${u.status}`) : u.status)
 }
 
 // Tipos de documento desde el catálogo real (/v1/admin/catalogs/document-types).
@@ -522,7 +522,7 @@ async function confirmDelete() {
                   {{ statusLabel(u) }}
                 </UBadge>
               </td>
-              <td class="px-5 py-3 text-prohealth-600">{{ formatDate(u.lastLoginAt, 'datetime') }}</td>
+              <td class="px-5 py-3 text-prohealth-600">{{ u.lastLoginAt_Display ?? formatDate(u.lastLoginAt, 'datetime') }}</td>
               <td class="px-5 py-3">
                 <div class="flex items-center justify-end gap-1">
                   <UTooltip :text="$t('security.users.viewDetailTooltip')">

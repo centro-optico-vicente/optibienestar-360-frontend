@@ -102,7 +102,7 @@ function money(v?: number | string | null, currency?: string | null): string {
               </span>
             </p>
             <p class="text-xs text-prohealth-500 truncate">
-              {{ formatDate(u.usageDate) }}
+              {{ u.usageDate_Display ?? formatDate(u.usageDate) }}
               <!-- allyName only matters when the operator spans several allies, but it's
                    cheap to always show and avoids a conditional that reads as a bug. -->
               · {{ [u.allyName, u.planCode].filter(Boolean).join(' · ') || t('common.empty') }}

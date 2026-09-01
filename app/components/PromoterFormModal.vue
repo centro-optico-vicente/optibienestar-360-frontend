@@ -192,11 +192,11 @@ function populateFrom(p: PromoterDto | null) {
   }
   state.displayName = p.displayName ?? ''
   state.referralCode = p.referralCode ?? ''
-  state.userUuid = p.userUuid ?? ''
+  state.userUuid = p.user_Uuid ?? ''
   state.description = p.description ?? ''
   state.email = p.email ?? ''
   state.phone = p.phone ?? ''
-  state.promoterTypeUuid = p.promoterTypeUuid ?? ''
+  state.promoterTypeUuid = p.promoterType_Uuid ?? ''
   state.status = (p.status as PromoterStatus) ?? 'ACTIVE'
   state.active = p.active ?? true
   editSnapshot.value = snapEditState()

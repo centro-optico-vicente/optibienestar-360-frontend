@@ -590,31 +590,29 @@ function discardAndRefreshRole() {
                   <th class="px-6 py-3 font-semibold">{{ t('security.roles.detail.usersTab.columns.user') }}</th>
                   <th class="px-6 py-3 font-semibold">{{ t('security.roles.detail.usersTab.columns.email') }}</th>
                   <th class="px-6 py-3 font-semibold">{{ t('security.roles.detail.usersTab.columns.status') }}</th>
-                  <th class="px-6 py-3 font-semibold">{{ t('security.roles.detail.usersTab.columns.since') }}</th>
                   <th class="px-6 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-prohealth-100">
-                <TableSkeleton v-if="roleUsersLoading" :rows="3" :cols="5" />
+                <TableSkeleton v-if="roleUsersLoading" :rows="3" :cols="4" />
                 <tr v-else-if="roleUsers.length === 0">
-                  <td colspan="5" class="px-6 py-10 text-center text-prohealth-500">
+                  <td colspan="4" class="px-6 py-10 text-center text-prohealth-500">
                     <UIcon name="i-lucide-users" class="w-7 h-7 mx-auto mb-2 text-prohealth-300" />
                     {{ t('security.roles.detail.usersTab.empty') }}
                   </td>
                 </tr>
                 <tr v-for="ru in roleUsers" v-else :key="ru.userUuid" class="hover:bg-prohealth-50/50">
-                  <td class="px-6 py-3 font-semibold text-prohealth-900">{{ ru.userFullName || t('common.empty') }}</td>
-                  <td class="px-6 py-3 text-prohealth-600">{{ ru.userEmail || t('common.empty') }}</td>
+                  <td class="px-6 py-3 font-semibold text-prohealth-900">{{ ru.fullName || t('common.empty') }}</td>
+                  <td class="px-6 py-3 text-prohealth-600">{{ ru.email || t('common.empty') }}</td>
                   <td class="px-6 py-3">
                     <UBadge
                       :color="ru.active === false ? 'neutral' : 'success'"
                       variant="subtle"
                       size="sm"
                     >
-                      {{ ru.active === false ? t('security.users.inactive') : t('security.users.status.ACTIVE') }}
+                      {{ ru.active_Display ?? (ru.active === false ? t('security.users.inactive') : t('security.users.status.ACTIVE')) }}
                     </UBadge>
                   </td>
-                  <td class="px-6 py-3 text-prohealth-600">{{ ru.createdAt ? ru.createdAt.slice(0, 10) : t('common.empty') }}</td>
                   <td class="px-6 py-3">
                     <div class="flex items-center justify-end gap-1">
                       <UTooltip :text="canRemoveUsers ? t('security.roles.detail.usersTab.unlinkTooltip') : t('security.roles.noPermission')">
@@ -704,7 +702,7 @@ function discardAndRefreshRole() {
       <template #body>
         <i18n-t keypath="security.roles.detail.usersTab.delete.confirm" tag="p" class="text-sm text-prohealth-700" scope="global">
           <template #name>
-            <span class="font-semibold">{{ roleUserTarget?.userFullName || roleUserTarget?.userEmail }}</span>
+            <span class="font-semibold">{{ roleUserTarget?.fullName || roleUserTarget?.email }}</span>
           </template>
         </i18n-t>
         <div class="flex items-center justify-end gap-3 pt-5">

@@ -273,10 +273,10 @@ async function loadCommissionsSummary() {
             <div class="flex items-center gap-3 flex-wrap">
               <h1 class="text-2xl font-extrabold text-prohealth-900">{{ promoter.displayName }}</h1>
               <UBadge :color="statusColor(promoter.status)" variant="subtle">
-                {{ statusLabel(promoter.status) }}
+                {{ promoter.status_Display ?? statusLabel(promoter.status) }}
               </UBadge>
               <UBadge :color="promoter.active ? 'success' : 'neutral'" variant="subtle">
-                {{ promoter.active ? t('common.yes') : t('common.no') }}
+                {{ promoter.active_Display ?? (promoter.active ? t('common.yes') : t('common.no')) }}
               </UBadge>
               <UBadge v-if="promoter.system" color="neutral" variant="subtle">
                 {{ t('promoters.systemBadge') }}
@@ -358,15 +358,11 @@ async function loadCommissionsSummary() {
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.fields.personFullName') }}</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ promoter.personFullName || t('common.empty') }}</dd>
-          </div>
-          <div>
-            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.fields.personRif') }}</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ promoter.personRif || t('common.empty') }}</dd>
+            <dd class="text-prohealth-800 mt-0.5">{{ promoter.person_Display || t('common.empty') }}</dd>
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.fields.userEmail') }}</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ promoter.userEmail || t('common.empty') }}</dd>
+            <dd class="text-prohealth-800 mt-0.5">{{ promoter.user_Display || t('common.empty') }}</dd>
           </div>
         </dl>
       </div>
@@ -392,11 +388,11 @@ async function loadCommissionsSummary() {
         <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 text-sm">
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.fields.createdAt') }}</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ formatDate(promoter.createdAt, 'datetime') }}</dd>
+            <dd class="text-prohealth-800 mt-0.5">{{ promoter.createdAt_Display ?? formatDate(promoter.createdAt, 'datetime') }}</dd>
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.fields.updatedAt') }}</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ formatDate(promoter.updatedAt, 'datetime') }}</dd>
+            <dd class="text-prohealth-800 mt-0.5">{{ promoter.updatedAt_Display ?? formatDate(promoter.updatedAt, 'datetime') }}</dd>
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.fields.uuid') }}</dt>
@@ -474,10 +470,10 @@ async function loadCommissionsSummary() {
                 <td class="px-6 py-3 font-semibold text-prohealth-900">{{ m.memberName }}</td>
                 <td class="px-6 py-3">
                   <UBadge :color="membershipStatusColor(m.membershipStatus)" variant="subtle" size="sm">
-                    {{ membershipStatusLabel(m.membershipStatus) }}
+                    {{ m.membershipStatus_Display ?? membershipStatusLabel(m.membershipStatus) }}
                   </UBadge>
                 </td>
-                <td class="px-6 py-3 text-prohealth-600">{{ date(m.nextDueDate) }}</td>
+                <td class="px-6 py-3 text-prohealth-600">{{ m.nextDueDate_Display ?? date(m.nextDueDate) }}</td>
                 <td class="px-6 py-3 text-prohealth-700">{{ money(m.monthlyFee) }}</td>
               </tr>
             </tbody>
@@ -513,7 +509,7 @@ async function loadCommissionsSummary() {
                 </td>
               </tr>
               <tr v-for="s in commissionsSummary" v-else :key="`${s.periodStart}-${s.periodEnd}`" class="hover:bg-prohealth-50/50">
-                <td class="px-6 py-3 font-semibold text-prohealth-900">{{ date(s.periodStart) }} – {{ date(s.periodEnd) }}</td>
+                <td class="px-6 py-3 font-semibold text-prohealth-900">{{ s.periodStart_Display ?? date(s.periodStart) }} – {{ s.periodEnd_Display ?? date(s.periodEnd) }}</td>
                 <td class="px-6 py-3 text-prohealth-700">{{ s.commissionCount }}</td>
                 <td class="px-6 py-3 text-prohealth-700">{{ money(s.totalAmount) }}</td>
               </tr>

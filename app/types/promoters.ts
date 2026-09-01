@@ -47,6 +47,17 @@ export const REFERRAL_STATUS_OPTIONS: { label: string, value: ReferralStatus, la
 
 // ---- Promotores ----
 
+/**
+ * `user`/`person`/`promoterType` follow the `_Display` convention (hub ADR
+ * 0014): every FK travels as `<rel>_Uuid` + `<rel>_Display` — there is no
+ * flat `userEmail`/`personFullName`/`personRif`/`promoterTypeName` on the
+ * real response. `person_Display` already combines the RIF + full name
+ * (`"<rif> <fullName>"`), so there's no separate RIF field to read.
+ * Presentational scalars (`active`, `status`, `createdAt`, `updatedAt`)
+ * also carry a `_Display` sibling. `totalCommissionPaid` intentionally has
+ * NO `_Display` consumed anywhere — the backend's `MONEY` formatter is
+ * hardcoded to VES, but the frontend renders it in USD.
+ */
 export interface PromoterDto {
   uuid: string
   displayName: string
@@ -54,34 +65,48 @@ export interface PromoterDto {
   referralCode: string
   /** true en la fila del sistema INSTITUCION (no editable ni eliminable). */
   system: boolean
-  userUuid?: string | null
-  userEmail?: string | null
-  personUuid?: string | null
-  personFullName?: string | null
-  personRif?: string | null
-  promoterTypeUuid?: string | null
-  promoterTypeName?: string | null
+  user_Uuid?: string | null
+  user_Display?: string | null
+  person_Uuid?: string | null
+  person_Display?: string | null
+  promoterType_Uuid?: string | null
+  promoterType_Display?: string | null
   email?: string
   phone?: string
   totalReferrals: number
   totalCommissionPaid: number
   active: boolean
+  active_Display?: string | null
   status: PromoterStatus
+  status_Display?: string | null
   createdAt: string
+  createdAt_Display?: string | null
   updatedAt: string
+  updatedAt_Display?: string | null
 }
 
-/** Un afiliado en la cartera de un promotor — fila de `PromoterDashboardDto.portfolio`. */
+/**
+ * One affiliate in a promoter's portfolio — row of `PromoterDashboardDto.portfolio`.
+ * `membershipStatus`/`nextDueDate` carry a `_Display` sibling (hub ADR 0014);
+ * `monthlyFee` does NOT — same known `MONEY`→VES vs. real USD pricing case
+ * (see `PromoterDto`).
+ */
 export interface PromoterMemberRow {
   memberUuid: string
   memberName: string
   /** ACTIVE = al día; SUSPENDED/EXPIRED = vencida; null = sin membresía activa. */
   membershipStatus: 'ACTIVE' | 'SUSPENDED' | 'EXPIRED' | null
+  membershipStatus_Display?: string | null
   nextDueDate: string | null
+  nextDueDate_Display?: string | null
   monthlyFee: number | null
 }
 
-/** Body de GET /v1/admin/promoters/{uuid}/portfolio — cartera + salud de cobranza del promotor. */
+/**
+ * Body of GET /v1/admin/promoters/{uuid}/portfolio — a promoter's portfolio +
+ * collection health. `periodStart`/`periodEnd` carry a `_Display` sibling;
+ * `periodCommissions` does NOT (same MONEY→VES case).
+ */
 export interface PromoterDashboardDto {
   promoterUuid: string
   promoterName: string
@@ -93,16 +118,25 @@ export interface PromoterDashboardDto {
   periodCommissions: number
   periodCurrency: string
   periodStart: string
+  periodStart_Display?: string | null
   periodEnd: string
+  periodEnd_Display?: string | null
   leaderboardPosition: number | null
   portfolio: PromoterMemberRow[]
 }
 
-/** Una fila de GET /v1/admin/promoters/{uuid}/commissions/summary — comisiones agregadas por período. */
+/**
+ * One row of GET /v1/admin/promoters/{uuid}/commissions/summary — commissions
+ * aggregated by period. `periodStrategy`/`periodStart`/`periodEnd` carry a
+ * `_Display` sibling; `totalAmount` does NOT (same MONEY→VES case).
+ */
 export interface CommissionPeriodSummaryDto {
   periodStrategy: CommissionPeriodStrategy
+  periodStrategy_Display?: string | null
   periodStart: string
+  periodStart_Display?: string | null
   periodEnd: string
+  periodEnd_Display?: string | null
   commissionCount: number
   totalAmount: number
   currency: string
@@ -136,7 +170,13 @@ export interface PromoterUpdateRequest {
 
 // ---- Comisiones ----
 
-/** Fila del ledger de comisiones (DTO con @JsonInclude(NON_NULL): los null se omiten). */
+/**
+ * Row of the commission ledger (DTO with @JsonInclude(NON_NULL): nulls are
+ * omitted). Scalars carry a `_Display` sibling (hub ADR 0014).
+ * `amount`/`calculationBasis`/`flatAmount` are NOT consumed via `_Display` —
+ * same known MONEY→VES vs. real USD amounts case (see `PromoterDto`);
+ * `commissionPct` is (it's `NUMBER`, currency-independent).
+ */
 export interface CommissionDto {
   uuid: string
   promoterUuid?: string
@@ -149,23 +189,35 @@ export interface CommissionDto {
   calculationBasis?: number
   /** XOR con flatAmount */
   commissionPct?: number
+  commissionPct_Display?: string | null
   /** XOR con commissionPct */
   flatAmount?: number
   tierNameSnapshot?: string
   appliesTo?: CommissionAppliesTo
+  appliesTo_Display?: string | null
   periodStrategy?: CommissionPeriodStrategy
+  periodStrategy_Display?: string | null
   periodStart?: string
+  periodStart_Display?: string | null
   periodEnd?: string
+  periodEnd_Display?: string | null
   earnedAt?: string
+  earnedAt_Display?: string | null
   payoutReference?: string
   paidAt?: string
+  paidAt_Display?: string | null
   voidedAt?: string
+  voidedAt_Display?: string | null
   voidReason?: string
   adminNotes?: string
   active: boolean
+  active_Display?: string | null
   status: CommissionStatus
+  status_Display?: string | null
   createdAt?: string
+  createdAt_Display?: string | null
   updatedAt?: string
+  updatedAt_Display?: string | null
 }
 
 /** Body de POST /v1/admin/commissions/payout (cierre de período; `dryRun` previsualiza sin escribir). */
@@ -176,7 +228,7 @@ export interface CommissionPayoutRequest {
   dryRun?: boolean
 }
 
-/** Detalle por promotor dentro de la respuesta de payout. */
+/** Per-promoter breakdown inside the payout response. `emailDispatched` carries a `_Display` sibling. */
 export interface CommissionPayoutPerPromoter {
   promoterUuid: string
   promoterCode: string
@@ -187,20 +239,29 @@ export interface CommissionPayoutPerPromoter {
   /** Desglose CSV (también enviado por correo). */
   csv: string
   emailDispatched: boolean
+  emailDispatched_Display?: string | null
   emailFailureReason?: string
 }
 
-/** Respuesta de POST /v1/admin/commissions/payout (@JsonInclude(NON_NULL)). */
+/**
+ * Response of POST /v1/admin/commissions/payout (@JsonInclude(NON_NULL)).
+ * `periodStart`/`periodEnd`/`dryRun`/`executedAt` carry a `_Display` sibling;
+ * `totalAmount` does NOT (same MONEY→VES case, see `PromoterDto`).
+ */
 export interface CommissionPayoutResponse {
   periodStart: string
+  periodStart_Display?: string | null
   periodEnd: string
+  periodEnd_Display?: string | null
   payoutReference: string
   dryRun: boolean
+  dryRun_Display?: string | null
   totalPromoters: number
   totalCommissions: number
   totalAmount: number
   currency: string
   executedAt: string
+  executedAt_Display?: string | null
   perPromoter: CommissionPayoutPerPromoter[]
 }
 
@@ -223,16 +284,24 @@ export interface CommissionReRatingPerPromoter {
   deltaAmount: number
 }
 
-/** Respuesta de POST /v1/admin/commissions/re-rate (@JsonInclude(NON_NULL)). */
+/**
+ * Response of POST /v1/admin/commissions/re-rate (@JsonInclude(NON_NULL)).
+ * `periodStart`/`periodEnd`/`dryRun`/`executedAt` carry a `_Display` sibling;
+ * `totalDeltaAmount` does NOT (same MONEY→VES case, see `PromoterDto`).
+ */
 export interface CommissionReRatingResponse {
   periodStart: string
+  periodStart_Display?: string | null
   periodEnd: string
+  periodEnd_Display?: string | null
   dryRun: boolean
+  dryRun_Display?: string | null
   totalPromoters: number
   commissionsUpdated: number
   totalDeltaAmount: number
   currency: string
   executedAt: string
+  executedAt_Display?: string | null
   perPromoter: CommissionReRatingPerPromoter[]
 }
 
@@ -267,21 +336,32 @@ export function referralStatusColor(status?: ReferralStatus | string | null) {
   }
 }
 
-/** Fila del histórico de referidos del afiliado autenticado (@JsonInclude(NON_NULL)). */
+/**
+ * Row of the authenticated affiliate's referral history (@JsonInclude(NON_NULL)).
+ * Scalars carry a `_Display` sibling (hub ADR 0014); `rewardFlatAmount` does
+ * NOT — same known MONEY→VES vs. real USD amounts case (see `PromoterDto`);
+ * `rewardPct` does (it's `NUMBER`).
+ */
 export interface MyReferralDto {
   uuid: string
   status: ReferralStatus
+  status_Display?: string | null
   referralCode: string
   referredMemberUuid?: string
   referredMemberName?: string
   enrolledAt?: string
+  enrolledAt_Display?: string | null
   expiresAt?: string
+  expiresAt_Display?: string | null
   /** XOR con rewardFlatAmount */
   rewardPct?: number
+  rewardPct_Display?: string | null
   /** XOR con rewardPct */
   rewardFlatAmount?: number
   rewardCurrency?: string
   rewardPaymentUuid?: string
   rewardGrantedAt?: string
+  rewardGrantedAt_Display?: string | null
   createdAt?: string
+  createdAt_Display?: string | null
 }

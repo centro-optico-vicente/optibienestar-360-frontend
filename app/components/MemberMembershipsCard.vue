@@ -226,11 +226,11 @@ async function confirmLifecycle() {
             <td class="px-6 py-3 text-prohealth-700">{{ money(m.monthlyFee) }}</td>
             <td class="px-6 py-3">
               <UBadge :color="membershipStatusColor(m.status)" variant="subtle" size="sm">
-                {{ statusLabel(m.status) }}
+                {{ m.status_Display ?? statusLabel(m.status) }}
               </UBadge>
             </td>
-            <td class="px-6 py-3 text-prohealth-600">{{ formatDate(m.enrolledAt, 'short') }}</td>
-            <td class="px-6 py-3 text-prohealth-600">{{ formatDate(m.nextDueDate, 'short') }}</td>
+            <td class="px-6 py-3 text-prohealth-600">{{ m.enrolledAt_Display ?? formatDate(m.enrolledAt, 'short') }}</td>
+            <td class="px-6 py-3 text-prohealth-600">{{ m.nextDueDate_Display ?? formatDate(m.nextDueDate, 'short') }}</td>
             <td class="px-6 py-3">
               <div class="flex items-center justify-end gap-1">
                 <UTooltip

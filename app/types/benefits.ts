@@ -31,9 +31,14 @@ export interface BenefitUsageDto {
 
   // When
   usageDate: string
+  usageDate_Display?: string | null
   usageDatetime?: string | null
+  usageDatetime_Display?: string | null
 
-  // Co-pay — both sides set or both null (mirrors the V24 CHECK).
+  // Co-pay — both sides set or both null (mirrors the V24 CHECK). `copayAmount`
+  // intentionally has NO `_Display` consumed anywhere — the backend's MONEY
+  // formatter is hardcoded to VES, but the frontend's `money()` helper already
+  // renders it in the record's own `copayCurrency`.
   copayAmount?: number | string | null
   copayCurrency?: string | null
 
@@ -43,8 +48,11 @@ export interface BenefitUsageDto {
 
   // Audit
   status?: string | null
+  status_Display?: string | null
   createdAt?: string
+  createdAt_Display?: string | null
   updatedAt?: string
+  updatedAt_Display?: string | null
 }
 
 /**

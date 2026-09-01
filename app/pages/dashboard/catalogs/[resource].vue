@@ -451,7 +451,7 @@ async function confirmDelete() {
               </td>
               <td class="px-5 py-3">
                 <UBadge :color="item.active ? 'success' : 'neutral'" variant="subtle" size="sm">
-                  {{ item.active ? $t('catalogs.status.active') : $t('catalogs.status.inactive') }}
+                  {{ item.active_Display ?? (item.active ? $t('catalogs.status.active') : $t('catalogs.status.inactive')) }}
                 </UBadge>
               </td>
               <td class="px-5 py-3">

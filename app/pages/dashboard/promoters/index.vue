@@ -260,14 +260,14 @@ async function confirmDelete() {
               </td>
               <td class="px-5 py-3">
                 <UBadge :color="statusColor(p.status)" variant="subtle" size="sm">
-                  {{ statusLabel(p.status) }}
+                  {{ p.status_Display ?? statusLabel(p.status) }}
                 </UBadge>
               </td>
               <td class="px-5 py-3 text-prohealth-700">{{ p.totalReferrals }}</td>
               <td class="px-5 py-3 text-prohealth-700">{{ money(p.totalCommissionPaid) }}</td>
               <td class="px-5 py-3">
                 <UBadge :color="p.active ? 'success' : 'neutral'" variant="subtle" size="sm">
-                  {{ p.active ? t('common.yes') : t('common.no') }}
+                  {{ p.active_Display ?? (p.active ? t('common.yes') : t('common.no')) }}
                 </UBadge>
               </td>
               <td class="px-5 py-3" @click.stop>

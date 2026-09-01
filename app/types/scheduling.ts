@@ -22,6 +22,7 @@ export const JOB_RUN_OUTCOME_OPTIONS: { label: string, value: JobRunOutcome, lab
 /** Origen del disparo de una ejecución. */
 export type JobTriggerSource = 'SCHEDULED' | 'MANUAL' | 'STARTUP'
 
+/** Scalars carry a localized `_Display` sibling (hub ADR 0014) — render it directly. */
 export interface ScheduledJobDto {
   uuid: string
   code: string
@@ -31,19 +32,29 @@ export interface ScheduledJobDto {
   cronExpression: string
   timezone: string
   enabled: boolean
+  enabled_Display?: string | null
   // Política de ejecución
   allowConcurrent: boolean
+  allowConcurrent_Display?: string | null
   maxSyncSeconds: number
   lockHeld: boolean
+  lockHeld_Display?: string | null
   // Snapshot de la última ejecución
   lastRunAt?: string
+  lastRunAt_Display?: string | null
   lastRunStatus?: JobRunOutcome | string
+  lastRunStatus_Display?: string | null
   nextRunAt?: string
+  nextRunAt_Display?: string | null
   // Auditoría
   active: boolean
+  active_Display?: string | null
   status?: string
+  status_Display?: string | null
   createdAt?: string
+  createdAt_Display?: string | null
   updatedAt?: string
+  updatedAt_Display?: string | null
 }
 
 /** Body de POST /v1/admin/scheduled-jobs. */
@@ -77,20 +88,24 @@ export interface ScheduledJobUpdateRequest {
   status?: string
 }
 
-/** Fila del histórico de ejecuciones de un job. */
+/** Row of a job's execution history. Scalars carry a localized `_Display` sibling (hub ADR 0014). */
 export interface ScheduledJobRunDto {
   uuid: string
   jobUuid: string
   jobCode: string
   startedAt?: string
+  startedAt_Display?: string | null
   finishedAt?: string
+  finishedAt_Display?: string | null
   durationMs?: number
   outcome?: JobRunOutcome | string
+  outcome_Display?: string | null
   triggeredBy?: JobTriggerSource | string
   triggeredByUserUuid?: string
   summary?: Record<string, unknown>
   errorMessage?: string
   createdAt?: string
+  createdAt_Display?: string | null
 }
 
 /**

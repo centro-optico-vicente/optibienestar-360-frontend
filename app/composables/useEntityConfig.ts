@@ -1,20 +1,23 @@
 import type { ConfigSortOrder } from '~/composables/useSystemConfig'
 
+/** Boolean flags and `updatedAt` carry a localized `_Display` sibling (hub ADR 0014). */
 export interface EntityConfigDto {
   uuid: string
   entityKey: string
   displayName: string
   tableName?: string | null
   enabled: boolean
+  enabled_Display?: string | null
   auditCreate: boolean
   auditUpdate: boolean
   auditDelete: boolean
   auditReport: boolean
   captureBeforeAfter: boolean
-  /** Per-entity default sort — field names are the entity's own list-item keys (e.g. `name`, `allyTypeName`). */
+  /** Per-entity default sort — field names are the entity's own list-item keys (e.g. `name`, `allyType_Display`). */
   defaultSort?: ConfigSortOrder[] | null
   notes?: string | null
   updatedAt?: string
+  updatedAt_Display?: string | null
 }
 
 export interface CreateEntityConfigRequest {

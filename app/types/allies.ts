@@ -102,6 +102,7 @@ export interface UpdateAllyRequest extends Partial<CreateAllyRequest> {
 /** Service review status (proposals are born in PROPOSED). */
 export type ServiceReviewStatus = 'PROPOSED' | 'APPROVED' | 'REJECTED'
 
+/** Scalars carry a localized `_Display` sibling (hub ADR 0014) — render it directly. */
 export interface AllyServiceDto {
   uuid: string
   name: string
@@ -111,9 +112,15 @@ export interface AllyServiceDto {
   discountPct?: string
   requiresAppointment?: boolean
   reviewStatus?: ServiceReviewStatus | string
+  reviewStatus_Display?: string | null
   published?: boolean
+  published_Display?: string | null
+  active?: boolean
+  active_Display?: string | null
   status?: string
+  status_Display?: string | null
   createdAt?: string
+  createdAt_Display?: string | null
 }
 
 export interface CreateAllyServiceRequest {
@@ -148,15 +155,23 @@ export const AGREEMENT_TYPE_OPTIONS: { label: string, value: AgreementType, labe
   { label: 'Suministro', value: 'SUPPLY', labelKey: 'allies.agreements.types.SUPPLY' },
 ]
 
+/** Scalars carry a localized `_Display` sibling (hub ADR 0014) — render it directly. */
 export interface AllyAgreementDto {
   uuid: string
   agreementType: AgreementType | string
+  agreementType_Display?: string | null
   startDate?: string
+  startDate_Display?: string | null
   endDate?: string
+  endDate_Display?: string | null
   terms?: string
   signedPdfUrl?: string
+  active?: boolean
+  active_Display?: string | null
   status?: string
+  status_Display?: string | null
   createdAt?: string
+  createdAt_Display?: string | null
 }
 
 export interface CreateAllyAgreementRequest {
@@ -244,8 +259,8 @@ export interface UpdateAllyUserRequest {
 export interface MyAllyDto {
   uuid: string
   name: string
-  allyTypeUuid?: string | null
-  allyTypeName?: string | null
+  allyType_Uuid?: string | null
+  allyType_Display?: string | null
   logoUrl?: string | null
   phone?: string | null
   allyRole: AllyRole | string

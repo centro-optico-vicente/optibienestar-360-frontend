@@ -52,9 +52,9 @@ async function loadUser() {
 }
 
 function statusLabel(u: UserDto): string {
-  if (u.active === false) return t('security.users.inactive')
+  if (u.active === false) return u.active_Display ?? t('security.users.inactive')
   if (!u.status) return t('common.empty')
-  return t(`security.users.status.${u.status}`, u.status)
+  return u.status_Display ?? t(`security.users.status.${u.status}`, u.status)
 }
 
 // ---- Tabs (allies always visible per spec) ----
@@ -366,7 +366,7 @@ async function refreshAll() {
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('security.users.columns.lastLogin') }}</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ formatDate(user.lastLoginAt, 'datetime') }}</dd>
+            <dd class="text-prohealth-800 mt-0.5">{{ user.lastLoginAt_Display ?? formatDate(user.lastLoginAt, 'datetime') }}</dd>
           </div>
         </dl>
       </div>
