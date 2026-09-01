@@ -242,8 +242,8 @@ function isPending(p: PaymentDto): boolean {
                 </div>
               </td>
               <td class="px-5 py-3 font-semibold text-prohealth-900">{{ money(p.amount, p.currency) }}</td>
-              <td class="px-5 py-3 text-prohealth-700">{{ methodLabel(p.paymentMethod) }}</td>
-              <td class="px-5 py-3 text-prohealth-600">{{ formatDate(p.paymentDate, 'short') }}</td>
+              <td class="px-5 py-3 text-prohealth-700">{{ p.paymentMethod_Display ?? methodLabel(p.paymentMethod) }}</td>
+              <td class="px-5 py-3 text-prohealth-600">{{ p.paymentDate_Display ?? formatDate(p.paymentDate, 'short') }}</td>
               <td class="px-5 py-3">
                 <UIcon
                   v-if="p.supportFileAvailable"
@@ -254,7 +254,7 @@ function isPending(p: PaymentDto): boolean {
               </td>
               <td class="px-5 py-3">
                 <UBadge :color="paymentStatusColor(p.status)" variant="subtle" size="sm">
-                  {{ statusLabel(p.status) }}
+                  {{ p.status_Display ?? statusLabel(p.status) }}
                 </UBadge>
               </td>
               <td class="px-5 py-3" @click.stop>

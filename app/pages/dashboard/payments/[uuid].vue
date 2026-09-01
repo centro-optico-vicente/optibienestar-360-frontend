@@ -158,12 +158,12 @@ function onReviewed(updated: PaymentDto) {
                 {{ money(payment.amount, payment.currency) }}
               </h1>
               <UBadge :color="paymentStatusColor(payment.status)" variant="subtle">
-                {{ statusLabel(payment.status) }}
+                {{ payment.status_Display ?? statusLabel(payment.status) }}
               </UBadge>
               <UBadge v-if="payment.inscription" color="primary" variant="subtle">{{ t('payments.allocation.inscription') }}</UBadge>
             </div>
             <p class="text-sm text-prohealth-500 mt-1">
-              {{ methodLabel(payment.paymentMethod) }} · {{ formatDate(payment.paymentDate, 'short') }}
+              {{ payment.paymentMethod_Display ?? methodLabel(payment.paymentMethod) }} · {{ payment.paymentDate_Display ?? formatDate(payment.paymentDate, 'short') }}
             </p>
           </div>
 
@@ -217,7 +217,7 @@ function onReviewed(updated: PaymentDto) {
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.method') }}</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ methodLabel(payment.paymentMethod) }}</dd>
+            <dd class="text-prohealth-800 mt-0.5">{{ payment.paymentMethod_Display ?? methodLabel(payment.paymentMethod) }}</dd>
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.reference') }}</dt>
@@ -225,11 +225,11 @@ function onReviewed(updated: PaymentDto) {
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.paymentDate') }}</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ formatDate(payment.paymentDate, 'short') }}</dd>
+            <dd class="text-prohealth-800 mt-0.5">{{ payment.paymentDate_Display ?? formatDate(payment.paymentDate, 'short') }}</dd>
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.received') }}</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ formatDate(payment.receivedAt, 'datetime') }}</dd>
+            <dd class="text-prohealth-800 mt-0.5">{{ payment.receivedAt_Display ?? formatDate(payment.receivedAt, 'datetime') }}</dd>
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.allocation') }}</dt>
@@ -301,13 +301,13 @@ function onReviewed(updated: PaymentDto) {
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.status') }}</dt>
             <dd class="mt-0.5">
               <UBadge :color="paymentStatusColor(payment.status)" variant="subtle" size="sm">
-                {{ statusLabel(payment.status) }}
+                {{ payment.status_Display ?? statusLabel(payment.status) }}
               </UBadge>
             </dd>
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.reviewed') }}</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ formatDate(payment.reviewedAt, 'datetime') }}</dd>
+            <dd class="text-prohealth-800 mt-0.5">{{ payment.reviewedAt_Display ?? formatDate(payment.reviewedAt, 'datetime') }}</dd>
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.reviewedBy') }}</dt>
@@ -332,11 +332,11 @@ function onReviewed(updated: PaymentDto) {
         <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 text-sm">
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.created') }}</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ formatDate(payment.createdAt, 'datetime') }}</dd>
+            <dd class="text-prohealth-800 mt-0.5">{{ payment.createdAt_Display ?? formatDate(payment.createdAt, 'datetime') }}</dd>
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.updated') }}</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ formatDate(payment.updatedAt, 'datetime') }}</dd>
+            <dd class="text-prohealth-800 mt-0.5">{{ payment.updatedAt_Display ?? formatDate(payment.updatedAt, 'datetime') }}</dd>
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.uuid') }}</dt>
