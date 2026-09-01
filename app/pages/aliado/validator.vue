@@ -153,7 +153,7 @@ function onRegistered(usage: BenefitUsageDto) {
         variant="subtle"
         icon="i-lucide-check-circle"
         :title="t('validator.usage.lastRegisteredTitle')"
-        :description="t('validator.usage.lastRegisteredDescription', { date: formatDate(lastUsage.usageDate) })"
+        :description="t('validator.usage.lastRegisteredDescription', { date: lastUsage.usageDate_Display ?? formatDate(lastUsage.usageDate) })"
         :close="{ color: 'neutral', variant: 'link' }"
         @update:open="lastUsage = null"
       />
@@ -252,7 +252,7 @@ function onRegistered(usage: BenefitUsageDto) {
           />
           <div class="min-w-0">
             <p class="text-xl font-extrabold text-prohealth-900">
-              {{ t(`validator.status.${result.status}`, String(result.status)) }}
+              {{ result.status_Display ?? t(`validator.status.${result.status}`, String(result.status)) }}
             </p>
             <p class="text-sm text-prohealth-700 mt-0.5">
               {{ t(`validator.statusHint.${result.status}`, '') }}
@@ -278,7 +278,7 @@ function onRegistered(usage: BenefitUsageDto) {
           </div>
           <div v-if="result.nextDueDate" class="flex items-center justify-between sm:block">
             <dt class="text-prohealth-500">{{ t('validator.result.nextDueDate') }}</dt>
-            <dd class="text-prohealth-800">{{ formatDate(result.nextDueDate) }}</dd>
+            <dd class="text-prohealth-800">{{ result.nextDueDate_Display ?? formatDate(result.nextDueDate) }}</dd>
           </div>
         </dl>
 

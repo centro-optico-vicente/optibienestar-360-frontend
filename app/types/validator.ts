@@ -21,9 +21,13 @@ export type ValidationStatus =
   | 'EXPIRED'
   | 'CANCELED'
 
-/** Response of GET /v1/ally/validate/{document}. */
+/**
+ * Response of GET /v1/ally/validate/{document}. Scalars carry a localized
+ * `_Display` sibling (hub ADR 0014).
+ */
 export interface ValidationResultDto {
   status: ValidationStatus | string
+  status_Display?: string | null
 
   documentType?: string | null
   documentNumber?: string | null
@@ -39,8 +43,11 @@ export interface ValidationResultDto {
 
   membershipUuid?: string | null
   enrolledAt?: string | null
+  enrolledAt_Display?: string | null
   nextDueDate?: string | null
+  nextDueDate_Display?: string | null
   lastPaidThrough?: string | null
+  lastPaidThrough_Display?: string | null
   gracePeriodDays?: number | null
 
   /** Diagnostic only: whether the answer came from Redis. Never gate UI on this. */
