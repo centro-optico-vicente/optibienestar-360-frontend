@@ -297,7 +297,7 @@ async function confirmDelete() {
               </td>
               <td class="px-5 py-3">
                 <UBadge :color="e.enabled ? 'success' : 'neutral'" variant="subtle" size="sm">
-                  {{ e.enabled ? t('common.yes') : t('common.no') }}
+                  {{ e.enabled_Display ?? (e.enabled ? t('common.yes') : t('common.no')) }}
                 </UBadge>
               </td>
               <td class="px-5 py-3 text-prohealth-700">{{ summarizeSort(e.defaultSort) }}</td>
