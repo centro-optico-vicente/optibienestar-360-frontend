@@ -193,13 +193,26 @@ onMounted(load)
           {{ t('systemConfig.subtitle') }}
         </p>
       </div>
-      <RefreshButton
-        :loading="loading"
-        :icon-only="false"
-        :label="t('common.refresh')"
-        :title="t('common.refreshRecord')"
-        @refresh="onRefresh"
-      />
+      <div class="flex items-center gap-2">
+        <RefreshButton
+          :loading="loading"
+          :icon-only="false"
+          :label="t('common.refresh')"
+          :title="t('common.refreshRecord')"
+          @refresh="onRefresh"
+        />
+        <UButton
+          type="submit"
+          form="system-config-form"
+          color="info"
+          variant="outline"
+          icon="i-lucide-save"
+          :loading="isSubmitting"
+          :disabled="!canUpdate || loading"
+        >
+          {{ t('systemConfig.saveButton') }}
+        </UButton>
+      </div>
     </div>
 
     <div v-if="loading" class="bg-white rounded-2xl border border-prohealth-100 p-6 shadow-sm py-12 flex flex-col items-center justify-center gap-2 text-prohealth-500">
@@ -209,6 +222,7 @@ onMounted(load)
 
     <UForm
       v-else
+      id="system-config-form"
       :schema="schema"
       :state="state"
       class="space-y-5"
@@ -387,7 +401,7 @@ onMounted(load)
             </div>
 
             <UButton
-              color="neutral"
+              color="primary"
               variant="outline"
               icon="i-lucide-plus"
               size="sm"
@@ -398,18 +412,6 @@ onMounted(load)
             </UButton>
           </div>
         </template>
-      </div>
-
-      <div class="flex items-center justify-end gap-3 pt-3 border-t border-prohealth-100">
-        <UButton
-          type="submit"
-          color="primary"
-          icon="i-lucide-save"
-          :loading="isSubmitting"
-          :disabled="!canUpdate"
-        >
-          {{ t('systemConfig.saveButton') }}
-        </UButton>
       </div>
     </UForm>
 
