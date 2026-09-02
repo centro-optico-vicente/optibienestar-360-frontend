@@ -11,7 +11,10 @@ export const COMMON_SORT_FIELDS = ['id', 'uuid', 'createdAt', 'updatedAt', 'crea
 export interface SystemConfigDto {
   uuid: string
   reportFooter: string
-  dataChangeAuditMode: AuditMode
+  auditCreateMode: AuditMode
+  auditUpdateMode: AuditMode
+  auditDeleteMode: AuditMode
+  captureBeforeAfterMode: AuditMode
   reportAuditMode: AuditMode
   loginAuditEnabled: boolean
   loginSessionExpirationDays: number
@@ -22,7 +25,10 @@ export interface SystemConfigDto {
 
 export interface UpdateSystemConfigRequest {
   reportFooter?: string
-  dataChangeAuditMode?: AuditMode
+  auditCreateMode?: AuditMode
+  auditUpdateMode?: AuditMode
+  auditDeleteMode?: AuditMode
+  captureBeforeAfterMode?: AuditMode
   reportAuditMode?: AuditMode
   loginAuditEnabled?: boolean
   loginSessionExpirationDays?: number

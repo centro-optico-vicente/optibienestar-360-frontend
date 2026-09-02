@@ -51,7 +51,10 @@ const isSubmitting = ref(false)
 
 const state = reactive({
   reportFooter: '',
-  dataChangeAuditMode: 'PER_ENTITY' as AuditMode,
+  auditCreateMode: 'PER_ENTITY' as AuditMode,
+  auditUpdateMode: 'PER_ENTITY' as AuditMode,
+  auditDeleteMode: 'PER_ENTITY' as AuditMode,
+  captureBeforeAfterMode: 'PER_ENTITY' as AuditMode,
   reportAuditMode: 'PER_ENTITY' as AuditMode,
   loginAuditEnabled: true,
   defaultSort: [] as ConfigSortOrder[],
@@ -65,7 +68,10 @@ const schema = computed(() =>
       .max(500, t('validation.maxChars', { n: 500 }))
       .optional()
       .or(z.literal('')),
-    dataChangeAuditMode: z.enum(['PER_ENTITY', 'FORCE_ENABLED', 'FORCE_DISABLED']),
+    auditCreateMode: z.enum(['PER_ENTITY', 'FORCE_ENABLED', 'FORCE_DISABLED']),
+    auditUpdateMode: z.enum(['PER_ENTITY', 'FORCE_ENABLED', 'FORCE_DISABLED']),
+    auditDeleteMode: z.enum(['PER_ENTITY', 'FORCE_ENABLED', 'FORCE_DISABLED']),
+    captureBeforeAfterMode: z.enum(['PER_ENTITY', 'FORCE_ENABLED', 'FORCE_DISABLED']),
     reportAuditMode: z.enum(['PER_ENTITY', 'FORCE_ENABLED', 'FORCE_DISABLED']),
     loginAuditEnabled: z.boolean(),
     loginSessionExpirationDays: z
@@ -95,7 +101,10 @@ async function load() {
   try {
     const res = await systemConfigApi.get()
     state.reportFooter = res.reportFooter || ''
-    state.dataChangeAuditMode = res.dataChangeAuditMode
+    state.auditCreateMode = res.auditCreateMode
+    state.auditUpdateMode = res.auditUpdateMode
+    state.auditDeleteMode = res.auditDeleteMode
+    state.captureBeforeAfterMode = res.captureBeforeAfterMode
     state.reportAuditMode = res.reportAuditMode
     state.loginAuditEnabled = res.loginAuditEnabled
     state.loginSessionExpirationDays = res.loginSessionExpirationDays
@@ -136,7 +145,10 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       reportFooter: state.reportFooter,
       ...(canUpdateAudit.value
         ? {
-            dataChangeAuditMode: state.dataChangeAuditMode,
+            auditCreateMode: state.auditCreateMode,
+            auditUpdateMode: state.auditUpdateMode,
+            auditDeleteMode: state.auditDeleteMode,
+            captureBeforeAfterMode: state.captureBeforeAfterMode,
             reportAuditMode: state.reportAuditMode,
             loginAuditEnabled: state.loginAuditEnabled,
             loginSessionExpirationDays: state.loginSessionExpirationDays,
@@ -145,7 +157,10 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         : {}),
     })
     state.reportFooter = updated.reportFooter
-    state.dataChangeAuditMode = updated.dataChangeAuditMode
+    state.auditCreateMode = updated.auditCreateMode
+    state.auditUpdateMode = updated.auditUpdateMode
+    state.auditDeleteMode = updated.auditDeleteMode
+    state.captureBeforeAfterMode = updated.captureBeforeAfterMode
     state.reportAuditMode = updated.reportAuditMode
     state.loginAuditEnabled = updated.loginAuditEnabled
     state.loginSessionExpirationDays = updated.loginSessionExpirationDays
@@ -220,14 +235,55 @@ onMounted(load)
 
         <template v-if="canUpdateAudit">
           <!-- Auditoría de cambios de datos -->
-          <div class="bg-white rounded-2xl border border-prohealth-100 p-6 shadow-sm">
-            <h2 class="text-base font-bold text-prohealth-900 mb-4">{{ t('systemConfig.sections.dataChangeAudit') }}</h2>
+          <div class="bg-white rounded-2xl border border-prohealth-100 p-6 shadow-sm space-y-4">
+            <div>
+              <h2 class="text-base font-bold text-prohealth-900">{{ t('systemConfig.sections.dataChangeAudit') }}</h2>
+              <p class="text-xs text-prohealth-700/70 mt-0.5">{{ t('systemConfig.audit.dataChangeAuditModeHelp') }}</p>
+            </div>
+
+            <UFormField :label="t('systemConfig.audit.auditCreateMode')" name="auditCreateMode">
+              <USelectMenu
+                v-model="state.auditCreateMode"
+                :items="AUDIT_MODE_OPTIONS"
+                label-key="label"
+                value-key="value"
+                :search-input="false"
+                class="w-full"
+                :disabled="isSubmitting"
+              />
+            </UFormField>
+
+            <UFormField :label="t('systemConfig.audit.auditUpdateMode')" name="auditUpdateMode">
+              <USelectMenu
+                v-model="state.auditUpdateMode"
+                :items="AUDIT_MODE_OPTIONS"
+                label-key="label"
+                value-key="value"
+                :search-input="false"
+                class="w-full"
+                :disabled="isSubmitting"
+              />
+            </UFormField>
+
+            <UFormField :label="t('systemConfig.audit.auditDeleteMode')" name="auditDeleteMode">
+              <USelectMenu
+                v-model="state.auditDeleteMode"
+                :items="AUDIT_MODE_OPTIONS"
+                label-key="label"
+                value-key="value"
+                :search-input="false"
+                class="w-full"
+                :disabled="isSubmitting"
+              />
+            </UFormField>
+
             <UFormField
-              :help="t('systemConfig.audit.dataChangeAuditModeHelp')"
-              name="dataChangeAuditMode"
+              :label="t('systemConfig.audit.captureBeforeAfterMode')"
+              :help="t('systemConfig.audit.captureBeforeAfterModeHelp')"
+              name="captureBeforeAfterMode"
             >
               <USelectMenu
-                v-model="state.dataChangeAuditMode"
+                v-model="state.captureBeforeAfterMode"
                 :items="AUDIT_MODE_OPTIONS"
                 label-key="label"
                 value-key="value"
