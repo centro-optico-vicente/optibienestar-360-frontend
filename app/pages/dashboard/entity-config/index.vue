@@ -149,6 +149,16 @@ function toggleDataChangesAll(checked: boolean) {
   for (const f of DATA_CHANGE_FIELDS) editState[f] = checked
 }
 
+// "Guardar antes/después" only makes sense if at least one CRUD action is
+// actually being audited — otherwise there's nothing to snapshot. Disable it
+// (and force it off) when create/update/delete are all off.
+const canCaptureBeforeAfter = computed(() =>
+  editState.enabled && (editState.auditCreate || editState.auditUpdate || editState.auditDelete))
+
+watch(canCaptureBeforeAfter, (can) => {
+  if (!can) editState.captureBeforeAfter = false
+})
+
 // Snapshot of the last-loaded edit state, used to warn before a refresh
 // discards unsaved changes.
 const editSnapshot = ref('')
@@ -437,7 +447,7 @@ async function confirmDelete() {
                     {{ t('entityConfig.fields.captureBeforeAfter') }}
                   </span>
                 </template>
-                <USwitch v-model="editState.captureBeforeAfter" :disabled="!editState.enabled" />
+                <USwitch v-model="editState.captureBeforeAfter" :disabled="!canCaptureBeforeAfter" />
               </UFormField>
             </div>
           </div>
