@@ -134,6 +134,21 @@ const editState = reactive<EditState>({
   notes: '',
 })
 
+// "Select all" tri-state checkbox for the data-change audit group
+// (create/update/delete/capture-before-after).
+const DATA_CHANGE_FIELDS = ['auditCreate', 'auditUpdate', 'auditDelete', 'captureBeforeAfter'] as const
+
+const dataChangesAllState = computed<boolean | 'indeterminate'>(() => {
+  const count = DATA_CHANGE_FIELDS.filter(f => editState[f]).length
+  if (count === 0) return false
+  if (count === DATA_CHANGE_FIELDS.length) return true
+  return 'indeterminate'
+})
+
+function toggleDataChangesAll(checked: boolean) {
+  for (const f of DATA_CHANGE_FIELDS) editState[f] = checked
+}
+
 // Snapshot of the last-loaded edit state, used to warn before a refresh
 // discards unsaved changes.
 const editSnapshot = ref('')
@@ -367,30 +382,83 @@ async function confirmDelete() {
       v-model:open="editOpen"
       :title="t('entityConfig.editTitle', { entity: editingDisplayName })"
       :description="t('entityConfig.editDescription')"
-      :ui="{ content: 'max-w-xl' }"
+      :ui="{ content: 'max-w-3xl' }"
     >
       <template #body>
         <UForm :state="editState" class="space-y-4" @submit="onEditSubmit">
           <UFormField :label="t('entityConfig.fields.enabled')" name="enabled">
             <USwitch v-model="editState.enabled" />
           </UFormField>
-          <div class="grid grid-cols-2 gap-3">
-            <UFormField :label="t('entityConfig.fields.auditCreate')" name="auditCreate">
-              <USwitch v-model="editState.auditCreate" :disabled="!editState.enabled" />
-            </UFormField>
-            <UFormField :label="t('entityConfig.fields.auditUpdate')" name="auditUpdate">
-              <USwitch v-model="editState.auditUpdate" :disabled="!editState.enabled" />
-            </UFormField>
-            <UFormField :label="t('entityConfig.fields.auditDelete')" name="auditDelete">
-              <USwitch v-model="editState.auditDelete" :disabled="!editState.enabled" />
-            </UFormField>
-            <UFormField :label="t('entityConfig.fields.auditReport')" name="auditReport">
-              <USwitch v-model="editState.auditReport" :disabled="!editState.enabled" />
-            </UFormField>
+
+          <div class="rounded-xl border border-prohealth-100 overflow-hidden">
+            <div class="flex items-center gap-2 px-4 py-2.5 bg-prohealth-50/60 border-b border-prohealth-100">
+              <UIcon name="i-lucide-database" class="w-4 h-4 text-prohealth-500" />
+              <span class="font-semibold text-prohealth-800">{{ t('entityConfig.groups.dataChanges') }}</span>
+              <UCheckbox
+                :model-value="dataChangesAllState"
+                :disabled="!editState.enabled"
+                :aria-label="t('entityConfig.groups.toggleAll')"
+                class="ml-auto"
+                @update:model-value="(v: boolean | 'indeterminate') => toggleDataChangesAll(v === true)"
+              />
+            </div>
+            <div class="p-4 grid sm:grid-cols-2 gap-x-4 gap-y-3">
+              <UFormField name="auditCreate">
+                <template #label>
+                  <span class="flex items-center gap-1.5">
+                    <UIcon name="i-lucide-plus" class="w-4 h-4 text-prohealth-500" />
+                    {{ t('entityConfig.fields.auditCreate') }}
+                  </span>
+                </template>
+                <USwitch v-model="editState.auditCreate" :disabled="!editState.enabled" />
+              </UFormField>
+              <UFormField name="auditUpdate">
+                <template #label>
+                  <span class="flex items-center gap-1.5">
+                    <UIcon name="i-lucide-pencil" class="w-4 h-4 text-prohealth-500" />
+                    {{ t('entityConfig.fields.auditUpdate') }}
+                  </span>
+                </template>
+                <USwitch v-model="editState.auditUpdate" :disabled="!editState.enabled" />
+              </UFormField>
+              <UFormField name="auditDelete">
+                <template #label>
+                  <span class="flex items-center gap-1.5">
+                    <UIcon name="i-lucide-trash-2" class="w-4 h-4 text-prohealth-500" />
+                    {{ t('entityConfig.fields.auditDelete') }}
+                  </span>
+                </template>
+                <USwitch v-model="editState.auditDelete" :disabled="!editState.enabled" />
+              </UFormField>
+              <UFormField name="captureBeforeAfter">
+                <template #label>
+                  <span class="flex items-center gap-1.5">
+                    <UIcon name="i-lucide-history" class="w-4 h-4 text-prohealth-500" />
+                    {{ t('entityConfig.fields.captureBeforeAfter') }}
+                  </span>
+                </template>
+                <USwitch v-model="editState.captureBeforeAfter" :disabled="!editState.enabled" />
+              </UFormField>
+            </div>
           </div>
-          <UFormField :label="t('entityConfig.fields.captureBeforeAfter')" name="captureBeforeAfter">
-            <USwitch v-model="editState.captureBeforeAfter" :disabled="!editState.enabled" />
-          </UFormField>
+
+          <div class="rounded-xl border border-prohealth-100 overflow-hidden">
+            <div class="flex items-center gap-2 px-4 py-2.5 bg-prohealth-50/60 border-b border-prohealth-100">
+              <UIcon name="i-lucide-printer" class="w-4 h-4 text-prohealth-500" />
+              <span class="font-semibold text-prohealth-800">{{ t('entityConfig.groups.reports') }}</span>
+            </div>
+            <div class="p-4 grid sm:grid-cols-2 gap-x-4 gap-y-3">
+              <UFormField name="auditReport">
+                <template #label>
+                  <span class="flex items-center gap-1.5">
+                    <UIcon name="i-lucide-printer" class="w-4 h-4 text-prohealth-500" />
+                    {{ t('entityConfig.fields.auditReport') }}
+                  </span>
+                </template>
+                <USwitch v-model="editState.auditReport" :disabled="!editState.enabled" />
+              </UFormField>
+            </div>
+          </div>
 
           <div class="space-y-3 pt-3 border-t border-prohealth-100">
             <p class="text-xs text-prohealth-700/70">{{ t('entityConfig.fields.defaultSortHelp') }}</p>

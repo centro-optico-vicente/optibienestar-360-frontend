@@ -2515,13 +2515,18 @@
     "empty": "No entities configured.",
     "editTitle": "Configure {entity}",
     "editDescription": "Audit and default list sort for this entity.",
+    "groups": {
+      "dataChanges": "Data change audit",
+      "reports": "Report audit",
+      "toggleAll": "Check/uncheck all in group"
+    },
     "fields": {
       "enabled": "Audit enabled",
       "auditCreate": "Audit create",
       "auditUpdate": "Audit update",
       "auditDelete": "Audit delete",
       "auditReport": "Audit report generation",
-      "captureBeforeAfter": "Store before/after values",
+      "captureBeforeAfter": "Save before/after",
       "notes": "Notes",
       "notesPlaceholder": "Internal notes about this config (optional)",
       "defaultSortHelp": "Sort applied when the table opens with no column clicked. Empty falls back to the global default (\"System configuration\") or \"Created at\" descending.",

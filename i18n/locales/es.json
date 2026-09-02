@@ -2515,13 +2515,18 @@
     "empty": "No hay entidades configuradas.",
     "editTitle": "Configurar {entity}",
     "editDescription": "Auditoría y orden predeterminado de listado para esta entidad.",
+    "groups": {
+      "dataChanges": "Auditoría de cambios de datos",
+      "reports": "Auditoría de reportes",
+      "toggleAll": "Marcar/desmarcar todo en el grupo"
+    },
     "fields": {
       "enabled": "Auditoría habilitada",
       "auditCreate": "Auditar creación",
       "auditUpdate": "Auditar edición",
       "auditDelete": "Auditar eliminación",
       "auditReport": "Auditar generación de reportes",
-      "captureBeforeAfter": "Guardar valores antes/después del cambio",
+      "captureBeforeAfter": "Guardar antes/después",
       "notes": "Notas",
       "notesPlaceholder": "Notas internas sobre esta configuración (opcional)",
       "defaultSortHelp": "Orden aplicado cuando la tabla se abre sin ordenar por click. Si se deja vacío, se usa el orden global (\"Configuración del sistema\") o \"Fecha de creación\" descendente.",
