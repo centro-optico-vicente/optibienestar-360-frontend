@@ -506,7 +506,7 @@ async function confirmDelete() {
               />
             </div>
 
-            <UButton color="neutral" variant="outline" icon="i-lucide-plus" size="sm" @click="addSortRow">
+            <UButton color="primary" variant="outline" icon="i-lucide-plus" size="sm" @click="addSortRow">
               {{ t('entityConfig.fields.addSortRow') }}
             </UButton>
           </div>
