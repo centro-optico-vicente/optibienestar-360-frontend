@@ -2463,6 +2463,12 @@
       "reportFooterHelp": "Text displayed in the footer of all generated PDF documents.",
       "reportFooterPlaceholder": "e.g. Created from example company"
     },
+    "sections": {
+      "reports": "Reports",
+      "dataChangeAudit": "Data change audit",
+      "reportAudit": "Report audit",
+      "sessions": "Session and system usage"
+    },
     "audit": {
       "sectionTitle": "Audit",
       "sectionSubtitle": "Global audit overrides and login session controls.",

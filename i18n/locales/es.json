@@ -2463,6 +2463,12 @@
       "reportFooterHelp": "Texto que aparecerá en el pie de página de todos los documentos y fichas PDF generados.",
       "reportFooterPlaceholder": "Ej. Creado desde compañía de ejemplo"
     },
+    "sections": {
+      "reports": "Reportes",
+      "dataChangeAudit": "Auditoría de cambios de datos",
+      "reportAudit": "Auditoría de reportes",
+      "sessions": "Sesión y uso del sistema"
+    },
     "audit": {
       "sectionTitle": "Auditoría",
       "sectionSubtitle": "Overrides globales de auditoría y control de sesiones de acceso.",

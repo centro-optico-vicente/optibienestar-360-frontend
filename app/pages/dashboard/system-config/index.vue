@@ -169,7 +169,7 @@ onMounted(load)
 </script>
 
 <template>
-  <div class="space-y-5 max-w-4xl">
+  <div class="space-y-5">
     <!-- Header -->
     <div class="flex flex-wrap items-start justify-between gap-4">
       <div>
@@ -187,96 +187,105 @@ onMounted(load)
       />
     </div>
 
-    <!-- Main Card -->
-    <div class="bg-white rounded-2xl border border-prohealth-100 p-6 shadow-sm">
-      <div v-if="loading" class="py-12 flex flex-col items-center justify-center gap-2 text-prohealth-500">
-        <UIcon name="i-lucide-loader-circle" class="w-6 h-6 animate-spin" />
-        <span class="text-sm">{{ t('common.loading') }}</span>
-      </div>
+    <div v-if="loading" class="bg-white rounded-2xl border border-prohealth-100 p-6 shadow-sm py-12 flex flex-col items-center justify-center gap-2 text-prohealth-500">
+      <UIcon name="i-lucide-loader-circle" class="w-6 h-6 animate-spin" />
+      <span class="text-sm">{{ t('common.loading') }}</span>
+    </div>
 
-      <UForm
-        v-else
-        :schema="schema"
-        :state="state"
-        class="space-y-6"
-        @submit="onSubmit"
-      >
-        <UFormField
-          :label="t('systemConfig.fields.reportFooter')"
-          :help="t('systemConfig.fields.reportFooterHelp')"
-          name="reportFooter"
-        >
-          <UTextarea
-            v-model="state.reportFooter"
-            :placeholder="t('systemConfig.fields.reportFooterPlaceholder')"
-            :rows="3"
-            class="w-full"
-            :disabled="!canUpdate || isSubmitting"
-          />
-        </UFormField>
+    <UForm
+      v-else
+      :schema="schema"
+      :state="state"
+      class="space-y-5"
+      @submit="onSubmit"
+    >
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <!-- Reportes -->
+        <div class="bg-white rounded-2xl border border-prohealth-100 p-6 shadow-sm">
+          <h2 class="text-base font-bold text-prohealth-900 mb-4">{{ t('systemConfig.sections.reports') }}</h2>
+          <UFormField
+            :label="t('systemConfig.fields.reportFooter')"
+            :help="t('systemConfig.fields.reportFooterHelp')"
+            name="reportFooter"
+          >
+            <UTextarea
+              v-model="state.reportFooter"
+              :placeholder="t('systemConfig.fields.reportFooterPlaceholder')"
+              :rows="3"
+              class="w-full"
+              :disabled="!canUpdate || isSubmitting"
+            />
+          </UFormField>
+        </div>
 
-        <div v-if="canUpdateAudit" class="space-y-4 pt-3 border-t border-prohealth-100">
-          <div>
-            <h2 class="text-base font-bold text-prohealth-900">{{ t('systemConfig.audit.sectionTitle') }}</h2>
-            <p class="text-xs text-prohealth-700/70 mt-0.5">{{ t('systemConfig.audit.sectionSubtitle') }}</p>
+        <template v-if="canUpdateAudit">
+          <!-- Auditoría de cambios de datos -->
+          <div class="bg-white rounded-2xl border border-prohealth-100 p-6 shadow-sm">
+            <h2 class="text-base font-bold text-prohealth-900 mb-4">{{ t('systemConfig.sections.dataChangeAudit') }}</h2>
+            <UFormField
+              :help="t('systemConfig.audit.dataChangeAuditModeHelp')"
+              name="dataChangeAuditMode"
+            >
+              <USelectMenu
+                v-model="state.dataChangeAuditMode"
+                :items="AUDIT_MODE_OPTIONS"
+                label-key="label"
+                value-key="value"
+                :search-input="false"
+                class="w-full"
+                :disabled="isSubmitting"
+              />
+            </UFormField>
           </div>
 
-          <UFormField
-            :label="t('systemConfig.audit.dataChangeAuditMode')"
-            :help="t('systemConfig.audit.dataChangeAuditModeHelp')"
-            name="dataChangeAuditMode"
-          >
-            <USelectMenu
-              v-model="state.dataChangeAuditMode"
-              :items="AUDIT_MODE_OPTIONS"
-              label-key="label"
-              value-key="value"
-              :search-input="false"
-              class="w-full sm:w-72"
-              :disabled="isSubmitting"
-            />
-          </UFormField>
+          <!-- Auditoría de reportes -->
+          <div class="bg-white rounded-2xl border border-prohealth-100 p-6 shadow-sm">
+            <h2 class="text-base font-bold text-prohealth-900 mb-4">{{ t('systemConfig.sections.reportAudit') }}</h2>
+            <UFormField
+              :help="t('systemConfig.audit.reportAuditModeHelp')"
+              name="reportAuditMode"
+            >
+              <USelectMenu
+                v-model="state.reportAuditMode"
+                :items="AUDIT_MODE_OPTIONS"
+                label-key="label"
+                value-key="value"
+                :search-input="false"
+                class="w-full"
+                :disabled="isSubmitting"
+              />
+            </UFormField>
+          </div>
 
-          <UFormField
-            :label="t('systemConfig.audit.reportAuditMode')"
-            :help="t('systemConfig.audit.reportAuditModeHelp')"
-            name="reportAuditMode"
-          >
-            <USelectMenu
-              v-model="state.reportAuditMode"
-              :items="AUDIT_MODE_OPTIONS"
-              label-key="label"
-              value-key="value"
-              :search-input="false"
-              class="w-full sm:w-72"
-              :disabled="isSubmitting"
-            />
-          </UFormField>
+          <!-- Sesión y uso del sistema -->
+          <div class="bg-white rounded-2xl border border-prohealth-100 p-6 shadow-sm space-y-4">
+            <h2 class="text-base font-bold text-prohealth-900">{{ t('systemConfig.sections.sessions') }}</h2>
+            <UFormField
+              :label="t('systemConfig.audit.loginAuditEnabled')"
+              :help="t('systemConfig.audit.loginAuditEnabledHelp')"
+              name="loginAuditEnabled"
+            >
+              <USwitch v-model="state.loginAuditEnabled" :disabled="isSubmitting" />
+            </UFormField>
 
-          <UFormField
-            :label="t('systemConfig.audit.loginAuditEnabled')"
-            :help="t('systemConfig.audit.loginAuditEnabledHelp')"
-            name="loginAuditEnabled"
-          >
-            <USwitch v-model="state.loginAuditEnabled" :disabled="isSubmitting" />
-          </UFormField>
+            <UFormField
+              :label="t('systemConfig.audit.loginSessionExpirationDays')"
+              :help="t('systemConfig.audit.loginSessionExpirationDaysHelp')"
+              name="loginSessionExpirationDays"
+            >
+              <UInputNumber
+                v-model="state.loginSessionExpirationDays"
+                :min="1"
+                class="w-full sm:w-40"
+                :disabled="isSubmitting || !state.loginAuditEnabled"
+              />
+            </UFormField>
+          </div>
 
-          <UFormField
-            :label="t('systemConfig.audit.loginSessionExpirationDays')"
-            :help="t('systemConfig.audit.loginSessionExpirationDaysHelp')"
-            name="loginSessionExpirationDays"
-          >
-            <UInputNumber
-              v-model="state.loginSessionExpirationDays"
-              :min="1"
-              class="w-full sm:w-40"
-              :disabled="isSubmitting || !state.loginAuditEnabled"
-            />
-          </UFormField>
-
-          <div class="space-y-3 pt-3 border-t border-prohealth-100">
+          <!-- Orden predeterminado global -->
+          <div class="bg-white rounded-2xl border border-prohealth-100 p-6 shadow-sm space-y-3 lg:col-span-2">
             <div>
-              <h3 class="text-sm font-bold text-prohealth-900">{{ t('systemConfig.defaultSort.sectionTitle') }}</h3>
+              <h2 class="text-base font-bold text-prohealth-900">{{ t('systemConfig.defaultSort.sectionTitle') }}</h2>
               <p class="text-xs text-prohealth-700/70 mt-0.5">{{ t('systemConfig.defaultSort.sectionSubtitle') }}</p>
             </div>
 
@@ -332,21 +341,21 @@ onMounted(load)
               {{ t('systemConfig.defaultSort.addRow') }}
             </UButton>
           </div>
-        </div>
+        </template>
+      </div>
 
-        <div class="flex items-center justify-end gap-3 pt-3 border-t border-prohealth-100">
-          <UButton
-            type="submit"
-            color="primary"
-            icon="i-lucide-save"
-            :loading="isSubmitting"
-            :disabled="!canUpdate"
-          >
-            {{ t('systemConfig.saveButton') }}
-          </UButton>
-        </div>
-      </UForm>
-    </div>
+      <div class="flex items-center justify-end gap-3 pt-3 border-t border-prohealth-100">
+        <UButton
+          type="submit"
+          color="primary"
+          icon="i-lucide-save"
+          :loading="isSubmitting"
+          :disabled="!canUpdate"
+        >
+          {{ t('systemConfig.saveButton') }}
+        </UButton>
+      </div>
+    </UForm>
 
     <!-- Discard unsaved changes before refreshing -->
     <UModal v-model:open="discardConfirmOpen" :title="t('common.discardChangesTitle')">
