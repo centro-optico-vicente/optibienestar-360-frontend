@@ -61,8 +61,10 @@ export interface PaymentDto {
   // Subject (flat refs extracted by the mapper)
   membershipUuid: string
   memberUuid: string
-  planUuid?: string | null
-  planCode?: string | null
+  plan_Uuid?: string | null
+  plan_Display?: string | null
+  /** Plan SKU (FK triple `_Code`, hub ADR 0014) — was `planCode`. */
+  plan_Code?: string | null
   // Payer (null = cash at counter with no user account)
   payerUserUuid?: string | null
   // Money

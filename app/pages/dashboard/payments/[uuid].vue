@@ -246,7 +246,7 @@ function onReviewed(updated: PaymentDto) {
         <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 text-sm">
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.plan') }}</dt>
-            <dd class="text-prohealth-800 mt-0.5 font-mono">{{ payment.planCode || t('common.empty') }}</dd>
+            <dd class="text-prohealth-800 mt-0.5 font-mono">{{ payment.plan_Code || t('common.empty') }}</dd>
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.member') }}</dt>
@@ -360,7 +360,7 @@ function onReviewed(updated: PaymentDto) {
       v-model:open="auditOpen"
       entity-key="payment"
       :entity-uuid="payment.uuid"
-      :entity-label="payment.planCode"
+      :entity-label="payment.plan_Code ?? undefined"
       :entity-code="payment.referenceNumber"
       :can-view-changes="canViewAuditChanges"
       :can-view-reports="canViewAuditReports"

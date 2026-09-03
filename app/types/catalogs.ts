@@ -12,10 +12,9 @@ import type { Permission } from '~/types/permissions'
  * Permissive shape covering all 10 catalogs.
  *
  * `active_Display` is the server-resolved, locale-aware label for `active`
- * (hub ADR 0014) — render it directly instead of computing "Activo"/"Inactivo"
- * client-side. The FK fields (`countryUuid`/`stateUuid`/`stateCode`) stay raw:
- * the backend only added `_Display` to `active` for these DTOs, not to the
- * denormalized parent code.
+ * (hub ADR 0014) — render it directly. The parent FK now follows the FK
+ * triple: `State` carries `country_Uuid`/`country_Display`/`country_Code`
+ * (the ISO), `City` carries `state_Uuid`/`state_Display`/`state_Code`.
  */
 export interface CatalogItem {
   uuid: string
@@ -26,10 +25,12 @@ export interface CatalogItem {
   isoCode?: string
   description?: string
   locale?: string
-  countryUuid?: string
-  countryIsoCode?: string
-  stateUuid?: string
-  stateCode?: string
+  country_Uuid?: string | null
+  country_Display?: string | null
+  country_Code?: string | null
+  state_Uuid?: string | null
+  state_Display?: string | null
+  state_Code?: string | null
 }
 
 /** An editable field of a catalog form. */
@@ -84,7 +85,7 @@ export interface CatalogDef {
   /** Denormalized parent field shown in the table (e.g. 'stateCode'). */
   parentDisplayField?: keyof CatalogItem
   /** Parent filter in the list: { param: query param name, field: FK field }. */
-  listFilter?: { param: string, field: keyof CatalogItem }
+  listFilter?: { param: string, field: string }
   /** Backend `@Auditable(entity = ...)` key, if this catalog has change auditing. */
   auditEntityKey?: string
   /** Granular audit-view permission for this catalog's domain (e.g. 'ALLY_RECORD_AUDIT_VIEW'); AUDIT_VIEW_ALL always overrides. */

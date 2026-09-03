@@ -12,8 +12,9 @@ export interface CollectionCommissionTierDto {
   name: string
   maxDays: number
   commissionPct: number | string
-  promoterTypeUuid?: string | null
-  promoterTypeName?: string | null
+  promoterType_Uuid?: string | null
+  promoterType_Display?: string | null
+  promoterType_Code?: string | null
   active: boolean
   status?: string
   createdAt?: string

@@ -235,7 +235,7 @@ function isPending(p: PaymentDto): boolean {
               @click="navigateTo(`/dashboard/payments/${p.uuid}`)"
             >
               <td class="px-5 py-3">
-                <div class="font-semibold text-prohealth-900 font-mono">{{ p.planCode || t('common.empty') }}</div>
+                <div class="font-semibold text-prohealth-900 font-mono">{{ p.plan_Code || t('common.empty') }}</div>
                 <div class="text-xs text-prohealth-500">
                   {{ p.referenceNumber || t('payments.noReference') }}
                   <UBadge v-if="p.inscription" color="primary" variant="subtle" size="sm" class="ml-1">{{ t('payments.allocation.inscription') }}</UBadge>
@@ -358,7 +358,7 @@ function isPending(p: PaymentDto): boolean {
       v-model:open="auditOpen"
       entity-key="payment"
       :entity-uuid="auditTarget.uuid"
-      :entity-label="auditTarget.planCode"
+      :entity-label="auditTarget.plan_Code ?? undefined"
       :entity-code="auditTarget.referenceNumber"
       :can-view-changes="canViewAuditChanges"
       :can-view-reports="canViewAuditReports"

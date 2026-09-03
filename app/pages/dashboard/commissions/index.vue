@@ -245,8 +245,8 @@ async function onReRatingDone() {
               @click="openDetail(c)"
             >
               <td class="px-5 py-3">
-                <div class="font-semibold text-prohealth-900">{{ c.promoterDisplayName || t('common.empty') }}</div>
-                <div class="text-xs text-prohealth-500 font-mono">{{ c.promoterCode || t('common.empty') }}</div>
+                <div class="font-semibold text-prohealth-900">{{ c.promoter_Display || t('common.empty') }}</div>
+                <div class="text-xs text-prohealth-500 font-mono">{{ c.promoter_Code || t('common.empty') }}</div>
               </td>
               <td class="px-5 py-3 font-semibold text-prohealth-900">{{ money(c.amount, c.currency) }}</td>
               <td class="px-5 py-3 text-prohealth-700">{{ calcLabel(c) }}</td>
@@ -307,11 +307,11 @@ async function onReRatingDone() {
             <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-sm">
               <div>
                 <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.promoter') }}</dt>
-                <dd class="text-prohealth-900 mt-0.5">{{ detail.promoterDisplayName || t('common.empty') }}</dd>
+                <dd class="text-prohealth-900 mt-0.5">{{ detail.promoter_Display || t('common.empty') }}</dd>
               </div>
               <div>
                 <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.code') }}</dt>
-                <dd class="text-prohealth-800 mt-0.5 font-mono">{{ detail.promoterCode || t('common.empty') }}</dd>
+                <dd class="text-prohealth-800 mt-0.5 font-mono">{{ detail.promoter_Code || t('common.empty') }}</dd>
               </div>
               <div>
                 <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.amount') }}</dt>
@@ -417,7 +417,7 @@ async function onReRatingDone() {
             <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-sm">
               <div>
                 <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.promoterUuid') }}</dt>
-                <dd class="text-prohealth-800 mt-0.5 font-mono text-xs break-all">{{ detail.promoterUuid || t('common.empty') }}</dd>
+                <dd class="text-prohealth-800 mt-0.5 font-mono text-xs break-all">{{ detail.promoter_Uuid || t('common.empty') }}</dd>
               </div>
               <div>
                 <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.paymentUuid') }}</dt>
