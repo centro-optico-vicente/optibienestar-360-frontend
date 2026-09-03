@@ -29,10 +29,15 @@ export interface CatalogRef {
   code?: string
 }
 
-/** City reference embedded in a DTO — the backend sends the full CityDto, incl. its state FK. */
+/**
+ * City reference embedded in a detail DTO — the backend sends the full CityDto,
+ * whose state FK follows the FK triple (hub ADR 0014): `state_Uuid` drives the
+ * state→city cascade in edit forms; `state_Code` is the short label.
+ */
 export interface CityRef extends CatalogRef {
-  stateUuid?: string
-  stateCode?: string
+  state_Uuid?: string | null
+  state_Display?: string | null
+  state_Code?: string | null
 }
 
 export interface BeneficiaryDto {

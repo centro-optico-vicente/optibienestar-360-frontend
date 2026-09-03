@@ -36,8 +36,9 @@ export interface CommissionTierDto {
   flatAmount?: number | string | null
   periodStrategy: PeriodStrategy
   appliesTo: AppliesTo
-  promoterTypeUuid?: string | null
-  promoterTypeName?: string | null
+  promoterType_Uuid?: string | null
+  promoterType_Display?: string | null
+  promoterType_Code?: string | null
   active: boolean
   status?: string
   createdAt?: string

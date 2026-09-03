@@ -179,9 +179,10 @@ export interface PromoterUpdateRequest {
  */
 export interface CommissionDto {
   uuid: string
-  promoterUuid?: string
-  promoterCode?: string
-  promoterDisplayName?: string
+  promoter_Uuid?: string | null
+  promoter_Display?: string | null
+  /** Referral code of the promoter (FK triple `_Code`, hub ADR 0014). */
+  promoter_Code?: string | null
   paymentUuid?: string
   memberUuid?: string
   amount?: number

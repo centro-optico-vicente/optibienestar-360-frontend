@@ -369,7 +369,7 @@ function populateEditForm(full: MemberDto) {
   // state first (from the embedded CityDto's own stateUuid) and stash the city so the
   // cascade watcher can apply it once that state's cities finish loading.
   pendingCityUuid.value = full.city?.uuid
-  selectedStateUuid.value = full.city?.stateUuid
+  selectedStateUuid.value = full.city?.state_Uuid ?? undefined
   state.birthplace = full.birthplace ?? ''
   state.numberOfChildren = full.numberOfChildren != null ? String(full.numberOfChildren) : ''
   state.spouseName = full.spouseName ?? ''
