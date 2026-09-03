@@ -4,7 +4,8 @@ import type { BonusRuleDto, BonusRuleRequest } from '~/types/bonusRules'
 interface ListParams {
   page?: number
   size?: number
-  sort?: string
+  /** Multi-column sort — repeated as `sort=` query params. */
+  sort?: string[]
   filter?: string
   q?: string
   includeInactive?: boolean
@@ -22,7 +23,7 @@ export const useBonusRules = () => {
       query: {
         page: params.page ?? 0,
         size: params.size ?? 50,
-        sort: params.sort ?? 'createdAt,desc',
+        ...(params.sort?.length ? { sort: params.sort } : {}),
         ...(params.filter ? { filter: params.filter } : {}),
         ...(params.q ? { q: params.q } : {}),
         ...(params.includeInactive ? { includeInactive: 'true' } : {}),

@@ -10,7 +10,8 @@ import type {
 interface ListParams {
   page?: number
   size?: number
-  sort?: string
+  /** Multi-column sort, e.g. `['displayName,asc', 'active,desc']` — repeated as `sort=` query params. */
+  sort?: string[]
   filter?: string
   q?: string
   includeInactive?: boolean
@@ -31,7 +32,7 @@ export const usePromoters = () => {
       query: {
         page: params.page ?? 0,
         size: params.size ?? 50,
-        sort: params.sort ?? 'displayName,asc',
+        ...(params.sort?.length ? { sort: params.sort } : {}),
         ...(params.filter ? { filter: params.filter } : {}),
         ...(params.q ? { q: params.q } : {}),
         ...(params.includeInactive ? { includeInactive: 'true' } : {}),

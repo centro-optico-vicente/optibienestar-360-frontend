@@ -8,7 +8,8 @@ import type {
 interface ListParams {
   page?: number
   size?: number
-  sort?: string
+  /** Multi-column sort, e.g. `['receivedAt,desc']` — repeated as `sort=` query params. */
+  sort?: string[]
   filter?: string
   q?: string
 }
@@ -32,7 +33,7 @@ export const usePayments = () => {
       query: {
         page: params.page ?? 0,
         size: params.size ?? 20,
-        sort: params.sort ?? 'receivedAt,desc',
+        ...(params.sort?.length ? { sort: params.sort } : {}),
         ...(params.filter ? { filter: params.filter } : {}),
         ...(params.q ? { q: params.q } : {}),
       },
@@ -83,7 +84,7 @@ export const usePayments = () => {
       query: {
         page: params.page ?? 0,
         size: params.size ?? 20,
-        sort: params.sort ?? 'receivedAt,desc',
+        sort: params.sort?.length ? params.sort : ['receivedAt,desc'],
       },
     })
 

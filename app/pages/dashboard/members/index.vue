@@ -10,6 +10,7 @@ import type {
   MemberListItemDto,
   UpdateMemberRequest,
 } from '~/types/members'
+import type { SortDirection } from '~/composables/useTableSort'
 
 definePageMeta({
   layout: 'dashboard',
@@ -49,6 +50,12 @@ const size = ref(DEFAULT_PAGE_SIZE)
 const pageSizeItems = buildPageSizeItems(t)
 const search = ref('')
 const includeInactive = ref(false)
+// Empty by default: no `sort=` is sent until the user clicks a column, so
+// the backend's own default-sort fallback (entity_config → system_configs
+// → enrolledAt DESC) applies.
+const sort = useTableSort([])
+const hasActiveSort = computed(() => sort.orders.value.length > 0)
+const isMultiSort = computed(() => sort.orders.value.length > 1)
 
 async function load() {
   loading.value = true
@@ -56,13 +63,20 @@ async function load() {
     const res = await members.list({
       page: page.value - 1,
       size: size.value,
-      sort: 'enrolledAt,desc',
+      sort: sort.sortParam.value,
       // The backend exposes free-text search (trigram, accent-insensitive)
       q: search.value.trim() || undefined,
       includeInactive: includeInactive.value,
     })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
+    // No column clicked yet → reflect the server's own default in the header arrows.
+    if (sort.orders.value.length === 0 && res.appliedSort?.length) {
+      resetting.value = true
+      sort.orders.value = res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection }))
+      await nextTick()
+      resetting.value = false
+    }
   }
   catch {
     // useApi already shows the error toast
@@ -89,11 +103,13 @@ watch(search, () => {
   }, 400)
 })
 watch(includeInactive, () => { if (!resetting.value) { page.value = 1; load() } })
+watch(sort.orders, () => { if (!resetting.value) load() }, { deep: true })
 
 async function resetFilters() {
   resetting.value = true
   search.value = ''
   includeInactive.value = false
+  sort.reset()
   size.value = DEFAULT_PAGE_SIZE
   page.value = 1
   await nextTick()
@@ -601,6 +617,17 @@ function displayName(m: MemberListItemDto): string {
         class="w-full max-w-md"
       />
       <UCheckbox v-model="includeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
+      <UButton
+        v-if="hasActiveSort"
+        variant="link"
+        color="neutral"
+        size="sm"
+        icon="i-lucide-list-restart"
+        :title="t('common.clearSortHint')"
+        @click="sort.reset()"
+      >
+        {{ t('common.clearSort') }}
+      </UButton>
     </div>
 
     <!-- Table -->
@@ -609,12 +636,30 @@ function displayName(m: MemberListItemDto): string {
         <table class="w-full text-sm">
           <thead class="sticky top-0 bg-white z-10">
             <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
-              <th class="px-5 py-3 font-semibold">{{ t('members.columns.member') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('members.columns.document') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('members.columns.phone') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('members.columns.enrolledAt') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('members.columns.promoter') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('members.columns.status') }}</th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('fullName')">
+                {{ t('members.columns.member') }}
+                <SortIndicator :state="sort.stateOf('fullName')" :multi-active="isMultiSort" @clear="sort.remove('fullName')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('documentNumber')">
+                {{ t('members.columns.document') }}
+                <SortIndicator :state="sort.stateOf('documentNumber')" :multi-active="isMultiSort" @clear="sort.remove('documentNumber')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('phone')">
+                {{ t('members.columns.phone') }}
+                <SortIndicator :state="sort.stateOf('phone')" :multi-active="isMultiSort" @clear="sort.remove('phone')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('enrolledAt')">
+                {{ t('members.columns.enrolledAt') }}
+                <SortIndicator :state="sort.stateOf('enrolledAt')" :multi-active="isMultiSort" @clear="sort.remove('enrolledAt')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('currentPromoter_Display')">
+                {{ t('members.columns.promoter') }}
+                <SortIndicator :state="sort.stateOf('currentPromoter_Display')" :multi-active="isMultiSort" @clear="sort.remove('currentPromoter_Display')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('status')">
+                {{ t('members.columns.status') }}
+                <SortIndicator :state="sort.stateOf('status')" :multi-active="isMultiSort" @clear="sort.remove('status')" />
+              </th>
               <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
             </tr>
           </thead>

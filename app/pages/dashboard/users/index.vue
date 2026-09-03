@@ -7,6 +7,7 @@ import type {
   AdminUpdateUserRequest,
   UserDto,
 } from '~/types/admin'
+import type { SortDirection } from '~/composables/useTableSort'
 
 definePageMeta({
   layout: 'dashboard',
@@ -49,6 +50,12 @@ const size = ref(DEFAULT_PAGE_SIZE)
 const pageSizeItems = buildPageSizeItems(t)
 const search = ref('')
 const includeInactive = ref(false)
+// Empty by default: no `sort=` is sent until the user clicks a column, so
+// the backend's own default-sort fallback (entity_config → system_configs
+// → createdAt DESC) applies.
+const sort = useTableSort([])
+const hasActiveSort = computed(() => sort.orders.value.length > 0)
+const isMultiSort = computed(() => sort.orders.value.length > 1)
 
 function buildFilter(): string | undefined {
   const term = search.value.trim()
@@ -63,12 +70,19 @@ async function load() {
     const res = await users.list({
       page: page.value - 1,
       size: size.value,
-      sort: 'createdAt,desc',
+      sort: sort.sortParam.value,
       filter: buildFilter(),
       includeInactive: includeInactive.value,
     })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
+    // No column clicked yet → reflect the server's own default in the header arrows.
+    if (sort.orders.value.length === 0 && res.appliedSort?.length) {
+      resetting.value = true
+      sort.orders.value = res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection }))
+      await nextTick()
+      resetting.value = false
+    }
   }
   catch {
     // useApi ya muestra el toast del error
@@ -95,11 +109,13 @@ watch(search, () => {
   }, 400)
 })
 watch(includeInactive, () => { if (!resetting.value) { page.value = 1; load() } })
+watch(sort.orders, () => { if (!resetting.value) load() }, { deep: true })
 
 async function resetFilters() {
   resetting.value = true
   search.value = ''
   includeInactive.value = false
+  sort.reset()
   size.value = DEFAULT_PAGE_SIZE
   page.value = 1
   await nextTick()
@@ -459,6 +475,17 @@ async function confirmDelete() {
         class="w-full max-w-md"
       />
       <UCheckbox v-model="includeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
+      <UButton
+        v-if="hasActiveSort"
+        variant="link"
+        color="neutral"
+        size="sm"
+        icon="i-lucide-list-restart"
+        :title="t('common.clearSortHint')"
+        @click="sort.reset()"
+      >
+        {{ t('common.clearSort') }}
+      </UButton>
     </div>
 
     <!-- Tabla -->
@@ -467,11 +494,23 @@ async function confirmDelete() {
         <table class="w-full text-sm">
           <thead class="sticky top-0 bg-white z-10">
             <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
-              <th class="px-5 py-3 font-semibold">{{ $t('security.users.columns.user') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ $t('security.users.columns.document') }}</th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('fullName')">
+                {{ $t('security.users.columns.user') }}
+                <SortIndicator :state="sort.stateOf('fullName')" :multi-active="isMultiSort" @clear="sort.remove('fullName')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('documentNumber')">
+                {{ $t('security.users.columns.document') }}
+                <SortIndicator :state="sort.stateOf('documentNumber')" :multi-active="isMultiSort" @clear="sort.remove('documentNumber')" />
+              </th>
               <th class="px-5 py-3 font-semibold">{{ $t('security.users.columns.roles') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ $t('security.users.columns.status') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ $t('security.users.columns.lastLogin') }}</th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('status')">
+                {{ $t('security.users.columns.status') }}
+                <SortIndicator :state="sort.stateOf('status')" :multi-active="isMultiSort" @clear="sort.remove('status')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('lastLoginAt')">
+                {{ $t('security.users.columns.lastLogin') }}
+                <SortIndicator :state="sort.stateOf('lastLoginAt')" :multi-active="isMultiSort" @clear="sort.remove('lastLoginAt')" />
+              </th>
               <th class="px-5 py-3 font-semibold text-right">{{ $t('common.actions') }}</th>
             </tr>
           </thead>

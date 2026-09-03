@@ -149,7 +149,7 @@ const userOptions = ref<{ label: string, value: string }[]>([])
 async function loadUserOptions() {
   if (!canViewUsers.value) return
   try {
-    const res = await useUsers().list({ size: 100, sort: 'createdAt,desc' })
+    const res = await useUsers().list({ size: 100, sort: ['createdAt,desc'] })
     userOptions.value = (res.content ?? []).map(u => ({
       label: `${u.fullName} (${u.email})`,
       value: u.uuid,

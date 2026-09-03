@@ -9,7 +9,8 @@ import type { Option } from '~/types/options'
 interface ListParams {
   page?: number
   size?: number
-  sort?: string
+  /** Multi-column sort, e.g. `['createdAt,desc']` — repeated as `sort=` query params. */
+  sort?: string[]
   filter?: string
   includeInactive?: boolean
 }
@@ -30,7 +31,7 @@ export const useUsers = () => {
       query: {
         page: params.page ?? 0,
         size: params.size ?? 20,
-        sort: params.sort ?? 'createdAt,desc',
+        ...(params.sort?.length ? { sort: params.sort } : {}),
         ...(params.filter ? { filter: params.filter } : {}),
         ...(params.includeInactive ? { includeInactive: 'true' } : {}),
       },

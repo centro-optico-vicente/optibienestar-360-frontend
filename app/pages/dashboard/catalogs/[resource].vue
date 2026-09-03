@@ -5,6 +5,7 @@ import type { CatalogDef, CatalogField, CatalogItem } from '~/types/catalogs'
 import { toSelectItems } from '~/types/options'
 import { getCatalogDef } from '~/utils/catalog-registry'
 import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
+import type { SortDirection } from '~/composables/useTableSort'
 
 definePageMeta({
   layout: 'dashboard',
@@ -86,6 +87,13 @@ const pageSize = ref<number>(DEFAULT_PAGE_SIZE)
 const page = ref(1)
 const pageSizeItems = buildPageSizeItems(t)
 
+// Empty by default: no `sort=` is sent until the user clicks a column, so
+// the backend's own default-sort fallback (entity_config → system_configs
+// → `name` ASC) applies — same reasoning as the allies pilot.
+const sort = useTableSort([])
+const hasActiveSort = computed(() => sort.orders.value.length > 0)
+const isMultiSort = computed(() => sort.orders.value.length > 1)
+
 function api() {
   return useCatalog(def.value!.basePath)
 }
@@ -101,7 +109,7 @@ async function load() {
     const query = {
       page: page.value - 1,
       size: pageSize.value,
-      sort: 'name',
+      ...(sort.sortParam.value.length ? { sort: sort.sortParam.value } : {}),
       ...(includeInactive.value ? { includeInactive: 'true' } : {}),
       ...parentFilter,
       ...(searchTerm ? { q: searchTerm } : {}),
@@ -109,6 +117,14 @@ async function load() {
     const res = await api().list(query)
     items.value = res.content ?? []
     total.value = res.totalElements ?? items.value.length
+    // No column clicked yet → reflect the server's own default in the header
+    // arrows (see allies/index.vue for the full rationale).
+    if (sort.orders.value.length === 0 && res.appliedSort?.length) {
+      resetting.value = true
+      sort.orders.value = res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection }))
+      await nextTick()
+      resetting.value = false
+    }
   }
   catch {
     items.value = []
@@ -134,12 +150,14 @@ watch(search, () => {
 })
 watch(pageSize, () => { if (!resetting.value) { page.value = 1; load() } })
 watch(page, () => { if (!resetting.value) load() })
+watch(sort.orders, () => { if (!resetting.value) load() }, { deep: true })
 
 async function resetFilters() {
   resetting.value = true
   search.value = ''
   filterValue.value = ''
   includeInactive.value = false
+  sort.reset()
   pageSize.value = DEFAULT_PAGE_SIZE
   page.value = 1
   await nextTick()
@@ -175,10 +193,14 @@ const filterOptions = computed(() => {
 
 async function init() {
   if (!def.value) return
+  resetting.value = true
   search.value = ''
   filterValue.value = ''
   includeInactive.value = false
+  sort.reset()
   page.value = 1
+  await nextTick()
+  resetting.value = false
   await Promise.all([loadParents(), load()])
 }
 
@@ -407,6 +429,17 @@ async function confirmDelete() {
         class="w-full max-w-xs"
       />
       <UCheckbox v-model="includeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
+      <UButton
+        v-if="hasActiveSort"
+        variant="link"
+        color="neutral"
+        size="sm"
+        icon="i-lucide-list-restart"
+        :title="t('common.clearSortHint')"
+        @click="sort.reset()"
+      >
+        {{ t('common.clearSort') }}
+      </UButton>
     </div>
 
     <!-- Table: fixed-height card so the pagination footer stays pinned at the
@@ -416,11 +449,31 @@ async function confirmDelete() {
         <table class="w-full text-sm">
           <thead class="sticky top-0 bg-white z-10">
             <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
-              <th v-if="def.codeField" class="px-5 py-3 font-semibold">{{ $t('catalogs.columns.code') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ $t('catalogs.columns.name') }}</th>
-              <th v-if="def.parentDisplayField" class="px-5 py-3 font-semibold">{{ $t('catalogs.columns.parent') }}</th>
+              <th
+                v-if="def.codeField"
+                class="px-5 py-3 font-semibold cursor-pointer select-none"
+                @click="sort.toggle(def.codeField)"
+              >
+                {{ $t('catalogs.columns.code') }}
+                <SortIndicator :state="sort.stateOf(def.codeField)" :multi-active="isMultiSort" @clear="sort.remove(def.codeField)" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('name')">
+                {{ $t('catalogs.columns.name') }}
+                <SortIndicator :state="sort.stateOf('name')" :multi-active="isMultiSort" @clear="sort.remove('name')" />
+              </th>
+              <th
+                v-if="def.parentDisplayField"
+                class="px-5 py-3 font-semibold cursor-pointer select-none"
+                @click="sort.toggle(def.parentDisplayField)"
+              >
+                {{ $t('catalogs.columns.parent') }}
+                <SortIndicator :state="sort.stateOf(def.parentDisplayField)" :multi-active="isMultiSort" @clear="sort.remove(def.parentDisplayField)" />
+              </th>
               <th v-if="hasDescription" class="px-5 py-3 font-semibold">{{ $t('catalogs.columns.description') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ $t('catalogs.columns.status') }}</th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('active')">
+                {{ $t('catalogs.columns.status') }}
+                <SortIndicator :state="sort.stateOf('active')" :multi-active="isMultiSort" @clear="sort.remove('active')" />
+              </th>
               <th class="px-5 py-3 font-semibold text-right">{{ $t('common.actions') }}</th>
             </tr>
           </thead>
