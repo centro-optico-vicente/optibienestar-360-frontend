@@ -72,7 +72,7 @@ const schema = computed(() => z.object({
 async function loadPromoterOptions() {
   loadingOptions.value = true
   try {
-    const page = await promoters.list({ size: 100, sort: 'displayName,asc' })
+    const page = await promoters.list({ size: 100, sort: ['displayName,asc'] })
     promoterOptions.value = (page.content ?? [])
       .filter((p: PromoterDto) => p.active && p.uuid !== props.currentPromoterUuid)
       .map((p: PromoterDto) => ({ label: p.displayName, value: p.uuid }))

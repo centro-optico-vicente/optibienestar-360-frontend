@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
 import type { PlanDto } from '~/types/plans'
+import type { SortDirection } from '~/composables/useTableSort'
 
 definePageMeta({
   layout: 'dashboard',
@@ -33,6 +34,12 @@ const size = ref(DEFAULT_PAGE_SIZE)
 const pageSizeItems = buildPageSizeItems(t)
 const search = ref('')
 const includeInactive = ref(false)
+// Empty by default: no `sort=` is sent until the user clicks a column, so
+// the backend's own default-sort fallback (entity_config → system_configs
+// → code ASC) applies.
+const sort = useTableSort([])
+const hasActiveSort = computed(() => sort.orders.value.length > 0)
+const isMultiSort = computed(() => sort.orders.value.length > 1)
 
 async function load() {
   loading.value = true
@@ -40,12 +47,19 @@ async function load() {
     const res = await plans.list({
       page: page.value - 1,
       size: size.value,
-      sort: 'code,asc',
+      sort: sort.sortParam.value,
       q: search.value.trim() || undefined,
       includeInactive: includeInactive.value,
     })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
+    // No column clicked yet → reflect the server's own default in the header arrows.
+    if (sort.orders.value.length === 0 && res.appliedSort?.length) {
+      resetting.value = true
+      sort.orders.value = res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection }))
+      await nextTick()
+      resetting.value = false
+    }
   }
   catch {
     // useApi already shows the error toast
@@ -72,11 +86,13 @@ watch(search, () => {
   }, 400)
 })
 watch(includeInactive, () => { if (!resetting.value) { page.value = 1; load() } })
+watch(sort.orders, () => { if (!resetting.value) load() }, { deep: true })
 
 async function resetFilters() {
   resetting.value = true
   search.value = ''
   includeInactive.value = false
+  sort.reset()
   size.value = DEFAULT_PAGE_SIZE
   page.value = 1
   await nextTick()
@@ -218,6 +234,17 @@ function openAudit(p: PlanDto) {
         class="w-full max-w-md"
       />
       <UCheckbox v-model="includeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
+      <UButton
+        v-if="hasActiveSort"
+        variant="link"
+        color="neutral"
+        size="sm"
+        icon="i-lucide-list-restart"
+        :title="t('common.clearSortHint')"
+        @click="sort.reset()"
+      >
+        {{ t('common.clearSort') }}
+      </UButton>
     </div>
 
     <!-- Table -->
@@ -226,12 +253,27 @@ function openAudit(p: PlanDto) {
         <table class="w-full text-sm">
           <thead class="sticky top-0 bg-white z-10">
             <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
-              <th class="px-5 py-3 font-semibold">{{ t('plans.columns.plan') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('plans.columns.type') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('plans.columns.inscription') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('plans.columns.monthly') }}</th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('code')">
+                {{ t('plans.columns.plan') }}
+                <SortIndicator :state="sort.stateOf('code')" :multi-active="isMultiSort" @clear="sort.remove('code')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('type')">
+                {{ t('plans.columns.type') }}
+                <SortIndicator :state="sort.stateOf('type')" :multi-active="isMultiSort" @clear="sort.remove('type')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('inscriptionFee')">
+                {{ t('plans.columns.inscription') }}
+                <SortIndicator :state="sort.stateOf('inscriptionFee')" :multi-active="isMultiSort" @clear="sort.remove('inscriptionFee')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('monthlyFee')">
+                {{ t('plans.columns.monthly') }}
+                <SortIndicator :state="sort.stateOf('monthlyFee')" :multi-active="isMultiSort" @clear="sort.remove('monthlyFee')" />
+              </th>
               <th class="px-5 py-3 font-semibold">{{ t('plans.columns.beneficiaries') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('plans.columns.published') }}</th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('published')">
+                {{ t('plans.columns.published') }}
+                <SortIndicator :state="sort.stateOf('published')" :multi-active="isMultiSort" @clear="sort.remove('published')" />
+              </th>
               <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
             </tr>
           </thead>

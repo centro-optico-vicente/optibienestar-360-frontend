@@ -540,10 +540,10 @@ async function confirmDelete() {
         color="neutral"
         size="sm"
         icon="i-lucide-list-restart"
-        :title="t('allies.clearSortHint')"
+        :title="t('common.clearSortHint')"
         @click="sort.reset()"
       >
-        {{ t('allies.clearSort') }}
+        {{ t('common.clearSort') }}
       </UButton>
     </div>
 

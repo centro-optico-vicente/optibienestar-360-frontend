@@ -7,6 +7,7 @@ import type { BonusRuleDto } from '~/types/bonusRules'
 import type { CollectionCommissionTierDto } from '~/types/collectionCommissionTiers'
 import type { PlanType } from '~/types/plans'
 import { PLAN_TYPE_OPTIONS } from '~/types/plans'
+import type { SortDirection } from '~/composables/useTableSort'
 
 // Admin editor for the three commission-engine rule surfaces (ADR 0013):
 // inscription bands (commission_tiers, V42), scale bonuses (commission_bonus_rules,
@@ -103,12 +104,20 @@ function buildTierFilter(): string | undefined {
   return clauses.length ? clauses.join(';') : undefined
 }
 
+// Empty by default: no `sort=` is sent until the user clicks a column, so
+// the backend's own default-sort fallback (entity_config → system_configs
+// → thresholdCount ASC) applies.
+const tierSort = useTableSort([])
+const tierHasActiveSort = computed(() => tierSort.orders.value.length > 0)
+const tierIsMultiSort = computed(() => tierSort.orders.value.length > 1)
+
 async function loadTiers() {
   tierLoading.value = true
   try {
     const res = await tierApi.list({
       page: tierPage.value - 1,
       size: tierSize.value,
+      sort: tierSort.sortParam.value,
       q: tierSearch.value.trim() || undefined,
       filter: buildTierFilter(),
       includeInactive: tierIncludeInactive.value,
@@ -116,6 +125,12 @@ async function loadTiers() {
     })
     tierData.value = res.content ?? []
     tierTotal.value = res.totalElements ?? 0
+    if (tierSort.orders.value.length === 0 && res.appliedSort?.length) {
+      resetting.value = true
+      tierSort.orders.value = res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection }))
+      await nextTick()
+      resetting.value = false
+    }
   }
   catch {
     tierData.value = []
@@ -139,6 +154,7 @@ watch([tierIncludeInactive, tierPromoterTypeUuid, tierPlanType, tierAppliesTo], 
   tierPage.value = 1
   loadTiers()
 })
+watch(tierSort.orders, () => { if (!resetting.value) loadTiers() }, { deep: true })
 
 async function resetTierFilters() {
   resetting.value = true
@@ -147,6 +163,7 @@ async function resetTierFilters() {
   tierPromoterTypeUuid.value = undefined
   tierPlanType.value = undefined
   tierAppliesTo.value = undefined
+  tierSort.reset()
   tierSize.value = DEFAULT_PAGE_SIZE
   tierPage.value = 1
   await nextTick()
@@ -225,18 +242,32 @@ const bonusPromoterTypeUuid = ref<string | undefined>(undefined)
 const bonusPage = ref(1)
 const bonusSize = ref(DEFAULT_PAGE_SIZE)
 
+// Empty by default: no `sort=` is sent until the user clicks a column, so
+// the backend's own default-sort fallback (entity_config → system_configs
+// → createdAt DESC) applies.
+const bonusSort = useTableSort([])
+const bonusHasActiveSort = computed(() => bonusSort.orders.value.length > 0)
+const bonusIsMultiSort = computed(() => bonusSort.orders.value.length > 1)
+
 async function loadBonusRules() {
   bonusLoading.value = true
   try {
     const res = await bonusApi.list({
       page: bonusPage.value - 1,
       size: bonusSize.value,
+      sort: bonusSort.sortParam.value,
       q: bonusSearch.value.trim() || undefined,
       includeInactive: bonusIncludeInactive.value,
       promoterTypeUuid: bonusPromoterTypeUuid.value,
     })
     bonusData.value = res.content ?? []
     bonusTotal.value = res.totalElements ?? 0
+    if (bonusSort.orders.value.length === 0 && res.appliedSort?.length) {
+      resetting.value = true
+      bonusSort.orders.value = res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection }))
+      await nextTick()
+      resetting.value = false
+    }
   }
   catch {
     bonusData.value = []
@@ -260,12 +291,14 @@ watch([bonusIncludeInactive, bonusPromoterTypeUuid], () => {
   bonusPage.value = 1
   loadBonusRules()
 })
+watch(bonusSort.orders, () => { if (!resetting.value) loadBonusRules() }, { deep: true })
 
 async function resetBonusFilters() {
   resetting.value = true
   bonusSearch.value = ''
   bonusIncludeInactive.value = false
   bonusPromoterTypeUuid.value = undefined
+  bonusSort.reset()
   bonusSize.value = DEFAULT_PAGE_SIZE
   bonusPage.value = 1
   await nextTick()
@@ -319,18 +352,32 @@ const collectionPromoterTypeUuid = ref<string | undefined>(undefined)
 const collectionPage = ref(1)
 const collectionSize = ref(DEFAULT_PAGE_SIZE)
 
+// Empty by default: no `sort=` is sent until the user clicks a column, so
+// the backend's own default-sort fallback (entity_config → system_configs
+// → maxDays ASC) applies.
+const collectionSort = useTableSort([])
+const collectionHasActiveSort = computed(() => collectionSort.orders.value.length > 0)
+const collectionIsMultiSort = computed(() => collectionSort.orders.value.length > 1)
+
 async function loadCollectionTiers() {
   collectionLoading.value = true
   try {
     const res = await collectionApi.list({
       page: collectionPage.value - 1,
       size: collectionSize.value,
+      sort: collectionSort.sortParam.value,
       q: collectionSearch.value.trim() || undefined,
       includeInactive: collectionIncludeInactive.value,
       promoterTypeUuid: collectionPromoterTypeUuid.value,
     })
     collectionData.value = res.content ?? []
     collectionTotal.value = res.totalElements ?? 0
+    if (collectionSort.orders.value.length === 0 && res.appliedSort?.length) {
+      resetting.value = true
+      collectionSort.orders.value = res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection }))
+      await nextTick()
+      resetting.value = false
+    }
   }
   catch {
     collectionData.value = []
@@ -354,12 +401,14 @@ watch([collectionIncludeInactive, collectionPromoterTypeUuid], () => {
   collectionPage.value = 1
   loadCollectionTiers()
 })
+watch(collectionSort.orders, () => { if (!resetting.value) loadCollectionTiers() }, { deep: true })
 
 async function resetCollectionFilters() {
   resetting.value = true
   collectionSearch.value = ''
   collectionIncludeInactive.value = false
   collectionPromoterTypeUuid.value = undefined
+  collectionSort.reset()
   collectionSize.value = DEFAULT_PAGE_SIZE
   collectionPage.value = 1
   await nextTick()
@@ -473,16 +522,39 @@ onMounted(() => {
           class="w-48"
         />
         <UCheckbox v-model="tierIncludeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
+        <UButton
+          v-if="tierHasActiveSort"
+          variant="link"
+          color="neutral"
+          size="sm"
+          icon="i-lucide-list-restart"
+          :title="t('common.clearSortHint')"
+          @click="tierSort.reset()"
+        >
+          {{ t('common.clearSort') }}
+        </UButton>
       </div>
       <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
         <table class="w-full text-sm">
           <thead class="bg-prohealth-50/60">
             <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
-              <th class="px-5 py-3 font-semibold">{{ t('commissionRules.tiers.columns.name') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('commissionRules.tiers.columns.planType') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('commissionRules.tiers.columns.threshold') }}</th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="tierSort.toggle('name')">
+                {{ t('commissionRules.tiers.columns.name') }}
+                <SortIndicator :state="tierSort.stateOf('name')" :multi-active="tierIsMultiSort" @clear="tierSort.remove('name')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="tierSort.toggle('planType')">
+                {{ t('commissionRules.tiers.columns.planType') }}
+                <SortIndicator :state="tierSort.stateOf('planType')" :multi-active="tierIsMultiSort" @clear="tierSort.remove('planType')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="tierSort.toggle('thresholdCount')">
+                {{ t('commissionRules.tiers.columns.threshold') }}
+                <SortIndicator :state="tierSort.stateOf('thresholdCount')" :multi-active="tierIsMultiSort" @clear="tierSort.remove('thresholdCount')" />
+              </th>
               <th class="px-5 py-3 font-semibold">{{ t('commissionRules.tiers.columns.reward') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('commissionRules.tiers.columns.appliesTo') }}</th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="tierSort.toggle('appliesTo')">
+                {{ t('commissionRules.tiers.columns.appliesTo') }}
+                <SortIndicator :state="tierSort.stateOf('appliesTo')" :multi-active="tierIsMultiSort" @clear="tierSort.remove('appliesTo')" />
+              </th>
               <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
             </tr>
           </thead>
@@ -564,18 +636,44 @@ onMounted(() => {
           class="w-56"
         />
         <UCheckbox v-model="bonusIncludeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
+        <UButton
+          v-if="bonusHasActiveSort"
+          variant="link"
+          color="neutral"
+          size="sm"
+          icon="i-lucide-list-restart"
+          :title="t('common.clearSortHint')"
+          @click="bonusSort.reset()"
+        >
+          {{ t('common.clearSort') }}
+        </UButton>
       </div>
       <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
         <table class="w-full text-sm">
           <thead class="bg-prohealth-50/60">
             <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
-              <th class="px-5 py-3 font-semibold">{{ t('commissionRules.bonusRules.columns.name') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('commissionRules.bonusRules.columns.metric') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('commissionRules.bonusRules.columns.accrual') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('commissionRules.bonusRules.columns.threshold') }}</th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="bonusSort.toggle('name')">
+                {{ t('commissionRules.bonusRules.columns.name') }}
+                <SortIndicator :state="bonusSort.stateOf('name')" :multi-active="bonusIsMultiSort" @clear="bonusSort.remove('name')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="bonusSort.toggle('metric')">
+                {{ t('commissionRules.bonusRules.columns.metric') }}
+                <SortIndicator :state="bonusSort.stateOf('metric')" :multi-active="bonusIsMultiSort" @clear="bonusSort.remove('metric')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="bonusSort.toggle('accrual')">
+                {{ t('commissionRules.bonusRules.columns.accrual') }}
+                <SortIndicator :state="bonusSort.stateOf('accrual')" :multi-active="bonusIsMultiSort" @clear="bonusSort.remove('accrual')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="bonusSort.toggle('thresholdCount')">
+                {{ t('commissionRules.bonusRules.columns.threshold') }}
+                <SortIndicator :state="bonusSort.stateOf('thresholdCount')" :multi-active="bonusIsMultiSort" @clear="bonusSort.remove('thresholdCount')" />
+              </th>
               <th class="px-5 py-3 font-semibold">{{ t('commissionRules.bonusRules.columns.window') }}</th>
               <th class="px-5 py-3 font-semibold">{{ t('commissionRules.bonusRules.columns.reward') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('catalogs.columns.status') }}</th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="bonusSort.toggle('active')">
+                {{ t('catalogs.columns.status') }}
+                <SortIndicator :state="bonusSort.stateOf('active')" :multi-active="bonusIsMultiSort" @clear="bonusSort.remove('active')" />
+              </th>
               <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
             </tr>
           </thead>
@@ -661,15 +759,38 @@ onMounted(() => {
           class="w-56"
         />
         <UCheckbox v-model="collectionIncludeInactive" :label="t('catalogs.includeInactive')" class="self-center" />
+        <UButton
+          v-if="collectionHasActiveSort"
+          variant="link"
+          color="neutral"
+          size="sm"
+          icon="i-lucide-list-restart"
+          :title="t('common.clearSortHint')"
+          @click="collectionSort.reset()"
+        >
+          {{ t('common.clearSort') }}
+        </UButton>
       </div>
       <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
         <table class="w-full text-sm">
           <thead class="bg-prohealth-50/60">
             <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
-              <th class="px-5 py-3 font-semibold">{{ t('commissionRules.collectionTiers.columns.name') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('commissionRules.collectionTiers.columns.maxDays') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('commissionRules.collectionTiers.columns.commissionPct') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('catalogs.columns.status') }}</th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="collectionSort.toggle('name')">
+                {{ t('commissionRules.collectionTiers.columns.name') }}
+                <SortIndicator :state="collectionSort.stateOf('name')" :multi-active="collectionIsMultiSort" @clear="collectionSort.remove('name')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="collectionSort.toggle('maxDays')">
+                {{ t('commissionRules.collectionTiers.columns.maxDays') }}
+                <SortIndicator :state="collectionSort.stateOf('maxDays')" :multi-active="collectionIsMultiSort" @clear="collectionSort.remove('maxDays')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="collectionSort.toggle('commissionPct')">
+                {{ t('commissionRules.collectionTiers.columns.commissionPct') }}
+                <SortIndicator :state="collectionSort.stateOf('commissionPct')" :multi-active="collectionIsMultiSort" @clear="collectionSort.remove('commissionPct')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="collectionSort.toggle('active')">
+                {{ t('catalogs.columns.status') }}
+                <SortIndicator :state="collectionSort.stateOf('active')" :multi-active="collectionIsMultiSort" @clear="collectionSort.remove('active')" />
+              </th>
               <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
             </tr>
           </thead>

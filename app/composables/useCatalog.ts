@@ -18,7 +18,9 @@ import { toItems, type Page } from '~/types/admin'
  * const all = await api.listAll()
  */
 export const useCatalog = (basePath: string) => {
-  const list = (query?: Record<string, string | number | undefined>) =>
+  // `sort` is a repeated multi-column query param (`sort=name,asc&sort=code,desc`);
+  // every other value stays a plain scalar.
+  const list = (query?: Record<string, string | number | string[] | undefined>) =>
     useApi<Page<CatalogItem>>(basePath, { query })
 
   const listAll = async (query?: Record<string, string | undefined>): Promise<CatalogItem[]> => {

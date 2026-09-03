@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
 import type { PromoterDto, PromoterStatus } from '~/types/promoters'
+import type { SortDirection } from '~/composables/useTableSort'
 
 definePageMeta({
   layout: 'dashboard',
@@ -33,6 +34,12 @@ const size = ref(DEFAULT_PAGE_SIZE)
 const pageSizeItems = buildPageSizeItems(t)
 const search = ref('')
 const includeInactive = ref(false)
+// Empty by default: no `sort=` is sent until the user clicks a column, so
+// the backend's own default-sort fallback (entity_config → system_configs
+// → displayName ASC) applies.
+const sort = useTableSort([])
+const hasActiveSort = computed(() => sort.orders.value.length > 0)
+const isMultiSort = computed(() => sort.orders.value.length > 1)
 
 async function load() {
   loading.value = true
@@ -40,12 +47,19 @@ async function load() {
     const res = await promoters.list({
       page: page.value - 1,
       size: size.value,
-      sort: 'displayName,asc',
+      sort: sort.sortParam.value,
       q: search.value.trim() || undefined,
       includeInactive: includeInactive.value,
     })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
+    // No column clicked yet → reflect the server's own default in the header arrows.
+    if (sort.orders.value.length === 0 && res.appliedSort?.length) {
+      resetting.value = true
+      sort.orders.value = res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection }))
+      await nextTick()
+      resetting.value = false
+    }
   }
   catch {
     // useApi already shows the error toast
@@ -72,11 +86,13 @@ watch(search, () => {
   }, 400)
 })
 watch(includeInactive, () => { if (!resetting.value) { page.value = 1; load() } })
+watch(sort.orders, () => { if (!resetting.value) load() }, { deep: true })
 
 async function resetFilters() {
   resetting.value = true
   search.value = ''
   includeInactive.value = false
+  sort.reset()
   size.value = DEFAULT_PAGE_SIZE
   page.value = 1
   await nextTick()
@@ -217,6 +233,17 @@ async function confirmDelete() {
         class="w-full max-w-md"
       />
       <UCheckbox v-model="includeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
+      <UButton
+        v-if="hasActiveSort"
+        variant="link"
+        color="neutral"
+        size="sm"
+        icon="i-lucide-list-restart"
+        :title="t('common.clearSortHint')"
+        @click="sort.reset()"
+      >
+        {{ t('common.clearSort') }}
+      </UButton>
     </div>
 
     <!-- Table -->
@@ -225,11 +252,26 @@ async function confirmDelete() {
         <table class="w-full text-sm">
           <thead class="sticky top-0 bg-white z-10">
             <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
-              <th class="px-5 py-3 font-semibold">{{ t('promoters.columns.promoter') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('promoters.columns.status') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('promoters.columns.referrals') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('promoters.columns.commissionPaid') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('promoters.columns.active') }}</th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('displayName')">
+                {{ t('promoters.columns.promoter') }}
+                <SortIndicator :state="sort.stateOf('displayName')" :multi-active="isMultiSort" @clear="sort.remove('displayName')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('status')">
+                {{ t('promoters.columns.status') }}
+                <SortIndicator :state="sort.stateOf('status')" :multi-active="isMultiSort" @clear="sort.remove('status')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('totalReferrals')">
+                {{ t('promoters.columns.referrals') }}
+                <SortIndicator :state="sort.stateOf('totalReferrals')" :multi-active="isMultiSort" @clear="sort.remove('totalReferrals')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('totalCommissionPaid')">
+                {{ t('promoters.columns.commissionPaid') }}
+                <SortIndicator :state="sort.stateOf('totalCommissionPaid')" :multi-active="isMultiSort" @clear="sort.remove('totalCommissionPaid')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('active')">
+                {{ t('promoters.columns.active') }}
+                <SortIndicator :state="sort.stateOf('active')" :multi-active="isMultiSort" @clear="sort.remove('active')" />
+              </th>
               <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
             </tr>
           </thead>

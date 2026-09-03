@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
 import type { CommissionDto, CommissionStatus } from '~/types/promoters'
+import type { SortDirection } from '~/composables/useTableSort'
 
 definePageMeta({
   layout: 'dashboard',
@@ -29,6 +30,12 @@ const pageSizeItems = buildPageSizeItems(t)
 const search = ref('')
 const filter = ref('') // raw RSQL, e.g. `promoter.uuid==…;status==PENDING`
 const includeInactive = ref(false)
+// Empty by default: no `sort=` is sent until the user clicks a column, so
+// the backend's own default-sort fallback (entity_config → system_configs
+// → earnedAt DESC) applies.
+const sort = useTableSort([])
+const hasActiveSort = computed(() => sort.orders.value.length > 0)
+const isMultiSort = computed(() => sort.orders.value.length > 1)
 
 async function load() {
   loading.value = true
@@ -36,13 +43,20 @@ async function load() {
     const res = await commissions.list({
       page: page.value - 1,
       size: size.value,
-      sort: 'earnedAt,desc',
+      sort: sort.sortParam.value,
       filter: filter.value.trim() || undefined,
       q: search.value.trim() || undefined,
       includeInactive: includeInactive.value,
     })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
+    // No column clicked yet → reflect the server's own default in the header arrows.
+    if (sort.orders.value.length === 0 && res.appliedSort?.length) {
+      resetting.value = true
+      sort.orders.value = res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection }))
+      await nextTick()
+      resetting.value = false
+    }
   }
   catch {
     // useApi already shows the error toast
@@ -70,12 +84,14 @@ watch([search, filter], () => {
   }, 400)
 })
 watch(includeInactive, () => { if (!resetting.value) { page.value = 1; load() } })
+watch(sort.orders, () => { if (!resetting.value) load() }, { deep: true })
 
 async function resetFilters() {
   resetting.value = true
   search.value = ''
   filter.value = ''
   includeInactive.value = false
+  sort.reset()
   size.value = DEFAULT_PAGE_SIZE
   page.value = 1
   await nextTick()
@@ -212,6 +228,17 @@ async function onReRatingDone() {
         class="w-full max-w-md font-mono"
       />
       <UCheckbox v-model="includeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
+      <UButton
+        v-if="hasActiveSort"
+        variant="link"
+        color="neutral"
+        size="sm"
+        icon="i-lucide-list-restart"
+        :title="t('common.clearSortHint')"
+        @click="sort.reset()"
+      >
+        {{ t('common.clearSort') }}
+      </UButton>
     </div>
 
     <!-- Table -->

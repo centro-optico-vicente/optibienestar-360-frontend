@@ -18,7 +18,8 @@ import type {
 interface ListParams {
   page?: number
   size?: number
-  sort?: string
+  /** Multi-column sort, e.g. `['fullName,asc', 'active,desc']` — repeated as `sort=` query params. */
+  sort?: string[]
   filter?: string
   q?: string
   includeInactive?: boolean
@@ -44,7 +45,10 @@ export const useMembers = () => {
       query: {
         page: params.page ?? 0,
         size: params.size ?? 20,
-        sort: params.sort ?? 'enrolledAt,desc',
+        // Omitted entirely when empty — the backend applies its own default
+        // sort (entity_config → system_configs → enrolledAt DESC) only when
+        // no `sort=` is present at all.
+        ...(params.sort?.length ? { sort: params.sort } : {}),
         ...(params.filter ? { filter: params.filter } : {}),
         ...(params.q ? { q: params.q } : {}),
         ...(params.includeInactive ? { includeInactive: 'true' } : {}),

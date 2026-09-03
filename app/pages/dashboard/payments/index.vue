@@ -5,6 +5,7 @@ import {
   PAYMENT_STATUS_OPTIONS,
   paymentStatusColor,
 } from '~/types/payments'
+import type { SortDirection } from '~/composables/useTableSort'
 
 definePageMeta({
   layout: 'dashboard',
@@ -44,6 +45,12 @@ const size = ref(DEFAULT_PAGE_SIZE)
 const pageSizeItems = buildPageSizeItems(t)
 const search = ref('')
 const statusFilter = ref<PaymentStatus | ''>('')
+// Empty by default: no `sort=` is sent until the user clicks a column, so
+// the backend's own default-sort fallback (entity_config → system_configs
+// → receivedAt DESC) applies.
+const sort = useTableSort([])
+const hasActiveSort = computed(() => sort.orders.value.length > 0)
+const isMultiSort = computed(() => sort.orders.value.length > 1)
 
 // Status filter options (with "All" first), localized at the consumption point.
 const statusFilterOptions = computed(() => [
@@ -62,13 +69,20 @@ async function load() {
     const res = await payments.list({
       page: page.value - 1,
       size: size.value,
-      sort: 'receivedAt,desc',
+      sort: sort.sortParam.value,
       filter: buildFilter(),
       // Free-text over referenceNumber, adminNotes and supportFileName.
       q: search.value.trim() || undefined,
     })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
+    // No column clicked yet → reflect the server's own default in the header arrows.
+    if (sort.orders.value.length === 0 && res.appliedSort?.length) {
+      resetting.value = true
+      sort.orders.value = res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection }))
+      await nextTick()
+      resetting.value = false
+    }
   }
   catch {
     // useApi already shows the error toast
@@ -97,11 +111,13 @@ watch(search, () => {
     load()
   }, 400)
 })
+watch(sort.orders, () => { if (!resetting.value) load() }, { deep: true })
 
 async function resetFilters() {
   resetting.value = true
   search.value = ''
   statusFilter.value = ''
+  sort.reset()
   size.value = DEFAULT_PAGE_SIZE
   page.value = 1
   await nextTick()
@@ -202,6 +218,17 @@ function isPending(p: PaymentDto): boolean {
         icon="i-lucide-filter"
         class="w-44"
       />
+      <UButton
+        v-if="hasActiveSort"
+        variant="link"
+        color="neutral"
+        size="sm"
+        icon="i-lucide-list-restart"
+        :title="t('common.clearSortHint')"
+        @click="sort.reset()"
+      >
+        {{ t('common.clearSort') }}
+      </UButton>
     </div>
 
     <!-- Table -->
@@ -210,12 +237,27 @@ function isPending(p: PaymentDto): boolean {
         <table class="w-full text-sm">
           <thead class="sticky top-0 bg-white z-10">
             <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
-              <th class="px-5 py-3 font-semibold">{{ t('payments.columns.planReference') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('payments.columns.amount') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('payments.columns.method') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('payments.columns.date') }}</th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('plan_Code')">
+                {{ t('payments.columns.planReference') }}
+                <SortIndicator :state="sort.stateOf('plan_Code')" :multi-active="isMultiSort" @clear="sort.remove('plan_Code')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('amount')">
+                {{ t('payments.columns.amount') }}
+                <SortIndicator :state="sort.stateOf('amount')" :multi-active="isMultiSort" @clear="sort.remove('amount')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('paymentMethod')">
+                {{ t('payments.columns.method') }}
+                <SortIndicator :state="sort.stateOf('paymentMethod')" :multi-active="isMultiSort" @clear="sort.remove('paymentMethod')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('paymentDate')">
+                {{ t('payments.columns.date') }}
+                <SortIndicator :state="sort.stateOf('paymentDate')" :multi-active="isMultiSort" @clear="sort.remove('paymentDate')" />
+              </th>
               <th class="px-5 py-3 font-semibold">{{ t('payments.columns.proof') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('payments.columns.status') }}</th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('status')">
+                {{ t('payments.columns.status') }}
+                <SortIndicator :state="sort.stateOf('status')" :multi-active="isMultiSort" @clear="sort.remove('status')" />
+              </th>
               <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
             </tr>
           </thead>
