@@ -4,6 +4,8 @@
 // primeras filtrables por entityKey + entityUuid (o globales si se omiten), la de logins
 // filtrable por email/userUuid/result/rango de fechas.
 
+import type { ConfigSortOrder } from '~/composables/useSystemConfig'
+
 export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE'
 
 /** Matches backend enum `LoginAuditResult` (V61). */
@@ -43,6 +45,8 @@ export interface LoginAuditLogPageDto {
   first: boolean
   last: boolean
   empty: boolean
+  /** The sort actually applied — present now that this endpoint is backed by `AppliedSortPage`. */
+  appliedSort?: ConfigSortOrder[]
 }
 
 /** GET /v1/admin/audit/data-changes — un cambio individual sobre una entidad. */

@@ -127,7 +127,7 @@ async function loadTiers() {
     tierTotal.value = res.totalElements ?? 0
     if (tierSort.orders.value.length === 0 && res.appliedSort?.length) {
       resetting.value = true
-      tierSort.orders.value = res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection }))
+      tierSort.seedServerDefault(res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection })))
       await nextTick()
       resetting.value = false
     }
@@ -264,7 +264,7 @@ async function loadBonusRules() {
     bonusTotal.value = res.totalElements ?? 0
     if (bonusSort.orders.value.length === 0 && res.appliedSort?.length) {
       resetting.value = true
-      bonusSort.orders.value = res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection }))
+      bonusSort.seedServerDefault(res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection })))
       await nextTick()
       resetting.value = false
     }
@@ -374,7 +374,7 @@ async function loadCollectionTiers() {
     collectionTotal.value = res.totalElements ?? 0
     if (collectionSort.orders.value.length === 0 && res.appliedSort?.length) {
       resetting.value = true
-      collectionSort.orders.value = res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection }))
+      collectionSort.seedServerDefault(res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection })))
       await nextTick()
       resetting.value = false
     }

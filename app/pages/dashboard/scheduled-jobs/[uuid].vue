@@ -69,7 +69,7 @@ async function loadRuns() {
     // No column clicked yet → reflect the server's own default in the header arrows.
     if (runsSort.orders.value.length === 0 && res.appliedSort?.length) {
       runsResetting.value = true
-      runsSort.orders.value = res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection }))
+      runsSort.seedServerDefault(res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection })))
       await nextTick()
       runsResetting.value = false
     }
