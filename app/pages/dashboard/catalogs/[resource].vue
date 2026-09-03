@@ -91,7 +91,7 @@ const pageSizeItems = buildPageSizeItems(t)
 // the backend's own default-sort fallback (entity_config → system_configs
 // → `name` ASC) applies — same reasoning as the allies pilot.
 const sort = useTableSort([])
-const hasActiveSort = computed(() => sort.orders.value.length > 0)
+const hasActiveSort = computed(() => sort.hasActiveSort.value)
 const isMultiSort = computed(() => sort.orders.value.length > 1)
 
 function api() {
@@ -121,7 +121,7 @@ async function load() {
     // arrows (see allies/index.vue for the full rationale).
     if (sort.orders.value.length === 0 && res.appliedSort?.length) {
       resetting.value = true
-      sort.orders.value = res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection }))
+      sort.seedServerDefault(res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection })))
       await nextTick()
       resetting.value = false
     }
@@ -469,7 +469,14 @@ async function confirmDelete() {
                 {{ $t('catalogs.columns.parent') }}
                 <SortIndicator :state="sort.stateOf(def.parentDisplayField)" :multi-active="isMultiSort" @clear="sort.remove(def.parentDisplayField)" />
               </th>
-              <th v-if="hasDescription" class="px-5 py-3 font-semibold">{{ $t('catalogs.columns.description') }}</th>
+              <th
+                v-if="hasDescription"
+                class="px-5 py-3 font-semibold cursor-pointer select-none"
+                @click="sort.toggle('description')"
+              >
+                {{ $t('catalogs.columns.description') }}
+                <SortIndicator :state="sort.stateOf('description')" :multi-active="isMultiSort" @clear="sort.remove('description')" />
+              </th>
               <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('active')">
                 {{ $t('catalogs.columns.status') }}
                 <SortIndicator :state="sort.stateOf('active')" :multi-active="isMultiSort" @clear="sort.remove('active')" />

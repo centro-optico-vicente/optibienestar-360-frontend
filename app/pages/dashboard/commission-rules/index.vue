@@ -108,7 +108,7 @@ function buildTierFilter(): string | undefined {
 // the backend's own default-sort fallback (entity_config → system_configs
 // → thresholdCount ASC) applies.
 const tierSort = useTableSort([])
-const tierHasActiveSort = computed(() => tierSort.orders.value.length > 0)
+const tierHasActiveSort = computed(() => tierSort.hasActiveSort.value)
 const tierIsMultiSort = computed(() => tierSort.orders.value.length > 1)
 
 async function loadTiers() {
@@ -127,7 +127,7 @@ async function loadTiers() {
     tierTotal.value = res.totalElements ?? 0
     if (tierSort.orders.value.length === 0 && res.appliedSort?.length) {
       resetting.value = true
-      tierSort.orders.value = res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection }))
+      tierSort.seedServerDefault(res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection })))
       await nextTick()
       resetting.value = false
     }
@@ -246,7 +246,7 @@ const bonusSize = ref(DEFAULT_PAGE_SIZE)
 // the backend's own default-sort fallback (entity_config → system_configs
 // → createdAt DESC) applies.
 const bonusSort = useTableSort([])
-const bonusHasActiveSort = computed(() => bonusSort.orders.value.length > 0)
+const bonusHasActiveSort = computed(() => bonusSort.hasActiveSort.value)
 const bonusIsMultiSort = computed(() => bonusSort.orders.value.length > 1)
 
 async function loadBonusRules() {
@@ -264,7 +264,7 @@ async function loadBonusRules() {
     bonusTotal.value = res.totalElements ?? 0
     if (bonusSort.orders.value.length === 0 && res.appliedSort?.length) {
       resetting.value = true
-      bonusSort.orders.value = res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection }))
+      bonusSort.seedServerDefault(res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection })))
       await nextTick()
       resetting.value = false
     }
@@ -356,7 +356,7 @@ const collectionSize = ref(DEFAULT_PAGE_SIZE)
 // the backend's own default-sort fallback (entity_config → system_configs
 // → maxDays ASC) applies.
 const collectionSort = useTableSort([])
-const collectionHasActiveSort = computed(() => collectionSort.orders.value.length > 0)
+const collectionHasActiveSort = computed(() => collectionSort.hasActiveSort.value)
 const collectionIsMultiSort = computed(() => collectionSort.orders.value.length > 1)
 
 async function loadCollectionTiers() {
@@ -374,7 +374,7 @@ async function loadCollectionTiers() {
     collectionTotal.value = res.totalElements ?? 0
     if (collectionSort.orders.value.length === 0 && res.appliedSort?.length) {
       resetting.value = true
-      collectionSort.orders.value = res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection }))
+      collectionSort.seedServerDefault(res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection })))
       await nextTick()
       resetting.value = false
     }

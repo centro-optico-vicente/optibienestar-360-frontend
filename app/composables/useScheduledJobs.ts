@@ -20,7 +20,8 @@ interface ListParams {
 interface RunListParams {
   page?: number
   size?: number
-  sort?: string
+  /** Multi-column sort — repeated as `sort=` query params. */
+  sort?: string[]
 }
 
 /**
@@ -71,7 +72,7 @@ export const useScheduledJobs = () => {
       query: {
         page: params.page ?? 0,
         size: params.size ?? 20,
-        sort: params.sort ?? 'startedAt,desc',
+        ...(params.sort?.length ? { sort: params.sort } : {}),
       },
     })
 

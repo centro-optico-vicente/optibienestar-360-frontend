@@ -28,12 +28,36 @@ export interface SortState {
 export function useTableSort(initial: SortOrder[] = []) {
   const orders = ref<SortOrder[]>(structuredClone(toRaw(initial)))
 
+  // True right after `seedServerDefault` populated `orders` from the backend's
+  // resolved default (entity_config / system_configs / hard fallback) purely so
+  // header arrows can reflect it — not from an actual user click. The very next
+  // `toggle`/`remove` must start fresh from that column alone instead of
+  // compounding onto the seeded default, or every first click would silently
+  // keep the default as a permanent primary sort key ahead of what the user
+  // picked.
+  const isServerDefault = ref(initial.length === 0)
+
   /** Restores the sort to the `initial` order it was created with. */
   function reset() {
     orders.value = structuredClone(toRaw(initial))
+    isServerDefault.value = initial.length === 0
+  }
+
+  /**
+   * Reflects the backend's resolved default sort (from `AppliedSortPage`) into
+   * header arrows when the table hasn't been explicitly sorted yet. Marks the
+   * seed so the next user interaction discards it instead of appending to it.
+   */
+  function seedServerDefault(defaultOrders: SortOrder[]) {
+    orders.value = structuredClone(toRaw(defaultOrders))
+    isServerDefault.value = true
   }
 
   function toggle(field: string) {
+    if (isServerDefault.value) {
+      orders.value = []
+      isServerDefault.value = false
+    }
     const idx = orders.value.findIndex(o => o.field === field)
     if (idx === -1) {
       orders.value.push({ field, direction: 'asc' })
@@ -48,6 +72,11 @@ export function useTableSort(initial: SortOrder[] = []) {
 
   /** Drops a single column from the sort immediately, regardless of its current direction — skips the asc→desc→removed cycle `toggle` would otherwise require. No-op if the column isn't active. */
   function remove(field: string) {
+    if (isServerDefault.value) {
+      orders.value = []
+      isServerDefault.value = false
+      return
+    }
     const idx = orders.value.findIndex(o => o.field === field)
     if (idx !== -1) {
       orders.value.splice(idx, 1)
@@ -62,5 +91,13 @@ export function useTableSort(initial: SortOrder[] = []) {
   /** e.g. `['name,asc', 'active,desc']` — passed straight through as `query.sort`. */
   const sortParam = computed(() => orders.value.map(o => `${o.field},${o.direction}`))
 
-  return { orders, toggle, remove, stateOf, sortParam, reset }
+  /**
+   * True only once the user has actually clicked a column — false for both
+   * "no sort at all" and "still showing the seeded server/initial default",
+   * so a "reset sort" button gated on this never appears with nothing to
+   * reset.
+   */
+  const hasActiveSort = computed(() => orders.value.length > 0 && !isServerDefault.value)
+
+  return { orders, toggle, remove, stateOf, sortParam, reset, seedServerDefault, isServerDefault: readonly(isServerDefault), hasActiveSort }
 }

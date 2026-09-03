@@ -2,6 +2,7 @@
 import type { ApiError } from '~/types/auth'
 import type { ScheduledJobDto, ScheduledJobRunDto } from '~/types/scheduling'
 import { JOB_RUN_OUTCOME_OPTIONS } from '~/types/scheduling'
+import type { SortDirection } from '~/composables/useTableSort'
 
 definePageMeta({
   layout: 'dashboard',
@@ -50,12 +51,28 @@ async function loadJob() {
 // ---- Runs history ----
 const runs = ref<ScheduledJobRunDto[]>([])
 const runsLoading = ref(false)
+// Empty by default: no `sort=` is sent until the user clicks a column, so
+// the backend's own default-sort fallback (entity_config → system_configs
+// → startedAt DESC) applies.
+const runsSort = useTableSort([])
+const runsHasActiveSort = computed(() => runsSort.hasActiveSort.value)
+const runsIsMultiSort = computed(() => runsSort.orders.value.length > 1)
+// Guards the appliedSort-sync assignment below from re-triggering the
+// `watch(runsSort.orders, ...)` reload (would otherwise loop forever).
+const runsResetting = ref(false)
 
 async function loadRuns() {
   runsLoading.value = true
   try {
-    const res = await jobs.listRuns(jobUuid, { size: 20 })
+    const res = await jobs.listRuns(jobUuid, { size: 20, sort: runsSort.sortParam.value })
     runs.value = res.content ?? []
+    // No column clicked yet → reflect the server's own default in the header arrows.
+    if (runsSort.orders.value.length === 0 && res.appliedSort?.length) {
+      runsResetting.value = true
+      runsSort.seedServerDefault(res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection })))
+      await nextTick()
+      runsResetting.value = false
+    }
   }
   catch {
     // useApi already shows the error toast
@@ -65,6 +82,7 @@ async function loadRuns() {
     runsLoading.value = false
   }
 }
+watch(runsSort.orders, () => { if (!runsResetting.value) loadRuns() }, { deep: true })
 
 onMounted(async () => {
   await Promise.all([loadJob(), loadRuns()])
@@ -398,20 +416,45 @@ onBeforeUnmount(stopPolling)
       <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
         <div class="flex items-center justify-between px-5 py-4 border-b border-prohealth-100">
           <h2 class="font-bold text-prohealth-900">{{ t('scheduledJobs.detail.runsTitle') }}</h2>
-          <RefreshButton
-            :loading="runsLoading"
-            :title="t('common.refreshSection')"
-            @refresh="loadRuns"
-          />
+          <div class="flex items-center gap-2">
+            <UButton
+              v-if="runsHasActiveSort"
+              variant="link"
+              color="neutral"
+              size="sm"
+              icon="i-lucide-list-restart"
+              :title="t('common.clearSortHint')"
+              @click="runsSort.reset()"
+            >
+              {{ t('common.clearSort') }}
+            </UButton>
+            <RefreshButton
+              :loading="runsLoading"
+              :title="t('common.refreshSection')"
+              @refresh="loadRuns"
+            />
+          </div>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
             <thead>
               <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
-                <th class="px-5 py-3 font-semibold">{{ t('scheduledJobs.detail.runColumns.outcome') }}</th>
-                <th class="px-5 py-3 font-semibold">{{ t('scheduledJobs.detail.runColumns.trigger') }}</th>
-                <th class="px-5 py-3 font-semibold">{{ t('scheduledJobs.detail.runColumns.started') }}</th>
-                <th class="px-5 py-3 font-semibold">{{ t('scheduledJobs.detail.runColumns.duration') }}</th>
+                <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="runsSort.toggle('outcome')">
+                  {{ t('scheduledJobs.detail.runColumns.outcome') }}
+                  <SortIndicator :state="runsSort.stateOf('outcome')" :multi-active="runsIsMultiSort" @clear="runsSort.remove('outcome')" />
+                </th>
+                <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="runsSort.toggle('triggeredBy')">
+                  {{ t('scheduledJobs.detail.runColumns.trigger') }}
+                  <SortIndicator :state="runsSort.stateOf('triggeredBy')" :multi-active="runsIsMultiSort" @clear="runsSort.remove('triggeredBy')" />
+                </th>
+                <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="runsSort.toggle('startedAt')">
+                  {{ t('scheduledJobs.detail.runColumns.started') }}
+                  <SortIndicator :state="runsSort.stateOf('startedAt')" :multi-active="runsIsMultiSort" @clear="runsSort.remove('startedAt')" />
+                </th>
+                <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="runsSort.toggle('durationMs')">
+                  {{ t('scheduledJobs.detail.runColumns.duration') }}
+                  <SortIndicator :state="runsSort.stateOf('durationMs')" :multi-active="runsIsMultiSort" @clear="runsSort.remove('durationMs')" />
+                </th>
                 <th class="px-5 py-3 font-semibold">{{ t('scheduledJobs.detail.runColumns.error') }}</th>
               </tr>
             </thead>

@@ -87,7 +87,7 @@ interface LoginAuditParams {
   filter?: string
   page?: number
   size?: number
-  sort?: string
+  sort?: string[]
 }
 
 /**
@@ -205,7 +205,7 @@ export const useAudit = () => {
         filter: params.filter,
         page,
         size,
-        sort: params.sort ?? 'attemptedAt,DESC',
+        ...(params.sort?.length ? { sort: params.sort } : {}),
       },
     })
 

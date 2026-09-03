@@ -70,7 +70,29 @@ const activeTab = ref('roles')
 // The backend has no "roles for a user" listing endpoint distinct from the user
 // record itself, so `UserDto.roles` (already returned by GET /v1/admin/users/{uuid})
 // is used as the source of truth here instead of inventing a per-role lookup loop.
-const userRoles = computed<RoleDto[]>(() => user.value?.roles ?? [])
+const userRolesRaw = computed<RoleDto[]>(() => user.value?.roles ?? [])
+
+// No backend list endpoint exists for "roles of this user" (it's embedded in
+// GET /v1/admin/users/{uuid} itself), so sort is applied client-side over the
+// already-fetched array instead of round-tripping to the server.
+const userRolesSort = useTableSort([])
+const userRolesHasActiveSort = computed(() => userRolesSort.hasActiveSort.value)
+const userRolesIsMultiSort = computed(() => userRolesSort.orders.value.length > 1)
+const userRoles = computed<RoleDto[]>(() => {
+  const orders = userRolesSort.orders.value
+  if (orders.length === 0) return userRolesRaw.value
+  const rows = [...userRolesRaw.value]
+  rows.sort((a, b) => {
+    for (const o of orders) {
+      const av = String(a[o.field as keyof RoleDto] ?? '')
+      const bv = String(b[o.field as keyof RoleDto] ?? '')
+      const cmp = av.localeCompare(bv)
+      if (cmp !== 0) return o.direction === 'asc' ? cmp : -cmp
+    }
+    return 0
+  })
+  return rows
+})
 
 const allRoleOptions = ref<{ label: string, value: string }[]>([])
 
@@ -146,11 +168,14 @@ type UserAllyRow = UserAllyDto
 const userAllies = ref<UserAllyRow[]>([])
 const userAlliesLoading = ref(false)
 const allAllies = ref<AllyListItemDto[]>([])
+const userAlliesSort = useTableSort([])
+const userAlliesHasActiveSort = computed(() => userAlliesSort.hasActiveSort.value)
+const userAlliesIsMultiSort = computed(() => userAlliesSort.orders.value.length > 1)
 
 async function loadUserAllies() {
   userAlliesLoading.value = true
   try {
-    userAllies.value = await alliesApi.listAlliesForUser(userUuid)
+    userAllies.value = await alliesApi.listAlliesForUser(userUuid, userAlliesSort.sortParam.value)
   }
   catch {
     userAllies.value = []
@@ -159,6 +184,8 @@ async function loadUserAllies() {
     userAlliesLoading.value = false
   }
 }
+
+watch(userAlliesSort.orders, () => loadUserAllies(), { deep: true })
 
 async function loadAllAllies() {
   try {
@@ -403,6 +430,17 @@ async function refreshAll() {
                 {{ t('security.users.detail.rolesTab.add') }}
               </UButton>
             </UTooltip>
+            <UButton
+              v-if="userRolesHasActiveSort"
+              variant="link"
+              color="neutral"
+              size="sm"
+              icon="i-lucide-list-restart"
+              :title="t('common.clearSortHint')"
+              @click="userRolesSort.reset()"
+            >
+              {{ t('common.clearSort') }}
+            </UButton>
             <RefreshButton
               :loading="loading"
               :title="t('common.refreshSection')"
@@ -416,8 +454,14 @@ async function refreshAll() {
             <table class="w-full text-sm">
               <thead>
                 <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
-                  <th class="px-6 py-3 font-semibold">{{ t('security.users.detail.rolesTab.columns.role') }}</th>
-                  <th class="px-6 py-3 font-semibold">{{ t('security.users.detail.rolesTab.columns.description') }}</th>
+                  <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="userRolesSort.toggle('name')">
+                    {{ t('security.users.detail.rolesTab.columns.role') }}
+                    <SortIndicator :state="userRolesSort.stateOf('name')" :multi-active="userRolesIsMultiSort" @clear="userRolesSort.remove('name')" />
+                  </th>
+                  <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="userRolesSort.toggle('description')">
+                    {{ t('security.users.detail.rolesTab.columns.description') }}
+                    <SortIndicator :state="userRolesSort.stateOf('description')" :multi-active="userRolesIsMultiSort" @clear="userRolesSort.remove('description')" />
+                  </th>
                   <th class="px-6 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
                 </tr>
               </thead>
@@ -481,6 +525,17 @@ async function refreshAll() {
                 {{ t('security.users.detail.alliesTab.add') }}
               </UButton>
             </UTooltip>
+            <UButton
+              v-if="userAlliesHasActiveSort"
+              variant="link"
+              color="neutral"
+              size="sm"
+              icon="i-lucide-list-restart"
+              :title="t('common.clearSortHint')"
+              @click="userAlliesSort.reset()"
+            >
+              {{ t('common.clearSort') }}
+            </UButton>
             <RefreshButton
               :loading="userAlliesLoading"
               :title="t('common.refreshSection')"
@@ -494,10 +549,22 @@ async function refreshAll() {
             <table class="w-full text-sm">
               <thead>
                 <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
-                  <th class="px-6 py-3 font-semibold">{{ t('security.users.detail.alliesTab.columns.ally') }}</th>
-                  <th class="px-6 py-3 font-semibold">{{ t('security.users.detail.alliesTab.columns.role') }}</th>
-                  <th class="px-6 py-3 font-semibold">{{ t('security.users.detail.alliesTab.columns.primary') }}</th>
-                  <th class="px-6 py-3 font-semibold">{{ t('security.users.detail.alliesTab.columns.since') }}</th>
+                  <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="userAlliesSort.toggle('ally_Display')">
+                    {{ t('security.users.detail.alliesTab.columns.ally') }}
+                    <SortIndicator :state="userAlliesSort.stateOf('ally_Display')" :multi-active="userAlliesIsMultiSort" @clear="userAlliesSort.remove('ally_Display')" />
+                  </th>
+                  <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="userAlliesSort.toggle('allyRole')">
+                    {{ t('security.users.detail.alliesTab.columns.role') }}
+                    <SortIndicator :state="userAlliesSort.stateOf('allyRole')" :multi-active="userAlliesIsMultiSort" @clear="userAlliesSort.remove('allyRole')" />
+                  </th>
+                  <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="userAlliesSort.toggle('primary')">
+                    {{ t('security.users.detail.alliesTab.columns.primary') }}
+                    <SortIndicator :state="userAlliesSort.stateOf('primary')" :multi-active="userAlliesIsMultiSort" @clear="userAlliesSort.remove('primary')" />
+                  </th>
+                  <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="userAlliesSort.toggle('joinedAt')">
+                    {{ t('security.users.detail.alliesTab.columns.since') }}
+                    <SortIndicator :state="userAlliesSort.stateOf('joinedAt')" :multi-active="userAlliesIsMultiSort" @clear="userAlliesSort.remove('joinedAt')" />
+                  </th>
                   <th class="px-6 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
                 </tr>
               </thead>

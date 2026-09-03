@@ -38,7 +38,7 @@ const includeInactive = ref(false)
 // the backend's own default-sort fallback (entity_config → system_configs
 // → code ASC) applies.
 const sort = useTableSort([])
-const hasActiveSort = computed(() => sort.orders.value.length > 0)
+const hasActiveSort = computed(() => sort.hasActiveSort.value)
 const isMultiSort = computed(() => sort.orders.value.length > 1)
 
 async function load() {
@@ -56,7 +56,7 @@ async function load() {
     // No column clicked yet → reflect the server's own default in the header arrows.
     if (sort.orders.value.length === 0 && res.appliedSort?.length) {
       resetting.value = true
-      sort.orders.value = res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection }))
+      sort.seedServerDefault(res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection })))
       await nextTick()
       resetting.value = false
     }

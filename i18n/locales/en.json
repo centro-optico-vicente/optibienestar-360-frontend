@@ -35,7 +35,7 @@
     "sortDirectionDesc": "descending",
     "sortClear": "Remove sort from this column",
     "clearSort": "Reset sort",
-    "clearSortHint": "Restores the server default sort",
+    "clearSortHint": "Restores the default order",
     "refreshSection": "Refresh this section",
     "refreshRecord": "Refresh record and associations",
     "discardChangesTitle": "Discard unsaved changes?",

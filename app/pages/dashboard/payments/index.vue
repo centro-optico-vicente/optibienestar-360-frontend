@@ -49,7 +49,7 @@ const statusFilter = ref<PaymentStatus | ''>('')
 // the backend's own default-sort fallback (entity_config → system_configs
 // → receivedAt DESC) applies.
 const sort = useTableSort([])
-const hasActiveSort = computed(() => sort.orders.value.length > 0)
+const hasActiveSort = computed(() => sort.hasActiveSort.value)
 const isMultiSort = computed(() => sort.orders.value.length > 1)
 
 // Status filter options (with "All" first), localized at the consumption point.
@@ -79,7 +79,7 @@ async function load() {
     // No column clicked yet → reflect the server's own default in the header arrows.
     if (sort.orders.value.length === 0 && res.appliedSort?.length) {
       resetting.value = true
-      sort.orders.value = res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection }))
+      sort.seedServerDefault(res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection })))
       await nextTick()
       resetting.value = false
     }

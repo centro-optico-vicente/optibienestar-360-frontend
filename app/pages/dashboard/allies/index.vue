@@ -60,7 +60,7 @@ const includeInactive = ref(false)
 // table has no "Creado" header to toggle it off — so it would silently stick
 // as a phantom secondary sort behind whatever column the user picks.
 const sort = useTableSort([])
-const hasActiveSort = computed(() => sort.orders.value.length > 0)
+const hasActiveSort = computed(() => sort.hasActiveSort.value)
 const isMultiSort = computed(() => sort.orders.value.length > 1)
 
 async function load() {
@@ -83,7 +83,7 @@ async function load() {
     // running, so a later user click is never overwritten by it.
     if (sort.orders.value.length === 0 && res.appliedSort?.length) {
       resetting.value = true
-      sort.orders.value = res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection }))
+      sort.seedServerDefault(res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection })))
       await nextTick()
       resetting.value = false
     }

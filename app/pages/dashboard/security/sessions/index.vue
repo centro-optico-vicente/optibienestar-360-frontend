@@ -2,6 +2,7 @@
 import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
 import { defaultTodayRange } from '~/utils/date'
 import type { LoginAuditLogDto, LoginAuditResult } from '~/types/audit'
+import type { SortDirection } from '~/composables/useTableSort'
 
 definePageMeta({
   layout: 'dashboard',
@@ -55,6 +56,10 @@ function sessionStatusLabel(status: string): string {
   return t(`security.sessions.sessionStatus.${status}`, status)
 }
 
+const sort = useTableSort([])
+const hasActiveSort = computed(() => sort.hasActiveSort.value)
+const isMultiSort = computed(() => sort.orders.value.length > 1)
+
 async function load() {
   loading.value = true
   try {
@@ -65,9 +70,17 @@ async function load() {
       to: dateRange.value.to,
       page: page.value - 1,
       size: size.value,
+      sort: sort.sortParam.value,
     })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
+    // No column clicked yet → reflect the server's own default in the header arrows.
+    if (sort.orders.value.length === 0 && res.appliedSort?.length) {
+      resetting.value = true
+      sort.seedServerDefault(res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection })))
+      await nextTick()
+      resetting.value = false
+    }
   }
   catch {
     // useApi ya muestra el toast del error
@@ -93,12 +106,14 @@ watch(search, () => {
 watch([resultFilter, dateRange], () => {
   if (!resetting.value) { page.value = 1; load() }
 }, { deep: true })
+watch(sort.orders, () => { if (!resetting.value) load() }, { deep: true })
 
 async function resetFilters() {
   resetting.value = true
   search.value = ''
   resultFilter.value = []
   dateRange.value = defaultTodayRange()
+  sort.reset()
   size.value = DEFAULT_PAGE_SIZE
   page.value = 1
   await nextTick()
@@ -142,6 +157,17 @@ onMounted(load)
         class="w-56"
       />
       <AuditDateRangePicker v-model="dateRange" />
+      <UButton
+        v-if="hasActiveSort"
+        variant="link"
+        color="neutral"
+        size="sm"
+        icon="i-lucide-list-restart"
+        :title="$t('common.clearSortHint')"
+        @click="sort.reset()"
+      >
+        {{ $t('common.clearSort') }}
+      </UButton>
     </div>
 
     <!-- Tabla -->
@@ -150,12 +176,27 @@ onMounted(load)
         <table class="w-full text-sm">
           <thead class="sticky top-0 bg-white z-10">
             <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
-              <th class="px-5 py-3 font-semibold">{{ $t('security.sessions.columns.user') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ $t('security.sessions.columns.ip') }}</th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('attemptedEmail')">
+                {{ $t('security.sessions.columns.user') }}
+                <SortIndicator :state="sort.stateOf('attemptedEmail')" :multi-active="isMultiSort" @clear="sort.remove('attemptedEmail')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('ipAddress')">
+                {{ $t('security.sessions.columns.ip') }}
+                <SortIndicator :state="sort.stateOf('ipAddress')" :multi-active="isMultiSort" @clear="sort.remove('ipAddress')" />
+              </th>
               <th class="px-5 py-3 font-semibold">{{ $t('security.sessions.columns.userAgent') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ $t('security.sessions.columns.result') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ $t('security.sessions.columns.sessionStatus') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ $t('security.sessions.columns.attemptedAt') }}</th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('result')">
+                {{ $t('security.sessions.columns.result') }}
+                <SortIndicator :state="sort.stateOf('result')" :multi-active="isMultiSort" @clear="sort.remove('result')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('sessionStatus')">
+                {{ $t('security.sessions.columns.sessionStatus') }}
+                <SortIndicator :state="sort.stateOf('sessionStatus')" :multi-active="isMultiSort" @clear="sort.remove('sessionStatus')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('attemptedAt')">
+                {{ $t('security.sessions.columns.attemptedAt') }}
+                <SortIndicator :state="sort.stateOf('attemptedAt')" :multi-active="isMultiSort" @clear="sort.remove('attemptedAt')" />
+              </th>
             </tr>
           </thead>
           <tbody class="divide-y divide-prohealth-100">

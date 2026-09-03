@@ -34,7 +34,7 @@ const includeInactive = ref(false)
 // the backend's own default-sort fallback (entity_config → system_configs
 // → earnedAt DESC) applies.
 const sort = useTableSort([])
-const hasActiveSort = computed(() => sort.orders.value.length > 0)
+const hasActiveSort = computed(() => sort.hasActiveSort.value)
 const isMultiSort = computed(() => sort.orders.value.length > 1)
 
 async function load() {
@@ -53,7 +53,7 @@ async function load() {
     // No column clicked yet → reflect the server's own default in the header arrows.
     if (sort.orders.value.length === 0 && res.appliedSort?.length) {
       resetting.value = true
-      sort.orders.value = res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection }))
+      sort.seedServerDefault(res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection })))
       await nextTick()
       resetting.value = false
     }
@@ -247,13 +247,34 @@ async function onReRatingDone() {
         <table class="w-full text-sm">
           <thead class="sticky top-0 bg-white z-10">
             <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
-              <th class="px-5 py-3 font-semibold">{{ t('commissions.columns.promoter') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('commissions.columns.amount') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('commissions.columns.calc') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('commissions.columns.appliesTo') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('commissions.columns.status') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('commissions.columns.earnedAt') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('commissions.columns.paidAt') }}</th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('promoter_Display')">
+                {{ t('commissions.columns.promoter') }}
+                <SortIndicator :state="sort.stateOf('promoter_Display')" :multi-active="isMultiSort" @clear="sort.remove('promoter_Display')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('amount')">
+                {{ t('commissions.columns.amount') }}
+                <SortIndicator :state="sort.stateOf('amount')" :multi-active="isMultiSort" @clear="sort.remove('amount')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('calculationBasis')">
+                {{ t('commissions.columns.calc') }}
+                <SortIndicator :state="sort.stateOf('calculationBasis')" :multi-active="isMultiSort" @clear="sort.remove('calculationBasis')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('appliesTo')">
+                {{ t('commissions.columns.appliesTo') }}
+                <SortIndicator :state="sort.stateOf('appliesTo')" :multi-active="isMultiSort" @clear="sort.remove('appliesTo')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('status')">
+                {{ t('commissions.columns.status') }}
+                <SortIndicator :state="sort.stateOf('status')" :multi-active="isMultiSort" @clear="sort.remove('status')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('earnedAt')">
+                {{ t('commissions.columns.earnedAt') }}
+                <SortIndicator :state="sort.stateOf('earnedAt')" :multi-active="isMultiSort" @clear="sort.remove('earnedAt')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('paidAt')">
+                {{ t('commissions.columns.paidAt') }}
+                <SortIndicator :state="sort.stateOf('paidAt')" :multi-active="isMultiSort" @clear="sort.remove('paidAt')" />
+              </th>
             </tr>
           </thead>
           <tbody class="divide-y divide-prohealth-100">

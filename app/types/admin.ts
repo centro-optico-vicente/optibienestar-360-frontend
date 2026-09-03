@@ -17,9 +17,9 @@ export interface Page<T> {
   empty: boolean
   /**
    * The sort actually applied — present only on endpoints backed by
-   * `AppliedSortPage` (currently just `/v1/admin/allies`). Lets the table
-   * reflect a server-side default (entity_config/system_configs) in its
-   * header arrows even when the user hasn't clicked any column.
+   * `AppliedSortPage`. Lets the table reflect a server-side default
+   * (entity_config/system_configs) in its header arrows even when the user
+   * hasn't clicked any column.
    */
   appliedSort?: ConfigSortOrder[]
 }

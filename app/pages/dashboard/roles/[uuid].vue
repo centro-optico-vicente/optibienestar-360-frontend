@@ -128,12 +128,15 @@ async function onPermissionsSaved() {
 // =========================================================
 const roleUsers = ref<RoleUserDto[]>([])
 const roleUsersLoading = ref(false)
+const roleUsersSort = useTableSort([])
+const roleUsersHasActiveSort = computed(() => roleUsersSort.hasActiveSort.value)
+const roleUsersIsMultiSort = computed(() => roleUsersSort.orders.value.length > 1)
 
 async function loadRoleUsers() {
   if (!canViewUsers.value) return
   roleUsersLoading.value = true
   try {
-    roleUsers.value = await rolesApi.listUsers(roleUuid)
+    roleUsers.value = await rolesApi.listUsers(roleUuid, roleUsersSort.sortParam.value)
   }
   catch {
     // toast handled by useApi
@@ -142,6 +145,7 @@ async function loadRoleUsers() {
     roleUsersLoading.value = false
   }
 }
+watch(roleUsersSort.orders, () => loadRoleUsers(), { deep: true })
 
 // System users for the assignment selector.
 const userOptions = ref<{ label: string, value: string }[]>([])
@@ -578,6 +582,17 @@ function discardAndRefreshRole() {
                 {{ t('security.roles.detail.usersTab.add') }}
               </UButton>
             </UTooltip>
+            <UButton
+              v-if="roleUsersHasActiveSort"
+              variant="link"
+              color="neutral"
+              size="sm"
+              icon="i-lucide-list-restart"
+              :title="t('common.clearSortHint')"
+              @click="roleUsersSort.reset()"
+            >
+              {{ t('common.clearSort') }}
+            </UButton>
             <RefreshButton :loading="roleUsersLoading" :title="t('common.refreshSection')" @refresh="loadRoleUsers" />
           </div>
         </div>
@@ -587,9 +602,18 @@ function discardAndRefreshRole() {
             <table class="w-full text-sm">
               <thead>
                 <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
-                  <th class="px-6 py-3 font-semibold">{{ t('security.roles.detail.usersTab.columns.user') }}</th>
-                  <th class="px-6 py-3 font-semibold">{{ t('security.roles.detail.usersTab.columns.email') }}</th>
-                  <th class="px-6 py-3 font-semibold">{{ t('security.roles.detail.usersTab.columns.status') }}</th>
+                  <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="roleUsersSort.toggle('fullName')">
+                    {{ t('security.roles.detail.usersTab.columns.user') }}
+                    <SortIndicator :state="roleUsersSort.stateOf('fullName')" :multi-active="roleUsersIsMultiSort" @clear="roleUsersSort.remove('fullName')" />
+                  </th>
+                  <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="roleUsersSort.toggle('email')">
+                    {{ t('security.roles.detail.usersTab.columns.email') }}
+                    <SortIndicator :state="roleUsersSort.stateOf('email')" :multi-active="roleUsersIsMultiSort" @clear="roleUsersSort.remove('email')" />
+                  </th>
+                  <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="roleUsersSort.toggle('status')">
+                    {{ t('security.roles.detail.usersTab.columns.status') }}
+                    <SortIndicator :state="roleUsersSort.stateOf('status')" :multi-active="roleUsersIsMultiSort" @clear="roleUsersSort.remove('status')" />
+                  </th>
                   <th class="px-6 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
                 </tr>
               </thead>

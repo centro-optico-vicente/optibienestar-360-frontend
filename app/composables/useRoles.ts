@@ -35,6 +35,7 @@ interface OptionsParams {
 interface ListParams {
   q?: string
   includeInactive?: boolean
+  sort?: string[]
 }
 
 export const useRoles = () => {
@@ -43,6 +44,7 @@ export const useRoles = () => {
       query: {
         ...(params.q ? { q: params.q } : {}),
         ...(params.includeInactive ? { includeInactive: 'true' } : {}),
+        ...(params.sort?.length ? { sort: params.sort } : {}),
       },
     }))
 
@@ -88,8 +90,10 @@ export const useRoles = () => {
     toItems(await useApi<Page<PermissionDomainDto> | PermissionDomainDto[]>('/v1/admin/permissions'))
 
   // ---- Usuarios asignados al rol (V79: GET requires ROLE_USER_VIEW_ALL; POST requires ROLE_USER_CREATE; DELETE requires ROLE_USER_DELETE) ----
-  const listUsers = (roleUuid: string) =>
-    useApi<RoleUserDto[]>(`/v1/admin/roles/${roleUuid}/users`)
+  const listUsers = (roleUuid: string, sort?: string[]) =>
+    useApi<RoleUserDto[]>(`/v1/admin/roles/${roleUuid}/users`, {
+      query: sort?.length ? { sort } : {},
+    })
 
   const assignUser = (roleUuid: string, userUuid: string) =>
     useApi<RoleUserDto>(`/v1/admin/roles/${roleUuid}/users`, { method: 'POST', body: { userUuid } })
