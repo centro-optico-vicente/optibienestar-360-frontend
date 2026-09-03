@@ -159,11 +159,14 @@ const displayName = computed(() => {
 // ---- Beneficiaries ----
 const beneficiaries = ref<BeneficiaryDto[]>([])
 const beneficiariesLoading = ref(false)
+const beneficiariesSort = useTableSort([])
+const beneficiariesHasActiveSort = computed(() => beneficiariesSort.orders.value.length > 0)
+const beneficiariesIsMultiSort = computed(() => beneficiariesSort.orders.value.length > 1)
 
 async function loadBeneficiaries() {
   beneficiariesLoading.value = true
   try {
-    beneficiaries.value = await members.listBeneficiaries(memberUuid)
+    beneficiaries.value = await members.listBeneficiaries(memberUuid, beneficiariesSort.sortParam.value)
   }
   catch {
     // useApi already notified the error
@@ -172,6 +175,8 @@ async function loadBeneficiaries() {
     beneficiariesLoading.value = false
   }
 }
+
+watch(beneficiariesSort.orders, () => loadBeneficiaries(), { deep: true })
 
 const benFormOpen = ref(false)
 const benMode = ref<'create' | 'edit'>('create')
@@ -694,6 +699,17 @@ async function refreshAll() {
                 {{ t('members.beneficiaries.add') }}
               </UButton>
             </UTooltip>
+            <UButton
+              v-if="beneficiariesHasActiveSort"
+              variant="link"
+              color="neutral"
+              size="sm"
+              icon="i-lucide-list-restart"
+              :title="t('common.clearSortHint')"
+              @click="beneficiariesSort.reset()"
+            >
+              {{ t('common.clearSort') }}
+            </UButton>
             <RefreshButton :loading="beneficiariesLoading" :title="t('common.refreshSection')" @refresh="loadBeneficiaries" />
           </div>
         </div>
@@ -702,12 +718,27 @@ async function refreshAll() {
           <table class="w-full text-sm">
             <thead>
               <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
-                <th class="px-6 py-3 font-semibold">{{ t('members.beneficiaries.columns.name') }}</th>
-                <th class="px-6 py-3 font-semibold">{{ t('members.beneficiaries.columns.document') }}</th>
-                <th class="px-6 py-3 font-semibold">{{ t('members.beneficiaries.columns.birthDate') }}</th>
-                <th class="px-6 py-3 font-semibold">{{ t('members.beneficiaries.columns.relationship') }}</th>
+                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="beneficiariesSort.toggle('fullName')">
+                  {{ t('members.beneficiaries.columns.name') }}
+                  <SortIndicator :state="beneficiariesSort.stateOf('fullName')" :multi-active="beneficiariesIsMultiSort" @clear="beneficiariesSort.remove('fullName')" />
+                </th>
+                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="beneficiariesSort.toggle('documentNumber')">
+                  {{ t('members.beneficiaries.columns.document') }}
+                  <SortIndicator :state="beneficiariesSort.stateOf('documentNumber')" :multi-active="beneficiariesIsMultiSort" @clear="beneficiariesSort.remove('documentNumber')" />
+                </th>
+                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="beneficiariesSort.toggle('birthDate')">
+                  {{ t('members.beneficiaries.columns.birthDate') }}
+                  <SortIndicator :state="beneficiariesSort.stateOf('birthDate')" :multi-active="beneficiariesIsMultiSort" @clear="beneficiariesSort.remove('birthDate')" />
+                </th>
+                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="beneficiariesSort.toggle('relationship')">
+                  {{ t('members.beneficiaries.columns.relationship') }}
+                  <SortIndicator :state="beneficiariesSort.stateOf('relationship')" :multi-active="beneficiariesIsMultiSort" @clear="beneficiariesSort.remove('relationship')" />
+                </th>
                 <th class="px-6 py-3 font-semibold">{{ t('members.beneficiaries.columns.extraInscription') }}</th>
-                <th class="px-6 py-3 font-semibold">{{ t('members.beneficiaries.columns.status') }}</th>
+                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="beneficiariesSort.toggle('status')">
+                  {{ t('members.beneficiaries.columns.status') }}
+                  <SortIndicator :state="beneficiariesSort.stateOf('status')" :multi-active="beneficiariesIsMultiSort" @clear="beneficiariesSort.remove('status')" />
+                </th>
                 <th class="px-6 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
               </tr>
             </thead>

@@ -195,10 +195,35 @@ function memberBucket(row: PromoterMemberRow): 'active' | 'overdue' | 'withoutMe
   return 'withoutMembership'
 }
 
+// No paginated/sortable backend endpoint backs the portfolio — it's an
+// embedded array on the dashboard aggregate — so sort is applied client-side
+// over the already-fetched rows.
+const portfolioSort = useTableSort([])
+const portfolioHasActiveSort = computed(() => portfolioSort.orders.value.length > 0)
+const portfolioIsMultiSort = computed(() => portfolioSort.orders.value.length > 1)
+
+function compareValues(a: unknown, b: unknown): number {
+  if (typeof a === 'number' && typeof b === 'number') return a - b
+  return String(a ?? '').localeCompare(String(b ?? ''))
+}
+
 const filteredPortfolio = computed(() => {
   const rows = dashboard.value?.portfolio ?? []
-  if (referralFilter.value === 'all') return rows
-  return rows.filter(r => memberBucket(r) === referralFilter.value)
+  const filtered = referralFilter.value === 'all' ? rows : rows.filter(r => memberBucket(r) === referralFilter.value)
+  const orders = portfolioSort.orders.value
+  if (orders.length === 0) return filtered
+  const sorted = [...filtered]
+  sorted.sort((a, b) => {
+    for (const o of orders) {
+      const cmp = compareValues(
+        (a as unknown as Record<string, unknown>)[o.field],
+        (b as unknown as Record<string, unknown>)[o.field],
+      )
+      if (cmp !== 0) return o.direction === 'asc' ? cmp : -cmp
+    }
+    return 0
+  })
+  return sorted
 })
 
 function membershipStatusLabel(status: PromoterMemberRow['membershipStatus']): string {
@@ -221,13 +246,34 @@ function date(iso?: string | null): string {
 // =========================================================
 // Comisiones por período
 // =========================================================
-const commissionsSummary = ref<CommissionPeriodSummaryDto[]>([])
+const commissionsSummaryRaw = ref<CommissionPeriodSummaryDto[]>([])
 const commissionsLoading = ref(false)
+
+// Same rationale as the portfolio table: an aggregate array, no server-side sort concept.
+const commissionsSort = useTableSort([])
+const commissionsHasActiveSort = computed(() => commissionsSort.orders.value.length > 0)
+const commissionsIsMultiSort = computed(() => commissionsSort.orders.value.length > 1)
+const commissionsSummary = computed(() => {
+  const orders = commissionsSort.orders.value
+  if (orders.length === 0) return commissionsSummaryRaw.value
+  const sorted = [...commissionsSummaryRaw.value]
+  sorted.sort((a, b) => {
+    for (const o of orders) {
+      const cmp = compareValues(
+        (a as unknown as Record<string, unknown>)[o.field],
+        (b as unknown as Record<string, unknown>)[o.field],
+      )
+      if (cmp !== 0) return o.direction === 'asc' ? cmp : -cmp
+    }
+    return 0
+  })
+  return sorted
+})
 
 async function loadCommissionsSummary() {
   commissionsLoading.value = true
   try {
-    commissionsSummary.value = await promoters.commissionsSummary(promoterUuid)
+    commissionsSummaryRaw.value = await promoters.commissionsSummary(promoterUuid)
   }
   catch {
     // toast handled by useApi
@@ -445,6 +491,17 @@ async function loadCommissionsSummary() {
             >
               {{ t('promoters.detail.referrals.filters.withoutMembership') }} ({{ dashboard?.affiliatesWithoutMembership ?? 0 }})
             </UButton>
+            <UButton
+              v-if="portfolioHasActiveSort"
+              variant="link"
+              color="neutral"
+              size="xs"
+              icon="i-lucide-list-restart"
+              :title="t('common.clearSortHint')"
+              @click="portfolioSort.reset()"
+            >
+              {{ t('common.clearSort') }}
+            </UButton>
           </div>
         </div>
 
@@ -452,10 +509,22 @@ async function loadCommissionsSummary() {
           <table class="w-full text-sm">
             <thead>
               <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
-                <th class="px-6 py-3 font-semibold">{{ t('promoters.detail.referrals.columns.member') }}</th>
-                <th class="px-6 py-3 font-semibold">{{ t('promoters.detail.referrals.columns.status') }}</th>
-                <th class="px-6 py-3 font-semibold">{{ t('promoters.detail.referrals.columns.nextDueDate') }}</th>
-                <th class="px-6 py-3 font-semibold">{{ t('promoters.detail.referrals.columns.monthlyFee') }}</th>
+                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="portfolioSort.toggle('memberName')">
+                  {{ t('promoters.detail.referrals.columns.member') }}
+                  <SortIndicator :state="portfolioSort.stateOf('memberName')" :multi-active="portfolioIsMultiSort" @clear="portfolioSort.remove('memberName')" />
+                </th>
+                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="portfolioSort.toggle('membershipStatus')">
+                  {{ t('promoters.detail.referrals.columns.status') }}
+                  <SortIndicator :state="portfolioSort.stateOf('membershipStatus')" :multi-active="portfolioIsMultiSort" @clear="portfolioSort.remove('membershipStatus')" />
+                </th>
+                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="portfolioSort.toggle('nextDueDate')">
+                  {{ t('promoters.detail.referrals.columns.nextDueDate') }}
+                  <SortIndicator :state="portfolioSort.stateOf('nextDueDate')" :multi-active="portfolioIsMultiSort" @clear="portfolioSort.remove('nextDueDate')" />
+                </th>
+                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="portfolioSort.toggle('monthlyFee')">
+                  {{ t('promoters.detail.referrals.columns.monthlyFee') }}
+                  <SortIndicator :state="portfolioSort.stateOf('monthlyFee')" :multi-active="portfolioIsMultiSort" @clear="portfolioSort.remove('monthlyFee')" />
+                </th>
               </tr>
             </thead>
             <tbody class="divide-y divide-prohealth-100">
@@ -488,16 +557,38 @@ async function loadCommissionsSummary() {
             <h2 class="font-bold text-prohealth-900">{{ t('promoters.detail.commissions.title') }}</h2>
             <p class="text-xs text-prohealth-500 mt-0.5">{{ t('promoters.detail.commissions.hint') }}</p>
           </div>
-          <RefreshButton :loading="commissionsLoading" :title="t('common.refreshSection')" @refresh="loadCommissionsSummary" />
+          <div class="flex items-center gap-2">
+            <UButton
+              v-if="commissionsHasActiveSort"
+              variant="link"
+              color="neutral"
+              size="sm"
+              icon="i-lucide-list-restart"
+              :title="t('common.clearSortHint')"
+              @click="commissionsSort.reset()"
+            >
+              {{ t('common.clearSort') }}
+            </UButton>
+            <RefreshButton :loading="commissionsLoading" :title="t('common.refreshSection')" @refresh="loadCommissionsSummary" />
+          </div>
         </div>
 
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
             <thead>
               <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
-                <th class="px-6 py-3 font-semibold">{{ t('promoters.detail.commissions.columns.period') }}</th>
-                <th class="px-6 py-3 font-semibold">{{ t('promoters.detail.commissions.columns.count') }}</th>
-                <th class="px-6 py-3 font-semibold">{{ t('promoters.detail.commissions.columns.total') }}</th>
+                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="commissionsSort.toggle('periodStart')">
+                  {{ t('promoters.detail.commissions.columns.period') }}
+                  <SortIndicator :state="commissionsSort.stateOf('periodStart')" :multi-active="commissionsIsMultiSort" @clear="commissionsSort.remove('periodStart')" />
+                </th>
+                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="commissionsSort.toggle('commissionCount')">
+                  {{ t('promoters.detail.commissions.columns.count') }}
+                  <SortIndicator :state="commissionsSort.stateOf('commissionCount')" :multi-active="commissionsIsMultiSort" @clear="commissionsSort.remove('commissionCount')" />
+                </th>
+                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="commissionsSort.toggle('totalAmount')">
+                  {{ t('promoters.detail.commissions.columns.total') }}
+                  <SortIndicator :state="commissionsSort.stateOf('totalAmount')" :multi-active="commissionsIsMultiSort" @clear="commissionsSort.remove('totalAmount')" />
+                </th>
               </tr>
             </thead>
             <tbody class="divide-y divide-prohealth-100">

@@ -97,7 +97,12 @@ const pagedRoles = computed(() => {
 // Guards the filter watchers so "clear filters and refresh" fires a single reload.
 const resetting = ref(false)
 
+const sort = useTableSort([])
+const hasActiveSort = computed(() => sort.orders.value.length > 0)
+const isMultiSort = computed(() => sort.orders.value.length > 1)
+
 watch(size, () => { if (!resetting.value) page.value = 1 })
+watch(sort.orders, () => { if (!resetting.value) { page.value = 1; loadRoles() } }, { deep: true })
 let searchTimer: ReturnType<typeof setTimeout> | undefined
 watch(search, () => {
   if (resetting.value) return
@@ -115,6 +120,7 @@ async function resetFilters() {
   includeInactive.value = false
   size.value = DEFAULT_PAGE_SIZE
   page.value = 1
+  sort.reset()
   await nextTick()
   resetting.value = false
   loadRoles()
@@ -123,7 +129,11 @@ async function resetFilters() {
 async function loadRoles() {
   loading.value = true
   try {
-    roles.value = await rolesApi.list({ q: search.value.trim() || undefined, includeInactive: includeInactive.value })
+    roles.value = await rolesApi.list({
+      q: search.value.trim() || undefined,
+      includeInactive: includeInactive.value,
+      sort: sort.sortParam.value,
+    })
   }
   catch {
     roles.value = []
@@ -363,6 +373,17 @@ function openEdit(role: RoleDto) {
         class="w-full max-w-md"
       />
       <UCheckbox v-model="includeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
+      <UButton
+        v-if="hasActiveSort"
+        variant="link"
+        color="neutral"
+        size="sm"
+        icon="i-lucide-list-restart"
+        :title="t('common.clearSortHint')"
+        @click="sort.reset()"
+      >
+        {{ t('common.clearSort') }}
+      </UButton>
     </div>
 
     <!-- Tabla de roles -->
@@ -371,8 +392,14 @@ function openEdit(role: RoleDto) {
         <table class="w-full text-sm">
           <thead class="sticky top-0 bg-white z-10">
             <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
-              <th class="px-5 py-3 font-semibold">{{ $t('security.roles.columns.role') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ $t('security.roles.columns.description') }}</th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('name')">
+                {{ $t('security.roles.columns.role') }}
+                <SortIndicator :state="sort.stateOf('name')" :multi-active="isMultiSort" @clear="sort.remove('name')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('description')">
+                {{ $t('security.roles.columns.description') }}
+                <SortIndicator :state="sort.stateOf('description')" :multi-active="isMultiSort" @clear="sort.remove('description')" />
+              </th>
               <th class="px-5 py-3 font-semibold text-right">{{ $t('common.actions') }}</th>
             </tr>
           </thead>

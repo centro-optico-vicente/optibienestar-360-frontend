@@ -35,7 +35,7 @@
     "sortDirectionDesc": "descendente",
     "sortClear": "Quitar el orden de esta columna",
     "clearSort": "Restablecer orden",
-    "clearSortHint": "Vuelve al orden predeterminado del servidor",
+    "clearSortHint": "Vuelve al orden predeterminado",
     "refreshSection": "Refrescar esta sección",
     "refreshRecord": "Refrescar ficha y asociaciones",
     "discardChangesTitle": "¿Descartar cambios sin guardar?",

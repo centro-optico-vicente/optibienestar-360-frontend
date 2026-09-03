@@ -104,8 +104,10 @@ export const useAllies = () => {
     useApi<null>(`/v1/admin/allies/${allyUuid}/services/${uuid}`, { method: 'DELETE' })
 
   // ---- Acuerdos (ALLY_AGREEMENT_VIEW_ALL / _CREATE / _UPDATE / _DELETE) ----
-  const listAgreements = (allyUuid: string) =>
-    useApi<AllyAgreementDto[]>(`/v1/admin/allies/${allyUuid}/agreements`)
+  const listAgreements = (allyUuid: string, sort?: string[]) =>
+    useApi<AllyAgreementDto[]>(`/v1/admin/allies/${allyUuid}/agreements`, {
+      query: sort?.length ? { sort } : {},
+    })
 
   const createAgreement = (allyUuid: string, body: CreateAllyAgreementRequest) =>
     useApi<AllyAgreementDto>(`/v1/admin/allies/${allyUuid}/agreements`, { method: 'POST', body })
@@ -132,8 +134,10 @@ export const useAllies = () => {
     useApi<null>(`/v1/admin/allies/${allyUuid}/users/${uuid}`, { method: 'DELETE' })
 
   /** Inverse of listUsers: allies a given user belongs to (ALLY_VIEW_ALL). Always 200, `[]` if none. */
-  const listAlliesForUser = (userUuid: string) =>
-    useApi<UserAllyDto[]>(`/v1/admin/users/${userUuid}/allies`)
+  const listAlliesForUser = (userUuid: string, sort?: string[]) =>
+    useApi<UserAllyDto[]>(`/v1/admin/users/${userUuid}/allies`, {
+      query: sort?.length ? { sort } : {},
+    })
 
   // ---- Como aliado (panel /aliado/*) ----
   /** Propone un servicio para mi ally (queda en reviewStatus=PROPOSED). */

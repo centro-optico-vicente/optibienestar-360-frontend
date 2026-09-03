@@ -401,12 +401,15 @@ async function removeSpecialty(specialtyUuid: string) {
 // =========================================================
 const agreements = ref<AllyAgreementDto[]>([])
 const agreementsLoading = ref(false)
+const agreementsSort = useTableSort([])
+const agreementsHasActiveSort = computed(() => agreementsSort.orders.value.length > 0)
+const agreementsIsMultiSort = computed(() => agreementsSort.orders.value.length > 1)
 
 async function loadAgreements() {
   if (!canViewAgreements.value) return
   agreementsLoading.value = true
   try {
-    agreements.value = await allies.listAgreements(allyUuid)
+    agreements.value = await allies.listAgreements(allyUuid, agreementsSort.sortParam.value)
   }
   catch {
     // toast handled by useApi
@@ -415,6 +418,8 @@ async function loadAgreements() {
     agreementsLoading.value = false
   }
 }
+
+watch(agreementsSort.orders, () => loadAgreements(), { deep: true })
 
 const agrFormOpen = ref(false)
 const agrMode = ref<'create' | 'edit'>('create')
@@ -1127,6 +1132,17 @@ onMounted(async () => {
               @refresh="loadAgreements"
             />
             <UButton
+              v-if="agreementsHasActiveSort"
+              variant="link"
+              color="neutral"
+              size="sm"
+              icon="i-lucide-list-restart"
+              :title="t('common.clearSortHint')"
+              @click="agreementsSort.reset()"
+            >
+              {{ t('common.clearSort') }}
+            </UButton>
+            <UButton
               v-if="canCreateAgreements"
               color="primary"
               variant="soft"
@@ -1143,11 +1159,23 @@ onMounted(async () => {
           <table class="w-full text-sm">
             <thead>
               <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
-                <th class="px-6 py-3 font-semibold">{{ t('allies.agreements.columns.type') }}</th>
-                <th class="px-6 py-3 font-semibold">{{ t('allies.agreements.columns.start') }}</th>
-                <th class="px-6 py-3 font-semibold">{{ t('allies.agreements.columns.end') }}</th>
+                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="agreementsSort.toggle('agreementType')">
+                  {{ t('allies.agreements.columns.type') }}
+                  <SortIndicator :state="agreementsSort.stateOf('agreementType')" :multi-active="agreementsIsMultiSort" @clear="agreementsSort.remove('agreementType')" />
+                </th>
+                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="agreementsSort.toggle('startDate')">
+                  {{ t('allies.agreements.columns.start') }}
+                  <SortIndicator :state="agreementsSort.stateOf('startDate')" :multi-active="agreementsIsMultiSort" @clear="agreementsSort.remove('startDate')" />
+                </th>
+                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="agreementsSort.toggle('endDate')">
+                  {{ t('allies.agreements.columns.end') }}
+                  <SortIndicator :state="agreementsSort.stateOf('endDate')" :multi-active="agreementsIsMultiSort" @clear="agreementsSort.remove('endDate')" />
+                </th>
                 <th class="px-6 py-3 font-semibold">{{ t('allies.agreements.columns.pdf') }}</th>
-                <th class="px-6 py-3 font-semibold">{{ t('allies.agreements.columns.status') }}</th>
+                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="agreementsSort.toggle('status')">
+                  {{ t('allies.agreements.columns.status') }}
+                  <SortIndicator :state="agreementsSort.stateOf('status')" :multi-active="agreementsIsMultiSort" @clear="agreementsSort.remove('status')" />
+                </th>
                 <th class="px-6 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
               </tr>
             </thead>

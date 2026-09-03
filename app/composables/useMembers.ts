@@ -82,8 +82,10 @@ export const useMembers = () => {
     useApi<{ inUse: boolean, count: number }>(`/v1/admin/members/${uuid}/usage`)
 
   // ---- Beneficiarios (sub-recurso) ----
-  const listBeneficiaries = (memberUuid: string) =>
-    useApi<BeneficiaryDto[]>(`/v1/admin/members/${memberUuid}/beneficiaries`)
+  const listBeneficiaries = (memberUuid: string, sort?: string[]) =>
+    useApi<BeneficiaryDto[]>(`/v1/admin/members/${memberUuid}/beneficiaries`, {
+      query: sort?.length ? { sort } : {},
+    })
 
   const createBeneficiary = (memberUuid: string, body: CreateBeneficiaryRequest) =>
     useApi<BeneficiaryDto>(`/v1/admin/members/${memberUuid}/beneficiaries`, { method: 'POST', body })

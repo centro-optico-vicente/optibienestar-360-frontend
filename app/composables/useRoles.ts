@@ -35,6 +35,7 @@ interface OptionsParams {
 interface ListParams {
   q?: string
   includeInactive?: boolean
+  sort?: string[]
 }
 
 export const useRoles = () => {
@@ -43,6 +44,7 @@ export const useRoles = () => {
       query: {
         ...(params.q ? { q: params.q } : {}),
         ...(params.includeInactive ? { includeInactive: 'true' } : {}),
+        ...(params.sort?.length ? { sort: params.sort } : {}),
       },
     }))
 
