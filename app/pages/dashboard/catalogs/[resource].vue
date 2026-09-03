@@ -469,7 +469,14 @@ async function confirmDelete() {
                 {{ $t('catalogs.columns.parent') }}
                 <SortIndicator :state="sort.stateOf(def.parentDisplayField)" :multi-active="isMultiSort" @clear="sort.remove(def.parentDisplayField)" />
               </th>
-              <th v-if="hasDescription" class="px-5 py-3 font-semibold">{{ $t('catalogs.columns.description') }}</th>
+              <th
+                v-if="hasDescription"
+                class="px-5 py-3 font-semibold cursor-pointer select-none"
+                @click="sort.toggle('description')"
+              >
+                {{ $t('catalogs.columns.description') }}
+                <SortIndicator :state="sort.stateOf('description')" :multi-active="isMultiSort" @clear="sort.remove('description')" />
+              </th>
               <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('active')">
                 {{ $t('catalogs.columns.status') }}
                 <SortIndicator :state="sort.stateOf('active')" :multi-active="isMultiSort" @clear="sort.remove('active')" />
