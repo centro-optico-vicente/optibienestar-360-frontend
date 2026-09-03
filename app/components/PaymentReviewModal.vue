@@ -100,9 +100,9 @@ async function confirm() {
             <span class="text-prohealth-500">{{ t('payments.detail.fields.reference') }}</span>
             <span class="text-prohealth-800 font-mono">{{ payment.referenceNumber }}</span>
           </div>
-          <div v-if="payment.planCode" class="flex items-center justify-between">
+          <div v-if="payment.plan_Code" class="flex items-center justify-between">
             <span class="text-prohealth-500">{{ t('payments.detail.fields.plan') }}</span>
-            <span class="text-prohealth-800 font-mono">{{ payment.planCode }}</span>
+            <span class="text-prohealth-800 font-mono">{{ payment.plan_Code }}</span>
           </div>
         </div>
 

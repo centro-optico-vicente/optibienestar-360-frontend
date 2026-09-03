@@ -52,8 +52,9 @@ export interface BonusRuleDto {
   rewardPct?: number | string | null
   rewardCurrency: string
   includeSystemPromoters: boolean
-  promoterTypeUuid?: string | null
-  promoterTypeName?: string | null
+  promoterType_Uuid?: string | null
+  promoterType_Display?: string | null
+  promoterType_Code?: string | null
   active: boolean
   createdAt?: string
 }
