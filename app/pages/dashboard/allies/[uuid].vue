@@ -149,11 +149,14 @@ const activeTab = ref('services')
 // =========================================================
 const services = ref<AllyServiceDto[]>([])
 const servicesLoading = ref(false)
+const servicesSort = useTableSort([])
+const servicesHasActiveSort = computed(() => servicesSort.orders.value.length > 0)
+const servicesIsMultiSort = computed(() => servicesSort.orders.value.length > 1)
 
 async function loadServices() {
   servicesLoading.value = true
   try {
-    services.value = await allies.listServices(allyUuid)
+    services.value = await allies.listServices(allyUuid, servicesSort.sortParam.value)
   }
   catch {
     // toast handled by useApi
@@ -162,6 +165,7 @@ async function loadServices() {
     servicesLoading.value = false
   }
 }
+watch(servicesSort.orders, () => loadServices(), { deep: true })
 
 const categoryOptions = ref<{ label: string, value: string }[]>([])
 
@@ -551,12 +555,15 @@ async function confirmAgrDelete() {
 // =========================================================
 const staff = ref<AllyUserDto[]>([])
 const staffLoading = ref(false)
+const staffSort = useTableSort([])
+const staffHasActiveSort = computed(() => staffSort.orders.value.length > 0)
+const staffIsMultiSort = computed(() => staffSort.orders.value.length > 1)
 
 async function loadStaff() {
   if (!canViewStaff.value) return
   staffLoading.value = true
   try {
-    staff.value = await allies.listUsers(allyUuid)
+    staff.value = await allies.listUsers(allyUuid, staffSort.sortParam.value)
   }
   catch {
     // toast handled by useApi
@@ -565,6 +572,7 @@ async function loadStaff() {
     staffLoading.value = false
   }
 }
+watch(staffSort.orders, () => loadStaff(), { deep: true })
 
 // System users for the assignment selector (requires USER_VIEW_ALL; without the
 // permission it fails silently and the select stays empty).
@@ -903,6 +911,17 @@ onMounted(async () => {
             <p class="text-xs text-prohealth-500 mt-0.5">{{ t('allies.services.hint') }}</p>
           </div>
           <div class="flex items-center gap-2">
+            <UButton
+              v-if="servicesHasActiveSort"
+              variant="link"
+              color="neutral"
+              size="sm"
+              icon="i-lucide-list-restart"
+              :title="t('common.clearSortHint')"
+              @click="servicesSort.reset()"
+            >
+              {{ t('common.clearSort') }}
+            </UButton>
             <RefreshButton
               :loading="servicesLoading"
               :title="t('common.refreshSection')"
@@ -927,13 +946,34 @@ onMounted(async () => {
           <table class="w-full text-sm">
             <thead>
               <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
-                <th class="px-6 py-3 font-semibold">{{ t('allies.services.columns.service') }}</th>
-                <th class="px-6 py-3 font-semibold">{{ t('allies.services.columns.category') }}</th>
-                <th class="px-6 py-3 font-semibold">{{ t('allies.services.columns.price') }}</th>
-                <th class="px-6 py-3 font-semibold">{{ t('allies.services.columns.discount') }}</th>
-                <th class="px-6 py-3 font-semibold">{{ t('allies.services.columns.appointment') }}</th>
-                <th class="px-6 py-3 font-semibold">{{ t('allies.services.columns.review') }}</th>
-                <th class="px-6 py-3 font-semibold">{{ t('allies.services.columns.published') }}</th>
+                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="servicesSort.toggle('name')">
+                  {{ t('allies.services.columns.service') }}
+                  <SortIndicator :state="servicesSort.stateOf('name')" :multi-active="servicesIsMultiSort" @clear="servicesSort.remove('name')" />
+                </th>
+                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="servicesSort.toggle('serviceCategory')">
+                  {{ t('allies.services.columns.category') }}
+                  <SortIndicator :state="servicesSort.stateOf('serviceCategory')" :multi-active="servicesIsMultiSort" @clear="servicesSort.remove('serviceCategory')" />
+                </th>
+                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="servicesSort.toggle('priceUsd')">
+                  {{ t('allies.services.columns.price') }}
+                  <SortIndicator :state="servicesSort.stateOf('priceUsd')" :multi-active="servicesIsMultiSort" @clear="servicesSort.remove('priceUsd')" />
+                </th>
+                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="servicesSort.toggle('discountPct')">
+                  {{ t('allies.services.columns.discount') }}
+                  <SortIndicator :state="servicesSort.stateOf('discountPct')" :multi-active="servicesIsMultiSort" @clear="servicesSort.remove('discountPct')" />
+                </th>
+                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="servicesSort.toggle('requiresAppointment')">
+                  {{ t('allies.services.columns.appointment') }}
+                  <SortIndicator :state="servicesSort.stateOf('requiresAppointment')" :multi-active="servicesIsMultiSort" @clear="servicesSort.remove('requiresAppointment')" />
+                </th>
+                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="servicesSort.toggle('reviewStatus')">
+                  {{ t('allies.services.columns.review') }}
+                  <SortIndicator :state="servicesSort.stateOf('reviewStatus')" :multi-active="servicesIsMultiSort" @clear="servicesSort.remove('reviewStatus')" />
+                </th>
+                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="servicesSort.toggle('published')">
+                  {{ t('allies.services.columns.published') }}
+                  <SortIndicator :state="servicesSort.stateOf('published')" :multi-active="servicesIsMultiSort" @clear="servicesSort.remove('published')" />
+                </th>
                 <th class="px-6 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
               </tr>
             </thead>
@@ -1178,6 +1218,17 @@ onMounted(async () => {
             <p class="text-xs text-prohealth-500 mt-0.5">{{ t('allies.staff.hint') }}</p>
           </div>
           <div class="flex items-center gap-2">
+            <UButton
+              v-if="staffHasActiveSort"
+              variant="link"
+              color="neutral"
+              size="sm"
+              icon="i-lucide-list-restart"
+              :title="t('common.clearSortHint')"
+              @click="staffSort.reset()"
+            >
+              {{ t('common.clearSort') }}
+            </UButton>
             <RefreshButton
               :loading="staffLoading"
               :title="t('common.refreshSection')"
@@ -1202,11 +1253,26 @@ onMounted(async () => {
           <table class="w-full text-sm">
             <thead>
               <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
-                <th class="px-6 py-3 font-semibold">{{ t('allies.staff.columns.user') }}</th>
-                <th class="px-6 py-3 font-semibold">{{ t('allies.staff.columns.role') }}</th>
-                <th class="px-6 py-3 font-semibold">{{ t('allies.staff.columns.primary') }}</th>
-                <th class="px-6 py-3 font-semibold">{{ t('allies.staff.columns.since') }}</th>
-                <th class="px-6 py-3 font-semibold">{{ t('allies.staff.columns.status') }}</th>
+                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="staffSort.toggle('userFullName')">
+                  {{ t('allies.staff.columns.user') }}
+                  <SortIndicator :state="staffSort.stateOf('userFullName')" :multi-active="staffIsMultiSort" @clear="staffSort.remove('userFullName')" />
+                </th>
+                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="staffSort.toggle('allyRole')">
+                  {{ t('allies.staff.columns.role') }}
+                  <SortIndicator :state="staffSort.stateOf('allyRole')" :multi-active="staffIsMultiSort" @clear="staffSort.remove('allyRole')" />
+                </th>
+                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="staffSort.toggle('primary')">
+                  {{ t('allies.staff.columns.primary') }}
+                  <SortIndicator :state="staffSort.stateOf('primary')" :multi-active="staffIsMultiSort" @clear="staffSort.remove('primary')" />
+                </th>
+                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="staffSort.toggle('joinedAt')">
+                  {{ t('allies.staff.columns.since') }}
+                  <SortIndicator :state="staffSort.stateOf('joinedAt')" :multi-active="staffIsMultiSort" @clear="staffSort.remove('joinedAt')" />
+                </th>
+                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="staffSort.toggle('status')">
+                  {{ t('allies.staff.columns.status') }}
+                  <SortIndicator :state="staffSort.stateOf('status')" :multi-active="staffIsMultiSort" @clear="staffSort.remove('status')" />
+                </th>
                 <th class="px-6 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
               </tr>
             </thead>
