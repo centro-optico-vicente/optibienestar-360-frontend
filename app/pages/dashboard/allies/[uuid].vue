@@ -150,7 +150,7 @@ const activeTab = ref('services')
 const services = ref<AllyServiceDto[]>([])
 const servicesLoading = ref(false)
 const servicesSort = useTableSort([])
-const servicesHasActiveSort = computed(() => servicesSort.orders.value.length > 0)
+const servicesHasActiveSort = computed(() => servicesSort.hasActiveSort.value)
 const servicesIsMultiSort = computed(() => servicesSort.orders.value.length > 1)
 
 async function loadServices() {
@@ -402,7 +402,7 @@ async function removeSpecialty(specialtyUuid: string) {
 const agreements = ref<AllyAgreementDto[]>([])
 const agreementsLoading = ref(false)
 const agreementsSort = useTableSort([])
-const agreementsHasActiveSort = computed(() => agreementsSort.orders.value.length > 0)
+const agreementsHasActiveSort = computed(() => agreementsSort.hasActiveSort.value)
 const agreementsIsMultiSort = computed(() => agreementsSort.orders.value.length > 1)
 
 async function loadAgreements() {
@@ -561,7 +561,7 @@ async function confirmAgrDelete() {
 const staff = ref<AllyUserDto[]>([])
 const staffLoading = ref(false)
 const staffSort = useTableSort([])
-const staffHasActiveSort = computed(() => staffSort.orders.value.length > 0)
+const staffHasActiveSort = computed(() => staffSort.hasActiveSort.value)
 const staffIsMultiSort = computed(() => staffSort.orders.value.length > 1)
 
 async function loadStaff() {

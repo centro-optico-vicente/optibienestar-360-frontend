@@ -98,7 +98,7 @@ const pagedRoles = computed(() => {
 const resetting = ref(false)
 
 const sort = useTableSort([])
-const hasActiveSort = computed(() => sort.orders.value.length > 0)
+const hasActiveSort = computed(() => sort.hasActiveSort.value)
 const isMultiSort = computed(() => sort.orders.value.length > 1)
 
 watch(size, () => { if (!resetting.value) page.value = 1 })

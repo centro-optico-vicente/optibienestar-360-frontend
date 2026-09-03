@@ -60,7 +60,7 @@ const includeInactive = ref(false)
 // table has no "Creado" header to toggle it off — so it would silently stick
 // as a phantom secondary sort behind whatever column the user picks.
 const sort = useTableSort([])
-const hasActiveSort = computed(() => sort.orders.value.length > 0)
+const hasActiveSort = computed(() => sort.hasActiveSort.value)
 const isMultiSort = computed(() => sort.orders.value.length > 1)
 
 async function load() {

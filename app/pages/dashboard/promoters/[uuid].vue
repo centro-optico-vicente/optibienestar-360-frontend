@@ -199,7 +199,7 @@ function memberBucket(row: PromoterMemberRow): 'active' | 'overdue' | 'withoutMe
 // embedded array on the dashboard aggregate — so sort is applied client-side
 // over the already-fetched rows.
 const portfolioSort = useTableSort([])
-const portfolioHasActiveSort = computed(() => portfolioSort.orders.value.length > 0)
+const portfolioHasActiveSort = computed(() => portfolioSort.hasActiveSort.value)
 const portfolioIsMultiSort = computed(() => portfolioSort.orders.value.length > 1)
 
 function compareValues(a: unknown, b: unknown): number {
@@ -251,7 +251,7 @@ const commissionsLoading = ref(false)
 
 // Same rationale as the portfolio table: an aggregate array, no server-side sort concept.
 const commissionsSort = useTableSort([])
-const commissionsHasActiveSort = computed(() => commissionsSort.orders.value.length > 0)
+const commissionsHasActiveSort = computed(() => commissionsSort.hasActiveSort.value)
 const commissionsIsMultiSort = computed(() => commissionsSort.orders.value.length > 1)
 const commissionsSummary = computed(() => {
   const orders = commissionsSort.orders.value

@@ -34,7 +34,7 @@ const includeInactive = ref(false)
 // the backend's own default-sort fallback (entity_config → system_configs
 // → earnedAt DESC) applies.
 const sort = useTableSort([])
-const hasActiveSort = computed(() => sort.orders.value.length > 0)
+const hasActiveSort = computed(() => sort.hasActiveSort.value)
 const isMultiSort = computed(() => sort.orders.value.length > 1)
 
 async function load() {

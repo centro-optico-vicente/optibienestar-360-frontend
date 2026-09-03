@@ -91,7 +91,7 @@ const pageSizeItems = buildPageSizeItems(t)
 // the backend's own default-sort fallback (entity_config → system_configs
 // → `name` ASC) applies — same reasoning as the allies pilot.
 const sort = useTableSort([])
-const hasActiveSort = computed(() => sort.orders.value.length > 0)
+const hasActiveSort = computed(() => sort.hasActiveSort.value)
 const isMultiSort = computed(() => sort.orders.value.length > 1)
 
 function api() {

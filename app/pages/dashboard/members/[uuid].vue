@@ -160,7 +160,7 @@ const displayName = computed(() => {
 const beneficiaries = ref<BeneficiaryDto[]>([])
 const beneficiariesLoading = ref(false)
 const beneficiariesSort = useTableSort([])
-const beneficiariesHasActiveSort = computed(() => beneficiariesSort.orders.value.length > 0)
+const beneficiariesHasActiveSort = computed(() => beneficiariesSort.hasActiveSort.value)
 const beneficiariesIsMultiSort = computed(() => beneficiariesSort.orders.value.length > 1)
 
 async function loadBeneficiaries() {

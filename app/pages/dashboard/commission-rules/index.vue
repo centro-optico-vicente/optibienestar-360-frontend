@@ -108,7 +108,7 @@ function buildTierFilter(): string | undefined {
 // the backend's own default-sort fallback (entity_config → system_configs
 // → thresholdCount ASC) applies.
 const tierSort = useTableSort([])
-const tierHasActiveSort = computed(() => tierSort.orders.value.length > 0)
+const tierHasActiveSort = computed(() => tierSort.hasActiveSort.value)
 const tierIsMultiSort = computed(() => tierSort.orders.value.length > 1)
 
 async function loadTiers() {
@@ -246,7 +246,7 @@ const bonusSize = ref(DEFAULT_PAGE_SIZE)
 // the backend's own default-sort fallback (entity_config → system_configs
 // → createdAt DESC) applies.
 const bonusSort = useTableSort([])
-const bonusHasActiveSort = computed(() => bonusSort.orders.value.length > 0)
+const bonusHasActiveSort = computed(() => bonusSort.hasActiveSort.value)
 const bonusIsMultiSort = computed(() => bonusSort.orders.value.length > 1)
 
 async function loadBonusRules() {
@@ -356,7 +356,7 @@ const collectionSize = ref(DEFAULT_PAGE_SIZE)
 // the backend's own default-sort fallback (entity_config → system_configs
 // → maxDays ASC) applies.
 const collectionSort = useTableSort([])
-const collectionHasActiveSort = computed(() => collectionSort.orders.value.length > 0)
+const collectionHasActiveSort = computed(() => collectionSort.hasActiveSort.value)
 const collectionIsMultiSort = computed(() => collectionSort.orders.value.length > 1)
 
 async function loadCollectionTiers() {

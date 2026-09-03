@@ -129,7 +129,7 @@ async function onPermissionsSaved() {
 const roleUsers = ref<RoleUserDto[]>([])
 const roleUsersLoading = ref(false)
 const roleUsersSort = useTableSort([])
-const roleUsersHasActiveSort = computed(() => roleUsersSort.orders.value.length > 0)
+const roleUsersHasActiveSort = computed(() => roleUsersSort.hasActiveSort.value)
 const roleUsersIsMultiSort = computed(() => roleUsersSort.orders.value.length > 1)
 
 async function loadRoleUsers() {

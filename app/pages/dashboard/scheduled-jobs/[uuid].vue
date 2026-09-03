@@ -55,7 +55,7 @@ const runsLoading = ref(false)
 // the backend's own default-sort fallback (entity_config → system_configs
 // → startedAt DESC) applies.
 const runsSort = useTableSort([])
-const runsHasActiveSort = computed(() => runsSort.orders.value.length > 0)
+const runsHasActiveSort = computed(() => runsSort.hasActiveSort.value)
 const runsIsMultiSort = computed(() => runsSort.orders.value.length > 1)
 // Guards the appliedSort-sync assignment below from re-triggering the
 // `watch(runsSort.orders, ...)` reload (would otherwise loop forever).

@@ -76,7 +76,7 @@ const userRolesRaw = computed<RoleDto[]>(() => user.value?.roles ?? [])
 // GET /v1/admin/users/{uuid} itself), so sort is applied client-side over the
 // already-fetched array instead of round-tripping to the server.
 const userRolesSort = useTableSort([])
-const userRolesHasActiveSort = computed(() => userRolesSort.orders.value.length > 0)
+const userRolesHasActiveSort = computed(() => userRolesSort.hasActiveSort.value)
 const userRolesIsMultiSort = computed(() => userRolesSort.orders.value.length > 1)
 const userRoles = computed<RoleDto[]>(() => {
   const orders = userRolesSort.orders.value
@@ -169,7 +169,7 @@ const userAllies = ref<UserAllyRow[]>([])
 const userAlliesLoading = ref(false)
 const allAllies = ref<AllyListItemDto[]>([])
 const userAlliesSort = useTableSort([])
-const userAlliesHasActiveSort = computed(() => userAlliesSort.orders.value.length > 0)
+const userAlliesHasActiveSort = computed(() => userAlliesSort.hasActiveSort.value)
 const userAlliesIsMultiSort = computed(() => userAlliesSort.orders.value.length > 1)
 
 async function loadUserAllies() {
