@@ -1,12 +1,6 @@
 <script setup lang="ts">
 import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
-import { z } from 'zod'
-import type { FormSubmitEvent } from '@nuxt/ui'
-import type {
-  AdminCreateUserRequest,
-  AdminUpdateUserRequest,
-  UserDto,
-} from '~/types/admin'
+import type { UserDto } from '~/types/admin'
 import type { SortDirection } from '~/composables/useTableSort'
 
 definePageMeta({
@@ -20,7 +14,6 @@ const { t } = useI18n()
 useSeoMeta({ title: () => t('security.users.seoTitle') })
 
 const users = useUsers()
-const roles = useRoles()
 const { can } = usePermissions()
 const { formatDate } = useFormatters()
 const toast = useToast()
@@ -123,240 +116,65 @@ async function resetFilters() {
   load()
 }
 
-// ---- Catálogo de roles para el selector ----
-const roleOptions = ref<{ label: string, value: string }[]>([])
-
-async function loadRoles() {
-  try {
-    const res = await roles.options({ limit: 200 })
-    roleOptions.value = res.map(o => ({ label: o.label, value: o.uuid }))
-  }
-  catch {
-    // useApi ya notificó el error; sin roles no se puede asignar.
-    roleOptions.value = []
-  }
-}
-
-// `?edit=<uuid>` lets the user detail page ("Edit user" button) reopen this
-// modal without duplicating the create/edit form on a second page.
-const route = useRoute()
-
-onMounted(async () => {
-  await load()
-  await Promise.all([loadRoles(), loadDocumentTypes()])
-  const editUuid = route.query.edit
-  if (typeof editUuid === 'string') {
-    try {
-      const target = await users.get(editUuid)
-      openEdit(target)
-    }
-    catch {
-      // Invalid/removed uuid: silently ignore, stay on the list.
-    }
-  }
-})
-
-// ---- Formulario crear/editar ----
-const formOpen = ref(false)
-const mode = ref<'create' | 'edit'>('create')
-const editingUuid = ref<string | null>(null)
-const editingItem = ref<UserDto | null>(null)
-const isSubmitting = ref(false)
-
-// Backend only accepts these (AdminUpdateUserRequest.status pattern).
-const STATUS_VALUES = ['ACTIVE', 'SUSPENDED', 'LOCKED']
-const statusOptions = computed(() =>
-  STATUS_VALUES.map(s => ({ label: t(`security.users.status.${s}`), value: s })),
-)
-
 /** Prefers the server-resolved `_Display` sibling (hub ADR 0014); falls back to the local i18n lookup. */
+const STATUS_VALUES = ['ACTIVE', 'SUSPENDED', 'LOCKED']
 function statusLabel(u: UserDto): string {
   if (u.active === false) return u.active_Display ?? t('security.users.inactive')
   if (!u.status) return t('common.empty')
   return u.status_Display ?? (STATUS_VALUES.includes(u.status) ? t(`security.users.status.${u.status}`) : u.status)
 }
 
-// Tipos de documento desde el catálogo real (/v1/admin/catalogs/document-types).
-const { options: documentTypeOptions, load: loadDocumentTypes } = useDocumentTypes()
+// `?edit=<uuid>` lets the user detail page ("Editar" button) reopen this
+// modal without duplicating the create/edit form on a second page.
+const route = useRoute()
+const router = useRouter()
 
-interface FormState {
-  email: string
-  firstName: string
-  middleName: string
-  lastName: string
-  secondLastName: string
-  password: string
-  documentType: string | undefined
-  documentNumber: string
-  phone: string
-  status: string
-  active: boolean
-  roleIds: string[]
-}
-
-const state = reactive<FormState>({
-  email: '',
-  firstName: '',
-  middleName: '',
-  lastName: '',
-  secondLastName: '',
-  password: '',
-  documentType: undefined,
-  documentNumber: '',
-  phone: '',
-  status: 'ACTIVE',
-  active: true,
-  roleIds: [],
+// `?delete=<uuid>` lets the user detail page ("Eliminar" inside the edit
+// modal) delegate to this page's delete modal, which it has no equivalent of.
+onMounted(async () => {
+  await load()
+  const editUuid = route.query.edit as string | undefined
+  const deleteUuid = route.query.delete as string | undefined
+  const targetUuid = editUuid || deleteUuid
+  if (!targetUuid) return
+  await router.replace({ query: {} })
+  try {
+    const found = await users.get(targetUuid)
+    if (editUuid) openEdit(found)
+    else openDelete(found)
+  }
+  catch {
+    // Invalid/removed uuid: silently ignore, stay on the list.
+  }
 })
 
-const createSchema = computed(() => z.object({
-  email: z.string().email(t('validation.emailInvalid')),
-  firstName: z.string().min(1, t('validation.required')).max(50, t('validation.maxChars', { n: 50 })),
-  middleName: z.string().max(50, t('validation.maxChars', { n: 50 })).optional(),
-  lastName: z.string().min(1, t('validation.required')).max(50, t('validation.maxChars', { n: 50 })),
-  secondLastName: z.string().max(50, t('validation.maxChars', { n: 50 })).optional(),
-  password: z
-    .string()
-    .min(10, t('validation.minChars', { n: 10 }))
-    .regex(/[A-Z]/, t('validation.passwordUppercase'))
-    .regex(/[a-z]/, t('validation.passwordLowercase'))
-    .regex(/[0-9]/, t('validation.passwordNumber'))
-    .regex(/[^A-Za-z0-9]/, t('validation.passwordSymbol')),
-  documentType: z.string().min(1, t('validation.required')),
-  documentNumber: z.string().min(1, t('validation.required')),
-  phone: z.string().optional(),
-  roleIds: z.array(z.string()).min(1, t('security.users.selectAtLeastOneRole')),
-}))
-
-const editSchema = computed(() => z.object({
-  email: z.string().email(t('validation.emailInvalid')).optional(),
-  firstName: z.string().min(1, t('validation.required')).max(50, t('validation.maxChars', { n: 50 })),
-  middleName: z.string().max(50, t('validation.maxChars', { n: 50 })).optional(),
-  lastName: z.string().min(1, t('validation.required')).max(50, t('validation.maxChars', { n: 50 })),
-  secondLastName: z.string().max(50, t('validation.maxChars', { n: 50 })).optional(),
-  documentType: z.string().optional(),
-  documentNumber: z.string().optional(),
-  phone: z.string().optional(),
-  status: z.string(),
-  roleIds: z.array(z.string()).min(1, t('security.users.selectAtLeastOneRole')),
-}))
-
-const schema = computed(() => (mode.value === 'create' ? createSchema.value : editSchema.value))
-
-function resetForm() {
-  state.email = ''
-  state.firstName = ''
-  state.middleName = ''
-  state.lastName = ''
-  state.secondLastName = ''
-  state.password = ''
-  state.documentType = undefined
-  state.documentNumber = ''
-  state.phone = ''
-  state.status = 'ACTIVE'
-  state.active = true
-  state.roleIds = []
-}
+// ---- Formulario crear/editar (UserFormModal.vue) ----
+const formOpen = ref(false)
+const mode = ref<'create' | 'edit'>('create')
+const editingItem = ref<UserDto | null>(null)
 
 function openCreate() {
   mode.value = 'create'
-  editingUuid.value = null
-  resetForm()
+  editingItem.value = null
   formOpen.value = true
-}
-
-// Snapshot of the last-loaded edit state, used to warn before a refresh
-// discards unsaved changes.
-const editSnapshot = ref('')
-function snapEditState() { return JSON.stringify(state) }
-const isEditDirty = computed(() => editSnapshot.value !== '' && snapEditState() !== editSnapshot.value)
-const discardConfirmOpen = ref(false)
-const editReloading = ref(false)
-
-function populateEditForm(u: UserDto) {
-  editingUuid.value = u.uuid
-  editingItem.value = u
-  resetForm()
-  state.email = u.email
-  state.firstName = u.firstName ?? ''
-  state.middleName = u.middleName ?? ''
-  state.lastName = u.lastName ?? ''
-  state.secondLastName = u.secondLastName ?? ''
-  state.documentType = u.documentType || undefined
-  state.documentNumber = u.documentNumber ?? ''
-  state.phone = u.phone ?? ''
-  state.status = u.status || 'ACTIVE'
-  state.active = u.active ?? true
-  state.roleIds = (u.roles ?? []).map(r => r.uuid)
-  editSnapshot.value = snapEditState()
 }
 
 function openEdit(u: UserDto) {
   mode.value = 'edit'
-  populateEditForm(u)
+  editingItem.value = u
   formOpen.value = true
 }
 
-async function reloadEditForm() {
-  if (!editingUuid.value) return
-  editReloading.value = true
-  try { populateEditForm(await users.get(editingUuid.value)) }
-  catch { /* useApi already notified */ }
-  finally { editReloading.value = false }
-}
-function onEditRefresh() {
-  if (isEditDirty.value) discardConfirmOpen.value = true
-  else reloadEditForm()
-}
-function discardAndRefresh() {
-  discardConfirmOpen.value = false
-  reloadEditForm()
+async function onUserSaved() {
+  await load()
 }
 
-async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
-  isSubmitting.value = true
-  try {
-    if (mode.value === 'create') {
-      const body: AdminCreateUserRequest = {
-        email: state.email,
-        firstName: state.firstName,
-        middleName: state.middleName || undefined,
-        lastName: state.lastName,
-        secondLastName: state.secondLastName || undefined,
-        password: state.password,
-        documentType: state.documentType!,
-        documentNumber: state.documentNumber,
-        phone: state.phone || undefined,
-        roleIds: state.roleIds,
-      }
-      await users.create(body)
-      toast.add({ title: t('security.users.createdToast'), color: 'success', icon: 'i-lucide-check-circle' })
-    }
-    else if (editingUuid.value) {
-      const body: AdminUpdateUserRequest = {
-        firstName: state.firstName,
-        middleName: state.middleName || undefined,
-        lastName: state.lastName,
-        secondLastName: state.secondLastName || undefined,
-        documentType: state.documentType || undefined,
-        documentNumber: state.documentNumber || undefined,
-        phone: state.phone || undefined,
-        status: state.status,
-        active: state.active,
-        roleIds: state.roleIds,
-      }
-      await users.update(editingUuid.value, body)
-      toast.add({ title: t('security.users.updatedToast'), color: 'success', icon: 'i-lucide-check-circle' })
-    }
-    formOpen.value = false
-    await load()
-  }
-  catch {
-    // useApi ya notificó el error (409 email duplicado, 422, etc.)
-  }
-  finally {
-    isSubmitting.value = false
-  }
+function onUserRestored() {
+  load()
+}
+
+function onUserDeleteRequested(u: UserDto) {
+  openDelete(u)
 }
 
 // ---- Eliminar ----
@@ -380,34 +198,6 @@ async function openDelete(u: UserDto) {
   }
   finally {
     usageChecking.value = false
-  }
-}
-
-// Shortcut from the edit modal so the user doesn't have to close it first
-// and hunt for the row's trash icon. Closes the edit modal so the two
-// dialogs never stack.
-function openDeleteFromEdit() {
-  if (!editingItem.value) return
-  formOpen.value = false
-  openDelete(editingItem.value)
-}
-
-// ---- Restore (undo soft-delete) ----
-const restoring = ref(false)
-
-async function restoreUser(u: UserDto) {
-  restoring.value = true
-  try {
-    await users.update(u.uuid, { active: true })
-    toast.add({ title: t('security.users.restoredToast'), color: 'success', icon: 'i-lucide-check-circle' })
-    formOpen.value = false
-    await load()
-  }
-  catch {
-    // toast handled by useApi
-  }
-  finally {
-    restoring.value = false
   }
 }
 
@@ -646,153 +436,15 @@ async function confirmDelete() {
     </div>
 
     <!-- Modal crear/editar -->
-    <UModal
+    <UserFormModal
       v-model:open="formOpen"
-      :title="mode === 'create' ? $t('security.users.modalCreateTitle') : $t('security.users.modalEditTitle')"
-      :description="mode === 'create' ? $t('security.users.modalCreateDescription') : $t('security.users.modalEditDescription')"
-    >
-      <template #body>
-        <UForm
-          :schema="schema"
-          :state="state"
-          class="space-y-4"
-          @submit="onSubmit"
-        >
-          <UFormField :label="$t('security.users.fields.email')" name="email" :required="mode === 'create'">
-            <UInput
-              v-model="state.email"
-              type="email"
-              autocomplete="off"
-              class="w-full"
-              :disabled="mode === 'edit'"
-            />
-          </UFormField>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField :label="$t('security.users.fields.firstName')" name="firstName" required>
-              <UInput v-model="state.firstName" class="w-full" />
-            </UFormField>
-            <UFormField :label="$t('security.users.fields.middleName')" name="middleName">
-              <UInput v-model="state.middleName" class="w-full" />
-            </UFormField>
-            <UFormField :label="$t('security.users.fields.lastName')" name="lastName" required>
-              <UInput v-model="state.lastName" class="w-full" />
-            </UFormField>
-            <UFormField :label="$t('security.users.fields.secondLastName')" name="secondLastName">
-              <UInput v-model="state.secondLastName" class="w-full" />
-            </UFormField>
-          </div>
-
-          <UFormField v-if="mode === 'create'" :label="$t('security.users.fields.password')" name="password" required>
-            <UInput v-model="state.password" type="password" autocomplete="new-password" class="w-full" />
-          </UFormField>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField :label="$t('security.users.fields.documentType')" name="documentType">
-              <USelectMenu
-                v-model="state.documentType"
-                :items="documentTypeOptions"
-                label-key="label"
-                value-key="value"
-                :placeholder="$t('common.select')"
-                class="w-full"
-              />
-            </UFormField>
-            <UFormField :label="$t('security.users.fields.documentNumber')" name="documentNumber">
-              <UInput v-model="state.documentNumber" class="w-full" />
-            </UFormField>
-          </div>
-
-          <UFormField :label="$t('security.users.fields.phone')" name="phone">
-            <UInput v-model="state.phone" class="w-full" />
-          </UFormField>
-
-          <div v-if="mode === 'edit'" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField :label="$t('security.users.fields.status')" name="status">
-              <USelectMenu
-                v-model="state.status"
-                :items="statusOptions"
-                label-key="label"
-                value-key="value"
-                class="w-full"
-              />
-            </UFormField>
-            <UFormField :label="$t('security.users.fields.active')" name="active">
-              <USwitch v-model="state.active" />
-            </UFormField>
-          </div>
-
-          <UFormField :label="$t('security.users.fields.roles')" name="roleIds" required>
-            <USelectMenu
-              v-model="state.roleIds"
-              :items="roleOptions"
-              label-key="label"
-              value-key="value"
-              multiple
-              icon="i-lucide-list-checks"
-              :placeholder="$t('security.users.selectRolesPlaceholder')"
-              class="w-full"
-            />
-          </UFormField>
-
-          <p class="text-xs text-prohealth-500">{{ $t('common.requiredFieldsHint') }}</p>
-
-          <div class="flex items-center justify-between gap-3 pt-2">
-            <div v-if="mode === 'edit' && editingItem">
-              <RestoreButton
-                v-if="editingItem.active === false"
-                :active="editingItem.active"
-                :allowed="canDelete"
-                :loading="restoring"
-                :disabled="isSubmitting"
-                @restore="restoreUser(editingItem)"
-              />
-              <UTooltip v-else :text="canDelete ? $t('common.delete') : $t('security.users.noPermissionDelete')">
-                <UButton
-                  color="error"
-                  variant="ghost"
-                  icon="i-lucide-trash-2"
-                  size="sm"
-                  :label="$t('common.delete')"
-                  :disabled="isSubmitting || !canDelete"
-                  @click="openDeleteFromEdit"
-                />
-              </UTooltip>
-            </div>
-            <div v-else />
-
-            <div class="flex items-center gap-3">
-              <RefreshButton
-                v-if="mode === 'edit'"
-                :icon-only="false"
-                :label="$t('common.refresh')"
-                :title="$t('common.refresh')"
-                :loading="editReloading"
-                :disabled="isSubmitting"
-                @refresh="onEditRefresh"
-              />
-              <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="formOpen = false">
-                {{ $t('common.cancel') }}
-              </UButton>
-              <UButton type="submit" :color="mode === 'create' ? 'primary' : 'info'" variant="outline" :loading="isSubmitting" icon="i-lucide-save">
-                {{ mode === 'create' ? $t('common.saveNew') : $t('common.saveChanges') }}
-              </UButton>
-            </div>
-          </div>
-        </UForm>
-
-        <!-- Discard unsaved changes before refreshing -->
-        <UModal v-model:open="discardConfirmOpen" :title="$t('common.discardChangesTitle')">
-          <template #body>
-            <p class="text-sm text-prohealth-700">{{ $t('common.discardChangesBody') }}</p>
-            <div class="flex items-center justify-end gap-3 pt-5">
-              <UButton color="neutral" variant="ghost" @click="discardConfirmOpen = false">{{ $t('common.cancel') }}</UButton>
-              <UButton color="warning" icon="i-lucide-refresh-cw" @click="discardAndRefresh">{{ $t('common.discardAndRefresh') }}</UButton>
-            </div>
-          </template>
-        </UModal>
-      </template>
-    </UModal>
+      :mode="mode"
+      :user="editingItem"
+      :can-delete="canDelete"
+      @saved="onUserSaved"
+      @restored="onUserRestored"
+      @delete-requested="onUserDeleteRequested"
+    />
 
     <!-- Modal confirmar eliminación -->
     <UModal v-model:open="deleteOpen" :title="$t('security.users.deleteTitle')">
