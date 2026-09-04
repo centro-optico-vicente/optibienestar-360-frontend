@@ -497,7 +497,8 @@ async function confirmDelete() {
               v-else
               :key="item.uuid"
               class="hover:bg-prohealth-50/50"
-              :class="{ 'opacity-60': !item.active }"
+              :class="{ 'opacity-60': !item.active, 'cursor-pointer': canUpdate }"
+              @click="canUpdate && openEdit(item)"
             >
               <td v-if="def.codeField" class="px-5 py-3">
                 <UBadge color="neutral" variant="subtle">{{ item[def.codeField] }}</UBadge>
@@ -514,7 +515,7 @@ async function confirmDelete() {
                   {{ item.active_Display ?? (item.active ? $t('catalogs.status.active') : $t('catalogs.status.inactive')) }}
                 </UBadge>
               </td>
-              <td class="px-5 py-3">
+              <td class="px-5 py-3" @click.stop>
                 <div class="flex items-center justify-end gap-1">
                   <UTooltip v-if="canUpdate" :text="$t('common.edit')">
                     <UButton color="info" variant="ghost" icon="i-lucide-pencil" size="sm" @click="openEdit(item)" />
