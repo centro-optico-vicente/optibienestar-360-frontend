@@ -1334,12 +1334,18 @@
     "empty": "No payments",
     "noReference": "No reference",
     "paginationSummary": "{shown} of {total} payment(s)",
+    "deletedToast": "Payment deleted",
+    "delete": {
+      "title": "Delete payment",
+      "confirm": "This payment is still pending review and has not been approved or rejected yet. Delete it?"
+    },
     "tooltips": {
       "viewDetail": "View detail",
       "approve": "Approve",
       "noPermissionApprove": "You don't have permission to approve",
       "reject": "Reject",
-      "noPermissionReject": "You don't have permission to reject"
+      "noPermissionReject": "You don't have permission to reject",
+      "noPermissionDelete": "You don't have permission to delete"
     },
     "columns": {
       "planReference": "Plan / Reference",
