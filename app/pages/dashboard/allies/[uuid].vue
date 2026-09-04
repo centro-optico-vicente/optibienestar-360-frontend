@@ -1066,6 +1066,7 @@ onMounted(async () => {
               color="primary"
               variant="soft"
               icon="i-lucide-plus"
+              size="sm"
               :disabled="!canUpdate || !specialtyToAdd"
               :loading="specialtyMutating"
               @click="addSpecialty"
@@ -1073,7 +1074,6 @@ onMounted(async () => {
               {{ t('allies.specialties.addButton') }}
             </UButton>
             <RefreshButton
-              size="md"
               :loading="specialtiesLoading"
               :title="t('common.refreshSection')"
               @refresh="loadSpecialties"
