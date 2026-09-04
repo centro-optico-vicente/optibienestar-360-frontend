@@ -275,9 +275,19 @@ async function restoreUser() {
   }
 }
 
-// ---- Reach the existing edit modal on users/index.vue ----
+// ---- Edit (local modal, no navigation away from the detail page) ----
+const editFormOpen = ref(false)
 function goEditUser() {
-  navigateTo(`/dashboard/users?edit=${userUuid}`)
+  editFormOpen.value = true
+}
+function onUserSaved(updated: UserDto) {
+  user.value = updated
+}
+function onUserRestored(updated: UserDto) {
+  user.value = updated
+}
+function onUserDeleteRequested() {
+  navigateTo(`/dashboard/users?delete=${userUuid}`)
 }
 
 // ---- Audit ----
@@ -661,6 +671,17 @@ async function refreshAll() {
       :entity-code="user.email"
       :can-view-changes="canViewAuditChanges"
       :can-view-reports="canViewAuditReports"
+    />
+
+    <!-- Edit modal (in place, no navigation away from this page) -->
+    <UserFormModal
+      v-model:open="editFormOpen"
+      mode="edit"
+      :user="user"
+      :can-delete="canDelete"
+      @saved="onUserSaved"
+      @restored="onUserRestored"
+      @delete-requested="onUserDeleteRequested"
     />
   </div>
 </template>
