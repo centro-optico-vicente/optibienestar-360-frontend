@@ -152,7 +152,13 @@ const stateOptions = ref<SelectItem[]>([])
 const cityOptions = ref<SelectItem[]>([])
 const { options: documentTypeOptions, load: loadDocumentTypes } = useDocumentTypes()
 
+// Fetched lazily (only when the create/edit form is opened, guarded by this
+// flag) rather than on page mount — these selects are only ever seen inside
+// that form, so loading them eagerly for every list visit wastes requests.
+const catalogsLoaded = ref(false)
+
 async function loadCatalogs() {
+  if (catalogsLoaded.value) return
   const safeOptions = async (resource: string, limit = 200) => {
     try {
       return await useCatalogOptions(resource).options({ limit })
@@ -169,6 +175,8 @@ async function loadCatalogs() {
   allyTypeOptions.value = toSelectItems(types)
   specialtyOptions.value = toSelectItems(specialties)
   stateOptions.value = toSelectItems(states)
+  await loadDocumentTypes()
+  catalogsLoaded.value = true
 }
 
 // Cities cascade based on the selected state. `pendingCityUuid` lets openEdit
@@ -194,7 +202,6 @@ watch(selectedStateUuid, async (stateUuid) => {
 
 onMounted(async () => {
   await load()
-  await Promise.all([loadCatalogs(), loadDocumentTypes()])
   await openFromQuery()
 })
 
@@ -306,6 +313,7 @@ function openCreate() {
   editingUuid.value = null
   resetForm()
   formOpen.value = true
+  loadCatalogs()
 }
 
 // Serialized snapshot of the edit form right after it was populated from the
@@ -347,6 +355,7 @@ async function openEdit(a: AllyRow) {
   resetForm()
   editSnapshot.value = ''
   formOpen.value = true
+  loadCatalogs()
   // The list row (AllyListItemDto) carries flat fields (allyTypeUuid, etc.) and omits
   // email, tax ID, website, specialties…; the form also expects the nested shape
   // (allyType.uuid). The full detail is loaded to populate reliably.

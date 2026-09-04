@@ -139,7 +139,13 @@ const stateOptions = ref<SelectItem[]>([])
 const cityOptions = ref<SelectItem[]>([])
 const { options: documentTypeOptions, load: loadDocumentTypes } = useDocumentTypes()
 
+// Fetched lazily (only when the create/edit form is opened, guarded by this
+// flag) rather than on page mount — these selects are only ever seen inside
+// that form, so loading them eagerly for every list visit wastes requests.
+const catalogsLoaded = ref(false)
+
 async function loadCatalogs() {
+  if (catalogsLoaded.value) return
   // Admin catalog options (auth'd), all in parallel; each one fails silently.
   const safeOptions = async (resource: string, limit = 200) => {
     try {
@@ -159,6 +165,8 @@ async function loadCatalogs() {
   maritalStatusOptions.value = toSelectItems(marital)
   occupationOptions.value = toSelectItems(occupations)
   stateOptions.value = toSelectItems(states)
+  await loadDocumentTypes()
+  catalogsLoaded.value = true
 }
 
 // Cities cascade based on the selected state. `pendingCityUuid` lets openEdit
@@ -188,7 +196,6 @@ const route = useRoute()
 
 onMounted(async () => {
   await load()
-  await Promise.all([loadCatalogs(), loadDocumentTypes()])
   const editUuid = route.query.edit
   if (typeof editUuid === 'string') {
     try {
@@ -361,6 +368,7 @@ function openCreate() {
   editingUuid.value = null
   resetForm()
   formOpen.value = true
+  loadCatalogs()
 }
 
 // Snapshot of the last-loaded edit state, used to warn before a refresh
@@ -409,6 +417,7 @@ async function openEdit(m: MemberListItemDto) {
   editingItem.value = m
   resetForm()
   formOpen.value = true
+  loadCatalogs()
   // The list row (MemberListItemDto) only carries the full name, document, phone and
   // enrollment date; the rest (name parts, birth, gender, catalogs…) only comes in the
   // detail. The full record is loaded to populate.
