@@ -439,7 +439,9 @@ function discardAndRefreshRole() {
                 icon="i-lucide-pencil"
                 :disabled="!canEditRole"
                 @click="openRoleEdit"
-              />
+              >
+                {{ t('common.edit') }}
+              </UButton>
             </UTooltip>
             <UTooltip :text="!canEditPermissions ? t('security.roles.noPermission') : (canEditRolePermissions ? t('security.roles.editPermissionsTooltip') : t('security.roles.systemOnlySystemActor'))">
               <UButton
