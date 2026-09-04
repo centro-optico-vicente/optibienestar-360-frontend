@@ -154,6 +154,9 @@ const roleEditingUuid = ref<string | null>(null)
 /** Role open in the name/description modal; drives its inline actions. */
 const roleEditing = ref<RoleDto | null>(null)
 const roleSubmitting = ref(false)
+// Save button lives in the modal's #footer slot, outside the <UForm> element,
+// so it can't use type="submit"; it triggers validation via this instead.
+const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 
 const roleState = reactive({ name: '', description: '' })
 // Kept outside `roleState` (a string-only form-state map) so the boolean isn't coerced.
@@ -528,6 +531,7 @@ function openEdit(role: RoleDto) {
     >
       <template #body>
         <UForm
+          ref="formRef"
           :schema="roleSchema"
           :state="roleState"
           class="space-y-4"
@@ -545,9 +549,25 @@ function openEdit(role: RoleDto) {
             <USwitch v-model="roleIsActive" />
           </UFormField>
 
+        </UForm>
+
+        <!-- Discard unsaved changes before refreshing -->
+        <UModal v-model:open="roleDiscardConfirmOpen" :title="$t('common.discardChangesTitle')">
+          <template #body>
+            <p class="text-sm text-prohealth-700">{{ $t('common.discardChangesBody') }}</p>
+            <div class="flex items-center justify-end gap-3 pt-5">
+              <UButton color="neutral" variant="ghost" @click="roleDiscardConfirmOpen = false">{{ $t('common.cancel') }}</UButton>
+              <UButton color="warning" icon="i-lucide-refresh-cw" @click="discardAndRefreshRole">{{ $t('common.discardAndRefresh') }}</UButton>
+            </div>
+          </template>
+        </UModal>
+      </template>
+
+      <template #footer>
+        <div class="w-full space-y-2">
           <p class="text-xs text-prohealth-500">{{ $t('common.requiredFieldsHint') }}</p>
 
-          <div class="flex items-center justify-between gap-3 pt-2">
+          <div class="flex items-center justify-between gap-3">
             <!-- Inline actions on the same role; meaningless while creating one that does not exist yet. -->
             <div v-if="roleMode === 'edit' && roleEditing" class="flex items-center gap-1">
               <UTooltip :text="!canEditPermissions ? $t('security.roles.noPermission') : (canEditRolePermissions(roleEditing) ? $t('security.roles.editPermissionsTooltip') : $t('security.roles.systemOnlySystemActor'))">
@@ -596,23 +616,12 @@ function openEdit(role: RoleDto) {
               <UButton color="neutral" variant="ghost" :disabled="roleSubmitting" @click="roleFormOpen = false">
                 {{ $t('common.cancel') }}
               </UButton>
-              <UButton type="submit" :color="roleMode === 'create' ? 'primary' : 'info'" variant="outline" :loading="roleSubmitting" icon="i-lucide-save">
+              <UButton :color="roleMode === 'create' ? 'primary' : 'info'" variant="outline" :loading="roleSubmitting" icon="i-lucide-save" @click="formRef?.submit()">
                 {{ roleMode === 'create' ? $t('common.saveNew') : $t('common.saveChanges') }}
               </UButton>
             </div>
           </div>
-        </UForm>
-
-        <!-- Discard unsaved changes before refreshing -->
-        <UModal v-model:open="roleDiscardConfirmOpen" :title="$t('common.discardChangesTitle')">
-          <template #body>
-            <p class="text-sm text-prohealth-700">{{ $t('common.discardChangesBody') }}</p>
-            <div class="flex items-center justify-end gap-3 pt-5">
-              <UButton color="neutral" variant="ghost" @click="roleDiscardConfirmOpen = false">{{ $t('common.cancel') }}</UButton>
-              <UButton color="warning" icon="i-lucide-refresh-cw" @click="discardAndRefreshRole">{{ $t('common.discardAndRefresh') }}</UButton>
-            </div>
-          </template>
-        </UModal>
+        </div>
       </template>
     </UModal>
 
