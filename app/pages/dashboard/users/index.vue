@@ -124,9 +124,14 @@ async function resetFilters() {
 }
 
 // ---- Catálogo de roles para el selector ----
+// Fetched lazily (only when the create/edit form is opened, guarded by this
+// flag) rather than on page mount — this select is only ever seen inside
+// that form, so loading it eagerly for every list visit wastes requests.
 const roleOptions = ref<{ label: string, value: string }[]>([])
+const catalogsLoaded = ref(false)
 
-async function loadRoles() {
+async function loadCatalogs() {
+  if (catalogsLoaded.value) return
   try {
     const res = await roles.options({ limit: 200 })
     roleOptions.value = res.map(o => ({ label: o.label, value: o.uuid }))
@@ -135,6 +140,8 @@ async function loadRoles() {
     // useApi ya notificó el error; sin roles no se puede asignar.
     roleOptions.value = []
   }
+  await loadDocumentTypes()
+  catalogsLoaded.value = true
 }
 
 // `?edit=<uuid>` lets the user detail page ("Edit user" button) reopen this
@@ -143,7 +150,6 @@ const route = useRoute()
 
 onMounted(async () => {
   await load()
-  await Promise.all([loadRoles(), loadDocumentTypes()])
   const editUuid = route.query.edit
   if (typeof editUuid === 'string') {
     try {
@@ -263,6 +269,7 @@ function openCreate() {
   editingUuid.value = null
   resetForm()
   formOpen.value = true
+  loadCatalogs()
 }
 
 // Snapshot of the last-loaded edit state, used to warn before a refresh
@@ -295,6 +302,7 @@ function openEdit(u: UserDto) {
   mode.value = 'edit'
   populateEditForm(u)
   formOpen.value = true
+  loadCatalogs()
 }
 
 async function reloadEditForm() {
