@@ -87,9 +87,16 @@ async function restoreMember() {
   }
 }
 
-// ---- Edit (reopens the shared list modal via ?edit=<uuid>) ----
+// ---- Edit (local modal, no navigation away from the detail page) ----
+const editFormOpen = ref(false)
 function goEditMember() {
-  navigateTo(`/dashboard/members?edit=${memberUuid}`)
+  editFormOpen.value = true
+}
+function onMemberSaved(updated: MemberDto) {
+  member.value = updated
+}
+function onMemberRestored() {
+  loadMember()
 }
 
 // ---- Delete ----
@@ -97,6 +104,11 @@ const deleteOpen = ref(false)
 const deleting = ref(false)
 const usageChecking = ref(false)
 const usageInfo = ref<{ inUse: boolean, count: number } | null>(null)
+
+async function onMemberDeleteRequested() {
+  editFormOpen.value = false
+  await openDelete()
+}
 
 async function openDelete() {
   if (!member.value) return
@@ -1190,6 +1202,17 @@ async function refreshAll() {
       :entity-label="displayName"
       :can-view-changes="canViewAuditChanges"
       :can-view-reports="canViewAuditReports"
+    />
+
+    <!-- Edit modal (in place, no navigation away from this page) -->
+    <MemberFormModal
+      v-model:open="editFormOpen"
+      mode="edit"
+      :member="member"
+      :can-delete="canDelete"
+      @saved="onMemberSaved"
+      @restored="onMemberRestored"
+      @delete-requested="onMemberDeleteRequested"
     />
   </div>
 </template>
