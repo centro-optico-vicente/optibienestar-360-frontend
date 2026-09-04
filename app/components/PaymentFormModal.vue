@@ -29,6 +29,9 @@ const isOpen = computed({
   set: (v: boolean) => emit('update:open', v),
 })
 const isSubmitting = ref(false)
+// Save button lives in the modal's #footer slot, outside the <UForm> element,
+// so it can't use type="submit"; it triggers validation via this instead.
+const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 
 // Payment method options localized at the consumption point (labelKey → i18n).
 const methodOptions = computed(() => PAYMENT_METHOD_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
@@ -225,7 +228,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     :ui="{ content: 'max-w-2xl' }"
   >
     <template #body>
-      <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
+      <UForm ref="formRef" :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
         <!-- Member + membership -->
         <div class="rounded-xl border border-prohealth-100 p-4 space-y-4">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -338,18 +341,22 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           </div>
         </UFormField>
 
-        <div class="flex items-center justify-between gap-3 pt-2">
-          <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
-          <div class="flex items-center gap-3">
-            <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="isOpen = false">
-              {{ t('common.cancel') }}
-            </UButton>
-            <UButton type="submit" color="primary" variant="outline" :loading="isSubmitting" icon="i-lucide-save">
-              {{ t('common.saveNew') }}
-            </UButton>
-          </div>
-        </div>
       </UForm>
+    </template>
+
+    <template #footer>
+      <div class="w-full space-y-2">
+        <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
+
+        <div class="flex items-center justify-end gap-3">
+          <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="isOpen = false">
+            {{ t('common.cancel') }}
+          </UButton>
+          <UButton color="primary" variant="outline" :loading="isSubmitting" icon="i-lucide-save" @click="formRef?.submit()">
+            {{ t('common.saveNew') }}
+          </UButton>
+        </div>
+      </div>
     </template>
   </UModal>
 </template>

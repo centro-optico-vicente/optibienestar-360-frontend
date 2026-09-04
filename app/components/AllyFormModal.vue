@@ -46,6 +46,9 @@ const isOpen = computed({
 
 const isSubmitting = ref(false)
 const editLoading = ref(false)
+// Save button lives in the modal's #footer slot, outside the <UForm> element,
+// so it can't use type="submit"; it triggers validation via this instead.
+const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 
 // ---- Lazy-loaded catalogs, fetched only when the modal opens ----
 const allyTypeOptions = ref<SelectItem[]>([])
@@ -341,6 +344,7 @@ function requestDelete() {
       </div>
       <UForm
         v-else
+        ref="formRef"
         :schema="schema"
         :state="state"
         class="space-y-4"
@@ -459,9 +463,29 @@ function requestDelete() {
           </UFormField>
         </div>
 
+      </UForm>
+
+      <!-- Discard-unsaved-changes confirmation for the edit modal's refresh button -->
+      <UModal v-model:open="discardConfirmOpen" :title="t('common.discardChangesTitle')">
+        <template #body>
+          <p class="text-sm text-prohealth-700">{{ t('common.discardChangesBody') }}</p>
+          <div class="flex items-center justify-end gap-3 pt-5">
+            <UButton color="neutral" variant="ghost" @click="discardConfirmOpen = false">
+              {{ t('common.cancel') }}
+            </UButton>
+            <UButton color="warning" icon="i-lucide-refresh-cw" @click="reloadEditForm">
+              {{ t('common.discardAndRefresh') }}
+            </UButton>
+          </div>
+        </template>
+      </UModal>
+    </template>
+
+    <template #footer>
+      <div class="w-full space-y-2">
         <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
 
-        <div class="flex items-center justify-between gap-3 pt-2">
+        <div class="flex items-center justify-between gap-3">
           <div v-if="mode === 'edit' && ally" class="flex items-center gap-2">
             <RestoreButton
               v-if="ally.active === false"
@@ -498,27 +522,19 @@ function requestDelete() {
             <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="isOpen = false">
               {{ t('common.cancel') }}
             </UButton>
-            <UButton type="submit" :color="mode === 'create' ? 'primary' : 'info'" variant="outline" :loading="isSubmitting" icon="i-lucide-save">
+            <UButton
+              :color="mode === 'create' ? 'primary' : 'info'"
+              variant="outline"
+              :loading="isSubmitting"
+              :disabled="editLoading"
+              icon="i-lucide-save"
+              @click="formRef?.submit()"
+            >
               {{ mode === 'create' ? t('common.saveNew') : t('common.saveChanges') }}
             </UButton>
           </div>
         </div>
-      </UForm>
-
-      <!-- Discard-unsaved-changes confirmation for the edit modal's refresh button -->
-      <UModal v-model:open="discardConfirmOpen" :title="t('common.discardChangesTitle')">
-        <template #body>
-          <p class="text-sm text-prohealth-700">{{ t('common.discardChangesBody') }}</p>
-          <div class="flex items-center justify-end gap-3 pt-5">
-            <UButton color="neutral" variant="ghost" @click="discardConfirmOpen = false">
-              {{ t('common.cancel') }}
-            </UButton>
-            <UButton color="warning" icon="i-lucide-refresh-cw" @click="reloadEditForm">
-              {{ t('common.discardAndRefresh') }}
-            </UButton>
-          </div>
-        </template>
-      </UModal>
+      </div>
     </template>
   </UModal>
 </template>
