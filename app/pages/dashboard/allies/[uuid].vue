@@ -92,6 +92,19 @@ async function restoreAlly() {
   }
 }
 
+// ---- Edit (local modal, no navigation away from the detail page) ----
+const editFormOpen = ref(false)
+function onAllySaved(updated: AllyDto) {
+  ally.value = updated
+  specialties.value = updated.specialties ?? []
+}
+function onAllyRestored() {
+  loadAlly()
+}
+function onAllyDeleteRequested() {
+  navigateTo(`/dashboard/allies?delete=${allyUuid}`)
+}
+
 // Date in the VE convention (useFormatters). Empty → '—'.
 function date(iso?: string | null): string {
   return formatDate(iso, 'short')
@@ -842,7 +855,7 @@ onMounted(async () => {
                 size="md"
                 :label="t('common.edit')"
                 :disabled="!canUpdate"
-                @click="navigateTo(`/dashboard/allies?edit=${allyUuid}`)"
+                @click="editFormOpen = true"
               />
             </UTooltip>
 
@@ -1683,6 +1696,17 @@ onMounted(async () => {
       :entity-label="ally.name"
       :can-view-changes="canViewAuditChanges"
       :can-view-reports="canViewAuditReports"
+    />
+
+    <!-- Edit modal (in place, no navigation away from this page) -->
+    <AllyFormModal
+      v-model:open="editFormOpen"
+      mode="edit"
+      :ally="ally"
+      :can-delete="canDelete"
+      @saved="onAllySaved"
+      @restored="onAllyRestored"
+      @delete-requested="onAllyDeleteRequested"
     />
   </div>
 </template>
