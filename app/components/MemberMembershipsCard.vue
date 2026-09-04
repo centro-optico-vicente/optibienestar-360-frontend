@@ -300,7 +300,7 @@ async function confirmLifecycle() {
               <UButton color="neutral" variant="ghost" :disabled="enrollSubmitting" @click="enrollOpen = false">
                 {{ t('common.cancel') }}
               </UButton>
-              <UButton type="submit" color="primary" :loading="enrollSubmitting" icon="i-lucide-save">
+              <UButton type="submit" color="primary" variant="outline" :loading="enrollSubmitting" icon="i-lucide-save">
                 {{ t('memberships.enrollForm.submit') }}
               </UButton>
             </div>
