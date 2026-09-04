@@ -195,6 +195,9 @@ const benMode = ref<'create' | 'edit'>('create')
 const benEditingUuid = ref<string | null>(null)
 const benEditingItem = ref<BeneficiaryDto | null>(null)
 const benSubmitting = ref(false)
+// Save button lives in the modal's #footer slot, outside the <UForm> element,
+// so it can't use type="submit"; it triggers validation via this instead.
+const benFormRef = ref<{ submit: () => Promise<void> } | null>(null)
 
 const { options: documentTypeOptions, load: loadDocumentTypes } = useDocumentTypes()
 
@@ -417,6 +420,9 @@ async function loadMedicalRecord() {
 
 const medFormOpen = ref(false)
 const medSubmitting = ref(false)
+// Save button lives in the modal's #footer slot, outside the <UForm> element,
+// so it can't use type="submit"; it triggers validation via this instead.
+const medFormRef = ref<{ submit: () => Promise<void> } | null>(null)
 
 interface MedFormState {
   bloodType: string | undefined
@@ -928,6 +934,7 @@ async function refreshAll() {
     >
       <template #body>
         <UForm
+          ref="benFormRef"
           :schema="benSchema"
           :state="benState"
           class="space-y-4"
@@ -996,9 +1003,25 @@ async function refreshAll() {
             </UFormField>
           </div>
 
+        </UForm>
+
+        <!-- Discard unsaved changes before refreshing -->
+        <UModal v-model:open="benDiscardConfirmOpen" :title="t('common.discardChangesTitle')">
+          <template #body>
+            <p class="text-sm text-prohealth-700">{{ t('common.discardChangesBody') }}</p>
+            <div class="flex items-center justify-end gap-3 pt-5">
+              <UButton color="neutral" variant="ghost" @click="benDiscardConfirmOpen = false">{{ t('common.cancel') }}</UButton>
+              <UButton color="warning" icon="i-lucide-refresh-cw" @click="discardAndRefreshBen">{{ t('common.discardAndRefresh') }}</UButton>
+            </div>
+          </template>
+        </UModal>
+      </template>
+
+      <template #footer>
+        <div class="w-full space-y-2">
           <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
 
-          <div class="flex items-center justify-between gap-3 pt-2">
+          <div class="flex items-center justify-between gap-3">
             <div v-if="benMode === 'edit' && benEditingItem">
               <UTooltip :text="canDelete ? t('common.delete') : t('members.noPermission')">
                 <UButton
@@ -1027,23 +1050,12 @@ async function refreshAll() {
               <UButton color="neutral" variant="ghost" :disabled="benSubmitting" @click="benFormOpen = false">
                 {{ t('common.cancel') }}
               </UButton>
-              <UButton type="submit" :color="benMode === 'create' ? 'primary' : 'info'" variant="outline" :loading="benSubmitting" icon="i-lucide-save">
+              <UButton :color="benMode === 'create' ? 'primary' : 'info'" variant="outline" :loading="benSubmitting" icon="i-lucide-save" @click="benFormRef?.submit()">
                 {{ benMode === 'create' ? t('common.saveNew') : t('common.saveChanges') }}
               </UButton>
             </div>
           </div>
-        </UForm>
-
-        <!-- Discard unsaved changes before refreshing -->
-        <UModal v-model:open="benDiscardConfirmOpen" :title="t('common.discardChangesTitle')">
-          <template #body>
-            <p class="text-sm text-prohealth-700">{{ t('common.discardChangesBody') }}</p>
-            <div class="flex items-center justify-end gap-3 pt-5">
-              <UButton color="neutral" variant="ghost" @click="benDiscardConfirmOpen = false">{{ t('common.cancel') }}</UButton>
-              <UButton color="warning" icon="i-lucide-refresh-cw" @click="discardAndRefreshBen">{{ t('common.discardAndRefresh') }}</UButton>
-            </div>
-          </template>
-        </UModal>
+        </div>
       </template>
     </UModal>
 
@@ -1075,6 +1087,7 @@ async function refreshAll() {
     >
       <template #body>
         <UForm
+          ref="medFormRef"
           :state="medState"
           class="space-y-4"
           @submit="onMedicalSubmit"
@@ -1120,32 +1133,35 @@ async function refreshAll() {
             <UTextarea v-model="medState.notes" :rows="2" class="w-full" />
           </UFormField>
 
-          <div class="flex items-center justify-between gap-3 pt-2">
-            <div v-if="medicalExists">
-              <UTooltip :text="canEditMedical ? t('members.medical.deleteTooltip') : t('members.noPermission')">
-                <UButton
-                  color="error"
-                  variant="ghost"
-                  icon="i-lucide-trash-2"
-                  size="sm"
-                  :label="t('common.delete')"
-                  :disabled="medSubmitting || !canEditMedical"
-                  @click="medFormOpen = false; medDeleteOpen = true"
-                />
-              </UTooltip>
-            </div>
-            <div v-else />
-
-            <div class="flex items-center gap-3">
-              <UButton color="neutral" variant="ghost" :disabled="medSubmitting" @click="medFormOpen = false">
-                {{ t('common.cancel') }}
-              </UButton>
-              <UButton type="submit" :color="medicalExists ? 'info' : 'primary'" variant="outline" :loading="medSubmitting" icon="i-lucide-save">
-                {{ t('members.medical.form.submit') }}
-              </UButton>
-            </div>
-          </div>
         </UForm>
+      </template>
+
+      <template #footer>
+        <div class="w-full flex items-center justify-between gap-3">
+          <div v-if="medicalExists">
+            <UTooltip :text="canEditMedical ? t('members.medical.deleteTooltip') : t('members.noPermission')">
+              <UButton
+                color="error"
+                variant="ghost"
+                icon="i-lucide-trash-2"
+                size="sm"
+                :label="t('common.delete')"
+                :disabled="medSubmitting || !canEditMedical"
+                @click="medFormOpen = false; medDeleteOpen = true"
+              />
+            </UTooltip>
+          </div>
+          <div v-else />
+
+          <div class="flex items-center gap-3">
+            <UButton color="neutral" variant="ghost" :disabled="medSubmitting" @click="medFormOpen = false">
+              {{ t('common.cancel') }}
+            </UButton>
+            <UButton :color="medicalExists ? 'info' : 'primary'" variant="outline" :loading="medSubmitting" icon="i-lucide-save" @click="medFormRef?.submit()">
+              {{ t('members.medical.form.submit') }}
+            </UButton>
+          </div>
+        </div>
       </template>
     </UModal>
 

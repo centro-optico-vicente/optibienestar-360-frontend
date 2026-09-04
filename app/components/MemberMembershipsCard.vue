@@ -66,6 +66,9 @@ function statusLabel(s?: string | null): string {
 // ---- Enroll (modal) ----
 const enrollOpen = ref(false)
 const enrollSubmitting = ref(false)
+// Save button lives in the modal's #footer slot, outside the <UForm> element,
+// so it can't use type="submit"; it triggers validation via this instead.
+const enrollFormRef = ref<{ submit: () => Promise<void> } | null>(null)
 const planOptions = ref<{ label: string, value: string }[]>([])
 const plansLoaded = ref(false)
 
@@ -273,7 +276,7 @@ async function confirmLifecycle() {
       :description="t('memberships.enrollForm.description')"
     >
       <template #body>
-        <UForm :schema="enrollSchema" :state="enrollState" class="space-y-4" @submit="onEnrollSubmit">
+        <UForm ref="enrollFormRef" :schema="enrollSchema" :state="enrollState" class="space-y-4" @submit="onEnrollSubmit">
           <UFormField :label="t('memberships.enrollForm.plan')" name="planUuid" required :help="t('memberships.enrollForm.planHelp')">
             <USelectMenu
               v-model="enrollState.planUuid"
@@ -293,19 +296,22 @@ async function confirmLifecycle() {
               <UInput v-model="enrollState.expiresAt" type="date" class="w-full" />
             </UFormField>
           </div>
-
-          <div class="flex items-center justify-between gap-3 pt-2">
-            <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
-            <div class="flex items-center gap-3">
-              <UButton color="neutral" variant="ghost" :disabled="enrollSubmitting" @click="enrollOpen = false">
-                {{ t('common.cancel') }}
-              </UButton>
-              <UButton type="submit" color="primary" variant="outline" :loading="enrollSubmitting" icon="i-lucide-save">
-                {{ t('memberships.enrollForm.submit') }}
-              </UButton>
-            </div>
-          </div>
         </UForm>
+      </template>
+
+      <template #footer>
+        <div class="w-full space-y-2">
+          <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
+
+          <div class="flex items-center justify-end gap-3">
+            <UButton color="neutral" variant="ghost" :disabled="enrollSubmitting" @click="enrollOpen = false">
+              {{ t('common.cancel') }}
+            </UButton>
+            <UButton color="primary" variant="outline" :loading="enrollSubmitting" icon="i-lucide-save" @click="enrollFormRef?.submit()">
+              {{ t('memberships.enrollForm.submit') }}
+            </UButton>
+          </div>
+        </div>
       </template>
     </UModal>
 

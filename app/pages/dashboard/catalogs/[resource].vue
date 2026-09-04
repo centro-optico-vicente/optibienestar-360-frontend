@@ -215,6 +215,9 @@ const mode = ref<'create' | 'edit'>('create')
 const editingUuid = ref<string | null>(null)
 const editingItem = ref<CatalogItem | null>(null)
 const isSubmitting = ref(false)
+// Save button lives in the modal's #footer slot, outside the <UForm> element,
+// so it can't use type="submit"; it triggers validation via this instead.
+const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 const state = reactive<Record<string, string>>({})
 // Kept outside `state` (a Record<string, string>) so the boolean isn't coerced.
 const isActive = ref(true)
@@ -572,7 +575,7 @@ async function confirmDelete() {
       :title="mode === 'create' ? $t('catalogs.modalCreateTitle', { entity: catLabelSingular(def) }) : $t('catalogs.modalEditTitle', { entity: catLabelSingular(def) })"
     >
       <template #body>
-        <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
+        <UForm ref="formRef" :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
           <UFormField
             v-for="f in formFields"
             :key="f.name"
@@ -609,9 +612,14 @@ async function confirmDelete() {
             <USwitch v-model="isActive" />
           </UFormField>
 
+        </UForm>
+      </template>
+
+      <template #footer>
+        <div class="w-full space-y-2">
           <p class="text-xs text-prohealth-500">{{ $t('common.requiredFieldsHint') }}</p>
 
-          <div class="flex items-center justify-between gap-3 pt-2">
+          <div class="flex items-center justify-between gap-3">
             <!-- Shortcut to delete the record being edited; meaningless while creating one that does not exist yet. -->
             <div v-if="mode === 'edit' && editingItem && canDelete">
               <UButton
@@ -639,12 +647,12 @@ async function confirmDelete() {
               <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="formOpen = false">
                 {{ $t('common.cancel') }}
               </UButton>
-              <UButton type="submit" :color="mode === 'create' ? 'primary' : 'info'" variant="outline" :loading="isSubmitting" icon="i-lucide-save">
+              <UButton :color="mode === 'create' ? 'primary' : 'info'" variant="outline" :loading="isSubmitting" icon="i-lucide-save" @click="formRef?.submit()">
                 {{ mode === 'create' ? $t('common.saveNew') : $t('common.saveChanges') }}
               </UButton>
             </div>
           </div>
-        </UForm>
+        </div>
       </template>
     </UModal>
 

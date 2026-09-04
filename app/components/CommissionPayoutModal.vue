@@ -57,6 +57,9 @@ const schema = computed(() =>
 const preview = ref<CommissionPayoutResponse | null>(null)
 const previewing = ref(false)
 const confirming = ref(false)
+// Preview button lives in the modal's #footer slot, outside the <UForm>
+// element, so it can't use type="submit"; it triggers validation via this instead.
+const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 
 function money(v?: number | null, currency?: string | null): string {
   if (v === null || v === undefined) return t('common.empty')
@@ -140,6 +143,7 @@ async function onConfirm() {
       <!-- Phase 1: period form -->
       <UForm
         v-if="!preview"
+        ref="formRef"
         :schema="schema"
         :state="state"
         class="space-y-4"
@@ -168,17 +172,6 @@ async function onConfirm() {
           />
         </UFormField>
 
-        <div class="flex items-center justify-between gap-3 pt-2">
-          <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
-          <div class="flex items-center gap-3">
-            <UButton color="neutral" variant="ghost" :disabled="previewing" @click="isOpen = false">
-              {{ t('common.cancel') }}
-            </UButton>
-            <UButton type="submit" color="primary" :loading="previewing" icon="i-lucide-eye">
-              {{ t('commissions.payout.preview') }}
-            </UButton>
-          </div>
-        </div>
       </UForm>
 
       <!-- Phase 2: dryRun preview -->
@@ -245,15 +238,28 @@ async function onConfirm() {
           <UIcon name="i-lucide-alert-triangle" class="w-5 h-5 shrink-0 mt-0.5" />
           <span>{{ t('commissions.payout.confirmDescription') }}</span>
         </div>
+      </div>
+    </template>
 
-        <div class="flex items-center justify-end gap-3 pt-1">
-          <UButton color="neutral" variant="ghost" :disabled="confirming" icon="i-lucide-arrow-left" @click="backToForm">
-            {{ t('commissions.payout.back') }}
+    <template #footer>
+      <div v-if="!preview" class="w-full space-y-2">
+        <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
+        <div class="flex items-center justify-end gap-3">
+          <UButton color="neutral" variant="ghost" :disabled="previewing" @click="isOpen = false">
+            {{ t('common.cancel') }}
           </UButton>
-          <UButton color="primary" :loading="confirming" icon="i-lucide-check" @click="onConfirm">
-            {{ t('commissions.payout.confirm') }}
+          <UButton color="primary" :loading="previewing" icon="i-lucide-eye" @click="formRef?.submit()">
+            {{ t('commissions.payout.preview') }}
           </UButton>
         </div>
+      </div>
+      <div v-else class="w-full flex items-center justify-end gap-3">
+        <UButton color="neutral" variant="ghost" :disabled="confirming" icon="i-lucide-arrow-left" @click="backToForm">
+          {{ t('commissions.payout.back') }}
+        </UButton>
+        <UButton color="primary" :loading="confirming" icon="i-lucide-check" @click="onConfirm">
+          {{ t('commissions.payout.confirm') }}
+        </UButton>
       </div>
     </template>
   </UModal>

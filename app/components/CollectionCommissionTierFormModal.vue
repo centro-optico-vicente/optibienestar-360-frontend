@@ -32,6 +32,9 @@ const isOpen = computed({
 const mode = computed<'create' | 'edit'>(() => (props.tier ? 'edit' : 'create'))
 const canManage = computed(() => can(mode.value === 'edit' ? 'COLLECTION_COMMISSION_TIER_UPDATE' : 'COLLECTION_COMMISSION_TIER_CREATE'))
 const isSubmitting = ref(false)
+// Save button lives in the modal's #footer slot, outside the <UForm> element,
+// so it can't use type="submit"; it triggers validation via this instead.
+const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 
 interface FormState {
   name: string
@@ -159,7 +162,7 @@ async function restoreTier() {
     :ui="{ content: 'max-w-lg' }"
   >
     <template #body>
-      <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
+      <UForm ref="formRef" :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
         <UFormField :label="t('commissionRules.collectionTiers.form.name')" name="name" required>
           <UInput v-model="state.name" class="w-full" />
         </UFormField>
@@ -179,9 +182,24 @@ async function restoreTier() {
           <USwitch v-model="isActive" />
         </UFormField>
 
+        <!-- Discard unsaved changes before refreshing -->
+        <UModal v-model:open="discardConfirmOpen" :title="t('common.discardChangesTitle')">
+          <template #body>
+            <p class="text-sm text-prohealth-700">{{ t('common.discardChangesBody') }}</p>
+            <div class="flex items-center justify-end gap-3 pt-5">
+              <UButton color="neutral" variant="ghost" @click="discardConfirmOpen = false">{{ t('common.cancel') }}</UButton>
+              <UButton color="warning" icon="i-lucide-refresh-cw" @click="discardAndRefresh">{{ t('common.discardAndRefresh') }}</UButton>
+            </div>
+          </template>
+        </UModal>
+      </UForm>
+    </template>
+
+    <template #footer>
+      <div class="w-full space-y-2">
         <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
 
-        <div class="flex items-center justify-between gap-3 pt-2">
+        <div class="flex items-center justify-between gap-3">
           <div v-if="mode === 'edit' && tier">
             <RestoreButton
               v-if="tier.active === false"
@@ -205,23 +223,12 @@ async function restoreTier() {
               @refresh="onRefresh"
             />
             <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="isOpen = false">{{ t('common.cancel') }}</UButton>
-            <UButton type="submit" :color="mode === 'create' ? 'primary' : 'info'" variant="outline" :loading="isSubmitting" icon="i-lucide-save">
+            <UButton :color="mode === 'create' ? 'primary' : 'info'" variant="outline" :loading="isSubmitting" icon="i-lucide-save" @click="formRef?.submit()">
               {{ mode === 'create' ? t('common.saveNew') : t('common.saveChanges') }}
             </UButton>
           </div>
         </div>
-
-        <!-- Discard unsaved changes before refreshing -->
-        <UModal v-model:open="discardConfirmOpen" :title="t('common.discardChangesTitle')">
-          <template #body>
-            <p class="text-sm text-prohealth-700">{{ t('common.discardChangesBody') }}</p>
-            <div class="flex items-center justify-end gap-3 pt-5">
-              <UButton color="neutral" variant="ghost" @click="discardConfirmOpen = false">{{ t('common.cancel') }}</UButton>
-              <UButton color="warning" icon="i-lucide-refresh-cw" @click="discardAndRefresh">{{ t('common.discardAndRefresh') }}</UButton>
-            </div>
-          </template>
-        </UModal>
-      </UForm>
+      </div>
     </template>
   </UModal>
 </template>

@@ -265,6 +265,9 @@ async function confirmRoleDelete() {
 // ---- Edit role (name/description/active), mirrors roles/index.vue ----
 const roleFormOpen = ref(false)
 const roleSubmitting = ref(false)
+// Save button lives in the modal's #footer slot, outside the <UForm> element,
+// so it can't use type="submit"; it triggers validation via this instead.
+const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 const roleState = reactive({ name: '', description: '' })
 // Kept outside `roleState` (a string-only form-state map) so the boolean isn't coerced.
 const roleIsActive = ref(true)
@@ -670,6 +673,7 @@ function discardAndRefreshRole() {
     >
       <template #body>
         <UForm
+          ref="formRef"
           :schema="roleSchema"
           :state="roleState"
           class="space-y-4"
@@ -686,25 +690,6 @@ function discardAndRefreshRole() {
           <UFormField :label="t('security.roles.fields.active')">
             <USwitch v-model="roleIsActive" />
           </UFormField>
-
-          <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
-
-          <div class="flex items-center justify-end gap-3 pt-2">
-            <RefreshButton
-              :icon-only="false"
-              :label="t('common.refresh')"
-              :title="t('common.refresh')"
-              :loading="roleEditReloading"
-              :disabled="roleSubmitting"
-              @refresh="onRoleEditRefresh"
-            />
-            <UButton color="neutral" variant="ghost" :disabled="roleSubmitting" @click="roleFormOpen = false">
-              {{ t('common.cancel') }}
-            </UButton>
-            <UButton type="submit" color="info" variant="outline" :loading="roleSubmitting" icon="i-lucide-save">
-              {{ t('common.saveChanges') }}
-            </UButton>
-          </div>
         </UForm>
 
         <!-- Discard unsaved changes before refreshing -->
@@ -717,6 +702,29 @@ function discardAndRefreshRole() {
             </div>
           </template>
         </UModal>
+      </template>
+
+      <template #footer>
+        <div class="w-full space-y-2">
+          <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
+
+          <div class="flex items-center justify-end gap-3">
+            <RefreshButton
+              :icon-only="false"
+              :label="t('common.refresh')"
+              :title="t('common.refresh')"
+              :loading="roleEditReloading"
+              :disabled="roleSubmitting"
+              @refresh="onRoleEditRefresh"
+            />
+            <UButton color="neutral" variant="ghost" :disabled="roleSubmitting" @click="roleFormOpen = false">
+              {{ t('common.cancel') }}
+            </UButton>
+            <UButton color="info" variant="outline" :loading="roleSubmitting" icon="i-lucide-save" @click="formRef?.submit()">
+              {{ t('common.saveChanges') }}
+            </UButton>
+          </div>
+        </div>
       </template>
     </UModal>
 
