@@ -199,6 +199,9 @@ const svcMode = ref<'create' | 'edit'>('create')
 const svcEditingUuid = ref<string | null>(null)
 const svcEditingItem = ref<AllyServiceDto | null>(null)
 const svcSubmitting = ref(false)
+// Save button lives in the modal's #footer slot, outside the <UForm> element,
+// so it can't use type="submit"; it triggers validation via this instead.
+const svcFormRef = ref<{ submit: () => Promise<void> } | null>(null)
 
 interface SvcFormState {
   serviceCategoryUuid: string | undefined
@@ -439,6 +442,9 @@ const agrMode = ref<'create' | 'edit'>('create')
 const agrEditingUuid = ref<string | null>(null)
 const agrEditingItem = ref<AllyAgreementDto | null>(null)
 const agrSubmitting = ref(false)
+// Save button lives in the modal's #footer slot, outside the <UForm> element,
+// so it can't use type="submit"; it triggers validation via this instead.
+const agrFormRef = ref<{ submit: () => Promise<void> } | null>(null)
 
 interface AgrFormState {
   agreementType: AgreementType | undefined
@@ -615,6 +621,9 @@ const staffMode = ref<'create' | 'edit'>('create')
 const staffEditingUuid = ref<string | null>(null)
 const staffEditingItem = ref<AllyUserDto | null>(null)
 const staffSubmitting = ref(false)
+// Save button lives in the modal's #footer slot, outside the <UForm> element,
+// so it can't use type="submit"; it triggers validation via this instead.
+const staffFormRef = ref<{ submit: () => Promise<void> } | null>(null)
 
 interface StaffFormState {
   userUuid: string | undefined
@@ -1391,6 +1400,7 @@ onMounted(async () => {
     >
       <template #body>
         <UForm
+          ref="svcFormRef"
           :schema="svcSchema"
           :state="svcState"
           class="space-y-4"
@@ -1433,9 +1443,14 @@ onMounted(async () => {
             </UFormField>
           </div>
 
+        </UForm>
+      </template>
+
+      <template #footer>
+        <div class="w-full space-y-2">
           <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
 
-          <div class="flex items-center justify-between gap-3 pt-2">
+          <div class="flex items-center justify-between gap-3">
             <div v-if="svcMode === 'edit' && svcEditingItem">
               <UTooltip :text="canDelete ? t('common.delete') : t('allies.noPermission')">
                 <UButton
@@ -1455,12 +1470,12 @@ onMounted(async () => {
               <UButton color="neutral" variant="ghost" :disabled="svcSubmitting" @click="svcFormOpen = false">
                 {{ t('common.cancel') }}
               </UButton>
-              <UButton type="submit" color="primary" :loading="svcSubmitting" icon="i-lucide-save">
+              <UButton color="primary" :loading="svcSubmitting" icon="i-lucide-save" @click="svcFormRef?.submit()">
                 {{ svcMode === 'create' ? t('allies.services.add') : t('common.saveChanges') }}
               </UButton>
             </div>
           </div>
-        </UForm>
+        </div>
       </template>
     </UModal>
 
@@ -1491,6 +1506,7 @@ onMounted(async () => {
     >
       <template #body>
         <UForm
+          ref="agrFormRef"
           :schema="agrSchema"
           :state="agrState"
           class="space-y-4"
@@ -1534,9 +1550,14 @@ onMounted(async () => {
             />
           </UFormField>
 
+        </UForm>
+      </template>
+
+      <template #footer>
+        <div class="w-full space-y-2">
           <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
 
-          <div class="flex items-center justify-between gap-3 pt-2">
+          <div class="flex items-center justify-between gap-3">
             <div v-if="agrMode === 'edit' && agrEditingItem && canDeleteAgreements">
               <UButton
                 color="error"
@@ -1554,12 +1575,12 @@ onMounted(async () => {
               <UButton color="neutral" variant="ghost" :disabled="agrSubmitting" @click="agrFormOpen = false">
                 {{ t('common.cancel') }}
               </UButton>
-              <UButton type="submit" color="primary" :loading="agrSubmitting" icon="i-lucide-save">
+              <UButton color="primary" :loading="agrSubmitting" icon="i-lucide-save" @click="agrFormRef?.submit()">
                 {{ agrMode === 'create' ? t('allies.agreements.add') : t('common.saveChanges') }}
               </UButton>
             </div>
           </div>
-        </UForm>
+        </div>
       </template>
     </UModal>
 
@@ -1590,6 +1611,7 @@ onMounted(async () => {
     >
       <template #body>
         <UForm
+          ref="staffFormRef"
           :schema="staffSchema"
           :state="staffState"
           class="space-y-4"
@@ -1637,9 +1659,14 @@ onMounted(async () => {
             </UFormField>
           </div>
 
+        </UForm>
+      </template>
+
+      <template #footer>
+        <div class="w-full space-y-2">
           <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
 
-          <div class="flex items-center justify-between gap-3 pt-2">
+          <div class="flex items-center justify-between gap-3">
             <div v-if="staffMode === 'edit' && staffEditingItem && canDeleteStaff">
               <UTooltip :text="t('allies.staff.unlinkTooltip')">
                 <UButton
@@ -1659,12 +1686,12 @@ onMounted(async () => {
               <UButton color="neutral" variant="ghost" :disabled="staffSubmitting" @click="staffFormOpen = false">
                 {{ t('common.cancel') }}
               </UButton>
-              <UButton type="submit" color="primary" :loading="staffSubmitting" icon="i-lucide-save">
+              <UButton color="primary" :loading="staffSubmitting" icon="i-lucide-save" @click="staffFormRef?.submit()">
                 {{ staffMode === 'create' ? t('allies.staff.assign') : t('common.saveChanges') }}
               </UButton>
             </div>
           </div>
-        </UForm>
+        </div>
       </template>
     </UModal>
 
