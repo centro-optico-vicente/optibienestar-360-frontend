@@ -916,6 +916,18 @@ onMounted(async () => {
             <p class="text-xs text-prohealth-500 mt-0.5">{{ t('allies.services.hint') }}</p>
           </div>
           <div class="flex items-center gap-2">
+            <UTooltip :text="canUpdate ? t('allies.services.addTooltip') : t('allies.noPermission')">
+              <UButton
+                color="primary"
+                variant="soft"
+                icon="i-lucide-plus"
+                size="sm"
+                :disabled="!canUpdate"
+                @click="openSvcCreate"
+              >
+                {{ t('allies.services.add') }}
+              </UButton>
+            </UTooltip>
             <UButton
               v-if="servicesHasActiveSort"
               variant="link"
@@ -932,18 +944,6 @@ onMounted(async () => {
               :title="t('common.refreshSection')"
               @refresh="loadServices"
             />
-            <UTooltip :text="canUpdate ? t('allies.services.addTooltip') : t('allies.noPermission')">
-              <UButton
-                color="primary"
-                variant="soft"
-                icon="i-lucide-plus"
-                size="sm"
-                :disabled="!canUpdate"
-                @click="openSvcCreate"
-              >
-                {{ t('allies.services.add') }}
-              </UButton>
-            </UTooltip>
           </div>
         </div>
 
@@ -1066,6 +1066,7 @@ onMounted(async () => {
               color="primary"
               variant="soft"
               icon="i-lucide-plus"
+              size="sm"
               :disabled="!canUpdate || !specialtyToAdd"
               :loading="specialtyMutating"
               @click="addSpecialty"
@@ -1073,7 +1074,6 @@ onMounted(async () => {
               {{ t('allies.specialties.addButton') }}
             </UButton>
             <RefreshButton
-              size="md"
               :loading="specialtiesLoading"
               :title="t('common.refreshSection')"
               @refresh="loadSpecialties"
@@ -1126,11 +1126,16 @@ onMounted(async () => {
             <p class="text-xs text-prohealth-500 mt-0.5">{{ t('allies.agreements.hint') }}</p>
           </div>
           <div class="flex items-center gap-2">
-            <RefreshButton
-              :loading="agreementsLoading"
-              :title="t('common.refreshSection')"
-              @refresh="loadAgreements"
-            />
+            <UButton
+              v-if="canCreateAgreements"
+              color="primary"
+              variant="soft"
+              icon="i-lucide-plus"
+              size="sm"
+              @click="openAgrCreate"
+            >
+              {{ t('allies.agreements.add') }}
+            </UButton>
             <UButton
               v-if="agreementsHasActiveSort"
               variant="link"
@@ -1142,16 +1147,11 @@ onMounted(async () => {
             >
               {{ t('common.clearSort') }}
             </UButton>
-            <UButton
-              v-if="canCreateAgreements"
-              color="primary"
-              variant="soft"
-              icon="i-lucide-plus"
-              size="sm"
-              @click="openAgrCreate"
-            >
-              {{ t('allies.agreements.add') }}
-            </UButton>
+            <RefreshButton
+              :loading="agreementsLoading"
+              :title="t('common.refreshSection')"
+              @refresh="loadAgreements"
+            />
           </div>
         </div>
 
@@ -1246,6 +1246,18 @@ onMounted(async () => {
             <p class="text-xs text-prohealth-500 mt-0.5">{{ t('allies.staff.hint') }}</p>
           </div>
           <div class="flex items-center gap-2">
+            <UTooltip :text="canCreateStaff ? t('allies.staff.assignTooltip') : t('allies.noPermission')">
+              <UButton
+                color="primary"
+                variant="soft"
+                icon="i-lucide-user-plus"
+                size="sm"
+                :disabled="!canCreateStaff"
+                @click="openStaffCreate"
+              >
+                {{ t('allies.staff.assign') }}
+              </UButton>
+            </UTooltip>
             <UButton
               v-if="staffHasActiveSort"
               variant="link"
@@ -1262,18 +1274,6 @@ onMounted(async () => {
               :title="t('common.refreshSection')"
               @refresh="loadStaff"
             />
-            <UTooltip :text="canCreateStaff ? t('allies.staff.assignTooltip') : t('allies.noPermission')">
-              <UButton
-                color="primary"
-                variant="soft"
-                icon="i-lucide-user-plus"
-                size="sm"
-                :disabled="!canCreateStaff"
-                @click="openStaffCreate"
-              >
-                {{ t('allies.staff.assign') }}
-              </UButton>
-            </UTooltip>
           </div>
         </div>
 
