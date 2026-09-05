@@ -472,6 +472,10 @@
         "label": "Payments",
         "description": "Payment registration and approval."
       },
+      "paymentsReport": {
+        "label": "Payments report",
+        "description": "Affiliate collection and payment report."
+      },
       "allyTypes": {
         "label": "Partner types",
         "description": "Partner classification."
@@ -499,6 +503,14 @@
       "commissions": {
         "label": "Commissions",
         "description": "Commission settlement and status."
+      },
+      "commissionsReport": {
+        "label": "Commissions report",
+        "description": "General report of earned commissions."
+      },
+      "commissionPayoutsReport": {
+        "label": "Commission payouts report",
+        "description": "Report of payouts and disbursements made to promoters."
       },
       "roles": {
         "label": "Roles",

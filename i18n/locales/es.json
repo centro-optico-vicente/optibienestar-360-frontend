@@ -472,6 +472,10 @@
         "label": "Pagos",
         "description": "Registro y aprobación de pagos."
       },
+      "paymentsReport": {
+        "label": "Reporte de pagos",
+        "description": "Reporte de recaudación y pagos de afiliados."
+      },
       "allyTypes": {
         "label": "Tipos de aliado",
         "description": "Clasificación de los aliados."
@@ -499,6 +503,14 @@
       "commissions": {
         "label": "Comisiones",
         "description": "Liquidación y estado de comisiones."
+      },
+      "commissionsReport": {
+        "label": "Reporte de comisiones",
+        "description": "Reporte general de comisiones devengadas."
+      },
+      "commissionPayoutsReport": {
+        "label": "Reporte de pagos de comisiones",
+        "description": "Reporte de desembolsos y pagos realizados a promotores."
       },
       "roles": {
         "label": "Roles",
