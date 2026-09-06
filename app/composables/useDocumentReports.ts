@@ -1,5 +1,20 @@
 import { useAuthStore } from '~/stores/auth'
 
+/**
+ * Parameters accepted by Jasper reports (Comisiones & Pagos).
+ */
+export interface JasperReportParams {
+  startDate?: string
+  endDate?: string
+  promoter?: string
+  status?: string
+  appliesTo?: string
+  paymentMethod?: string
+  plan?: string
+  payoutReference?: string
+  companyName?: string
+}
+
 export const useDocumentReports = () => {
   const { t } = useI18n()
   const config = useRuntimeConfig()
@@ -138,9 +153,75 @@ export const useDocumentReports = () => {
     }
   }
 
+  /**
+   * Downloads a specialized Jasper report (PDF or XLSX) with custom query filters.
+   */
+  async function downloadJasperReport(
+    reportName: 'comisiones' | 'pagos' | 'pagos-comisiones' | 'pagos-afiliados' | 'commissions' | 'payments' | string,
+    format: 'PDF' | 'XLSX' = 'PDF',
+    filterParams: JasperReportParams = {}
+  ) {
+    const baseURL = config.public.apiBaseUrl || ''
+    const params = new URLSearchParams({ format })
+    if (filterParams.startDate) params.set('startDate', filterParams.startDate)
+    if (filterParams.endDate) params.set('endDate', filterParams.endDate)
+    if (filterParams.promoter) params.set('promoter', filterParams.promoter)
+    if (filterParams.status) params.set('status', filterParams.status)
+    if (filterParams.appliesTo) params.set('appliesTo', filterParams.appliesTo)
+    if (filterParams.paymentMethod) params.set('paymentMethod', filterParams.paymentMethod)
+    if (filterParams.plan) params.set('plan', filterParams.plan)
+    if (filterParams.payoutReference) params.set('payoutReference', filterParams.payoutReference)
+    if (filterParams.companyName) params.set('companyName', filterParams.companyName)
+
+    const endpoint = `${baseURL}/v1/documents/jasper/${reportName}?${params.toString()}`
+
+    try {
+      if (auth.refreshToken && auth.isAccessExpiringSoon()) {
+        await auth.tryRefresh()
+      }
+
+      const response = await fetch(endpoint, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${auth.accessToken || ''}`,
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error(t('reports.tableError'))
+      }
+
+      const blob = await response.blob()
+      const ext = format === 'XLSX' ? 'xlsx' : 'pdf'
+      const timestamp = getTimestampString()
+      let baseName = 'reporte'
+      if (reportName.includes('comision') && reportName.includes('pago')) {
+        baseName = 'reporte_pagos_comisiones'
+      } else if (reportName.startsWith('pago') || reportName.startsWith('payment')) {
+        baseName = 'reporte_pagos_afiliados'
+      } else {
+        baseName = 'reporte_comisiones'
+      }
+      triggerBlobDownload(blob, `${baseName}_${timestamp}.${ext}`)
+      toast.add({
+        title: t('reports.tableSuccess'),
+        color: 'success',
+        icon: 'i-lucide-check-circle',
+      })
+    } catch (err: any) {
+      toast.add({
+        title: err?.message || t('reports.tableError'),
+        color: 'error',
+        icon: 'i-lucide-circle-alert',
+      })
+      throw err
+    }
+  }
+
   return {
     normalizeTableName,
     downloadTableReport,
     downloadRecordReport,
+    downloadJasperReport,
   }
 }

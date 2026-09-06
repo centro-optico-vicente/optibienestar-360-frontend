@@ -22,9 +22,12 @@ interface ListParams {
  * - approve -> PAYMENT_APPROVE · reject -> PAYMENT_REJECT
  * - mine() -> PAYMENT_VIEW_OWN (authenticated member's history)
  *
- * Payments are neither edited nor deleted: they are registered and then
- * approved/rejected (human review). The proof of payment travels as a multipart part
- * on registration and is later fetched via a presigned URL.
+ * Payments are not edited: they are registered and then approved/rejected
+ * (human review). A still-PENDING payment (a mistaken registration, not yet
+ * reviewed) can be deleted (PAYMENT_DELETE) — the backend rejects deleting an
+ * already APPROVED/REJECTED one, since those are the audited review outcomes.
+ * The proof of payment travels as a multipart part on registration and is
+ * later fetched via a presigned URL.
  */
 export const usePayments = () => {
   // ---- Admin ----
@@ -69,6 +72,13 @@ export const usePayments = () => {
     })
 
   /**
+   * Delete a still-PENDING payment registered by mistake. PAYMENT_DELETE.
+   * The backend rejects (422) deleting a payment that is already APPROVED/REJECTED.
+   */
+  const remove = (uuid: string) =>
+    useApi<void>(`/v1/admin/payments/${uuid}`, { method: 'DELETE' })
+
+  /**
    * Presigned URL of the proof (default 5 min; ttl clamped to [1..60] in the
    * backend). 404 if there is no proof; 422 if R2 is disabled on the replica.
    */
@@ -88,5 +98,5 @@ export const usePayments = () => {
       },
     })
 
-  return { list, get, register, approve, reject, supportUrl, mine }
+  return { list, get, register, approve, reject, remove, supportUrl, mine }
 }

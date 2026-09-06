@@ -472,6 +472,10 @@
         "label": "Pagos",
         "description": "Registro y aprobación de pagos."
       },
+      "paymentsReport": {
+        "label": "Reporte de pagos",
+        "description": "Reporte de recaudación y pagos de afiliados."
+      },
       "allyTypes": {
         "label": "Tipos de aliado",
         "description": "Clasificación de los aliados."
@@ -499,6 +503,14 @@
       "commissions": {
         "label": "Comisiones",
         "description": "Liquidación y estado de comisiones."
+      },
+      "commissionsReport": {
+        "label": "Reporte de comisiones",
+        "description": "Reporte general de comisiones devengadas."
+      },
+      "commissionPayoutsReport": {
+        "label": "Reporte de pagos de comisiones",
+        "description": "Reporte de desembolsos y pagos realizados a promotores."
       },
       "roles": {
         "label": "Roles",
@@ -1334,12 +1346,18 @@
     "empty": "Sin pagos",
     "noReference": "Sin referencia",
     "paginationSummary": "{shown} de {total} pago(s)",
+    "deletedToast": "Pago eliminado",
+    "delete": {
+      "title": "Eliminar pago",
+      "confirm": "Este pago está pendiente de revisión y aún no ha sido aprobado ni rechazado. ¿Deseas eliminarlo?"
+    },
     "tooltips": {
       "viewDetail": "Ver detalle",
       "approve": "Aprobar",
       "noPermissionApprove": "No tienes permiso para aprobar",
       "reject": "Rechazar",
-      "noPermissionReject": "No tienes permiso para rechazar"
+      "noPermissionReject": "No tienes permiso para rechazar",
+      "noPermissionDelete": "No tienes permiso para eliminar"
     },
     "columns": {
       "planReference": "Plan / Referencia",
@@ -2132,6 +2150,15 @@
       "confirmDescription": "Al confirmar se reescribirá el porcentaje, monto y banda de cada comisión INSCRIPTION pendiente del período. Solo afecta comisiones PENDING, nunca PAGADAS. Esta acción no se puede deshacer.",
       "successToast": "Re-rating aplicado: {promoters} promotores, {commissions} comisiones actualizadas.",
       "invalidRange": "El fin del período debe ser posterior o igual al inicio."
+    },
+    "voidAction": {
+      "trigger": "Anular comisión",
+      "title": "Anular comisión",
+      "confirm": "La comisión de {promoter} quedará excluida de la próxima liquidación. Esta acción no se puede deshacer.",
+      "reasonLabel": "Motivo de la anulación",
+      "reasonPlaceholder": "p. ej. Incumplimiento de meta del promotor",
+      "confirmButton": "Anular",
+      "successToast": "Comisión anulada correctamente."
     }
   },
   "scheduledJobs": {
