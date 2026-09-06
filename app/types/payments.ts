@@ -58,9 +58,12 @@ export function paymentStatusColor(value?: string | null): 'warning' | 'success'
  */
 export interface PaymentDto {
   uuid: string
-  // Subject (flat refs extracted by the mapper)
-  membershipUuid: string
-  memberUuid: string
+  // Subject (flat refs extracted by the mapper — member/membership resolve
+  // to a readable `_Display` server-side, hub ADR 0014)
+  membership_Uuid?: string | null
+  membership_Display?: string | null
+  member_Uuid?: string | null
+  member_Display?: string | null
   plan_Uuid?: string | null
   plan_Display?: string | null
   /** Plan SKU (FK triple `_Code`, hub ADR 0014) — was `planCode`. */
@@ -93,7 +96,8 @@ export interface PaymentDto {
   // Review
   status: PaymentStatus | string
   status_Display?: string | null
-  reviewedByUserUuid?: string | null
+  reviewedBy_Uuid?: string | null
+  reviewedBy_Display?: string | null
   reviewedAt?: string | null
   reviewedAt_Display?: string | null
   reviewReason?: string | null

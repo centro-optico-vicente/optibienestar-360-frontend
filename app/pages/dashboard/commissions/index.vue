@@ -20,6 +20,13 @@ const { can } = usePermissions()
 const canPayout = computed(() => can('COMMISSION_PAYOUT'))
 const canReRate = computed(() => can('COMMISSION_RE_RATE'))
 
+// commission_tier and commission share the COMMISSIONS audit domain (V66/V72),
+// same pattern as commission-rules/index.vue.
+const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('COMMISSION_RECORD_AUDIT_VIEW'))
+const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('COMMISSION_REPORT_AUDIT_VIEW'))
+const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
+const auditOpen = ref(false)
+
 // ---- Listing + filters + pagination (read-only ledger; no create/edit/delete) ----
 const data = ref<CommissionDto[]>([])
 const total = ref(0)
@@ -349,6 +356,13 @@ async function onReRatingDone() {
           <span class="text-sm">{{ t('commissions.detail.loading') }}</span>
         </div>
         <div v-else-if="detail" class="space-y-6">
+          <div class="flex items-center justify-end gap-2">
+            <ReportPrintButton :record-uuid="detail.uuid" variant="ghost" icon-only />
+            <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
+              <UButton color="neutral" variant="ghost" icon="i-lucide-history" @click="auditOpen = true" />
+            </UTooltip>
+          </div>
+
           <!-- Commission -->
           <div>
             <h3 class="font-bold text-prohealth-900 mb-3">{{ t('commissions.detail.sections.commission') }}</h3>
@@ -464,16 +478,22 @@ async function onReRatingDone() {
             <h3 class="font-bold text-prohealth-900 mb-3">{{ t('commissions.detail.sections.metadata') }}</h3>
             <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-sm">
               <div>
-                <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.promoterUuid') }}</dt>
-                <dd class="text-prohealth-800 mt-0.5 font-mono text-xs break-all">{{ detail.promoter_Uuid || t('common.empty') }}</dd>
-              </div>
-              <div>
                 <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.paymentUuid') }}</dt>
-                <dd class="text-prohealth-800 mt-0.5 font-mono text-xs break-all">{{ detail.paymentUuid || t('common.empty') }}</dd>
+                <dd class="mt-0.5">
+                  <NuxtLink v-if="detail.payment_Uuid" :to="`/dashboard/payments/${detail.payment_Uuid}`" class="text-cyan-700 hover:underline">
+                    {{ detail.payment_Display || t('common.empty') }}
+                  </NuxtLink>
+                  <span v-else class="text-prohealth-800">{{ t('common.empty') }}</span>
+                </dd>
               </div>
               <div>
                 <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.memberUuid') }}</dt>
-                <dd class="text-prohealth-800 mt-0.5 font-mono text-xs break-all">{{ detail.memberUuid || t('common.empty') }}</dd>
+                <dd class="mt-0.5">
+                  <NuxtLink v-if="detail.member_Uuid" :to="`/dashboard/members/${detail.member_Uuid}`" class="text-cyan-700 hover:underline">
+                    {{ detail.member_Display || t('common.empty') }}
+                  </NuxtLink>
+                  <span v-else class="text-prohealth-800">{{ t('common.empty') }}</span>
+                </dd>
               </div>
               <div>
                 <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.uuid') }}</dt>
@@ -504,5 +524,16 @@ async function onReRatingDone() {
 
     <!-- Month-close retroactive re-rating modal -->
     <CommissionReRatingModal v-model:open="reRatingOpen" @done="onReRatingDone" />
+
+    <!-- Audit modal -->
+    <AuditModal
+      v-if="detail"
+      v-model:open="auditOpen"
+      entity-key="commission"
+      :entity-uuid="detail.uuid"
+      :entity-label="detail.promoter_Display || detail.uuid"
+      :can-view-changes="canViewAuditChanges"
+      :can-view-reports="canViewAuditReports"
+    />
   </div>
 </template>

@@ -183,8 +183,10 @@ export interface CommissionDto {
   promoter_Display?: string | null
   /** Referral code of the promoter (FK triple `_Code`, hub ADR 0014). */
   promoter_Code?: string | null
-  paymentUuid?: string
-  memberUuid?: string
+  payment_Uuid?: string | null
+  payment_Display?: string | null
+  member_Uuid?: string | null
+  member_Display?: string | null
   amount?: number
   currency?: string
   calculationBasis?: number
