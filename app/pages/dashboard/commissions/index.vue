@@ -393,19 +393,6 @@ async function confirmVoid() {
           <span class="text-sm">{{ t('commissions.detail.loading') }}</span>
         </div>
         <div v-else-if="detail" class="space-y-6">
-          <div class="flex items-center justify-between gap-2">
-            <UTooltip v-if="canVoid && detail.status === 'PENDING'" :text="t('commissions.voidAction.trigger')">
-              <UButton color="error" variant="ghost" icon="i-lucide-ban" @click="openVoid(detail)" />
-            </UTooltip>
-            <div v-else />
-            <div class="flex items-center gap-2">
-              <ReportPrintButton :record-uuid="detail.uuid" variant="ghost" icon-only />
-              <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
-                <UButton color="neutral" variant="ghost" icon="i-lucide-history" @click="auditOpen = true" />
-              </UTooltip>
-            </div>
-          </div>
-
           <!-- Commission -->
           <div>
             <h3 class="font-bold text-prohealth-900 mb-3">{{ t('commissions.detail.sections.commission') }}</h3>
@@ -552,12 +539,23 @@ async function confirmVoid() {
               </div>
             </dl>
           </div>
+        </div>
+      </template>
 
-          <div class="flex items-center justify-end pt-2">
-            <UButton color="neutral" variant="ghost" @click="detailOpen = false">
-              {{ t('common.back') }}
-            </UButton>
+      <template v-if="detail" #footer>
+        <div class="w-full flex items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <UTooltip v-if="canVoid && detail.status === 'PENDING'" :text="t('commissions.voidAction.trigger')">
+              <UButton color="error" variant="ghost" icon="i-lucide-ban" @click="openVoid(detail)" />
+            </UTooltip>
+            <ReportPrintButton :record-uuid="detail.uuid" variant="ghost" icon-only />
+            <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
+              <UButton color="neutral" variant="ghost" icon="i-lucide-history" @click="auditOpen = true" />
+            </UTooltip>
           </div>
+          <UButton color="neutral" variant="ghost" @click="detailOpen = false">
+            {{ t('common.back') }}
+          </UButton>
         </div>
       </template>
     </UModal>
