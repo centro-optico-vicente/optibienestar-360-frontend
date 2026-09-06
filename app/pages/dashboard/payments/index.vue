@@ -20,10 +20,12 @@ useSeoMeta({ title: () => t('common.seoTitle', { page: t('payments.title') }) })
 
 const payments = usePayments()
 const { can } = usePermissions()
+const toast = useToast()
 
 const canRegister = computed(() => can('PAYMENT_CREATE'))
 const canApprove = computed(() => can('PAYMENT_APPROVE'))
 const canReject = computed(() => can('PAYMENT_REJECT'))
+const canDelete = computed(() => can('PAYMENT_DELETE'))
 const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('PAYMENT_RECORD_AUDIT_VIEW'))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('PAYMENT_REPORT_AUDIT_VIEW'))
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
@@ -170,6 +172,35 @@ function onReviewed(updated: PaymentDto) {
 
 function isPending(p: PaymentDto): boolean {
   return p.status === 'PENDING'
+}
+
+// ---- Delete (only while still PENDING — a mistaken registration, not yet reviewed) ----
+const deleteOpen = ref(false)
+const deleting = ref(false)
+const target = ref<PaymentDto | null>(null)
+
+function openDelete(p: PaymentDto) {
+  target.value = p
+  deleteOpen.value = true
+}
+
+async function confirmDelete() {
+  if (!target.value) return
+  deleting.value = true
+  try {
+    await payments.remove(target.value.uuid)
+    toast.add({ title: t('payments.deletedToast'), color: 'success', icon: 'i-lucide-check-circle' })
+    deleteOpen.value = false
+    // If the page is left empty after deleting, step back one.
+    if (data.value.length === 1 && page.value > 1) page.value -= 1
+    else await load()
+  }
+  catch {
+    // useApi already notified the error (422 already reviewed, etc.)
+  }
+  finally {
+    deleting.value = false
+  }
 }
 </script>
 
@@ -348,6 +379,17 @@ function isPending(p: PaymentDto): boolean {
                       @click="openAudit(p)"
                     />
                   </UTooltip>
+                  <UTooltip v-if="isPending(p)" :text="canDelete ? t('common.delete') : t('payments.tooltips.noPermissionDelete')">
+                    <UButton
+                      color="error"
+                      variant="ghost"
+                      icon="i-lucide-trash-2"
+                      size="sm"
+                      class="ms-2"
+                      :disabled="!canDelete"
+                      @click="openDelete(p)"
+                    />
+                  </UTooltip>
                 </div>
               </td>
             </tr>
@@ -393,6 +435,21 @@ function isPending(p: PaymentDto): boolean {
       :payment="reviewTarget"
       @reviewed="onReviewed"
     />
+
+    <!-- Delete confirmation modal (PENDING only) -->
+    <UModal v-model:open="deleteOpen" :title="t('payments.delete.title')">
+      <template #body>
+        <p class="text-sm text-prohealth-700">{{ t('payments.delete.confirm') }}</p>
+        <div class="flex items-center justify-end gap-3 pt-5">
+          <UButton color="neutral" variant="ghost" :disabled="deleting" @click="deleteOpen = false">
+            {{ t('common.cancel') }}
+          </UButton>
+          <UButton color="error" :loading="deleting" icon="i-lucide-trash-2" @click="confirmDelete">
+            {{ t('common.delete') }}
+          </UButton>
+        </div>
+      </template>
+    </UModal>
 
     <!-- Audit modal -->
     <AuditModal

@@ -21,10 +21,13 @@ interface ListParams {
  * Acceso al ledger de Comisiones (/v1/admin/commissions).
  * Permisos del backend por acción:
  * - list/get → COMMISSION_VIEW_ALL · payout → COMMISSION_PAYOUT · re-rate → COMMISSION_RE_RATE
+ * - void → COMMISSION_VOID
  *
  * Las comisiones no se editan ni se borran: se generan al aprobar pagos y se liquidan
  * cerrando un período con `payout`. La consulta canónica de liquidación es
- * `filter=promoter.uuid==X;status==PENDING`.
+ * `filter=promoter.uuid==X;status==PENDING`. Una comisión PENDING puntual puede excluirse
+ * de la próxima liquidación anulándola con `voidCommission` (p. ej. incumplimiento de un
+ * promotor) sin afectar el resto del período.
  */
 export const useCommissions = () => {
   const list = (params: ListParams = {}) =>
@@ -58,5 +61,13 @@ export const useCommissions = () => {
   const reRate = (body: CommissionReRatingRequest) =>
     useApi<CommissionReRatingResponse>('/v1/admin/commissions/re-rate', { method: 'POST', body })
 
-  return { list, get, payout, reRate }
+  /**
+   * Anula una comisión PENDING puntual (p. ej. incumplimiento del promotor) — queda
+   * excluida de la próxima liquidación sin tocar el resto del período. Solo aplica a
+   * comisiones PENDING; PAID/VOIDED/DISPUTED son rechazadas por el backend.
+   */
+  const voidCommission = (uuid: string, reason: string) =>
+    useApi<CommissionDto>(`/v1/admin/commissions/${uuid}/void`, { method: 'POST', body: { reason } })
+
+  return { list, get, payout, reRate, voidCommission }
 }

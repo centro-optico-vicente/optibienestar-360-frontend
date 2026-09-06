@@ -472,6 +472,10 @@
         "label": "Payments",
         "description": "Payment registration and approval."
       },
+      "paymentsReport": {
+        "label": "Payments report",
+        "description": "Affiliate collection and payment report."
+      },
       "allyTypes": {
         "label": "Partner types",
         "description": "Partner classification."
@@ -499,6 +503,14 @@
       "commissions": {
         "label": "Commissions",
         "description": "Commission settlement and status."
+      },
+      "commissionsReport": {
+        "label": "Commissions report",
+        "description": "General report of earned commissions."
+      },
+      "commissionPayoutsReport": {
+        "label": "Commission payouts report",
+        "description": "Report of payouts and disbursements made to promoters."
       },
       "roles": {
         "label": "Roles",
@@ -1334,12 +1346,18 @@
     "empty": "No payments",
     "noReference": "No reference",
     "paginationSummary": "{shown} of {total} payment(s)",
+    "deletedToast": "Payment deleted",
+    "delete": {
+      "title": "Delete payment",
+      "confirm": "This payment is still pending review and has not been approved or rejected yet. Delete it?"
+    },
     "tooltips": {
       "viewDetail": "View detail",
       "approve": "Approve",
       "noPermissionApprove": "You don't have permission to approve",
       "reject": "Reject",
-      "noPermissionReject": "You don't have permission to reject"
+      "noPermissionReject": "You don't have permission to reject",
+      "noPermissionDelete": "You don't have permission to delete"
     },
     "columns": {
       "planReference": "Plan / Reference",
@@ -2132,6 +2150,15 @@
       "confirmDescription": "Confirming rewrites the percentage, amount and band of every PENDING INSCRIPTION commission in the period. Only affects PENDING commissions, never PAID ones. This action cannot be undone.",
       "successToast": "Re-rating applied: {promoters} promoters, {commissions} commissions updated.",
       "invalidRange": "The period end must be on or after the start."
+    },
+    "voidAction": {
+      "trigger": "Void commission",
+      "title": "Void commission",
+      "confirm": "{promoter}'s commission will be excluded from the next payout. This action cannot be undone.",
+      "reasonLabel": "Reason for voiding",
+      "reasonPlaceholder": "e.g. Promoter didn't meet the quota",
+      "confirmButton": "Void",
+      "successToast": "Commission voided successfully."
     }
   },
   "scheduledJobs": {
