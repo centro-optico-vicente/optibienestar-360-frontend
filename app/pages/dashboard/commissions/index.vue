@@ -356,8 +356,11 @@ async function onReRatingDone() {
           <span class="text-sm">{{ t('commissions.detail.loading') }}</span>
         </div>
         <div v-else-if="detail" class="space-y-6">
-          <div class="flex items-center justify-end">
+          <div class="flex items-center justify-end gap-2">
             <ReportPrintButton :record-uuid="detail.uuid" variant="ghost" icon-only />
+            <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
+              <UButton color="neutral" variant="ghost" icon="i-lucide-history" @click="auditOpen = true" />
+            </UTooltip>
           </div>
 
           <!-- Commission -->
@@ -521,5 +524,16 @@ async function onReRatingDone() {
 
     <!-- Month-close retroactive re-rating modal -->
     <CommissionReRatingModal v-model:open="reRatingOpen" @done="onReRatingDone" />
+
+    <!-- Audit modal -->
+    <AuditModal
+      v-if="detail"
+      v-model:open="auditOpen"
+      entity-key="commission"
+      :entity-uuid="detail.uuid"
+      :entity-label="detail.promoter_Display || detail.uuid"
+      :can-view-changes="canViewAuditChanges"
+      :can-view-reports="canViewAuditReports"
+    />
   </div>
 </template>
