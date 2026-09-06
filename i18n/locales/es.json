@@ -2144,6 +2144,15 @@
       "confirmDescription": "Al confirmar se reescribirá el porcentaje, monto y banda de cada comisión INSCRIPTION pendiente del período. Solo afecta comisiones PENDING, nunca PAGADAS. Esta acción no se puede deshacer.",
       "successToast": "Re-rating aplicado: {promoters} promotores, {commissions} comisiones actualizadas.",
       "invalidRange": "El fin del período debe ser posterior o igual al inicio."
+    },
+    "voidAction": {
+      "trigger": "Anular comisión",
+      "title": "Anular comisión",
+      "confirm": "La comisión de {promoter} quedará excluida de la próxima liquidación. Esta acción no se puede deshacer.",
+      "reasonLabel": "Motivo de la anulación",
+      "reasonPlaceholder": "p. ej. Incumplimiento de meta del promotor",
+      "confirmButton": "Anular",
+      "successToast": "Comisión anulada correctamente."
     }
   },
   "scheduledJobs": {

@@ -16,9 +16,11 @@ useSeoMeta({ title: () => t('common.seoTitle', { page: t('nav.items.commissions.
 
 const commissions = useCommissions()
 const { can } = usePermissions()
+const toast = useToast()
 
 const canPayout = computed(() => can('COMMISSION_PAYOUT'))
 const canReRate = computed(() => can('COMMISSION_RE_RATE'))
+const canVoid = computed(() => can('COMMISSION_VOID'))
 
 // commission_tier and commission share the COMMISSIONS audit domain (V66/V72),
 // same pattern as commission-rules/index.vue.
@@ -183,6 +185,33 @@ async function onReRatingDone() {
   page.value = 1
   await load()
 }
+
+// ---- Void a single PENDING commission (excludes it from the next payout) ----
+const voidOpen = ref(false)
+const voidTarget = ref<CommissionDto | null>(null)
+const voidReason = ref('')
+const voidSubmitting = ref(false)
+
+function openVoid(row: CommissionDto) {
+  voidTarget.value = row
+  voidReason.value = ''
+  voidOpen.value = true
+}
+
+async function confirmVoid() {
+  if (!voidTarget.value || !voidReason.value.trim()) return
+  voidSubmitting.value = true
+  try {
+    const updated = await commissions.voidCommission(voidTarget.value.uuid, voidReason.value.trim())
+    toast.add({ title: t('commissions.voidAction.successToast'), color: 'success', icon: 'i-lucide-ban' })
+    voidOpen.value = false
+    // Keep the detail modal's own copy in sync when voiding from there.
+    if (detail.value?.uuid === updated.uuid) detail.value = updated
+    await load()
+  }
+  catch { /* toast handled by useApi */ }
+  finally { voidSubmitting.value = false }
+}
 </script>
 
 <template>
@@ -282,12 +311,13 @@ async function onReRatingDone() {
                 {{ t('commissions.columns.paidAt') }}
                 <SortIndicator :state="sort.stateOf('paidAt')" :multi-active="isMultiSort" @clear="sort.remove('paidAt')" />
               </th>
+              <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-prohealth-100">
-            <TableSkeleton v-if="loading" :rows="8" :cols="7" />
+            <TableSkeleton v-if="loading" :rows="8" :cols="8" />
             <tr v-else-if="data.length === 0">
-              <td colspan="7" class="px-5 py-12 text-center text-prohealth-500">
+              <td colspan="8" class="px-5 py-12 text-center text-prohealth-500">
                 <UIcon name="i-lucide-percent" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
                 {{ t('commissions.empty') }}
               </td>
@@ -315,6 +345,13 @@ async function onReRatingDone() {
               </td>
               <td class="px-5 py-3 text-prohealth-600">{{ c.earnedAt_Display ?? formatDate(c.earnedAt, 'short') }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ c.paidAt ? (c.paidAt_Display ?? formatDate(c.paidAt, 'short')) : t('common.empty') }}</td>
+              <td class="px-5 py-3" @click.stop>
+                <div class="flex items-center justify-end">
+                  <UTooltip v-if="canVoid && c.status === 'PENDING'" :text="t('commissions.voidAction.trigger')">
+                    <UButton color="error" variant="ghost" icon="i-lucide-ban" size="sm" @click="openVoid(c)" />
+                  </UTooltip>
+                </div>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -356,11 +393,17 @@ async function onReRatingDone() {
           <span class="text-sm">{{ t('commissions.detail.loading') }}</span>
         </div>
         <div v-else-if="detail" class="space-y-6">
-          <div class="flex items-center justify-end gap-2">
-            <ReportPrintButton :record-uuid="detail.uuid" variant="ghost" icon-only />
-            <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
-              <UButton color="neutral" variant="ghost" icon="i-lucide-history" @click="auditOpen = true" />
+          <div class="flex items-center justify-between gap-2">
+            <UTooltip v-if="canVoid && detail.status === 'PENDING'" :text="t('commissions.voidAction.trigger')">
+              <UButton color="error" variant="ghost" icon="i-lucide-ban" @click="openVoid(detail)" />
             </UTooltip>
+            <div v-else />
+            <div class="flex items-center gap-2">
+              <ReportPrintButton :record-uuid="detail.uuid" variant="ghost" icon-only />
+              <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
+                <UButton color="neutral" variant="ghost" icon="i-lucide-history" @click="auditOpen = true" />
+              </UTooltip>
+            </div>
           </div>
 
           <!-- Commission -->
@@ -535,5 +578,31 @@ async function onReRatingDone() {
       :can-view-changes="canViewAuditChanges"
       :can-view-reports="canViewAuditReports"
     />
+
+    <!-- Void confirmation (excludes this one commission from the next payout) -->
+    <UModal v-model:open="voidOpen" :title="t('commissions.voidAction.title')">
+      <template #body>
+        <p class="text-sm text-prohealth-700">
+          {{ t('commissions.voidAction.confirm', { promoter: voidTarget?.promoter_Display || '' }) }}
+        </p>
+        <UFormField :label="t('commissions.voidAction.reasonLabel')" required class="mt-4">
+          <UTextarea v-model="voidReason" :rows="3" class="w-full" :placeholder="t('commissions.voidAction.reasonPlaceholder')" />
+        </UFormField>
+        <div class="flex items-center justify-end gap-3 pt-5">
+          <UButton color="neutral" variant="ghost" :disabled="voidSubmitting" @click="voidOpen = false">
+            {{ t('common.cancel') }}
+          </UButton>
+          <UButton
+            color="error"
+            :loading="voidSubmitting"
+            :disabled="!voidReason.trim()"
+            icon="i-lucide-ban"
+            @click="confirmVoid"
+          >
+            {{ t('commissions.voidAction.confirmButton') }}
+          </UButton>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>
