@@ -563,7 +563,14 @@ onMounted(() => {
             <tr v-else-if="tierData.length === 0">
               <td colspan="6" class="px-5 py-10 text-center text-prohealth-500">{{ t('commissionRules.tiers.empty') }}</td>
             </tr>
-            <tr v-for="tier in tierData" v-else :key="tier.uuid" class="hover:bg-prohealth-50/50" :class="{ 'opacity-60': !tier.active }">
+            <tr
+              v-for="tier in tierData"
+              v-else
+              :key="tier.uuid"
+              class="hover:bg-prohealth-50/50"
+              :class="{ 'opacity-60': !tier.active, 'cursor-pointer': canUpdateTiers }"
+              @click="canUpdateTiers && openEditTier(tier)"
+            >
               <td class="px-5 py-3 font-medium text-prohealth-900">{{ tier.name }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ tier.planType ? t(`plans.types.${tier.planType}`) : t('commissionRules.tiers.allPlans') }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ tier.thresholdCount }}</td>
@@ -682,7 +689,14 @@ onMounted(() => {
             <tr v-else-if="bonusData.length === 0">
               <td colspan="8" class="px-5 py-10 text-center text-prohealth-500">{{ t('commissionRules.bonusRules.empty') }}</td>
             </tr>
-            <tr v-for="rule in bonusData" v-else :key="rule.uuid" class="hover:bg-prohealth-50/50" :class="{ 'opacity-60': !rule.active }">
+            <tr
+              v-for="rule in bonusData"
+              v-else
+              :key="rule.uuid"
+              class="hover:bg-prohealth-50/50"
+              :class="{ 'opacity-60': !rule.active, 'cursor-pointer': canUpdateBonus }"
+              @click="canUpdateBonus && openEditBonus(rule)"
+            >
               <td class="px-5 py-3 font-medium text-prohealth-900">{{ rule.name }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ t(`commissionRules.bonusMetrics.${rule.metric}`) }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ t(`commissionRules.accrualModes.${rule.accrual}`) }}</td>
@@ -799,7 +813,14 @@ onMounted(() => {
             <tr v-else-if="collectionData.length === 0">
               <td colspan="5" class="px-5 py-10 text-center text-prohealth-500">{{ t('commissionRules.collectionTiers.empty') }}</td>
             </tr>
-            <tr v-for="tier in collectionData" v-else :key="tier.uuid" class="hover:bg-prohealth-50/50" :class="{ 'opacity-60': !tier.active }">
+            <tr
+              v-for="tier in collectionData"
+              v-else
+              :key="tier.uuid"
+              class="hover:bg-prohealth-50/50"
+              :class="{ 'opacity-60': !tier.active, 'cursor-pointer': canUpdateCollection }"
+              @click="canUpdateCollection && openEditCollectionTier(tier)"
+            >
               <td class="px-5 py-3 font-medium text-prohealth-900">{{ tier.name }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ tier.maxDays }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ tier.commissionPct }}%</td>
