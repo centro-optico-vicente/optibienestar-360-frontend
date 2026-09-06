@@ -251,14 +251,14 @@ function onReviewed(updated: PaymentDto) {
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.member') }}</dt>
             <dd class="mt-0.5">
-              <NuxtLink :to="`/dashboard/members/${payment.memberUuid}`" class="text-cyan-700 hover:underline font-mono text-xs break-all">
-                {{ payment.memberUuid }}
+              <NuxtLink :to="`/dashboard/members/${payment.member_Uuid}`" class="text-cyan-700 hover:underline">
+                {{ payment.member_Display || t('common.empty') }}
               </NuxtLink>
             </dd>
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.membership') }}</dt>
-            <dd class="text-prohealth-800 mt-0.5 font-mono text-xs break-all">{{ payment.membershipUuid }}</dd>
+            <dd class="text-prohealth-800 mt-0.5">{{ payment.membership_Display || t('common.empty') }}</dd>
           </div>
         </dl>
       </div>
@@ -311,7 +311,7 @@ function onReviewed(updated: PaymentDto) {
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.reviewedBy') }}</dt>
-            <dd class="text-prohealth-800 mt-0.5 font-mono text-xs break-all">{{ payment.reviewedByUserUuid || t('common.empty') }}</dd>
+            <dd class="text-prohealth-800 mt-0.5">{{ payment.reviewedBy_Display || t('common.empty') }}</dd>
           </div>
           <div class="sm:col-span-2 lg:col-span-3">
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.reason') }}</dt>
