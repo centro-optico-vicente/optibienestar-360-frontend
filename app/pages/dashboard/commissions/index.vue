@@ -28,6 +28,12 @@ const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('COMMISS
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('COMMISSION_REPORT_AUDIT_VIEW'))
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
 const auditOpen = ref(false)
+const auditTarget = ref<{ uuid: string, name: string } | null>(null)
+
+function openAudit(row: CommissionDto) {
+  auditTarget.value = { uuid: row.uuid, name: row.promoter_Display || row.uuid }
+  auditOpen.value = true
+}
 
 // ---- Listing + filters + pagination (read-only ledger; no create/edit/delete) ----
 const data = ref<CommissionDto[]>([])
@@ -346,9 +352,13 @@ async function confirmVoid() {
               <td class="px-5 py-3 text-prohealth-600">{{ c.earnedAt_Display ?? formatDate(c.earnedAt, 'short') }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ c.paidAt ? (c.paidAt_Display ?? formatDate(c.paidAt, 'short')) : t('common.empty') }}</td>
               <td class="px-5 py-3" @click.stop>
-                <div class="flex items-center justify-end">
+                <div class="flex items-center justify-end gap-1">
+                  <ReportPrintButton :record-uuid="c.uuid" variant="ghost" size="sm" icon-only />
+                  <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
+                    <UButton color="neutral" variant="ghost" icon="i-lucide-history" size="sm" @click="openAudit(c)" />
+                  </UTooltip>
                   <UTooltip v-if="canVoid && c.status === 'PENDING'" :text="t('commissions.voidAction.trigger')">
-                    <UButton color="error" variant="ghost" icon="i-lucide-ban" size="sm" @click="openVoid(c)" />
+                    <UButton color="error" variant="ghost" icon="i-lucide-ban" size="sm" class="ms-2" @click="openVoid(c)" />
                   </UTooltip>
                 </div>
               </td>
@@ -550,7 +560,7 @@ async function confirmVoid() {
             </UTooltip>
             <ReportPrintButton :record-uuid="detail.uuid" variant="ghost" icon-only />
             <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
-              <UButton color="neutral" variant="ghost" icon="i-lucide-history" @click="auditOpen = true" />
+              <UButton color="neutral" variant="ghost" icon="i-lucide-history" @click="openAudit(detail)" />
             </UTooltip>
           </div>
           <UButton color="neutral" variant="ghost" @click="detailOpen = false">
@@ -568,11 +578,11 @@ async function confirmVoid() {
 
     <!-- Audit modal -->
     <AuditModal
-      v-if="detail"
+      v-if="auditTarget"
       v-model:open="auditOpen"
       entity-key="commission"
-      :entity-uuid="detail.uuid"
-      :entity-label="detail.promoter_Display || detail.uuid"
+      :entity-uuid="auditTarget.uuid"
+      :entity-label="auditTarget.name"
       :can-view-changes="canViewAuditChanges"
       :can-view-reports="canViewAuditReports"
     />
