@@ -2132,6 +2132,15 @@
       "confirmDescription": "Confirming rewrites the percentage, amount and band of every PENDING INSCRIPTION commission in the period. Only affects PENDING commissions, never PAID ones. This action cannot be undone.",
       "successToast": "Re-rating applied: {promoters} promoters, {commissions} commissions updated.",
       "invalidRange": "The period end must be on or after the start."
+    },
+    "voidAction": {
+      "trigger": "Void commission",
+      "title": "Void commission",
+      "confirm": "{promoter}'s commission will be excluded from the next payout. This action cannot be undone.",
+      "reasonLabel": "Reason for voiding",
+      "reasonPlaceholder": "e.g. Promoter didn't meet the quota",
+      "confirmButton": "Void",
+      "successToast": "Commission voided successfully."
     }
   },
   "scheduledJobs": {
