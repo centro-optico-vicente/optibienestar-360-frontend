@@ -1346,12 +1346,18 @@
     "empty": "Sin pagos",
     "noReference": "Sin referencia",
     "paginationSummary": "{shown} de {total} pago(s)",
+    "deletedToast": "Pago eliminado",
+    "delete": {
+      "title": "Eliminar pago",
+      "confirm": "Este pago está pendiente de revisión y aún no ha sido aprobado ni rechazado. ¿Deseas eliminarlo?"
+    },
     "tooltips": {
       "viewDetail": "Ver detalle",
       "approve": "Aprobar",
       "noPermissionApprove": "No tienes permiso para aprobar",
       "reject": "Rechazar",
-      "noPermissionReject": "No tienes permiso para rechazar"
+      "noPermissionReject": "No tienes permiso para rechazar",
+      "noPermissionDelete": "No tienes permiso para eliminar"
     },
     "columns": {
       "planReference": "Plan / Referencia",
