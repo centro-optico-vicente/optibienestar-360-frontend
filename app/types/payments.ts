@@ -29,6 +29,14 @@ export const PAYMENT_METHOD_OPTIONS: { label: string, value: PaymentMethod, labe
   { label: 'Otro', value: 'OTHER', labelKey: 'payments.methods.OTHER' },
 ]
 
+// ---- Payment currency (ADR 0015 — the only two currencies actually in play:
+// VES per ADR 0010, USD per ADR 0008; the full currency master supports more,
+// but a payment is always received in one of these two) ----
+export const PAYMENT_CURRENCY_OPTIONS: { label: string, value: string }[] = [
+  { label: 'USD', value: 'USD' },
+  { label: 'VES', value: 'VES' },
+]
+
 // ---- Review status (PENDING/APPROVED/REJECTED) ----
 export type PaymentStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
 

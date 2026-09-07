@@ -1451,7 +1451,7 @@
         "membership": "Membresía",
         "amount": "Monto",
         "currency": "Moneda",
-        "currencyHelp": "ISO 4217. Por defecto USD.",
+        "currencyHelp": "USD o VES — la moneda en que se recibió el pago.",
         "method": "Método",
         "reference": "Referencia",
         "referenceHelp": "N° de operación / comprobante (opcional).",
@@ -1474,9 +1474,10 @@
         "membership": "Selecciona una membresía",
         "amountInvalid": "Monto no válido (hasta 2 decimales)",
         "amountMin": "Debe ser mayor que 0",
-        "currencyFormat": "ISO 4217 (3 letras)",
         "dateFuture": "La fecha no puede ser futura"
-      }
+      },
+      "exchangeRatePreview": "≈ {amount} según el plan (tasa del {rateDate})",
+      "exchangeRatePreviewNoDate": "≈ {amount} según el plan"
     },
     "review": {
       "approveTitle": "Aprobar pago",

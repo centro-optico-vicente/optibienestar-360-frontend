@@ -1451,7 +1451,7 @@
         "membership": "Membership",
         "amount": "Amount",
         "currency": "Currency",
-        "currencyHelp": "ISO 4217. Defaults to USD.",
+        "currencyHelp": "USD or VES — the currency the payment was actually received in.",
         "method": "Method",
         "reference": "Reference",
         "referenceHelp": "Operation / receipt number (optional).",
@@ -1474,9 +1474,10 @@
         "membership": "Select a membership",
         "amountInvalid": "Invalid amount (up to 2 decimals)",
         "amountMin": "Must be greater than 0",
-        "currencyFormat": "ISO 4217 (3 letters)",
         "dateFuture": "The date can't be in the future"
-      }
+      },
+      "exchangeRatePreview": "≈ {amount} per the plan (rate as of {rateDate})",
+      "exchangeRatePreviewNoDate": "≈ {amount} per the plan"
     },
     "review": {
       "approveTitle": "Approve payment",
