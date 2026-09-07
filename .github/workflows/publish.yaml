@@ -117,53 +117,53 @@ jobs:
           cache-to: type=gha,mode=max,scope=docker-alpine
 
 
-  push-debian-image-dhr:
-    name: Build and push Docker Debian image
-    needs:
-      - check-secrets-dhr
-    if: needs.check-secrets-dhr.outputs.is_have_secrets == 'true'
-    runs-on: ubuntu-latest
+  # push-debian-image-dhr:
+  #   name: Build and push Docker Debian image
+  #   needs:
+  #     - check-secrets-dhr
+  #   if: needs.check-secrets-dhr.outputs.is_have_secrets == 'true'
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - name: Check out the repo
-        uses: actions/checkout@v6
+  #   steps:
+  #     - name: Check out the repo
+  #       uses: actions/checkout@v6
 
-      - name: Push to docker repository
-        run: echo "Pushing to Docker repository ${{ env.DOCKER_HUB_REPOSITORY }}"
+  #     - name: Push to docker repository
+  #       run: echo "Pushing to Docker repository ${{ env.DOCKER_HUB_REPOSITORY }}"
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+  #     - name: Set up Docker Buildx
+  #       uses: docker/setup-buildx-action@v4
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v4
-        with:
-          registry: ${{ env.DOCKER_HUB_REGISTRY }}
-          username: ${{ vars.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+  #     - name: Login to Docker Hub
+  #       uses: docker/login-action@v4
+  #       with:
+  #         registry: ${{ env.DOCKER_HUB_REGISTRY }}
+  #         username: ${{ vars.DOCKER_HUB_USERNAME }}
+  #         password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-      - name: Docker metadata (Debian)
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.DOCKER_HUB_REPOSITORY }}
-          flavor: |
-            latest=false
-          tags: |
-            type=ref,event=tag
-            type=raw,value=latest,enable=${{ !github.event.release.prerelease }}
+  #     - name: Docker metadata (Debian)
+  #       id: meta
+  #       uses: docker/metadata-action@v5
+  #       with:
+  #         images: ${{ env.DOCKER_HUB_REPOSITORY }}
+  #         flavor: |
+  #           latest=false
+  #         tags: |
+  #           type=ref,event=tag
+  #           type=raw,value=latest,enable=${{ !github.event.release.prerelease }}
 
-      - name: Build and Push Docker Debian image
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: ./docker/debian.Dockerfile
-          platforms: linux/amd64
-          push: true
-          build-args: |
-            NGINX_VERSION=${{ env.NGINX_VERSION }}
-            BUILD_VERSION=${{ github.event.release.tag_name || github.ref_name }}
-            BUILD_DATE=${{ github.event.release.published_at }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=docker-debian
-          cache-to: type=gha,mode=max,scope=docker-debian
+  #     - name: Build and Push Docker Debian image
+  #       uses: docker/build-push-action@v7
+  #       with:
+  #         context: .
+  #         file: ./docker/debian.Dockerfile
+  #         platforms: linux/amd64
+  #         push: true
+  #         build-args: |
+  #           NGINX_VERSION=${{ env.NGINX_VERSION }}
+  #           BUILD_VERSION=${{ github.event.release.tag_name || github.ref_name }}
+  #           BUILD_DATE=${{ github.event.release.published_at }}
+  #         tags: ${{ steps.meta.outputs.tags }}
+  #         labels: ${{ steps.meta.outputs.labels }}
+  #         cache-from: type=gha,scope=docker-debian
+  #         cache-to: type=gha,mode=max,scope=docker-debian

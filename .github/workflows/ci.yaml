@@ -100,7 +100,7 @@ jobs:
       matrix:
         flavor:
           - alpine
-          - debian
+          # - debian
 
     steps:
       - name: Check out the repo
