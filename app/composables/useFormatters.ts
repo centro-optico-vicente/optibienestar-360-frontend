@@ -20,10 +20,24 @@ function toDate(value: DateInput): Date | null {
 }
 
 export const useFormatters = () => {
-  /** Currency in the VE convention (USD by default; use 'VES' for bolívares). */
-  const formatCurrency = (amount: number | null | undefined, currency = 'USD'): string => {
+  // Cached by useOrganization() — populated once per session (dashboard.vue
+  // triggers the fetch on mount for whoever has ORGANIZATION_VIEW). Read
+  // directly off the shared state rather than calling ensureLoaded() here:
+  // formatCurrency must stay synchronous (it's called inline in templates),
+  // and by the time anything renders money the layout has already had a
+  // chance to kick off the load.
+  const organizationState = useState<{ referenceCurrency_Code?: string | null } | null>('organization', () => null)
+
+  /**
+   * Currency in the VE convention. Falls back to the organization's own
+   * `referenceCurrency_Code` (ADR 0015 §4 — USD per ADR 0008) when the
+   * caller passes no explicit currency, and only to the hardcoded `'USD'`
+   * when the organization hasn't loaded (or the session can't read it).
+   */
+  const formatCurrency = (amount: number | null | undefined, currency?: string): string => {
     if (amount === null || amount === undefined || Number.isNaN(amount)) return EMPTY
-    return new Intl.NumberFormat(LOCALE, { style: 'currency', currency }).format(amount)
+    const resolvedCurrency = currency ?? organizationState.value?.referenceCurrency_Code ?? 'USD'
+    return new Intl.NumberFormat(LOCALE, { style: 'currency', currency: resolvedCurrency }).format(amount)
   }
 
   /** Number with thousands separators in the VE convention. */
