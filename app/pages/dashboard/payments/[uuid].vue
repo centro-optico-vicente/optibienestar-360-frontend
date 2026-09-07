@@ -10,7 +10,7 @@ definePageMeta({
 })
 
 const { t } = useI18n()
-const { formatCurrency, formatDate, formatMonthYear } = useFormatters()
+const { formatDate, formatMonthYear } = useFormatters()
 
 useSeoMeta({ title: () => t('common.seoTitle', { page: t('payments.detail.seoPage') }) })
 
@@ -66,12 +66,6 @@ async function refreshAll() {
 const isPending = computed(() => payment.value?.status === 'PENDING')
 
 // ---- Presentation helpers ----
-// Amount in the payment's currency, formatted in the VE convention. Empty → '—'.
-function money(v?: number | string | null, currency?: string | null): string {
-  if (v === null || v === undefined || v === '') return t('common.empty')
-  return formatCurrency(Number(v), currency || 'USD')
-}
-
 // Byte size with universal units (not localized).
 function formatSize(bytes?: number | null): string {
   if (bytes === null || bytes === undefined) return ''
@@ -155,7 +149,7 @@ function onReviewed(updated: PaymentDto) {
           <div>
             <div class="flex items-center gap-3 flex-wrap">
               <h1 class="text-2xl font-extrabold text-prohealth-900">
-                {{ money(payment.amount, payment.currency) }}
+                <MoneyWithTooltip :display="payment.amount_Display" :converted-display="payment.amountConverted_Display" :rate-date="payment.exchangeRateDate" />
               </h1>
               <UBadge :color="paymentStatusColor(payment.status)" variant="subtle">
                 {{ payment.status_Display ?? statusLabel(payment.status) }}
@@ -213,7 +207,9 @@ function onReviewed(updated: PaymentDto) {
         <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 text-sm">
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.amount') }}</dt>
-            <dd class="text-prohealth-900 text-lg font-semibold mt-0.5">{{ money(payment.amount, payment.currency) }}</dd>
+            <dd class="text-prohealth-900 text-lg font-semibold mt-0.5">
+              <MoneyWithTooltip :display="payment.amount_Display" :converted-display="payment.amountConverted_Display" :rate-date="payment.exchangeRateDate" />
+            </dd>
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.method') }}</dt>

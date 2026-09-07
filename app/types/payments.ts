@@ -70,9 +70,18 @@ export interface PaymentDto {
   plan_Code?: string | null
   // Payer (null = cash at counter with no user account)
   payerUserUuid?: string | null
-  // Money
+  // Money (ADR 0015 — currency/exchange-rate conversion, hub ADR 0014 `_Display`
+  // sibling convention; conversion fields are null together when no rate is
+  // available — degrade gracefully, never assume presence)
   amount: number | string
   currency: string
+  amount_Display?: string | null
+  currency_Code?: string | null
+  amountConverted?: number | string | null
+  amountConverted_Display?: string | null
+  convertedCurrency_Code?: string | null
+  exchangeRateUsed?: number | string | null
+  exchangeRateDate?: string | null
   // Method + reference
   paymentMethod: PaymentMethod | string
   paymentMethod_Display?: string | null

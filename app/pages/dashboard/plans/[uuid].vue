@@ -323,12 +323,14 @@ async function confirmDelete() {
         <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 text-sm">
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('plans.pricing.inscription') }}</dt>
-            <dd class="text-prohealth-900 text-lg font-semibold mt-0.5">{{ money(plan.inscriptionFee) }}</dd>
+            <dd class="text-prohealth-900 text-lg font-semibold mt-0.5">{{ plan.inscriptionFee_Display ?? money(plan.inscriptionFee) }}</dd>
             <dd class="text-xs text-prohealth-500">{{ t('plans.pricing.inscriptionHint') }}</dd>
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('plans.pricing.monthly') }}</dt>
-            <dd class="text-prohealth-900 text-lg font-semibold mt-0.5">{{ money(plan.monthlyFee) }}</dd>
+            <dd class="text-prohealth-900 text-lg font-semibold mt-0.5">
+              <MoneyWithTooltip :display="plan.monthlyFee_Display ?? money(plan.monthlyFee)" :converted-display="plan.amountConverted_Display" :rate-date="plan.exchangeRateDate" />
+            </dd>
             <dd class="text-xs text-prohealth-500">{{ t('plans.pricing.monthlyHint') }}</dd>
           </div>
           <div>

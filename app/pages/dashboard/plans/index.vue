@@ -10,7 +10,6 @@ definePageMeta({
 })
 
 const { t } = useI18n()
-const { formatCurrency } = useFormatters()
 
 useSeoMeta({ title: () => t('common.seoTitle', { page: t('nav.items.plans.label') }) })
 
@@ -101,12 +100,6 @@ async function resetFilters() {
 }
 
 onMounted(load)
-
-// Amount in USD, formatted in the VE convention (useFormatters). Empty → '—'.
-function money(v?: number | string | null): string {
-  if (v === null || v === undefined || v === '') return t('common.empty')
-  return formatCurrency(Number(v), 'USD')
-}
 
 // Plan type badge label; falls back to the raw value for unknown types.
 function typeLabel(type?: string | null): string {
@@ -300,8 +293,10 @@ function openAudit(p: PlanDto) {
               <td class="px-5 py-3">
                 <UBadge color="primary" variant="subtle" size="sm">{{ typeLabel(p.type) }}</UBadge>
               </td>
-              <td class="px-5 py-3 text-prohealth-700">{{ money(p.inscriptionFee) }}</td>
-              <td class="px-5 py-3 text-prohealth-700">{{ money(p.monthlyFee) }}</td>
+              <td class="px-5 py-3 text-prohealth-700">{{ p.inscriptionFee_Display ?? t('common.empty') }}</td>
+              <td class="px-5 py-3 text-prohealth-700">
+                <MoneyWithTooltip :display="p.monthlyFee_Display" :converted-display="p.amountConverted_Display" :rate-date="p.exchangeRateDate" />
+              </td>
               <td class="px-5 py-3 text-prohealth-700">
                 {{ t('plans.includedShort', { n: p.includedBeneficiaries }) }}
                 <span class="text-prohealth-400">· {{ t('plans.maxShort', { n: p.maxBeneficiaries ?? '∞' }) }}</span>

@@ -187,8 +187,19 @@ export interface CommissionDto {
   payment_Display?: string | null
   member_Uuid?: string | null
   member_Display?: string | null
+  // Money (ADR 0015 — currency/exchange-rate conversion on `amount` only;
+  // conversion fields are null together when no rate is available — degrade
+  // gracefully, never assume presence). `calculationBasis`/`flatAmount` are
+  // NOT covered — same known MONEY→VES case noted above.
   amount?: number
   currency?: string
+  amount_Display?: string | null
+  currency_Code?: string | null
+  amountConverted?: number | string | null
+  amountConverted_Display?: string | null
+  convertedCurrency_Code?: string | null
+  exchangeRateUsed?: number | string | null
+  exchangeRateDate?: string | null
   calculationBasis?: number
   /** XOR con flatAmount */
   commissionPct?: number

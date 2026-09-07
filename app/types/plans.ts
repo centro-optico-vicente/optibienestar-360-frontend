@@ -34,6 +34,19 @@ export interface PlanDto {
   type: PlanType | string
   inscriptionFee: number | string
   monthlyFee: number | string
+  /** Real denomination of both fees (ADR 0015); every money field's `_Display` uses it. */
+  currency_Code?: string | null
+  /** Server-formatted `inscriptionFee` (hub ADR 0014) — no conversion tooltip pair (ADR 0015 §6 only covers `monthlyFee`). */
+  inscriptionFee_Display?: string | null
+  /** Server-formatted `monthlyFee` (hub ADR 0014). */
+  monthlyFee_Display?: string | null
+  // Live conversion of `monthlyFee` ONLY (ADR 0015 §6 Caso B) — null together
+  // when no exchange rate is available. `inscriptionFee` has no counterpart.
+  amountConverted?: number | string | null
+  amountConverted_Display?: string | null
+  convertedCurrency_Code?: string | null
+  exchangeRateUsed?: number | string | null
+  exchangeRateDate?: string | null
   includedBeneficiaries: number
   /** null = no beneficiary cap. */
   maxBeneficiaries?: number | null
