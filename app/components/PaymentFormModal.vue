@@ -146,7 +146,7 @@ interface RatePreview { convertedAmount: number, convertedCurrencyCode: string, 
 const ratePreview = ref<RatePreview | null>(null)
 let previewTimer: ReturnType<typeof setTimeout> | undefined
 
-watch([() => state.membershipUuid, () => state.amount, () => state.currency], () => {
+watch([() => state.membershipUuid, () => state.amount, () => state.currency, () => state.paymentDate], () => {
   clearTimeout(previewTimer)
   ratePreview.value = null
   const membership = selectedMembership.value
@@ -155,9 +155,13 @@ watch([() => state.membershipUuid, () => state.amount, () => state.currency], ()
   // Same currency as the plan: nothing to preview, the amount already reads in that currency.
   if (membership.currency_Code === state.currency) return
   const targetCurrency = membership.currency_Code
+  // `paymentDate` may still be empty while the admin is filling the form —
+  // undefined falls back to "now" on the backend, same as before this date
+  // was wired in.
+  const asOfDate = state.paymentDate || undefined
   previewTimer = setTimeout(async () => {
     try {
-      const rate = await exchangeRates.current(state.currency, targetCurrency)
+      const rate = await exchangeRates.current(state.currency, targetCurrency, asOfDate)
       if (!rate.available || rate.rate === null) return
       ratePreview.value = {
         convertedAmount: Number(amount) * Number(rate.rate),
