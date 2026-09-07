@@ -46,7 +46,8 @@
     "currencyConversion": {
       "tooltip": "≈ {convertedDisplay} (rate as of {rateDate})",
       "tooltipNoDate": "≈ {convertedDisplay}"
-    }
+    },
+    "close": "Close"
   },
   "locale": {
     "change": "Change language"
@@ -2633,9 +2634,10 @@
       "MANUAL": "Manual"
     },
     "fetchLatest": {
-      "button": "Update now",
+      "button": "Get latest rate",
       "successToast": "Rates updated ({count} currency/currencies).",
-      "partialToast": "{fetched} updated, {failed} failed. See details in Scheduled jobs."
+      "partialToast": "{fetched} updated, {failed} failed. See details in Scheduled jobs.",
+      "tooltip": "Fetch the latest BCV/external API rate right now."
     },
     "form": {
       "createTitle": "Register exchange rate",
@@ -2648,7 +2650,9 @@
         "rate": "Rate",
         "rateHelp": "Units of the quote currency per 1 unit of the base currency.",
         "operationDate": "Operation date",
-        "operationDateHelp": "Date of the BCV/API value this rate represents."
+        "operationDateHelp": "Date of the BCV/API value this rate represents (a calendar day, no time-of-day).",
+        "validFrom": "Valid from",
+        "validFromHelp": "The exact moment this rate becomes the one used for conversions — may differ from the operation date (e.g. Sunday publish → next business day 8am). Empty = right now."
       },
       "validation": {
         "currencyFormat": "ISO 4217 (3 letters)",
@@ -2657,6 +2661,12 @@
       },
       "createdToast": "Exchange rate registered.",
       "updatedToast": "Exchange rate corrected."
+    },
+    "viewDetailTooltip": "View detail",
+    "detail": {
+      "title": "Exchange rate detail",
+      "fetchedAt": "Ingested at",
+      "active": "Active"
     }
   }
 }
