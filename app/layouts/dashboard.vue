@@ -5,6 +5,14 @@ import { OTHER_NAV } from '~/utils/nav'
 const auth = useAuthStore()
 const { logout } = useAuth()
 const route = useRoute()
+const { can } = usePermissions()
+
+// Warms useFormatters().formatCurrency's default-currency fallback (ADR
+// 0015 §4) — a session without ORGANIZATION_VIEW (promoter/member portals)
+// just never loads it, and formatCurrency keeps its hardcoded 'USD' fallback.
+if (can('ORGANIZATION_VIEW')) {
+  useOrganization().ensureLoaded()
+}
 
 // Menú de dos niveles (módulo → vista), filtrado por permisos en useNav().
 const { visibleNav, groupKeyOfPath, navLabel } = useNav()
