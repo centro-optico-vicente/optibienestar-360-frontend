@@ -5,7 +5,7 @@ import { memberOptionLabel } from '~/types/members'
 import type { MembershipDto } from '~/types/memberships'
 import type { SelectItem } from '~/types/options'
 import type { PaymentCreateRequest, PaymentDto, PaymentMethod } from '~/types/payments'
-import { PAYMENT_METHOD_OPTIONS } from '~/types/payments'
+import { PAYMENT_CURRENCY_OPTIONS, PAYMENT_METHOD_OPTIONS } from '~/types/payments'
 
 // Register a manual payment (POST /v1/admin/payments, multipart). There is no edit:
 // a payment is registered and then approved/rejected. The flow is a cascade —
@@ -19,9 +19,11 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const { formatCurrency, formatDate } = useFormatters()
 const payments = usePayments()
 const members = useMembers()
 const memberships = useMemberships()
+const exchangeRates = useExchangeRates()
 const toast = useToast()
 
 const isOpen = computed({
@@ -35,6 +37,7 @@ const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 
 // Payment method options localized at the consumption point (labelKey → i18n).
 const methodOptions = computed(() => PAYMENT_METHOD_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
+const currencyOptions = PAYMENT_CURRENCY_OPTIONS
 
 // ---- Member search (server-side, debounced) ----
 // Search box lives inside the USelectMenu itself (search-term) so typing and
@@ -97,6 +100,10 @@ const state = reactive<FormState>({
 // ---- Selected member's memberships ----
 const membershipOptions = ref<SelectItem[]>([])
 const loadingMemberships = ref(false)
+// Keeps the loaded membership's own currency/fee around for the "adeudado
+// según el plan" reference line — the list call already returns it, no need
+// for a second request.
+const membershipsByUuid = ref<Record<string, MembershipDto>>({})
 
 function membershipLabel(ms: MembershipDto): string {
   const plan = ms.planName || ms.planCode || t('payments.form.planFallback')
@@ -105,12 +112,14 @@ function membershipLabel(ms: MembershipDto): string {
 
 watch(() => state.memberUuid, async (memberUuid) => {
   membershipOptions.value = []
+  membershipsByUuid.value = {}
   state.membershipUuid = ''
   if (!memberUuid) return
   loadingMemberships.value = true
   try {
     const list = await memberships.listForMember(memberUuid)
     membershipOptions.value = list.map(ms => ({ label: membershipLabel(ms), value: ms.uuid }))
+    membershipsByUuid.value = Object.fromEntries(list.map(ms => [ms.uuid, ms]))
     // Shortcut: if the member has a single membership, select it.
     if (membershipOptions.value.length === 1) state.membershipUuid = membershipOptions.value[0]!.value
   }
@@ -120,6 +129,46 @@ watch(() => state.memberUuid, async (memberUuid) => {
   finally {
     loadingMemberships.value = false
   }
+})
+
+const selectedMembership = computed(() => membershipsByUuid.value[state.membershipUuid])
+
+// ---- Live exchange-rate preview (ADR 0015 §7 Caso B) ----
+// What the amount/currency entered so far would convert to in the selected
+// membership's own currency, at the rate vigente right now — informational
+// only, debounced, and silently skipped on any error (bad amount format
+// mid-typing, no rate available, etc.): it must never block registering
+// the payment. Uses the generic /v1/exchange-rates/current lookup (not
+// payment-specific — the same one commissions/ally-services previews would
+// use) and multiplies client-side; the backend only resolves the rate
+// itself (bidirectional-pair fallback included).
+interface RatePreview { convertedAmount: number, convertedCurrencyCode: string, rateDate: string | null }
+const ratePreview = ref<RatePreview | null>(null)
+let previewTimer: ReturnType<typeof setTimeout> | undefined
+
+watch([() => state.membershipUuid, () => state.amount, () => state.currency], () => {
+  clearTimeout(previewTimer)
+  ratePreview.value = null
+  const membership = selectedMembership.value
+  const amount = state.amount.trim()
+  if (!membership || !membership.currency_Code || !/^\d+(\.\d{1,2})?$/.test(amount) || Number(amount) <= 0) return
+  // Same currency as the plan: nothing to preview, the amount already reads in that currency.
+  if (membership.currency_Code === state.currency) return
+  const targetCurrency = membership.currency_Code
+  previewTimer = setTimeout(async () => {
+    try {
+      const rate = await exchangeRates.current(state.currency, targetCurrency)
+      if (!rate.available || rate.rate === null) return
+      ratePreview.value = {
+        convertedAmount: Number(amount) * Number(rate.rate),
+        convertedCurrencyCode: targetCurrency,
+        rateDate: rate.rateDate,
+      }
+    }
+    catch {
+      ratePreview.value = null
+    }
+  }, 500)
 })
 
 // ---- Proof of payment (optional) ----
@@ -159,7 +208,7 @@ const schema = computed(() => z.object({
   amount: z.string()
     .regex(/^\d+(\.\d{1,2})?$/, t('payments.form.validation.amountInvalid'))
     .refine(v => Number(v) >= 0.01, t('payments.form.validation.amountMin')),
-  currency: z.string().regex(/^[A-Za-z]{3}$/, t('payments.form.validation.currencyFormat')).optional().or(z.literal('')),
+  currency: z.string().min(1, t('validation.required')),
   paymentMethod: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
   referenceNumber: z.string().max(80, t('validation.maxChars', { n: 80 })).optional(),
   paymentDate: z.string().min(1, t('validation.required')).refine(notFuture, t('payments.form.validation.dateFuture')),
@@ -279,8 +328,14 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
               </template>
             </UInput>
           </UFormField>
-          <UFormField :label="t('payments.form.fields.currency')" name="currency" :help="t('payments.form.fields.currencyHelp')">
-            <UInput v-model="state.currency" placeholder="USD" class="w-full font-mono uppercase" />
+          <UFormField :label="t('payments.form.fields.currency')" name="currency" required :help="t('payments.form.fields.currencyHelp')">
+            <USelectMenu
+              v-model="state.currency"
+              :items="currencyOptions"
+              label-key="label"
+              value-key="value"
+              class="w-full font-mono"
+            />
           </UFormField>
           <UFormField :label="t('payments.form.fields.method')" name="paymentMethod" required>
             <USelectMenu
@@ -293,6 +348,16 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
             />
           </UFormField>
         </div>
+        <p v-if="ratePreview" class="text-xs text-prohealth-500 -mt-2">
+          {{ ratePreview.rateDate
+            ? t('payments.form.exchangeRatePreview', {
+              amount: formatCurrency(ratePreview.convertedAmount, ratePreview.convertedCurrencyCode),
+              rateDate: formatDate(ratePreview.rateDate, 'short'),
+            })
+            : t('payments.form.exchangeRatePreviewNoDate', {
+              amount: formatCurrency(ratePreview.convertedAmount, ratePreview.convertedCurrencyCode),
+            }) }}
+        </p>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('payments.form.fields.reference')" name="referenceNumber" :help="t('payments.form.fields.referenceHelp')">
