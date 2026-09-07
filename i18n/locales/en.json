@@ -42,7 +42,11 @@
     "discardChangesBody": "Refreshing fetches data from the server and discards your unsaved changes.",
     "discardAndRefresh": "Discard and refresh",
     "restore": "Restore",
-    "noPermissionRestore": "You don't have permission to restore"
+    "noPermissionRestore": "You don't have permission to restore",
+    "currencyConversion": {
+      "tooltip": "≈ {convertedDisplay} (rate as of {rateDate})",
+      "tooltipNoDate": "≈ {convertedDisplay}"
+    }
   },
   "locale": {
     "change": "Change language"

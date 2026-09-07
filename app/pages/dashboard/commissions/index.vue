@@ -339,7 +339,9 @@ async function confirmVoid() {
                 <div class="font-semibold text-prohealth-900">{{ c.promoter_Display || t('common.empty') }}</div>
                 <div class="text-xs text-prohealth-500 font-mono">{{ c.promoter_Code || t('common.empty') }}</div>
               </td>
-              <td class="px-5 py-3 font-semibold text-prohealth-900">{{ money(c.amount, c.currency) }}</td>
+              <td class="px-5 py-3 font-semibold text-prohealth-900">
+                <MoneyWithTooltip :display="c.amount_Display" :converted-display="c.amountConverted_Display" :rate-date="c.exchangeRateDate" />
+              </td>
               <td class="px-5 py-3 text-prohealth-700">{{ calcLabel(c) }}</td>
               <td class="px-5 py-3">
                 <UBadge color="primary" variant="subtle" size="sm">{{ c.appliesTo_Display ?? appliesToLabel(c.appliesTo) }}</UBadge>
@@ -417,7 +419,9 @@ async function confirmVoid() {
               </div>
               <div>
                 <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.amount') }}</dt>
-                <dd class="text-prohealth-900 text-lg font-semibold mt-0.5">{{ money(detail.amount, detail.currency) }}</dd>
+                <dd class="text-prohealth-900 text-lg font-semibold mt-0.5">
+                  <MoneyWithTooltip :display="detail.amount_Display" :converted-display="detail.amountConverted_Display" :rate-date="detail.exchangeRateDate" />
+                </dd>
               </div>
               <div>
                 <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.status') }}</dt>

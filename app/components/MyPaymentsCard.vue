@@ -6,7 +6,7 @@ import { paymentStatusColor } from '~/types/payments'
 // Self-gated: if the user lacks the permission, it renders nothing. Meant to be
 // embedded in the member portal (/afiliado) next to the card.
 const { t } = useI18n()
-const { formatCurrency, formatDate, formatMonthYear } = useFormatters()
+const { formatDate, formatMonthYear } = useFormatters()
 const payments = usePayments()
 const { can } = usePermissions()
 
@@ -40,12 +40,6 @@ watch(page, load)
 onMounted(() => {
   if (canView.value) load()
 })
-
-// Amount in the payment's currency, formatted in the VE convention. Empty → '—'.
-function money(v?: number | string | null, currency?: string | null): string {
-  if (v === null || v === undefined || v === '') return t('common.empty')
-  return formatCurrency(Number(v), currency || 'USD')
-}
 
 // Payment method label; falls back to the raw value.
 function methodLabel(m?: string | null): string {
@@ -90,7 +84,9 @@ function allocationLabel(p: PaymentDto): string {
         class="px-6 py-3.5 flex items-center justify-between gap-3"
       >
         <div class="min-w-0">
-          <p class="font-semibold text-prohealth-900">{{ money(p.amount, p.currency) }}</p>
+          <p class="font-semibold text-prohealth-900">
+            <MoneyWithTooltip :display="p.amount_Display" :converted-display="p.amountConverted_Display" :rate-date="p.exchangeRateDate" />
+          </p>
           <p class="text-xs text-prohealth-500">
             {{ methodLabel(p.paymentMethod) }} · {{ formatDate(p.paymentDate, 'short') }} · {{ allocationLabel(p) }}
           </p>

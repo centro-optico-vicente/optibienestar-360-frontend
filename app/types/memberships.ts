@@ -74,9 +74,19 @@ export interface MembershipDto {
   nextDueDate_Display?: string | null
   lastPaidThrough?: string | null
   lastPaidThrough_Display?: string | null
-  // Pricing snapshot
+  // Pricing snapshot (ADR 0015 — currency/exchange-rate conversion; conversion
+  // fields cover `monthlyFee` ONLY, and are null together when no rate is
+  // available — degrade gracefully, never assume presence)
   inscriptionFee: number | string
   monthlyFee: number | string
+  currency_Code?: string | null
+  /** Server-formatted `monthlyFee` (hub ADR 0014). `inscriptionFee` has no `_Display`/conversion pair — see class doc above. */
+  monthlyFee_Display?: string | null
+  amountConverted?: number | string | null
+  amountConverted_Display?: string | null
+  convertedCurrency_Code?: string | null
+  exchangeRateUsed?: number | string | null
+  exchangeRateDate?: string | null
   gracePeriodDays: number
   // Status
   status: MembershipStatus | string

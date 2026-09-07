@@ -14,7 +14,7 @@ definePageMeta({
 })
 
 const { t } = useI18n()
-const { formatCurrency, formatDate } = useFormatters()
+const { formatDate } = useFormatters()
 
 useSeoMeta({ title: () => t('common.seoTitle', { page: t('payments.title') }) })
 
@@ -130,12 +130,6 @@ async function resetFilters() {
 onMounted(load)
 
 // ---- Presentation helpers ----
-// Amount in the payment's currency, formatted in the VE convention. Empty → '—'.
-function money(v?: number | string | null, currency?: string | null): string {
-  if (v === null || v === undefined || v === '') return t('common.empty')
-  return formatCurrency(Number(v), currency || 'USD')
-}
-
 // Enum label resolvers (fall back to the raw value).
 function methodLabel(m?: string | null): string {
   return m ? t(`payments.methods.${m}`, m) : t('common.empty')
@@ -314,7 +308,9 @@ async function confirmDelete() {
                   <UBadge v-if="p.inscription" color="primary" variant="subtle" size="sm" class="ml-1">{{ t('payments.allocation.inscription') }}</UBadge>
                 </div>
               </td>
-              <td class="px-5 py-3 font-semibold text-prohealth-900">{{ money(p.amount, p.currency) }}</td>
+              <td class="px-5 py-3 font-semibold text-prohealth-900">
+                <MoneyWithTooltip :display="p.amount_Display" :converted-display="p.amountConverted_Display" :rate-date="p.exchangeRateDate" />
+              </td>
               <td class="px-5 py-3 text-prohealth-700">{{ p.paymentMethod_Display ?? methodLabel(p.paymentMethod) }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ p.paymentDate_Display ?? formatDate(p.paymentDate, 'short') }}</td>
               <td class="px-5 py-3">

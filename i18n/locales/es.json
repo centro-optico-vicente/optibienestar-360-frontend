@@ -42,7 +42,11 @@
     "discardChangesBody": "Al refrescar se traerán los datos del servidor y se perderán los cambios que no hayas guardado.",
     "discardAndRefresh": "Descartar y refrescar",
     "restore": "Restaurar",
-    "noPermissionRestore": "No tienes permiso para restaurar"
+    "noPermissionRestore": "No tienes permiso para restaurar",
+    "currencyConversion": {
+      "tooltip": "≈ {convertedDisplay} (tasa del {rateDate})",
+      "tooltipNoDate": "≈ {convertedDisplay}"
+    }
   },
   "locale": {
     "change": "Cambiar idioma"
