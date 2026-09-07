@@ -567,6 +567,10 @@
       "commissionRules": {
         "label": "Commission Rules",
         "description": "Inscription bands, scale bonuses and collection commission."
+      },
+      "exchangeRates": {
+        "label": "Exchange rates",
+        "description": "BCV/API rate history and manual entry."
       }
     },
     "other": {
@@ -2598,5 +2602,61 @@
     "tableName": "Table (optional)",
     "tableNamePlaceholder": "e.g. allies",
     "searchPlaceholder": "Search by key or name..."
+  },
+  "exchangeRates": {
+    "title": "Exchange rates",
+    "subtitle": "Ingested rate history (BCV/API) and manual corrections.",
+    "new": "New rate",
+    "empty": "No exchange rates registered.",
+    "immutable": "Ingested (not editable)",
+    "paginationSummary": "Showing {shown} of {total}",
+    "noPermissionCreate": "You do not have permission to register rates.",
+    "noPermissionUpdate": "You do not have permission to correct rates.",
+    "noPermissionDelete": "You do not have permission to delete rates.",
+    "deleteTitle": "Delete exchange rate",
+    "deleteConfirm": "This will deactivate the {pair} rate. This cannot be undone from here.",
+    "deletedToast": "Exchange rate deleted.",
+    "filters": {
+      "basePlaceholder": "Base (USD)",
+      "quotePlaceholder": "Quote (VES)"
+    },
+    "columns": {
+      "pair": "Pair",
+      "rate": "Rate",
+      "operationDate": "Operation date",
+      "validFrom": "Valid from",
+      "source": "Source"
+    },
+    "source": {
+      "BCV": "BCV",
+      "EXCHANGE_RATES_API": "External API",
+      "MANUAL": "Manual"
+    },
+    "fetchLatest": {
+      "button": "Update now",
+      "successToast": "Rates updated ({count} currency/currencies).",
+      "partialToast": "{fetched} updated, {failed} failed. See details in Scheduled jobs."
+    },
+    "form": {
+      "createTitle": "Register exchange rate",
+      "createDescription": "Manual entry — recorded as source \"Manual\", vigente immediately.",
+      "editTitle": "Correct exchange rate",
+      "editDescription": "Only manually entered rates can be corrected.",
+      "fields": {
+        "base": "Base currency",
+        "quote": "Quote currency",
+        "rate": "Rate",
+        "rateHelp": "Units of the quote currency per 1 unit of the base currency.",
+        "operationDate": "Operation date",
+        "operationDateHelp": "Date of the BCV/API value this rate represents."
+      },
+      "validation": {
+        "currencyFormat": "ISO 4217 (3 letters)",
+        "rateInvalid": "Invalid rate (up to 8 decimals)",
+        "rateMin": "Must be greater than 0"
+      },
+      "createdToast": "Exchange rate registered.",
+      "updatedToast": "Exchange rate corrected."
+    }
   }
 }

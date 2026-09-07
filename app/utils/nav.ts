@@ -141,6 +141,7 @@ export const MAIN_NAV: NavEntry[] = [
     descriptionKey: 'nav.groups.sistema.description',
     children: [
       { label: 'Trabajos programados', labelKey: 'nav.items.scheduledJobs.label', to: '/dashboard/scheduled-jobs', icon: 'i-lucide-timer', description: 'Tareas automáticas del sistema y su historial de ejecución.', descriptionKey: 'nav.items.scheduledJobs.description', requires: 'JOB_VIEW_ALL' },
+      { label: 'Tasas de cambio', labelKey: 'nav.items.exchangeRates.label', to: '/dashboard/settings/exchange-rates', icon: 'i-lucide-banknote', description: 'Historial de tasas BCV/API + carga manual (ADR 0015).', descriptionKey: 'nav.items.exchangeRates.description', requires: 'EXCHANGE_RATE_VIEW_ALL' },
       { label: 'Configuración del sistema', labelKey: 'nav.items.systemConfig.label', to: '/dashboard/system-config', icon: 'i-lucide-sliders', description: 'Parámetros globales del sistema como el pie de página de reportes.', descriptionKey: 'nav.items.systemConfig.description', requires: 'JOB_VIEW_ALL' },
       { label: 'Configuración de entidades', labelKey: 'nav.items.entityConfig.label', to: '/dashboard/entity-config', icon: 'i-lucide-database-zap', description: 'Auditoría y orden predeterminado por entidad (solo SYSTEM).', descriptionKey: 'nav.items.entityConfig.description', requires: 'ENTITY_CONFIG_VIEW' },
     ],

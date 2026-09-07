@@ -567,6 +567,10 @@
       "commissionRules": {
         "label": "Reglas de comisión",
         "description": "Bandas de inscripción, bonos por escala y comisión de cobranza."
+      },
+      "exchangeRates": {
+        "label": "Tasas de cambio",
+        "description": "Historial de tasas BCV/API y carga manual."
       }
     },
     "other": {
@@ -2598,5 +2602,61 @@
     "tableName": "Tabla (opcional)",
     "tableNamePlaceholder": "ej. allies",
     "searchPlaceholder": "Buscar por clave o nombre..."
+  },
+  "exchangeRates": {
+    "title": "Tasas de cambio",
+    "subtitle": "Historial de tasas de cambio ingeridas (BCV/API) y correcciones manuales.",
+    "new": "Nueva tasa",
+    "empty": "No hay tasas de cambio registradas.",
+    "immutable": "Ingerida (no editable)",
+    "paginationSummary": "Mostrando {shown} de {total}",
+    "noPermissionCreate": "No tienes permiso para registrar tasas.",
+    "noPermissionUpdate": "No tienes permiso para corregir tasas.",
+    "noPermissionDelete": "No tienes permiso para eliminar tasas.",
+    "deleteTitle": "Eliminar tasa de cambio",
+    "deleteConfirm": "Se desactivará la tasa {pair}. Esta acción no se puede deshacer desde aquí.",
+    "deletedToast": "Tasa de cambio eliminada.",
+    "filters": {
+      "basePlaceholder": "Base (USD)",
+      "quotePlaceholder": "Cotizada (VES)"
+    },
+    "columns": {
+      "pair": "Par",
+      "rate": "Tasa",
+      "operationDate": "Fecha operación",
+      "validFrom": "Vigente desde",
+      "source": "Origen"
+    },
+    "source": {
+      "BCV": "BCV",
+      "EXCHANGE_RATES_API": "API externa",
+      "MANUAL": "Manual"
+    },
+    "fetchLatest": {
+      "button": "Actualizar ahora",
+      "successToast": "Tasas actualizadas ({count} moneda(s)).",
+      "partialToast": "{fetched} actualizada(s), {failed} fallida(s). Revisa el detalle en Trabajos programados."
+    },
+    "form": {
+      "createTitle": "Registrar tasa de cambio",
+      "createDescription": "Carga manual — quedará como origen \"Manual\", vigente de inmediato.",
+      "editTitle": "Corregir tasa de cambio",
+      "editDescription": "Solo se pueden corregir tasas cargadas manualmente.",
+      "fields": {
+        "base": "Moneda base",
+        "quote": "Moneda cotizada",
+        "rate": "Tasa",
+        "rateHelp": "Unidades de la moneda cotizada por 1 unidad de la moneda base.",
+        "operationDate": "Fecha de operación",
+        "operationDateHelp": "Fecha del valor BCV/API que esta tasa representa."
+      },
+      "validation": {
+        "currencyFormat": "ISO 4217 (3 letras)",
+        "rateInvalid": "Tasa no válida (hasta 8 decimales)",
+        "rateMin": "Debe ser mayor que 0"
+      },
+      "createdToast": "Tasa de cambio registrada.",
+      "updatedToast": "Tasa de cambio corregida."
+    }
   }
 }
