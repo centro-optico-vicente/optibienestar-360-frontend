@@ -55,6 +55,8 @@ export interface ExchangeRateCreateRequest {
   quoteCurrencyCode: string
   rate: string
   operationDate: string
+  /** ISO instant. Omitted defaults to now() on the backend. */
+  validFrom?: string
 }
 
 /** PATCH-style body of PUT /v1/admin/exchange-rates/{uuid} — only a `MANUAL` row accepts this. */

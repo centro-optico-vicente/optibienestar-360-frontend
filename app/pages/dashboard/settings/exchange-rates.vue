@@ -22,6 +22,9 @@ const toast = useToast()
 const canCreate = computed(() => can('EXCHANGE_RATE_CREATE'))
 const canUpdate = computed(() => can('EXCHANGE_RATE_UPDATE'))
 const canDelete = computed(() => can('EXCHANGE_RATE_DELETE'))
+const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL'))
+const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL'))
+const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
 
 // ---- List + pagination + filters ----
 const data = ref<ExchangeRateDto[]>([])
@@ -151,6 +154,30 @@ async function onSaved() {
   await load()
 }
 
+// ---- View (read-only detail) ----
+const viewOpen = ref(false)
+const viewTarget = ref<ExchangeRateDto | null>(null)
+
+function openView(r: ExchangeRateDto) {
+  viewTarget.value = r
+  viewOpen.value = true
+}
+
+// ---- Audit (bitácora de cambios) ----
+const auditOpen = ref(false)
+const auditTarget = ref<ExchangeRateDto | null>(null)
+
+function openAudit(r: ExchangeRateDto) {
+  auditTarget.value = r
+  auditOpen.value = true
+}
+
+/** Double-click: edit a MANUAL row (if permitted), otherwise just view it. */
+function openRow(r: ExchangeRateDto) {
+  if (r.source === 'MANUAL' && canUpdate.value) openEdit(r)
+  else openView(r)
+}
+
 // ---- Delete ----
 const deleteOpen = ref(false)
 const deleting = ref(false)
@@ -193,11 +220,11 @@ async function confirmDelete() {
       </div>
       <div class="flex items-center gap-2">
         <ListRefreshMenu :loading="loading" variant="ghost" @refresh="load" @reset="resetFilters" />
-        <UTooltip :text="canCreate ? t('exchangeRates.fetchLatest.button') : t('exchangeRates.noPermissionCreate')">
+        <UTooltip :text="canCreate ? t('exchangeRates.fetchLatest.tooltip') : t('exchangeRates.noPermissionCreate')">
           <UButton
             color="neutral"
             variant="outline"
-            icon="i-lucide-refresh-cw"
+            icon="i-lucide-radio-tower"
             :loading="fetching"
             :disabled="!canCreate"
             @click="fetchLatest"
@@ -284,8 +311,9 @@ async function confirmDelete() {
               v-for="r in data"
               v-else
               :key="r.uuid"
-              class="hover:bg-prohealth-50/50"
+              class="hover:bg-prohealth-50/50 cursor-pointer"
               :class="{ 'opacity-60': !r.active }"
+              @dblclick="openRow(r)"
             >
               <td class="px-5 py-3">
                 <span class="font-mono font-semibold text-prohealth-900">{{ r.baseCurrency_Code }} → {{ r.quoteCurrency_Code }}</span>
@@ -298,8 +326,11 @@ async function confirmDelete() {
                   {{ r.source_Display ?? sourceLabel(r.source) }}
                 </UBadge>
               </td>
-              <td class="px-5 py-3">
+              <td class="px-5 py-3" @click.stop>
                 <div class="flex items-center justify-end gap-1">
+                  <UTooltip :text="t('exchangeRates.viewDetailTooltip')">
+                    <UButton color="neutral" variant="ghost" icon="i-lucide-eye" size="sm" @click="openView(r)" />
+                  </UTooltip>
                   <template v-if="r.source === 'MANUAL'">
                     <UTooltip :text="canUpdate ? t('common.edit') : t('exchangeRates.noPermissionUpdate')">
                       <UButton
@@ -322,7 +353,9 @@ async function confirmDelete() {
                       />
                     </UTooltip>
                   </template>
-                  <span v-else class="text-xs text-prohealth-300">{{ t('exchangeRates.immutable') }}</span>
+                  <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
+                    <UButton color="neutral" variant="ghost" icon="i-lucide-history" size="sm" @click="openAudit(r)" />
+                  </UTooltip>
                 </div>
               </td>
             </tr>
@@ -360,6 +393,20 @@ async function confirmDelete() {
 
     <!-- Create/edit modal -->
     <ExchangeRateFormModal v-model:open="formOpen" :rate="editingRate" @saved="onSaved" />
+
+    <!-- Read-only detail modal -->
+    <ExchangeRateDetailModal v-model:open="viewOpen" :rate="viewTarget" />
+
+    <!-- Audit modal (bitácora de cambios) -->
+    <AuditModal
+      v-if="auditTarget"
+      v-model:open="auditOpen"
+      entity-key="exchange_rate"
+      :entity-uuid="auditTarget.uuid"
+      :entity-label="`${auditTarget.baseCurrency_Code} → ${auditTarget.quoteCurrency_Code}`"
+      :can-view-changes="canViewAuditChanges"
+      :can-view-reports="canViewAuditReports"
+    />
 
     <!-- Delete confirmation modal -->
     <UModal v-model:open="deleteOpen" :title="t('exchangeRates.deleteTitle')">

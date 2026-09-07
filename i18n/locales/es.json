@@ -46,7 +46,8 @@
     "currencyConversion": {
       "tooltip": "≈ {convertedDisplay} (tasa del {rateDate})",
       "tooltipNoDate": "≈ {convertedDisplay}"
-    }
+    },
+    "close": "Cerrar"
   },
   "locale": {
     "change": "Cambiar idioma"
@@ -2633,9 +2634,10 @@
       "MANUAL": "Manual"
     },
     "fetchLatest": {
-      "button": "Actualizar ahora",
+      "button": "Obtener última tasa",
       "successToast": "Tasas actualizadas ({count} moneda(s)).",
-      "partialToast": "{fetched} actualizada(s), {failed} fallida(s). Revisa el detalle en Trabajos programados."
+      "partialToast": "{fetched} actualizada(s), {failed} fallida(s). Revisa el detalle en Trabajos programados.",
+      "tooltip": "Consulta la última tasa publicada por BCV/API externa ahora mismo."
     },
     "form": {
       "createTitle": "Registrar tasa de cambio",
@@ -2648,7 +2650,9 @@
         "rate": "Tasa",
         "rateHelp": "Unidades de la moneda cotizada por 1 unidad de la moneda base.",
         "operationDate": "Fecha de operación",
-        "operationDateHelp": "Fecha del valor BCV/API que esta tasa representa."
+        "operationDateHelp": "Fecha del valor BCV/API que esta tasa representa (día calendario, sin hora).",
+        "validFrom": "Vigente desde",
+        "validFromHelp": "Momento exacto desde el cual esta tasa es la vigente para conversiones — puede diferir de la fecha de operación (ej. domingo de publicación → lunes 8am hábil). Vacío = ahora mismo."
       },
       "validation": {
         "currencyFormat": "ISO 4217 (3 letras)",
@@ -2657,6 +2661,12 @@
       },
       "createdToast": "Tasa de cambio registrada.",
       "updatedToast": "Tasa de cambio corregida."
+    },
+    "viewDetailTooltip": "Ver detalle",
+    "detail": {
+      "title": "Detalle de la tasa de cambio",
+      "fetchedAt": "Ingerida el",
+      "active": "Activa"
     }
   }
 }
