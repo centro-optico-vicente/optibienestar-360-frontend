@@ -489,6 +489,14 @@
         "label": "Promoter types",
         "description": "Promoter classification."
       },
+      "promoterRanks": {
+        "label": "Hierarchy ranks",
+        "description": "Promoter hierarchy ranks."
+      },
+      "promoterHierarchy": {
+        "label": "Promoter org chart",
+        "description": "Supervision hierarchy and ranks."
+      },
       "alliesDirectory": {
         "label": "Partner directory",
         "description": "Network businesses and providers."
@@ -829,7 +837,10 @@
       "description": "Description",
       "country": "Country",
       "state": "State",
-      "active": "Active"
+      "active": "Active",
+      "generatesHierarchyOverride": "Generates hierarchy override",
+      "hierarchyLevel": "Hierarchy level",
+      "maxSubordinates": "Max subordinates"
     },
     "validation": {
       "isoCode": "Two uppercase letters (ISO 3166-1, e.g. VE)",
@@ -882,6 +893,10 @@
       "promoter-types": {
         "label": "Promoter types",
         "labelSingular": "Promoter type"
+      },
+      "promoter-ranks": {
+        "label": "Hierarchy ranks",
+        "labelSingular": "Hierarchy rank"
       }
     }
   },
@@ -1916,6 +1931,31 @@
     "viewDetailTooltip": "View detail",
     "searchPlaceholder": "Search by name or referral code…",
     "empty": "No promoters registered yet.",
+    "hierarchy": {
+      "pageSubtitle": "Ranks and supervision relationships of the sales team.",
+      "empty": "No promoters in the hierarchy yet.",
+      "reasonLabel": "Reason",
+      "supervisorLabel": "Supervisor",
+      "supervisorPlaceholder": "Select a supervisor…",
+      "noEligibleSupervisors": "No promoter currently qualifies as a supervisor.",
+      "detachSupervisorLabel": "Remove supervisor (becomes top of its own chain)",
+      "assignSupervisor": {
+        "action": "Reassign supervisor",
+        "title": "Reassign {name}'s supervisor",
+        "currentRank": "Current rank: {rank}",
+        "savedToast": "Supervisor reassigned successfully."
+      },
+      "changeRank": {
+        "action": "Change rank",
+        "title": "Change {name}'s rank",
+        "currentRank": "Current rank: {rank}",
+        "newRankLabel": "New rank",
+        "newRankPlaceholder": "Select a rank…",
+        "allSuperiorsLabel": "Widen to every superior rank (not just the immediate one)",
+        "topRankHint": "This rank needs no supervisor (it's the top of the hierarchy).",
+        "savedToast": "Rank updated successfully."
+      }
+    },
     "systemBadge": "System",
     "systemLocked": "The system promoter cannot be edited or deleted.",
     "createdToast": "Promoter created successfully.",

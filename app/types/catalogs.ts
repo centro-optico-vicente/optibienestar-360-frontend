@@ -31,6 +31,13 @@ export interface CatalogItem {
   state_Uuid?: string | null
   state_Display?: string | null
   state_Code?: string | null
+  // `promoter-ranks` (V101) — hierarchy_level is the immutable ordering key,
+  // max_subordinates optional (no cap when absent).
+  hierarchyLevel?: number
+  maxSubordinates?: number | null
+  // `promoter-types` (V103) — whether a sale by this type cascades a
+  // hierarchy override up the supervisor chain (default true).
+  generatesHierarchyOverride?: boolean
 }
 
 /** An editable field of a catalog form. */
@@ -41,19 +48,23 @@ export interface CatalogField {
   label: string
   /** i18n key for the label; resolved on the page. */
   labelKey?: string
-  type: 'text' | 'textarea' | 'parent'
+  type: 'text' | 'textarea' | 'parent' | 'number' | 'checkbox'
   required?: boolean
-  /** Validation pattern (e.g. uppercase code). */
+  /** Validation pattern (e.g. uppercase code). Only applies to text/textarea. */
   regex?: RegExp
   regexMsg?: string
   /** i18n key for the validation message; resolved on the page (receives `{ n: max }`). */
   regexMsgKey?: string
   max?: number
+  /** type === 'number' only: minimum accepted value. */
+  min?: number
   placeholder?: string
   /** Immutable on edit (code/isoCode and FKs are only set on create). */
   onlyCreate?: boolean
   /** When type === 'parent': key of the parent catalog in the registry. */
   parentKey?: string
+  /** type === 'checkbox' only: value on create when the admin leaves it untouched. */
+  defaultChecked?: boolean
 }
 
 /** Declarative definition of a catalog. */

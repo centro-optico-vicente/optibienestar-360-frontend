@@ -220,6 +220,32 @@ export const CATALOGS: CatalogDef[] = [
       { name: 'code', label: 'Código', labelKey: 'catalogs.fields.code', type: 'text', required: true, onlyCreate: true, regex: CODE_40, regexMsg: codeMsg(40), regexMsgKey: 'catalogs.validation.codeMax', max: 40, placeholder: 'INDEPENDIENTE' },
       { name: 'name', label: 'Nombre', labelKey: 'catalogs.fields.name', type: 'text', required: true, max: 100 },
       { name: 'description', label: 'Descripción', labelKey: 'catalogs.fields.description', type: 'textarea', max: 200 },
+      // V103 — still-unconfirmed business question (hub notes pregunta 7): default
+      // true keeps today's behavior for every existing type.
+      { name: 'generatesHierarchyOverride', label: 'Genera override jerárquico', labelKey: 'catalogs.fields.generatesHierarchyOverride', type: 'checkbox', defaultChecked: true },
+    ],
+  },
+  {
+    key: 'promoter-ranks',
+    basePath: '/v1/admin/promoter-ranks',
+    viewPermission: 'PROMOTER_RANK_VIEW_ALL',
+    createPermission: 'PROMOTER_RANK_CREATE',
+    updatePermission: 'PROMOTER_RANK_UPDATE',
+    deletePermission: 'PROMOTER_RANK_DELETE',
+    label: 'Cargos jerárquicos',
+    labelSingular: 'Cargo jerárquico',
+    labelKey: 'catalogs.registry.promoter-ranks.label',
+    labelSingularKey: 'catalogs.registry.promoter-ranks.labelSingular',
+    icon: 'i-lucide-network',
+    codeField: 'code',
+    fields: [
+      { name: 'code', label: 'Código', labelKey: 'catalogs.fields.code', type: 'text', required: true, onlyCreate: true, regex: CODE_40, regexMsg: codeMsg(40), regexMsgKey: 'catalogs.validation.codeMax', max: 40, placeholder: 'SUPERVISOR' },
+      { name: 'name', label: 'Nombre', labelKey: 'catalogs.fields.name', type: 'text', required: true, max: 100 },
+      // Immutable: the whole hierarchy engine compares by this integer — see
+      // hub plan §1. onlyCreate so it can never drift under an existing chain.
+      { name: 'hierarchyLevel', label: 'Nivel jerárquico', labelKey: 'catalogs.fields.hierarchyLevel', type: 'number', required: true, onlyCreate: true, min: 1, placeholder: '2' },
+      { name: 'maxSubordinates', label: 'Máximo de subordinados', labelKey: 'catalogs.fields.maxSubordinates', type: 'number', min: 1, placeholder: 'Sin límite' },
+      { name: 'description', label: 'Descripción', labelKey: 'catalogs.fields.description', type: 'textarea', max: 200 },
     ],
   },
 ]

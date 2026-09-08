@@ -71,6 +71,12 @@ export interface PromoterDto {
   person_Display?: string | null
   promoterType_Uuid?: string | null
   promoterType_Display?: string | null
+  /** Cargo jerárquico (V101) — eje independiente de `promoterType`. Read-only aquí; se cambia vía `change-rank`. */
+  rank_Uuid?: string | null
+  rank_Display?: string | null
+  /** Supervisor vigente (V101) — `null` = tope de su propia cadena. Read-only aquí; se cambia vía `assign-supervisor`/`change-rank`. */
+  supervisor_Uuid?: string | null
+  supervisor_Display?: string | null
   email?: string
   phone?: string
   totalReferrals: number
@@ -348,6 +354,57 @@ export function referralStatusColor(status?: ReferralStatus | string | null) {
     case 'VOIDED': return 'error' as const
     default: return 'neutral' as const // EXPIRED / desconocido
   }
+}
+
+// ---- Jerarquía de promotores (V101/V104, hub plan hierarchical-commissions) ----
+
+/**
+ * One node of GET /v1/admin/promoters/hierarchy-tree — feeds the org-chart
+ * view directly. Editing (move under another rank, or detach to become a
+ * root) goes through `assign-supervisor`/`change-rank`, never a separate
+ * write endpoint; `supervisorUuid` is carried here precisely so the client
+ * knows the current value before firing one of those.
+ */
+export interface PromoterHierarchyNodeDto {
+  uuid: string
+  displayName: string
+  referralCode: string
+  rankCode: string | null
+  rankName: string | null
+  supervisorUuid: string | null
+  children: PromoterHierarchyNodeDto[]
+}
+
+/** Body de POST /v1/admin/promoters/{uuid}/assign-supervisor. `supervisorUuid: null` = desasignar (tope de su propia cadena). */
+export interface AssignSupervisorRequest {
+  supervisorUuid: string | null
+  reason: string
+}
+
+/** Body de POST /v1/admin/promoters/{uuid}/change-rank. `newSupervisorUuid` requerido salvo que `newRankUuid` sea el rango más alto. */
+export interface ChangeRankRequest {
+  newRankUuid: string
+  newSupervisorUuid: string | null
+  reason: string
+}
+
+/**
+ * Resultado de una (re)asignación de supervisor — respuesta de
+ * assign-supervisor y de GET .../supervisor-history (@JsonInclude(NON_NULL)).
+ * `fromSupervisor*` es `null` cuando no tenía supervisor antes.
+ */
+export interface PromoterSupervisorAssignmentDto {
+  uuid: string
+  promoterUuid: string
+  promoterName: string
+  fromSupervisorUuid?: string | null
+  fromSupervisorName?: string | null
+  toSupervisorUuid?: string | null
+  toSupervisorName?: string | null
+  actorUserUuid?: string | null
+  reason: string
+  assignedAt: string
+  assignedAt_Display?: string | null
 }
 
 /**

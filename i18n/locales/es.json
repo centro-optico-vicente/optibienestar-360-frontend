@@ -489,6 +489,14 @@
         "label": "Tipos de promotor",
         "description": "Clasificación de los promotores."
       },
+      "promoterRanks": {
+        "label": "Cargos jerárquicos",
+        "description": "Rangos de la jerarquía de promotores."
+      },
+      "promoterHierarchy": {
+        "label": "Organigrama de promotores",
+        "description": "Jerarquía de supervisión y cargos."
+      },
       "alliesDirectory": {
         "label": "Directorio de aliados",
         "description": "Comercios y prestadores de la red."
@@ -829,7 +837,10 @@
       "description": "Descripción",
       "country": "País",
       "state": "Estado",
-      "active": "Activo"
+      "active": "Activo",
+      "generatesHierarchyOverride": "Genera override jerárquico",
+      "hierarchyLevel": "Nivel jerárquico",
+      "maxSubordinates": "Máximo de subordinados"
     },
     "validation": {
       "isoCode": "Dos letras mayúsculas (ISO 3166-1, p.ej. VE)",
@@ -882,6 +893,10 @@
       "promoter-types": {
         "label": "Tipos de promotor",
         "labelSingular": "Tipo de promotor"
+      },
+      "promoter-ranks": {
+        "label": "Cargos jerárquicos",
+        "labelSingular": "Cargo jerárquico"
       }
     }
   },
@@ -1916,6 +1931,31 @@
     "viewDetailTooltip": "Ver detalle",
     "searchPlaceholder": "Buscar por nombre o código de referido…",
     "empty": "No hay promotores registrados.",
+    "hierarchy": {
+      "pageSubtitle": "Cargos y relación de supervisión del equipo comercial.",
+      "empty": "No hay promotores en la jerarquía todavía.",
+      "reasonLabel": "Motivo",
+      "supervisorLabel": "Supervisor",
+      "supervisorPlaceholder": "Seleccionar supervisor…",
+      "noEligibleSupervisors": "No hay ningún promotor que califique como supervisor todavía.",
+      "detachSupervisorLabel": "Quitar supervisor (queda como tope de su propia cadena)",
+      "assignSupervisor": {
+        "action": "Reasignar supervisor",
+        "title": "Reasignar supervisor de {name}",
+        "currentRank": "Cargo actual: {rank}",
+        "savedToast": "Supervisor reasignado correctamente."
+      },
+      "changeRank": {
+        "action": "Cambiar cargo",
+        "title": "Cambiar cargo de {name}",
+        "currentRank": "Cargo actual: {rank}",
+        "newRankLabel": "Cargo nuevo",
+        "newRankPlaceholder": "Seleccionar cargo…",
+        "allSuperiorsLabel": "Ampliar a todos los cargos superiores (no solo el inmediato)",
+        "topRankHint": "Este cargo no requiere supervisor (es el más alto de la jerarquía).",
+        "savedToast": "Cargo actualizado correctamente."
+      }
+    },
     "systemBadge": "Sistema",
     "systemLocked": "El promotor del sistema no se puede editar ni eliminar.",
     "createdToast": "Promotor creado correctamente.",

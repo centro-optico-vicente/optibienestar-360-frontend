@@ -221,6 +221,9 @@ const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 const state = reactive<Record<string, string>>({})
 // Kept outside `state` (a Record<string, string>) so the boolean isn't coerced.
 const isActive = ref(true)
+// Same reasoning as `isActive`, but per-field — `checkbox`-type fields
+// (e.g. promoter-types.generatesHierarchyOverride) live here instead of `state`.
+const checkboxState = reactive<Record<string, boolean>>({})
 
 // Fields visible in the current form (onlyCreate fields are hidden on edit).
 const formFields = computed(() =>
@@ -230,6 +233,12 @@ const formFields = computed(() =>
 const schema = computed(() => {
   const shape: Record<string, z.ZodTypeAny> = {}
   for (const f of formFields.value) {
+    if (f.type === 'checkbox') continue // validated as a plain boolean outside the string-keyed state
+    if (f.type === 'number') {
+      let s = z.string().regex(/^\d+$/, t('validation.positive'))
+      shape[f.name] = f.required ? s : s.optional().or(z.literal(''))
+      continue
+    }
     let s = z.string()
     if (f.max) s = s.max(f.max, t('validation.maxChars', { n: f.max }))
     if (f.regex) s = s.regex(f.regex, fieldRegexMsg(f))
@@ -239,7 +248,10 @@ const schema = computed(() => {
 })
 
 function resetForm() {
-  for (const f of def.value?.fields ?? []) state[f.name] = ''
+  for (const f of def.value?.fields ?? []) {
+    if (f.type === 'checkbox') checkboxState[f.name] = f.defaultChecked ?? false
+    else state[f.name] = ''
+  }
 }
 
 function openCreate() {
@@ -252,7 +264,7 @@ function openCreate() {
 // Snapshot of the last-loaded edit state, used to warn before a refresh
 // discards unsaved changes.
 const editSnapshot = ref('')
-function snapEditState() { return JSON.stringify({ ...state, isActive: isActive.value }) }
+function snapEditState() { return JSON.stringify({ ...state, ...checkboxState, isActive: isActive.value }) }
 const isEditDirty = computed(() => editSnapshot.value !== '' && snapEditState() !== editSnapshot.value)
 const discardConfirmOpen = ref(false)
 const editReloading = ref(false)
@@ -261,8 +273,10 @@ function populateEditForm(item: CatalogItem) {
   editingUuid.value = item.uuid
   editingItem.value = item
   resetForm()
+  const raw = item as unknown as Record<string, unknown>
   for (const f of def.value?.fields ?? []) {
-    state[f.name] = String((item as unknown as Record<string, unknown>)[f.name] ?? '')
+    if (f.type === 'checkbox') checkboxState[f.name] = Boolean(raw[f.name])
+    else state[f.name] = String(raw[f.name] ?? '')
   }
   isActive.value = item.active
   editSnapshot.value = snapEditState()
@@ -294,9 +308,14 @@ function buildBody(forCreate: boolean): Record<string, unknown> {
   const body: Record<string, unknown> = {}
   for (const f of def.value?.fields ?? []) {
     if (!forCreate && f.onlyCreate) continue
+    if (f.type === 'checkbox') {
+      body[f.name] = checkboxState[f.name] ?? false
+      continue
+    }
     const v = (state[f.name] ?? '').trim()
-    if (f.required) body[f.name] = v
-    else if (v) body[f.name] = v
+    const value: unknown = f.type === 'number' && v ? Number(v) : v
+    if (f.required) body[f.name] = value
+    else if (v) body[f.name] = value
   }
   if (!forCreate) body.active = isActive.value
   return body
@@ -598,6 +617,18 @@ async function confirmDelete() {
               :rows="2"
               :maxlength="f.max"
               class="w-full"
+            />
+            <UInput
+              v-else-if="f.type === 'number'"
+              v-model="state[f.name]"
+              type="number"
+              :min="f.min"
+              :placeholder="f.placeholder"
+              class="w-full"
+            />
+            <USwitch
+              v-else-if="f.type === 'checkbox'"
+              v-model="checkboxState[f.name]"
             />
             <UInput
               v-else
