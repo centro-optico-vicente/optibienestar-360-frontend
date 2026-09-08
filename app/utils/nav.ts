@@ -54,7 +54,7 @@ export function isNavGroup(entry: NavEntry): entry is NavGroup {
 
 // Catálogos que viven en su vertical de negocio (Aliados) y por eso NO se repiten
 // en Datos maestros.
-const CATALOGS_IN_VERTICALS = new Set<string>(['ally-types', 'service-categories', 'medical-specialties', 'promoter-types'])
+const CATALOGS_IN_VERTICALS = new Set<string>(['ally-types', 'service-categories', 'medical-specialties', 'promoter-types', 'promoter-ranks'])
 
 // El resto de catálogos alimenta "Datos maestros": derivados del registro, así el
 // grupo y su mosaico quedan siempre sincronizados con lo que existe en el sistema.
@@ -110,7 +110,9 @@ export const MAIN_NAV: NavEntry[] = [
     descriptionKey: 'nav.groups.comercial.description',
     children: [
       { label: 'Tipos de promotor', labelKey: 'nav.items.promoterTypes.label', to: '/dashboard/catalogs/promoter-types', icon: 'i-lucide-badge-percent', description: 'Clasificación de los promotores.', descriptionKey: 'nav.items.promoterTypes.description', requires: 'PROMOTER_TYPE_VIEW_ALL' },
+      { label: 'Cargos jerárquicos', labelKey: 'nav.items.promoterRanks.label', to: '/dashboard/catalogs/promoter-ranks', icon: 'i-lucide-network', description: 'Rangos de la jerarquía de promotores.', descriptionKey: 'nav.items.promoterRanks.description', requires: 'PROMOTER_RANK_VIEW_ALL' },
       { label: 'Promotores', labelKey: 'nav.items.promoters.label', to: '/dashboard/promoters', icon: 'i-lucide-megaphone', description: 'Equipo comercial y promotores.', descriptionKey: 'nav.items.promoters.description', requires: 'PROMOTER_VIEW_ALL' },
+      { label: 'Organigrama de promotores', labelKey: 'nav.items.promoterHierarchy.label', to: '/dashboard/promoters/hierarchy', icon: 'i-lucide-git-fork', description: 'Jerarquía de supervisión y cargos.', descriptionKey: 'nav.items.promoterHierarchy.description', requires: 'PROMOTER_VIEW_ALL' },
       { label: 'Reglas de comisión', labelKey: 'nav.items.commissionRules.label', to: '/dashboard/commission-rules', icon: 'i-lucide-sliders-horizontal', description: 'Bandas de inscripción, bonos por escala y comisión de cobranza.', descriptionKey: 'nav.items.commissionRules.description', requires: ['COMMISSION_TIER_VIEW_ALL', 'BONUS_RULE_VIEW_ALL', 'COLLECTION_COMMISSION_TIER_VIEW_ALL'] },
       { label: 'Comisiones', labelKey: 'nav.items.commissions.label', to: '/dashboard/commissions', icon: 'i-lucide-percent', description: 'Liquidación y estado de comisiones.', descriptionKey: 'nav.items.commissions.description', requires: ['COMMISSION_VIEW_ALL', 'COMMISSION_VIEW_OWN'] },
       { label: 'Reporte de comisiones', labelKey: 'nav.items.commissionsReport.label', to: '/dashboard/commissions/report', icon: 'i-lucide-file-text', description: 'Reporte general de comisiones devengadas.', descriptionKey: 'nav.items.commissionsReport.description', requires: ['COMMISSION_REPORT_GENERATE', 'REPORT_REPORT_GENERATE', 'COMMISSION_VIEW_ALL', 'COMMISSION_VIEW_OWN'] },
