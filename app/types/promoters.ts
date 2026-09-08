@@ -16,15 +16,34 @@ export const PROMOTER_STATUS_OPTIONS: { label: string, value: PromoterStatus, la
   { label: 'Suspendido', value: 'SUSPENDED', labelKey: 'promoters.status.SUSPENDED' },
 ]
 
-/** Estado de una comisión en el ledger. */
-export type CommissionStatus = 'PENDING' | 'PAID' | 'VOIDED' | 'DISPUTED'
+/**
+ * Estado de una comisión en el ledger. `APPROVED`/`REJECTED` (V107) son el
+ * gate comercial entre el cálculo y el pago — una comisión recién calculada
+ * nace `PENDING` (simulación) y solo puede pasar a `PAID` vía `/payout`
+ * después de ser `APPROVED`.
+ */
+export type CommissionStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'PAID' | 'VOIDED' | 'DISPUTED'
 
 export const COMMISSION_STATUS_OPTIONS: { label: string, value: CommissionStatus, labelKey: string }[] = [
   { label: 'Pendiente', value: 'PENDING', labelKey: 'commissions.status.PENDING' },
+  { label: 'Aprobada', value: 'APPROVED', labelKey: 'commissions.status.APPROVED' },
+  { label: 'Rechazada', value: 'REJECTED', labelKey: 'commissions.status.REJECTED' },
   { label: 'Pagada', value: 'PAID', labelKey: 'commissions.status.PAID' },
   { label: 'Anulada', value: 'VOIDED', labelKey: 'commissions.status.VOIDED' },
   { label: 'En disputa', value: 'DISPUTED', labelKey: 'commissions.status.DISPUTED' },
 ]
+
+/** Color de badge (Nuxt UI) para el estado de una comisión. */
+export function commissionStatusColor(status?: CommissionStatus | string | null) {
+  switch (status) {
+    case 'PAID': return 'success' as const
+    case 'APPROVED': return 'info' as const
+    case 'PENDING': return 'warning' as const
+    case 'REJECTED': return 'error' as const
+    case 'VOIDED': return 'neutral' as const
+    default: return 'neutral' as const // DISPUTED / desconocido
+  }
+}
 
 /** A qué se aplica la comisión. */
 export type CommissionAppliesTo = 'INSCRIPTION' | 'MONTHLY'
@@ -323,6 +342,70 @@ export interface CommissionReRatingResponse {
   executedAt: string
   executedAt_Display?: string | null
   perPromoter: CommissionReRatingPerPromoter[]
+}
+
+// ---- Aprobación comercial (V107, gate entre cálculo y pago) ----
+
+/**
+ * Una fila individual dentro del nodo de un promotor en
+ * GET /v1/admin/commissions/approval-queue — nivel 2 de la tabla expandible.
+ * `locked` = true para todo lo que no sea PENDING (el cliente lo pinta
+ * marcado-y-deshabilitado, o desmarcado-y-deshabilitado si es
+ * REJECTED/VOIDED) y nunca debe ser tocado por el checkbox "todo" del
+ * nivel 1. `checked` es el estado inicial del checkbox.
+ */
+export interface CommissionApprovalRowDto {
+  uuid: string
+  appliesTo?: CommissionAppliesTo | null
+  appliesTo_Display?: string | null
+  amount: number
+  amount_Display?: string | null
+  currencyCode: string | null
+  periodStart: string
+  periodStart_Display?: string | null
+  periodEnd: string
+  periodEnd_Display?: string | null
+  earnedAt: string
+  earnedAt_Display?: string | null
+  status: CommissionStatus
+  status_Display?: string | null
+  locked: boolean
+  locked_Display?: string | null
+  checked: boolean
+  checked_Display?: string | null
+}
+
+/**
+ * Un nodo de promotor (nivel 1, colapsado) de GET
+ * /v1/admin/commissions/approval-queue — `periodTotal` solo suma las filas
+ * `checked` (PENDING/APPROVED/PAID); una fila REJECTED/VOIDED aparece en
+ * `rows` mostrando "el todo" del período pero no cuenta en el total.
+ */
+export interface CommissionApprovalGroupDto {
+  promoterUuid: string
+  promoterCode: string
+  promoterDisplayName: string
+  periodTotal: number
+  periodTotal_Display?: string | null
+  currencyCode: string | null
+  rows: CommissionApprovalRowDto[]
+}
+
+/** Body de POST /v1/admin/commissions/approve — granularidad por fila, nunca bulk por promotor. */
+export interface ApproveCommissionsRequest {
+  commissionUuids: string[]
+}
+
+/** Body de POST /v1/admin/commissions/reject — `reason` es obligatorio y cascada a los overrides jerárquicos dependientes. */
+export interface RejectCommissionsRequest {
+  commissionUuids: string[]
+  reason: string
+}
+
+/** Respuesta de approve/reject. `cascadedOverridesVoided` siempre es 0 para una aprobación. */
+export interface CommissionApprovalActionResponse {
+  commissionUuids: string[]
+  cascadedOverridesVoided: number
 }
 
 // ---- Referidos ----

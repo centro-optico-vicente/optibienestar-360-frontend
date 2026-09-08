@@ -21,6 +21,7 @@ const toast = useToast()
 const canPayout = computed(() => can('COMMISSION_PAYOUT'))
 const canReRate = computed(() => can('COMMISSION_RE_RATE'))
 const canVoid = computed(() => can('COMMISSION_VOID'))
+const canApprove = computed(() => can('COMMISSION_APPROVE'))
 
 // commission_tier and commission share the COMMISSIONS audit domain (V66/V72),
 // same pattern as commission-rules/index.vue.
@@ -233,6 +234,15 @@ async function confirmVoid() {
       <div class="flex items-center gap-2">
         <ListRefreshMenu :loading="loading" variant="ghost" @refresh="load" @reset="resetFilters" />
         <ReportPrintButton variant="ghost" />
+        <UButton
+          v-if="canApprove"
+          color="neutral"
+          variant="outline"
+          icon="i-lucide-badge-check"
+          to="/dashboard/commissions/approval"
+        >
+          {{ t('commissions.approval.button') }}
+        </UButton>
         <UButton
           v-if="canReRate"
           color="neutral"
