@@ -5,6 +5,10 @@ import type {
   CommissionPayoutResponse,
   CommissionReRatingRequest,
   CommissionReRatingResponse,
+  CommissionRetroactiveTopUpRequest,
+  CommissionRetroactiveTopUpResponse,
+  HierarchyOverrideReRatingRequest,
+  HierarchyOverrideReRatingResponse,
 } from '~/types/promoters'
 
 interface ListParams {
@@ -62,6 +66,23 @@ export const useCommissions = () => {
     useApi<CommissionReRatingResponse>('/v1/admin/commissions/re-rate', { method: 'POST', body })
 
   /**
+   * Cierre de mes para el override jerárquico (hub plan §2, PR3, /v1/admin/hierarchy-overrides/re-rate):
+   * resincroniza overrides cuya base quedó obsoleta y sube cada override PENDING a la banda
+   * más alta de volumen de equipo que alcanzó su beneficiario (Supervisor/Coordinador).
+   * Reusa COMMISSION_RE_RATE — mismo actor/acción, tabla distinta.
+   */
+  const overrideReRate = (body: HierarchyOverrideReRatingRequest) =>
+    useApi<HierarchyOverrideReRatingResponse>('/v1/admin/hierarchy-overrides/re-rate', { method: 'POST', body })
+
+  /**
+   * Cierre de liquidación (hub plan §3, PR4): completa la diferencia entre lo ya pagado en
+   * cortes parciales y lo que correspondería a la banda final del período. Correr DESPUÉS de
+   * `reRate`/`overrideReRate` — esos ajustan filas PENDING; este cubre lo ya PAID.
+   */
+  const retroactiveTopUps = (body: CommissionRetroactiveTopUpRequest) =>
+    useApi<CommissionRetroactiveTopUpResponse>('/v1/admin/commissions/retroactive-topups', { method: 'POST', body })
+
+  /**
    * Anula una comisión PENDING puntual (p. ej. incumplimiento del promotor) — queda
    * excluida de la próxima liquidación sin tocar el resto del período. Solo aplica a
    * comisiones PENDING; PAID/VOIDED/DISPUTED son rechazadas por el backend.
@@ -69,5 +90,5 @@ export const useCommissions = () => {
   const voidCommission = (uuid: string, reason: string) =>
     useApi<CommissionDto>(`/v1/admin/commissions/${uuid}/void`, { method: 'POST', body: { reason } })
 
-  return { list, get, payout, reRate, voidCommission }
+  return { list, get, payout, reRate, overrideReRate, retroactiveTopUps, voidCommission }
 }
