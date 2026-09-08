@@ -8,6 +8,8 @@ import type { CollectionCommissionTierDto } from '~/types/collectionCommissionTi
 import type { PlanType } from '~/types/plans'
 import { PLAN_TYPE_OPTIONS } from '~/types/plans'
 import type { SortDirection } from '~/composables/useTableSort'
+import type { HierarchyOverrideTierDto, OverrideCategory } from '~/types/hierarchyOverrideTiers'
+import { OVERRIDE_CATEGORY_OPTIONS } from '~/types/hierarchyOverrideTiers'
 
 // Admin editor for the three commission-engine rule surfaces (ADR 0013):
 // inscription bands (commission_tiers, V42), scale bonuses (commission_bonus_rules,
@@ -16,7 +18,7 @@ import type { SortDirection } from '~/composables/useTableSort'
 definePageMeta({
   layout: 'dashboard',
   middleware: 'can',
-  permission: ['COMMISSION_TIER_VIEW_ALL', 'BONUS_RULE_VIEW_ALL', 'COLLECTION_COMMISSION_TIER_VIEW_ALL'],
+  permission: ['COMMISSION_TIER_VIEW_ALL', 'BONUS_RULE_VIEW_ALL', 'COLLECTION_COMMISSION_TIER_VIEW_ALL', 'HIERARCHY_OVERRIDE_TIER_VIEW_ALL'],
 })
 
 const { t } = useI18n()
@@ -48,6 +50,7 @@ const tabs = computed(() => [
   { label: t('commissionRules.tabs.tiers'), value: 'tiers', icon: 'i-lucide-trending-up' },
   { label: t('commissionRules.tabs.bonusRules'), value: 'bonusRules', icon: 'i-lucide-gift' },
   { label: t('commissionRules.tabs.collectionTiers'), value: 'collectionTiers', icon: 'i-lucide-calendar-clock' },
+  { label: t('commissionRules.tabs.overrideTiers'), value: 'overrideTiers', icon: 'i-lucide-network' },
 ])
 const activeTab = ref('tiers')
 const pageSizeItems = buildPageSizeItems(t)
@@ -75,6 +78,27 @@ const planTypeFilterItems = computed(() => [
 const appliesToFilterItems = computed(() => [
   { label: t('commissionRules.filters.allAppliesTo'), value: undefined },
   ...APPLIES_TO_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })),
+])
+
+// ---- Rank quick filter (Supervisor/Coordinador catalog, tab 4 only) ----
+const rankItems = ref<SelectItem[]>([])
+const hierarchyApi = usePromoterHierarchy()
+onMounted(async () => {
+  try {
+    const res = await hierarchyApi.rankOptions({ limit: 100 })
+    rankItems.value = res.map(o => ({ label: o.label, value: o.uuid }))
+  }
+  catch {
+    rankItems.value = []
+  }
+})
+const rankFilterItems = computed(() => [
+  { label: t('hierarchyOverrideTiers.filters.allRanks'), value: undefined },
+  ...rankItems.value,
+])
+const categoryFilterItems = computed(() => [
+  { label: t('hierarchyOverrideTiers.filters.allCategories'), value: undefined },
+  ...OVERRIDE_CATEGORY_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })),
 ])
 
 // =========================================================
@@ -464,10 +488,153 @@ async function confirmDeleteCollectionTier() {
   finally { collectionDeleting.value = false }
 }
 
+// =========================================================
+// Tab 4 — Bandas de override jerárquico (hierarchy_override_tiers)
+// =========================================================
+const overrideApi = useHierarchyOverrideTiers()
+const canViewOverride = computed(() => can('HIERARCHY_OVERRIDE_TIER_VIEW_ALL'))
+const canCreateOverride = computed(() => can('HIERARCHY_OVERRIDE_TIER_CREATE'))
+const canUpdateOverride = computed(() => can('HIERARCHY_OVERRIDE_TIER_UPDATE'))
+const canDeleteOverride = computed(() => can('HIERARCHY_OVERRIDE_TIER_DELETE'))
+const overrideData = ref<HierarchyOverrideTierDto[]>([])
+const overrideTotal = ref(0)
+const overrideLoading = ref(false)
+const overrideSearch = ref('')
+const overrideIncludeInactive = ref(false)
+const overrideRankUuid = ref<string | undefined>(undefined)
+const overrideCategory = ref<OverrideCategory | undefined>(undefined)
+const overridePage = ref(1)
+const overrideSize = ref(DEFAULT_PAGE_SIZE)
+
+// RSQL: category equality, applied server-side so pagination stays consistent.
+function buildOverrideFilter(): string | undefined {
+  return overrideCategory.value ? `category==${overrideCategory.value}` : undefined
+}
+
+// Empty by default: no `sort=` is sent until the user clicks a column, so
+// the backend's own default-sort fallback applies.
+const overrideSort = useTableSort([])
+const overrideHasActiveSort = computed(() => overrideSort.hasActiveSort.value)
+const overrideIsMultiSort = computed(() => overrideSort.orders.value.length > 1)
+
+async function loadOverrideTiers() {
+  overrideLoading.value = true
+  try {
+    const res = await overrideApi.list({
+      page: overridePage.value - 1,
+      size: overrideSize.value,
+      sort: overrideSort.sortParam.value,
+      q: overrideSearch.value.trim() || undefined,
+      filter: buildOverrideFilter(),
+      includeInactive: overrideIncludeInactive.value,
+      rankUuid: overrideRankUuid.value,
+    })
+    overrideData.value = res.content ?? []
+    overrideTotal.value = res.totalElements ?? 0
+    if (overrideSort.orders.value.length === 0 && res.appliedSort?.length) {
+      resetting.value = true
+      overrideSort.seedServerDefault(res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection })))
+      await nextTick()
+      resetting.value = false
+    }
+  }
+  catch {
+    overrideData.value = []
+    overrideTotal.value = 0
+  }
+  finally {
+    overrideLoading.value = false
+  }
+}
+
+watch(overrideSize, () => { if (!resetting.value) overridePage.value = 1 })
+watch([overridePage, overrideSize], () => { if (!resetting.value) loadOverrideTiers() })
+let overrideSearchTimer: ReturnType<typeof setTimeout> | undefined
+watch(overrideSearch, () => {
+  if (resetting.value) return
+  clearTimeout(overrideSearchTimer)
+  overrideSearchTimer = setTimeout(() => { overridePage.value = 1; loadOverrideTiers() }, 400)
+})
+watch([overrideIncludeInactive, overrideRankUuid, overrideCategory], () => {
+  if (resetting.value) return
+  overridePage.value = 1
+  loadOverrideTiers()
+})
+watch(overrideSort.orders, () => { if (!resetting.value) loadOverrideTiers() }, { deep: true })
+
+async function resetOverrideFilters() {
+  resetting.value = true
+  overrideSearch.value = ''
+  overrideIncludeInactive.value = false
+  overrideRankUuid.value = undefined
+  overrideCategory.value = undefined
+  overrideSort.reset()
+  overrideSize.value = DEFAULT_PAGE_SIZE
+  overridePage.value = 1
+  await nextTick()
+  resetting.value = false
+  loadOverrideTiers()
+}
+
+const overrideFormOpen = ref(false)
+const editingOverrideTier = ref<HierarchyOverrideTierDto | null>(null)
+function openCreateOverrideTier() { editingOverrideTier.value = null; overrideFormOpen.value = true }
+function openEditOverrideTier(tier: HierarchyOverrideTierDto) { editingOverrideTier.value = tier; overrideFormOpen.value = true }
+async function onOverrideTierSaved() { await loadOverrideTiers() }
+
+const overrideDeleteOpen = ref(false)
+const overrideDeleting = ref(false)
+const overrideTarget = ref<HierarchyOverrideTierDto | null>(null)
+const overrideUsageChecking = ref(false)
+const overrideUsageInfo = ref<{ inUse: boolean, count: number } | null>(null)
+async function openDeleteOverrideTier(tier: HierarchyOverrideTierDto) {
+  overrideTarget.value = tier
+  overrideDeleteOpen.value = true
+  overrideUsageChecking.value = true
+  overrideUsageInfo.value = null
+  try {
+    overrideUsageInfo.value = await overrideApi.usage(tier.uuid)
+  }
+  catch {
+    // Fallback: treat as "in use" for safety (soft-deactivate instead of physical delete).
+    overrideUsageInfo.value = null
+  }
+  finally {
+    overrideUsageChecking.value = false
+  }
+}
+function onDeleteOverrideTierFromEdit(tier: HierarchyOverrideTierDto) { openDeleteOverrideTier(tier) }
+async function confirmDeleteOverrideTier() {
+  if (!overrideTarget.value) return
+  overrideDeleting.value = true
+  const wasPhysical = overrideUsageInfo.value?.inUse === false
+  try {
+    await overrideApi.remove(overrideTarget.value.uuid, wasPhysical)
+    toast.add({
+      title: wasPhysical
+        ? t('hierarchyOverrideTiers.deletedPermanentToast')
+        : t('hierarchyOverrideTiers.deactivatedToast'),
+      color: wasPhysical ? 'success' : 'info',
+      icon: wasPhysical ? 'i-lucide-check-circle' : 'i-lucide-info',
+    })
+    overrideDeleteOpen.value = false
+    await loadOverrideTiers()
+  }
+  catch { /* toast handled by useApi */ }
+  finally { overrideDeleting.value = false }
+}
+
+function overrideReward(tier: HierarchyOverrideTierDto): string {
+  if (tier.overridePct != null) return `${tier.overridePct}%`
+  if (tier.flatAmount != null) return `${tier.flatAmount} ${tier.flatAmountCurrency_Code ?? ''}`.trim()
+  return t('common.empty')
+}
+
 onMounted(() => {
   if (canViewTiers.value) loadTiers()
   if (canViewBonus.value) loadBonusRules()
   if (canViewCollection.value) loadCollectionTiers()
+  if (canViewOverride.value) loadOverrideTiers()
 })
 </script>
 
@@ -866,10 +1033,140 @@ onMounted(() => {
       </div>
     </div>
 
+    <!-- Tab 4: Override jerárquico -->
+    <div v-show="activeTab === 'overrideTiers'" class="space-y-4">
+      <div class="flex items-center justify-end gap-2">
+        <ListRefreshMenu :loading="overrideLoading" variant="ghost" @refresh="loadOverrideTiers" @reset="resetOverrideFilters" />
+        <UButton v-if="canCreateOverride" color="primary" variant="outline" icon="i-lucide-plus" @click="openCreateOverrideTier">
+          {{ t('common.new') }}
+        </UButton>
+      </div>
+      <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
+        <UInput
+          v-model="overrideSearch"
+          :placeholder="t('hierarchyOverrideTiers.searchPlaceholder')"
+          icon="i-lucide-search"
+          size="lg"
+          class="w-full max-w-md"
+        />
+        <USelectMenu
+          v-model="overrideRankUuid"
+          :items="rankFilterItems"
+          label-key="label"
+          value-key="value"
+          icon="i-lucide-network"
+          class="w-56"
+        />
+        <USelectMenu
+          v-model="overrideCategory"
+          :items="categoryFilterItems"
+          label-key="label"
+          value-key="value"
+          icon="i-lucide-target"
+          class="w-48"
+        />
+        <UCheckbox v-model="overrideIncludeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
+        <UButton
+          v-if="overrideHasActiveSort"
+          variant="link"
+          color="neutral"
+          size="sm"
+          icon="i-lucide-list-restart"
+          :title="t('common.clearSortHint')"
+          @click="overrideSort.reset()"
+        >
+          {{ t('common.clearSort') }}
+        </UButton>
+      </div>
+      <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
+        <table class="w-full text-sm">
+          <thead class="bg-prohealth-50/60">
+            <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="overrideSort.toggle('name')">
+                {{ t('hierarchyOverrideTiers.columns.name') }}
+                <SortIndicator :state="overrideSort.stateOf('name')" :multi-active="overrideIsMultiSort" @clear="overrideSort.remove('name')" />
+              </th>
+              <th class="px-5 py-3 font-semibold">{{ t('hierarchyOverrideTiers.columns.rank') }}</th>
+              <th class="px-5 py-3 font-semibold">{{ t('hierarchyOverrideTiers.columns.category') }}</th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="overrideSort.toggle('thresholdCount')">
+                {{ t('hierarchyOverrideTiers.columns.threshold') }}
+                <SortIndicator :state="overrideSort.stateOf('thresholdCount')" :multi-active="overrideIsMultiSort" @clear="overrideSort.remove('thresholdCount')" />
+              </th>
+              <th class="px-5 py-3 font-semibold">{{ t('hierarchyOverrideTiers.columns.reward') }}</th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="overrideSort.toggle('active')">
+                {{ t('catalogs.columns.status') }}
+                <SortIndicator :state="overrideSort.stateOf('active')" :multi-active="overrideIsMultiSort" @clear="overrideSort.remove('active')" />
+              </th>
+              <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-prohealth-100">
+            <TableSkeleton v-if="overrideLoading" :rows="4" :cols="7" />
+            <tr v-else-if="overrideData.length === 0">
+              <td colspan="7" class="px-5 py-10 text-center text-prohealth-500">{{ t('hierarchyOverrideTiers.empty') }}</td>
+            </tr>
+            <tr
+              v-for="tier in overrideData"
+              v-else
+              :key="tier.uuid"
+              class="hover:bg-prohealth-50/50"
+              :class="{ 'opacity-60': !tier.active, 'cursor-pointer': canUpdateOverride }"
+              @click="canUpdateOverride && openEditOverrideTier(tier)"
+            >
+              <td class="px-5 py-3 font-medium text-prohealth-900">{{ tier.name }}</td>
+              <td class="px-5 py-3 text-prohealth-600">{{ tier.rank_Display }}</td>
+              <td class="px-5 py-3">
+                <UBadge color="primary" variant="subtle" size="sm">{{ t(`hierarchyOverrideTiers.category.${tier.category}`) }}</UBadge>
+              </td>
+              <td class="px-5 py-3 text-prohealth-600">{{ tier.thresholdCount }}</td>
+              <td class="px-5 py-3 text-prohealth-600">{{ overrideReward(tier) }}</td>
+              <td class="px-5 py-3">
+                <UBadge :color="tier.active ? 'success' : 'neutral'" variant="subtle" size="sm">
+                  {{ tier.active ? t('catalogs.status.active') : t('catalogs.status.inactive') }}
+                </UBadge>
+              </td>
+              <td class="px-5 py-3" @click.stop>
+                <div class="flex items-center justify-end gap-1">
+                  <UButton v-if="canUpdateOverride" color="info" variant="ghost" icon="i-lucide-pencil" size="sm" @click="openEditOverrideTier(tier)" />
+                  <UButton v-if="canDeleteOverride" color="error" variant="ghost" icon="i-lucide-trash-2" size="sm" class="ms-2" @click="openDeleteOverrideTier(tier)" />
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="flex items-center flex-wrap justify-between gap-3 px-5 py-3 border-t border-prohealth-100 shrink-0">
+        <p class="text-xs text-prohealth-500">
+          {{ t('hierarchyOverrideTiers.paginationSummary', { shown: overrideData.length, total: overrideTotal }) }}
+        </p>
+        <div class="flex items-center gap-3">
+          <UPagination
+            v-if="overrideSize !== UNPAGED_PAGE_SIZE"
+            v-model:page="overridePage"
+            :total="overrideTotal"
+            :items-per-page="overrideSize"
+          />
+          <UTooltip :text="$t('catalogs.pageSizeLabel')">
+            <USelectMenu
+              v-model="overrideSize"
+              :items="pageSizeItems"
+              label-key="label"
+              value-key="value"
+              icon="i-lucide-list"
+              :search-input="false"
+              :aria-label="$t('catalogs.pageSizeLabel')"
+              class="w-40"
+            />
+          </UTooltip>
+        </div>
+      </div>
+    </div>
+
     <!-- Modals -->
     <CommissionTierFormModal v-model:open="tierFormOpen" :tier="editingTier" @saved="onTierSaved" @delete="onDeleteTierFromEdit" />
     <BonusRuleFormModal v-model:open="bonusFormOpen" :rule="editingBonus" @saved="onBonusSaved" @delete="onDeleteBonusFromEdit" />
     <CollectionCommissionTierFormModal v-model:open="collectionFormOpen" :tier="editingCollectionTier" @saved="onCollectionTierSaved" @delete="onDeleteCollectionTierFromEdit" />
+    <HierarchyOverrideTierFormModal v-model:open="overrideFormOpen" :tier="editingOverrideTier" @saved="onOverrideTierSaved" @delete="onDeleteOverrideTierFromEdit" />
 
     <!-- Delete confirmations -->
     <UModal v-model:open="tierDeleteOpen" :title="t('commissionRules.tiers.deleteTitle')">
@@ -918,6 +1215,26 @@ onMounted(() => {
         <div class="flex items-center justify-end gap-3 pt-5">
           <UButton color="neutral" variant="ghost" :disabled="collectionDeleting" @click="collectionDeleteOpen = false">{{ t('common.cancel') }}</UButton>
           <UButton color="error" :loading="collectionDeleting" :disabled="collectionUsageChecking" icon="i-lucide-trash-2" @click="confirmDeleteCollectionTier">{{ t('common.delete') }}</UButton>
+        </div>
+      </template>
+    </UModal>
+
+    <UModal v-model:open="overrideDeleteOpen" :title="t('hierarchyOverrideTiers.deleteTitle')">
+      <template #body>
+        <div v-if="overrideUsageChecking" class="flex items-center gap-2 text-sm text-prohealth-600">
+          <UIcon name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
+          {{ t('common.loading') }}
+        </div>
+        <p v-else class="text-sm text-prohealth-700">
+          {{
+            overrideUsageInfo?.inUse === false
+              ? t('hierarchyOverrideTiers.deleteConfirmPermanent')
+              : t('hierarchyOverrideTiers.deleteConfirmDeactivate', { count: overrideUsageInfo?.count ?? 0 })
+          }}
+        </p>
+        <div class="flex items-center justify-end gap-3 pt-5">
+          <UButton color="neutral" variant="ghost" :disabled="overrideDeleting" @click="overrideDeleteOpen = false">{{ t('common.cancel') }}</UButton>
+          <UButton color="error" :loading="overrideDeleting" :disabled="overrideUsageChecking" icon="i-lucide-trash-2" @click="confirmDeleteOverrideTier">{{ t('common.delete') }}</UButton>
         </div>
       </template>
     </UModal>

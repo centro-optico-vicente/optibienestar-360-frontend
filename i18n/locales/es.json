@@ -2360,7 +2360,8 @@
     "tabs": {
       "tiers": "Bandas de inscripción",
       "bonusRules": "Bonos por escala",
-      "collectionTiers": "Comisión de cobranza"
+      "collectionTiers": "Comisión de cobranza",
+      "overrideTiers": "Override jerárquico"
     },
     "appliesTo": {
       "INSCRIPTION": "Inscripción",
@@ -2516,6 +2517,49 @@
         "submitCreate": "Crear tramo",
         "active": "Activo"
       }
+    }
+  },
+  "hierarchyOverrideTiers": {
+    "searchPlaceholder": "Buscar por nombre...",
+    "empty": "Sin bandas de override configuradas",
+    "paginationSummary": "Mostrando {shown} de {total}",
+    "createdToast": "Banda creada",
+    "updatedToast": "Banda actualizada",
+    "restoredToast": "Banda reactivada",
+    "deleteTitle": "Eliminar banda de override",
+    "deletedPermanentToast": "Banda eliminada permanentemente",
+    "deactivatedToast": "Banda desactivada",
+    "deleteConfirmPermanent": "Esta banda no está en uso — se eliminará de forma permanente.",
+    "deleteConfirmDeactivate": "Esta banda está en uso ({count}) — se desactivará en lugar de eliminarse.",
+    "category": {
+      "INSCRIPTION": "Inscripción",
+      "COLLECTION": "Cobranza"
+    },
+    "filters": {
+      "allRanks": "Todos los cargos",
+      "allCategories": "Todas las categorías"
+    },
+    "columns": {
+      "name": "Nombre",
+      "rank": "Cargo",
+      "category": "Categoría",
+      "threshold": "Umbral",
+      "reward": "Recompensa"
+    },
+    "form": {
+      "createTitle": "Nueva banda de override",
+      "editTitle": "Editar banda de override",
+      "name": "Nombre",
+      "rank": "Cargo",
+      "category": "Categoría",
+      "thresholdCount": "Umbral (volumen de equipo)",
+      "thresholdHelp": "Volumen acumulado del equipo a cargo, no las ventas propias del beneficiario.",
+      "periodStrategy": "Frecuencia de liquidación",
+      "rewardKind": "Tipo de recompensa",
+      "overridePct": "Porcentaje de override",
+      "flatAmount": "Monto fijo",
+      "flatAmountCurrency": "Moneda del monto fijo",
+      "active": "Activo"
     }
   },
   "reports": {
