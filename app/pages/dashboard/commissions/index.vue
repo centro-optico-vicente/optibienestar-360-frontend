@@ -193,6 +193,24 @@ async function onReRatingDone() {
   await load()
 }
 
+// ---- Hierarchy-override re-rating (month-close, hub plan §2 sibling; modal) ----
+const overrideReRatingOpen = ref(false)
+
+async function onOverrideReRatingDone() {
+  // PENDING hierarchy overrides in the range were recomputed; reload.
+  page.value = 1
+  await load()
+}
+
+// ---- Retroactive top-ups (settlement close, hub plan §3; modal) ----
+const topUpOpen = ref(false)
+
+async function onTopUpDone() {
+  // New retro rows were inserted for the period; reload.
+  page.value = 1
+  await load()
+}
+
 // ---- Void a single PENDING commission (excludes it from the next payout) ----
 const voidOpen = ref(false)
 const voidTarget = ref<CommissionDto | null>(null)
@@ -251,6 +269,24 @@ async function confirmVoid() {
           @click="reRatingOpen = true"
         >
           {{ t('commissions.reRating.button') }}
+        </UButton>
+        <UButton
+          v-if="canReRate"
+          color="neutral"
+          variant="outline"
+          icon="i-lucide-network"
+          @click="overrideReRatingOpen = true"
+        >
+          {{ t('commissions.overrideReRating.button') }}
+        </UButton>
+        <UButton
+          v-if="canReRate"
+          color="neutral"
+          variant="outline"
+          icon="i-lucide-layers"
+          @click="topUpOpen = true"
+        >
+          {{ t('commissions.retroactiveTopUps.button') }}
         </UButton>
         <UButton
           v-if="canPayout"
@@ -589,6 +625,8 @@ async function confirmVoid() {
 
     <!-- Month-close retroactive re-rating modal -->
     <CommissionReRatingModal v-model:open="reRatingOpen" @done="onReRatingDone" />
+    <HierarchyOverrideReRatingModal v-model:open="overrideReRatingOpen" @done="onOverrideReRatingDone" />
+    <CommissionRetroactiveTopUpModal v-model:open="topUpOpen" @done="onTopUpDone" />
 
     <!-- Audit modal -->
     <AuditModal

@@ -2235,6 +2235,46 @@
         "confirmButton": "Reject"
       }
     },
+    "overrideReRating": {
+      "button": "Re-rate hierarchy override",
+      "title": "Retroactive hierarchy-override re-rating",
+      "description": "Recomputes pending Supervisor/Coordinador overrides in the period to the highest team-volume band reached.",
+      "dryRunNote": "The preview only computes the deltas: it does not modify any override.",
+      "previewTitle": "Override re-rating summary",
+      "totals": {
+        "beneficiaries": "Beneficiaries",
+        "overridesUpdated": "Overrides to update"
+      },
+      "perBeneficiary": {
+        "teamVolume": "Team volume"
+      },
+      "successToast": "Re-rating applied: {beneficiaries} beneficiaries, {overrides} overrides updated."
+    },
+    "retroactiveTopUps": {
+      "button": "Close settlement (retroactive)",
+      "title": "Settlement-close retroactive top-up",
+      "description": "Tops up the gap between what was already paid across partial cuts and what the period's final band would have paid. Run after re-rating direct commissions and overrides.",
+      "dryRunNote": "The preview only computes the deltas: it does not insert any top-up.",
+      "previewTitle": "Retroactive top-up summary",
+      "totals": {
+        "count": "Top-ups",
+        "retroAmount": "Total retro amount"
+      },
+      "columns": {
+        "ledgerType": "Type",
+        "targetAmount": "Target amount",
+        "alreadyPaid": "Already paid",
+        "retroAmount": "Retro"
+      },
+      "ledgerTypes": {
+        "DIRECT_INSCRIPTION": "Direct commission (inscription)",
+        "DIRECT_COLLECTION": "Direct commission (collection)",
+        "HIERARCHY_OVERRIDE_INSCRIPTION": "Hierarchy override (inscription)",
+        "HIERARCHY_OVERRIDE_COLLECTION": "Hierarchy override (collection)"
+      },
+      "confirmDescription": "Confirming inserts a PAID top-up for every gap detected — it does not touch already-settled rows, only completes the difference. This action cannot be undone.",
+      "successToast": "Top-up applied: {count} top-ups inserted."
+    },
     "voidAction": {
       "trigger": "Void commission",
       "title": "Void commission",

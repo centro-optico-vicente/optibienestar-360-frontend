@@ -344,6 +344,88 @@ export interface CommissionReRatingResponse {
   perPromoter: CommissionReRatingPerPromoter[]
 }
 
+/**
+ * Body de POST /v1/admin/hierarchy-overrides/re-rate (hub plan §2, PR3).
+ * Mismo shape que `CommissionReRatingRequest`, aplicado a
+ * `promoter_hierarchy_overrides` en vez de `commissions`.
+ */
+export interface HierarchyOverrideReRatingRequest {
+  periodStart: string
+  periodEnd: string
+  dryRun?: boolean
+}
+
+/** Detalle por beneficiario (Supervisor/Coordinador) dentro de la respuesta. */
+export interface HierarchyOverrideReRatingPerBeneficiary {
+  promoterUuid: string
+  promoterCode: string
+  promoterDisplayName: string
+  category: string
+  teamVolumeCount: number
+  targetTierUuid: string
+  targetTierName: string
+  overridesChanged: number
+  deltaAmount: number
+}
+
+/** Response of POST /v1/admin/hierarchy-overrides/re-rate (@JsonInclude(NON_NULL)). */
+export interface HierarchyOverrideReRatingResponse {
+  periodStart: string
+  periodStart_Display?: string | null
+  periodEnd: string
+  periodEnd_Display?: string | null
+  dryRun: boolean
+  dryRun_Display?: string | null
+  totalBeneficiaries: number
+  overridesUpdated: number
+  totalDeltaAmount: number
+  currency: string
+  executedAt: string
+  executedAt_Display?: string | null
+  perBeneficiary: HierarchyOverrideReRatingPerBeneficiary[]
+}
+
+/**
+ * Body de POST /v1/admin/commissions/retroactive-topups (hub plan §3, PR4).
+ * Corre DESPUÉS de `/re-rate` (directo y su sibling de overrides) — esos
+ * ajustan filas aún PENDING; este cubre lo que ya quedó PAID en los cortes
+ * parciales.
+ */
+export interface CommissionRetroactiveTopUpRequest {
+  periodStart: string
+  periodEnd: string
+  dryRun?: boolean
+}
+
+/** Un top-up individual dentro de la respuesta (ledger genérico, ver `ledgerType`). */
+export interface CommissionRetroactiveTopUpOutcome {
+  promoterUuid: string
+  promoterCode: string
+  promoterDisplayName: string
+  ledgerType: string
+  basisAmount: number
+  targetAmount: number
+  alreadyPaidAmount: number
+  retroAmount: number
+  targetTierName: string
+}
+
+/** Response of POST /v1/admin/commissions/retroactive-topups (@JsonInclude(NON_NULL)). */
+export interface CommissionRetroactiveTopUpResponse {
+  periodStart: string
+  periodStart_Display?: string | null
+  periodEnd: string
+  periodEnd_Display?: string | null
+  dryRun: boolean
+  dryRun_Display?: string | null
+  totalTopUps: number
+  totalRetroAmount: number
+  currency: string
+  executedAt: string
+  executedAt_Display?: string | null
+  topUps: CommissionRetroactiveTopUpOutcome[]
+}
+
 // ---- Aprobación comercial (V107, gate entre cálculo y pago) ----
 
 /**
@@ -361,10 +443,6 @@ export interface CommissionApprovalRowDto {
   amount: number
   amount_Display?: string | null
   currencyCode: string | null
-  periodStart: string
-  periodStart_Display?: string | null
-  periodEnd: string
-  periodEnd_Display?: string | null
   earnedAt: string
   earnedAt_Display?: string | null
   status: CommissionStatus

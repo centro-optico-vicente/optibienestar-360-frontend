@@ -2235,6 +2235,46 @@
         "confirmButton": "Rechazar"
       }
     },
+    "overrideReRating": {
+      "button": "Re-ratear override jerárquico",
+      "title": "Re-rating retroactivo de override jerárquico",
+      "description": "Recalcula los overrides de Supervisor/Coordinador pendientes del período a la banda más alta de volumen de equipo alcanzada.",
+      "dryRunNote": "La previsualización solo calcula los deltas: no modifica ningún override.",
+      "previewTitle": "Resumen del re-rating de overrides",
+      "totals": {
+        "beneficiaries": "Beneficiarios",
+        "overridesUpdated": "Overrides a actualizar"
+      },
+      "perBeneficiary": {
+        "teamVolume": "Volumen de equipo"
+      },
+      "successToast": "Re-rating aplicado: {beneficiaries} beneficiarios, {overrides} overrides actualizados."
+    },
+    "retroactiveTopUps": {
+      "button": "Cerrar liquidación (retroactivo)",
+      "title": "Retroactivo de cierre de liquidación",
+      "description": "Completa la diferencia entre lo ya pagado en cortes parciales y lo que correspondería a la banda final del período. Correr después de re-ratear comisiones directas y overrides.",
+      "dryRunNote": "La previsualización solo calcula los deltas: no inserta ningún top-up.",
+      "previewTitle": "Resumen del retroactivo",
+      "totals": {
+        "count": "Top-ups",
+        "retroAmount": "Monto retroactivo total"
+      },
+      "columns": {
+        "ledgerType": "Tipo",
+        "targetAmount": "Monto objetivo",
+        "alreadyPaid": "Ya pagado",
+        "retroAmount": "Retroactivo"
+      },
+      "ledgerTypes": {
+        "DIRECT_INSCRIPTION": "Comisión directa (inscripción)",
+        "DIRECT_COLLECTION": "Comisión directa (cobranza)",
+        "HIERARCHY_OVERRIDE_INSCRIPTION": "Override jerárquico (inscripción)",
+        "HIERARCHY_OVERRIDE_COLLECTION": "Override jerárquico (cobranza)"
+      },
+      "confirmDescription": "Al confirmar se insertará un top-up PAID por cada gap detectado — no afecta filas ya liquidadas, solo completa la diferencia. Esta acción no se puede deshacer.",
+      "successToast": "Retroactivo aplicado: {count} top-ups insertados."
+    },
     "voidAction": {
       "trigger": "Anular comisión",
       "title": "Anular comisión",
