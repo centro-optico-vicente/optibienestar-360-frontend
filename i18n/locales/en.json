@@ -2394,7 +2394,8 @@
     "tabs": {
       "tiers": "Inscription Bands",
       "bonusRules": "Scale Bonuses",
-      "collectionTiers": "Collection Commission"
+      "collectionTiers": "Collection Commission",
+      "overrideTiers": "Hierarchy Override"
     },
     "appliesTo": {
       "INSCRIPTION": "Inscription",
@@ -2550,6 +2551,49 @@
         "submitCreate": "Create bucket",
         "active": "Active"
       }
+    }
+  },
+  "hierarchyOverrideTiers": {
+    "searchPlaceholder": "Search by name...",
+    "empty": "No override bands configured",
+    "paginationSummary": "Showing {shown} of {total}",
+    "createdToast": "Band created",
+    "updatedToast": "Band updated",
+    "restoredToast": "Band restored",
+    "deleteTitle": "Delete override band",
+    "deletedPermanentToast": "Band permanently deleted",
+    "deactivatedToast": "Band deactivated",
+    "deleteConfirmPermanent": "This band is not in use — it will be permanently deleted.",
+    "deleteConfirmDeactivate": "This band is in use ({count}) — it will be deactivated instead of deleted.",
+    "category": {
+      "INSCRIPTION": "Inscription",
+      "COLLECTION": "Collection"
+    },
+    "filters": {
+      "allRanks": "All ranks",
+      "allCategories": "All categories"
+    },
+    "columns": {
+      "name": "Name",
+      "rank": "Rank",
+      "category": "Category",
+      "threshold": "Threshold",
+      "reward": "Reward"
+    },
+    "form": {
+      "createTitle": "New override band",
+      "editTitle": "Edit override band",
+      "name": "Name",
+      "rank": "Rank",
+      "category": "Category",
+      "thresholdCount": "Threshold (team volume)",
+      "thresholdHelp": "Accumulated volume of the team in charge, not the beneficiary's own sales.",
+      "periodStrategy": "Settlement frequency",
+      "rewardKind": "Reward type",
+      "overridePct": "Override percentage",
+      "flatAmount": "Flat amount",
+      "flatAmountCurrency": "Flat amount currency",
+      "active": "Active"
     }
   },
   "reports": {

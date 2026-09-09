@@ -1,0 +1,371 @@
+<script setup lang="ts">
+import { z } from 'zod'
+import type { FormSubmitEvent } from '@nuxt/ui'
+import type {
+  CreateHierarchyOverrideTierRequest,
+  HierarchyOverrideTierDto,
+  OverrideCategory,
+  UpdateHierarchyOverrideTierRequest,
+} from '~/types/hierarchyOverrideTiers'
+import { OVERRIDE_CATEGORY_OPTIONS } from '~/types/hierarchyOverrideTiers'
+import type { PeriodStrategy } from '~/types/commissionTiers'
+import { PERIOD_STRATEGY_OPTIONS } from '~/types/commissionTiers'
+import type { SelectItem } from '~/types/options'
+
+// Create/edit form for a hierarchy-override band (Supervisor/Coordinador
+// override %, hub plan §2). Exactly one of overridePct / flatAmount is set —
+// the "reward" select below picks which one the form captures, same pattern
+// as CommissionTierFormModal. flatAmount additionally carries its own
+// currency FK (ADR 0015 — a flat amount always carries its own currency).
+const props = defineProps<{
+  open: boolean
+  tier?: HierarchyOverrideTierDto | null
+}>()
+
+const emit = defineEmits<{
+  'update:open': [value: boolean]
+  'saved': [tier: HierarchyOverrideTierDto]
+  'delete': [tier: HierarchyOverrideTierDto]
+}>()
+
+const { t } = useI18n()
+const tiers = useHierarchyOverrideTiers()
+const hierarchy = usePromoterHierarchy()
+const currencies = useCurrencies()
+const toast = useToast()
+const { can } = usePermissions()
+
+const isOpen = computed({
+  get: () => props.open,
+  set: (v: boolean) => emit('update:open', v),
+})
+const mode = computed<'create' | 'edit'>(() => (props.tier ? 'edit' : 'create'))
+const canManage = computed(() => can(mode.value === 'edit' ? 'HIERARCHY_OVERRIDE_TIER_UPDATE' : 'HIERARCHY_OVERRIDE_TIER_CREATE'))
+const isSubmitting = ref(false)
+// Save button lives in the modal's #footer slot, outside the <UForm> element,
+// so it can't use type="submit"; it triggers validation via this instead.
+const formRef = ref<{ submit: () => Promise<void> } | null>(null)
+
+const categoryOptions = computed(() => OVERRIDE_CATEGORY_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
+const periodOptions = computed(() => PERIOD_STRATEGY_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
+const rewardKindOptions = computed(() => [
+  { label: t('commissionRules.tiers.rewardKindPct'), value: 'PCT' },
+  { label: t('commissionRules.tiers.rewardKindFlat'), value: 'FLAT' },
+])
+
+// ---- Rank options (Supervisor/Coordinador catalog, promoter-ranks) ----
+const rankItems = ref<SelectItem[]>([])
+const loadingRanks = ref(false)
+async function loadRankOptions() {
+  loadingRanks.value = true
+  try {
+    const options = await hierarchy.rankOptions({ limit: 100 })
+    rankItems.value = options.map(o => ({ label: o.label, value: o.uuid }))
+  }
+  catch {
+    rankItems.value = []
+  }
+  finally {
+    loadingRanks.value = false
+  }
+}
+
+// ---- Currency options (flatAmount's own currency FK, ADR 0015) ----
+const currencyItems = ref<SelectItem[]>([])
+const loadingCurrencies = ref(false)
+async function loadCurrencyOptions() {
+  loadingCurrencies.value = true
+  try {
+    const options = await currencies.options()
+    currencyItems.value = options.filter(o => o.code).map(o => ({ label: `${o.code} — ${o.label}`, value: o.uuid }))
+  }
+  catch {
+    currencyItems.value = []
+  }
+  finally {
+    loadingCurrencies.value = false
+  }
+}
+
+interface FormState {
+  name: string
+  rankUuid: string
+  category: OverrideCategory | undefined
+  thresholdCount: string
+  rewardKind: 'PCT' | 'FLAT'
+  overridePct: string
+  flatAmount: string
+  flatAmountCurrencyUuid: string
+  periodStrategy: PeriodStrategy | undefined
+}
+
+const state = reactive<FormState>({
+  name: '',
+  rankUuid: '',
+  category: undefined,
+  thresholdCount: '0',
+  rewardKind: 'PCT',
+  overridePct: '',
+  flatAmount: '',
+  flatAmountCurrencyUuid: '',
+  periodStrategy: 'MONTHLY',
+})
+// Kept outside `state` (a string-only form-state map) so the boolean isn't coerced.
+const isActive = ref(true)
+
+const schema = computed(() => {
+  const money = z.string().regex(/^\d+(\.\d{1,2})?$/, t('commissionRules.form.invalidAmount'))
+  const int = z.string().regex(/^\d+$/, t('commissionRules.form.integersOnly'))
+  return z.object({
+    name: z.string().min(3, t('validation.minChars', { n: 3 })).max(80, t('validation.maxChars', { n: 80 })),
+    rankUuid: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
+    category: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
+    thresholdCount: int,
+    overridePct: state.rewardKind === 'PCT' ? money : z.string().optional(),
+    flatAmount: state.rewardKind === 'FLAT' ? money : z.string().optional(),
+    flatAmountCurrencyUuid: state.rewardKind === 'FLAT'
+      ? z.string({ message: t('validation.required') }).min(1, t('validation.required'))
+      : z.string().optional(),
+    periodStrategy: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
+  })
+})
+
+// Snapshot of the last-loaded edit state, used to warn before a refresh
+// discards unsaved changes.
+const editSnapshot = ref('')
+function snapEditState() { return JSON.stringify({ ...state, isActive: isActive.value }) }
+const isEditDirty = computed(() => editSnapshot.value !== '' && snapEditState() !== editSnapshot.value)
+const discardConfirmOpen = ref(false)
+const reloading = ref(false)
+
+function populateFrom(tier: HierarchyOverrideTierDto | null) {
+  if (!tier) {
+    state.name = ''
+    state.rankUuid = ''
+    state.category = undefined
+    state.thresholdCount = '0'
+    state.rewardKind = 'PCT'
+    state.overridePct = ''
+    state.flatAmount = ''
+    state.flatAmountCurrencyUuid = ''
+    state.periodStrategy = 'MONTHLY'
+    isActive.value = true
+    editSnapshot.value = ''
+    return
+  }
+  state.name = tier.name
+  state.rankUuid = tier.rank_Uuid ?? ''
+  state.category = tier.category
+  state.thresholdCount = String(tier.thresholdCount ?? 0)
+  state.rewardKind = tier.flatAmount != null ? 'FLAT' : 'PCT'
+  state.overridePct = tier.overridePct != null ? String(tier.overridePct) : ''
+  state.flatAmount = tier.flatAmount != null ? String(tier.flatAmount) : ''
+  state.flatAmountCurrencyUuid = tier.flatAmountCurrency_Uuid ?? ''
+  state.periodStrategy = tier.periodStrategy
+  isActive.value = tier.active ?? true
+  editSnapshot.value = snapEditState()
+}
+
+watch(() => props.open, async (open) => {
+  if (!open) return
+  if (rankItems.value.length === 0) await loadRankOptions()
+  if (currencyItems.value.length === 0) await loadCurrencyOptions()
+  populateFrom(props.tier ?? null)
+})
+
+async function reloadForm() {
+  if (!props.tier) return
+  reloading.value = true
+  try { populateFrom(await tiers.get(props.tier.uuid)) }
+  catch { /* useApi already notified */ }
+  finally { reloading.value = false }
+}
+function onRefresh() {
+  if (isEditDirty.value) discardConfirmOpen.value = true
+  else reloadForm()
+}
+function discardAndRefresh() {
+  discardConfirmOpen.value = false
+  reloadForm()
+}
+
+async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
+  isSubmitting.value = true
+  try {
+    const base = {
+      name: state.name.trim(),
+      rankUuid: state.rankUuid,
+      category: state.category!,
+      thresholdCount: Number(state.thresholdCount),
+      overridePct: state.rewardKind === 'PCT' ? state.overridePct.trim() : null,
+      flatAmount: state.rewardKind === 'FLAT' ? state.flatAmount.trim() : null,
+      flatAmountCurrencyUuid: state.rewardKind === 'FLAT' ? state.flatAmountCurrencyUuid : null,
+      periodStrategy: state.periodStrategy!,
+    }
+    let result: HierarchyOverrideTierDto
+    if (mode.value === 'create') {
+      result = await tiers.create(base as CreateHierarchyOverrideTierRequest)
+      toast.add({ title: t('hierarchyOverrideTiers.createdToast'), color: 'success', icon: 'i-lucide-check-circle' })
+    }
+    else {
+      result = await tiers.update(props.tier!.uuid, { ...base, active: isActive.value } as UpdateHierarchyOverrideTierRequest)
+      toast.add({ title: t('hierarchyOverrideTiers.updatedToast'), color: 'success', icon: 'i-lucide-check-circle' })
+    }
+    emit('saved', result)
+    isOpen.value = false
+  }
+  catch {
+    // useApi already notified the error
+  }
+  finally {
+    isSubmitting.value = false
+  }
+}
+
+function openDeleteFromEdit() {
+  if (!props.tier) return
+  isOpen.value = false
+  emit('delete', props.tier)
+}
+
+// One-click reactivation bypassing full-form validation, so a tier with stale
+// data in other fields isn't blocked from being restored.
+const restoring = ref(false)
+async function restoreTier() {
+  if (!props.tier) return
+  restoring.value = true
+  try {
+    const result = await tiers.update(props.tier.uuid, { active: true })
+    toast.add({ title: t('hierarchyOverrideTiers.restoredToast'), color: 'success', icon: 'i-lucide-check-circle' })
+    emit('saved', result)
+    isOpen.value = false
+  }
+  catch {
+    // useApi already notified the error
+  }
+  finally {
+    restoring.value = false
+  }
+}
+</script>
+
+<template>
+  <UModal
+    v-model:open="isOpen"
+    :title="mode === 'create' ? t('hierarchyOverrideTiers.form.createTitle') : t('hierarchyOverrideTiers.form.editTitle')"
+    :ui="{ content: 'max-w-2xl' }"
+  >
+    <template #body>
+      <UForm ref="formRef" :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
+        <UFormField :label="t('hierarchyOverrideTiers.form.name')" name="name" required>
+          <UInput v-model="state.name" class="w-full" />
+        </UFormField>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <UFormField :label="t('hierarchyOverrideTiers.form.rank')" name="rankUuid" required>
+            <USelectMenu
+              v-model="state.rankUuid"
+              :items="rankItems"
+              label-key="label"
+              value-key="value"
+              :loading="loadingRanks"
+              :placeholder="t('common.select')"
+              class="w-full"
+            />
+          </UFormField>
+          <UFormField :label="t('hierarchyOverrideTiers.form.category')" name="category" required>
+            <USelectMenu v-model="state.category" :items="categoryOptions" label-key="label" value-key="value" class="w-full" />
+          </UFormField>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <UFormField :label="t('hierarchyOverrideTiers.form.thresholdCount')" name="thresholdCount" required :help="t('hierarchyOverrideTiers.form.thresholdHelp')">
+            <UInput v-model="state.thresholdCount" inputmode="numeric" class="w-full" />
+          </UFormField>
+          <UFormField :label="t('hierarchyOverrideTiers.form.periodStrategy')" name="periodStrategy" required>
+            <USelectMenu v-model="state.periodStrategy" :items="periodOptions" label-key="label" value-key="value" class="w-full" />
+          </UFormField>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <UFormField :label="t('hierarchyOverrideTiers.form.rewardKind')" name="rewardKind" required>
+            <USelectMenu v-model="state.rewardKind" :items="rewardKindOptions" label-key="label" value-key="value" class="w-full" />
+          </UFormField>
+          <UFormField v-if="state.rewardKind === 'PCT'" :label="t('hierarchyOverrideTiers.form.overridePct')" name="overridePct" required>
+            <UInput v-model="state.overridePct" placeholder="10.00" class="w-full">
+              <template #trailing><span class="text-prohealth-400 text-sm">%</span></template>
+            </UInput>
+          </UFormField>
+          <UFormField v-else :label="t('hierarchyOverrideTiers.form.flatAmount')" name="flatAmount" required>
+            <UInput v-model="state.flatAmount" placeholder="5.00" class="w-full">
+              <template #leading><span class="text-prohealth-400 text-sm">$</span></template>
+            </UInput>
+          </UFormField>
+        </div>
+
+        <UFormField v-if="state.rewardKind === 'FLAT'" :label="t('hierarchyOverrideTiers.form.flatAmountCurrency')" name="flatAmountCurrencyUuid" required>
+          <USelectMenu
+            v-model="state.flatAmountCurrencyUuid"
+            :items="currencyItems"
+            label-key="label"
+            value-key="value"
+            :loading="loadingCurrencies"
+            :placeholder="t('common.select')"
+            class="w-full"
+          />
+        </UFormField>
+
+        <UFormField v-if="mode === 'edit'" :label="t('hierarchyOverrideTiers.form.active')">
+          <USwitch v-model="isActive" />
+        </UFormField>
+
+        <!-- Discard unsaved changes before refreshing -->
+        <UModal v-model:open="discardConfirmOpen" :title="t('common.discardChangesTitle')">
+          <template #body>
+            <p class="text-sm text-prohealth-700">{{ t('common.discardChangesBody') }}</p>
+            <div class="flex items-center justify-end gap-3 pt-5">
+              <UButton color="neutral" variant="ghost" @click="discardConfirmOpen = false">{{ t('common.cancel') }}</UButton>
+              <UButton color="warning" icon="i-lucide-refresh-cw" @click="discardAndRefresh">{{ t('common.discardAndRefresh') }}</UButton>
+            </div>
+          </template>
+        </UModal>
+      </UForm>
+    </template>
+
+    <template #footer>
+      <div class="w-full space-y-2">
+        <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
+
+        <div class="flex items-center justify-between gap-3">
+          <div v-if="mode === 'edit' && tier">
+            <RestoreButton
+              v-if="tier.active === false"
+              :active="tier.active"
+              :allowed="canManage"
+              :loading="restoring"
+              :disabled="isSubmitting"
+              @restore="restoreTier"
+            />
+            <UButton v-else color="error" variant="ghost" icon="i-lucide-trash-2" size="sm" :label="t('common.delete')" :disabled="isSubmitting" @click="openDeleteFromEdit" />
+          </div>
+          <div v-else />
+          <div class="flex items-center gap-3">
+            <RefreshButton
+              v-if="mode === 'edit'"
+              :icon-only="false"
+              :label="t('common.refresh')"
+              :title="t('common.refresh')"
+              :loading="reloading"
+              :disabled="isSubmitting"
+              @refresh="onRefresh"
+            />
+            <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="isOpen = false">{{ t('common.cancel') }}</UButton>
+            <UButton :color="mode === 'create' ? 'primary' : 'info'" variant="outline" :loading="isSubmitting" icon="i-lucide-save" @click="formRef?.submit()">
+              {{ mode === 'create' ? t('common.saveNew') : t('common.saveChanges') }}
+            </UButton>
+          </div>
+        </div>
+      </div>
+    </template>
+  </UModal>
+</template>
