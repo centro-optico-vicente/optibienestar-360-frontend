@@ -517,6 +517,10 @@
         "label": "Comisiones",
         "description": "Liquidación y estado de comisiones."
       },
+      "commissionApproval": {
+        "label": "Aprobación de comisiones",
+        "description": "Aprobar o rechazar comisiones calculadas antes de su pago."
+      },
       "commissionsReport": {
         "label": "Reporte de comisiones",
         "description": "Reporte general de comisiones devengadas."
@@ -2089,6 +2093,8 @@
     },
     "status": {
       "PENDING": "Pendiente",
+      "APPROVED": "Aprobada",
+      "REJECTED": "Rechazada",
       "PAID": "Pagada",
       "VOIDED": "Anulada",
       "DISPUTED": "En disputa"
@@ -2200,6 +2206,34 @@
       "confirmDescription": "Al confirmar se reescribirá el porcentaje, monto y banda de cada comisión INSCRIPTION pendiente del período. Solo afecta comisiones PENDING, nunca PAGADAS. Esta acción no se puede deshacer.",
       "successToast": "Re-rating aplicado: {promoters} promotores, {commissions} comisiones actualizadas.",
       "invalidRange": "El fin del período debe ser posterior o igual al inicio."
+    },
+    "approval": {
+      "button": "Aprobar comisiones",
+      "title": "Aprobación de comisiones",
+      "subtitle": "Una comisión calculada es una simulación hasta que se aprueba — solo lo aprobado puede pagarse.",
+      "fields": {
+        "periodStart": "Inicio del período",
+        "periodEnd": "Fin del período"
+      },
+      "loadButton": "Cargar período",
+      "empty": "No hay comisiones en este período.",
+      "selectedCount": "{count} comisiones seleccionadas",
+      "approveButton": "Aprobar seleccionadas",
+      "rejectButton": "Rechazar seleccionadas",
+      "approvedToast": "{count} comisiones aprobadas correctamente.",
+      "rejectedToast": "{count} comisiones rechazadas ({overrides} overrides jerárquicos anulados en cascada).",
+      "columns": {
+        "appliesTo": "Aplica a",
+        "amount": "Monto",
+        "earnedAt": "Ganada",
+        "status": "Estado"
+      },
+      "reject": {
+        "title": "Rechazar {count} comisiones",
+        "notice": "El motivo se aplicará a todas las filas seleccionadas y cascadeará a los overrides jerárquicos que dependan de ellas.",
+        "reasonLabel": "Motivo del rechazo",
+        "confirmButton": "Rechazar"
+      }
     },
     "voidAction": {
       "trigger": "Anular comisión",

@@ -517,6 +517,10 @@
         "label": "Commissions",
         "description": "Commission settlement and status."
       },
+      "commissionApproval": {
+        "label": "Commission approval",
+        "description": "Approve or reject calculated commissions before payout."
+      },
       "commissionsReport": {
         "label": "Commissions report",
         "description": "General report of earned commissions."
@@ -2089,6 +2093,8 @@
     },
     "status": {
       "PENDING": "Pending",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected",
       "PAID": "Paid",
       "VOIDED": "Voided",
       "DISPUTED": "Disputed"
@@ -2200,6 +2206,34 @@
       "confirmDescription": "Confirming rewrites the percentage, amount and band of every PENDING INSCRIPTION commission in the period. Only affects PENDING commissions, never PAID ones. This action cannot be undone.",
       "successToast": "Re-rating applied: {promoters} promoters, {commissions} commissions updated.",
       "invalidRange": "The period end must be on or after the start."
+    },
+    "approval": {
+      "button": "Approve commissions",
+      "title": "Commission approval",
+      "subtitle": "A calculated commission is a simulation until approved — only approved ones can be paid.",
+      "fields": {
+        "periodStart": "Period start",
+        "periodEnd": "Period end"
+      },
+      "loadButton": "Load period",
+      "empty": "No commissions in this period.",
+      "selectedCount": "{count} commissions selected",
+      "approveButton": "Approve selected",
+      "rejectButton": "Reject selected",
+      "approvedToast": "{count} commissions approved successfully.",
+      "rejectedToast": "{count} commissions rejected ({overrides} hierarchy overrides voided in cascade).",
+      "columns": {
+        "appliesTo": "Applies to",
+        "amount": "Amount",
+        "earnedAt": "Earned",
+        "status": "Status"
+      },
+      "reject": {
+        "title": "Reject {count} commissions",
+        "notice": "The reason will apply to every selected row and cascade to any hierarchy override that depends on them.",
+        "reasonLabel": "Rejection reason",
+        "confirmButton": "Reject"
+      }
     },
     "voidAction": {
       "trigger": "Void commission",

@@ -121,6 +121,8 @@ export const PERMISSIONS = [
   'COMMISSION_PAYOUT',
   'COMMISSION_RE_RATE',
   'COMMISSION_VOID',
+  // Commercial approval gate (V107) — separate from COMMISSION_PAYOUT (gerencia de administración).
+  'COMMISSION_APPROVE',
   // Granular per V79: view/create/update/delete instead of one bundled _MANAGE.
   'COMMISSION_TIER_VIEW_ALL', 'COMMISSION_TIER_CREATE', 'COMMISSION_TIER_UPDATE', 'COMMISSION_TIER_DELETE',
   'BONUS_RULE_VIEW_ALL', 'BONUS_RULE_CREATE', 'BONUS_RULE_UPDATE', 'BONUS_RULE_DELETE',
