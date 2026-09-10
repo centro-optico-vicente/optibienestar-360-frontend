@@ -271,6 +271,8 @@ export const CATALOGS: CatalogDef[] = [
     icon: 'i-lucide-network',
     codeField: 'code',
     auditEntityKey: 'promoter_rank',
+    auditPermission: 'PROMOTER_RANK_RECORD_AUDIT_VIEW',
+    auditReportPermission: 'PROMOTER_RANK_REPORT_AUDIT_VIEW',
     fields: [
       { name: 'code', label: 'Código', labelKey: 'catalogs.fields.code', type: 'text', required: true, onlyCreate: true, regex: CODE_40, regexMsg: codeMsg(40), regexMsgKey: 'catalogs.validation.codeMax', max: 40, placeholder: 'SUPERVISOR' },
       { name: 'name', label: 'Nombre', labelKey: 'catalogs.fields.name', type: 'text', required: true, max: 100 },

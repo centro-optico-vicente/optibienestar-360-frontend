@@ -37,7 +37,7 @@ export type AuditEntityKey = typeof AUDIT_ENTITY_KEYS[number]
  * `optibienestar-360-backend` `feature/catalog-and-login-audit-permissions`) that
  * grant access to a single entityKey's audit trail, on top of the blanket
  * `AUDIT_VIEW_ALL`/`REPORT_AUDIT_VIEW_ALL` authorities. Keys with no entry here
- * (`scheduled_job`, `promoter_rank`) have no granular permission yet — only the blanket
+ * (`scheduled_job`) have no granular permission yet — only the blanket
  * authorities unlock them. Not currently consumed by `AuditEntityKeyMultiSelect`
  * (the pages that render it are already gated at page level by `AUDIT_VIEW_ALL`/
  * `REPORT_AUDIT_VIEW_ALL`), kept here as the authoritative reference so a future
@@ -64,4 +64,5 @@ export const AUDIT_ENTITY_PERMISSIONS: Partial<Record<AuditEntityKey, { viewPerm
   medical_specialty: { viewPermission: 'MEDICAL_SPECIALTY_RECORD_AUDIT_VIEW', viewReportPermission: 'MEDICAL_SPECIALTY_REPORT_AUDIT_VIEW' },
   service_category: { viewPermission: 'SERVICE_CATEGORY_RECORD_AUDIT_VIEW', viewReportPermission: 'SERVICE_CATEGORY_REPORT_AUDIT_VIEW' },
   promoter_type: { viewPermission: 'PROMOTER_TYPE_RECORD_AUDIT_VIEW', viewReportPermission: 'PROMOTER_TYPE_REPORT_AUDIT_VIEW' },
+  promoter_rank: { viewPermission: 'PROMOTER_RANK_RECORD_AUDIT_VIEW', viewReportPermission: 'PROMOTER_RANK_REPORT_AUDIT_VIEW' },
 }
