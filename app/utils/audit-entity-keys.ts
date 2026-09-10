@@ -27,6 +27,7 @@ export const AUDIT_ENTITY_KEYS = [
   'medical_specialty',
   'service_category',
   'promoter_type',
+  'promoter_rank',
 ] as const
 
 export type AuditEntityKey = typeof AUDIT_ENTITY_KEYS[number]
@@ -63,4 +64,5 @@ export const AUDIT_ENTITY_PERMISSIONS: Partial<Record<AuditEntityKey, { viewPerm
   medical_specialty: { viewPermission: 'MEDICAL_SPECIALTY_RECORD_AUDIT_VIEW', viewReportPermission: 'MEDICAL_SPECIALTY_REPORT_AUDIT_VIEW' },
   service_category: { viewPermission: 'SERVICE_CATEGORY_RECORD_AUDIT_VIEW', viewReportPermission: 'SERVICE_CATEGORY_REPORT_AUDIT_VIEW' },
   promoter_type: { viewPermission: 'PROMOTER_TYPE_RECORD_AUDIT_VIEW', viewReportPermission: 'PROMOTER_TYPE_REPORT_AUDIT_VIEW' },
+  promoter_rank: { viewPermission: 'PROMOTER_RANK_RECORD_AUDIT_VIEW', viewReportPermission: 'PROMOTER_RANK_REPORT_AUDIT_VIEW' },
 }

@@ -27,6 +27,9 @@ export const CATALOGS: CatalogDef[] = [
     labelSingularKey: 'catalogs.registry.countries.labelSingular',
     icon: 'i-lucide-globe',
     codeField: 'isoCode',
+    auditEntityKey: 'country',
+    auditPermission: 'COUNTRY_RECORD_AUDIT_VIEW',
+    auditReportPermission: 'COUNTRY_REPORT_AUDIT_VIEW',
     fields: [
       { name: 'isoCode', label: 'Código ISO', labelKey: 'catalogs.fields.isoCode', type: 'text', required: true, onlyCreate: true, regex: /^[A-Z]{2}$/, regexMsg: 'Dos letras mayúsculas (ISO 3166-1, p.ej. VE)', regexMsgKey: 'catalogs.validation.isoCode', max: 2, placeholder: 'VE' },
       { name: 'name', label: 'Nombre', labelKey: 'catalogs.fields.name', type: 'text', required: true, max: 100 },
@@ -47,6 +50,9 @@ export const CATALOGS: CatalogDef[] = [
     codeField: 'code',
     parentDisplayField: 'country_Code',
     parentDisplayLabelField: 'country_Display',
+    auditEntityKey: 'state',
+    auditPermission: 'STATE_RECORD_AUDIT_VIEW',
+    auditReportPermission: 'STATE_REPORT_AUDIT_VIEW',
     fields: [
       { name: 'countryUuid', label: 'País', labelKey: 'catalogs.fields.country', type: 'parent', required: true, onlyCreate: true, parentKey: 'countries' },
       { name: 'code', label: 'Código', labelKey: 'catalogs.fields.code', type: 'text', required: true, onlyCreate: true, max: 10, placeholder: 'MIR' },
@@ -68,8 +74,11 @@ export const CATALOGS: CatalogDef[] = [
     parentDisplayField: 'state_Code',
     parentDisplayLabelField: 'state_Display',
     listFilter: { param: 'stateUuid', field: 'stateUuid' },
+    auditEntityKey: 'city',
+    auditPermission: 'CITY_RECORD_AUDIT_VIEW',
+    auditReportPermission: 'CITY_REPORT_AUDIT_VIEW',
     fields: [
-      { name: 'stateUuid', label: 'Estado', labelKey: 'catalogs.fields.state', type: 'parent', required: true, onlyCreate: true, parentKey: 'states' },
+      { name: 'stateUuid', label: 'Estado / Departamento', labelKey: 'catalogs.fields.state', type: 'parent', required: true, onlyCreate: true, parentKey: 'states' },
       { name: 'name', label: 'Nombre', labelKey: 'catalogs.fields.name', type: 'text', required: true, max: 120 },
     ],
   },
@@ -86,6 +95,9 @@ export const CATALOGS: CatalogDef[] = [
     labelSingularKey: 'catalogs.registry.genders.labelSingular',
     icon: 'i-lucide-venus-and-mars',
     codeField: 'code',
+    auditEntityKey: 'gender',
+    auditPermission: 'GENDER_RECORD_AUDIT_VIEW',
+    auditReportPermission: 'GENDER_REPORT_AUDIT_VIEW',
     fields: [
       { name: 'code', label: 'Código', labelKey: 'catalogs.fields.code', type: 'text', required: true, onlyCreate: true, regex: /^[A-Z]$/, regexMsg: 'Una letra mayúscula (p.ej. M, F)', regexMsgKey: 'catalogs.validation.genderCode', max: 1, placeholder: 'M' },
       { name: 'name', label: 'Nombre', labelKey: 'catalogs.fields.name', type: 'text', required: true, max: 20 },
@@ -104,6 +116,9 @@ export const CATALOGS: CatalogDef[] = [
     labelSingularKey: 'catalogs.registry.document-types.labelSingular',
     icon: 'i-lucide-id-card',
     codeField: 'code',
+    auditEntityKey: 'document_type',
+    auditPermission: 'DOCUMENT_TYPE_RECORD_AUDIT_VIEW',
+    auditReportPermission: 'DOCUMENT_TYPE_REPORT_AUDIT_VIEW',
     fields: [
       { name: 'code', label: 'Código', labelKey: 'catalogs.fields.code', type: 'text', required: true, onlyCreate: true, regex: /^[A-Z]{1,3}$/, regexMsg: '1 a 3 letras mayúsculas (p.ej. CC, CI)', regexMsgKey: 'catalogs.validation.documentTypeCode', max: 3, placeholder: 'CI' },
       { name: 'name', label: 'Nombre', labelKey: 'catalogs.fields.name', type: 'text', required: true, max: 60 },
@@ -123,6 +138,9 @@ export const CATALOGS: CatalogDef[] = [
     labelSingularKey: 'catalogs.registry.marital-statuses.labelSingular',
     icon: 'i-lucide-heart-handshake',
     codeField: 'code',
+    auditEntityKey: 'marital_status',
+    auditPermission: 'MARITAL_STATUS_RECORD_AUDIT_VIEW',
+    auditReportPermission: 'MARITAL_STATUS_REPORT_AUDIT_VIEW',
     fields: [
       { name: 'code', label: 'Código', labelKey: 'catalogs.fields.code', type: 'text', required: true, onlyCreate: true, regex: /^[A-Z_]{1,20}$/, regexMsg: codeMsg(20), regexMsgKey: 'catalogs.validation.codeMax', max: 20, placeholder: 'SOLTERO' },
       { name: 'name', label: 'Nombre', labelKey: 'catalogs.fields.name', type: 'text', required: true, max: 50 },
@@ -140,6 +158,9 @@ export const CATALOGS: CatalogDef[] = [
     labelKey: 'catalogs.registry.occupations.label',
     labelSingularKey: 'catalogs.registry.occupations.labelSingular',
     icon: 'i-lucide-briefcase',
+    auditEntityKey: 'occupation',
+    auditPermission: 'OCCUPATION_RECORD_AUDIT_VIEW',
+    auditReportPermission: 'OCCUPATION_REPORT_AUDIT_VIEW',
     fields: [
       { name: 'name', label: 'Nombre', labelKey: 'catalogs.fields.name', type: 'text', required: true, max: 100 },
       { name: 'description', label: 'Descripción', labelKey: 'catalogs.fields.description', type: 'textarea', max: 200 },
@@ -158,6 +179,9 @@ export const CATALOGS: CatalogDef[] = [
     labelSingularKey: 'catalogs.registry.medical-specialties.labelSingular',
     icon: 'i-lucide-stethoscope',
     codeField: 'code',
+    auditEntityKey: 'medical_specialty',
+    auditPermission: 'MEDICAL_SPECIALTY_RECORD_AUDIT_VIEW',
+    auditReportPermission: 'MEDICAL_SPECIALTY_REPORT_AUDIT_VIEW',
     fields: [
       { name: 'code', label: 'Código', labelKey: 'catalogs.fields.code', type: 'text', required: true, onlyCreate: true, regex: CODE_40, regexMsg: codeMsg(40), regexMsgKey: 'catalogs.validation.codeMax', max: 40, placeholder: 'OFTALMOLOGIA' },
       { name: 'name', label: 'Nombre', labelKey: 'catalogs.fields.name', type: 'text', required: true, max: 100 },
@@ -177,6 +201,9 @@ export const CATALOGS: CatalogDef[] = [
     labelSingularKey: 'catalogs.registry.service-categories.labelSingular',
     icon: 'i-lucide-layers',
     codeField: 'code',
+    auditEntityKey: 'service_category',
+    auditPermission: 'SERVICE_CATEGORY_RECORD_AUDIT_VIEW',
+    auditReportPermission: 'SERVICE_CATEGORY_REPORT_AUDIT_VIEW',
     fields: [
       { name: 'code', label: 'Código', labelKey: 'catalogs.fields.code', type: 'text', required: true, onlyCreate: true, regex: CODE_40, regexMsg: codeMsg(40), regexMsgKey: 'catalogs.validation.codeMax', max: 40, placeholder: 'CONSULTA' },
       { name: 'name', label: 'Nombre', labelKey: 'catalogs.fields.name', type: 'text', required: true, max: 100 },
@@ -218,6 +245,9 @@ export const CATALOGS: CatalogDef[] = [
     labelSingularKey: 'catalogs.registry.promoter-types.labelSingular',
     icon: 'i-lucide-badge-percent',
     codeField: 'code',
+    auditEntityKey: 'promoter_type',
+    auditPermission: 'PROMOTER_TYPE_RECORD_AUDIT_VIEW',
+    auditReportPermission: 'PROMOTER_TYPE_REPORT_AUDIT_VIEW',
     fields: [
       { name: 'code', label: 'Código', labelKey: 'catalogs.fields.code', type: 'text', required: true, onlyCreate: true, regex: CODE_40, regexMsg: codeMsg(40), regexMsgKey: 'catalogs.validation.codeMax', max: 40, placeholder: 'INDEPENDIENTE' },
       { name: 'name', label: 'Nombre', labelKey: 'catalogs.fields.name', type: 'text', required: true, max: 100 },
@@ -240,6 +270,9 @@ export const CATALOGS: CatalogDef[] = [
     labelSingularKey: 'catalogs.registry.promoter-ranks.labelSingular',
     icon: 'i-lucide-network',
     codeField: 'code',
+    auditEntityKey: 'promoter_rank',
+    auditPermission: 'PROMOTER_RANK_RECORD_AUDIT_VIEW',
+    auditReportPermission: 'PROMOTER_RANK_REPORT_AUDIT_VIEW',
     fields: [
       { name: 'code', label: 'Código', labelKey: 'catalogs.fields.code', type: 'text', required: true, onlyCreate: true, regex: CODE_40, regexMsg: codeMsg(40), regexMsgKey: 'catalogs.validation.codeMax', max: 40, placeholder: 'SUPERVISOR' },
       { name: 'name', label: 'Nombre', labelKey: 'catalogs.fields.name', type: 'text', required: true, max: 100 },
