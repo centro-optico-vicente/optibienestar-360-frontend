@@ -58,7 +58,8 @@ const isSidebarCollapsed = useLocalStorage<boolean>('dashboard-sidebar-collapsed
     <aside
       :class="[
         'fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-prohealth-100 flex flex-col transition-transform',
-        (isSidebarOpen || !isSidebarCollapsed) ? 'translate-x-0' : '-translate-x-full',
+        isSidebarOpen ? 'translate-x-0' : '-translate-x-full',
+        isSidebarCollapsed ? 'lg:-translate-x-full' : 'lg:translate-x-0',
       ]"
     >
       <div class="h-16 px-5 flex items-center gap-2 border-b border-prohealth-100">
