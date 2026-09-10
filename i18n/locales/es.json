@@ -25,6 +25,7 @@
     "refresh": "Refrescar",
     "refreshKeepFilters": "Refrescar",
     "refreshKeepFiltersHint": "Refresca la lista con los filtros actuales",
+    "clear": "Quitar",
     "clearFiltersAndRefresh": "Limpiar filtros y refrescar",
     "clearFiltersAndRefreshHint": "Restablece búsqueda, inactivos, orden y página, y refresca",
     "sortAscending": "Orden ascendente — clic para invertir a descendente",
@@ -359,7 +360,8 @@
         "sessionStatus": "Sesión",
         "attemptedAt": "Fecha"
       },
-      "unknownUser": "Usuario desconocido"
+      "unknownUser": "Usuario desconocido",
+      "filteredBySession": "Filtrado a una sesión"
     },
     "dataChanges": {
       "seoTitle": "Cambios de datos — OptiBienestar 360",
@@ -415,6 +417,27 @@
         "format": "Formato",
         "generatedAt": "Fecha",
         "size": "Tamaño"
+      }
+    },
+    "jobRuns": {
+      "seoTitle": "Ejecuciones programadas — OptiBienestar 360",
+      "title": "Ejecuciones programadas",
+      "subtitle": "Historial global de ejecuciones de todas las tareas programadas del sistema.",
+      "empty": "Sin ejecuciones registradas.",
+      "paginationSummary": "{shown} de {total} ejecuciones",
+      "filters": {
+        "job": "Tarea",
+        "jobPlaceholder": "Buscar tarea…",
+        "outcome": "Resultado",
+        "trigger": "Origen"
+      },
+      "columns": {
+        "job": "Tarea",
+        "outcome": "Resultado",
+        "trigger": "Origen",
+        "started": "Inicio",
+        "duration": "Duración",
+        "error": "Error"
       }
     }
   },
@@ -548,6 +571,10 @@
       "auditReports": {
         "label": "Reportes generados",
         "description": "Historial global de reportes generados."
+      },
+      "auditJobRuns": {
+        "label": "Ejecuciones programadas",
+        "description": "Historial global de ejecuciones de tareas programadas."
       },
       "myCard": {
         "label": "Mi carnet",
@@ -926,7 +953,8 @@
       "unknownActor": "Usuario desconocido",
       "noFieldChanges": "No se registraron cambios de campos para este evento.",
       "expandAll": "Expandir todo",
-      "collapseAll": "Contraer todo"
+      "collapseAll": "Contraer todo",
+      "viewSession": "Ver sesión"
     },
     "reports": {
       "empty": "No se han generado reportes para este registro.",

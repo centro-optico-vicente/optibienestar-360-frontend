@@ -133,6 +133,7 @@ export const MAIN_NAV: NavEntry[] = [
       { label: 'Accesos y sesiones', labelKey: 'nav.items.auditSessions.label', to: '/dashboard/security/sessions', icon: 'i-lucide-log-in', description: 'Historial de inicios de sesión y sesiones activas.', descriptionKey: 'nav.items.auditSessions.description', requires: 'AUDIT_VIEW_LOGIN' },
       { label: 'Cambios de datos', labelKey: 'nav.items.auditDataChanges.label', to: '/dashboard/security/data-changes', icon: 'i-lucide-history', description: 'Historial global de cambios sobre cualquier registro.', descriptionKey: 'nav.items.auditDataChanges.description', requires: 'AUDIT_VIEW_ALL' },
       { label: 'Reportes generados', labelKey: 'nav.items.auditReports.label', to: '/dashboard/security/reports', icon: 'i-lucide-file-text', description: 'Historial global de reportes generados.', descriptionKey: 'nav.items.auditReports.description', requires: 'REPORT_AUDIT_VIEW_ALL' },
+      { label: 'Ejecuciones programadas', labelKey: 'nav.items.auditJobRuns.label', to: '/dashboard/security/job-runs', icon: 'i-lucide-calendar-clock', description: 'Historial global de ejecuciones de tareas programadas.', descriptionKey: 'nav.items.auditJobRuns.description', requires: 'JOB_VIEW_ALL' },
     ],
   },
   {

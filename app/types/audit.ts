@@ -62,6 +62,8 @@ export interface DataChangeAuditLogDto {
   afterJson?: Record<string, unknown> | null
   actorUuid?: string | null
   actor_Display?: string | null
+  /** Login session the change happened in — `null` for system-generated changes (e.g. a scheduled job). Filters `/v1/admin/audit/logins?uuid=`. */
+  sessionUuid?: string | null
   requestMethod?: string | null
   requestPath?: string | null
   occurredAt: string
@@ -93,6 +95,8 @@ export interface ReportAuditLogDto {
   parametersJson?: Record<string, unknown> | null
   actorUuid?: string | null
   actor_Display?: string | null
+  /** Login session the report was generated in — `null` for system-generated reports (e.g. a scheduled job). Filters `/v1/admin/audit/logins?uuid=`. */
+  sessionUuid?: string | null
   fileUuid?: string | null
   fileName?: string | null
   sizeBytes?: number | null
