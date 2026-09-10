@@ -828,7 +828,8 @@
       "name": "Nombre",
       "parent": "Padre",
       "description": "Descripción",
-      "status": "Estado"
+      "status": "Estado",
+      "active": "Activo"
     },
     "status": {
       "active": "Activo",
@@ -840,7 +841,7 @@
       "code": "Código",
       "description": "Descripción",
       "country": "País",
-      "state": "Estado",
+      "state": "Estado / Departamento",
       "active": "Activo",
       "generatesHierarchyOverride": "Genera override jerárquico",
       "hierarchyLevel": "Nivel jerárquico",
@@ -936,7 +937,20 @@
     "dateRange": {
       "placeholder": "Selecciona un rango de fechas",
       "fromTime": "Hora desde",
-      "toTime": "Hora hasta"
+      "toTime": "Hora hasta",
+      "confirm": "Confirmar",
+      "clear": "Limpiar",
+      "shortcuts": {
+        "today": "Hoy",
+        "yesterday": "Ayer",
+        "tomorrow": "Mañana",
+        "lastWeek": "Semana pasada",
+        "thisWeek": "Esta semana",
+        "nextWeek": "Semana siguiente",
+        "lastMonth": "Mes pasado",
+        "thisMonth": "Este mes",
+        "nextMonth": "Mes siguiente"
+      }
     },
     "entityKeys": {
       "role": "Rol",

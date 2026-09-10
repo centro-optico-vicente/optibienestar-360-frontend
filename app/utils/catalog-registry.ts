@@ -46,6 +46,7 @@ export const CATALOGS: CatalogDef[] = [
     icon: 'i-lucide-map',
     codeField: 'code',
     parentDisplayField: 'country_Code',
+    parentDisplayLabelField: 'country_Display',
     fields: [
       { name: 'countryUuid', label: 'País', labelKey: 'catalogs.fields.country', type: 'parent', required: true, onlyCreate: true, parentKey: 'countries' },
       { name: 'code', label: 'Código', labelKey: 'catalogs.fields.code', type: 'text', required: true, onlyCreate: true, max: 10, placeholder: 'MIR' },
@@ -65,6 +66,7 @@ export const CATALOGS: CatalogDef[] = [
     labelSingularKey: 'catalogs.registry.cities.labelSingular',
     icon: 'i-lucide-building-2',
     parentDisplayField: 'state_Code',
+    parentDisplayLabelField: 'state_Display',
     listFilter: { param: 'stateUuid', field: 'stateUuid' },
     fields: [
       { name: 'stateUuid', label: 'Estado', labelKey: 'catalogs.fields.state', type: 'parent', required: true, onlyCreate: true, parentKey: 'states' },

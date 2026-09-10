@@ -61,6 +61,13 @@ useSeoMeta({
 
 const hasDescription = computed(() => def.value?.fields.some(f => f.name === 'description') ?? false)
 
+// The "parent" column header uses the FK field's own label (e.g. "Estado / Departamento",
+// "País") instead of the generic "Padre", which reads clearer per catalog.
+const parentColumnLabel = computed(() => {
+  const f = def.value?.fields.find(f => f.type === 'parent')
+  return f ? fieldLabel(f) : t('catalogs.columns.parent')
+})
+
 // Table column count (for the skeleton and colspans).
 const columnCount = computed(() => {
   let n = 2 // name + actions
@@ -225,9 +232,11 @@ const isActive = ref(true)
 // (e.g. promoter-types.generatesHierarchyOverride) live here instead of `state`.
 const checkboxState = reactive<Record<string, boolean>>({})
 
-// Fields visible in the current form (onlyCreate fields are hidden on edit).
+// Fields visible in the current form. `onlyCreate` fields are hidden on edit,
+// except `parent` FK selects: those stay visible (disabled) so the admin can
+// see which parent the record belongs to.
 const formFields = computed(() =>
-  (def.value?.fields ?? []).filter(f => mode.value === 'create' || !f.onlyCreate),
+  (def.value?.fields ?? []).filter(f => mode.value === 'create' || !f.onlyCreate || f.type === 'parent'),
 )
 
 const schema = computed(() => {
@@ -276,6 +285,8 @@ function populateEditForm(item: CatalogItem) {
   const raw = item as unknown as Record<string, unknown>
   for (const f of def.value?.fields ?? []) {
     if (f.type === 'checkbox') checkboxState[f.name] = Boolean(raw[f.name])
+    // Parent FKs arrive as `<name>_Uuid` (the "FK triple"), not `<name>`.
+    else if (f.type === 'parent') state[f.name] = String(raw[f.name.replace(/Uuid$/, '_Uuid')] ?? '')
     else state[f.name] = String(raw[f.name] ?? '')
   }
   isActive.value = item.active
@@ -488,7 +499,7 @@ async function confirmDelete() {
                 class="px-5 py-3 font-semibold cursor-pointer select-none"
                 @click="sort.toggle(def.parentDisplayField)"
               >
-                {{ $t('catalogs.columns.parent') }}
+                {{ parentColumnLabel }}
                 <SortIndicator :state="sort.stateOf(def.parentDisplayField)" :multi-active="isMultiSort" @clear="sort.remove(def.parentDisplayField)" />
               </th>
               <th
@@ -500,7 +511,7 @@ async function confirmDelete() {
                 <SortIndicator :state="sort.stateOf('description')" :multi-active="isMultiSort" @clear="sort.remove('description')" />
               </th>
               <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('active')">
-                {{ $t('catalogs.columns.status') }}
+                {{ $t('catalogs.columns.active') }}
                 <SortIndicator :state="sort.stateOf('active')" :multi-active="isMultiSort" @clear="sort.remove('active')" />
               </th>
               <th class="px-5 py-3 font-semibold text-right">{{ $t('common.actions') }}</th>
@@ -527,7 +538,7 @@ async function confirmDelete() {
               </td>
               <td class="px-5 py-3 font-medium text-prohealth-900">{{ item.name }}</td>
               <td v-if="def.parentDisplayField" class="px-5 py-3 text-prohealth-600">
-                {{ item[def.parentDisplayField] || $t('common.empty') }}
+                {{ item[def.parentDisplayLabelField ?? def.parentDisplayField] || $t('common.empty') }}
               </td>
               <td v-if="hasDescription" class="px-5 py-3 text-prohealth-600">
                 {{ item.description || $t('common.empty') }}
@@ -609,6 +620,7 @@ async function confirmDelete() {
               label-key="label"
               value-key="value"
               :placeholder="$t('catalogs.selectPlaceholder', { field: fieldLabel(f).toLowerCase() })"
+              :disabled="mode === 'edit' && f.onlyCreate"
               class="w-full"
             />
             <UTextarea
