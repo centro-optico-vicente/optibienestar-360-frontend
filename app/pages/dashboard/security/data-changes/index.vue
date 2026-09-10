@@ -15,6 +15,8 @@ useSeoMeta({ title: () => t('security.dataChanges.seoTitle') })
 
 const audit = useAudit()
 const { formatDate } = useFormatters()
+const { can } = usePermissions()
+const canViewSessions = computed(() => can('AUDIT_VIEW_LOGIN'))
 
 const data = ref<DataChangeAuditLogDto[]>([])
 const total = ref(0)
@@ -189,6 +191,14 @@ onMounted(load)
                   {{ log.entityDisplay || log.entityUuid }}
                 </span>
                 <span class="text-xs text-prohealth-500">· {{ log.actor_Display || $t('audit.log.unknownActor') }}</span>
+                <NuxtLink
+                  v-if="log.sessionUuid && canViewSessions"
+                  :to="`/dashboard/security/sessions?sessionUuid=${log.sessionUuid}`"
+                  class="text-xs text-primary-600 hover:underline shrink-0"
+                  @click.stop
+                >
+                  {{ $t('audit.log.viewSession') }}
+                </NuxtLink>
               </div>
               <span class="text-xs text-prohealth-500 shrink-0">{{ formatDate(log.occurredAt, 'datetime') }}</span>
             </div>

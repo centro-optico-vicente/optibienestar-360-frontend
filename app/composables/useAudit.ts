@@ -7,6 +7,7 @@ import type {
   LoginAuditResult,
   ReportAuditLogDto,
 } from '~/types/audit'
+import type { JobRunOutcome, JobTriggerSource, ScheduledJobRunDto } from '~/types/scheduling'
 
 interface EntityAuditParams {
   /**
@@ -77,7 +78,22 @@ interface ReportAuditParams extends Omit<EntityAuditParams, 'action'> {
   format?: string | string[]
 }
 
+interface JobRunAuditParams {
+  jobUuid?: string
+  /** Accepts one or more outcomes — see the fan-out TODO on `listJobRuns`. */
+  outcome?: JobRunOutcome | JobRunOutcome[]
+  /** Accepts one or more trigger sources — see the fan-out TODO on `listJobRuns`. */
+  triggeredBy?: JobTriggerSource | JobTriggerSource[]
+  from?: string
+  to?: string
+  page?: number
+  size?: number
+  sort?: string[]
+}
+
 interface LoginAuditParams {
+  /** Deep-link target for the "ver sesión" action on data-changes/reports rows — the session's own uuid. */
+  uuid?: string
   email?: string
   userUuid?: string
   /** Accepts one or more results — see the fan-out TODO on `listLogins`. */
@@ -197,6 +213,7 @@ export const useAudit = () => {
   const fetchLoginsPage = (params: LoginAuditParams, result: LoginAuditResult | undefined, page: number, size: number) =>
     useApi<LoginAuditLogPageDto>('/v1/admin/audit/logins', {
       query: {
+        uuid: params.uuid,
         email: params.email,
         userUuid: params.userUuid,
         result,
@@ -225,5 +242,48 @@ export const useAudit = () => {
     return sliceMergedPage(merged, item => item.attemptedAt, page, size)
   }
 
-  return { listDataChanges, firstChange, listReports, downloadReportUrl, listLogins }
+  const fetchJobRunsPage = (
+    params: JobRunAuditParams,
+    outcome: JobRunOutcome | undefined,
+    triggeredBy: JobTriggerSource | undefined,
+    page: number,
+    size: number,
+  ) =>
+    useApi<Page<ScheduledJobRunDto>>('/v1/admin/audit/job-runs', {
+      query: {
+        jobUuid: params.jobUuid,
+        outcome,
+        triggeredBy,
+        from: params.from,
+        to: params.to,
+        page,
+        size,
+        ...(params.sort?.length ? { sort: params.sort } : {}),
+      },
+    })
+
+  /** GET /v1/admin/audit/job-runs — cross-job execution history (Seguridad → "Ejecuciones programadas"). */
+  const listJobRuns = async (params: JobRunAuditParams = {}): Promise<Page<ScheduledJobRunDto>> => {
+    const outcomes = normalizeValues(params.outcome)
+    const triggers = normalizeValues(params.triggeredBy)
+    const page = params.page ?? 0
+    const size = params.size ?? 20
+    const combos = crossProduct(outcomes, triggers)
+    if (combos.length <= 1) {
+      const [outcome, triggeredBy] = combos[0] ?? [undefined, undefined]
+      return fetchJobRunsPage(params, outcome, triggeredBy, page, size)
+    }
+    // TODO: AdminScheduledJobRunAuditController#list only accepts single enum
+    // `outcome`/`triggeredBy` @RequestParam (not List<...>/repeatable) — see
+    // backend source. Until it supports multi-value filters, fan out one request
+    // per selected outcome×triggeredBy combination and merge/paginate client-side.
+    // Move this fan-out server-side once the backend supports it.
+    const pages = await Promise.all(
+      combos.map(([outcome, triggeredBy]) => fetchJobRunsPage(params, outcome, triggeredBy, 0, MULTI_ENTITY_FETCH_SIZE)),
+    )
+    const merged = pages.flatMap(p => p.content ?? [])
+    return sliceMergedPage(merged, item => item.startedAt ?? item.createdAt ?? '', page, size)
+  }
+
+  return { listDataChanges, firstChange, listReports, downloadReportUrl, listLogins, listJobRuns }
 }

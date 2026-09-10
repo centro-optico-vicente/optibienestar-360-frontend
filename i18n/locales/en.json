@@ -25,6 +25,7 @@
     "refresh": "Refresh",
     "refreshKeepFilters": "Refresh",
     "refreshKeepFiltersHint": "Reload the list with the current filters",
+    "clear": "Clear",
     "clearFiltersAndRefresh": "Clear filters and refresh",
     "clearFiltersAndRefreshHint": "Reset search, inactive, sort and page, then reload",
     "sortAscending": "Ascending order — click to switch to descending",
@@ -359,7 +360,8 @@
         "sessionStatus": "Session",
         "attemptedAt": "Date"
       },
-      "unknownUser": "Unknown user"
+      "unknownUser": "Unknown user",
+      "filteredBySession": "Filtered to one session"
     },
     "dataChanges": {
       "seoTitle": "Data changes — OptiBienestar 360",
@@ -415,6 +417,27 @@
         "format": "Format",
         "generatedAt": "Date",
         "size": "Size"
+      }
+    },
+    "jobRuns": {
+      "seoTitle": "Scheduled job runs — OptiBienestar 360",
+      "title": "Scheduled job runs",
+      "subtitle": "Global execution history of every scheduled job in the system.",
+      "empty": "No runs recorded.",
+      "paginationSummary": "{shown} of {total} runs",
+      "filters": {
+        "job": "Job",
+        "jobPlaceholder": "Search job…",
+        "outcome": "Outcome",
+        "trigger": "Trigger"
+      },
+      "columns": {
+        "job": "Job",
+        "outcome": "Outcome",
+        "trigger": "Trigger",
+        "started": "Started",
+        "duration": "Duration",
+        "error": "Error"
       }
     }
   },
@@ -548,6 +571,10 @@
       "auditReports": {
         "label": "Generated reports",
         "description": "Global history of generated reports."
+      },
+      "auditJobRuns": {
+        "label": "Scheduled job runs",
+        "description": "Global execution history of scheduled jobs."
       },
       "myCard": {
         "label": "My card",
@@ -926,7 +953,8 @@
       "unknownActor": "Unknown user",
       "noFieldChanges": "No field changes were recorded for this event.",
       "expandAll": "Expand all",
-      "collapseAll": "Collapse all"
+      "collapseAll": "Collapse all",
+      "viewSession": "View session"
     },
     "reports": {
       "empty": "No reports have been generated for this record.",

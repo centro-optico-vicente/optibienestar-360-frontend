@@ -16,6 +16,13 @@ useSeoMeta({ title: () => t('security.sessions.seoTitle') })
 
 const audit = useAudit()
 const { formatDate } = useFormatters()
+const route = useRoute()
+
+// Deep-link from the "ver sesión" action on data-changes/reports rows: jump
+// straight to that one session, regardless of date range (the session may
+// well be outside "today"). Present only on initial load — cleared by any
+// filter change so the user can go back to browsing normally.
+const sessionUuidFilter = ref(typeof route.query.sessionUuid === 'string' ? route.query.sessionUuid : undefined)
 
 const data = ref<LoginAuditLogDto[]>([])
 const total = ref(0)
@@ -64,10 +71,13 @@ async function load() {
   loading.value = true
   try {
     const res = await audit.listLogins({
+      uuid: sessionUuidFilter.value,
       email: search.value.trim() || undefined,
       result: resultFilter.value,
-      from: dateRange.value.from,
-      to: dateRange.value.to,
+      // Omitted when honoring a direct session deep-link — the session may
+      // fall outside "today" and a date filter would hide it entirely.
+      from: sessionUuidFilter.value ? undefined : dateRange.value.from,
+      to: sessionUuidFilter.value ? undefined : dateRange.value.to,
       page: page.value - 1,
       size: size.value,
       sort: sort.sortParam.value,
@@ -100,16 +110,24 @@ watch([page, size], () => { if (!resetting.value) load() })
 let searchTimer: ReturnType<typeof setTimeout> | undefined
 watch(search, () => {
   if (resetting.value) return
+  sessionUuidFilter.value = undefined
   clearTimeout(searchTimer)
   searchTimer = setTimeout(() => { page.value = 1; load() }, 400)
 })
 watch([resultFilter, dateRange], () => {
-  if (!resetting.value) { page.value = 1; load() }
+  if (!resetting.value) { sessionUuidFilter.value = undefined; page.value = 1; load() }
 }, { deep: true })
 watch(sort.orders, () => { if (!resetting.value) load() }, { deep: true })
 
+function clearSessionFilter() {
+  sessionUuidFilter.value = undefined
+  page.value = 1
+  load()
+}
+
 async function resetFilters() {
   resetting.value = true
+  sessionUuidFilter.value = undefined
   search.value = ''
   resultFilter.value = []
   dateRange.value = defaultTodayRange()
@@ -157,6 +175,12 @@ onMounted(load)
         class="w-56"
       />
       <AuditDateRangePicker v-model="dateRange" />
+      <UBadge v-if="sessionUuidFilter" color="primary" variant="subtle" class="gap-1">
+        {{ $t('security.sessions.filteredBySession') }}
+        <UButton color="primary" variant="link" size="xs" :padded="false" @click="clearSessionFilter">
+          {{ $t('common.clear') }}
+        </UButton>
+      </UBadge>
       <UButton
         v-if="hasActiveSort"
         variant="link"

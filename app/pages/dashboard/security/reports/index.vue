@@ -17,6 +17,8 @@ const audit = useAudit()
 const { formatDate, formatNumber } = useFormatters()
 const toast = useToast()
 const { copy: copyUuid } = useClipboardCopy()
+const { can } = usePermissions()
+const canViewSessions = computed(() => can('AUDIT_VIEW_LOGIN'))
 
 const data = ref<ReportAuditLogDto[]>([])
 const total = ref(0)
@@ -187,6 +189,15 @@ onMounted(load)
               <span class="truncate">
                 {{ report.actor_Display || $t('audit.log.unknownActor') }} · {{ formatDate(report.generatedAt, 'datetime') }} · {{ formatSize(report.sizeBytes) }}
               </span>
+              <template v-if="report.sessionUuid && canViewSessions">
+                <span>·</span>
+                <NuxtLink
+                  :to="`/dashboard/security/sessions?sessionUuid=${report.sessionUuid}`"
+                  class="text-primary-600 hover:underline shrink-0"
+                >
+                  {{ $t('audit.log.viewSession') }}
+                </NuxtLink>
+              </template>
               <template v-if="report.entityUuid">
                 <span>·</span>
                 <span class="font-mono">{{ report.entityUuid }}</span>
