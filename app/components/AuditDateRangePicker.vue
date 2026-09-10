@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { CalendarDate } from '@internationalized/date'
-import { withCaracasOffset } from '~/utils/date'
+import { CalendarDate, startOfMonth, startOfWeek, endOfMonth, endOfWeek } from '@internationalized/date'
+import { todayInCaracas, withCaracasOffset } from '~/utils/date'
 import type { DateTimeRange } from '~/utils/date'
 
 // `UCalendar`'s range model is typed against reka-ui's `DateValue` union (CalendarDate |
@@ -46,6 +46,44 @@ const range = ref<{ start: LooseDateValue, end: LooseDateValue }>({
 const startTime = ref(parseTimePart(props.modelValue.from))
 const endTime = ref(parseTimePart(props.modelValue.to))
 const open = ref(false)
+
+function todayCalendarDate(): CalendarDate {
+  return parseDatePart(todayInCaracas())
+}
+
+/** `startOfWeek`/`endOfWeek` need a locale to know the first day of week — Monday for `es-VE`. */
+const WEEK_LOCALE = 'es-VE'
+
+interface Shortcut { key: string, range: () => { start: CalendarDate, end: CalendarDate } }
+
+const shortcuts: Shortcut[][] = [
+  [
+    { key: 'today', range: () => { const d = todayCalendarDate(); return { start: d, end: d } } },
+    { key: 'yesterday', range: () => { const d = todayCalendarDate().subtract({ days: 1 }); return { start: d, end: d } } },
+    { key: 'tomorrow', range: () => { const d = todayCalendarDate().add({ days: 1 }); return { start: d, end: d } } },
+  ],
+  [
+    { key: 'lastWeek', range: () => { const w = startOfWeek(todayCalendarDate(), WEEK_LOCALE).subtract({ weeks: 1 }); return { start: w, end: endOfWeek(w, WEEK_LOCALE) } } },
+    { key: 'thisWeek', range: () => { const w = startOfWeek(todayCalendarDate(), WEEK_LOCALE); return { start: w, end: endOfWeek(w, WEEK_LOCALE) } } },
+    { key: 'nextWeek', range: () => { const w = startOfWeek(todayCalendarDate(), WEEK_LOCALE).add({ weeks: 1 }); return { start: w, end: endOfWeek(w, WEEK_LOCALE) } } },
+  ],
+  [
+    { key: 'lastMonth', range: () => { const m = startOfMonth(todayCalendarDate()).subtract({ months: 1 }); return { start: m, end: endOfMonth(m) } } },
+    { key: 'thisMonth', range: () => { const m = startOfMonth(todayCalendarDate()); return { start: m, end: endOfMonth(m) } } },
+    { key: 'nextMonth', range: () => { const m = startOfMonth(todayCalendarDate()).add({ months: 1 }); return { start: m, end: endOfMonth(m) } } },
+  ],
+]
+
+function applyShortcut(shortcut: Shortcut) {
+  const { start, end } = shortcut.range()
+  range.value = { start, end }
+  startTime.value = '00:00'
+  endTime.value = '23:59'
+}
+
+function clearRange() {
+  applyShortcut(shortcuts[0]![0]!)
+}
 
 function toIso(date: LooseDateValue, time: string): string | undefined {
   if (!date) return undefined
@@ -93,20 +131,49 @@ const label = computed(() => {
     </UButton>
 
     <template #content>
-      <div class="p-4 space-y-3">
-        <UCalendar
-          :model-value="(range as any)"
-          range
-          :number-of-months="2"
-          @update:model-value="(v: any) => { range = v }"
-        />
-        <div class="flex items-center gap-3">
-          <UFormField :label="t('audit.dateRange.fromTime')">
-            <UInput v-model="startTime" type="time" />
-          </UFormField>
-          <UFormField :label="t('audit.dateRange.toTime')">
-            <UInput v-model="endTime" type="time" />
-          </UFormField>
+      <div class="flex">
+        <div class="w-40 shrink-0 border-r border-default p-2 flex flex-col">
+          <template v-for="(group, i) in shortcuts" :key="i">
+            <UButton
+              v-for="shortcut in group"
+              :key="shortcut.key"
+              color="neutral"
+              variant="ghost"
+              size="sm"
+              class="justify-start"
+              @click="applyShortcut(shortcut)"
+            >
+              {{ t(`audit.dateRange.shortcuts.${shortcut.key}`) }}
+            </UButton>
+            <USeparator v-if="i < shortcuts.length - 1" class="my-1" />
+          </template>
+        </div>
+
+        <div class="p-4 space-y-3">
+          <UCalendar
+            :model-value="(range as any)"
+            range
+            :number-of-months="2"
+            @update:model-value="(v: any) => { range = v }"
+          />
+          <div class="flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <UFormField :label="t('audit.dateRange.fromTime')">
+                <UInput v-model="startTime" type="time" />
+              </UFormField>
+              <UFormField :label="t('audit.dateRange.toTime')">
+                <UInput v-model="endTime" type="time" />
+              </UFormField>
+            </div>
+            <div class="flex items-center gap-2">
+              <UButton color="neutral" variant="ghost" icon="i-lucide-x" @click="clearRange">
+                {{ t('audit.dateRange.clear') }}
+              </UButton>
+              <UButton color="primary" icon="i-lucide-check" @click="open = false">
+                {{ t('audit.dateRange.confirm') }}
+              </UButton>
+            </div>
+          </div>
         </div>
       </div>
     </template>
