@@ -93,8 +93,10 @@ export interface CatalogDef {
   fields: CatalogField[]
   /** Field acting as the "code" shown in the table ('code' | 'isoCode'). */
   codeField?: 'code' | 'isoCode'
-  /** Denormalized parent field shown in the table (e.g. 'stateCode'). */
+  /** Denormalized parent field shown in the table (e.g. 'stateCode'); also the sort key sent to the backend. */
   parentDisplayField?: keyof CatalogItem
+  /** Human-readable counterpart of `parentDisplayField` (e.g. 'state_Display') shown in the cell instead of the raw code, when available. */
+  parentDisplayLabelField?: keyof CatalogItem
   /** Parent filter in the list: { param: query param name, field: FK field }. */
   listFilter?: { param: string, field: string }
   /** Backend `@Auditable(entity = ...)` key, if this catalog has change auditing. */

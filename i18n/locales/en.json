@@ -828,7 +828,8 @@
       "name": "Name",
       "parent": "Parent",
       "description": "Description",
-      "status": "Status"
+      "status": "Status",
+      "active": "Active"
     },
     "status": {
       "active": "Active",
@@ -840,7 +841,7 @@
       "code": "Code",
       "description": "Description",
       "country": "Country",
-      "state": "State",
+      "state": "State / Department",
       "active": "Active",
       "generatesHierarchyOverride": "Generates hierarchy override",
       "hierarchyLevel": "Hierarchy level",
@@ -936,7 +937,20 @@
     "dateRange": {
       "placeholder": "Select a date range",
       "fromTime": "From time",
-      "toTime": "To time"
+      "toTime": "To time",
+      "confirm": "Confirm",
+      "clear": "Clear",
+      "shortcuts": {
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "tomorrow": "Tomorrow",
+        "lastWeek": "Last week",
+        "thisWeek": "This week",
+        "nextWeek": "Next week",
+        "lastMonth": "Last month",
+        "thisMonth": "This month",
+        "nextMonth": "Next month"
+      }
     },
     "entityKeys": {
       "role": "Role",
