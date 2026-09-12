@@ -13,6 +13,8 @@ export interface JasperReportParams {
   plan?: string
   payoutReference?: string
   companyName?: string
+  targetCurrency?: string
+  conversionDate?: string
 }
 
 export const useDocumentReports = () => {
@@ -172,6 +174,8 @@ export const useDocumentReports = () => {
     if (filterParams.plan) params.set('plan', filterParams.plan)
     if (filterParams.payoutReference) params.set('payoutReference', filterParams.payoutReference)
     if (filterParams.companyName) params.set('companyName', filterParams.companyName)
+    if (filterParams.targetCurrency) params.set('targetCurrency', filterParams.targetCurrency)
+    if (filterParams.conversionDate) params.set('conversionDate', filterParams.conversionDate)
 
     const endpoint = `${baseURL}/v1/documents/jasper/${reportName}?${params.toString()}`
 
