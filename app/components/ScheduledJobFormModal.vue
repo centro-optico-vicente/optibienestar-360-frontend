@@ -50,6 +50,8 @@ interface FormState {
   enabled: boolean
   allowConcurrent: boolean
   maxSyncSeconds: string
+  maxRetryAttempts: string
+  retryDelaySeconds: string
   active: boolean
 }
 
@@ -62,11 +64,14 @@ const state = reactive<FormState>({
   enabled: true,
   allowConcurrent: false,
   maxSyncSeconds: '30',
+  maxRetryAttempts: '0',
+  retryDelaySeconds: '0',
   active: true,
 })
 
 // Locale-reactive schema — wrapped in computed so validation messages follow the
-// UI locale. `code`: UPPER_SNAKE_CASE ^[A-Z][A-Z0-9_]{0,79}$. `maxSyncSeconds`: int >= 0.
+// UI locale. `code`: UPPER_SNAKE_CASE ^[A-Z][A-Z0-9_]{0,79}$. `maxSyncSeconds`,
+// `maxRetryAttempts`, `retryDelaySeconds`: int >= 0 (backend caps 10 / 3600 resp.).
 const schema = computed(() => {
   return z.object({
     code: z.string().regex(/^[A-Z][A-Z0-9_]{0,79}$/, t('scheduledJobs.form.codeFormat')),
@@ -75,6 +80,8 @@ const schema = computed(() => {
     cronExpression: z.string().min(1, t('validation.required')),
     timezone: z.string().min(1, t('validation.required')),
     maxSyncSeconds: z.string().regex(/^\d+$/, t('validation.digitsOnly')),
+    maxRetryAttempts: z.string().regex(/^\d+$/, t('validation.digitsOnly')),
+    retryDelaySeconds: z.string().regex(/^\d+$/, t('validation.digitsOnly')),
   })
 })
 
@@ -100,6 +107,8 @@ function populateFrom(j: ScheduledJobDto | null) {
     state.enabled = true
     state.allowConcurrent = false
     state.maxSyncSeconds = '30'
+    state.maxRetryAttempts = '0'
+    state.retryDelaySeconds = '0'
     state.active = true
     return
   }
@@ -111,6 +120,8 @@ function populateFrom(j: ScheduledJobDto | null) {
   state.enabled = j.enabled ?? true
   state.allowConcurrent = j.allowConcurrent ?? false
   state.maxSyncSeconds = j.maxSyncSeconds != null ? String(j.maxSyncSeconds) : '30'
+  state.maxRetryAttempts = j.maxRetryAttempts != null ? String(j.maxRetryAttempts) : '0'
+  state.retryDelaySeconds = j.retryDelaySeconds != null ? String(j.retryDelaySeconds) : '0'
   state.active = j.active ?? true
   editSnapshot.value = snapEditState()
 }
@@ -166,6 +177,8 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         enabled: state.enabled,
         allowConcurrent: state.allowConcurrent,
         maxSyncSeconds: Number(state.maxSyncSeconds),
+        maxRetryAttempts: Number(state.maxRetryAttempts),
+        retryDelaySeconds: Number(state.retryDelaySeconds),
       }
       result = await jobs.create(body)
       toast.add({ title: t('scheduledJobs.createdToast'), color: 'success', icon: 'i-lucide-check-circle' })
@@ -179,6 +192,8 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         enabled: state.enabled,
         allowConcurrent: state.allowConcurrent,
         maxSyncSeconds: Number(state.maxSyncSeconds),
+        maxRetryAttempts: Number(state.maxRetryAttempts),
+        retryDelaySeconds: Number(state.retryDelaySeconds),
         active: state.active,
       }
       result = await jobs.update(props.job!.uuid, body)
@@ -276,9 +291,19 @@ async function restoreJob() {
           <UInput v-model="state.cronExpression" placeholder="0 0 3 * * *" class="w-full font-mono" />
         </UFormField>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <UFormField :label="t('scheduledJobs.form.fields.maxSyncSeconds')" name="maxSyncSeconds" :help="t('scheduledJobs.form.maxSyncHelp')">
             <UInput v-model="state.maxSyncSeconds" inputmode="numeric" placeholder="30" class="w-full">
+              <template #trailing>
+                <span class="text-prohealth-400 text-sm">s</span>
+              </template>
+            </UInput>
+          </UFormField>
+          <UFormField :label="t('scheduledJobs.form.fields.maxRetryAttempts')" name="maxRetryAttempts" :help="t('scheduledJobs.form.maxRetryAttemptsHelp')">
+            <UInput v-model="state.maxRetryAttempts" inputmode="numeric" placeholder="0" class="w-full" />
+          </UFormField>
+          <UFormField :label="t('scheduledJobs.form.fields.retryDelaySeconds')" name="retryDelaySeconds" :help="t('scheduledJobs.form.retryDelayHelp')">
+            <UInput v-model="state.retryDelaySeconds" inputmode="numeric" placeholder="0" class="w-full">
               <template #trailing>
                 <span class="text-prohealth-400 text-sm">s</span>
               </template>
@@ -303,6 +328,25 @@ async function restoreJob() {
         >
           <USwitch v-model="state.active" />
         </UFormField>
+
+        <!-- Read-only: which ScheduledJobRunner bean (if any) actually executes this
+             code. Only shown in edit mode — in create mode the code may not have a
+             runner yet (it's normally added in code before the row is created). -->
+        <div v-if="mode === 'edit' && job">
+          <p class="text-xs font-medium text-prohealth-700 mb-1">{{ t('scheduledJobs.form.runnerSection.title') }}</p>
+          <div v-if="job.runnerRegistered" class="text-xs text-prohealth-600">
+            {{ t('scheduledJobs.form.runnerSection.registered') }}
+            <code class="font-mono text-xs bg-prohealth-100 rounded px-1 py-0.5">{{ job.runnerClass }}</code>
+          </div>
+          <UAlert
+            v-else
+            color="warning"
+            variant="subtle"
+            icon="i-lucide-triangle-alert"
+            :title="t('scheduledJobs.form.runnerSection.notRegisteredTitle')"
+            :description="t('scheduledJobs.form.runnerSection.notRegisteredBody', { code: job.code })"
+          />
+        </div>
 
         <!-- Discard unsaved changes before refreshing -->
         <UModal v-model:open="discardConfirmOpen" :title="t('common.discardChangesTitle')">

@@ -2419,6 +2419,8 @@
       "codeFormat": "Formato: MAYÚSCULAS, empieza por letra (A–Z, 0–9, _).",
       "cronHelp": "Cron de Spring: seg min hora día-mes mes día-semana",
       "maxSyncHelp": "Segundos máximos de ejecución síncrona antes de pasar a asíncrona.",
+      "maxRetryAttemptsHelp": "Reintentos adicionales tras el primer fallo (0 = sin reintentos).",
+      "retryDelayHelp": "Espera fija entre intentos. Se ignora si no hay reintentos.",
       "enabledHelp": "Si está deshabilitado, no se ejecuta según su programación.",
       "allowConcurrentHelp": "Permite ejecuciones solapadas del mismo trabajo.",
       "activeHelp": "Desactiva el trabajo (borrado lógico) sin eliminarlo.",
@@ -2431,7 +2433,15 @@
         "enabled": "Habilitado",
         "allowConcurrent": "Permitir concurrencia",
         "maxSyncSeconds": "Máx. segundos síncronos",
+        "maxRetryAttempts": "Máx. reintentos",
+        "retryDelaySeconds": "Segundos entre reintentos",
         "active": "Activo"
+      },
+      "runnerSection": {
+        "title": "Ejecutor",
+        "registered": "Ejecutado por la clase:",
+        "notRegisteredTitle": "Sin ejecutor registrado",
+        "notRegisteredBody": "No existe ninguna clase ScheduledJobRunner registrada para el código \"{code}\". Este trabajo nunca se ejecutará hasta que se agregue en el backend."
       }
     }
   },
