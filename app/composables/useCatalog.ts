@@ -46,5 +46,5 @@ export const useCatalog = (basePath: string) => {
   const usage = (uuid: string) =>
     useApi<{ inUse: boolean, count: number }>(`${basePath}/${uuid}/usage`)
 
-  return { list, get, create, update, remove, usage }
+  return { list, listAll, get, create, update, remove, usage }
 }

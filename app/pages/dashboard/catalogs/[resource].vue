@@ -198,6 +198,16 @@ const filterOptions = computed(() => {
   return field ? (parentOptions.value[field as string] ?? []) : []
 })
 
+// `promoter-ranks` has no parent-rank FK (hierarchy is expressed as an
+// ordinal `hierarchyLevel`, not a self-reference — see hub plan
+// 2026-09-07-hierarchical-commissions-plan.md §1). The edit modal shows the
+// immediate superior derived from this full unpaged list rather than a stored field.
+const allRanks = ref<CatalogItem[]>([])
+
+async function loadAllRanksIfNeeded() {
+  allRanks.value = def.value?.key === 'promoter-ranks' ? await api().listAll() : []
+}
+
 async function init() {
   if (!def.value) return
   resetting.value = true
@@ -208,7 +218,7 @@ async function init() {
   page.value = 1
   await nextTick()
   resetting.value = false
-  await Promise.all([loadParents(), load()])
+  await Promise.all([loadParents(), load(), loadAllRanksIfNeeded()])
 }
 
 onMounted(init)
@@ -231,6 +241,17 @@ const isActive = ref(true)
 // Same reasoning as `isActive`, but per-field — `checkbox`-type fields
 // (e.g. promoter-types.generatesHierarchyOverride) live here instead of `state`.
 const checkboxState = reactive<Record<string, boolean>>({})
+
+// `promoter-ranks` only: name of the rank with the closest hierarchyLevel
+// above the one being edited (null at the top level, where none exists).
+const superiorRankName = computed(() => {
+  if (def.value?.key !== 'promoter-ranks' || mode.value !== 'edit') return null
+  const level = editingItem.value?.hierarchyLevel
+  if (level == null) return null
+  const above = allRanks.value.filter(r => r.hierarchyLevel != null && r.hierarchyLevel > level)
+  if (!above.length) return null
+  return above.reduce((closest, r) => (r.hierarchyLevel! < closest.hierarchyLevel! ? r : closest)).name
+})
 
 // Fields visible in the current form. `onlyCreate` fields are hidden on edit,
 // except `parent` FK selects: those stay visible (disabled) so the admin can
@@ -345,7 +366,7 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
       toast.add({ title: t('catalogs.updatedToast', { entity: catLabelSingular(def.value) }), color: 'success', icon: 'i-lucide-check-circle' })
     }
     formOpen.value = false
-    await load()
+    await Promise.all([load(), loadAllRanksIfNeeded()])
   }
   catch {
     // useApi already reported the error
@@ -402,7 +423,7 @@ async function confirmDelete() {
       icon: wasPhysical ? 'i-lucide-check-circle' : 'i-lucide-info',
     })
     deleteOpen.value = false
-    await load()
+    await Promise.all([load(), loadAllRanksIfNeeded()])
   }
   catch {
     // toast handled by useApi
@@ -649,6 +670,10 @@ async function confirmDelete() {
               :maxlength="f.max"
               class="w-full"
             />
+          </UFormField>
+
+          <UFormField v-if="def?.key === 'promoter-ranks' && mode === 'edit'" :label="$t('catalogs.fields.superiorRank')">
+            <UInput :model-value="superiorRankName ?? $t('catalogs.fields.superiorRankNone')" disabled class="w-full" />
           </UFormField>
 
           <UFormField v-if="mode === 'edit'" :label="$t('catalogs.fields.active')">

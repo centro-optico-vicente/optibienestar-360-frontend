@@ -872,7 +872,9 @@
       "active": "Active",
       "generatesHierarchyOverride": "Generates hierarchy override",
       "hierarchyLevel": "Hierarchy level",
-      "maxSubordinates": "Max subordinates"
+      "maxSubordinates": "Max subordinates",
+      "superiorRank": "Superior rank",
+      "superiorRankNone": "None (top level)"
     },
     "validation": {
       "isoCode": "Two uppercase letters (ISO 3166-1, e.g. VE)",
