@@ -37,8 +37,17 @@ export interface ScheduledJobDto {
   allowConcurrent: boolean
   allowConcurrent_Display?: string | null
   maxSyncSeconds: number
+  /** Reintentos adicionales tras el primer fallo. 0 = sin reintentos (default). */
+  maxRetryAttempts: number
+  /** Espera fija (segundos) entre intentos. Ignorado si maxRetryAttempts es 0. */
+  retryDelaySeconds: number
   lockHeld: boolean
   lockHeld_Display?: string | null
+  // Ejecutor (resuelto en vivo contra el registro de ScheduledJobRunner, no persistido)
+  /** Clase Java que ejecuta este código, o null si no hay ninguna registrada. */
+  runnerClass?: string | null
+  /** false → el código no tiene ningún ScheduledJobRunner asociado; el job nunca se ejecutará. */
+  runnerRegistered: boolean
   // Snapshot de la última ejecución
   lastRunAt?: string
   lastRunAt_Display?: string | null
@@ -71,6 +80,10 @@ export interface ScheduledJobCreateRequest {
   allowConcurrent?: boolean
   /** >= 0, default 30 en el backend */
   maxSyncSeconds?: number
+  /** 0-10, default 0 en el backend */
+  maxRetryAttempts?: number
+  /** 0-3600, default 0 en el backend */
+  retryDelaySeconds?: number
 }
 
 /** Body de PUT /v1/admin/scheduled-jobs/{uuid} (PATCH semantics; `code` no editable). */
@@ -83,6 +96,10 @@ export interface ScheduledJobUpdateRequest {
   enabled?: boolean
   allowConcurrent?: boolean
   maxSyncSeconds?: number
+  /** 0-10 */
+  maxRetryAttempts?: number
+  /** 0-3600 */
+  retryDelaySeconds?: number
   /** knob de soft-delete */
   active?: boolean
   status?: string
@@ -104,6 +121,8 @@ export interface ScheduledJobRunDto {
   triggeredByUserUuid?: string
   summary?: Record<string, unknown>
   errorMessage?: string
+  /** Intentos tomados hasta llegar al outcome final (1 = sin reintentos necesarios). */
+  attemptCount?: number
   createdAt?: string
   createdAt_Display?: string | null
 }

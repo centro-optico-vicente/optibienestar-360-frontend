@@ -2419,6 +2419,8 @@
       "codeFormat": "Format: UPPERCASE, starts with a letter (A–Z, 0–9, _).",
       "cronHelp": "Spring cron: sec min hour dom mon dow",
       "maxSyncHelp": "Max seconds to run synchronously before switching to async.",
+      "maxRetryAttemptsHelp": "Extra tries after the first failure (0 = no retries).",
+      "retryDelayHelp": "Fixed wait between attempts. Ignored when there are no retries.",
       "enabledHelp": "If disabled, it won't run on its schedule.",
       "allowConcurrentHelp": "Allow overlapping runs of the same job.",
       "activeHelp": "Deactivate the job (soft delete) without removing it.",
@@ -2431,7 +2433,15 @@
         "enabled": "Enabled",
         "allowConcurrent": "Allow concurrency",
         "maxSyncSeconds": "Max sync seconds",
+        "maxRetryAttempts": "Max retries",
+        "retryDelaySeconds": "Seconds between retries",
         "active": "Active"
+      },
+      "runnerSection": {
+        "title": "Executor",
+        "registered": "Executed by class:",
+        "notRegisteredTitle": "No executor registered",
+        "notRegisteredBody": "No ScheduledJobRunner class is registered for code \"{code}\". This job will never run until one is added in the backend."
       }
     }
   },
