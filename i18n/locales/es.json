@@ -2113,8 +2113,10 @@
         "phone": "Teléfono",
         "promoterTypeUuid": "Tipo de promotor",
         "status": "Estado",
-        "active": "Activo"
-      }
+        "active": "Activo",
+        "rank": "Cargo"
+      },
+      "rankNone": "Sin cargo asignado"
     }
   },
   "commissions": {
