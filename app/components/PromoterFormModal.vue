@@ -44,6 +44,12 @@ const { can } = usePermissions()
 
 const canDelete = computed(() => can('PROMOTER_DELETE'))
 const canChangeRank = computed(() => can('PROMOTER_CHANGE_RANK'))
+const canViewPromoterType = computed(() => can('PROMOTER_TYPE_VIEW_ALL'))
+
+function goToCatalogRecord(to: string) {
+  isOpen.value = false
+  navigateTo(to)
+}
 
 const isOpen = computed({
   get: () => props.open,
@@ -380,14 +386,21 @@ async function restorePromoter() {
               <UInput v-model="state.referralCode" placeholder="PROMO-2026" class="w-full font-mono" />
             </UFormField>
             <UFormField :label="t('promoters.form.fields.promoterTypeUuid')" name="promoterTypeUuid">
-              <USelectMenu
-                v-model="state.promoterTypeUuid"
-                :items="promoterTypeItems"
-                label-key="label"
-                value-key="value"
-                :placeholder="t('common.select')"
-                class="w-full"
-              />
+              <div class="flex items-center gap-2">
+                <USelectMenu
+                  v-model="state.promoterTypeUuid"
+                  :items="promoterTypeItems"
+                  label-key="label"
+                  value-key="value"
+                  :placeholder="t('common.select')"
+                  class="w-full"
+                />
+                <CommonEntityQuickLinkButton
+                  :to="state.promoterTypeUuid ? `/dashboard/catalogs/promoter-types?edit=${state.promoterTypeUuid}` : null"
+                  :can="canViewPromoterType"
+                  @navigate="goToCatalogRecord"
+                />
+              </div>
             </UFormField>
           </div>
         </template>
@@ -399,14 +412,21 @@ async function restorePromoter() {
               <UInput v-model="state.referralCode" class="w-full font-mono" disabled />
             </UFormField>
             <UFormField :label="t('promoters.form.fields.promoterTypeUuid')" name="promoterTypeUuid">
-              <USelectMenu
-                v-model="state.promoterTypeUuid"
-                :items="promoterTypeItems"
-                label-key="label"
-                value-key="value"
-                :placeholder="t('common.select')"
-                class="w-full"
-              />
+              <div class="flex items-center gap-2">
+                <USelectMenu
+                  v-model="state.promoterTypeUuid"
+                  :items="promoterTypeItems"
+                  label-key="label"
+                  value-key="value"
+                  :placeholder="t('common.select')"
+                  class="w-full"
+                />
+                <CommonEntityQuickLinkButton
+                  :to="state.promoterTypeUuid ? `/dashboard/catalogs/promoter-types?edit=${state.promoterTypeUuid}` : null"
+                  :can="canViewPromoterType"
+                  @navigate="goToCatalogRecord"
+                />
+              </div>
             </UFormField>
           </div>
 

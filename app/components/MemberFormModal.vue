@@ -37,6 +37,20 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const members = useMembers()
 const toast = useToast()
+const { can } = usePermissions()
+
+// ---- Catalog quick-link buttons (view the selected catalog record) ----
+const canViewGender = computed(() => can('GENDER_VIEW_ALL'))
+const canViewMaritalStatus = computed(() => can('MARITAL_STATUS_VIEW_ALL'))
+const canViewOccupation = computed(() => can('OCCUPATION_VIEW_ALL'))
+const canViewDocumentType = computed(() => can('DOCUMENT_TYPE_VIEW_ALL'))
+const canViewState = computed(() => can('STATE_VIEW_ALL'))
+const canViewCity = computed(() => can('CITY_VIEW_ALL'))
+
+function goToCatalogRecord(to: string) {
+  isOpen.value = false
+  navigateTo(to)
+}
 
 const isOpen = computed({
   get: () => props.open,
@@ -449,14 +463,21 @@ function requestDelete() {
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('members.form.fields.documentType')" name="documentType" required>
-            <USelectMenu
-              v-model="state.documentType"
-              :items="documentTypeOptions"
-              label-key="label"
-              value-key="value"
-              :placeholder="t('common.select')"
-              class="w-full"
-            />
+            <div class="flex items-center gap-2">
+              <USelectMenu
+                v-model="state.documentType"
+                :items="documentTypeOptions"
+                label-key="label"
+                value-key="value"
+                :placeholder="t('common.select')"
+                class="w-full"
+              />
+              <CommonEntityQuickLinkButton
+                :to="state.documentType ? '/dashboard/catalogs/document-types' : null"
+                :can="canViewDocumentType"
+                @navigate="goToCatalogRecord"
+              />
+            </div>
           </UFormField>
           <UFormField :label="t('members.form.fields.documentNumber')" name="documentNumber" required>
             <UInput v-model="state.documentNumber" class="w-full" />
@@ -474,24 +495,38 @@ function requestDelete() {
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('members.form.fields.gender')" name="genderUuid">
-            <USelectMenu
-              v-model="state.genderUuid"
-              :items="genderOptions"
-              label-key="label"
-              value-key="value"
-              :placeholder="t('common.select')"
-              class="w-full"
-            />
+            <div class="flex items-center gap-2">
+              <USelectMenu
+                v-model="state.genderUuid"
+                :items="genderOptions"
+                label-key="label"
+                value-key="value"
+                :placeholder="t('common.select')"
+                class="w-full"
+              />
+              <CommonEntityQuickLinkButton
+                :to="state.genderUuid ? `/dashboard/catalogs/genders?edit=${state.genderUuid}` : null"
+                :can="canViewGender"
+                @navigate="goToCatalogRecord"
+              />
+            </div>
           </UFormField>
           <UFormField :label="t('members.form.fields.maritalStatus')" name="maritalStatusUuid">
-            <USelectMenu
-              v-model="state.maritalStatusUuid"
-              :items="maritalStatusOptions"
-              label-key="label"
-              value-key="value"
-              :placeholder="t('common.select')"
-              class="w-full"
-            />
+            <div class="flex items-center gap-2">
+              <USelectMenu
+                v-model="state.maritalStatusUuid"
+                :items="maritalStatusOptions"
+                label-key="label"
+                value-key="value"
+                :placeholder="t('common.select')"
+                class="w-full"
+              />
+              <CommonEntityQuickLinkButton
+                :to="state.maritalStatusUuid ? `/dashboard/catalogs/marital-statuses?edit=${state.maritalStatusUuid}` : null"
+                :can="canViewMaritalStatus"
+                @navigate="goToCatalogRecord"
+              />
+            </div>
           </UFormField>
         </div>
 
@@ -509,14 +544,21 @@ function requestDelete() {
         </UFormField>
 
         <UFormField :label="t('members.form.fields.occupation')" name="occupationUuid">
-          <USelectMenu
-            v-model="state.occupationUuid"
-            :items="occupationOptions"
-            label-key="label"
-            value-key="value"
-            :placeholder="t('common.select')"
-            class="w-full"
-          />
+          <div class="flex items-center gap-2">
+            <USelectMenu
+              v-model="state.occupationUuid"
+              :items="occupationOptions"
+              label-key="label"
+              value-key="value"
+              :placeholder="t('common.select')"
+              class="w-full"
+            />
+            <CommonEntityQuickLinkButton
+              :to="state.occupationUuid ? `/dashboard/catalogs/occupations?edit=${state.occupationUuid}` : null"
+              :can="canViewOccupation"
+              @navigate="goToCatalogRecord"
+            />
+          </div>
         </UFormField>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -547,25 +589,39 @@ function requestDelete() {
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('members.form.fields.state')" name="stateUuid">
-            <USelectMenu
-              v-model="selectedStateUuid"
-              :items="stateOptions"
-              label-key="label"
-              value-key="value"
-              :placeholder="t('common.select')"
-              class="w-full"
-            />
+            <div class="flex items-center gap-2">
+              <USelectMenu
+                v-model="selectedStateUuid"
+                :items="stateOptions"
+                label-key="label"
+                value-key="value"
+                :placeholder="t('common.select')"
+                class="w-full"
+              />
+              <CommonEntityQuickLinkButton
+                :to="selectedStateUuid ? `/dashboard/catalogs/states?edit=${selectedStateUuid}` : null"
+                :can="canViewState"
+                @navigate="goToCatalogRecord"
+              />
+            </div>
           </UFormField>
           <UFormField :label="t('members.form.fields.city')" name="cityUuid">
-            <USelectMenu
-              v-model="state.cityUuid"
-              :items="cityOptions"
-              label-key="label"
-              value-key="value"
-              :disabled="!selectedStateUuid"
-              :placeholder="t('members.form.selectCityFirst')"
-              class="w-full"
-            />
+            <div class="flex items-center gap-2">
+              <USelectMenu
+                v-model="state.cityUuid"
+                :items="cityOptions"
+                label-key="label"
+                value-key="value"
+                :disabled="!selectedStateUuid"
+                :placeholder="t('members.form.selectCityFirst')"
+                class="w-full"
+              />
+              <CommonEntityQuickLinkButton
+                :to="state.cityUuid ? `/dashboard/catalogs/cities?edit=${state.cityUuid}` : null"
+                :can="canViewCity"
+                @navigate="goToCatalogRecord"
+              />
+            </div>
           </UFormField>
         </div>
 

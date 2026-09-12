@@ -18,6 +18,8 @@
     "select": "Select",
     "viewAll": "View all",
     "empty": "Not provided",
+    "viewMaster": "View record",
+    "noAccessToScreen": "You don't have permission to view this screen",
     "yes": "Yes",
     "no": "No",
     "seoTitle": "{page} — OptiBienestar 360",

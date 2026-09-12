@@ -25,6 +25,7 @@ const toast = useToast()
 const canCreate = computed(() => can('MEMBER_CREATE'))
 const canUpdate = computed(() => can('MEMBER_UPDATE'))
 const canDelete = computed(() => can('MEMBER_DELETE'))
+const canViewPromoter = computed(() => can('PROMOTER_VIEW_ALL'))
 const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('MEMBER_RECORD_AUDIT_VIEW'))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('MEMBER_REPORT_AUDIT_VIEW'))
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
@@ -361,14 +362,11 @@ function displayName(m: MemberListItemDto): string {
               <td class="px-5 py-3 text-prohealth-700">{{ m.phone || t('common.empty') }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ m.enrolledAt_Display || t('common.empty') }}</td>
               <td class="px-5 py-3" @click.stop>
-                <NuxtLink
-                  v-if="m.currentPromoter_Uuid"
-                  :to="`/dashboard/promoters/${m.currentPromoter_Uuid}`"
-                  class="text-primary-600 hover:underline"
-                >
-                  {{ m.currentPromoter_Display || t('common.empty') }}
-                </NuxtLink>
-                <span v-else class="text-prohealth-400">{{ t('common.empty') }}</span>
+                <CommonEntityLinkCell
+                  :to="m.currentPromoter_Uuid ? `/dashboard/promoters/${m.currentPromoter_Uuid}` : null"
+                  :label="m.currentPromoter_Display"
+                  :can="canViewPromoter"
+                />
               </td>
               <td class="px-5 py-3">
                 <UBadge
