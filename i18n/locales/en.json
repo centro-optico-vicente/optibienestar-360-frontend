@@ -2113,8 +2113,10 @@
         "phone": "Phone",
         "promoterTypeUuid": "Promoter type",
         "status": "Status",
-        "active": "Active"
-      }
+        "active": "Active",
+        "rank": "Rank"
+      },
+      "rankNone": "No rank assigned"
     }
   },
   "commissions": {

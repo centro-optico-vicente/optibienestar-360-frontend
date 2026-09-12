@@ -30,6 +30,9 @@ const emit = defineEmits<{
   'saved': [promoter: PromoterDto]
   /** Shortcut so the parent can close this modal and open its delete confirmation. */
   'delete': [promoter: PromoterDto]
+  /** Shortcut so the parent can close this modal and open PromoterChangeRankModal — rank
+   * itself stays read-only here because changing it also reassigns the supervisor chain. */
+  'change-rank': [promoter: PromoterDto]
 }>()
 
 const { t } = useI18n()
@@ -40,6 +43,7 @@ const toast = useToast()
 const { can } = usePermissions()
 
 const canDelete = computed(() => can('PROMOTER_DELETE'))
+const canChangeRank = computed(() => can('PROMOTER_CHANGE_RANK'))
 
 const isOpen = computed({
   get: () => props.open,
@@ -405,6 +409,24 @@ async function restorePromoter() {
               />
             </UFormField>
           </div>
+
+          <!-- Rank is read-only here: changing it also reassigns the supervisor chain,
+               so it only ever changes through PromoterChangeRankModal (opened via the
+               parent, which owns that dialog — same pattern as `openDeleteFromEdit`). -->
+          <UFormField :label="t('promoters.form.fields.rank')" name="rank">
+            <div class="flex items-center gap-2">
+              <UInput :model-value="promoter?.rank_Display || t('promoters.form.rankNone')" class="w-full font-mono" disabled />
+              <UButton
+                v-if="canChangeRank"
+                color="neutral"
+                variant="outline"
+                size="sm"
+                icon="i-lucide-arrow-up-down"
+                :label="t('promoters.hierarchy.changeRank.action')"
+                @click="isOpen = false; emit('change-rank', promoter!)"
+              />
+            </div>
+          </UFormField>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <UFormField :label="t('promoters.form.fields.status')" name="status">

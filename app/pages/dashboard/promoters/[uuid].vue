@@ -114,6 +114,13 @@ async function restorePromoter() {
   }
 }
 
+// ---- Change rank (shortcut from PromoterFormModal) ----
+const changeRankOpen = ref(false)
+
+function openChangeRank() {
+  changeRankOpen.value = true
+}
+
 // ---- Delete ----
 const deleteOpen = ref(false)
 const deleting = ref(false)
@@ -611,7 +618,10 @@ async function loadCommissionsSummary() {
     </template>
 
     <!-- Edit modal (shared with the list) -->
-    <PromoterFormModal v-model:open="formOpen" :promoter="promoter" @saved="onSaved" @delete="openDelete" />
+    <PromoterFormModal v-model:open="formOpen" :promoter="promoter" @saved="onSaved" @delete="openDelete" @change-rank="openChangeRank" />
+
+    <!-- Change rank modal (shortcut from the edit form) -->
+    <PromoterChangeRankModal v-model:open="changeRankOpen" :promoter-uuid="promoter?.uuid ?? null" @saved="loadPromoter" />
 
     <!-- Delete confirmation modal -->
     <UModal v-model:open="deleteOpen" :title="t('promoters.deleteTitle')">

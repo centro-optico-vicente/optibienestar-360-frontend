@@ -169,6 +169,15 @@ function openAudit(p: PromoterDto) {
   auditOpen.value = true
 }
 
+// ---- Change rank (shortcut from PromoterFormModal) ----
+const changeRankOpen = ref(false)
+const changeRankTarget = ref<string | null>(null)
+
+function openChangeRank(p: PromoterDto) {
+  changeRankTarget.value = p.uuid
+  changeRankOpen.value = true
+}
+
 async function confirmDelete() {
   if (!target.value) return
   deleting.value = true
@@ -396,7 +405,10 @@ async function confirmDelete() {
     </div>
 
     <!-- Create/edit modal (shared with the detail page) -->
-    <PromoterFormModal v-model:open="formOpen" :promoter="editingPromoter" @saved="onSaved" @delete="openDelete" />
+    <PromoterFormModal v-model:open="formOpen" :promoter="editingPromoter" @saved="onSaved" @delete="openDelete" @change-rank="openChangeRank" />
+
+    <!-- Change rank modal (shortcut from the edit form) -->
+    <PromoterChangeRankModal v-model:open="changeRankOpen" :promoter-uuid="changeRankTarget" @saved="onSaved" />
 
     <!-- Delete confirmation modal -->
     <UModal v-model:open="deleteOpen" :title="t('promoters.deleteTitle')">
