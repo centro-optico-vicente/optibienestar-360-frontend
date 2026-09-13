@@ -25,6 +25,13 @@ const generatingXlsx = ref(false)
 const promoters = ref<PromoterDto[]>([])
 const loadingCatalogs = ref(false)
 
+const defaultCurrencyOptions = [
+  { label: 'USD — Dólar Estadounidense ($)', value: 'USD' },
+  { label: 'VES — Bolívar Venezolano (Bs.)', value: 'VES' },
+  { label: 'EUR — Euro (€)', value: 'EUR' },
+]
+const currencyOptions = ref(defaultCurrencyOptions)
+
 async function loadCatalogs() {
   loadingCatalogs.value = true
   try {
@@ -32,6 +39,20 @@ async function loadCatalogs() {
     promoters.value = res.content ?? []
   } catch (err: any) {
     console.error('Error cargando promotores:', err)
+  }
+
+  try {
+    const curRes = await useApi<Array<{ uuid?: string; code: string; label: string; active?: boolean }>>('/v1/admin/currencies/options')
+    if (curRes && curRes.length > 0) {
+      currencyOptions.value = curRes
+        .filter(c => c.active !== false)
+        .map(c => ({
+          label: c.label || `${c.code}`,
+          value: c.code,
+        }))
+    }
+  } catch {
+    // Si no tiene permisos a currencies/options o falla, mantiene defaultCurrencyOptions
   } finally {
     loadingCatalogs.value = false
   }
@@ -54,6 +75,7 @@ const payoutFilters = reactive({
   endDate: '',
   promoter: ALL_VALUE,
   payoutReference: '',
+  targetCurrency: 'USD',
 })
 
 function formatDateIso(d: Date): string {
@@ -105,6 +127,7 @@ function resetPayoutFilters() {
   payoutFilters.endDate = ''
   payoutFilters.promoter = ALL_VALUE
   payoutFilters.payoutReference = ''
+  payoutFilters.targetCurrency = 'USD'
 }
 
 async function executeDownload(format: 'PDF' | 'XLSX') {
@@ -117,6 +140,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
       endDate: payoutFilters.endDate || undefined,
       promoter: (payoutFilters.promoter && payoutFilters.promoter !== ALL_VALUE) ? payoutFilters.promoter : undefined,
       payoutReference: payoutFilters.payoutReference.trim() || undefined,
+      targetCurrency: payoutFilters.targetCurrency || 'USD',
     })
   } catch (error: any) {
     console.error('Error al generar el reporte Jasper de pagos de comisiones:', error)
@@ -273,6 +297,27 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             icon="i-lucide-hash"
             class="w-full"
           />
+        </div>
+      </div>
+
+      <!-- Conversión de Moneda -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-semibold text-prohealth-700 mb-1">
+            Moneda de Salida (Conversión)
+          </label>
+          <USelect
+            v-model="payoutFilters.targetCurrency"
+            :items="currencyOptions"
+            label-key="label"
+            value-key="value"
+            icon="i-lucide-coins"
+            :ui="{ content: 'z-[100]' }"
+            class="w-full"
+          />
+          <p class="text-[11px] text-prohealth-500 mt-1">
+            Convierte el monto de cada comisión a la tasa de cambio vigente a su fecha de pago.
+          </p>
         </div>
       </div>
 

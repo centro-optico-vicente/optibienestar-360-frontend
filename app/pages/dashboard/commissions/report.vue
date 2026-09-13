@@ -26,6 +26,13 @@ const generatingXlsx = ref(false)
 const promoters = ref<PromoterDto[]>([])
 const loadingCatalogs = ref(false)
 
+const defaultCurrencyOptions = [
+  { label: 'USD — Dólar Estadounidense ($)', value: 'USD' },
+  { label: 'VES — Bolívar Venezolano (Bs.)', value: 'VES' },
+  { label: 'EUR — Euro (€)', value: 'EUR' },
+]
+const currencyOptions = ref(defaultCurrencyOptions)
+
 async function loadCatalogs() {
   loadingCatalogs.value = true
   try {
@@ -33,6 +40,20 @@ async function loadCatalogs() {
     promoters.value = res.content ?? []
   } catch (err: any) {
     console.error('Error cargando promotores:', err)
+  }
+
+  try {
+    const curRes = await useApi<Array<{ uuid?: string; code: string; label: string; active?: boolean }>>('/v1/admin/currencies/options')
+    if (curRes && curRes.length > 0) {
+      currencyOptions.value = curRes
+        .filter(c => c.active !== false)
+        .map(c => ({
+          label: c.label || `${c.code}`,
+          value: c.code,
+        }))
+    }
+  } catch {
+    // Si no tiene permisos a currencies/options o falla, mantiene defaultCurrencyOptions
   } finally {
     loadingCatalogs.value = false
   }
@@ -56,6 +77,8 @@ const commFilters = reactive({
   promoter: ALL_VALUE,
   status: ALL_VALUE,
   appliesTo: ALL_VALUE,
+  targetCurrency: 'USD',
+  conversionDate: formatDateIso(new Date()),
 })
 
 const commStatusOptions = computed(() => [
@@ -122,6 +145,8 @@ function resetCommFilters() {
   commFilters.promoter = ALL_VALUE
   commFilters.status = ALL_VALUE
   commFilters.appliesTo = ALL_VALUE
+  commFilters.targetCurrency = 'USD'
+  commFilters.conversionDate = formatDateIso(new Date())
 }
 
 async function executeDownload(format: 'PDF' | 'XLSX') {
@@ -135,6 +160,8 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
       promoter: (commFilters.promoter && commFilters.promoter !== ALL_VALUE) ? commFilters.promoter : undefined,
       status: (commFilters.status && commFilters.status !== ALL_VALUE) ? commFilters.status : undefined,
       appliesTo: (commFilters.appliesTo && commFilters.appliesTo !== ALL_VALUE) ? commFilters.appliesTo : undefined,
+      targetCurrency: commFilters.targetCurrency || 'USD',
+      conversionDate: commFilters.conversionDate || undefined,
     })
   } catch (error: any) {
     console.error('Error al generar el reporte Jasper de comisiones:', error)
@@ -312,6 +339,42 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             :ui="{ content: 'z-[100]' }"
             class="w-full"
           />
+        </div>
+      </div>
+
+      <!-- Conversión de Moneda y Fecha -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-semibold text-prohealth-700 mb-1">
+            Moneda de Salida (Conversión)
+          </label>
+          <USelect
+            v-model="commFilters.targetCurrency"
+            :items="currencyOptions"
+            label-key="label"
+            value-key="value"
+            icon="i-lucide-coins"
+            :ui="{ content: 'z-[100]' }"
+            class="w-full"
+          />
+          <p class="text-[11px] text-prohealth-500 mt-1">
+            Moneda en la que se calculará la columna de monto convertido.
+          </p>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-prohealth-700 mb-1">
+            Fecha de Conversión
+          </label>
+          <UInput
+            v-model="commFilters.conversionDate"
+            type="date"
+            icon="i-lucide-calendar"
+            class="w-full"
+          />
+          <p class="text-[11px] text-prohealth-500 mt-1">
+            Tasa de cambio vigente a esta fecha (por defecto el día actual).
+          </p>
         </div>
       </div>
 

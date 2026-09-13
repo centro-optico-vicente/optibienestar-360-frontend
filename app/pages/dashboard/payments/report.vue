@@ -28,6 +28,13 @@ const promoters = ref<PromoterDto[]>([])
 const plans = ref<PlanDto[]>([])
 const loadingCatalogs = ref(false)
 
+const defaultCurrencyOptions = [
+  { label: 'USD — Dólar Estadounidense ($)', value: 'USD' },
+  { label: 'VES — Bolívar Venezolano (Bs.)', value: 'VES' },
+  { label: 'EUR — Euro (€)', value: 'EUR' },
+]
+const currencyOptions = ref(defaultCurrencyOptions)
+
 async function loadCatalogs() {
   loadingCatalogs.value = true
   try {
@@ -41,6 +48,22 @@ async function loadCatalogs() {
     if (plansRes.status === 'fulfilled') {
       plans.value = plansRes.value.content ?? []
     }
+  } catch (err: any) {
+    console.error('Error cargando promotores/planes:', err)
+  }
+
+  try {
+    const curRes = await useApi<Array<{ uuid?: string; code: string; label: string; active?: boolean }>>('/v1/admin/currencies/options')
+    if (curRes && curRes.length > 0) {
+      currencyOptions.value = curRes
+        .filter(c => c.active !== false)
+        .map(c => ({
+          label: c.label || `${c.code}`,
+          value: c.code,
+        }))
+    }
+  } catch {
+    // Si no tiene permisos a currencies/options o falla, mantiene defaultCurrencyOptions
   } finally {
     loadingCatalogs.value = false
   }
@@ -73,6 +96,7 @@ const payFilters = reactive({
   paymentMethod: ALL_VALUE,
   plan: ALL_VALUE,
   promoter: ALL_VALUE,
+  targetCurrency: 'USD',
 })
 
 const payStatusOptions = computed(() => [
@@ -142,6 +166,7 @@ function resetPayFilters() {
   payFilters.paymentMethod = ALL_VALUE
   payFilters.plan = ALL_VALUE
   payFilters.promoter = ALL_VALUE
+  payFilters.targetCurrency = 'USD'
 }
 
 async function executeDownload(format: 'PDF' | 'XLSX') {
@@ -156,6 +181,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
       paymentMethod: (payFilters.paymentMethod && payFilters.paymentMethod !== ALL_VALUE) ? payFilters.paymentMethod : undefined,
       plan: (payFilters.plan && payFilters.plan !== ALL_VALUE) ? payFilters.plan : undefined,
       promoter: (payFilters.promoter && payFilters.promoter !== ALL_VALUE) ? payFilters.promoter : undefined,
+      targetCurrency: payFilters.targetCurrency || 'USD',
     })
   } catch (error: any) {
     console.error('Error al generar el reporte Jasper de pagos:', error)
@@ -350,6 +376,27 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             :ui="{ content: 'z-[100]' }"
             class="w-full"
           />
+        </div>
+      </div>
+
+      <!-- Conversión de Moneda -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-semibold text-prohealth-700 mb-1">
+            Moneda de Salida (Conversión)
+          </label>
+          <USelect
+            v-model="payFilters.targetCurrency"
+            :items="currencyOptions"
+            label-key="label"
+            value-key="value"
+            icon="i-lucide-coins"
+            :ui="{ content: 'z-[100]' }"
+            class="w-full"
+          />
+          <p class="text-[11px] text-prohealth-500 mt-1">
+            Convierte el monto de cada pago a la tasa de cambio vigente a su fecha de pago.
+          </p>
         </div>
       </div>
 
