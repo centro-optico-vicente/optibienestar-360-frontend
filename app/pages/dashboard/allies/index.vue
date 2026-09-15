@@ -27,6 +27,8 @@ const toast = useToast()
 const canCreate = computed(() => can('ALLY_CREATE'))
 const canUpdate = computed(() => can('ALLY_UPDATE'))
 const canDelete = computed(() => can('ALLY_DELETE'))
+const canViewAllyType = computed(() => can('ALLY_TYPE_VIEW_ALL'))
+const canViewCity = computed(() => can('CITY_VIEW_ALL'))
 const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('ALLY_RECORD_AUDIT_VIEW'))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('ALLY_REPORT_AUDIT_VIEW'))
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
@@ -343,12 +345,24 @@ async function confirmDelete() {
               <td class="px-5 py-3">
                 <div class="font-semibold text-prohealth-900">{{ a.name }}</div>
               </td>
-              <td class="px-5 py-3 text-prohealth-700">{{ a.allyType_Display ?? t('common.empty') }}</td>
+              <td class="px-5 py-3 text-prohealth-700" @click.stop>
+                <CommonEntityLinkCell
+                  :to="a.allyType_Uuid ? `/dashboard/catalogs/ally-types?edit=${a.allyType_Uuid}` : null"
+                  :label="a.allyType_Display"
+                  :can="canViewAllyType"
+                />
+              </td>
               <td class="px-5 py-3 text-prohealth-700">
                 <span v-if="a.taxDocumentNumber">{{ a.taxDocumentType }}-{{ a.taxDocumentNumber }}</span>
                 <span v-else class="text-prohealth-400">{{ t('common.empty') }}</span>
               </td>
-              <td class="px-5 py-3 text-prohealth-700">{{ a.city_Display ?? t('common.empty') }}</td>
+              <td class="px-5 py-3 text-prohealth-700" @click.stop>
+                <CommonEntityLinkCell
+                  :to="a.city_Uuid ? `/dashboard/catalogs/cities?edit=${a.city_Uuid}` : null"
+                  :label="a.city_Display"
+                  :can="canViewCity"
+                />
+              </td>
               <td class="px-5 py-3">
                 <UBadge :color="a.published ? 'success' : 'neutral'" variant="subtle" size="sm">
                   {{ a.published ? t('allies.published') : t('allies.draft') }}
