@@ -23,6 +23,8 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const { formatCurrency, formatDate } = useFormatters()
+const { can } = usePermissions()
+const canViewPromoter = computed(() => can('PROMOTER_VIEW_ALL'))
 
 const expanded = ref(true)
 
@@ -56,12 +58,20 @@ function money(v?: number | null, currency?: string | null): string {
         @update:model-value="(v: boolean | 'indeterminate') => emit('toggle-group', v === true)"
         @click.stop
       />
-      <button
-        type="button"
+      <div
+        role="button"
+        tabindex="0"
         class="flex flex-1 items-center gap-2 text-left cursor-pointer"
         @click="expanded = !expanded"
+        @keydown.enter="expanded = !expanded"
       >
-        <span class="font-semibold text-prohealth-800">{{ group.promoterDisplayName }}</span>
+        <span class="font-semibold" @click.stop>
+          <CommonEntityLinkCell
+            :to="`/dashboard/promoters/${group.promoterUuid}`"
+            :label="group.promoterDisplayName"
+            :can="canViewPromoter"
+          />
+        </span>
         <span class="text-xs font-mono text-prohealth-400">{{ group.promoterCode }}</span>
         <span class="text-xs text-prohealth-400">({{ group.rows.length }})</span>
         <span class="ml-auto font-semibold text-prohealth-900">{{ money(group.periodTotal, group.currencyCode) }}</span>
@@ -69,7 +79,7 @@ function money(v?: number | null, currency?: string | null): string {
           :name="expanded ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
           class="w-4 h-4 text-prohealth-400"
         />
-      </button>
+      </div>
     </div>
 
     <div v-if="expanded" class="overflow-x-auto">

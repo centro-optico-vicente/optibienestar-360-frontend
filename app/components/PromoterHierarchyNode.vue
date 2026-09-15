@@ -22,6 +22,9 @@ const emit = defineEmits<{
 // el usuario colapsa las ramas que no le interesan, no al revés.
 const expanded = ref(true)
 const hasChildren = computed(() => props.node.children.length > 0)
+
+const { can } = usePermissions()
+const canViewPromoter = computed(() => can('PROMOTER_VIEW_ALL'))
 </script>
 
 <template>
@@ -40,7 +43,13 @@ const hasChildren = computed(() => props.node.children.length > 0)
       </button>
       <UIcon v-else name="i-lucide-user" class="w-4 h-4 text-prohealth-300 shrink-0" />
 
-      <span class="font-semibold text-prohealth-800 truncate">{{ node.displayName }}</span>
+      <span class="font-semibold truncate">
+        <CommonEntityLinkCell
+          :to="`/dashboard/promoters/${node.uuid}`"
+          :label="node.displayName"
+          :can="canViewPromoter"
+        />
+      </span>
       <UBadge v-if="node.rankName" color="neutral" variant="subtle" size="sm">{{ node.rankName }}</UBadge>
       <span class="text-xs font-mono text-prohealth-400">{{ node.referralCode }}</span>
       <span v-if="hasChildren" class="text-xs text-prohealth-400">({{ node.children.length }})</span>

@@ -23,6 +23,8 @@ const { t } = useI18n()
 const { formatCurrency, formatDate } = useFormatters()
 const commissions = useCommissions()
 const toast = useToast()
+const { can } = usePermissions()
+const canViewPromoter = computed(() => can('PROMOTER_VIEW_ALL'))
 
 const isOpen = computed({
   get: () => props.open,
@@ -199,7 +201,13 @@ async function onConfirm() {
                   </td>
                 </tr>
                 <tr v-for="(topUp, idx) in preview.topUps" v-else :key="`${topUp.promoterUuid}-${topUp.ledgerType}-${idx}`">
-                  <td class="px-4 py-2.5 font-medium text-prohealth-900">{{ topUp.promoterDisplayName }}</td>
+                  <td class="px-4 py-2.5 font-medium">
+                    <CommonEntityLinkCell
+                      :to="`/dashboard/promoters/${topUp.promoterUuid}`"
+                      :label="topUp.promoterDisplayName"
+                      :can="canViewPromoter"
+                    />
+                  </td>
                   <td class="px-4 py-2.5 text-prohealth-500 font-mono text-xs">{{ topUp.promoterCode }}</td>
                   <td class="px-4 py-2.5 text-prohealth-700">{{ t(`commissions.retroactiveTopUps.ledgerTypes.${topUp.ledgerType}`) }}</td>
                   <td class="px-4 py-2.5 text-prohealth-700">{{ topUp.targetTierName }}</td>

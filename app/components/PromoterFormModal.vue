@@ -45,6 +45,7 @@ const { can } = usePermissions()
 const canDelete = computed(() => can('PROMOTER_DELETE'))
 const canChangeRank = computed(() => can('PROMOTER_CHANGE_RANK'))
 const canViewPromoterType = computed(() => can('PROMOTER_TYPE_VIEW_ALL'))
+const canViewUser = computed(() => can('USER_VIEW_ALL'))
 
 function goToCatalogRecord(to: string) {
   isOpen.value = false
@@ -354,19 +355,26 @@ async function restorePromoter() {
               required
               :help="t('promoters.form.userSearchHelp')"
             >
-              <USelectMenu
-                v-model="state.userUuid"
-                v-model:search-term="userSearchTerm"
-                :items="userOptions"
-                label-key="label"
-                value-key="value"
-                ignore-filter
-                icon="i-lucide-search"
-                :loading="searchingUsers"
-                :placeholder="t('promoters.form.userPlaceholderSearch')"
-                :search-input="{ placeholder: t('promoters.form.userSearchPlaceholder'), icon: 'i-lucide-search' }"
-                class="w-full"
-              />
+              <div class="flex items-center gap-2">
+                <USelectMenu
+                  v-model="state.userUuid"
+                  v-model:search-term="userSearchTerm"
+                  :items="userOptions"
+                  label-key="label"
+                  value-key="value"
+                  ignore-filter
+                  icon="i-lucide-search"
+                  :loading="searchingUsers"
+                  :placeholder="t('promoters.form.userPlaceholderSearch')"
+                  :search-input="{ placeholder: t('promoters.form.userSearchPlaceholder'), icon: 'i-lucide-search' }"
+                  class="w-full"
+                />
+                <CommonEntityQuickLinkButton
+                  :to="state.userUuid ? `/dashboard/users/${state.userUuid}` : null"
+                  :can="canViewUser"
+                  @navigate="goToCatalogRecord"
+                />
+              </div>
             </UFormField>
           </div>
         </template>

@@ -28,11 +28,18 @@ const { t } = useI18n()
 const usersApi = useUsers()
 const roles = useRoles()
 const toast = useToast()
+const { can } = usePermissions()
+const canViewDocumentType = computed(() => can('DOCUMENT_TYPE_VIEW_ALL'))
 
 const isOpen = computed({
   get: () => props.open,
   set: v => emit('update:open', v),
 })
+
+function goToCatalogRecord(to: string) {
+  isOpen.value = false
+  navigateTo(to)
+}
 
 const isSubmitting = ref(false)
 // Save button lives in the modal's #footer slot, outside the <UForm> element,
@@ -308,14 +315,21 @@ function requestDelete() {
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('security.users.fields.documentType')" name="documentType">
-            <USelectMenu
-              v-model="state.documentType"
-              :items="documentTypeOptions"
-              label-key="label"
-              value-key="value"
-              :placeholder="t('common.select')"
-              class="w-full"
-            />
+            <div class="flex items-center gap-2">
+              <USelectMenu
+                v-model="state.documentType"
+                :items="documentTypeOptions"
+                label-key="label"
+                value-key="value"
+                :placeholder="t('common.select')"
+                class="w-full"
+              />
+              <CommonEntityQuickLinkButton
+                :to="state.documentType ? '/dashboard/catalogs/document-types' : null"
+                :can="canViewDocumentType"
+                @navigate="goToCatalogRecord"
+              />
+            </div>
           </UFormField>
           <UFormField :label="t('security.users.fields.documentNumber')" name="documentNumber">
             <UInput v-model="state.documentNumber" class="w-full" />

@@ -38,11 +38,22 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const allies = useAllies()
 const toast = useToast()
+const { can } = usePermissions()
+
+const canViewAllyType = computed(() => can('ALLY_TYPE_VIEW_ALL'))
+const canViewDocumentType = computed(() => can('DOCUMENT_TYPE_VIEW_ALL'))
+const canViewState = computed(() => can('STATE_VIEW_ALL'))
+const canViewCity = computed(() => can('CITY_VIEW_ALL'))
 
 const isOpen = computed({
   get: () => props.open,
   set: v => emit('update:open', v),
 })
+
+function goToCatalogRecord(to: string) {
+  isOpen.value = false
+  navigateTo(to)
+}
 
 const isSubmitting = ref(false)
 const editLoading = ref(false)
@@ -355,27 +366,41 @@ function requestDelete() {
             <UInput v-model="state.name" class="w-full" />
           </UFormField>
           <UFormField :label="t('allies.form.fields.allyType')" name="allyTypeUuid" required>
-            <USelectMenu
-              v-model="state.allyTypeUuid"
-              :items="allyTypeOptions"
-              label-key="label"
-              value-key="value"
-              :placeholder="t('common.select')"
-              class="w-full"
-            />
+            <div class="flex items-center gap-2">
+              <USelectMenu
+                v-model="state.allyTypeUuid"
+                :items="allyTypeOptions"
+                label-key="label"
+                value-key="value"
+                :placeholder="t('common.select')"
+                class="w-full"
+              />
+              <CommonEntityQuickLinkButton
+                :to="state.allyTypeUuid ? `/dashboard/catalogs/ally-types?edit=${state.allyTypeUuid}` : null"
+                :can="canViewAllyType"
+                @navigate="goToCatalogRecord"
+              />
+            </div>
           </UFormField>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('allies.form.fields.taxDocumentType')" name="taxDocumentType">
-            <USelectMenu
-              v-model="state.taxDocumentType"
-              :items="documentTypeOptions"
-              label-key="label"
-              value-key="value"
-              :placeholder="t('common.select')"
-              class="w-full"
-            />
+            <div class="flex items-center gap-2">
+              <USelectMenu
+                v-model="state.taxDocumentType"
+                :items="documentTypeOptions"
+                label-key="label"
+                value-key="value"
+                :placeholder="t('common.select')"
+                class="w-full"
+              />
+              <CommonEntityQuickLinkButton
+                :to="state.taxDocumentType ? '/dashboard/catalogs/document-types' : null"
+                :can="canViewDocumentType"
+                @navigate="goToCatalogRecord"
+              />
+            </div>
           </UFormField>
           <UFormField :label="t('allies.form.fields.taxDocumentNumber')" name="taxDocumentNumber">
             <UInput v-model="state.taxDocumentNumber" class="w-full" />
@@ -397,25 +422,39 @@ function requestDelete() {
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('allies.form.fields.state')" name="stateUuid">
-            <USelectMenu
-              v-model="selectedStateUuid"
-              :items="stateOptions"
-              label-key="label"
-              value-key="value"
-              :placeholder="t('common.select')"
-              class="w-full"
-            />
+            <div class="flex items-center gap-2">
+              <USelectMenu
+                v-model="selectedStateUuid"
+                :items="stateOptions"
+                label-key="label"
+                value-key="value"
+                :placeholder="t('common.select')"
+                class="w-full"
+              />
+              <CommonEntityQuickLinkButton
+                :to="selectedStateUuid ? `/dashboard/catalogs/states?edit=${selectedStateUuid}` : null"
+                :can="canViewState"
+                @navigate="goToCatalogRecord"
+              />
+            </div>
           </UFormField>
           <UFormField :label="t('allies.form.fields.city')" name="cityUuid">
-            <USelectMenu
-              v-model="state.cityUuid"
-              :items="cityOptions"
-              label-key="label"
-              value-key="value"
-              :disabled="!selectedStateUuid"
-              :placeholder="t('allies.form.selectCityFirst')"
-              class="w-full"
-            />
+            <div class="flex items-center gap-2">
+              <USelectMenu
+                v-model="state.cityUuid"
+                :items="cityOptions"
+                label-key="label"
+                value-key="value"
+                :disabled="!selectedStateUuid"
+                :placeholder="t('allies.form.selectCityFirst')"
+                class="w-full"
+              />
+              <CommonEntityQuickLinkButton
+                :to="state.cityUuid ? `/dashboard/catalogs/cities?edit=${state.cityUuid}` : null"
+                :can="canViewCity"
+                @navigate="goToCatalogRecord"
+              />
+            </div>
           </UFormField>
         </div>
 
