@@ -333,6 +333,7 @@ function requestDelete() {
         <div v-if="mode === 'edit'" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('security.users.fields.status')" name="status">
             <USelectMenu
+              clear
               v-model="state.status"
               :items="statusOptions"
               label-key="label"
@@ -347,6 +348,7 @@ function requestDelete() {
 
         <UFormField :label="t('security.users.fields.roles')" name="roleIds" required>
           <USelectMenu
+            clear
             v-model="state.roleIds"
             :items="roleOptions"
             label-key="label"

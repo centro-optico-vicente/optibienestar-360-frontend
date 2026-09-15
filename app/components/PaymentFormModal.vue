@@ -281,6 +281,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
             </UFormField>
             <UFormField :label="t('payments.form.fields.membership')" name="membershipUuid" required>
               <USelectMenu
+                clear
                 v-model="state.membershipUuid"
                 :items="membershipOptions"
                 label-key="label"
@@ -308,6 +309,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           </UFormField>
           <UFormField :label="t('payments.form.fields.currency')" name="currency" required :help="t('payments.form.fields.currencyHelp')">
             <USelectMenu
+              clear
               v-model="state.currency"
               :items="currencyOptions"
               label-key="label"
@@ -317,6 +319,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           </UFormField>
           <UFormField :label="t('payments.form.fields.method')" name="paymentMethod" required>
             <USelectMenu
+              clear
               v-model="state.paymentMethod"
               :items="methodOptions"
               label-key="label"

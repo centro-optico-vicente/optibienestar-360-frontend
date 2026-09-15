@@ -154,6 +154,7 @@ onMounted(async () => {
           size="lg"
         />
         <USelectMenu
+          clear
           v-model="selectedStateUuid"
           :items="stateOptions"
           label-key="label"
@@ -162,6 +163,7 @@ onMounted(async () => {
           size="lg"
         />
         <USelectMenu
+          clear
           v-model="cityUuid"
           :items="cityOptions"
           label-key="label"
@@ -172,6 +174,7 @@ onMounted(async () => {
         />
         <div class="flex items-center gap-2">
           <USelectMenu
+            clear
             v-model="specialtyUuid"
             :items="specialtyOptions"
             label-key="label"

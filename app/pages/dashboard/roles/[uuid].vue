@@ -568,6 +568,7 @@ function discardAndRefreshRole() {
           </div>
           <div class="flex items-center gap-2">
             <USelectMenu
+              clear
               v-model="userToAdd"
               :items="availableUserOptions"
               label-key="label"

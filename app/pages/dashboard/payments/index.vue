@@ -236,6 +236,7 @@ async function confirmDelete() {
         class="w-full max-w-md"
       />
       <USelectMenu
+        clear
         v-model="statusFilter"
         :items="statusFilterOptions"
         label-key="label"

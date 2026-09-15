@@ -518,6 +518,7 @@ async function confirmDelete() {
         class="w-full max-w-md"
       />
       <USelectMenu
+    clear
         v-if="def.listFilter"
         v-model="filterValue"
         :items="filterOptions"
@@ -684,6 +685,7 @@ async function confirmDelete() {
           >
             <div v-if="f.type === 'parent'" class="flex items-center gap-2">
               <USelectMenu
+                clear
                 v-model="state[f.name]"
                 :items="parentOptions[f.name] ?? []"
                 label-key="label"

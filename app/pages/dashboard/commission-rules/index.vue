@@ -666,6 +666,7 @@ onMounted(() => {
           class="w-full max-w-md"
         />
         <USelectMenu
+          clear
           v-model="tierPromoterTypeUuid"
           :items="promoterTypeFilterItems"
           label-key="label"
@@ -674,6 +675,7 @@ onMounted(() => {
           class="w-56"
         />
         <USelectMenu
+          clear
           v-model="tierPlanType"
           :items="planTypeFilterItems"
           label-key="label"
@@ -682,6 +684,7 @@ onMounted(() => {
           class="w-56"
         />
         <USelectMenu
+          clear
           v-model="tierAppliesTo"
           :items="appliesToFilterItems"
           label-key="label"
@@ -803,6 +806,7 @@ onMounted(() => {
           class="w-full max-w-md"
         />
         <USelectMenu
+          clear
           v-model="bonusPromoterTypeUuid"
           :items="promoterTypeFilterItems"
           label-key="label"
@@ -933,6 +937,7 @@ onMounted(() => {
           class="w-full max-w-md"
         />
         <USelectMenu
+          clear
           v-model="collectionPromoterTypeUuid"
           :items="promoterTypeFilterItems"
           label-key="label"
@@ -1051,6 +1056,7 @@ onMounted(() => {
           class="w-full max-w-md"
         />
         <USelectMenu
+          clear
           v-model="overrideRankUuid"
           :items="rankFilterItems"
           label-key="label"
@@ -1059,6 +1065,7 @@ onMounted(() => {
           class="w-56"
         />
         <USelectMenu
+          clear
           v-model="overrideCategory"
           :items="categoryFilterItems"
           label-key="label"

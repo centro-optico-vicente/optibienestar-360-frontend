@@ -177,6 +177,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           :help="t('allies.portal.fields.allyHelp')"
         >
           <USelectMenu
+            clear
             v-model="state.allyUuid"
             :items="allyOptions"
             label-key="label"
@@ -193,6 +194,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
 
         <UFormField :label="t('allies.portal.fields.category')" name="serviceCategoryUuid" required>
           <USelectMenu
+            clear
             v-model="state.serviceCategoryUuid"
             :items="categoryOptions"
             label-key="label"

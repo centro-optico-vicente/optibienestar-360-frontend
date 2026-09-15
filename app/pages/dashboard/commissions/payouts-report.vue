@@ -278,7 +278,8 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             Promotor Comercial
           </label>
           <div class="flex items-center gap-2">
-            <USelect
+            <USelectMenu
+              clear
               v-model="payoutFilters.promoter"
               :items="promoterOptions"
               label-key="label"
@@ -315,7 +316,8 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
           <label class="block text-xs font-semibold text-prohealth-700 mb-1">
             Moneda de Salida (Conversión)
           </label>
-          <USelect
+          <USelectMenu
+            clear
             v-model="payoutFilters.targetCurrency"
             :items="currencyOptions"
             label-key="label"

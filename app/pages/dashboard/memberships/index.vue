@@ -73,6 +73,7 @@ const selectedMemberLabel = computed(() =>
     <div class="bg-white rounded-2xl border border-prohealth-100 p-4 space-y-4">
       <UFormField :label="t('memberships.page.searchLabel')" :help="t('memberships.page.searchHelp')">
         <USelectMenu
+          clear
           v-model="selectedMemberUuid"
           v-model:search-term="memberSearchTerm"
           :items="memberOptions"

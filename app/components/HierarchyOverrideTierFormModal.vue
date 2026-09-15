@@ -278,7 +278,7 @@ async function restoreTier() {
             />
           </UFormField>
           <UFormField :label="t('hierarchyOverrideTiers.form.category')" name="category" required>
-            <USelectMenu v-model="state.category" :items="categoryOptions" label-key="label" value-key="value" class="w-full" />
+            <USelectMenu clear v-model="state.category" :items="categoryOptions" label-key="label" value-key="value" class="w-full" />
           </UFormField>
         </div>
 
@@ -287,13 +287,13 @@ async function restoreTier() {
             <UInput v-model="state.thresholdCount" inputmode="numeric" class="w-full" />
           </UFormField>
           <UFormField :label="t('hierarchyOverrideTiers.form.periodStrategy')" name="periodStrategy" required>
-            <USelectMenu v-model="state.periodStrategy" :items="periodOptions" label-key="label" value-key="value" class="w-full" />
+            <USelectMenu clear v-model="state.periodStrategy" :items="periodOptions" label-key="label" value-key="value" class="w-full" />
           </UFormField>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('hierarchyOverrideTiers.form.rewardKind')" name="rewardKind" required>
-            <USelectMenu v-model="state.rewardKind" :items="rewardKindOptions" label-key="label" value-key="value" class="w-full" />
+            <USelectMenu clear v-model="state.rewardKind" :items="rewardKindOptions" label-key="label" value-key="value" class="w-full" />
           </UFormField>
           <UFormField v-if="state.rewardKind === 'PCT'" :label="t('hierarchyOverrideTiers.form.overridePct')" name="overridePct" required>
             <UInput v-model="state.overridePct" placeholder="10.00" class="w-full">
@@ -309,6 +309,7 @@ async function restoreTier() {
 
         <UFormField v-if="state.rewardKind === 'FLAT'" :label="t('hierarchyOverrideTiers.form.flatAmountCurrency')" name="flatAmountCurrencyUuid" required>
           <USelectMenu
+            clear
             v-model="state.flatAmountCurrencyUuid"
             :items="currencyItems"
             label-key="label"

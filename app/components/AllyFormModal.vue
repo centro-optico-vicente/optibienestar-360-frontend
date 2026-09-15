@@ -430,6 +430,7 @@ function requestDelete() {
 
         <UFormField :label="t('allies.form.fields.specialties')" name="specialtyUuids">
           <USelectMenu
+            clear
             v-model="state.specialtyUuids"
             :items="specialtyOptions"
             label-key="label"
@@ -450,6 +451,7 @@ function requestDelete() {
           </UFormField>
           <UFormField v-if="mode === 'edit'" :label="t('allies.form.fields.status')" name="status">
             <USelectMenu
+              clear
               v-model="state.status"
               :items="statusOptions"
               label-key="label"

@@ -155,6 +155,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         <div class="grid grid-cols-2 gap-4">
           <UFormField :label="t('exchangeRates.form.fields.base')" name="baseCurrencyCode" required>
             <USelectMenu
+              clear
               v-model="state.baseCurrencyCode"
               :items="currencyOptions"
               label-key="label"
@@ -167,6 +168,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           </UFormField>
           <UFormField :label="t('exchangeRates.form.fields.quote')" name="quoteCurrencyCode" required>
             <USelectMenu
+              clear
               v-model="state.quoteCurrencyCode"
               :items="currencyOptions"
               label-key="label"
