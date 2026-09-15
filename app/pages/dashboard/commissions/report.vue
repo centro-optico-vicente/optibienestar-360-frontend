@@ -209,7 +209,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
     </div>
 
     <!-- Main Filter and Action Card -->
-    <div class="rounded-2xl border-2 border-prohealth-200 bg-white p-6 shadow-xs space-y-6">
+    <div class="rounded-2xl border border-prohealth-100 bg-white p-6 shadow-xs space-y-6">
       <div class="flex items-center justify-between border-b border-prohealth-100 pb-4">
         <div>
           <h2 class="text-base font-bold text-prohealth-900 flex items-center gap-2">
@@ -402,6 +402,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
         <div class="flex items-center gap-3">
           <UButton
             color="success"
+            variant="outline"
             icon="i-lucide-file-spreadsheet"
             :loading="generatingXlsx"
             @click="executeDownload('XLSX')"
@@ -411,6 +412,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
 
           <UButton
             color="error"
+            variant="outline"
             icon="i-lucide-file-text"
             :loading="generatingPdf"
             @click="executeDownload('PDF')"
