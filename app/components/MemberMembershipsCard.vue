@@ -25,6 +25,7 @@ const { can } = usePermissions()
 const toast = useToast()
 
 const canView = computed(() => can('MEMBERSHIP_VIEW_ALL'))
+const canViewPlan = computed(() => can('PLAN_VIEW_ALL'))
 const canEnroll = computed(() => can('MEMBERSHIP_CREATE'))
 const canCancel = computed(() => can('MEMBERSHIP_CANCEL'))
 const canReactivate = computed(() => can('MEMBERSHIP_REACTIVATE'))
@@ -223,7 +224,13 @@ async function confirmLifecycle() {
           </tr>
           <tr v-for="m in data" v-else :key="m.uuid" class="hover:bg-prohealth-50/50">
             <td class="px-6 py-3">
-              <div class="font-semibold text-prohealth-900">{{ m.planName || t('common.empty') }}</div>
+              <div class="font-semibold">
+                <CommonEntityLinkCell
+                  :to="m.planUuid ? `/dashboard/plans/${m.planUuid}` : null"
+                  :label="m.planName"
+                  :can="canViewPlan"
+                />
+              </div>
               <div class="text-xs text-prohealth-500 font-mono">{{ m.planCode }}</div>
             </td>
             <td class="px-6 py-3 text-prohealth-700">{{ money(m.monthlyFee) }}</td>

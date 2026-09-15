@@ -332,7 +332,7 @@ async function confirmDelete() {
               <td class="px-5 py-3">
                 <div class="flex flex-wrap gap-1">
                   <template v-for="r in u.roles" :key="r.uuid">
-                    <NuxtLink v-if="canViewRole" :to="`/dashboard/roles?edit=${r.uuid}`">
+                    <NuxtLink v-if="canViewRole" :to="`/dashboard/roles/${r.uuid}`">
                       <UBadge color="primary" variant="subtle" size="sm" class="inline-flex items-center gap-1">
                         {{ r.name }}
                         <UIcon name="i-lucide-external-link" class="w-3 h-3 shrink-0" />

@@ -21,6 +21,7 @@ const toast = useToast()
 const canCreate = computed(() => can('PROMOTER_CREATE'))
 const canUpdate = computed(() => can('PROMOTER_UPDATE'))
 const canDelete = computed(() => can('PROMOTER_DELETE'))
+const canViewPromoterType = computed(() => can('PROMOTER_TYPE_VIEW_ALL'))
 const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('PROMOTER_RECORD_AUDIT_VIEW'))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('PROMOTER_REPORT_AUDIT_VIEW'))
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
@@ -265,6 +266,7 @@ async function confirmDelete() {
                 {{ t('promoters.columns.promoter') }}
                 <SortIndicator :state="sort.stateOf('displayName')" :multi-active="isMultiSort" @clear="sort.remove('displayName')" />
               </th>
+              <th class="px-5 py-3 font-semibold">{{ t('promoters.columns.type') }}</th>
               <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('status')">
                 {{ t('promoters.columns.status') }}
                 <SortIndicator :state="sort.stateOf('status')" :multi-active="isMultiSort" @clear="sort.remove('status')" />
@@ -285,9 +287,9 @@ async function confirmDelete() {
             </tr>
           </thead>
           <tbody class="divide-y divide-prohealth-100">
-            <TableSkeleton v-if="loading" :rows="8" :cols="6" />
+            <TableSkeleton v-if="loading" :rows="8" :cols="7" />
             <tr v-else-if="data.length === 0">
-              <td colspan="6" class="px-5 py-12 text-center text-prohealth-500">
+              <td colspan="7" class="px-5 py-12 text-center text-prohealth-500">
                 <UIcon name="i-lucide-megaphone" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
                 {{ t('promoters.empty') }}
               </td>
@@ -308,6 +310,13 @@ async function confirmDelete() {
                   </UBadge>
                 </div>
                 <div class="text-xs text-prohealth-500 font-mono">{{ p.referralCode }}</div>
+              </td>
+              <td class="px-5 py-3" @click.stop>
+                <CommonEntityLinkCell
+                  :to="p.promoterType_Uuid ? `/dashboard/catalogs/promoter-types?edit=${p.promoterType_Uuid}` : null"
+                  :label="p.promoterType_Display"
+                  :can="canViewPromoterType"
+                />
               </td>
               <td class="px-5 py-3">
                 <UBadge :color="statusColor(p.status)" variant="subtle" size="sm">

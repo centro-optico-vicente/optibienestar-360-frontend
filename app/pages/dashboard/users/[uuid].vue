@@ -26,6 +26,8 @@ const canUpdate = computed(() => can('USER_UPDATE'))
 const canDelete = computed(() => can('USER_DELETE'))
 const canAssignRoles = computed(() => can('ROLE_USER_CREATE'))
 const canRemoveRoles = computed(() => can('ROLE_USER_DELETE'))
+const canViewRole = computed(() => can('ROLE_VIEW'))
+const canViewAlly = computed(() => can('ALLY_VIEW_ALL'))
 const canAssignAllies = computed(() => can('ALLY_USER_CREATE'))
 const canRemoveAllies = computed(() => can('ALLY_USER_DELETE'))
 const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('USER_RECORD_AUDIT_VIEW'))
@@ -483,7 +485,13 @@ async function refreshAll() {
                   </td>
                 </tr>
                 <tr v-for="r in userRoles" v-else :key="r.uuid" class="hover:bg-prohealth-50/50">
-                  <td class="px-6 py-3 font-semibold text-prohealth-900">{{ r.name }}</td>
+                  <td class="px-6 py-3 font-semibold">
+                    <CommonEntityLinkCell
+                      :to="`/dashboard/roles/${r.uuid}`"
+                      :label="r.name"
+                      :can="canViewRole"
+                    />
+                  </td>
                   <td class="px-6 py-3 text-prohealth-600">{{ r.description || t('common.empty') }}</td>
                   <td class="px-6 py-3">
                     <div class="flex items-center justify-end gap-1">
@@ -587,7 +595,13 @@ async function refreshAll() {
                   </td>
                 </tr>
                 <tr v-for="row in userAllies" v-else :key="row.allyUuid" class="hover:bg-prohealth-50/50">
-                  <td class="px-6 py-3 font-semibold text-prohealth-900">{{ row.allyName }}</td>
+                  <td class="px-6 py-3 font-semibold">
+                    <CommonEntityLinkCell
+                      :to="`/dashboard/allies/${row.allyUuid}`"
+                      :label="row.allyName"
+                      :can="canViewAlly"
+                    />
+                  </td>
                   <td class="px-6 py-3">
                     <UBadge color="primary" variant="subtle" size="sm">
                       {{ t(`allies.staff.roles.${row.allyRole}`, row.allyRole) }}

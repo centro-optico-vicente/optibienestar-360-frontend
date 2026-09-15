@@ -2021,6 +2021,7 @@
     "paginationSummary": "Showing {shown} of {total} promoters",
     "columns": {
       "promoter": "Promoter",
+      "type": "Type",
       "status": "Status",
       "referrals": "Referrals",
       "commissionPaid": "Commission paid",

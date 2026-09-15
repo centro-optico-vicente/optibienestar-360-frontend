@@ -28,6 +28,8 @@ const toast = useToast()
 
 const canUpdate = computed(() => can('PROMOTER_UPDATE'))
 const canDelete = computed(() => can('PROMOTER_DELETE'))
+const canViewPromoterType = computed(() => can('PROMOTER_TYPE_VIEW_ALL'))
+const canViewMember = computed(() => can('MEMBER_VIEW_ALL'))
 const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('PROMOTER_RECORD_AUDIT_VIEW'))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('PROMOTER_REPORT_AUDIT_VIEW'))
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
@@ -417,6 +419,16 @@ async function loadCommissionsSummary() {
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.fields.userEmail') }}</dt>
             <dd class="text-prohealth-800 mt-0.5">{{ promoter.user_Display || t('common.empty') }}</dd>
           </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.fields.promoterTypeUuid') }}</dt>
+            <dd class="mt-0.5">
+              <CommonEntityLinkCell
+                :to="promoter.promoterType_Uuid ? `/dashboard/catalogs/promoter-types?edit=${promoter.promoterType_Uuid}` : null"
+                :label="promoter.promoterType_Display"
+                :can="canViewPromoterType"
+              />
+            </dd>
+          </div>
         </dl>
       </div>
 
@@ -543,7 +555,13 @@ async function loadCommissionsSummary() {
                 </td>
               </tr>
               <tr v-for="m in filteredPortfolio" v-else :key="m.memberUuid" class="hover:bg-prohealth-50/50">
-                <td class="px-6 py-3 font-semibold text-prohealth-900">{{ m.memberName }}</td>
+                <td class="px-6 py-3 font-semibold">
+                  <CommonEntityLinkCell
+                    :to="`/dashboard/members/${m.memberUuid}`"
+                    :label="m.memberName"
+                    :can="canViewMember"
+                  />
+                </td>
                 <td class="px-6 py-3">
                   <UBadge :color="membershipStatusColor(m.membershipStatus)" variant="subtle" size="sm">
                     {{ m.membershipStatus_Display ?? membershipStatusLabel(m.membershipStatus) }}
