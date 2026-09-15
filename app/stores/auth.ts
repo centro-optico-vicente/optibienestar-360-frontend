@@ -75,14 +75,33 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
-    /** Restaura la sesión desde el almacenamiento del navegador. */
-    hydrate(): void {
+    /**
+     * Restaura la sesión desde el almacenamiento del navegador.
+     *
+     * El accessToken vive en sessionStorage (tab-scoped): una pestaña nueva o
+     * recargada no lo hereda aunque haya sesión activa en otra pestaña. El
+     * refreshToken sí vive en localStorage (compartido). Por eso, si falta el
+     * accessToken pero hay refreshToken, se intenta un refresh antes de dar
+     * por no autenticado — así una segunda pestaña recupera la sesión en vez
+     * de mandar al login.
+     */
+    async hydrate(): Promise<void> {
       if (this.isHydrated || !import.meta.client) return
       this.accessToken = sessionStorage.getItem(ACCESS_KEY)
       this.refreshToken = localStorage.getItem(REFRESH_KEY)
       const rawUser = sessionStorage.getItem(USER_KEY)
       this.user = rawUser ? (JSON.parse(rawUser) as AuthUser) : null
       this.permissions = permissionsFromToken(this.accessToken)
+
+      if (!this.accessToken && this.refreshToken) {
+        const refreshed = await this.tryRefresh()
+        // RefreshResponse no incluye el user (sessionStorage tampoco lo tenía
+        // en esta pestaña) — hay que reconstruirlo desde /v1/me.
+        if (refreshed && !this.user) {
+          await this.fetchUser()
+        }
+      }
+
       this.isHydrated = true
       this.scheduleRefresh()
     },
@@ -185,6 +204,26 @@ export const useAuthStore = defineStore('auth', {
       }
       finally {
         refreshing = null
+      }
+    },
+
+    /**
+     * Recupera el perfil desde GET /v1/me (sin pasar por `useApi` para evitar
+     * el ciclo store → composable → store). Solo se usa en `hydrate()`,
+     * cuando el refresh trajo un accessToken nuevo pero no un `user`.
+     */
+    async fetchUser(): Promise<void> {
+      if (!this.accessToken) return
+      const config = useRuntimeConfig()
+      try {
+        const user = await $fetch<AuthUser>('/v1/me', {
+          baseURL: config.public.apiBaseUrl,
+          headers: { Authorization: `Bearer ${this.accessToken}` },
+        })
+        this.setUser(user)
+      }
+      catch {
+        this.clearSession()
       }
     },
 

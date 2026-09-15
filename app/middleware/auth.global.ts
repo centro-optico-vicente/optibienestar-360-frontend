@@ -3,9 +3,9 @@ const PUBLIC_ROUTES = new Set<string>(['/', '/recover-password', '/reset-passwor
 // Ojo: NO confundir con /aliado (panel autenticado del aliado).
 const PUBLIC_PREFIXES = ['/aliados']
 
-export default defineNuxtRouteMiddleware((to) => {
+export default defineNuxtRouteMiddleware(async (to) => {
   const auth = useAuthStore()
-  if (import.meta.client) auth.hydrate()
+  if (import.meta.client) await auth.hydrate()
 
   const isPublic = PUBLIC_ROUTES.has(to.path)
     || PUBLIC_PREFIXES.some(p => to.path === p || to.path.startsWith(`${p}/`))
