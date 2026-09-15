@@ -15,6 +15,8 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const users = useUsers()
+const { can } = usePermissions()
+const canViewUser = computed(() => can('USER_VIEW_ALL'))
 
 const searchTerm = ref('')
 const options = ref<{ label: string, value: string }[]>([])
@@ -47,18 +49,25 @@ const value = computed({
 </script>
 
 <template>
-  <USelectMenu
-    v-model="value"
-    v-model:search-term="searchTerm"
-    :items="options"
-    label-key="label"
-    value-key="value"
-    ignore-filter
-    clear
-    icon="i-lucide-user-search"
-    :loading="searching"
-    :placeholder="t('security.dataChanges.filters.actorPlaceholder')"
-    :search-input="{ placeholder: t('security.dataChanges.filters.actorPlaceholder'), icon: 'i-lucide-search' }"
-    class="w-64"
-  />
+  <div class="flex items-center gap-2">
+    <USelectMenu
+      v-model="value"
+      v-model:search-term="searchTerm"
+      :items="options"
+      label-key="label"
+      value-key="value"
+      ignore-filter
+      clear
+      icon="i-lucide-user-search"
+      :loading="searching"
+      :placeholder="t('security.dataChanges.filters.actorPlaceholder')"
+      :search-input="{ placeholder: t('security.dataChanges.filters.actorPlaceholder'), icon: 'i-lucide-search' }"
+      class="w-64"
+    />
+    <CommonEntityQuickLinkButton
+      :to="value ? `/dashboard/users/${value}` : null"
+      :can="canViewUser"
+      @navigate="(to: string) => navigateTo(to)"
+    />
+  </div>
 </template>

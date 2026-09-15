@@ -25,6 +25,7 @@ const canDelete = computed(() => can('ROLE_DELETE'))
 const canEditPermissions = computed(() => can('ROLE_PERMISSION_EDIT'))
 const canAssignUsers = computed(() => can('ROLE_USER_CREATE'))
 const canRemoveUsers = computed(() => can('ROLE_USER_DELETE'))
+const canViewUser = computed(() => can('USER_VIEW_ALL'))
 const canViewUsers = computed(() => can('ROLE_USER_VIEW_ALL'))
 const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('ROLE_RECORD_AUDIT_VIEW'))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('ROLE_REPORT_AUDIT_VIEW'))
@@ -631,7 +632,13 @@ function discardAndRefreshRole() {
                   </td>
                 </tr>
                 <tr v-for="ru in roleUsers" v-else :key="ru.userUuid" class="hover:bg-prohealth-50/50">
-                  <td class="px-6 py-3 font-semibold text-prohealth-900">{{ ru.fullName || t('common.empty') }}</td>
+                  <td class="px-6 py-3 font-semibold">
+                    <CommonEntityLinkCell
+                      :to="`/dashboard/users/${ru.userUuid}`"
+                      :label="ru.fullName"
+                      :can="canViewUser"
+                    />
+                  </td>
                   <td class="px-6 py-3 text-prohealth-600">{{ ru.email || t('common.empty') }}</td>
                   <td class="px-6 py-3">
                     <UBadge

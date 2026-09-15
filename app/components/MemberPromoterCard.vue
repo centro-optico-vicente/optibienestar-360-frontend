@@ -25,6 +25,12 @@ const { can } = usePermissions()
 const toast = useToast()
 
 const canAssign = computed(() => can('MEMBER_ASSIGN_PROMOTER'))
+const canViewPromoter = computed(() => can('PROMOTER_VIEW_ALL'))
+
+function goToPromoter(to: string) {
+  formOpen.value = false
+  navigateTo(to)
+}
 
 // ---- History ----
 const history = ref<MemberPromoterAssignmentDto[]>([])
@@ -154,10 +160,12 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     <div class="px-6 py-4">
       <div class="flex items-center gap-3">
         <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('members.promoter.current') }}</dt>
-        <dd v-if="currentPromoterUuid">
-          <NuxtLink :to="`/dashboard/promoters/${currentPromoterUuid}`" class="text-primary-600 hover:underline font-semibold">
-            {{ currentPromoterName }}
-          </NuxtLink>
+        <dd v-if="currentPromoterUuid" class="font-semibold">
+          <CommonEntityLinkCell
+            :to="`/dashboard/promoters/${currentPromoterUuid}`"
+            :label="currentPromoterName"
+            :can="canViewPromoter"
+          />
         </dd>
         <dd v-else class="text-prohealth-400">{{ t('members.promoter.none') }}</dd>
       </div>
@@ -212,15 +220,22 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           />
 
           <UFormField v-if="state.mode === 'select'" :label="t('members.promoter.form.promoter')" name="promoterUuid" required>
-            <USelectMenu
-              v-model="state.promoterUuid"
-              :items="promoterOptions"
-              :loading="loadingOptions"
-              label-key="label"
-              value-key="value"
-              :placeholder="t('common.select')"
-              class="w-full"
-            />
+            <div class="flex items-center gap-2">
+              <USelectMenu
+                v-model="state.promoterUuid"
+                :items="promoterOptions"
+                :loading="loadingOptions"
+                label-key="label"
+                value-key="value"
+                :placeholder="t('common.select')"
+                class="w-full"
+              />
+              <CommonEntityQuickLinkButton
+                :to="state.promoterUuid ? `/dashboard/promoters/${state.promoterUuid}` : null"
+                :can="canViewPromoter"
+                @navigate="goToPromoter"
+              />
+            </div>
           </UFormField>
 
           <UFormField v-else :label="t('members.promoter.form.referralCode')" name="referralCode" required>

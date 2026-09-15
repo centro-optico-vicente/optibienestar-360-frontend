@@ -22,6 +22,7 @@ const { can } = usePermissions()
 
 const canApprove = computed(() => can('PAYMENT_APPROVE'))
 const canReject = computed(() => can('PAYMENT_REJECT'))
+const canViewMember = computed(() => can('MEMBER_VIEW_ALL'))
 const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('PAYMENT_RECORD_AUDIT_VIEW'))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('PAYMENT_REPORT_AUDIT_VIEW'))
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
@@ -247,9 +248,11 @@ function onReviewed(updated: PaymentDto) {
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.member') }}</dt>
             <dd class="mt-0.5">
-              <NuxtLink :to="`/dashboard/members/${payment.member_Uuid}`" class="text-cyan-700 hover:underline">
-                {{ payment.member_Display || t('common.empty') }}
-              </NuxtLink>
+              <CommonEntityLinkCell
+                :to="payment.member_Uuid ? `/dashboard/members/${payment.member_Uuid}` : null"
+                :label="payment.member_Display"
+                :can="canViewMember"
+              />
             </dd>
           </div>
           <div>

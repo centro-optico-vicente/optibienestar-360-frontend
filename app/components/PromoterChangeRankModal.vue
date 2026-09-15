@@ -30,6 +30,14 @@ const { t } = useI18n()
 const promotersApi = usePromoters()
 const hierarchyApi = usePromoterHierarchy()
 const toast = useToast()
+const { can } = usePermissions()
+const canViewPromoterRank = computed(() => can('PROMOTER_RANK_VIEW_ALL'))
+const canViewPromoter = computed(() => can('PROMOTER_VIEW_ALL'))
+
+function goToLinkedRecord(to: string) {
+  isOpen.value = false
+  navigateTo(to)
+}
 
 const loading = ref(false)
 const loadingSupervisors = ref(false)
@@ -149,14 +157,21 @@ async function confirm() {
         </p>
 
         <UFormField :label="t('promoters.hierarchy.changeRank.newRankLabel')" required>
-          <USelectMenu
-            v-model="selectedRank"
-            :items="rankOptions"
-            label-key="label"
-            value-key="value"
-            :placeholder="t('promoters.hierarchy.changeRank.newRankPlaceholder')"
-            class="w-full"
-          />
+          <div class="flex items-center gap-2">
+            <USelectMenu
+              v-model="selectedRank"
+              :items="rankOptions"
+              label-key="label"
+              value-key="value"
+              :placeholder="t('promoters.hierarchy.changeRank.newRankPlaceholder')"
+              class="w-full"
+            />
+            <CommonEntityQuickLinkButton
+              :to="selectedRank ? `/dashboard/catalogs/promoter-ranks?edit=${selectedRank}` : null"
+              :can="canViewPromoterRank"
+              @navigate="goToLinkedRecord"
+            />
+          </div>
         </UFormField>
 
         <template v-if="selectedRank">
@@ -166,15 +181,22 @@ async function confirm() {
           </label>
 
           <UFormField :label="t('promoters.hierarchy.supervisorLabel')" :required="!supervisorLooksOptional">
-            <USelectMenu
-              v-model="selectedSupervisor"
-              :items="supervisorOptions"
-              :loading="loadingSupervisors"
-              label-key="label"
-              value-key="value"
-              :placeholder="t('promoters.hierarchy.supervisorPlaceholder')"
-              class="w-full"
-            />
+            <div class="flex items-center gap-2">
+              <USelectMenu
+                v-model="selectedSupervisor"
+                :items="supervisorOptions"
+                :loading="loadingSupervisors"
+                label-key="label"
+                value-key="value"
+                :placeholder="t('promoters.hierarchy.supervisorPlaceholder')"
+                class="w-full"
+              />
+              <CommonEntityQuickLinkButton
+                :to="selectedSupervisor ? `/dashboard/promoters/${selectedSupervisor}` : null"
+                :can="canViewPromoter"
+                @navigate="goToLinkedRecord"
+              />
+            </div>
             <p v-if="!loadingSupervisors && supervisorOptions.length === 0" class="text-xs text-amber-600 mt-1">
               {{ supervisorLooksOptional
                 ? t('promoters.hierarchy.changeRank.topRankHint')

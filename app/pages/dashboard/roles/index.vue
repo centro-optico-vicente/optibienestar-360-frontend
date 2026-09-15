@@ -143,8 +143,16 @@ async function loadRoles() {
   }
 }
 
+const route = useRoute()
+const router = useRouter()
+
 onMounted(async () => {
   await loadRoles()
+  const editUuid = route.query.edit as string | undefined
+  if (!editUuid) return
+  await router.replace({ query: {} })
+  try { openRoleEdit(await rolesApi.get(editUuid)) }
+  catch { /* Invalid/removed uuid: silently ignore, stay on the list. */ }
 })
 
 // ---- CRUD de roles ----

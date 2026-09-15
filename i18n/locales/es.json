@@ -18,6 +18,9 @@
     "select": "Selecciona",
     "viewAll": "Ver todo",
     "empty": "Sin información",
+    "viewMaster": "Ver registro",
+    "noAccessToScreen": "No tienes permiso para ver esta pantalla",
+    "clearValue": "Limpiar valor",
     "yes": "Sí",
     "no": "No",
     "seoTitle": "{page} — OptiBienestar 360",
@@ -1432,6 +1435,7 @@
       "noPermissionDelete": "No tienes permiso para eliminar"
     },
     "columns": {
+      "member": "Afiliado",
       "planReference": "Plan / Referencia",
       "amount": "Monto",
       "method": "Método",
@@ -2018,6 +2022,7 @@
     "paginationSummary": "Mostrando {shown} de {total} promotores",
     "columns": {
       "promoter": "Promotor",
+      "type": "Tipo",
       "status": "Estado",
       "referrals": "Referidos",
       "commissionPaid": "Comisión pagada",

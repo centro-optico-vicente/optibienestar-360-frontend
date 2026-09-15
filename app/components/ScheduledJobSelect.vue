@@ -16,6 +16,8 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const jobs = useScheduledJobs()
+const { can } = usePermissions()
+const canViewJob = computed(() => can('JOB_VIEW_ALL'))
 
 const options = ref<{ label: string, value: string }[]>([])
 const loading = ref(false)
@@ -41,16 +43,23 @@ const value = computed({
 </script>
 
 <template>
-  <USelectMenu
-    v-model="value"
-    :items="options"
-    label-key="label"
-    value-key="value"
-    clear
-    icon="i-lucide-timer"
-    :loading="loading"
-    :placeholder="t('security.jobRuns.filters.jobPlaceholder')"
-    :search-input="{ placeholder: t('security.jobRuns.filters.jobPlaceholder'), icon: 'i-lucide-search' }"
-    class="w-64"
-  />
+  <div class="flex items-center gap-2">
+    <USelectMenu
+      v-model="value"
+      :items="options"
+      label-key="label"
+      value-key="value"
+      clear
+      icon="i-lucide-timer"
+      :loading="loading"
+      :placeholder="t('security.jobRuns.filters.jobPlaceholder')"
+      :search-input="{ placeholder: t('security.jobRuns.filters.jobPlaceholder'), icon: 'i-lucide-search' }"
+      class="w-64"
+    />
+    <CommonEntityQuickLinkButton
+      :to="value ? `/dashboard/scheduled-jobs/${value}` : null"
+      :can="canViewJob"
+      @navigate="(to: string) => navigateTo(to)"
+    />
+  </div>
 </template>

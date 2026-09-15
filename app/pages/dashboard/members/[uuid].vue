@@ -32,6 +32,10 @@ const toast = useToast()
 
 const canUpdate = computed(() => can('MEMBER_UPDATE'))
 const canDelete = computed(() => can('MEMBER_DELETE'))
+const canViewGender = computed(() => can('GENDER_VIEW_ALL'))
+const canViewMaritalStatus = computed(() => can('MARITAL_STATUS_VIEW_ALL'))
+const canViewOccupation = computed(() => can('OCCUPATION_VIEW_ALL'))
+const canViewCity = computed(() => can('CITY_VIEW_ALL'))
 const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('MEMBER_RECORD_AUDIT_VIEW'))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('MEMBER_REPORT_AUDIT_VIEW'))
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
@@ -621,11 +625,23 @@ async function refreshAll() {
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('members.detail.fields.gender') }}</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ member.gender?.name || t('common.empty') }}</dd>
+            <dd class="mt-0.5">
+              <CommonEntityLinkCell
+                :to="member.gender ? `/dashboard/catalogs/genders?edit=${member.gender.uuid}` : null"
+                :label="member.gender?.name"
+                :can="canViewGender"
+              />
+            </dd>
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('members.detail.fields.maritalStatus') }}</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ member.maritalStatus?.name || t('common.empty') }}</dd>
+            <dd class="mt-0.5">
+              <CommonEntityLinkCell
+                :to="member.maritalStatus ? `/dashboard/catalogs/marital-statuses?edit=${member.maritalStatus.uuid}` : null"
+                :label="member.maritalStatus?.name"
+                :can="canViewMaritalStatus"
+              />
+            </dd>
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('members.detail.fields.birthplace') }}</dt>
@@ -641,7 +657,13 @@ async function refreshAll() {
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('members.detail.fields.occupation') }}</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ member.occupation?.name || t('common.empty') }}</dd>
+            <dd class="mt-0.5">
+              <CommonEntityLinkCell
+                :to="member.occupation ? `/dashboard/catalogs/occupations?edit=${member.occupation.uuid}` : null"
+                :label="member.occupation?.name"
+                :can="canViewOccupation"
+              />
+            </dd>
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('members.detail.fields.employerName') }}</dt>
@@ -669,7 +691,13 @@ async function refreshAll() {
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('members.detail.fields.city') }}</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ member.city?.name || t('common.empty') }}</dd>
+            <dd class="mt-0.5">
+              <CommonEntityLinkCell
+                :to="member.city ? `/dashboard/catalogs/cities?edit=${member.city.uuid}` : null"
+                :label="member.city?.name"
+                :can="canViewCity"
+              />
+            </dd>
           </div>
           <div class="sm:col-span-2">
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('members.detail.fields.address') }}</dt>

@@ -214,9 +214,10 @@ onMounted(load)
             </tr>
             <tr v-for="run in data" v-else :key="run.uuid" class="hover:bg-prohealth-50/50">
               <td class="px-5 py-3">
-                <NuxtLink :to="`/dashboard/scheduled-jobs/${run.jobUuid}`" class="text-primary-600 hover:underline font-medium">
-                  {{ run.jobCode }}
-                </NuxtLink>
+                <CommonEntityLinkCell
+                  :to="`/dashboard/scheduled-jobs/${run.jobUuid}`"
+                  :label="run.jobCode"
+                />
               </td>
               <td class="px-5 py-3">
                 <UBadge :color="outcomeColor(run.outcome)" variant="subtle" size="sm">

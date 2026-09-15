@@ -17,6 +17,7 @@ definePageMeta({
 
 const { t } = useI18n()
 const route = useRoute()
+const router = useRouter()
 const toast = useToast()
 const { can } = usePermissions()
 const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || (def.value?.auditPermission ? can(def.value.auditPermission) : false))
@@ -27,6 +28,30 @@ const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditRep
 const canCreate = computed(() => (def.value ? can(def.value.createPermission) : false))
 const canUpdate = computed(() => (def.value ? can(def.value.updatePermission) : false))
 const canDelete = computed(() => (def.value ? can(def.value.deletePermission) : false))
+
+// ---- Parent FK quick-link (table column + form field) ----
+const parentField = computed(() => def.value?.fields.find(f => f.type === 'parent'))
+const parentCatalogDef = computed(() => (parentField.value?.parentKey ? getCatalogDef(parentField.value.parentKey) : undefined))
+const canViewParent = computed(() => (parentCatalogDef.value ? can(parentCatalogDef.value.viewPermission) : false))
+// The parent FK follows the FK triple (hub ADR 0014): `parentDisplayField` is the
+// `<prefix>_Code` sibling; the uuid lives at `<prefix>_Uuid`.
+function parentUuidOf(item: CatalogItem): string | null {
+  if (!def.value?.parentDisplayField) return null
+  const prefix = def.value.parentDisplayField.replace(/_Code$/, '')
+  return (item as unknown as Record<string, string | null | undefined>)[`${prefix}_Uuid`] ?? null
+}
+function parentEditLink(uuid: string | null): string | null {
+  return parentCatalogDef.value && uuid ? `/dashboard/catalogs/${parentCatalogDef.value.key}?edit=${uuid}` : null
+}
+function parentLabelOf(item: CatalogItem): string | null {
+  if (!def.value?.parentDisplayField) return null
+  const field = def.value.parentDisplayLabelField ?? def.value.parentDisplayField
+  const v = (item as unknown as Record<string, unknown>)[field]
+  return v == null ? null : String(v)
+}
+
+// ---- Superior-rank quick-link (promoter-ranks form only) ----
+const canViewPromoterRank = computed(() => can('PROMOTER_RANK_VIEW_ALL'))
 
 // ---- Audit ----
 const auditOpen = ref(false)
@@ -226,6 +251,17 @@ watch(() => route.params.resource, init)
 watch(filterValue, () => { if (!resetting.value) { page.value = 1; load() } })
 watch(includeInactive, () => { if (!resetting.value) { page.value = 1; load() } })
 
+// `?edit=<uuid>` lets the parent-catalog / superior-rank quick-link buttons open this
+// page's edit modal directly on the referenced record, mirroring members/index.vue.
+// Fires on both a cross-catalog navigation (route.params.resource changes too) and a
+// same-catalog one (query-only change, e.g. promoter-ranks → its own superior rank).
+watch(() => route.query.edit, async (editUuid) => {
+  if (!editUuid || !def.value || !canUpdate.value) return
+  await router.replace({ query: {} })
+  try { openEdit(await api().get(String(editUuid))) }
+  catch { /* Invalid/removed uuid: silently ignore, stay on the list. */ }
+}, { immediate: true })
+
 // ---- Create/edit form ----
 const formOpen = ref(false)
 const mode = ref<'create' | 'edit'>('create')
@@ -242,16 +278,17 @@ const isActive = ref(true)
 // (e.g. promoter-types.generatesHierarchyOverride) live here instead of `state`.
 const checkboxState = reactive<Record<string, boolean>>({})
 
-// `promoter-ranks` only: name of the rank with the closest hierarchyLevel
-// above the one being edited (null at the top level, where none exists).
-const superiorRankName = computed(() => {
+// `promoter-ranks` only: the rank with the closest hierarchyLevel above the
+// one being edited (null at the top level, where none exists).
+const superiorRank = computed(() => {
   if (def.value?.key !== 'promoter-ranks' || mode.value !== 'edit') return null
   const level = editingItem.value?.hierarchyLevel
   if (level == null) return null
   const above = allRanks.value.filter(r => r.hierarchyLevel != null && r.hierarchyLevel > level)
   if (!above.length) return null
-  return above.reduce((closest, r) => (r.hierarchyLevel! < closest.hierarchyLevel! ? r : closest)).name
+  return above.reduce((closest, r) => (r.hierarchyLevel! < closest.hierarchyLevel! ? r : closest))
 })
+const superiorRankName = computed(() => superiorRank.value?.name ?? null)
 
 // Fields visible in the current form. `onlyCreate` fields are hidden on edit,
 // except `parent` FK selects: those stay visible (disabled) so the admin can
@@ -318,6 +355,13 @@ function openEdit(item: CatalogItem) {
   mode.value = 'edit'
   populateEditForm(item)
   formOpen.value = true
+}
+
+// Quick-link buttons (parent FK field, superior rank) close the current modal
+// before navigating so the two edit forms never stack on top of each other.
+function goToLinkedRecord(to: string) {
+  formOpen.value = false
+  navigateTo(to)
 }
 
 async function reloadEditForm() {
@@ -558,8 +602,12 @@ async function confirmDelete() {
                 <UBadge color="neutral" variant="subtle">{{ item[def.codeField] }}</UBadge>
               </td>
               <td class="px-5 py-3 font-medium text-prohealth-900">{{ item.name }}</td>
-              <td v-if="def.parentDisplayField" class="px-5 py-3 text-prohealth-600">
-                {{ item[def.parentDisplayLabelField ?? def.parentDisplayField] || $t('common.empty') }}
+              <td v-if="def.parentDisplayField" class="px-5 py-3 text-prohealth-600" @click.stop>
+                <CommonEntityLinkCell
+                  :to="parentEditLink(parentUuidOf(item))"
+                  :label="parentLabelOf(item)"
+                  :can="canViewParent"
+                />
               </td>
               <td v-if="hasDescription" class="px-5 py-3 text-prohealth-600">
                 {{ item.description || $t('common.empty') }}
@@ -634,16 +682,22 @@ async function confirmDelete() {
             :name="f.name"
             :required="f.required"
           >
-            <USelectMenu
-              v-if="f.type === 'parent'"
-              v-model="state[f.name]"
-              :items="parentOptions[f.name] ?? []"
-              label-key="label"
-              value-key="value"
-              :placeholder="$t('catalogs.selectPlaceholder', { field: fieldLabel(f).toLowerCase() })"
-              :disabled="mode === 'edit' && f.onlyCreate"
-              class="w-full"
-            />
+            <div v-if="f.type === 'parent'" class="flex items-center gap-2">
+              <USelectMenu
+                v-model="state[f.name]"
+                :items="parentOptions[f.name] ?? []"
+                label-key="label"
+                value-key="value"
+                :placeholder="$t('catalogs.selectPlaceholder', { field: fieldLabel(f).toLowerCase() })"
+                :disabled="mode === 'edit' && f.onlyCreate"
+                class="w-full"
+              />
+              <CommonEntityQuickLinkButton
+                :to="parentEditLink(state[f.name] || null)"
+                :can="canViewParent"
+                @navigate="goToLinkedRecord"
+              />
+            </div>
             <UTextarea
               v-else-if="f.type === 'textarea'"
               v-model="state[f.name]"
@@ -673,7 +727,14 @@ async function confirmDelete() {
           </UFormField>
 
           <UFormField v-if="def?.key === 'promoter-ranks' && mode === 'edit'" :label="$t('catalogs.fields.superiorRank')">
-            <UInput :model-value="superiorRankName ?? $t('catalogs.fields.superiorRankNone')" disabled class="w-full" />
+            <div class="flex items-center gap-2">
+              <UInput :model-value="superiorRankName ?? $t('catalogs.fields.superiorRankNone')" disabled class="w-full" />
+              <CommonEntityQuickLinkButton
+                :to="superiorRank ? `/dashboard/catalogs/promoter-ranks?edit=${superiorRank.uuid}` : null"
+                :can="canViewPromoterRank"
+                @navigate="goToLinkedRecord"
+              />
+            </div>
           </UFormField>
 
           <UFormField v-if="mode === 'edit'" :label="$t('catalogs.fields.active')">

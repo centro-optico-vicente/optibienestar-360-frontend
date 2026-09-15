@@ -495,6 +495,7 @@ const overrideApi = useHierarchyOverrideTiers()
 const canViewOverride = computed(() => can('HIERARCHY_OVERRIDE_TIER_VIEW_ALL'))
 const canCreateOverride = computed(() => can('HIERARCHY_OVERRIDE_TIER_CREATE'))
 const canUpdateOverride = computed(() => can('HIERARCHY_OVERRIDE_TIER_UPDATE'))
+const canViewPromoterRank = computed(() => can('PROMOTER_RANK_VIEW_ALL'))
 const canDeleteOverride = computed(() => can('HIERARCHY_OVERRIDE_TIER_DELETE'))
 const overrideData = ref<HierarchyOverrideTierDto[]>([])
 const overrideTotal = ref(0)
@@ -1114,7 +1115,13 @@ onMounted(() => {
               @click="canUpdateOverride && openEditOverrideTier(tier)"
             >
               <td class="px-5 py-3 font-medium text-prohealth-900">{{ tier.name }}</td>
-              <td class="px-5 py-3 text-prohealth-600">{{ tier.rank_Display }}</td>
+              <td class="px-5 py-3 text-prohealth-600" @click.stop>
+                <CommonEntityLinkCell
+                  :to="tier.rank_Uuid ? `/dashboard/catalogs/promoter-ranks?edit=${tier.rank_Uuid}` : null"
+                  :label="tier.rank_Display"
+                  :can="canViewPromoterRank"
+                />
+              </td>
               <td class="px-5 py-3">
                 <UBadge color="primary" variant="subtle" size="sm">{{ t(`hierarchyOverrideTiers.category.${tier.category}`) }}</UBadge>
               </td>

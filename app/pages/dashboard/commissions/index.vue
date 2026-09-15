@@ -22,6 +22,9 @@ const canPayout = computed(() => can('COMMISSION_PAYOUT'))
 const canReRate = computed(() => can('COMMISSION_RE_RATE'))
 const canVoid = computed(() => can('COMMISSION_VOID'))
 const canApprove = computed(() => can('COMMISSION_APPROVE'))
+const canViewPromoter = computed(() => can('PROMOTER_VIEW_ALL'))
+const canViewPayment = computed(() => can('PAYMENT_VIEW_ALL'))
+const canViewMember = computed(() => can('MEMBER_VIEW_ALL'))
 
 // commission_tier and commission share the COMMISSIONS audit domain (V66/V72),
 // same pattern as commission-rules/index.vue.
@@ -381,8 +384,14 @@ async function confirmVoid() {
               class="hover:bg-prohealth-50/50 cursor-pointer"
               @click="openDetail(c)"
             >
-              <td class="px-5 py-3">
-                <div class="font-semibold text-prohealth-900">{{ c.promoter_Display || t('common.empty') }}</div>
+              <td class="px-5 py-3" @click.stop>
+                <div class="font-semibold">
+                  <CommonEntityLinkCell
+                    :to="c.promoter_Uuid ? `/dashboard/promoters/${c.promoter_Uuid}` : null"
+                    :label="c.promoter_Display"
+                    :can="canViewPromoter"
+                  />
+                </div>
                 <div class="text-xs text-prohealth-500 font-mono">{{ c.promoter_Code || t('common.empty') }}</div>
               </td>
               <td class="px-5 py-3 font-semibold text-prohealth-900">
@@ -570,19 +579,21 @@ async function confirmVoid() {
               <div>
                 <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.paymentUuid') }}</dt>
                 <dd class="mt-0.5">
-                  <NuxtLink v-if="detail.payment_Uuid" :to="`/dashboard/payments/${detail.payment_Uuid}`" class="text-cyan-700 hover:underline">
-                    {{ detail.payment_Display || t('common.empty') }}
-                  </NuxtLink>
-                  <span v-else class="text-prohealth-800">{{ t('common.empty') }}</span>
+                  <CommonEntityLinkCell
+                    :to="detail.payment_Uuid ? `/dashboard/payments/${detail.payment_Uuid}` : null"
+                    :label="detail.payment_Display"
+                    :can="canViewPayment"
+                  />
                 </dd>
               </div>
               <div>
                 <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.memberUuid') }}</dt>
                 <dd class="mt-0.5">
-                  <NuxtLink v-if="detail.member_Uuid" :to="`/dashboard/members/${detail.member_Uuid}`" class="text-cyan-700 hover:underline">
-                    {{ detail.member_Display || t('common.empty') }}
-                  </NuxtLink>
-                  <span v-else class="text-prohealth-800">{{ t('common.empty') }}</span>
+                  <CommonEntityLinkCell
+                    :to="detail.member_Uuid ? `/dashboard/members/${detail.member_Uuid}` : null"
+                    :label="detail.member_Display"
+                    :can="canViewMember"
+                  />
                 </dd>
               </div>
               <div>

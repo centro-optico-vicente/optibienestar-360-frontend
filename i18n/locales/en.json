@@ -18,6 +18,9 @@
     "select": "Select",
     "viewAll": "View all",
     "empty": "Not provided",
+    "viewMaster": "View record",
+    "noAccessToScreen": "You don't have permission to view this screen",
+    "clearValue": "Clear value",
     "yes": "Yes",
     "no": "No",
     "seoTitle": "{page} — OptiBienestar 360",
@@ -1432,6 +1435,7 @@
       "noPermissionDelete": "You don't have permission to delete"
     },
     "columns": {
+      "member": "Member",
       "planReference": "Plan / Reference",
       "amount": "Amount",
       "method": "Method",
@@ -2018,6 +2022,7 @@
     "paginationSummary": "Showing {shown} of {total} promoters",
     "columns": {
       "promoter": "Promoter",
+      "type": "Type",
       "status": "Status",
       "referrals": "Referrals",
       "commissionPaid": "Commission paid",

@@ -21,6 +21,7 @@ const toast = useToast()
 const canCreate = computed(() => can('USER_CREATE'))
 const canUpdate = computed(() => can('USER_UPDATE'))
 const canDelete = computed(() => can('USER_DELETE'))
+const canViewRole = computed(() => can('ROLE_VIEW'))
 const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('USER_RECORD_AUDIT_VIEW'))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('USER_REPORT_AUDIT_VIEW'))
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
@@ -330,15 +331,15 @@ async function confirmDelete() {
               </td>
               <td class="px-5 py-3">
                 <div class="flex flex-wrap gap-1">
-                  <UBadge
-                    v-for="r in u.roles"
-                    :key="r.uuid"
-                    color="primary"
-                    variant="subtle"
-                    size="sm"
-                  >
-                    {{ r.name }}
-                  </UBadge>
+                  <template v-for="r in u.roles" :key="r.uuid">
+                    <NuxtLink v-if="canViewRole" :to="`/dashboard/roles/${r.uuid}`">
+                      <UBadge color="primary" variant="subtle" size="sm" class="inline-flex items-center gap-1">
+                        {{ r.name }}
+                        <UIcon name="i-lucide-external-link" class="w-3 h-3 shrink-0" />
+                      </UBadge>
+                    </NuxtLink>
+                    <UBadge v-else color="primary" variant="subtle" size="sm">{{ r.name }}</UBadge>
+                  </template>
                   <span v-if="!u.roles?.length" class="text-prohealth-400">—</span>
                 </div>
               </td>

@@ -47,6 +47,7 @@ const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
 const auditOpen = ref(false)
 const canViewAgreements = computed(() => can('ALLY_AGREEMENT_VIEW_ALL'))
+const canViewUser = computed(() => can('USER_VIEW_ALL'))
 const canCreateAgreements = computed(() => can('ALLY_AGREEMENT_CREATE'))
 const canUpdateAgreements = computed(() => can('ALLY_AGREEMENT_UPDATE'))
 const canDeleteAgreements = computed(() => can('ALLY_AGREEMENT_DELETE'))
@@ -1336,7 +1337,13 @@ onMounted(async () => {
               </tr>
               <tr v-for="s in staff" v-else :key="s.uuid" class="hover:bg-prohealth-50/50">
                 <td class="px-6 py-3">
-                  <div class="font-semibold text-prohealth-900">{{ s.userFullName || t('common.empty') }}</div>
+                  <div class="font-semibold">
+                    <CommonEntityLinkCell
+                      :to="`/dashboard/users/${s.userUuid}`"
+                      :label="s.userFullName"
+                      :can="canViewUser"
+                    />
+                  </div>
                   <div class="text-xs text-prohealth-500">{{ s.userEmail || t('common.empty') }}</div>
                 </td>
                 <td class="px-6 py-3">

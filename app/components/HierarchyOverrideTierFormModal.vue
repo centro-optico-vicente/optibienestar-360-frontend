@@ -34,11 +34,17 @@ const hierarchy = usePromoterHierarchy()
 const currencies = useCurrencies()
 const toast = useToast()
 const { can } = usePermissions()
+const canViewPromoterRank = computed(() => can('PROMOTER_RANK_VIEW_ALL'))
 
 const isOpen = computed({
   get: () => props.open,
   set: (v: boolean) => emit('update:open', v),
 })
+
+function goToRank(to: string) {
+  isOpen.value = false
+  navigateTo(to)
+}
 const mode = computed<'create' | 'edit'>(() => (props.tier ? 'edit' : 'create'))
 const canManage = computed(() => can(mode.value === 'edit' ? 'HIERARCHY_OVERRIDE_TIER_UPDATE' : 'HIERARCHY_OVERRIDE_TIER_CREATE'))
 const isSubmitting = ref(false)
@@ -263,15 +269,22 @@ async function restoreTier() {
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('hierarchyOverrideTiers.form.rank')" name="rankUuid" required>
-            <USelectMenu
-              v-model="state.rankUuid"
-              :items="rankItems"
-              label-key="label"
-              value-key="value"
-              :loading="loadingRanks"
-              :placeholder="t('common.select')"
-              class="w-full"
-            />
+            <div class="flex items-center gap-2">
+              <USelectMenu
+                v-model="state.rankUuid"
+                :items="rankItems"
+                label-key="label"
+                value-key="value"
+                :loading="loadingRanks"
+                :placeholder="t('common.select')"
+                class="w-full"
+              />
+              <CommonEntityQuickLinkButton
+                :to="state.rankUuid ? `/dashboard/catalogs/promoter-ranks?edit=${state.rankUuid}` : null"
+                :can="canViewPromoterRank"
+                @navigate="goToRank"
+              />
+            </div>
           </UFormField>
           <UFormField :label="t('hierarchyOverrideTiers.form.category')" name="category" required>
             <USelectMenu v-model="state.category" :items="categoryOptions" label-key="label" value-key="value" class="w-full" />
