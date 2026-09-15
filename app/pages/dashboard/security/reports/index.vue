@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
 import { defaultTodayRange } from '~/utils/date'
+import { resolveAuditEntityLink } from '~/utils/audit-entity-link'
 import type { ReportAuditLogDto } from '~/types/audit'
 
 definePageMeta({
@@ -19,6 +20,16 @@ const toast = useToast()
 const { copy: copyUuid } = useClipboardCopy()
 const { can } = usePermissions()
 const canViewSessions = computed(() => can('AUDIT_VIEW_LOGIN'))
+
+/** Only RECORD-type reports carry a single subject entity to link out to. */
+function entityLink(report: ReportAuditLogDto) {
+  if (report.reportType !== 'RECORD' || !report.entityKey || !report.entityUuid) return null
+  return resolveAuditEntityLink(report.entityKey, report.entityUuid)
+}
+function canViewEntity(report: ReportAuditLogDto): boolean {
+  const link = entityLink(report)
+  return link ? can(link.permission) : false
+}
 
 const data = ref<ReportAuditLogDto[]>([])
 const total = ref(0)
@@ -180,7 +191,13 @@ onMounted(load)
               <UBadge v-if="report.entityKey" color="neutral" variant="subtle" size="sm">{{ report.entityKey }}</UBadge>
             </div>
             <div v-if="reportSubjectLabel(report)" class="text-xs text-prohealth-700 mt-0.5 truncate">
-              {{ reportSubjectLabel(report) }}
+              <CommonEntityLinkCell
+                v-if="entityLink(report)"
+                :to="entityLink(report)!.to"
+                :label="reportSubjectLabel(report)"
+                :can="canViewEntity(report)"
+              />
+              <template v-else>{{ reportSubjectLabel(report) }}</template>
             </div>
             <div v-if="report.fileName" class="text-xs text-prohealth-500 mt-0.5 truncate">
               {{ report.fileName }}

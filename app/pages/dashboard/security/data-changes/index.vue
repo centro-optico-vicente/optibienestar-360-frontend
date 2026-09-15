@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
 import { defaultTodayRange } from '~/utils/date'
+import { resolveAuditEntityLink } from '~/utils/audit-entity-link'
 import type { AuditAction, DataChangeAuditLogDto } from '~/types/audit'
 
 definePageMeta({
@@ -17,6 +18,15 @@ const audit = useAudit()
 const { formatDate } = useFormatters()
 const { can } = usePermissions()
 const canViewSessions = computed(() => can('AUDIT_VIEW_LOGIN'))
+
+// Resolves the log's entityKey/entityUuid to its own screen (see resolveAuditEntityLink).
+function entityLink(log: DataChangeAuditLogDto) {
+  return resolveAuditEntityLink(log.entityKey, log.entityUuid)
+}
+function canViewEntity(log: DataChangeAuditLogDto): boolean {
+  const link = entityLink(log)
+  return link ? can(link.permission) : false
+}
 
 const data = ref<DataChangeAuditLogDto[]>([])
 const total = ref(0)
@@ -187,8 +197,12 @@ onMounted(load)
                   {{ actionLabel(log) }}
                 </UBadge>
                 <UBadge color="neutral" variant="subtle" size="sm">{{ log.entityKey }}</UBadge>
-                <span class="text-sm font-medium text-prohealth-900 truncate">
-                  {{ log.entityDisplay || log.entityUuid }}
+                <span class="text-sm font-medium truncate" @click.stop>
+                  <CommonEntityLinkCell
+                    :to="entityLink(log)?.to ?? null"
+                    :label="log.entityDisplay || log.entityUuid"
+                    :can="canViewEntity(log)"
+                  />
                 </span>
                 <span class="text-xs text-prohealth-500">· {{ log.actor_Display || $t('audit.log.unknownActor') }}</span>
                 <NuxtLink
