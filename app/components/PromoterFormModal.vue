@@ -44,8 +44,6 @@ const { can } = usePermissions()
 
 const canDelete = computed(() => can('PROMOTER_DELETE'))
 const canChangeRank = computed(() => can('PROMOTER_CHANGE_RANK'))
-const canViewPromoterType = computed(() => can('PROMOTER_TYPE_VIEW_ALL'))
-const canViewUser = computed(() => can('USER_VIEW_ALL'))
 
 function goToCatalogRecord(to: string) {
   isOpen.value = false
@@ -104,37 +102,12 @@ watch(() => props.open, async (open) => {
   }
 })
 
-// ---- User search (create-only; server-side, debounced) ----
+// ---- User search (create-only; server-side, debounced via CommonEntityReferenceSelect) ----
 // Feeds state.userUuid directly — the select's value IS the user's uuid.
-// Search box lives inside the USelectMenu itself (search-term) so typing and
-// picking a result happen in the same field instead of two separate widgets.
-const userSearchTerm = ref('')
-const userOptions = ref<SelectItem[]>([])
-const searchingUsers = ref(false)
-
-let userSearchTimer: ReturnType<typeof setTimeout> | undefined
-watch(userSearchTerm, (q) => {
-  clearTimeout(userSearchTimer)
-  const term = q.trim()
-  // Don't clear userOptions here: USelectMenu resets search-term to '' right after a
-  // pick (resetSearchTermOnSelect/Blur), and wiping the list at that point would drop
-  // the just-selected item, making the trigger fall back to showing the raw uuid
-  // instead of its label.
-  if (term.length < 2) return
-  userSearchTimer = setTimeout(async () => {
-    searchingUsers.value = true
-    try {
-      const res = await users.options({ q: term, limit: 10 })
-      userOptions.value = res.map(o => ({ label: o.label, value: o.uuid }))
-    }
-    catch {
-      userOptions.value = []
-    }
-    finally {
-      searchingUsers.value = false
-    }
-  }, 400)
-})
+async function searchUsers(q: string) {
+  const res = await users.options({ q, limit: 10 })
+  return res.map(o => ({ label: o.label, value: o.uuid }))
+}
 
 // Autofill name/email/phone from the selected user (create-only). The Person linked
 // to the promoter is derived server-side from the user (User → Person is a mandatory
@@ -154,10 +127,6 @@ watch(() => state.userUuid, async (userUuid) => {
   }
 })
 
-function resetSearchState() {
-  userSearchTerm.value = ''
-  userOptions.value = []
-}
 
 // Locale-reactive schema. On create the referralCode/userUuid are required; on edit
 // (PATCH) only the editable subset is validated. Wrapped in computed so the
@@ -236,7 +205,6 @@ function discardAndRefresh() {
 // (the received `promoter` may be a list row) to populate reliably.
 watch(() => props.open, async (open) => {
   if (!open) return
-  resetSearchState()
   if (!props.promoter) {
     populateFrom(null)
     return
@@ -355,26 +323,15 @@ async function restorePromoter() {
               required
               :help="t('promoters.form.userSearchHelp')"
             >
-              <div class="flex items-center gap-2">
-                <USelectMenu
-                  v-model="state.userUuid"
-                  v-model:search-term="userSearchTerm"
-                  :items="userOptions"
-                  label-key="label"
-                  value-key="value"
-                  ignore-filter
-                  icon="i-lucide-search"
-                  :loading="searchingUsers"
-                  :placeholder="t('promoters.form.userPlaceholderSearch')"
-                  :search-input="{ placeholder: t('promoters.form.userSearchPlaceholder'), icon: 'i-lucide-search' }"
-                  class="w-full"
-                />
-                <CommonEntityQuickLinkButton
-                  :to="state.userUuid ? `/dashboard/users/${state.userUuid}` : null"
-                  :can="canViewUser"
-                  @navigate="goToCatalogRecord"
-                />
-              </div>
+              <CommonEntityReferenceSelect
+                v-model="state.userUuid"
+                :search="searchUsers"
+                entity="user"
+                icon="i-lucide-search"
+                :placeholder="t('promoters.form.userPlaceholderSearch')"
+                :search-placeholder="t('promoters.form.userSearchPlaceholder')"
+                @navigate="goToCatalogRecord"
+              />
             </UFormField>
           </div>
         </template>
@@ -394,21 +351,13 @@ async function restorePromoter() {
               <UInput v-model="state.referralCode" placeholder="PROMO-2026" class="w-full font-mono" />
             </UFormField>
             <UFormField :label="t('promoters.form.fields.promoterTypeUuid')" name="promoterTypeUuid">
-              <div class="flex items-center gap-2">
-                <USelectMenu
-                  v-model="state.promoterTypeUuid"
-                  :items="promoterTypeItems"
-                  label-key="label"
-                  value-key="value"
-                  :placeholder="t('common.select')"
-                  class="w-full"
-                />
-                <CommonEntityQuickLinkButton
-                  :to="state.promoterTypeUuid ? `/dashboard/catalogs/promoter-types?edit=${state.promoterTypeUuid}` : null"
-                  :can="canViewPromoterType"
-                  @navigate="goToCatalogRecord"
-                />
-              </div>
+              <CommonEntityReferenceSelect
+                v-model="state.promoterTypeUuid"
+                :items="promoterTypeItems"
+                entity="promoter_type"
+                :placeholder="t('common.select')"
+                @navigate="goToCatalogRecord"
+              />
             </UFormField>
           </div>
         </template>
@@ -420,21 +369,13 @@ async function restorePromoter() {
               <UInput v-model="state.referralCode" class="w-full font-mono" disabled />
             </UFormField>
             <UFormField :label="t('promoters.form.fields.promoterTypeUuid')" name="promoterTypeUuid">
-              <div class="flex items-center gap-2">
-                <USelectMenu
-                  v-model="state.promoterTypeUuid"
-                  :items="promoterTypeItems"
-                  label-key="label"
-                  value-key="value"
-                  :placeholder="t('common.select')"
-                  class="w-full"
-                />
-                <CommonEntityQuickLinkButton
-                  :to="state.promoterTypeUuid ? `/dashboard/catalogs/promoter-types?edit=${state.promoterTypeUuid}` : null"
-                  :can="canViewPromoterType"
-                  @navigate="goToCatalogRecord"
-                />
-              </div>
+              <CommonEntityReferenceSelect
+                v-model="state.promoterTypeUuid"
+                :items="promoterTypeItems"
+                entity="promoter_type"
+                :placeholder="t('common.select')"
+                @navigate="goToCatalogRecord"
+              />
             </UFormField>
           </div>
 

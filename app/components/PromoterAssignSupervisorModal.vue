@@ -26,8 +26,6 @@ const { t } = useI18n()
 const promotersApi = usePromoters()
 const hierarchyApi = usePromoterHierarchy()
 const toast = useToast()
-const { can } = usePermissions()
-const canViewPromoter = computed(() => can('PROMOTER_VIEW_ALL'))
 
 function goToSupervisor(to: string) {
   isOpen.value = false
@@ -130,21 +128,13 @@ async function confirm() {
           :label="t('promoters.hierarchy.supervisorLabel')"
           required
         >
-          <div class="flex items-center gap-2">
-            <USelectMenu
-              v-model="selectedSupervisor"
-              :items="supervisorOptions"
-              label-key="label"
-              value-key="value"
-              :placeholder="t('promoters.hierarchy.supervisorPlaceholder')"
-              class="w-full"
-            />
-            <CommonEntityQuickLinkButton
-              :to="selectedSupervisor ? `/dashboard/promoters/${selectedSupervisor}` : null"
-              :can="canViewPromoter"
-              @navigate="goToSupervisor"
-            />
-          </div>
+          <CommonEntityReferenceSelect
+            v-model="selectedSupervisor"
+            :items="supervisorOptions"
+            entity="promoter"
+            :placeholder="t('promoters.hierarchy.supervisorPlaceholder')"
+            @navigate="goToSupervisor"
+          />
           <p v-if="supervisorOptions.length === 0" class="text-xs text-amber-600 mt-1">
             {{ t('promoters.hierarchy.noEligibleSupervisors') }}
           </p>

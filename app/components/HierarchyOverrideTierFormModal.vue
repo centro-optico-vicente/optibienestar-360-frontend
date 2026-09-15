@@ -34,7 +34,6 @@ const hierarchy = usePromoterHierarchy()
 const currencies = useCurrencies()
 const toast = useToast()
 const { can } = usePermissions()
-const canViewPromoterRank = computed(() => can('PROMOTER_RANK_VIEW_ALL'))
 
 const isOpen = computed({
   get: () => props.open,
@@ -269,22 +268,14 @@ async function restoreTier() {
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('hierarchyOverrideTiers.form.rank')" name="rankUuid" required>
-            <div class="flex items-center gap-2">
-              <USelectMenu
-                v-model="state.rankUuid"
-                :items="rankItems"
-                label-key="label"
-                value-key="value"
-                :loading="loadingRanks"
-                :placeholder="t('common.select')"
-                class="w-full"
-              />
-              <CommonEntityQuickLinkButton
-                :to="state.rankUuid ? `/dashboard/catalogs/promoter-ranks?edit=${state.rankUuid}` : null"
-                :can="canViewPromoterRank"
-                @navigate="goToRank"
-              />
-            </div>
+            <CommonEntityReferenceSelect
+              v-model="state.rankUuid"
+              :items="rankItems"
+              :loading="loadingRanks"
+              entity="promoter_rank"
+              :placeholder="t('common.select')"
+              @navigate="goToRank"
+            />
           </UFormField>
           <UFormField :label="t('hierarchyOverrideTiers.form.category')" name="category" required>
             <USelectMenu v-model="state.category" :items="categoryOptions" label-key="label" value-key="value" class="w-full" />
