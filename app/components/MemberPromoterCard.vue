@@ -220,22 +220,14 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           />
 
           <UFormField v-if="state.mode === 'select'" :label="t('members.promoter.form.promoter')" name="promoterUuid" required>
-            <div class="flex items-center gap-2">
-              <USelectMenu
-                v-model="state.promoterUuid"
-                :items="promoterOptions"
-                :loading="loadingOptions"
-                label-key="label"
-                value-key="value"
-                :placeholder="t('common.select')"
-                class="w-full"
-              />
-              <CommonEntityQuickLinkButton
-                :to="state.promoterUuid ? `/dashboard/promoters/${state.promoterUuid}` : null"
-                :can="canViewPromoter"
-                @navigate="goToPromoter"
-              />
-            </div>
+            <CommonEntityReferenceSelect
+              v-model="state.promoterUuid"
+              :items="promoterOptions"
+              :loading="loadingOptions"
+              entity="promoter"
+              :placeholder="t('common.select')"
+              @navigate="goToPromoter"
+            />
           </UFormField>
 
           <UFormField v-else :label="t('members.promoter.form.referralCode')" name="referralCode" required>

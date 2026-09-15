@@ -171,6 +171,50 @@ Para selects de cualquier otro catálogo, usar el factory `useCatalog('/v1/admin
 `{ label, value }`. Si es un select recurrente en varias pantallas, encapsularlo en un composable
 cacheado con `useState` (mismo patrón que `useDocumentTypes`).
 
+## Selects que referencian otra entidad → `CommonEntityReferenceSelect`
+
+> **Regla:** cualquier select cuyo valor sea el UUID (o código) de otra entidad — no una lista
+> de opciones fijas — se implementa con `CommonEntityReferenceSelect`
+> (`app/components/common/EntityReferenceSelect.vue`), **nunca** un `USelectMenu` +
+> `CommonEntityQuickLinkButton` a mano. El componente ya trae filtro (client-side vía `items` o
+> server-side vía `search`), botón de limpiar (`clear`, siempre activo) y el botón de
+> acceso rápido a la pantalla de la entidad referenciada.
+
+```vue
+<!-- Catálogo pequeño precargado (items estáticos) -->
+<CommonEntityReferenceSelect
+  v-model="state.promoterTypeUuid"
+  :items="promoterTypeItems"
+  entity="promoter_type"
+  :placeholder="t('common.select')"
+  @navigate="goToCatalogRecord"
+/>
+
+<!-- Búsqueda server-side (catálogo grande: usuarios, miembros...) -->
+<CommonEntityReferenceSelect
+  v-model="state.userUuid"
+  :search="searchUsers"
+  entity="user"
+  icon="i-lucide-search"
+  :placeholder="t('promoters.form.userPlaceholderSearch')"
+  @navigate="goToCatalogRecord"
+/>
+```
+
+El botón de acceso rápido (ruta + permiso requerido para verla) **no se pasa a mano** — se
+resuelve internamente a partir de la prop `entity` contra el registro central
+`app/utils/entity-references.ts`. Si la ruta de una pantalla cambia, se edita una sola vez ahí
+en vez de en cada select que la referencia. Al agregar una entidad referenciable nueva:
+
+1. Agregar su clave a `EntityReferenceKey` en `entity-references.ts`.
+2. Si es un catálogo genérico (`/dashboard/catalogs/[resource]`), agregarla a `CATALOG_ENTITY_KEYS`
+   (mapea al `key` del catálogo en `catalog-registry.ts`).
+3. Si tiene pantalla propia (`/dashboard/<entidad>/[uuid]`), agregarla a `ENTITY_ROUTES` con su
+   `path(uuid)` y el permiso `*_VIEW_ALL` que la protege.
+
+`to`/`can` (ruta y permiso manuales) siguen existiendo como *fallback* solo para una referencia
+que todavía no está en el registro — preferir siempre `entity`.
+
 ## Confirmación antes de destructive actions
 
 ```vue
@@ -190,6 +234,7 @@ cacheado con `useState` (mismo patrón que `useDocumentTypes`).
 ## Reglas
 
 - **Selects de catálogo nunca hardcodeados.** Tipo de documento → `useDocumentTypes()`; otros → `useCatalog()`/`usePublicCatalog()` (ver sección arriba).
+- **Selects que referencian otra entidad siempre usan `CommonEntityReferenceSelect`** con la prop `entity` (ver sección arriba) — nunca `USelectMenu` + `CommonEntityQuickLinkButton` a mano.
 - **Validar formato en frontend, reglas de negocio en backend**
 - **Loading state explícito** (`isSubmitting` deshabilita el botón)
 - **Submit en Enter** funciona por default con `@submit.prevent`

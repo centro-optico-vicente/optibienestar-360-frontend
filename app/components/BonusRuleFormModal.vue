@@ -224,10 +224,10 @@ function openDeleteFromEdit() {
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('commissionRules.bonusRules.form.metric')" name="metric" required>
-            <USelectMenu v-model="state.metric" :items="metricOptions" label-key="label" value-key="value" class="w-full" />
+            <USelectMenu clear v-model="state.metric" :items="metricOptions" label-key="label" value-key="value" class="w-full" />
           </UFormField>
           <UFormField :label="t('commissionRules.bonusRules.form.accrual')" name="accrual" required>
-            <USelectMenu v-model="state.accrual" :items="accrualOptions" label-key="label" value-key="value" class="w-full" />
+            <USelectMenu clear v-model="state.accrual" :items="accrualOptions" label-key="label" value-key="value" class="w-full" />
           </UFormField>
         </div>
 
@@ -236,7 +236,7 @@ function openDeleteFromEdit() {
             <UInput v-model="state.thresholdCount" inputmode="numeric" class="w-full" />
           </UFormField>
           <UFormField :label="t('commissionRules.bonusRules.form.windowStrategy')" name="windowStrategy" required>
-            <USelectMenu v-model="state.windowStrategy" :items="windowOptions" label-key="label" value-key="value" class="w-full" />
+            <USelectMenu clear v-model="state.windowStrategy" :items="windowOptions" label-key="label" value-key="value" class="w-full" />
           </UFormField>
         </div>
 
@@ -251,7 +251,7 @@ function openDeleteFromEdit() {
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('commissionRules.bonusRules.form.rewardType')" name="rewardType" required>
-            <USelectMenu v-model="state.rewardType" :items="rewardTypeOptions" label-key="label" value-key="value" class="w-full" />
+            <USelectMenu clear v-model="state.rewardType" :items="rewardTypeOptions" label-key="label" value-key="value" class="w-full" />
           </UFormField>
           <UFormField v-if="state.rewardType === 'FLAT'" :label="t('commissionRules.bonusRules.form.flatAmount')" name="flatAmount" required>
             <UInput v-model="state.flatAmount" placeholder="100.00" class="w-full">

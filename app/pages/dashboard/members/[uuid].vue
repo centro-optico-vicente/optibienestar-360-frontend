@@ -986,6 +986,7 @@ async function refreshAll() {
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <UFormField :label="t('members.form.fields.documentType')" name="documentType">
               <USelectMenu
+                clear
                 v-model="benState.documentType"
                 :items="documentTypeOptions"
                 label-key="label"
@@ -1006,6 +1007,7 @@ async function refreshAll() {
             </UFormField>
             <UFormField :label="t('members.beneficiaries.form.relationship')" name="relationship" required>
               <USelectMenu
+                clear
                 v-model="benState.relationship"
                 :items="relationshipOptions"
                 label-key="label"
@@ -1022,6 +1024,7 @@ async function refreshAll() {
             </UFormField>
             <UFormField v-if="benMode === 'edit'" :label="t('members.form.fields.status')" name="status">
               <USelectMenu
+                clear
                 v-model="benState.status"
                 :items="benStatusOptions"
                 label-key="label"
@@ -1122,7 +1125,7 @@ async function refreshAll() {
         >
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <UFormField :label="t('members.medical.fields.bloodType')" name="bloodType">
-              <USelectMenu v-model="medState.bloodType" :items="BLOOD_TYPES" :placeholder="t('common.select')" class="w-full" />
+              <USelectMenu clear v-model="medState.bloodType" :items="BLOOD_TYPES" :placeholder="t('common.select')" class="w-full" />
             </UFormField>
           </div>
 
@@ -1147,6 +1150,7 @@ async function refreshAll() {
             </UFormField>
             <UFormField :label="t('members.medical.form.relationship')" name="emergencyContactRelationship">
               <USelectMenu
+                clear
                 v-model="medState.emergencyContactRelationship"
                 :items="relationshipOptions"
                 label-key="label"

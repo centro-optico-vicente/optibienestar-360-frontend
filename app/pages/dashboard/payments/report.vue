@@ -319,7 +319,8 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
           <label class="block text-xs font-semibold text-prohealth-700 mb-1">
             Estado del Pago
           </label>
-          <USelect
+          <USelectMenu
+            clear
             v-model="payFilters.status"
             :items="payStatusOptions"
             label-key="label"
@@ -335,7 +336,8 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
           <label class="block text-xs font-semibold text-prohealth-700 mb-1">
             Método de Pago
           </label>
-          <USelect
+          <USelectMenu
+            clear
             v-model="payFilters.paymentMethod"
             :items="payMethodOptions"
             label-key="label"
@@ -355,7 +357,8 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             Plan de Cobertura
           </label>
           <div class="flex items-center gap-2">
-            <USelect
+            <USelectMenu
+              clear
               v-model="payFilters.plan"
               :items="planOptions"
               label-key="label"
@@ -377,7 +380,8 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             Promotor Asociado
           </label>
           <div class="flex items-center gap-2">
-            <USelect
+            <USelectMenu
+              clear
               v-model="payFilters.promoter"
               :items="promoterOptions"
               label-key="label"
@@ -402,7 +406,8 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
           <label class="block text-xs font-semibold text-prohealth-700 mb-1">
             Moneda de Salida (Conversión)
           </label>
-          <USelect
+          <USelectMenu
+            clear
             v-model="payFilters.targetCurrency"
             :items="currencyOptions"
             label-key="label"

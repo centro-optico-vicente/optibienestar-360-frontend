@@ -286,6 +286,7 @@ async function confirmLifecycle() {
         <UForm ref="enrollFormRef" :schema="enrollSchema" :state="enrollState" class="space-y-4" @submit="onEnrollSubmit">
           <UFormField :label="t('memberships.enrollForm.plan')" name="planUuid" required :help="t('memberships.enrollForm.planHelp')">
             <USelectMenu
+              clear
               v-model="enrollState.planUuid"
               :items="planOptions"
               label-key="label"

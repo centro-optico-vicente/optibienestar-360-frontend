@@ -174,6 +174,7 @@ async function confirm() {
 
         <UFormField :label="t('validator.usage.fields.service')" :help="t('validator.usage.fields.serviceHelp')">
           <USelectMenu
+            clear
             v-model="allyServiceUuid"
             :items="serviceOptions"
             label-key="label"

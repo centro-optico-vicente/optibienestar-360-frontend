@@ -214,7 +214,7 @@ async function restoreTier() {
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('commissionRules.tiers.form.planType')" name="planType" :help="t('commissionRules.tiers.form.planTypeHelp')">
-            <USelectMenu v-model="state.planType" :items="planTypeOptions" label-key="label" value-key="value" class="w-full" />
+            <USelectMenu clear v-model="state.planType" :items="planTypeOptions" label-key="label" value-key="value" class="w-full" />
           </UFormField>
           <UFormField :label="t('commissionRules.tiers.form.thresholdCount')" name="thresholdCount" required :help="t('commissionRules.tiers.form.thresholdHelp')">
             <UInput v-model="state.thresholdCount" inputmode="numeric" class="w-full" />
@@ -223,16 +223,16 @@ async function restoreTier() {
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('commissionRules.tiers.form.periodStrategy')" name="periodStrategy" required>
-            <USelectMenu v-model="state.periodStrategy" :items="periodOptions" label-key="label" value-key="value" class="w-full" />
+            <USelectMenu clear v-model="state.periodStrategy" :items="periodOptions" label-key="label" value-key="value" class="w-full" />
           </UFormField>
           <UFormField :label="t('commissionRules.tiers.form.appliesTo')" name="appliesTo" required>
-            <USelectMenu v-model="state.appliesTo" :items="appliesToOptions" label-key="label" value-key="value" class="w-full" />
+            <USelectMenu clear v-model="state.appliesTo" :items="appliesToOptions" label-key="label" value-key="value" class="w-full" />
           </UFormField>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('commissionRules.tiers.form.rewardKind')" name="rewardKind" required>
-            <USelectMenu v-model="state.rewardKind" :items="rewardKindOptions" label-key="label" value-key="value" class="w-full" />
+            <USelectMenu clear v-model="state.rewardKind" :items="rewardKindOptions" label-key="label" value-key="value" class="w-full" />
           </UFormField>
           <UFormField v-if="state.rewardKind === 'PCT'" :label="t('commissionRules.tiers.form.commissionPct')" name="commissionPct" required>
             <UInput v-model="state.commissionPct" placeholder="25.00" class="w-full">

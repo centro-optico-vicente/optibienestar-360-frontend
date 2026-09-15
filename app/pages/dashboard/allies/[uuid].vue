@@ -1077,6 +1077,7 @@ onMounted(async () => {
           </div>
           <div class="flex items-center gap-2">
             <USelectMenu
+              clear
               v-model="specialtyToAdd"
               :items="availableSpecialtyOptions"
               label-key="label"
@@ -1415,6 +1416,7 @@ onMounted(async () => {
         >
           <UFormField :label="t('allies.services.form.fields.category')" name="serviceCategoryUuid" required>
             <USelectMenu
+              clear
               v-model="svcState.serviceCategoryUuid"
               :items="categoryOptions"
               label-key="label"
@@ -1521,6 +1523,7 @@ onMounted(async () => {
         >
           <UFormField :label="t('allies.agreements.form.fields.type')" name="agreementType" required>
             <USelectMenu
+              clear
               v-model="agrState.agreementType"
               :items="agreementTypeOptions"
               label-key="label"
@@ -1549,6 +1552,7 @@ onMounted(async () => {
 
           <UFormField v-if="agrMode === 'edit'" :label="t('allies.agreements.form.fields.status')" name="status">
             <USelectMenu
+              clear
               v-model="agrState.status"
               :items="agrStatusOptions"
               label-key="label"
@@ -1626,6 +1630,7 @@ onMounted(async () => {
         >
           <UFormField v-if="staffMode === 'create'" :label="t('allies.staff.form.fields.user')" name="userUuid" required>
             <USelectMenu
+              clear
               v-model="staffState.userUuid"
               :items="userOptions"
               label-key="label"
@@ -1638,6 +1643,7 @@ onMounted(async () => {
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <UFormField :label="t('allies.staff.form.fields.role')" name="allyRole" required>
               <USelectMenu
+                clear
                 v-model="staffState.allyRole"
                 :items="allyRoleOptions"
                 label-key="label"
@@ -1657,6 +1663,7 @@ onMounted(async () => {
             </UFormField>
             <UFormField v-if="staffMode === 'edit'" :label="t('allies.staff.form.fields.status')" name="status">
               <USelectMenu
+                clear
                 v-model="staffState.status"
                 :items="staffStatusOptions"
                 label-key="label"

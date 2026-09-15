@@ -422,6 +422,7 @@ async function refreshAll() {
           </div>
           <div class="flex items-center gap-2">
             <USelectMenu
+              clear
               v-model="roleToAdd"
               :items="availableRoleOptions"
               label-key="label"
@@ -523,6 +524,7 @@ async function refreshAll() {
           </div>
           <div class="flex items-center gap-2">
             <USelectMenu
+              clear
               v-model="allyToAdd"
               :items="availableAllyOptions"
               label-key="label"

@@ -25,8 +25,6 @@ const members = useMembers()
 const memberships = useMemberships()
 const exchangeRates = useExchangeRates()
 const toast = useToast()
-const { can } = usePermissions()
-const canViewMember = computed(() => can('MEMBER_VIEW_ALL'))
 
 function goToMember(to: string) {
   isOpen.value = false
@@ -46,36 +44,11 @@ const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 const methodOptions = computed(() => PAYMENT_METHOD_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
 const currencyOptions = PAYMENT_CURRENCY_OPTIONS
 
-// ---- Member search (server-side, debounced) ----
-// Search box lives inside the USelectMenu itself (search-term) so typing and
-// picking a result happen in the same field instead of two separate widgets.
-const memberSearchTerm = ref('')
-const memberOptions = ref<SelectItem[]>([])
-const searchingMembers = ref(false)
-
-let searchTimer: ReturnType<typeof setTimeout> | undefined
-watch(memberSearchTerm, (q) => {
-  clearTimeout(searchTimer)
-  const term = q.trim()
-  // Don't clear memberOptions here: USelectMenu resets search-term to '' right after a
-  // pick (resetSearchTermOnSelect/Blur), and wiping the list at that point would drop
-  // the just-selected item, making the trigger fall back to showing the raw uuid
-  // instead of its label.
-  if (term.length < 2) return
-  searchTimer = setTimeout(async () => {
-    searchingMembers.value = true
-    try {
-      const res = await members.options({ q: term, limit: 10 })
-      memberOptions.value = res.map(o => ({ label: memberOptionLabel(o), value: o.uuid }))
-    }
-    catch {
-      memberOptions.value = []
-    }
-    finally {
-      searchingMembers.value = false
-    }
-  }, 400)
-})
+// ---- Member search (server-side, debounced via CommonEntityReferenceSelect) ----
+async function searchMembers(q: string) {
+  const res = await members.options({ q, limit: 10 })
+  return res.map(o => ({ label: memberOptionLabel(o), value: o.uuid }))
+}
 
 // ---- Form state ----
 interface FormState {
@@ -238,8 +211,6 @@ function resetForm() {
   state.inscription = false
   state.appliedPeriod = ''
   state.adminNotes = ''
-  memberSearchTerm.value = ''
-  memberOptions.value = []
   membershipOptions.value = []
   clearFile()
 }
@@ -298,29 +269,19 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
               required
               :help="t('payments.form.fields.searchMemberHelp')"
             >
-              <div class="flex items-center gap-2">
-                <USelectMenu
-                  v-model="state.memberUuid"
-                  v-model:search-term="memberSearchTerm"
-                  :items="memberOptions"
-                  label-key="label"
-                  value-key="value"
-                  ignore-filter
-                  icon="i-lucide-search"
-                  :loading="searchingMembers"
-                  :placeholder="t('payments.form.memberPlaceholderSearch')"
-                  :search-input="{ placeholder: t('payments.form.memberSearchPlaceholder'), icon: 'i-lucide-search' }"
-                  class="w-full"
-                />
-                <CommonEntityQuickLinkButton
-                  :to="state.memberUuid ? `/dashboard/members/${state.memberUuid}` : null"
-                  :can="canViewMember"
-                  @navigate="goToMember"
-                />
-              </div>
+              <CommonEntityReferenceSelect
+                v-model="state.memberUuid"
+                :search="searchMembers"
+                entity="member"
+                icon="i-lucide-search"
+                :placeholder="t('payments.form.memberPlaceholderSearch')"
+                :search-placeholder="t('payments.form.memberSearchPlaceholder')"
+                @navigate="goToMember"
+              />
             </UFormField>
             <UFormField :label="t('payments.form.fields.membership')" name="membershipUuid" required>
               <USelectMenu
+                clear
                 v-model="state.membershipUuid"
                 :items="membershipOptions"
                 label-key="label"
@@ -348,6 +309,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           </UFormField>
           <UFormField :label="t('payments.form.fields.currency')" name="currency" required :help="t('payments.form.fields.currencyHelp')">
             <USelectMenu
+              clear
               v-model="state.currency"
               :items="currencyOptions"
               label-key="label"
@@ -357,6 +319,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           </UFormField>
           <UFormField :label="t('payments.form.fields.method')" name="paymentMethod" required>
             <USelectMenu
+              clear
               v-model="state.paymentMethod"
               :items="methodOptions"
               label-key="label"

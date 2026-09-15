@@ -28,8 +28,6 @@ const { t } = useI18n()
 const usersApi = useUsers()
 const roles = useRoles()
 const toast = useToast()
-const { can } = usePermissions()
-const canViewDocumentType = computed(() => can('DOCUMENT_TYPE_VIEW_ALL'))
 
 const isOpen = computed({
   get: () => props.open,
@@ -315,21 +313,13 @@ function requestDelete() {
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('security.users.fields.documentType')" name="documentType">
-            <div class="flex items-center gap-2">
-              <USelectMenu
-                v-model="state.documentType"
-                :items="documentTypeOptions"
-                label-key="label"
-                value-key="value"
-                :placeholder="t('common.select')"
-                class="w-full"
-              />
-              <CommonEntityQuickLinkButton
-                :to="state.documentType ? '/dashboard/catalogs/document-types' : null"
-                :can="canViewDocumentType"
-                @navigate="goToCatalogRecord"
-              />
-            </div>
+            <CommonEntityReferenceSelect
+              v-model="state.documentType"
+              :items="documentTypeOptions"
+              entity="document_type"
+              :placeholder="t('common.select')"
+              @navigate="goToCatalogRecord"
+            />
           </UFormField>
           <UFormField :label="t('security.users.fields.documentNumber')" name="documentNumber">
             <UInput v-model="state.documentNumber" class="w-full" />
@@ -343,6 +333,7 @@ function requestDelete() {
         <div v-if="mode === 'edit'" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('security.users.fields.status')" name="status">
             <USelectMenu
+              clear
               v-model="state.status"
               :items="statusOptions"
               label-key="label"
@@ -357,6 +348,7 @@ function requestDelete() {
 
         <UFormField :label="t('security.users.fields.roles')" name="roleIds" required>
           <USelectMenu
+            clear
             v-model="state.roleIds"
             :items="roleOptions"
             label-key="label"

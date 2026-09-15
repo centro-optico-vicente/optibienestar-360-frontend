@@ -276,6 +276,7 @@ function openDeleteFromEdit() {
           </UFormField>
           <UFormField :label="t('plans.form.fields.type')" name="type" required>
             <USelectMenu
+              clear
               v-model="state.type"
               :items="typeOptions"
               label-key="label"
