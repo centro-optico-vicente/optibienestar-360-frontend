@@ -25,6 +25,7 @@ const toast = useToast()
 const canRegister = computed(() => can('PAYMENT_CREATE'))
 const canApprove = computed(() => can('PAYMENT_APPROVE'))
 const canReject = computed(() => can('PAYMENT_REJECT'))
+const canViewMember = computed(() => can('MEMBER_VIEW_ALL'))
 const canDelete = computed(() => can('PAYMENT_DELETE'))
 const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('PAYMENT_RECORD_AUDIT_VIEW'))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('PAYMENT_REPORT_AUDIT_VIEW'))
@@ -262,6 +263,7 @@ async function confirmDelete() {
         <table class="w-full text-sm">
           <thead class="sticky top-0 bg-white z-10">
             <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
+              <th class="px-5 py-3 font-semibold">{{ t('payments.columns.member') }}</th>
               <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('plan_Code')">
                 {{ t('payments.columns.planReference') }}
                 <SortIndicator :state="sort.stateOf('plan_Code')" :multi-active="isMultiSort" @clear="sort.remove('plan_Code')" />
@@ -287,9 +289,9 @@ async function confirmDelete() {
             </tr>
           </thead>
           <tbody class="divide-y divide-prohealth-100">
-            <TableSkeleton v-if="loading" :rows="8" :cols="7" />
+            <TableSkeleton v-if="loading" :rows="8" :cols="8" />
             <tr v-else-if="data.length === 0">
-              <td colspan="7" class="px-5 py-12 text-center text-prohealth-500">
+              <td colspan="8" class="px-5 py-12 text-center text-prohealth-500">
                 <UIcon name="i-lucide-receipt" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
                 {{ t('payments.empty') }}
               </td>
@@ -301,6 +303,13 @@ async function confirmDelete() {
               class="hover:bg-prohealth-50/50 cursor-pointer"
               @click="navigateTo(`/dashboard/payments/${p.uuid}`)"
             >
+              <td class="px-5 py-3" @click.stop>
+                <CommonEntityLinkCell
+                  :to="p.member_Uuid ? `/dashboard/members/${p.member_Uuid}` : null"
+                  :label="p.member_Display"
+                  :can="canViewMember"
+                />
+              </td>
               <td class="px-5 py-3">
                 <div class="font-semibold text-prohealth-900 font-mono">{{ p.plan_Code || t('common.empty') }}</div>
                 <div class="text-xs text-prohealth-500">

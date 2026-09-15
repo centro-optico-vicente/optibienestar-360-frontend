@@ -25,6 +25,13 @@ const members = useMembers()
 const memberships = useMemberships()
 const exchangeRates = useExchangeRates()
 const toast = useToast()
+const { can } = usePermissions()
+const canViewMember = computed(() => can('MEMBER_VIEW_ALL'))
+
+function goToMember(to: string) {
+  isOpen.value = false
+  navigateTo(to)
+}
 
 const isOpen = computed({
   get: () => props.open,
@@ -291,19 +298,26 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
               required
               :help="t('payments.form.fields.searchMemberHelp')"
             >
-              <USelectMenu
-                v-model="state.memberUuid"
-                v-model:search-term="memberSearchTerm"
-                :items="memberOptions"
-                label-key="label"
-                value-key="value"
-                ignore-filter
-                icon="i-lucide-search"
-                :loading="searchingMembers"
-                :placeholder="t('payments.form.memberPlaceholderSearch')"
-                :search-input="{ placeholder: t('payments.form.memberSearchPlaceholder'), icon: 'i-lucide-search' }"
-                class="w-full"
-              />
+              <div class="flex items-center gap-2">
+                <USelectMenu
+                  v-model="state.memberUuid"
+                  v-model:search-term="memberSearchTerm"
+                  :items="memberOptions"
+                  label-key="label"
+                  value-key="value"
+                  ignore-filter
+                  icon="i-lucide-search"
+                  :loading="searchingMembers"
+                  :placeholder="t('payments.form.memberPlaceholderSearch')"
+                  :search-input="{ placeholder: t('payments.form.memberSearchPlaceholder'), icon: 'i-lucide-search' }"
+                  class="w-full"
+                />
+                <CommonEntityQuickLinkButton
+                  :to="state.memberUuid ? `/dashboard/members/${state.memberUuid}` : null"
+                  :can="canViewMember"
+                  @navigate="goToMember"
+                />
+              </div>
             </UFormField>
             <UFormField :label="t('payments.form.fields.membership')" name="membershipUuid" required>
               <USelectMenu

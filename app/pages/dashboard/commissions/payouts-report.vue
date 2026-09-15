@@ -18,6 +18,8 @@ useSeoMeta({ title: () => 'Reporte de Pagos de Comisiones — OptiBienestar 360'
 const documentReports = useDocumentReports()
 const promotersApi = usePromoters()
 const toast = useToast()
+const { can } = usePermissions()
+const canViewPromoter = computed(() => can('PROMOTER_VIEW_ALL'))
 
 const generatingPdf = ref(false)
 const generatingXlsx = ref(false)
@@ -251,16 +253,23 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
           <label class="block text-xs font-semibold text-prohealth-700 mb-1">
             Promotor Comercial
           </label>
-          <USelect
-            v-model="payoutFilters.promoter"
-            :items="promoterOptions"
-            label-key="label"
-            value-key="value"
-            icon="i-lucide-user"
-            placeholder="Todos los promotores"
-            :ui="{ content: 'z-[100]' }"
-            class="w-full"
-          />
+          <div class="flex items-center gap-2">
+            <USelect
+              v-model="payoutFilters.promoter"
+              :items="promoterOptions"
+              label-key="label"
+              value-key="value"
+              icon="i-lucide-user"
+              placeholder="Todos los promotores"
+              :ui="{ content: 'z-[100]' }"
+              class="w-full"
+            />
+            <CommonEntityQuickLinkButton
+              :to="payoutFilters.promoter && payoutFilters.promoter !== ALL_VALUE ? `/dashboard/promoters/${payoutFilters.promoter}` : null"
+              :can="canViewPromoter"
+              @navigate="(to: string) => navigateTo(to)"
+            />
+          </div>
         </div>
 
         <div>

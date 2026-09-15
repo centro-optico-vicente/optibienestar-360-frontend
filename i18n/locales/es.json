@@ -1435,6 +1435,7 @@
       "noPermissionDelete": "No tienes permiso para eliminar"
     },
     "columns": {
+      "member": "Afiliado",
       "planReference": "Plan / Referencia",
       "amount": "Monto",
       "method": "Método",

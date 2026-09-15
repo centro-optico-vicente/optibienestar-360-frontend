@@ -1435,6 +1435,7 @@
       "noPermissionDelete": "You don't have permission to delete"
     },
     "columns": {
+      "member": "Member",
       "planReference": "Plan / Reference",
       "amount": "Amount",
       "method": "Method",
