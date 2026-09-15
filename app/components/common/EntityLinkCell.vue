@@ -21,12 +21,16 @@ withDefaults(defineProps<{
   <NuxtLink
     v-if="to && can"
     :to="to"
-    class="text-primary-600 hover:underline"
+    class="inline-flex items-center gap-1 text-primary-600 hover:underline"
   >
     {{ label || $t('common.empty') }}
+    <UIcon name="i-lucide-external-link" class="w-3.5 h-3.5 shrink-0" />
   </NuxtLink>
   <UTooltip v-else-if="to" :text="$t('common.noAccessToScreen')">
-    <span class="text-prohealth-400 cursor-not-allowed">{{ label || $t('common.empty') }}</span>
+    <span class="inline-flex items-center gap-1 text-prohealth-400 cursor-not-allowed">
+      {{ label || $t('common.empty') }}
+      <UIcon name="i-lucide-external-link" class="w-3.5 h-3.5 shrink-0" />
+    </span>
   </UTooltip>
   <span v-else class="text-prohealth-400">{{ label || $t('common.empty') }}</span>
 </template>
