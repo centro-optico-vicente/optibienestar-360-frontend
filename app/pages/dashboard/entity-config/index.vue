@@ -31,10 +31,11 @@ const SORT_DIRECTION_OPTIONS = [
 ]
 
 // ---- List ----
-const data = ref<EntityConfigDto[]>([])
-const total = ref(0)
+// Backend returns the full flat array (no pagination/filter support yet) —
+// so pagination and search filtering both happen client-side over `allData`.
+const allData = ref<EntityConfigDto[]>([])
 const loading = ref(false)
-const page = ref(1) // UPagination es 1-based; la API es 0-based
+const page = ref(1) // UPagination es 1-based
 const size = ref(DEFAULT_PAGE_SIZE)
 const pageSizeItems = buildPageSizeItems(t)
 const search = ref('')
@@ -44,26 +45,28 @@ function summarizeSort(sort?: ConfigSortOrder[] | null): string {
   return sort.map(o => `${o.field} ${o.direction}`).join(', ')
 }
 
-function buildFilter(): string | undefined {
-  const term = search.value.trim()
-  if (!term) return undefined
-  return `entityKey=='*${term}*',displayName=='*${term}*'`
-}
+const filtered = computed(() => {
+  const q = search.value.trim().toLowerCase()
+  if (!q) return allData.value
+  return allData.value.filter(e =>
+    e.entityKey.toLowerCase().includes(q) || e.displayName.toLowerCase().includes(q))
+})
+
+const total = computed(() => filtered.value.length)
+
+const data = computed(() => {
+  if (size.value === UNPAGED_PAGE_SIZE) return filtered.value
+  const start = (page.value - 1) * size.value
+  return filtered.value.slice(start, start + size.value)
+})
 
 async function load() {
   loading.value = true
   try {
-    const res = await entityConfigApi.list({
-      page: page.value - 1,
-      size: size.value,
-      filter: buildFilter(),
-    })
-    data.value = res.content ?? []
-    total.value = res.totalElements ?? 0
+    allData.value = await entityConfigApi.list()
   }
   catch {
-    data.value = []
-    total.value = 0
+    allData.value = []
   }
   finally {
     loading.value = false
@@ -75,23 +78,13 @@ onMounted(load)
 const resetting = ref(false)
 
 watch(size, () => { if (!resetting.value) page.value = 1 })
-watch([page, size], () => { if (!resetting.value) load() })
-let searchTimer: ReturnType<typeof setTimeout> | undefined
-watch(search, () => {
-  if (resetting.value) return
-  clearTimeout(searchTimer)
-  searchTimer = setTimeout(() => {
-    page.value = 1
-    load()
-  }, 400)
-})
+watch(search, () => { if (!resetting.value) page.value = 1 })
 
-async function resetFilters() {
+function resetFilters() {
   resetting.value = true
   search.value = ''
   size.value = DEFAULT_PAGE_SIZE
   page.value = 1
-  await nextTick()
   resetting.value = false
   load()
 }
@@ -345,7 +338,13 @@ async function confirmDelete() {
                 {{ t('entityConfig.empty') }}
               </td>
             </tr>
-            <tr v-for="e in data" v-else :key="e.entityKey" class="hover:bg-prohealth-50/50">
+            <tr
+              v-for="e in data"
+              v-else
+              :key="e.entityKey"
+              class="hover:bg-prohealth-50/50"
+              @dblclick="(evt: MouseEvent) => { if (!(evt.target as HTMLElement).closest('button, a')) openEdit(e) }"
+            >
               <td class="px-5 py-3">
                 <div class="font-semibold text-prohealth-900">{{ e.displayName }}</div>
                 <div class="text-xs text-prohealth-500">{{ e.entityKey }}</div>

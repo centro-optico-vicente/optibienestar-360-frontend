@@ -1,5 +1,4 @@
 import type { ConfigSortOrder } from '~/composables/useSystemConfig'
-import type { Page } from '~/types/admin'
 
 /** Boolean flags and `updatedAt` carry a localized `_Display` sibling (hub ADR 0014). */
 export interface EntityConfigDto {
@@ -44,23 +43,10 @@ export interface UpdateEntityConfigRequest {
  * gated by the granular ENTITY_CONFIG_VIEW/_CREATE/_UPDATE/_DELETE —
  * SYSTEM role only for now (backend V81).
  */
-interface ListParams {
-  page?: number
-  size?: number
-  sort?: string[]
-  filter?: string
-}
-
 export const useEntityConfig = () => {
-  const list = (params: ListParams = {}) =>
-    useApi<Page<EntityConfigDto>>('/v1/admin/entity-config', {
-      query: {
-        page: params.page ?? 0,
-        size: params.size ?? 20,
-        ...(params.sort?.length ? { sort: params.sort } : {}),
-        ...(params.filter ? { filter: params.filter } : {}),
-      },
-    })
+  // Backend returns the full flat array (no Page<T> envelope) — pagination
+  // and filtering for this list happen client-side in the page component.
+  const list = () => useApi<EntityConfigDto[]>('/v1/admin/entity-config')
 
   const get = (entityKey: string) => useApi<EntityConfigDto>(`/v1/admin/entity-config/${entityKey}`)
 
