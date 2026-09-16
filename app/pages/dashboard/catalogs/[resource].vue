@@ -2,6 +2,7 @@
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { CatalogDef, CatalogField, CatalogItem } from '~/types/catalogs'
+import type { RankTreeNode } from '~/components/PromoterRankTreeNode.vue'
 import { toSelectItems } from '~/types/options'
 import { getCatalogDef } from '~/utils/catalog-registry'
 import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
@@ -231,6 +232,26 @@ const allRanks = ref<CatalogItem[]>([])
 
 async function loadAllRanksIfNeeded() {
   allRanks.value = def.value?.key === 'promoter-ranks' ? await api().listAll() : []
+}
+
+// ---- Vertical rank tree (side panel next to the table, promoter-ranks only) ----
+// No self-referencing parent field exists (hierarchy is the ordinal
+// `hierarchyLevel`, not a stored FK) — build a single-chain tree from it,
+// highest level first (the root of an org chart is the top cargo).
+const rankTreeRoots = computed<RankTreeNode[]>(() => {
+  if (def.value?.key !== 'promoter-ranks') return []
+  const sorted = [...allRanks.value].sort((a, b) => (b.hierarchyLevel ?? 0) - (a.hierarchyLevel ?? 0))
+  function chain(list: CatalogItem[]): RankTreeNode[] {
+    if (!list.length) return []
+    const [head, ...rest] = list
+    return [{ item: head, children: chain(rest) }]
+  }
+  return chain(sorted)
+})
+const treeSelectedUuid = ref<string | null>(null)
+function onTreeSelect(item: CatalogItem) {
+  treeSelectedUuid.value = item.uuid
+  if (canUpdate.value) openEdit(item)
 }
 
 async function init() {
@@ -541,9 +562,33 @@ async function confirmDelete() {
       </UButton>
     </div>
 
+    <!-- Table (+ vertical rank tree side panel, promoter-ranks only) -->
+    <div :class="def.key === 'promoter-ranks' ? 'flex flex-col lg:flex-row gap-4 items-start' : ''">
+      <!-- Vertical tree — same cargos as the table, just laid out as a chain
+           by hierarchyLevel instead of rows. Clicking a node opens its edit
+           form, same as clicking its table row. -->
+      <div
+        v-if="def.key === 'promoter-ranks' && rankTreeRoots.length"
+        class="bg-white rounded-2xl border border-prohealth-100 p-3 w-full lg:w-64 shrink-0 h-[calc(100vh-19rem)] min-h-[24rem] overflow-auto"
+      >
+        <h2 class="text-xs font-semibold uppercase tracking-wide text-prohealth-400 mb-2 flex items-center gap-1.5 px-1">
+          <UIcon name="i-lucide-network" class="w-3.5 h-3.5" />
+          {{ $t('catalogs.promoterRanksTree.title') }}
+        </h2>
+        <ul>
+          <PromoterRankTreeNode
+            v-for="root in rankTreeRoots"
+            :key="root.item.uuid"
+            :node="root"
+            :selected-uuid="treeSelectedUuid"
+            @select="onTreeSelect"
+          />
+        </ul>
+      </div>
+
     <!-- Table: fixed-height card so the pagination footer stays pinned at the
          bottom (few rows) and only the row area scrolls (many rows). -->
-    <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-19rem)] min-h-[24rem]">
+    <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-19rem)] min-h-[24rem] flex-1 w-full">
       <div class="overflow-auto flex-1">
         <table class="w-full text-sm">
           <thead class="sticky top-0 bg-white z-10">
@@ -667,6 +712,7 @@ async function confirmDelete() {
           </UTooltip>
         </div>
       </div>
+    </div>
     </div>
 
     <!-- Create/edit modal -->

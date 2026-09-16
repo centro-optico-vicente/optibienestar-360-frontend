@@ -883,6 +883,9 @@
       "superiorRank": "Cargo superior",
       "superiorRankNone": "Ninguno (nivel más alto)"
     },
+    "promoterRanksTree": {
+      "title": "Árbol de cargos"
+    },
     "validation": {
       "isoCode": "Dos letras mayúsculas (ISO 3166-1, p.ej. VE)",
       "genderCode": "Una letra mayúscula (p.ej. M, F)",
@@ -1995,10 +1998,19 @@
       "supervisorPlaceholder": "Seleccionar supervisor…",
       "noEligibleSupervisors": "No hay ningún promotor que califique como supervisor todavía.",
       "detachSupervisorLabel": "Quitar supervisor (queda como tope de su propia cadena)",
+      "tabs": {
+        "tree": "Árbol visual",
+        "list": "Lista"
+      },
+      "dragDrop": {
+        "hint": "Arrastra un promotor sobre otro para reasignar su supervisor.",
+        "cycleError": "No se puede reasignar: convertiría a un supervisor en subordinado de su propia cadena."
+      },
       "assignSupervisor": {
         "action": "Reasignar supervisor",
         "title": "Reasignar supervisor de {name}",
         "currentRank": "Cargo actual: {rank}",
+        "fromDragNote": "Supervisor preseleccionado por arrastrar y soltar — confirma el motivo para aplicar el cambio.",
         "savedToast": "Supervisor reasignado correctamente."
       },
       "changeRank": {

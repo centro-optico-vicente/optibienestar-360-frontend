@@ -10,6 +10,9 @@ import { toSelectItems } from '~/types/options'
 const props = defineProps<{
   open: boolean
   promoterUuid: string | null
+  /** Pre-selects the supervisor — set when the modal opens from a drag-and-drop
+   * reassignment on the org-chart view, so the user only has to confirm the reason. */
+  presetSupervisorUuid?: string | null
 }>()
 
 const emit = defineEmits<{
@@ -66,6 +69,15 @@ async function load() {
       const options = await hierarchyApi.eligibleSupervisors(currentRankUuid.value, { allSuperiors: true, limit: 200 })
       supervisorOptions.value = toSelectItems(options)
     }
+
+    // Drag-and-drop on the org-chart view already picked the target — preset
+    // it so the user only has to confirm the reason. Left overridable (still
+    // a plain <select> value) in case the drop target turns out wrong; the
+    // backend re-validates rank/cycle regardless of where the value came from.
+    if (props.presetSupervisorUuid) {
+      selectedSupervisor.value = props.presetSupervisorUuid
+      detachSupervisor.value = false
+    }
   }
   catch {
     // useApi ya notificó el error
@@ -114,6 +126,10 @@ async function confirm() {
         <USkeleton class="h-20 w-full rounded" />
       </div>
       <div v-else class="space-y-4">
+        <div v-if="presetSupervisorUuid" class="rounded-xl border border-primary-200 bg-primary-50 p-3 flex gap-2 text-sm text-primary-800">
+          <UIcon name="i-lucide-move" class="w-4 h-4 shrink-0 mt-0.5" />
+          <span>{{ t('promoters.hierarchy.assignSupervisor.fromDragNote') }}</span>
+        </div>
         <p class="text-sm text-prohealth-600">
           {{ t('promoters.hierarchy.assignSupervisor.currentRank', { rank: currentRankDisplay }) }}
         </p>

@@ -883,6 +883,9 @@
       "superiorRank": "Superior rank",
       "superiorRankNone": "None (top level)"
     },
+    "promoterRanksTree": {
+      "title": "Rank tree"
+    },
     "validation": {
       "isoCode": "Two uppercase letters (ISO 3166-1, e.g. VE)",
       "genderCode": "One uppercase letter (e.g. M, F)",
@@ -1995,10 +1998,19 @@
       "supervisorPlaceholder": "Select a supervisor…",
       "noEligibleSupervisors": "No promoter currently qualifies as a supervisor.",
       "detachSupervisorLabel": "Remove supervisor (becomes top of its own chain)",
+      "tabs": {
+        "tree": "Visual tree",
+        "list": "List"
+      },
+      "dragDrop": {
+        "hint": "Drag a promoter onto another to reassign its supervisor.",
+        "cycleError": "Can't reassign: this would turn a supervisor into their own subordinate."
+      },
       "assignSupervisor": {
         "action": "Reassign supervisor",
         "title": "Reassign {name}'s supervisor",
         "currentRank": "Current rank: {rank}",
+        "fromDragNote": "Supervisor preselected from drag-and-drop — confirm the reason to apply the change.",
         "savedToast": "Supervisor reassigned successfully."
       },
       "changeRank": {
