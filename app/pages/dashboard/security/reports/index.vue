@@ -173,11 +173,11 @@ onMounted(load)
 
     <!-- Listado -->
     <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-19rem)] min-h-[20rem]">
-      <div v-if="loading" class="py-10 text-center text-prohealth-500">
-        <UIcon name="i-lucide-loader-2" class="w-6 h-6 mx-auto animate-spin" />
+      <div v-if="loading" class="flex-1 flex items-center justify-center text-prohealth-500">
+        <UIcon name="i-lucide-loader-2" class="w-6 h-6 animate-spin" />
       </div>
-      <div v-else-if="data.length === 0" class="py-12 text-center text-prohealth-500">
-        <UIcon name="i-lucide-file-text" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
+      <div v-else-if="data.length === 0" class="flex-1 flex flex-col items-center justify-center text-prohealth-500">
+        <UIcon name="i-lucide-file-text" class="w-8 h-8 mb-2 text-prohealth-300" />
         {{ $t('security.reportsAudit.empty') }}
       </div>
       <ul v-else class="overflow-auto flex-1 divide-y divide-prohealth-100">

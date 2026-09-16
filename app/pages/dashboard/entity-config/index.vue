@@ -4,6 +4,7 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 import type { EntityConfigDto } from '~/composables/useEntityConfig'
 import { COMMON_SORT_FIELDS } from '~/composables/useSystemConfig'
 import type { ConfigSortOrder } from '~/composables/useSystemConfig'
+import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
 
 definePageMeta({
   layout: 'dashboard',
@@ -31,28 +32,38 @@ const SORT_DIRECTION_OPTIONS = [
 
 // ---- List ----
 const data = ref<EntityConfigDto[]>([])
+const total = ref(0)
 const loading = ref(false)
+const page = ref(1) // UPagination es 1-based; la API es 0-based
+const size = ref(DEFAULT_PAGE_SIZE)
+const pageSizeItems = buildPageSizeItems(t)
 const search = ref('')
-
-const filtered = computed(() => {
-  const q = search.value.trim().toLowerCase()
-  if (!q) return data.value
-  return data.value.filter(e =>
-    e.entityKey.toLowerCase().includes(q) || e.displayName.toLowerCase().includes(q))
-})
 
 function summarizeSort(sort?: ConfigSortOrder[] | null): string {
   if (!sort || sort.length === 0) return t('common.empty')
   return sort.map(o => `${o.field} ${o.direction}`).join(', ')
 }
 
+function buildFilter(): string | undefined {
+  const term = search.value.trim()
+  if (!term) return undefined
+  return `entityKey=='*${term}*',displayName=='*${term}*'`
+}
+
 async function load() {
   loading.value = true
   try {
-    data.value = await entityConfigApi.list()
+    const res = await entityConfigApi.list({
+      page: page.value - 1,
+      size: size.value,
+      filter: buildFilter(),
+    })
+    data.value = res.content ?? []
+    total.value = res.totalElements ?? 0
   }
   catch {
     data.value = []
+    total.value = 0
   }
   finally {
     loading.value = false
@@ -60,9 +71,28 @@ async function load() {
 }
 onMounted(load)
 
-// "Clear filters and refresh": the only filter here is the client-side search box.
-function resetFilters() {
+// Guards the filter watchers so "clear filters and refresh" fires a single reload.
+const resetting = ref(false)
+
+watch(size, () => { if (!resetting.value) page.value = 1 })
+watch([page, size], () => { if (!resetting.value) load() })
+let searchTimer: ReturnType<typeof setTimeout> | undefined
+watch(search, () => {
+  if (resetting.value) return
+  clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => {
+    page.value = 1
+    load()
+  }, 400)
+})
+
+async function resetFilters() {
+  resetting.value = true
   search.value = ''
+  size.value = DEFAULT_PAGE_SIZE
+  page.value = 1
+  await nextTick()
+  resetting.value = false
   load()
 }
 
@@ -296,10 +326,10 @@ async function confirmDelete() {
     </div>
 
     <!-- Table -->
-    <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
-      <div class="overflow-auto">
+    <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-19rem)] min-h-[20rem]">
+      <div class="overflow-auto flex-1">
         <table class="w-full text-sm">
-          <thead class="bg-white">
+          <thead class="sticky top-0 bg-white z-10">
             <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
               <th class="px-5 py-3 font-semibold">{{ t('entityConfig.columns.entity') }}</th>
               <th class="px-5 py-3 font-semibold">{{ t('entityConfig.columns.enabled') }}</th>
@@ -309,13 +339,13 @@ async function confirmDelete() {
           </thead>
           <tbody class="divide-y divide-prohealth-100">
             <TableSkeleton v-if="loading" :rows="6" :cols="4" />
-            <tr v-else-if="filtered.length === 0">
+            <tr v-else-if="data.length === 0">
               <td colspan="4" class="px-5 py-12 text-center text-prohealth-500">
                 <UIcon name="i-lucide-database-zap" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
                 {{ t('entityConfig.empty') }}
               </td>
             </tr>
-            <tr v-for="e in filtered" v-else :key="e.entityKey" class="hover:bg-prohealth-50/50">
+            <tr v-for="e in data" v-else :key="e.entityKey" class="hover:bg-prohealth-50/50">
               <td class="px-5 py-3">
                 <div class="font-semibold text-prohealth-900">{{ e.displayName }}</div>
                 <div class="text-xs text-prohealth-500">{{ e.entityKey }}</div>
@@ -354,6 +384,33 @@ async function confirmDelete() {
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Paginación -->
+      <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-3 border-t border-prohealth-100 shrink-0">
+        <p class="text-xs text-prohealth-500">
+          {{ t('entityConfig.paginationSummary', { shown: data.length, total }) }}
+        </p>
+        <div class="flex items-center gap-3">
+          <UPagination
+            v-if="size !== UNPAGED_PAGE_SIZE"
+            v-model:page="page"
+            :total="total"
+            :items-per-page="size"
+          />
+          <UTooltip :text="t('catalogs.pageSizeLabel')">
+            <USelectMenu
+              v-model="size"
+              :items="pageSizeItems"
+              label-key="label"
+              value-key="value"
+              icon="i-lucide-list"
+              :search-input="false"
+              :aria-label="t('catalogs.pageSizeLabel')"
+              class="w-40"
+            />
+          </UTooltip>
+        </div>
       </div>
     </div>
 
