@@ -2027,6 +2027,7 @@
     "columns": {
       "promoter": "Promotor",
       "type": "Tipo",
+      "rank": "Cargo",
       "status": "Estado",
       "referrals": "Referidos",
       "commissionPaid": "Comisión pagada",
@@ -2063,6 +2064,7 @@
         "personRif": "RIF",
         "userEmail": "Usuario",
         "promoterTypeUuid": "Tipo de promotor",
+        "rankUuid": "Cargo",
         "totalReferrals": "Total de referidos",
         "totalCommissionPaid": "Comisión total pagada",
         "createdAt": "Creado",
