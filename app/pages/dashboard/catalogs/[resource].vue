@@ -244,7 +244,7 @@ const rankTreeRoots = computed<RankTreeNode[]>(() => {
   function chain(list: CatalogItem[]): RankTreeNode[] {
     if (!list.length) return []
     const [head, ...rest] = list
-    return [{ item: head, children: chain(rest) }]
+    return [{ item: head!, children: chain(rest) }]
   }
   return chain(sorted)
 })
