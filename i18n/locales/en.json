@@ -2027,6 +2027,7 @@
     "columns": {
       "promoter": "Promoter",
       "type": "Type",
+      "rank": "Rank",
       "status": "Status",
       "referrals": "Referrals",
       "commissionPaid": "Commission paid",
@@ -2063,6 +2064,7 @@
         "personRif": "Tax ID",
         "userEmail": "User",
         "promoterTypeUuid": "Promoter type",
+        "rankUuid": "Rank",
         "totalReferrals": "Total referrals",
         "totalCommissionPaid": "Total commission paid",
         "createdAt": "Created",
