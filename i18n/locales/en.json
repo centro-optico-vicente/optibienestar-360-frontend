@@ -2825,7 +2825,8 @@
     "displayNamePlaceholder": "e.g. Allies",
     "tableName": "Table (optional)",
     "tableNamePlaceholder": "e.g. allies",
-    "searchPlaceholder": "Search by key or name..."
+    "searchPlaceholder": "Search by key or name...",
+    "paginationSummary": "{shown} of {total} entities"
   },
   "exchangeRates": {
     "title": "Exchange rates",

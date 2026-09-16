@@ -182,6 +182,36 @@ function exportCsv() {
 }
 ```
 
+## Doble click en la fila
+
+Toda tabla de listado (`<tr v-for="...">`) debe abrir el registro al hacer doble click:
+
+- Si la entidad tiene página de detalle/ficha (`[uuid].vue`), navega ahí.
+- Si no tiene detalle propio pero sí modal de edición (`openEdit(row)`), abre esa modal.
+- Si no tiene ni detalle ni modal, no se agrega `@dblclick`.
+
+Excluir siempre botones/links dentro de la fila con el guard `closest('button, a')`:
+
+```vue
+<!-- Navega a detalle -->
+<tr
+  v-for="u in data"
+  :key="u.uuid"
+  @dblclick="(e: MouseEvent) => { if (!(e.target as HTMLElement).closest('button, a')) navigateTo(`/dashboard/users/${u.uuid}`) }"
+>
+
+<!-- Abre modal de edición (sin página de detalle) -->
+<tr
+  v-for="e in data"
+  :key="e.entityKey"
+  @dblclick="(evt: MouseEvent) => { if (!(evt.target as HTMLElement).closest('button, a')) openEdit(e) }"
+>
+```
+
+Ver `app/pages/dashboard/users/index.vue`, `allies/index.vue`, `roles/index.vue` (detalle) y `entity-config/index.vue` (modal) como referencia.
+
+> Nota: varias tablas anteriores a esta regla (`members`, `promoters`, `plans`, `payments`, `scheduled-jobs`, `commission-rules`) usan un patrón previo de **un solo click** en toda la fila (`@click="... && openEdit(row)"` + `@click.stop` en la celda de acciones) en vez de doble click. Ese patrón sigue siendo válido y no hace falta migrarlo — pero **toda tabla nueva** debe usar el patrón de doble click descrito arriba.
+
 ## Reglas
 
 - Estado en query params (shareable URLs)
@@ -190,3 +220,4 @@ function exportCsv() {
 - Mobile responsive (cards vs tabla)
 - Whitelist de campos sortable/filterable (lo define backend)
 - Default sort sensato
+- Doble click en la fila abre detalle (si existe) o modal de edición (ver sección arriba)

@@ -2825,7 +2825,8 @@
     "displayNamePlaceholder": "ej. Aliados",
     "tableName": "Tabla (opcional)",
     "tableNamePlaceholder": "ej. allies",
-    "searchPlaceholder": "Buscar por clave o nombre..."
+    "searchPlaceholder": "Buscar por clave o nombre...",
+    "paginationSummary": "{shown} de {total} entidad(es)"
   },
   "exchangeRates": {
     "title": "Tasas de cambio",

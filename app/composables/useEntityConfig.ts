@@ -44,6 +44,8 @@ export interface UpdateEntityConfigRequest {
  * SYSTEM role only for now (backend V81).
  */
 export const useEntityConfig = () => {
+  // Backend returns the full flat array (no Page<T> envelope) — pagination
+  // and filtering for this list happen client-side in the page component.
   const list = () => useApi<EntityConfigDto[]>('/v1/admin/entity-config')
 
   const get = (entityKey: string) => useApi<EntityConfigDto>(`/v1/admin/entity-config/${entityKey}`)

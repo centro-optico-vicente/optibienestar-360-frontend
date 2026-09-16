@@ -398,7 +398,7 @@ function openEdit(role: RoleDto) {
     </div>
 
     <!-- Tabla de roles -->
-    <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-15rem)] min-h-[20rem]">
+    <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-19rem)] min-h-[20rem]">
       <div class="overflow-auto flex-1">
         <table class="w-full text-sm">
           <thead class="sticky top-0 bg-white z-10">
