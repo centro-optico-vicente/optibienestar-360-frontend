@@ -478,6 +478,10 @@
       "sistema": {
         "label": "System",
         "description": "Internal system configuration and operations."
+      },
+      "reportes": {
+        "label": "Reports",
+        "description": "General system reports."
       }
     },
     "items": {

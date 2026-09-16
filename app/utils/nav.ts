@@ -161,11 +161,19 @@ export const MAIN_NAV: NavEntry[] = [
     children: catalogChildren,
   },
   {
+    key: 'reportes',
     label: 'Reportes',
-    labelKey: 'nav.items.reports.label',
-    to: '/dashboard/reports',
+    labelKey: 'nav.groups.reportes.label',
     icon: 'i-lucide-bar-chart-3',
-    requires: ['REPORT_VIEW_DASHBOARD', 'REPORT_REPORT_GENERATE', 'COMMISSION_REPORT_GENERATE', 'PAYMENT_REPORT_GENERATE'],
+    description: 'Reportes generales del sistema.',
+    descriptionKey: 'nav.groups.reportes.description',
+    mosaicTo: '/dashboard/reports',
+    children: [
+      { label: 'Reporte de comisiones', labelKey: 'nav.items.commissionsReport.label', to: '/dashboard/commissions/report', icon: 'i-lucide-file-text', description: 'Reporte general de comisiones devengadas.', descriptionKey: 'nav.items.commissionsReport.description', requires: ['COMMISSION_REPORT_GENERATE', 'REPORT_REPORT_GENERATE', 'COMMISSION_VIEW_ALL', 'COMMISSION_VIEW_OWN'] },
+      { label: 'Reporte de pagos de comisiones', labelKey: 'nav.items.commissionPayoutsReport.label', to: '/dashboard/commissions/payouts-report', icon: 'i-lucide-file-check-2', description: 'Reporte de desembolsos y pagos realizados a promotores.', descriptionKey: 'nav.items.commissionPayoutsReport.description', requires: ['COMMISSION_REPORT_GENERATE', 'REPORT_REPORT_GENERATE', 'COMMISSION_VIEW_ALL', 'COMMISSION_VIEW_OWN'] },
+      { label: 'Reporte de pagos', labelKey: 'nav.items.paymentsReport.label', to: '/dashboard/payments/report', icon: 'i-lucide-file-spreadsheet', description: 'Reporte de recaudación y pagos de afiliados.', descriptionKey: 'nav.items.paymentsReport.description', requires: ['PAYMENT_REPORT_GENERATE', 'REPORT_REPORT_GENERATE', 'PAYMENT_VIEW_ALL'] },
+      { label: 'Reportes generados', labelKey: 'nav.items.auditReports.label', to: '/dashboard/security/reports', icon: 'i-lucide-shield-alert', description: 'Historial global de reportes generados.', descriptionKey: 'nav.items.auditReports.description', requires: 'REPORT_AUDIT_VIEW_ALL' },
+    ],
   },
   {
     key: 'mis-portales',
