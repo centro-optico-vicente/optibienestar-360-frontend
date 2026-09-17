@@ -32,9 +32,13 @@ export interface CatalogItem {
   state_Display?: string | null
   state_Code?: string | null
   // `promoter-ranks` (V101) — hierarchy_level is the immutable ordering key,
-  // max_subordinates optional (no cap when absent).
+  // max_subordinates optional (no cap when absent). `parentRankUuid` (this
+  // hub plan) is the real parent/superior FK — `null` means top of the
+  // hierarchy. Unlike the FK-triple convention (`<rel>_Uuid`/`<rel>_Display`),
+  // the backend returns this one flat, matching the request-body field.
   hierarchyLevel?: number
   maxSubordinates?: number | null
+  parentRankUuid?: string | null
   // `promoter-types` (V103) — whether a sale by this type cascades a
   // hierarchy override up the supervisor chain (default true).
   generatesHierarchyOverride?: boolean

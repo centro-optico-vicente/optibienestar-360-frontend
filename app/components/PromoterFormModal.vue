@@ -2,6 +2,7 @@
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { SelectItem } from '~/types/options'
+import { toSelectItems } from '~/types/options'
 import type {
   PromoterCreateRequest,
   PromoterDto,
@@ -9,6 +10,7 @@ import type {
   PromoterUpdateRequest,
 } from '~/types/promoters'
 import { PROMOTER_STATUS_OPTIONS } from '~/types/promoters'
+import { resolveEntityReference } from '~/utils/entity-references'
 
 // Promoter create/edit form, shared by the list (/dashboard/promoters) and the detail
 // (/dashboard/promoters/[uuid]) so the fields + validation aren't duplicated.
@@ -39,11 +41,19 @@ const { t } = useI18n()
 const promoters = usePromoters()
 const users = useUsers()
 const promoterTypeOptions = useCatalogOptions('promoter-types')
+const hierarchyApi = usePromoterHierarchy()
 const toast = useToast()
 const { can } = usePermissions()
 
 const canDelete = computed(() => can('PROMOTER_DELETE'))
 const canChangeRank = computed(() => can('PROMOTER_CHANGE_RANK'))
+const canViewRank = computed(() => can('PROMOTER_RANK_VIEW_ALL'))
+const canViewPromoter = computed(() => can('PROMOTER_VIEW_ALL'))
+
+// Quick-link buttons next to the read-only Cargo field and the editable
+// Supervisor select, same resolver used by CommonEntityReferenceSelect.
+const rankLink = computed(() => resolveEntityReference('promoter_rank', props.promoter?.rank_Uuid)?.to ?? null)
+const supervisorLink = computed(() => resolveEntityReference('promoter', props.promoter?.supervisor_Uuid)?.to ?? null)
 
 function goToCatalogRecord(to: string) {
   isOpen.value = false
@@ -75,6 +85,8 @@ interface FormState {
   promoterTypeUuid: string
   status: PromoterStatus | undefined
   active: boolean
+  /** Edit-only, unlike `rank` — directly editable here (see the Supervisor field). */
+  supervisorUuid: string
 }
 
 const state = reactive<FormState>({
@@ -87,7 +99,39 @@ const state = reactive<FormState>({
   promoterTypeUuid: '',
   status: 'ACTIVE',
   active: true,
+  supervisorUuid: '',
 })
+
+// Eligible-supervisor options for the immediate rank above the promoter's own
+// (`allSuperiors: false`) — loaded whenever the edit form opens/refreshes,
+// keyed off the promoter's current rank.
+const supervisorOptions = ref<SelectItem[]>([])
+const loadingSupervisors = ref(false)
+
+async function loadSupervisorOptions(rankUuid: string | null | undefined, currentSupervisorUuid?: string | null, currentSupervisorDisplay?: string | null) {
+  supervisorOptions.value = []
+  if (!rankUuid) return
+  loadingSupervisors.value = true
+  try {
+    const options = toSelectItems(await hierarchyApi.eligibleSupervisors(rankUuid, { allSuperiors: false, limit: 200 }))
+    // The current supervisor might fall outside the eligible-list limit — keep
+    // it selectable regardless, same defensive idea as `currentValues` elsewhere.
+    if (currentSupervisorUuid && !options.some(o => o.value === currentSupervisorUuid)) {
+      options.unshift({ label: currentSupervisorDisplay || currentSupervisorUuid, value: currentSupervisorUuid })
+    }
+    supervisorOptions.value = options
+  }
+  catch {
+    supervisorOptions.value = []
+  }
+  finally {
+    loadingSupervisors.value = false
+  }
+}
+
+// Snapshot of the supervisor at load time — only reassigned on save if it
+// actually changed, same "diff before writing" idea as `isEditDirty` below.
+const originalSupervisorUuid = ref<string | null>(null)
 
 // Loaded once when the modal opens — small fixed catalog, no search needed.
 const promoterTypeItems = ref<SelectItem[]>([])
@@ -171,6 +215,8 @@ function populateFrom(p: PromoterDto | null) {
     state.promoterTypeUuid = ''
     state.status = 'ACTIVE'
     state.active = true
+    state.supervisorUuid = ''
+    originalSupervisorUuid.value = null
     return
   }
   state.displayName = p.displayName ?? ''
@@ -182,13 +228,19 @@ function populateFrom(p: PromoterDto | null) {
   state.promoterTypeUuid = p.promoterType_Uuid ?? ''
   state.status = (p.status as PromoterStatus) ?? 'ACTIVE'
   state.active = p.active ?? true
+  state.supervisorUuid = p.supervisor_Uuid ?? ''
+  originalSupervisorUuid.value = p.supervisor_Uuid ?? null
   editSnapshot.value = snapEditState()
 }
 
 async function reloadForm() {
   if (!props.promoter) return
   reloading.value = true
-  try { populateFrom(await promoters.get(props.promoter.uuid)) }
+  try {
+    const detail = await promoters.get(props.promoter.uuid)
+    populateFrom(detail)
+    await loadSupervisorOptions(detail.rank_Uuid, detail.supervisor_Uuid, detail.supervisor_Display)
+  }
   catch { /* useApi already notified */ }
   finally { reloading.value = false }
 }
@@ -211,11 +263,14 @@ watch(() => props.open, async (open) => {
   }
   loadingDetail.value = true
   try {
-    populateFrom(await promoters.get(props.promoter.uuid))
+    const detail = await promoters.get(props.promoter.uuid)
+    populateFrom(detail)
+    await loadSupervisorOptions(detail.rank_Uuid, detail.supervisor_Uuid, detail.supervisor_Display)
   }
   catch {
     // If the detail fails to load, use the received record as a fallback.
     populateFrom(props.promoter)
+    await loadSupervisorOptions(props.promoter.rank_Uuid, props.promoter.supervisor_Uuid, props.promoter.supervisor_Display)
   }
   finally {
     loadingDetail.value = false
@@ -250,6 +305,21 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         active: state.active,
       }
       result = await promoters.update(props.promoter!.uuid, body)
+
+      // Supervisor is a separate write (assign-supervisor, not the plain PATCH
+      // above) — only fired when it actually changed, with a fixed, auto-generated
+      // reason so the operator isn't asked for one on top of "Guardar cambios".
+      const newSupervisorUuid = state.supervisorUuid || null
+      if (newSupervisorUuid !== originalSupervisorUuid.value) {
+        await hierarchyApi.assignSupervisor(props.promoter!.uuid, {
+          supervisorUuid: newSupervisorUuid,
+          reason: t('promoters.hierarchy.autoReasonFormEdit'),
+        })
+        // assignSupervisor's own response shape doesn't carry the full promoter
+        // DTO — refetch so `saved` emits fresh supervisor_Uuid/_Display.
+        result = await promoters.get(props.promoter!.uuid)
+      }
+
       toast.add({ title: t('promoters.updatedToast'), color: 'success', icon: 'i-lucide-check-circle' })
     }
     emit('saved', result)
@@ -384,7 +454,16 @@ async function restorePromoter() {
                parent, which owns that dialog — same pattern as `openDeleteFromEdit`). -->
           <UFormField :label="t('promoters.form.fields.rank')" name="rank">
             <div class="flex items-center gap-2">
-              <UInput :model-value="promoter?.rank_Display || t('promoters.form.rankNone')" class="w-full font-mono" disabled />
+              <UInput
+                :model-value="promoter?.rank_Display || t('promoters.form.rankNone')"
+                class="w-full font-mono opacity-50 cursor-not-allowed"
+                disabled
+              />
+              <CommonEntityQuickLinkButton
+                :to="rankLink"
+                :can="canViewRank"
+                @navigate="goToCatalogRecord"
+              />
               <UButton
                 v-if="canChangeRank"
                 color="neutral"
@@ -393,6 +472,30 @@ async function restorePromoter() {
                 icon="i-lucide-arrow-up-down"
                 :label="t('promoters.hierarchy.changeRank.action')"
                 @click="isOpen = false; emit('change-rank', promoter!)"
+              />
+            </div>
+          </UFormField>
+
+          <!-- Supervisor, unlike Cargo, is directly editable here: no rank change
+               is involved, just a reassignment (same effect as
+               PromoterAssignSupervisorModal, folded into this form's save so the
+               operator doesn't need a second dialog + a manually-typed reason). -->
+          <UFormField :label="t('promoters.hierarchy.supervisorLabel')" name="supervisorUuid">
+            <div class="flex items-center gap-2">
+              <USelectMenu
+                clear
+                v-model="state.supervisorUuid"
+                :items="supervisorOptions"
+                :loading="loadingSupervisors"
+                label-key="label"
+                value-key="value"
+                :placeholder="t('promoters.hierarchy.supervisorPlaceholder')"
+                class="w-full"
+              />
+              <CommonEntityQuickLinkButton
+                :to="supervisorLink"
+                :can="canViewPromoter"
+                @navigate="goToCatalogRecord"
               />
             </div>
           </UFormField>

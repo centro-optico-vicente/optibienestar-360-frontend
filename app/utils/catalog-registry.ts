@@ -280,6 +280,13 @@ export const CATALOGS: CatalogDef[] = [
       // hub plan §1. onlyCreate so it can never drift under an existing chain.
       { name: 'hierarchyLevel', label: 'Nivel jerárquico', labelKey: 'catalogs.fields.hierarchyLevel', type: 'number', required: true, onlyCreate: true, min: 1, placeholder: '2' },
       { name: 'maxSubordinates', label: 'Máximo de subordinados', labelKey: 'catalogs.fields.maxSubordinates', type: 'number', min: 1, placeholder: 'Sin límite' },
+      // Real parent/superior FK — self-referencing (`parentKey` points at this
+      // same catalog). Freely editable (unlike code/hierarchyLevel): reordering
+      // within a level goes through the dedicated reorder endpoint, not this
+      // field, but re-parenting to a different superior is a plain edit.
+      // `null` = top of the hierarchy. Gated by the same `updatePermission`
+      // as the rest of the form — no separate field-level permission exists.
+      { name: 'parentRankUuid', label: 'Cargo superior', labelKey: 'catalogs.fields.superiorRank', type: 'parent', parentKey: 'promoter-ranks' },
       { name: 'description', label: 'Descripción', labelKey: 'catalogs.fields.description', type: 'textarea', max: 200 },
     ],
   },

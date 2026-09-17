@@ -267,8 +267,14 @@ async function confirmDelete() {
                 {{ t('promoters.columns.promoter') }}
                 <SortIndicator :state="sort.stateOf('displayName')" :multi-active="isMultiSort" @clear="sort.remove('displayName')" />
               </th>
-              <th class="px-5 py-3 font-semibold">{{ t('promoters.columns.type') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('promoters.columns.rank') }}</th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('promoterType_Display')">
+                {{ t('promoters.columns.type') }}
+                <SortIndicator :state="sort.stateOf('promoterType_Display')" :multi-active="isMultiSort" @clear="sort.remove('promoterType_Display')" />
+              </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('rank_Display')">
+                {{ t('promoters.columns.rank') }}
+                <SortIndicator :state="sort.stateOf('rank_Display')" :multi-active="isMultiSort" @clear="sort.remove('rank_Display')" />
+              </th>
               <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('status')">
                 {{ t('promoters.columns.status') }}
                 <SortIndicator :state="sort.stateOf('status')" :multi-active="isMultiSort" @clear="sort.remove('status')" />

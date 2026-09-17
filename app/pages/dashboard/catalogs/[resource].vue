@@ -51,8 +51,8 @@ function parentLabelOf(item: CatalogItem): string | null {
   return v == null ? null : String(v)
 }
 
-// ---- Superior-rank quick-link (promoter-ranks form only) ----
-const canViewPromoterRank = computed(() => can('PROMOTER_RANK_VIEW_ALL'))
+// ---- Rank reorder (promoter-ranks table/tree only) ----
+const canReorderRank = computed(() => can('PROMOTER_RANK_REORDER'))
 
 // ---- Audit ----
 const auditOpen = ref(false)
@@ -204,7 +204,11 @@ const parentOptions = ref<Record<string, { label: string, value: string }[]>>({}
 async function loadParents() {
   if (!def.value) return
   parentOptions.value = {}
-  const parentFields = def.value.fields.filter(f => f.type === 'parent' && f.parentKey)
+  // Self-referencing FKs (parentKey === this catalog's own key, e.g.
+  // promoter-ranks.parentRankUuid) aren't under `/v1/admin/catalogs/*` like the
+  // rest — `useCatalogOptions` would 404. Those are populated separately from
+  // `allRanks` (see the watcher below), excluding the record being edited.
+  const parentFields = def.value.fields.filter(f => f.type === 'parent' && f.parentKey && f.parentKey !== def.value!.key)
   await Promise.all(parentFields.map(async (f) => {
     const pdef = getCatalogDef(f.parentKey!)
     if (!pdef) return
@@ -224,10 +228,9 @@ const filterOptions = computed(() => {
   return field ? (parentOptions.value[field as string] ?? []) : []
 })
 
-// `promoter-ranks` has no parent-rank FK (hierarchy is expressed as an
-// ordinal `hierarchyLevel`, not a self-reference — see hub plan
-// 2026-09-07-hierarchical-commissions-plan.md §1). The edit modal shows the
-// immediate superior derived from this full unpaged list rather than a stored field.
+// Full unpaged rank list — feeds the tree panel, the self-referencing
+// parentRankUuid FK select's options, and the reorder up/down buttons'
+// sibling lookup (all three need the whole set, not just the current page).
 const allRanks = ref<CatalogItem[]>([])
 
 async function loadAllRanksIfNeeded() {
@@ -235,19 +238,63 @@ async function loadAllRanksIfNeeded() {
 }
 
 // ---- Vertical rank tree (side panel next to the table, promoter-ranks only) ----
-// No self-referencing parent field exists (hierarchy is the ordinal
-// `hierarchyLevel`, not a stored FK) — build a single-chain tree from it,
-// highest level first (the root of an org chart is the top cargo).
+// Real tree built from `parentRankUuid` (this hub plan) — a root is a rank with
+// no parent (top of the hierarchy), and its children are the ranks whose
+// `parentRankUuid` points at it, recursively. `allRanks` arrives in the
+// backend's own display order (the same order the reorder endpoint edits),
+// so grouping by parent preserves sibling order without re-sorting.
 const rankTreeRoots = computed<RankTreeNode[]>(() => {
   if (def.value?.key !== 'promoter-ranks') return []
-  const sorted = [...allRanks.value].sort((a, b) => (b.hierarchyLevel ?? 0) - (a.hierarchyLevel ?? 0))
-  function chain(list: CatalogItem[]): RankTreeNode[] {
-    if (!list.length) return []
-    const [head, ...rest] = list
-    return [{ item: head!, children: chain(rest) }]
+  function childrenOf(parentUuid: string | null): RankTreeNode[] {
+    return allRanks.value
+      .filter(r => (r.parentRankUuid ?? null) === parentUuid)
+      .map(item => ({ item, children: childrenOf(item.uuid) }))
   }
-  return chain(sorted)
+  return childrenOf(null)
 })
+
+// Siblings of `item` (same `parentRankUuid`), in the backend's current
+// display order — used by the reorder up/down buttons below.
+function rankSiblingsOf(item: CatalogItem): CatalogItem[] {
+  return allRanks.value.filter(r => (r.parentRankUuid ?? null) === (item.parentRankUuid ?? null))
+}
+
+const reorderingUuid = ref<string | null>(null)
+
+/** Moves `item` one position up/down among its siblings via the reorder endpoint. */
+async function reorderRank(item: CatalogItem, direction: 'up' | 'down') {
+  if (!def.value) return
+  const siblings = rankSiblingsOf(item)
+  const idx = siblings.findIndex(r => r.uuid === item.uuid)
+  if (idx === -1) return
+  let afterRankUuid: string | null
+  if (direction === 'up') {
+    if (idx === 0) return
+    afterRankUuid = idx - 2 >= 0 ? siblings[idx - 2]!.uuid : null
+  }
+  else {
+    if (idx === siblings.length - 1) return
+    afterRankUuid = siblings[idx + 1]!.uuid
+  }
+  reorderingUuid.value = item.uuid
+  try {
+    await api().reorder(item.uuid, afterRankUuid)
+    await Promise.all([load(), loadAllRanksIfNeeded()])
+  }
+  catch {
+    // useApi already notified the error
+  }
+  finally {
+    reorderingUuid.value = null
+  }
+}
+function canMoveRankUp(item: CatalogItem): boolean {
+  return rankSiblingsOf(item)[0]?.uuid !== item.uuid
+}
+function canMoveRankDown(item: CatalogItem): boolean {
+  const siblings = rankSiblingsOf(item)
+  return siblings[siblings.length - 1]?.uuid !== item.uuid
+}
 const treeSelectedUuid = ref<string | null>(null)
 function onTreeSelect(item: CatalogItem) {
   treeSelectedUuid.value = item.uuid
@@ -314,17 +361,23 @@ const isActive = ref(true)
 // (e.g. promoter-types.generatesHierarchyOverride) live here instead of `state`.
 const checkboxState = reactive<Record<string, boolean>>({})
 
-// `promoter-ranks` only: the rank with the closest hierarchyLevel above the
-// one being edited (null at the top level, where none exists).
-const superiorRank = computed(() => {
-  if (def.value?.key !== 'promoter-ranks' || mode.value !== 'edit') return null
-  const level = editingItem.value?.hierarchyLevel
-  if (level == null) return null
-  const above = allRanks.value.filter(r => r.hierarchyLevel != null && r.hierarchyLevel > level)
-  if (!above.length) return null
-  return above.reduce((closest, r) => (r.hierarchyLevel! < closest.hierarchyLevel! ? r : closest))
-})
-const superiorRankName = computed(() => superiorRank.value?.name ?? null)
+// Options for the self-referencing parentRankUuid FK select: every other
+// rank, excluding the one currently being edited (a rank can't be its own
+// parent). Re-synced whenever the full rank list or the record being edited
+// changes — this used to be a derived-only readonly display (closest rank by
+// `hierarchyLevel`); now `parentRankUuid` is a real, editable FK, so the form
+// field above (rendered generically for `type: 'parent'`) replaces it.
+watch([allRanks, editingUuid], () => {
+  if (!def.value) return
+  const selfField = def.value.fields.find(f => f.type === 'parent' && f.parentKey === def.value!.key)
+  if (!selfField) return
+  parentOptions.value = {
+    ...parentOptions.value,
+    [selfField.name]: allRanks.value
+      .filter(r => r.uuid !== editingUuid.value)
+      .map(r => ({ label: r.name, value: r.uuid })),
+  }
+}, { immediate: true })
 
 // Fields visible in the current form. `onlyCreate` fields are hidden on edit,
 // except `parent` FK selects: those stay visible (disabled) so the admin can
@@ -379,8 +432,11 @@ function populateEditForm(item: CatalogItem) {
   const raw = item as unknown as Record<string, unknown>
   for (const f of def.value?.fields ?? []) {
     if (f.type === 'checkbox') checkboxState[f.name] = Boolean(raw[f.name])
-    // Parent FKs arrive as `<name>_Uuid` (the "FK triple"), not `<name>`.
-    else if (f.type === 'parent') state[f.name] = String(raw[f.name.replace(/Uuid$/, '_Uuid')] ?? '')
+    // Parent FKs usually arrive as `<name>_Uuid` (the "FK triple", hub ADR
+    // 0014), not `<name>` — except self-referencing ones like
+    // promoter-ranks.parentRankUuid, which the backend returns flat (no
+    // `_Display` pair needed since the tree/select resolve the name locally).
+    else if (f.type === 'parent') state[f.name] = String((raw[f.name.replace(/Uuid$/, '_Uuid')] ?? raw[f.name]) ?? '')
     else state[f.name] = String(raw[f.name] ?? '')
   }
   isActive.value = item.active
@@ -680,6 +736,30 @@ async function confirmDelete() {
               </td>
               <td class="px-5 py-3" @click.stop>
                 <div class="flex items-center justify-end gap-1">
+                  <template v-if="def.key === 'promoter-ranks' && canReorderRank">
+                    <UTooltip :text="$t('catalogs.promoterRanksTree.moveUp')">
+                      <UButton
+                        color="neutral"
+                        variant="ghost"
+                        icon="i-lucide-arrow-up"
+                        size="sm"
+                        :loading="reorderingUuid === item.uuid"
+                        :disabled="!canMoveRankUp(item)"
+                        @click="reorderRank(item, 'up')"
+                      />
+                    </UTooltip>
+                    <UTooltip :text="$t('catalogs.promoterRanksTree.moveDown')">
+                      <UButton
+                        color="neutral"
+                        variant="ghost"
+                        icon="i-lucide-arrow-down"
+                        size="sm"
+                        :loading="reorderingUuid === item.uuid"
+                        :disabled="!canMoveRankDown(item)"
+                        @click="reorderRank(item, 'down')"
+                      />
+                    </UTooltip>
+                  </template>
                   <UTooltip v-if="canUpdate" :text="$t('common.edit')">
                     <UButton color="info" variant="ghost" icon="i-lucide-pencil" size="sm" @click="openEdit(item)" />
                   </UTooltip>
@@ -787,17 +867,6 @@ async function confirmDelete() {
               :maxlength="f.max"
               class="w-full"
             />
-          </UFormField>
-
-          <UFormField v-if="def?.key === 'promoter-ranks' && mode === 'edit'" :label="$t('catalogs.fields.superiorRank')">
-            <div class="flex items-center gap-2">
-              <UInput :model-value="superiorRankName ?? $t('catalogs.fields.superiorRankNone')" disabled class="w-full" />
-              <CommonEntityQuickLinkButton
-                :to="superiorRank ? `/dashboard/catalogs/promoter-ranks?edit=${superiorRank.uuid}` : null"
-                :can="canViewPromoterRank"
-                @navigate="goToLinkedRecord"
-              />
-            </div>
           </UFormField>
 
           <UFormField v-if="mode === 'edit'" :label="$t('catalogs.fields.active')">

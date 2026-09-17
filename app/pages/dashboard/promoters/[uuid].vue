@@ -30,6 +30,7 @@ const canUpdate = computed(() => can('PROMOTER_UPDATE'))
 const canDelete = computed(() => can('PROMOTER_DELETE'))
 const canViewPromoterType = computed(() => can('PROMOTER_TYPE_VIEW_ALL'))
 const canViewRank = computed(() => can('PROMOTER_RANK_VIEW_ALL'))
+const canViewPromoterAll = computed(() => can('PROMOTER_VIEW_ALL'))
 const canViewMember = computed(() => can('MEMBER_VIEW_ALL'))
 const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('PROMOTER_RECORD_AUDIT_VIEW'))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('PROMOTER_REPORT_AUDIT_VIEW'))
@@ -437,6 +438,16 @@ async function loadCommissionsSummary() {
                 :to="promoter.rank_Uuid ? `/dashboard/catalogs/promoter-ranks?edit=${promoter.rank_Uuid}` : null"
                 :label="promoter.rank_Display"
                 :can="canViewRank"
+              />
+            </dd>
+          </div>
+          <div v-if="canViewPromoterAll">
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.fields.supervisorUuid') }}</dt>
+            <dd class="mt-0.5">
+              <CommonEntityLinkCell
+                :to="promoter.supervisor_Uuid ? `/dashboard/promoters/${promoter.supervisor_Uuid}` : null"
+                :label="promoter.supervisor_Display"
+                :can="canViewPromoterAll"
               />
             </dd>
           </div>

@@ -886,7 +886,9 @@
       "decimalPlaces": "Decimal places"
     },
     "promoterRanksTree": {
-      "title": "Rank tree"
+      "title": "Rank tree",
+      "moveUp": "Move up",
+      "moveDown": "Move down"
     },
     "validation": {
       "isoCode": "Two uppercase letters (ISO 3166-1, e.g. VE)",
@@ -2005,6 +2007,7 @@
       "supervisorPlaceholder": "Select a supervisor…",
       "noEligibleSupervisors": "No promoter currently qualifies as a supervisor.",
       "detachSupervisorLabel": "Remove supervisor (becomes top of its own chain)",
+      "autoReasonFormEdit": "Updated from the promoter edit form",
       "tabs": {
         "tree": "Visual tree",
         "list": "List"
@@ -2084,6 +2087,7 @@
         "userEmail": "User",
         "promoterTypeUuid": "Promoter type",
         "rankUuid": "Rank",
+        "supervisorUuid": "Supervisor",
         "totalReferrals": "Total referrals",
         "totalCommissionPaid": "Total commission paid",
         "createdAt": "Created",
