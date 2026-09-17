@@ -881,7 +881,9 @@
       "hierarchyLevel": "Nivel jerárquico",
       "maxSubordinates": "Máximo de subordinados",
       "superiorRank": "Cargo superior",
-      "superiorRankNone": "Ninguno (nivel más alto)"
+      "superiorRankNone": "Ninguno (nivel más alto)",
+      "symbol": "Símbolo",
+      "decimalPlaces": "Decimales"
     },
     "promoterRanksTree": {
       "title": "Árbol de cargos"
@@ -891,6 +893,7 @@
       "genderCode": "Una letra mayúscula (p.ej. M, F)",
       "documentTypeCode": "1 a 3 letras mayúsculas (p.ej. CC, CI)",
       "codeMax": "Mayúsculas/guion bajo, máx. {n}",
+      "currencyCode": "Tres o cuatro letras mayúsculas (ISO 4217, p.ej. USD)",
       "invalidFormat": "Formato no válido"
     },
     "registry": {
@@ -941,6 +944,10 @@
       "promoter-ranks": {
         "label": "Cargos jerárquicos",
         "labelSingular": "Cargo jerárquico"
+      },
+      "currencies": {
+        "label": "Monedas",
+        "labelSingular": "Moneda"
       }
     }
   },

@@ -283,6 +283,26 @@ export const CATALOGS: CatalogDef[] = [
       { name: 'description', label: 'Descripción', labelKey: 'catalogs.fields.description', type: 'textarea', max: 200 },
     ],
   },
+  {
+    key: 'currencies',
+    basePath: '/v1/admin/currencies',
+    viewPermission: 'CURRENCY_VIEW_ALL',
+    createPermission: 'CURRENCY_CREATE',
+    updatePermission: 'CURRENCY_UPDATE',
+    deletePermission: 'CURRENCY_DELETE',
+    label: 'Monedas',
+    labelSingular: 'Moneda',
+    labelKey: 'catalogs.registry.currencies.label',
+    labelSingularKey: 'catalogs.registry.currencies.labelSingular',
+    icon: 'i-lucide-coins',
+    codeField: 'code',
+    fields: [
+      { name: 'code', label: 'Código', labelKey: 'catalogs.fields.code', type: 'text', required: true, onlyCreate: true, regex: /^[A-Z]{3,4}$/, regexMsg: 'Tres o cuatro letras mayúsculas (ISO 4217, p.ej. USD)', regexMsgKey: 'catalogs.validation.currencyCode', max: 4, placeholder: 'USD' },
+      { name: 'name', label: 'Nombre', labelKey: 'catalogs.fields.name', type: 'text', required: true, max: 60 },
+      { name: 'symbol', label: 'Símbolo', labelKey: 'catalogs.fields.symbol', type: 'text', required: true, max: 6, placeholder: '$' },
+      { name: 'decimalPlaces', label: 'Decimales', labelKey: 'catalogs.fields.decimalPlaces', type: 'number', required: true, min: 0, placeholder: '2' },
+    ],
+  },
 ]
 
 /** Finds a catalog definition by its route key. */

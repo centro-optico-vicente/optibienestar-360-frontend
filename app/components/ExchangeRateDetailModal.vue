@@ -20,6 +20,12 @@ function sourceLabel(sourceValue: ExchangeRateSource): string {
   const opt = EXCHANGE_RATE_SOURCE_OPTIONS.find(o => o.value === sourceValue)
   return t(`exchangeRates.source.${sourceValue}`, opt?.label ?? sourceValue)
 }
+
+const { can } = usePermissions()
+const canViewCurrency = computed(() => can('CURRENCY_VIEW_ALL'))
+function currencyLink(code: string | null | undefined): string | null {
+  return code ? `/dashboard/catalogs/currencies?code=${code}` : null
+}
 </script>
 
 <template>
@@ -27,7 +33,11 @@ function sourceLabel(sourceValue: ExchangeRateSource): string {
     <template #body>
       <dl v-if="rate" class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
         <dt class="text-prohealth-500">{{ t('exchangeRates.columns.pair') }}</dt>
-        <dd class="font-mono font-semibold text-prohealth-900">{{ rate.baseCurrency_Code }} → {{ rate.quoteCurrency_Code }}</dd>
+        <dd class="font-mono font-semibold text-prohealth-900">
+          <CommonEntityLinkCell :to="currencyLink(rate.baseCurrency_Code)" :label="rate.baseCurrency_Code" :can="canViewCurrency" />
+          →
+          <CommonEntityLinkCell :to="currencyLink(rate.quoteCurrency_Code)" :label="rate.quoteCurrency_Code" :can="canViewCurrency" />
+        </dd>
 
         <dt class="text-prohealth-500">{{ t('exchangeRates.columns.rate') }}</dt>
         <dd class="font-mono text-prohealth-800">{{ rate.rate_Display ?? rate.rate }}</dd>

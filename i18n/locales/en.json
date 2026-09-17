@@ -881,7 +881,9 @@
       "hierarchyLevel": "Hierarchy level",
       "maxSubordinates": "Max subordinates",
       "superiorRank": "Superior rank",
-      "superiorRankNone": "None (top level)"
+      "superiorRankNone": "None (top level)",
+      "symbol": "Symbol",
+      "decimalPlaces": "Decimal places"
     },
     "promoterRanksTree": {
       "title": "Rank tree"
@@ -891,6 +893,7 @@
       "genderCode": "One uppercase letter (e.g. M, F)",
       "documentTypeCode": "1 to 3 uppercase letters (e.g. CC, CI)",
       "codeMax": "Uppercase/underscore, max {n}",
+      "currencyCode": "Three or four uppercase letters (ISO 4217, e.g. USD)",
       "invalidFormat": "Invalid format"
     },
     "registry": {
@@ -941,6 +944,10 @@
       "promoter-ranks": {
         "label": "Hierarchy ranks",
         "labelSingular": "Hierarchy rank"
+      },
+      "currencies": {
+        "label": "Currencies",
+        "labelSingular": "Currency"
       }
     }
   },
