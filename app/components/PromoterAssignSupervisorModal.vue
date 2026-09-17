@@ -46,9 +46,31 @@ const supervisorOptions = ref<SelectItem[]>([])
 const selectedSupervisor = ref<string>('')
 const detachSupervisor = ref(false)
 const reason = ref('')
+// Default: only the immediate-next rank, same default as the change-rank
+// flow — "ampliar a todos los superiores" is the advanced/opt-in case.
+const allSuperiors = ref(false)
+const loadingSupervisors = ref(false)
 
 const reasonError = computed(() =>
   touched.value && !reason.value.trim() ? t('validation.required') : undefined)
+
+async function loadSupervisorOptions() {
+  supervisorOptions.value = []
+  if (!currentRankUuid.value) return
+  loadingSupervisors.value = true
+  try {
+    const options = await hierarchyApi.eligibleSupervisors(currentRankUuid.value, { allSuperiors: allSuperiors.value, limit: 200 })
+    supervisorOptions.value = toSelectItems(options)
+  }
+  catch {
+    // useApi ya notificó el error
+  }
+  finally {
+    loadingSupervisors.value = false
+  }
+}
+
+watch(allSuperiors, loadSupervisorOptions)
 
 async function load() {
   if (!props.promoterUuid) return
@@ -62,13 +84,7 @@ async function load() {
     selectedSupervisor.value = promoter.supervisor_Uuid ?? ''
     detachSupervisor.value = !promoter.supervisor_Uuid
 
-    if (currentRankUuid.value) {
-      // Every rank strictly above the promoter's own current rank — a plain
-      // reassignment isn't constrained to the immediate-next rank the way
-      // the change-rank flow's picker is (see PromoterChangeRankModal).
-      const options = await hierarchyApi.eligibleSupervisors(currentRankUuid.value, { allSuperiors: true, limit: 200 })
-      supervisorOptions.value = toSelectItems(options)
-    }
+    await loadSupervisorOptions()
 
     // Drag-and-drop on the org-chart view already picked the target — preset
     // it so the user only has to confirm the reason. Left overridable (still
@@ -91,6 +107,7 @@ watch([() => props.open, () => props.promoterUuid], ([open]) => {
   if (!open) return
   touched.value = false
   reason.value = ''
+  allSuperiors.value = false
   load()
 })
 
@@ -139,22 +156,29 @@ async function confirm() {
           <span class="text-sm text-prohealth-700">{{ t('promoters.hierarchy.detachSupervisorLabel') }}</span>
         </label>
 
-        <UFormField
-          v-if="!detachSupervisor"
-          :label="t('promoters.hierarchy.supervisorLabel')"
-          required
-        >
-          <CommonEntityReferenceSelect
-            v-model="selectedSupervisor"
-            :items="supervisorOptions"
-            entity="promoter"
-            :placeholder="t('promoters.hierarchy.supervisorPlaceholder')"
-            @navigate="goToSupervisor"
-          />
-          <p v-if="supervisorOptions.length === 0" class="text-xs text-amber-600 mt-1">
-            {{ t('promoters.hierarchy.noEligibleSupervisors') }}
-          </p>
-        </UFormField>
+        <template v-if="!detachSupervisor">
+          <label class="flex items-center gap-2.5 cursor-pointer">
+            <UCheckbox v-model="allSuperiors" />
+            <span class="text-sm text-prohealth-700">{{ t('promoters.hierarchy.changeRank.allSuperiorsLabel') }}</span>
+          </label>
+
+          <UFormField
+            :label="t('promoters.hierarchy.supervisorLabel')"
+            required
+          >
+            <CommonEntityReferenceSelect
+              v-model="selectedSupervisor"
+              :items="supervisorOptions"
+              :loading="loadingSupervisors"
+              entity="promoter"
+              :placeholder="t('promoters.hierarchy.supervisorPlaceholder')"
+              @navigate="goToSupervisor"
+            />
+            <p v-if="!loadingSupervisors && supervisorOptions.length === 0" class="text-xs text-amber-600 mt-1">
+              {{ t('promoters.hierarchy.noEligibleSupervisors') }}
+            </p>
+          </UFormField>
+        </template>
 
         <UFormField :label="t('promoters.hierarchy.reasonLabel')" required :error="reasonError">
           <UTextarea

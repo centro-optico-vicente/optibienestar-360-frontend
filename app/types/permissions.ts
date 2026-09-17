@@ -123,6 +123,9 @@ export const PERMISSIONS = [
   'PROMOTER_VIEW_ALL',
   // Hierarchy (V101/V104, hub plan) — cargo catalog, supervisor reassignment, rank changes.
   'PROMOTER_RANK_VIEW_ALL', 'PROMOTER_RANK_CREATE', 'PROMOTER_RANK_UPDATE', 'PROMOTER_RANK_DELETE',
+  // Moves a rank to a new position among its siblings (dedicated endpoint,
+  // separate from PROMOTER_RANK_UPDATE — hub plan editable-hierarchy follow-up).
+  'PROMOTER_RANK_REORDER',
   'PROMOTER_ASSIGN_SUPERVISOR',
   'PROMOTER_CHANGE_RANK',
   // Hierarchy-override bands (V102/V108, hub plan §2) — Supervisor/Coordinador override %.

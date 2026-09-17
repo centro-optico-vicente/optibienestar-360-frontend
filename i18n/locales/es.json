@@ -886,7 +886,9 @@
       "decimalPlaces": "Decimales"
     },
     "promoterRanksTree": {
-      "title": "Árbol de cargos"
+      "title": "Árbol de cargos",
+      "moveUp": "Subir",
+      "moveDown": "Bajar"
     },
     "validation": {
       "isoCode": "Dos letras mayúsculas (ISO 3166-1, p.ej. VE)",
@@ -2005,6 +2007,7 @@
       "supervisorPlaceholder": "Seleccionar supervisor…",
       "noEligibleSupervisors": "No hay ningún promotor que califique como supervisor todavía.",
       "detachSupervisorLabel": "Quitar supervisor (queda como tope de su propia cadena)",
+      "autoReasonFormEdit": "Actualizado desde el formulario de edición del promotor",
       "tabs": {
         "tree": "Árbol visual",
         "list": "Lista"
@@ -2084,6 +2087,7 @@
         "userEmail": "Usuario",
         "promoterTypeUuid": "Tipo de promotor",
         "rankUuid": "Cargo",
+        "supervisorUuid": "Supervisor",
         "totalReferrals": "Total de referidos",
         "totalCommissionPaid": "Comisión total pagada",
         "createdAt": "Creado",

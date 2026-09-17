@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { CatalogItem } from '~/types/catalogs'
 import type { SelectItem } from '~/types/options'
 import { toSelectItems } from '~/types/options'
 
@@ -46,6 +47,10 @@ const currentRankUuid = ref<string | null>(null)
 const currentRankDisplay = ref('')
 
 const rankOptions = ref<SelectItem[]>([])
+// Full rank records (with `parentRankUuid`) backing `rankOptions`' lightweight
+// `Option[]` — needed to answer "is the selected rank the top of the
+// hierarchy" directly instead of inferring it from an empty options list.
+const allRanks = ref<CatalogItem[]>([])
 const selectedRank = ref('')
 const supervisorOptions = ref<SelectItem[]>([])
 const selectedSupervisor = ref('')
@@ -92,6 +97,7 @@ async function load() {
       limit: 200,
     })
     rankOptions.value = toSelectItems(options)
+    allRanks.value = await useCatalog('/v1/admin/promoter-ranks').listAll()
   }
   catch {
     // useApi ya notificó el error
@@ -108,12 +114,12 @@ watch([() => props.open, () => props.promoterUuid], ([open]) => {
   load()
 })
 
-// El backend exige supervisor salvo que el rango nuevo sea el más alto (sin
-// rangos activos por encima) — eso se ve aquí como "sin candidatos incluso
-// ampliando a todos los superiores". No es 100% inequívoco (también podría
-// significar "nadie califica todavía"), así que el campo queda opcional y el
-// backend es quien valida en definitiva.
-const supervisorLooksOptional = computed(() => allSuperiors.value && supervisorOptions.value.length === 0 && !loadingSupervisors.value)
+// El backend exige supervisor salvo que el rango nuevo sea el más alto de la
+// jerarquía — ahora se determina directamente por el `parentRankUuid` real
+// del rango elegido (`null` = tope), en vez de inferirlo de una lista de
+// candidatos vacía (heurística previa, ambigua con "nadie califica todavía").
+const selectedRankItem = computed(() => allRanks.value.find(r => r.uuid === selectedRank.value) ?? null)
+const supervisorLooksOptional = computed(() => selectedRankItem.value?.parentRankUuid == null)
 
 async function confirm() {
   if (!props.promoterUuid || !selectedRank.value) return

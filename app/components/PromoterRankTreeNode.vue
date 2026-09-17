@@ -4,10 +4,11 @@ import type { CatalogItem } from '~/types/catalogs'
 /**
  * One row of the vertical rank tree (`/dashboard/catalogs/promoter-ranks`,
  * side panel next to the table) — classic file-explorer style: a
- * +/− expand toggle, a folder icon, and an indent guide per level. Ranks
- * have no self-referencing parent field (hierarchy is expressed as an
- * ordinal `hierarchyLevel`, hub plan §1), so the chain is built once in the
- * page from `hierarchyLevel` descending — this component only renders it.
+ * +/− expand toggle, a folder icon, and an indent guide per level. The tree
+ * is built once in the page from each rank's real `parentRankUuid` FK (this
+ * hub plan) — a root has no parent, its children are the ranks that point at
+ * it, recursively — this component only renders the `{item, children}` shape
+ * it's handed; it has no opinion on how the tree was built.
  */
 export interface RankTreeNode {
   item: CatalogItem

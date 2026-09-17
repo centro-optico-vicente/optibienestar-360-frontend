@@ -46,5 +46,15 @@ export const useCatalog = (basePath: string) => {
   const usage = (uuid: string) =>
     useApi<{ inUse: boolean, count: number }>(`${basePath}/${uuid}/usage`)
 
-  return { list, listAll, get, create, update, remove, usage }
+  /**
+   * Moves a record to the position immediately after `afterRankUuid` (`null`
+   * = first). Only `promoter-ranks` exposes this today (`PROMOTER_RANK_REORDER`),
+   * but it's defined generically here like the rest of this factory's methods.
+   * Returns the full, freshly-ordered list — callers typically ignore it and
+   * just re-`load()`, same as after create/update/delete.
+   */
+  const reorder = (uuid: string, afterRankUuid: string | null) =>
+    useApi<CatalogItem[]>(`${basePath}/${uuid}/reorder`, { method: 'PUT', body: { afterRankUuid } })
+
+  return { list, listAll, get, create, update, remove, usage, reorder }
 }
