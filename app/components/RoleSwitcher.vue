@@ -2,11 +2,11 @@
 import type { MyRole } from '~/types/auth'
 
 /**
- * Selector de rol activo en el pie del sidebar. Solo se muestra cuando el
- * usuario tiene más de un rol efectivo — con uno solo, el llamador debe
- * seguir mostrando el texto plano actual (menos ruido de UI en el caso
- * mayoritario). Al cambiar de rol, useNav()/usePermissions() ya son
- * reactivos al store y recalculan el menú sin recargar la página.
+ * Active-role selector in the sidebar footer. Only shown when the user has
+ * more than one effective role — with just one, the caller keeps showing the
+ * current plain text (less UI noise in the majority case). After switching,
+ * useNav()/usePermissions() are already reactive to the store and recompute
+ * the menu without a page reload.
  */
 const { t } = useI18n()
 const auth = useAuthStore()
@@ -43,7 +43,7 @@ const items = computed(() => [
 </script>
 
 <template>
-  <!-- Antes de cargar, o con un solo rol efectivo, no hay nada que elegir: texto plano de siempre. -->
+  <!-- Before loading, or with a single effective role, there's nothing to pick: plain text as always. -->
   <p v-if="!loaded || roles.length <= 1" class="text-xs text-prohealth-500 truncate">
     {{ auth.primaryRole }}
   </p>

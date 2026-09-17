@@ -86,18 +86,19 @@ export const useAuth = () => {
     store.applyAccessToken(res)
   }
 
-  /** Roles seleccionables como rol activo de la sesión — para el selector del sidebar. */
+  /** Roles selectable as the session's active role — powers the sidebar selector. */
   const fetchMyRoles = async (): Promise<MyRole[]> => {
     return useApi<MyRole[]>('/v1/me/roles')
   }
 
   /**
-   * Cambia el rol activo de la sesión en curso: cierra la sesión actual y abre
-   * una nueva (access + refresh nuevos, mismo backend que un login sin
-   * contraseña). `permissions`/`activeRole` en el store quedan escopeados al
-   * rol elegido, así que el menú se recalcula solo (useNav ya es reactivo).
-   * No usa `silent` — un rol que dejó de ser efectivo (ej. revocado) debe
-   * mostrarse al usuario con el toast de error global.
+   * Switches the current session's active role: closes the current session
+   * and opens a new one (fresh access + refresh, same backend as a login
+   * without a password). `permissions`/`activeRole` in the store end up
+   * scoped to the chosen role, so the menu recomputes on its own (useNav is
+   * already reactive). Doesn't use `silent` — a role that stopped being
+   * effective (e.g. revoked) should surface to the user via the global error
+   * toast.
    */
   const switchActiveRole = async (roleUuid: string): Promise<void> => {
     const data = await useApi<LoginResponse>('/v1/me/active-role', {

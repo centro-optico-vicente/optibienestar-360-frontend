@@ -27,7 +27,7 @@ function permissionsFromToken(token: string | null): string[] {
   return decodeJwt(token)?.permissions ?? []
 }
 
-/** Lee el claim `role_name` (rol activo de la sesión) del accessToken. */
+/** Reads the `role_name` claim (session's active role) from the accessToken. */
 function activeRoleFromToken(token: string | null): UserRole | null {
   if (!token) return null
   return decodeJwt(token)?.role_name ?? null
