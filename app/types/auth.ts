@@ -19,6 +19,14 @@ export interface Role {
   description?: string
 }
 
+/** One role selectable as the caller's active session role — GET /v1/me/roles. */
+export interface MyRole {
+  uuid: string
+  name: UserRole
+  description?: string
+  isDefault: boolean
+}
+
 export interface AuthUser {
   uuid: string
   email: string
@@ -71,6 +79,12 @@ export interface ChangePasswordRequest {
   newPassword: string
 }
 
+/** POST /v1/me/active-role — switches the caller's active session role. */
+export interface SwitchActiveRoleRequest {
+  roleUuid: string
+  refreshToken: string
+}
+
 /**
  * Error en formato RFC 7807 (application/problem+json) que devuelve el backend.
  * `errors` aparece en validaciones de campo (400); `lockedUntil` en bloqueo de cuenta (423).
@@ -103,6 +117,9 @@ export interface JwtPayload {
   type?: string
   /** Locale claim; updated by POST /v1/me/locale so the backend localizes ProblemDetail/emails. */
   locale?: string
+  /** Active-role claims (role-switch feature) — absent on tokens minted before this existed. */
+  role_uuid?: string
+  role_name?: UserRole
   exp?: number
   [key: string]: unknown
 }

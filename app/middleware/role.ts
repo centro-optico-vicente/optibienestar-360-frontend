@@ -13,7 +13,10 @@ export default defineNuxtRouteMiddleware((to) => {
   const required = to.meta.roles as UserRole[] | undefined
   if (!required || required.length === 0) return
 
-  const allowed = required.some(r => auth.roleNames.includes(r))
+  // Against the ACTIVE role, not the full roleNames list — a multi-role user
+  // viewing under a non-active role shouldn't reach a page gated for a role
+  // they hold but aren't currently using (same reasoning as usePermissions.hasRole).
+  const allowed = required.some(r => r === auth.activeRole)
   if (!allowed) {
     return navigateTo('/403')
   }

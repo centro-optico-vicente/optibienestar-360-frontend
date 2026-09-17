@@ -124,7 +124,7 @@ const isSidebarCollapsed = useLocalStorage<boolean>('dashboard-sidebar-collapsed
           </span>
           <div class="min-w-0 flex-1">
             <p class="text-sm font-semibold text-prohealth-900 truncate">{{ auth.fullName }}</p>
-            <p class="text-xs text-prohealth-500 truncate">{{ auth.primaryRole }}</p>
+            <RoleSwitcher />
           </div>
         </div>
         <UButton

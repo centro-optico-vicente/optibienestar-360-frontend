@@ -4,6 +4,7 @@ import type {
   ChangePasswordRequest,
   LoginRequest,
   LoginResponse,
+  MyRole,
 } from '~/types/auth'
 
 /**
@@ -85,6 +86,27 @@ export const useAuth = () => {
     store.applyAccessToken(res)
   }
 
+  /** Roles seleccionables como rol activo de la sesión — para el selector del sidebar. */
+  const fetchMyRoles = async (): Promise<MyRole[]> => {
+    return useApi<MyRole[]>('/v1/me/roles')
+  }
+
+  /**
+   * Cambia el rol activo de la sesión en curso: cierra la sesión actual y abre
+   * una nueva (access + refresh nuevos, mismo backend que un login sin
+   * contraseña). `permissions`/`activeRole` en el store quedan escopeados al
+   * rol elegido, así que el menú se recalcula solo (useNav ya es reactivo).
+   * No usa `silent` — un rol que dejó de ser efectivo (ej. revocado) debe
+   * mostrarse al usuario con el toast de error global.
+   */
+  const switchActiveRole = async (roleUuid: string): Promise<void> => {
+    const data = await useApi<LoginResponse>('/v1/me/active-role', {
+      method: 'POST',
+      body: { roleUuid, refreshToken: store.refreshToken },
+    })
+    store.setSession(data)
+  }
+
   /** Solicita el correo de recuperación de contraseña. */
   const recoverPassword = async (email: string): Promise<void> => {
     await useApi('/v1/auth/recover-password', {
@@ -111,11 +133,14 @@ export const useAuth = () => {
     changePassword,
     fetchMe,
     updateLocale,
+    fetchMyRoles,
+    switchActiveRole,
     recoverPassword,
     resetPassword,
     isAuthenticated: computed<boolean>(() => store.isAuthenticated),
     user: computed(() => store.user),
     roleNames: computed(() => store.roleNames),
     primaryRole: computed(() => store.primaryRole),
+    activeRole: computed(() => store.activeRole),
   }
 }
