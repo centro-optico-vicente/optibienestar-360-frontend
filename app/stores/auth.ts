@@ -27,6 +27,12 @@ function permissionsFromToken(token: string | null): string[] {
   return decodeJwt(token)?.permissions ?? []
 }
 
+/** Reads the `role_name` claim (session's active role) from the accessToken. */
+function activeRoleFromToken(token: string | null): UserRole | null {
+  if (!token) return null
+  return decodeJwt(token)?.role_name ?? null
+}
+
 /** Lee el claim `exp` (en ms) del accessToken; null si no se puede decodificar. */
 function accessExpMs(token: string | null): number | null {
   const exp = token ? decodeJwt(token)?.exp : null
@@ -46,6 +52,8 @@ interface AuthState {
   refreshToken: string | null
   user: AuthUser | null
   permissions: string[]
+  /** Active session role (JWT `role_name` claim) — null on tokens minted before this existed. */
+  activeRole: UserRole | null
   isHydrated: boolean
 }
 
@@ -55,13 +63,15 @@ export const useAuthStore = defineStore('auth', {
     refreshToken: null,
     user: null,
     permissions: [],
+    activeRole: null,
     isHydrated: false,
   }),
 
   getters: {
     isAuthenticated: (state): boolean => Boolean(state.accessToken && state.user),
     roleNames: (state): UserRole[] => state.user?.roles?.map(r => r.name) ?? [],
-    primaryRole: (state): UserRole | null => state.user?.roles?.[0]?.name ?? null,
+    /** The session's active role when known, falling back to the user's first assigned role (older tokens). */
+    primaryRole: (state): UserRole | null => state.activeRole ?? state.user?.roles?.[0]?.name ?? null,
     fullName: (state): string => state.user?.fullName?.trim() || state.user?.email || '',
     initials: (state): string => {
       if (!state.user) return '?'
@@ -92,6 +102,7 @@ export const useAuthStore = defineStore('auth', {
       const rawUser = sessionStorage.getItem(USER_KEY)
       this.user = rawUser ? (JSON.parse(rawUser) as AuthUser) : null
       this.permissions = permissionsFromToken(this.accessToken)
+      this.activeRole = activeRoleFromToken(this.accessToken)
 
       if (!this.accessToken && this.refreshToken) {
         const refreshed = await this.tryRefresh()
@@ -111,6 +122,7 @@ export const useAuthStore = defineStore('auth', {
       this.refreshToken = res.refreshToken
       this.user = res.user
       this.permissions = permissionsFromToken(res.accessToken)
+      this.activeRole = activeRoleFromToken(res.accessToken)
       this.persist()
       this.scheduleRefresh()
     },
@@ -119,6 +131,7 @@ export const useAuthStore = defineStore('auth', {
       this.accessToken = accessToken
       this.refreshToken = refreshToken
       this.permissions = permissionsFromToken(accessToken)
+      this.activeRole = activeRoleFromToken(accessToken)
       this.persist()
       this.scheduleRefresh()
     },
@@ -138,6 +151,7 @@ export const useAuthStore = defineStore('auth', {
       this.accessToken = res.accessToken
       this.user = res.user
       this.permissions = permissionsFromToken(res.accessToken)
+      this.activeRole = activeRoleFromToken(res.accessToken)
       this.persist()
       this.scheduleRefresh()
     },
@@ -236,6 +250,7 @@ export const useAuthStore = defineStore('auth', {
       this.refreshToken = null
       this.user = null
       this.permissions = []
+      this.activeRole = null
       if (import.meta.client) {
         sessionStorage.removeItem(ACCESS_KEY)
         sessionStorage.removeItem(USER_KEY)

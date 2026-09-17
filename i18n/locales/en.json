@@ -86,6 +86,7 @@
     },
     "backToLogin": "← Back to sign in",
     "logout": "Sign out",
+    "switchRole": "Switch role",
     "login": {
       "seoTitle": "Sign in — OptiBienestar 360",
       "seoDescription": "Access the OptiBienestar 360 portal",

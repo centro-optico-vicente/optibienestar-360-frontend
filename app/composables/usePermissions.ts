@@ -21,8 +21,12 @@ export const usePermissions = () => {
   const canAll = (...permissions: Array<Permission | string>): boolean =>
     permissions.every(can)
 
+  // Compares against the session's ACTIVE role, not the full roleNames list —
+  // consistent with `can()`, which already reads permissions scoped to the
+  // active role. A multi-role user viewing under a non-active role should not
+  // see nav leaves gated by `roles:` for a role they hold but isn't using now.
   const hasRole = (role: UserRole): boolean =>
-    auth.roleNames.includes(role)
+    auth.activeRole === role
 
   const hasAnyRole = (...roles: UserRole[]): boolean =>
     roles.some(hasRole)
