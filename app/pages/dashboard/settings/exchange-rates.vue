@@ -26,6 +26,15 @@ const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL'))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL'))
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
 
+// ---- Currency quick-link (base/quote code → currencies catalog) ----
+// The exchange-rate row only carries the currency code, not its uuid, so the
+// link resolves through `/dashboard/catalogs/currencies?code=<code>` instead
+// of the usual `?edit=<uuid>` FK pattern.
+const canViewCurrency = computed(() => can('CURRENCY_VIEW_ALL'))
+function currencyLink(code: string | null | undefined): string | null {
+  return code ? `/dashboard/catalogs/currencies?code=${code}` : null
+}
+
 // ---- List + pagination + filters ----
 const data = ref<ExchangeRateDto[]>([])
 const total = ref(0)
@@ -315,8 +324,10 @@ async function confirmDelete() {
               :class="{ 'opacity-60': !r.active }"
               @dblclick="openRow(r)"
             >
-              <td class="px-5 py-3">
-                <span class="font-mono font-semibold text-prohealth-900">{{ r.baseCurrency_Code }} → {{ r.quoteCurrency_Code }}</span>
+              <td class="px-5 py-3 font-mono font-semibold" @click.stop>
+                <CommonEntityLinkCell :to="currencyLink(r.baseCurrency_Code)" :label="r.baseCurrency_Code" :can="canViewCurrency" />
+                →
+                <CommonEntityLinkCell :to="currencyLink(r.quoteCurrency_Code)" :label="r.quoteCurrency_Code" :can="canViewCurrency" />
               </td>
               <td class="px-5 py-3 font-mono text-prohealth-800">{{ r.rate_Display ?? r.rate }}</td>
               <td class="px-5 py-3 text-prohealth-700">{{ r.operationDate_Display ?? formatDate(r.operationDate, 'short') }}</td>

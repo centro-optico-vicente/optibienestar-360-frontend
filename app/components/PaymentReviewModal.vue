@@ -17,8 +17,16 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const { formatCurrency } = useFormatters()
+const { can } = usePermissions()
 const payments = usePayments()
 const toast = useToast()
+
+// Currency quick-link (code only, no uuid on PaymentDto) — same pattern as
+// the exchange-rates screen: `?code=` instead of the usual FK `?edit=`.
+const canViewCurrency = computed(() => can('CURRENCY_VIEW_ALL'))
+function currencyLink(code: string | null | undefined): string | null {
+  return code ? `/dashboard/catalogs/currencies?code=${code}` : null
+}
 
 const isOpen = computed({
   get: () => props.open,
@@ -90,7 +98,10 @@ async function confirm() {
         <div v-if="payment" class="rounded-xl border border-prohealth-100 bg-prohealth-50/40 p-4 text-sm space-y-1">
           <div class="flex items-center justify-between">
             <span class="text-prohealth-500">{{ t('payments.detail.fields.amount') }}</span>
-            <span class="font-semibold text-prohealth-900">{{ money(payment.amount, payment.currency) }}</span>
+            <span class="font-semibold text-prohealth-900 inline-flex items-center gap-1">
+              {{ money(payment.amount, payment.currency) }}
+              <CommonEntityLinkCell :to="currencyLink(payment.currency)" :label="payment.currency" :can="canViewCurrency" />
+            </span>
           </div>
           <div class="flex items-center justify-between">
             <span class="text-prohealth-500">{{ t('payments.detail.fields.method') }}</span>

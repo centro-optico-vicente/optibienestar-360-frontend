@@ -283,6 +283,21 @@ watch(() => route.query.edit, async (editUuid) => {
   catch { /* Invalid/removed uuid: silently ignore, stay on the list. */ }
 }, { immediate: true })
 
+// `?code=<code>` is the same quick-link but for callers that only hold the
+// natural key, not the uuid (e.g. a currency code on a payment/exchange-rate
+// row). Resolves it via the list search (`q`) against `def.codeField` and
+// reuses the `?edit=` flow once the uuid is known.
+watch(() => route.query.code, async (code) => {
+  if (!code || !def.value?.codeField || !canUpdate.value) return
+  await router.replace({ query: {} })
+  try {
+    const res = await api().list({ q: String(code), size: 5 })
+    const match = (res.content ?? []).find(i => (i as unknown as Record<string, unknown>)[def.value!.codeField!] === code)
+    if (match) openEdit(match)
+  }
+  catch { /* Invalid/unknown code: silently ignore, stay on the list. */ }
+}, { immediate: true })
+
 // ---- Create/edit form ----
 const formOpen = ref(false)
 const mode = ref<'create' | 'edit'>('create')
