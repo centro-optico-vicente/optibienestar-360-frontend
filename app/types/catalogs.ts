@@ -42,6 +42,18 @@ export interface CatalogItem {
   // `promoter-types` (V103) — whether a sale by this type cascades a
   // hierarchy override up the supervisor chain (default true).
   generatesHierarchyOverride?: boolean
+  // `banks` (V116) — commercial short name (UI pickers/receipts) + RIF split
+  // the same way persons/allies do (tax_document_type/number).
+  shortName?: string
+  taxDocumentType?: string
+  taxDocumentNumber?: string
+  // `payment-categories` (V115) — real IN/OUT fact of the category (motivo).
+  direction?: 'IN' | 'OUT'
+  // `payment-methods` (V115) — which extra fields a line using this method demands.
+  mandatoryBankAccount?: boolean
+  mandatoryPhone?: boolean
+  mandatoryEmail?: boolean
+  mandatoryReferenceNumber?: boolean
 }
 
 /** An editable field of a catalog form. */

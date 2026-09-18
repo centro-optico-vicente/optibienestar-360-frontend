@@ -465,6 +465,10 @@
         "label": "Comercial",
         "description": "Promotores del programa y sus comisiones."
       },
+      "finanzas": {
+        "label": "Finanzas",
+        "description": "Catálogos de soporte de pagos: bancos, categorías y métodos."
+      },
       "seguridad": {
         "label": "Seguridad",
         "description": "Control de acceso por roles y usuarios del sistema."
@@ -620,6 +624,18 @@
       "exchangeRates": {
         "label": "Tasas de cambio",
         "description": "Historial de tasas BCV/API y carga manual."
+      },
+      "banks": {
+        "label": "Bancos",
+        "description": "Catálogo de bancos venezolanos (SUDEBAN)."
+      },
+      "paymentCategories": {
+        "label": "Categorías de pago",
+        "description": "Motivos de cobro y pago (cuota, comisión, bono, etc.)."
+      },
+      "paymentMethods": {
+        "label": "Métodos de pago",
+        "description": "Formas de pago: efectivo, transferencia, Zelle, etc."
       }
     },
     "other": {
@@ -885,7 +901,15 @@
       "superiorRank": "Cargo superior",
       "superiorRankNone": "Ninguno (nivel más alto)",
       "symbol": "Símbolo",
-      "decimalPlaces": "Decimales"
+      "decimalPlaces": "Decimales",
+      "shortName": "Nombre comercial",
+      "taxDocumentType": "Tipo de RIF",
+      "taxDocumentNumber": "Número de RIF",
+      "direction": "Dirección",
+      "mandatoryBankAccount": "Exige cuenta bancaria",
+      "mandatoryPhone": "Exige teléfono",
+      "mandatoryEmail": "Exige correo",
+      "mandatoryReferenceNumber": "Exige número de referencia"
     },
     "promoterRanksTree": {
       "title": "Árbol de cargos",
@@ -898,6 +922,8 @@
       "documentTypeCode": "1 a 3 letras mayúsculas (p.ej. CC, CI)",
       "codeMax": "Mayúsculas/guion bajo, máx. {n}",
       "currencyCode": "Tres o cuatro letras mayúsculas (ISO 4217, p.ej. USD)",
+      "direction": "Debe ser IN u OUT",
+      "taxDocumentType": "Una letra: J, G, V, E o P",
       "invalidFormat": "Formato no válido"
     },
     "registry": {
@@ -952,6 +978,18 @@
       "currencies": {
         "label": "Monedas",
         "labelSingular": "Moneda"
+      },
+      "banks": {
+        "label": "Bancos",
+        "labelSingular": "Banco"
+      },
+      "payment-categories": {
+        "label": "Categorías de pago",
+        "labelSingular": "Categoría de pago"
+      },
+      "payment-methods": {
+        "label": "Métodos de pago",
+        "labelSingular": "Método de pago"
       }
     }
   },
