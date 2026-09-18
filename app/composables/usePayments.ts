@@ -90,7 +90,7 @@ export const usePayments = () => {
   const remove = (uuid: string) =>
     useApi<void>(`/v1/admin/payments/${uuid}`, { method: 'DELETE' })
 
-  function toPaymentForm(payload: Record<string, unknown>, support?: File | null) {
+  function toPaymentForm(payload: MyPaymentCreateRequest | DownlinePaymentCreateRequest, support?: File | null) {
     const form = new FormData()
     form.append('payment', new Blob([JSON.stringify(payload)], { type: 'application/json' }))
     if (support) form.append('support', support)
