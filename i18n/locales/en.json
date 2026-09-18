@@ -455,7 +455,7 @@
     "groups": {
       "afiliaciones": {
         "label": "Affiliations",
-        "description": "Plans, memberships, members and their collections."
+        "description": "Plans, memberships and program members."
       },
       "aliados": {
         "label": "Partners",
@@ -1503,8 +1503,8 @@
     }
   },
   "payments": {
-    "title": "Payments",
-    "subtitle": "Register and review manual payments: approval or rejection with proof.",
+    "title": "Collections",
+    "subtitle": "Register and review membership fee collections: approval or rejection with proof.",
     "new": "Register payment",
     "createTooltip": "Register a new payment",
     "noPermissionRegister": "You don't have permission to register payments",
