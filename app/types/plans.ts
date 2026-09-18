@@ -36,6 +36,9 @@ export interface PlanDto {
   monthlyFee: number | string
   /** Real denomination of both fees (ADR 0015); every money field's `_Display` uses it. */
   currency_Code?: string | null
+  /** FK pair (hub ADR 0014) — quick-link to `/dashboard/catalogs/currencies`. */
+  currency_Uuid?: string | null
+  currency_Display?: string | null
   /** Server-formatted `inscriptionFee` (hub ADR 0014) — no conversion tooltip pair (ADR 0015 §6 only covers `monthlyFee`). */
   inscriptionFee_Display?: string | null
   /** Server-formatted `monthlyFee` (hub ADR 0014). */

@@ -26,6 +26,7 @@ const canRegister = computed(() => can('PAYMENT_CREATE'))
 const canApprove = computed(() => can('PAYMENT_APPROVE'))
 const canReject = computed(() => can('PAYMENT_REJECT'))
 const canViewMember = computed(() => can('MEMBER_VIEW_ALL'))
+const canViewCurrency = computed(() => can('CURRENCY_VIEW_ALL'))
 const canDelete = computed(() => can('PAYMENT_DELETE'))
 const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('PAYMENT_RECORD_AUDIT_VIEW'))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('PAYMENT_REPORT_AUDIT_VIEW'))
@@ -320,6 +321,13 @@ async function confirmDelete() {
               </td>
               <td class="px-5 py-3 font-semibold text-prohealth-900">
                 <MoneyWithTooltip :display="p.amount_Display" :converted-display="p.amountConverted_Display" :rate-date="p.exchangeRateDate" />
+                <div class="text-xs font-normal mt-0.5" @click.stop>
+                  <CommonEntityLinkCell
+                    :to="p.currency_Uuid ? `/dashboard/catalogs/currencies?edit=${p.currency_Uuid}` : null"
+                    :label="p.currency_Display || p.currency_Code"
+                    :can="canViewCurrency"
+                  />
+                </div>
               </td>
               <td class="px-5 py-3 text-prohealth-700">{{ p.paymentMethod_Display ?? methodLabel(p.paymentMethod) }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ p.paymentDate_Display ?? formatDate(p.paymentDate, 'short') }}</td>

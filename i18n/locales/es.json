@@ -19,6 +19,7 @@
     "viewAll": "Ver todo",
     "empty": "Sin información",
     "viewMaster": "Ver registro",
+    "currency": "Moneda",
     "noAccessToScreen": "No tienes permiso para ver esta pantalla",
     "clearValue": "Limpiar valor",
     "yes": "Sí",
@@ -1084,6 +1085,7 @@
       "metadata": "Metadatos"
     },
     "pricing": {
+      "currency": "Moneda",
       "inscription": "Inscripción",
       "inscriptionHint": "Cargo único de afiliación.",
       "monthly": "Mensualidad",
@@ -1498,6 +1500,7 @@
       },
       "fields": {
         "amount": "Monto",
+        "currency": "Moneda",
         "method": "Método",
         "reference": "Referencia",
         "paymentDate": "Fecha del pago",
@@ -2192,6 +2195,7 @@
         "calculation": "Cálculo",
         "period": "Período",
         "review": "Liquidación",
+        "fx": "Diferencial cambiario",
         "metadata": "Metadatos"
       },
       "fields": {
@@ -2199,6 +2203,11 @@
         "code": "Código",
         "amount": "Monto",
         "currency": "Moneda",
+        "earnedRate": "Tasa al devengo",
+        "paidRate": "Tasa al pago",
+        "fxVariance": "Diferencia cambiaria absorbida",
+        "fxVarianceHint": "Diferencia entre el monto a la tasa de pago y el monto a la tasa de devengo — lo que la empresa absorbió (o ganó) por el movimiento del tipo de cambio entre ambas fechas.",
+        "fxVariancePending": "Se calcula al liquidar la comisión.",
         "status": "Estado",
         "appliesTo": "Aplica a",
         "active": "Activa",

@@ -24,6 +24,7 @@ const canUpdate = computed(() => can('PLAN_UPDATE'))
 const canDelete = computed(() => can('PLAN_DELETE'))
 const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('PLAN_RECORD_AUDIT_VIEW'))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('PLAN_REPORT_AUDIT_VIEW'))
+const canViewCurrency = computed(() => can('CURRENCY_VIEW_ALL'))
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
 const auditOpen = ref(false)
 
@@ -321,6 +322,16 @@ async function confirmDelete() {
       <div class="bg-white rounded-2xl border border-prohealth-100 p-6">
         <h2 class="font-bold text-prohealth-900 mb-4">{{ t('plans.sections.pricing') }}</h2>
         <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 text-sm">
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('plans.pricing.currency') }}</dt>
+            <dd class="mt-0.5">
+              <CommonEntityLinkCell
+                :to="plan.currency_Uuid ? `/dashboard/catalogs/currencies?edit=${plan.currency_Uuid}` : null"
+                :label="plan.currency_Display || plan.currency_Code"
+                :can="canViewCurrency"
+              />
+            </dd>
+          </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('plans.pricing.inscription') }}</dt>
             <dd class="text-prohealth-900 text-lg font-semibold mt-0.5">{{ plan.inscriptionFee_Display ?? money(plan.inscriptionFee) }}</dd>

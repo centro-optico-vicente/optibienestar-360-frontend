@@ -19,6 +19,7 @@
     "viewAll": "View all",
     "empty": "Not provided",
     "viewMaster": "View record",
+    "currency": "Currency",
     "noAccessToScreen": "You don't have permission to view this screen",
     "clearValue": "Clear value",
     "yes": "Yes",
@@ -1084,6 +1085,7 @@
       "metadata": "Metadata"
     },
     "pricing": {
+      "currency": "Currency",
       "inscription": "Enrollment",
       "inscriptionHint": "One-time enrollment fee.",
       "monthly": "Monthly",
@@ -1498,6 +1500,7 @@
       },
       "fields": {
         "amount": "Amount",
+        "currency": "Currency",
         "method": "Method",
         "reference": "Reference",
         "paymentDate": "Payment date",
@@ -2192,6 +2195,7 @@
         "calculation": "Calculation",
         "period": "Period",
         "review": "Payout",
+        "fx": "FX variance",
         "metadata": "Metadata"
       },
       "fields": {
@@ -2199,6 +2203,11 @@
         "code": "Code",
         "amount": "Amount",
         "currency": "Currency",
+        "earnedRate": "Rate at accrual",
+        "paidRate": "Rate at payout",
+        "fxVariance": "Absorbed FX variance",
+        "fxVarianceHint": "Difference between the amount at the payout rate and the amount at the accrual rate — what the company absorbed (or gained) from the exchange rate moving between the two dates.",
+        "fxVariancePending": "Computed once the commission is paid out.",
         "status": "Status",
         "appliesTo": "Applies to",
         "active": "Active",
