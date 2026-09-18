@@ -12,6 +12,13 @@ interface ListParams {
   sort?: string[]
   filter?: string
   q?: string
+  /**
+   * `IN`/`OUT` to constrain to one direction, `ALL` for both ("Movimientos"),
+   * omitted defaults to `IN` (this screen's historical behavior). A separate
+   * query param, not folded into `filter` — the backend's RSQL validator
+   * doesn't support the `=in=` operator a multi-value filter would need.
+   */
+  direction?: 'IN' | 'OUT' | 'ALL'
 }
 
 /**
@@ -39,6 +46,7 @@ export const usePayments = () => {
         ...(params.sort?.length ? { sort: params.sort } : {}),
         ...(params.filter ? { filter: params.filter } : {}),
         ...(params.q ? { q: params.q } : {}),
+        ...(params.direction ? { direction: params.direction } : {}),
       },
     })
 

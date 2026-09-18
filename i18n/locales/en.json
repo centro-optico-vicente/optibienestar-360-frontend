@@ -455,7 +455,7 @@
     "groups": {
       "afiliaciones": {
         "label": "Affiliations",
-        "description": "Plans, memberships and members of the program."
+        "description": "Plans, memberships, members and their collections."
       },
       "aliados": {
         "label": "Partners",
@@ -510,8 +510,8 @@
         "description": "Member directory and records."
       },
       "payments": {
-        "label": "Payments",
-        "description": "Payment registration and approval."
+        "label": "Collections",
+        "description": "Membership collection registration and approval."
       },
       "paymentsReport": {
         "label": "Payments report",
@@ -638,7 +638,7 @@
         "description": "Payment forms: cash, transfer, Zelle, etc."
       },
       "paymentsPayouts": {
-        "label": "General payouts",
+        "label": "Payouts",
         "description": "Commission payments disbursed to promoters."
       },
       "paymentsMovements": {
@@ -1528,7 +1528,7 @@
       "noPermissionDelete": "You don't have permission to delete"
     },
     "payouts": {
-      "title": "General payouts",
+      "title": "Payouts",
       "subtitle": "Commission payments disbursed to promoters (period close).",
       "searchPlaceholder": "Search by reference…",
       "empty": "No commission payouts",

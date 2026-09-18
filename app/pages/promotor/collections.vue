@@ -5,7 +5,7 @@ import { paymentStatusColor } from '~/types/payments'
 // "Cobros de mis afiliados" (hub plan payments-unification, "Mis portales") —
 // direction=IN payments from the affiliates in the promoter's own downline
 // (payments.promoter_id, V117). Read-only: registration/review happens on the
-// admin "Pagos"/"Cobros generales" screen, not here.
+// admin "Cobros" screen, not here.
 definePageMeta({
   layout: 'dashboard',
   middleware: 'can',

@@ -4,7 +4,7 @@ import type { PaymentDto } from '~/types/payments'
 import { paymentStatusColor } from '~/types/payments'
 import type { SortDirection } from '~/composables/useTableSort'
 
-// "Pagos generales" (hub plan payments-unification, §"Pantallas requeridas" #5) —
+// "Pagos" (Finanzas, hub plan payments-unification, §"Pantallas requeridas" #5) —
 // direction=OUT payments (commission payouts), always already APPROVED and
 // written only by CommissionPayoutService (/v1/admin/commissions/payout). Read-only
 // by design: unlike the IN "Pagos" screen, there is no register/approve/reject
@@ -47,7 +47,7 @@ async function load() {
       size: size.value,
       sort: sort.sortParam.value,
       // Fixed — this screen only ever shows commission payouts, never collections.
-      filter: 'direction==OUT',
+      direction: 'OUT',
       q: search.value.trim() || undefined,
     })
     data.value = res.content ?? []

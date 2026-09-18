@@ -455,7 +455,7 @@
     "groups": {
       "afiliaciones": {
         "label": "Afiliaciones",
-        "description": "Planes, membresías y afiliados del programa."
+        "description": "Planes, membresías, afiliados y sus cobros."
       },
       "aliados": {
         "label": "Aliados",
@@ -510,8 +510,8 @@
         "description": "Directorio y expedientes de afiliados."
       },
       "payments": {
-        "label": "Pagos",
-        "description": "Registro y aprobación de pagos."
+        "label": "Cobros",
+        "description": "Registro y aprobación de cobros de membresía."
       },
       "paymentsReport": {
         "label": "Reporte de pagos",
@@ -638,7 +638,7 @@
         "description": "Formas de pago: efectivo, transferencia, Zelle, etc."
       },
       "paymentsPayouts": {
-        "label": "Pagos generales",
+        "label": "Pagos",
         "description": "Pagos de comisión ejecutados a promotores."
       },
       "paymentsMovements": {
@@ -1528,7 +1528,7 @@
       "noPermissionDelete": "No tienes permiso para eliminar"
     },
     "payouts": {
-      "title": "Pagos generales",
+      "title": "Pagos",
       "subtitle": "Pagos de comisión ejecutados a promotores (liquidación de período).",
       "searchPlaceholder": "Buscar por referencia…",
       "empty": "Sin pagos de comisión",

@@ -8,9 +8,8 @@ import type { SortDirection } from '~/composables/useTableSort'
 // master admin view over BOTH directions (IN collections + OUT commission
 // payouts) in one table, for whoever needs full visibility (e.g. gerencia/
 // finanzas) even though confirming cobros and executing pagos are done by
-// different people on their own screens (#4 "Pagos"/future "Cobros
-// generales" and #5 "Pagos generales"). Read-only — same reasoning as
-// "Pagos generales".
+// different people on their own screens ("Cobros" and "Pagos"). Read-only —
+// same reasoning as "Pagos".
 definePageMeta({
   layout: 'dashboard',
   middleware: 'can',
@@ -47,16 +46,6 @@ const statusFilterOptions = computed(() => [
   ...PAYMENT_STATUS_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })),
 ])
 
-function buildFilter(): string | undefined {
-  const clauses: string[] = []
-  // Explicit direction==<x> when picked; the RSQL "in" form when left on
-  // "Todos" so both directions show — PaymentsService only applies its own
-  // IN-only default when the filter string doesn't mention `direction` at all.
-  clauses.push(directionFilter.value ? `direction==${directionFilter.value}` : 'direction=in=(IN,OUT)')
-  if (statusFilter.value) clauses.push(`status==${statusFilter.value}`)
-  return clauses.join(';')
-}
-
 async function load() {
   loading.value = true
   try {
@@ -64,7 +53,10 @@ async function load() {
       page: page.value - 1,
       size: size.value,
       sort: sort.sortParam.value,
-      filter: buildFilter(),
+      // direction is its own query param (not RSQL — the backend's filter
+      // validator doesn't support an "in" operator); "Todos" -> ALL.
+      direction: directionFilter.value || 'ALL',
+      filter: statusFilter.value ? `status==${statusFilter.value}` : undefined,
       q: search.value.trim() || undefined,
     })
     data.value = res.content ?? []

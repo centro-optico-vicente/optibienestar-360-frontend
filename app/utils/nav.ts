@@ -79,12 +79,17 @@ export const MAIN_NAV: NavEntry[] = [
     label: 'Afiliaciones',
     labelKey: 'nav.groups.afiliaciones.label',
     icon: 'i-lucide-users',
-    description: 'Planes, membresías y afiliados del programa.',
+    description: 'Planes, membresías, afiliados y sus cobros.',
     descriptionKey: 'nav.groups.afiliaciones.description',
     children: [
       { label: 'Planes', labelKey: 'nav.items.plans.label', to: '/dashboard/plans', icon: 'i-lucide-package', description: 'Planes de cobertura disponibles.', descriptionKey: 'nav.items.plans.description', requires: 'PLAN_VIEW_ALL' },
       { label: 'Membresías', labelKey: 'nav.items.memberships.label', to: '/dashboard/memberships', icon: 'i-lucide-badge-check', description: 'Estado y vigencia de las membresías.', descriptionKey: 'nav.items.memberships.description', requires: 'MEMBERSHIP_VIEW_ALL' },
       { label: 'Afiliados', labelKey: 'nav.items.members.label', to: '/dashboard/members', icon: 'i-lucide-users', description: 'Directorio y expedientes de afiliados.', descriptionKey: 'nav.items.members.description', requires: 'MEMBER_VIEW_ALL' },
+      // Mismo endpoint/pantalla que "Cobros" en Finanzas — se repite acá
+      // porque en el flujo diario de Afiliaciones (registrar/aprobar el
+      // cobro de un afiliado) es más natural encontrarlo junto al resto del
+      // ciclo de vida del afiliado que en el módulo financiero.
+      { label: 'Cobros', labelKey: 'nav.items.payments.label', to: '/dashboard/payments', icon: 'i-lucide-credit-card', description: 'Registro y aprobación de cobros de membresía.', descriptionKey: 'nav.items.payments.description', requires: 'PAYMENT_VIEW_ALL' },
       { label: 'Reporte de pagos', labelKey: 'nav.items.paymentsReport.label', to: '/dashboard/payments/report', icon: 'i-lucide-file-spreadsheet', description: 'Reporte de recaudación y pagos de afiliados.', descriptionKey: 'nav.items.paymentsReport.description', requires: ['PAYMENT_REPORT_GENERATE', 'REPORT_REPORT_GENERATE', 'PAYMENT_VIEW_ALL'] },
     ],
   },
@@ -126,8 +131,9 @@ export const MAIN_NAV: NavEntry[] = [
     // menú") — orden pedido: catálogos primero, vista maestra, luego
     // especializadas. Monedas (ex Datos maestros) y Tasas de cambio (ex
     // Sistema) se mudan aquí por ser el mismo dominio multi-moneda (ADR
-    // 0015); "Pagos" (ex Afiliaciones) se relabelea a "Cobros generales"
-    // (direction=IN explícito, mismo endpoint/pantalla de siempre).
+    // 0015). "Cobros" (direction=IN) y "Pagos" (direction=OUT) son el mismo
+    // endpoint/pantalla que sus contrapartes en Afiliaciones/aquí — "Cobros"
+    // se repite en Afiliaciones a propósito (ver esa sección).
     key: 'finanzas',
     label: 'Finanzas',
     labelKey: 'nav.groups.finanzas.label',
@@ -141,11 +147,11 @@ export const MAIN_NAV: NavEntry[] = [
       { label: 'Categorías de pago', labelKey: 'nav.items.paymentCategories.label', to: '/dashboard/catalogs/payment-categories', icon: 'i-lucide-tags', description: 'Motivos de cobro y pago (cuota, comisión, bono, etc.).', descriptionKey: 'nav.items.paymentCategories.description', requires: 'PAYMENT_CATEGORY_VIEW_ALL' },
       { label: 'Métodos de pago', labelKey: 'nav.items.paymentMethods.label', to: '/dashboard/catalogs/payment-methods', icon: 'i-lucide-credit-card', description: 'Formas de pago: efectivo, transferencia, Zelle, etc.', descriptionKey: 'nav.items.paymentMethods.description', requires: 'PAYMENT_METHOD_VIEW_ALL' },
       { label: 'Movimientos', labelKey: 'nav.items.paymentsMovements.label', to: '/dashboard/payments/movements', icon: 'i-lucide-arrow-left-right', description: 'Vista maestra de cobros y pagos, ambas direcciones.', descriptionKey: 'nav.items.paymentsMovements.description', requires: 'PAYMENT_VIEW_ALL' },
-      { label: 'Cobros generales', labelKey: 'nav.items.payments.label', to: '/dashboard/payments', icon: 'i-lucide-credit-card', description: 'Registro y aprobación de cobros de membresía.', descriptionKey: 'nav.items.payments.description', requires: 'PAYMENT_VIEW_ALL' },
+      { label: 'Cobros', labelKey: 'nav.items.payments.label', to: '/dashboard/payments', icon: 'i-lucide-credit-card', description: 'Registro y aprobación de cobros de membresía.', descriptionKey: 'nav.items.payments.description', requires: 'PAYMENT_VIEW_ALL' },
       // direction=OUT — commission payouts (CommissionPayoutService). Read-only
       // ledger, no create/approve here (those happen via the commission
       // period-close action).
-      { label: 'Pagos generales', labelKey: 'nav.items.paymentsPayouts.label', to: '/dashboard/payments/payouts', icon: 'i-lucide-banknote', description: 'Pagos de comisión ejecutados a promotores.', descriptionKey: 'nav.items.paymentsPayouts.description', requires: 'PAYMENT_VIEW_ALL' },
+      { label: 'Pagos', labelKey: 'nav.items.paymentsPayouts.label', to: '/dashboard/payments/payouts', icon: 'i-lucide-banknote', description: 'Pagos de comisión ejecutados a promotores.', descriptionKey: 'nav.items.paymentsPayouts.description', requires: 'PAYMENT_VIEW_ALL' },
     ],
   },
   {
