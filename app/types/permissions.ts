@@ -113,8 +113,17 @@ export const PERMISSIONS = [
   'PAYMENT_CREATE',
   'PAYMENT_APPROVE',
   'PAYMENT_REJECT',
+  'PAYMENT_DELETE',
   'PAYMENT_VIEW_ALL',
   'PAYMENT_VIEW_OWN',
+  // Self-service (V121, hub plan payments-unification) — AFILIADO over
+  // their own payments, PROMOTOR over their downline's collections.
+  'PAYMENT_CREATE_OWN',
+  'PAYMENT_DELETE_OWN',
+  'PAYMENT_CREATE_DOWNLINE',
+  'PAYMENT_APPROVE_DOWNLINE',
+  'PAYMENT_REJECT_DOWNLINE',
+  'PAYMENT_DELETE_DOWNLINE',
 
   // PROMOTERS
   'PROMOTER_CREATE',

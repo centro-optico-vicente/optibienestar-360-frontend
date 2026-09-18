@@ -4,8 +4,11 @@ import { paymentStatusColor } from '~/types/payments'
 
 // "Cobros de mis afiliados" (hub plan payments-unification, "Mis portales") —
 // direction=IN payments from the affiliates in the promoter's own downline
-// (payments.promoter_id, V117). Read-only: registration/review happens on the
-// admin "Cobros" screen, not here.
+// (payments.promoter_id, V117). Register/delete (V121, PAYMENT_CREATE_DOWNLINE
+// / PAYMENT_DELETE_DOWNLINE) let the promoter self-manage collections for
+// their own portfolio; approve/reject stay admin-only by default (granular
+// permissions exist — PAYMENT_APPROVE_DOWNLINE/PAYMENT_REJECT_DOWNLINE —
+// but aren't granted to PROMOTOR, see V121 header comment).
 definePageMeta({
   layout: 'dashboard',
   middleware: 'can',
@@ -18,6 +21,11 @@ const { formatDate } = useFormatters()
 useSeoMeta({ title: () => t('common.seoTitle', { page: t('promoterSelf.collections.title') }) })
 
 const payments = usePayments()
+const { can } = usePermissions()
+const toast = useToast()
+
+const canRegister = computed(() => can('PAYMENT_CREATE_DOWNLINE'))
+const canDelete = computed(() => can('PAYMENT_DELETE_DOWNLINE'))
 
 const data = ref<PaymentDto[]>([])
 const total = ref(0)
@@ -48,13 +56,66 @@ onMounted(load)
 function statusLabel(s?: string | null): string {
   return s ? t(`payments.status.${s}`, s) : t('common.empty')
 }
+
+function isPending(p: PaymentDto): boolean {
+  return p.status === 'PENDING'
+}
+
+// ---- Register (modal) ----
+const formOpen = ref(false)
+
+async function onSaved() {
+  page.value = 1
+  await load()
+}
+
+// ---- Delete (only while still PENDING) ----
+const deleteOpen = ref(false)
+const deleting = ref(false)
+const target = ref<PaymentDto | null>(null)
+
+function openDelete(p: PaymentDto) {
+  target.value = p
+  deleteOpen.value = true
+}
+
+async function confirmDelete() {
+  if (!target.value) return
+  deleting.value = true
+  try {
+    await payments.removeForDownline(target.value.uuid)
+    toast.add({ title: t('payments.deletedToast'), color: 'success', icon: 'i-lucide-check-circle' })
+    deleteOpen.value = false
+    if (data.value.length === 1 && page.value > 1) page.value -= 1
+    else await load()
+  }
+  catch {
+    // useApi already notified the error
+  }
+  finally {
+    deleting.value = false
+  }
+}
 </script>
 
 <template>
   <div class="space-y-5">
-    <div>
-      <h1 class="text-2xl font-extrabold text-prohealth-900">{{ t('promoterSelf.collections.title') }}</h1>
-      <p class="text-sm text-prohealth-700/70 mt-1">{{ t('promoterSelf.collections.subtitle') }}</p>
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-extrabold text-prohealth-900">{{ t('promoterSelf.collections.title') }}</h1>
+        <p class="text-sm text-prohealth-700/70 mt-1">{{ t('promoterSelf.collections.subtitle') }}</p>
+      </div>
+      <UTooltip :text="canRegister ? t('payments.createTooltip') : t('payments.noPermissionRegister')">
+        <UButton
+          color="primary"
+          variant="outline"
+          icon="i-lucide-plus"
+          :disabled="!canRegister"
+          @click="formOpen = true"
+        >
+          {{ t('common.new') }}
+        </UButton>
+      </UTooltip>
     </div>
 
     <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-16rem)] min-h-[24rem]">
@@ -67,12 +128,13 @@ function statusLabel(s?: string | null): string {
               <th class="px-5 py-3 font-semibold">{{ t('payments.columns.amount') }}</th>
               <th class="px-5 py-3 font-semibold">{{ t('payments.columns.date') }}</th>
               <th class="px-5 py-3 font-semibold">{{ t('payments.columns.status') }}</th>
+              <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-prohealth-100">
-            <TableSkeleton v-if="loading" :rows="8" :cols="5" />
+            <TableSkeleton v-if="loading" :rows="8" :cols="6" />
             <tr v-else-if="data.length === 0">
-              <td colspan="5" class="px-5 py-12 text-center text-prohealth-500">
+              <td colspan="6" class="px-5 py-12 text-center text-prohealth-500">
                 <UIcon name="i-lucide-receipt" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
                 {{ t('promoterSelf.collections.empty') }}
               </td>
@@ -87,6 +149,18 @@ function statusLabel(s?: string | null): string {
                   {{ p.status_Display ?? statusLabel(p.status) }}
                 </UBadge>
               </td>
+              <td class="px-5 py-3 text-right">
+                <UTooltip v-if="isPending(p)" :text="canDelete ? t('common.delete') : t('payments.tooltips.noPermissionDelete')">
+                  <UButton
+                    color="error"
+                    variant="ghost"
+                    icon="i-lucide-trash-2"
+                    size="sm"
+                    :disabled="!canDelete"
+                    @click="openDelete(p)"
+                  />
+                </UTooltip>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -96,5 +170,23 @@ function statusLabel(s?: string | null): string {
         <UPagination v-model:page="page" :total="total" :items-per-page="size" />
       </div>
     </div>
+
+    <!-- Register modal -->
+    <DownlinePaymentFormModal v-model:open="formOpen" @saved="onSaved" />
+
+    <!-- Delete confirmation modal (PENDING only) -->
+    <UModal v-model:open="deleteOpen" :title="t('payments.delete.title')">
+      <template #body>
+        <p class="text-sm text-prohealth-700">{{ t('payments.delete.confirm') }}</p>
+        <div class="flex items-center justify-end gap-3 pt-5">
+          <UButton color="neutral" variant="ghost" :disabled="deleting" @click="deleteOpen = false">
+            {{ t('common.cancel') }}
+          </UButton>
+          <UButton color="error" :loading="deleting" icon="i-lucide-trash-2" @click="confirmDelete">
+            {{ t('common.delete') }}
+          </UButton>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>

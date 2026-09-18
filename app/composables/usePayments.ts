@@ -1,7 +1,11 @@
 import type { Page } from '~/types/admin'
 import type {
+  DownlinePaymentCreateRequest,
+  MyPaymentCreateRequest,
+  PaymentApproveRequest,
   PaymentCreateRequest,
   PaymentDto,
+  PaymentRejectRequest,
   PaymentSupportUrlDto,
 } from '~/types/payments'
 
@@ -86,6 +90,13 @@ export const usePayments = () => {
   const remove = (uuid: string) =>
     useApi<void>(`/v1/admin/payments/${uuid}`, { method: 'DELETE' })
 
+  function toPaymentForm(payload: MyPaymentCreateRequest | DownlinePaymentCreateRequest, support?: File | null) {
+    const form = new FormData()
+    form.append('payment', new Blob([JSON.stringify(payload)], { type: 'application/json' }))
+    if (support) form.append('support', support)
+    return form
+  }
+
   /**
    * Presigned URL of the proof (default 5 min; ttl clamped to [1..60] in the
    * backend). 404 if there is no proof; 422 if R2 is disabled on the replica.
@@ -122,5 +133,40 @@ export const usePayments = () => {
       },
     })
 
-  return { list, get, register, approve, reject, remove, supportUrl, mine, mineForPromoter }
+  /** Register a payment for the caller's own active membership (PAYMENT_CREATE_OWN). */
+  const registerOwn = (payload: MyPaymentCreateRequest, support?: File | null) =>
+    useApi<PaymentDto>('/v1/me/payments', { method: 'POST', body: toPaymentForm(payload, support) })
+
+  /** Delete the caller's own still-PENDING payment (PAYMENT_DELETE_OWN). */
+  const removeOwn = (uuid: string) =>
+    useApi<void>(`/v1/me/payments/${uuid}`, { method: 'DELETE' })
+
+  // ---- Promoter downline management (hub plan payments-unification, "Mis portales") ----
+  /** Register a collection for an affiliate in the caller's own downline (PAYMENT_CREATE_DOWNLINE). */
+  const registerForDownline = (payload: DownlinePaymentCreateRequest, support?: File | null) =>
+    useApi<PaymentDto>('/v1/promoter/me/payments', { method: 'POST', body: toPaymentForm(payload, support) })
+
+  /** Approve a PENDING downline collection (PAYMENT_APPROVE_DOWNLINE, not granted by default). */
+  const approveForDownline = (uuid: string, reason?: string) =>
+    useApi<PaymentDto>(`/v1/promoter/me/payments/${uuid}/approve`, {
+      method: 'PUT',
+      body: (reason ? { reason } : {}) as PaymentApproveRequest,
+    })
+
+  /** Reject a PENDING downline collection (PAYMENT_REJECT_DOWNLINE, not granted by default). */
+  const rejectForDownline = (uuid: string, reason: string) =>
+    useApi<PaymentDto>(`/v1/promoter/me/payments/${uuid}/reject`, {
+      method: 'PUT',
+      body: { reason } as PaymentRejectRequest,
+    })
+
+  /** Delete a PENDING downline collection registered by mistake (PAYMENT_DELETE_DOWNLINE). */
+  const removeForDownline = (uuid: string) =>
+    useApi<void>(`/v1/promoter/me/payments/${uuid}`, { method: 'DELETE' })
+
+  return {
+    list, get, register, approve, reject, remove, supportUrl, mine, mineForPromoter,
+    registerOwn, removeOwn,
+    registerForDownline, approveForDownline, rejectForDownline, removeForDownline,
+  }
 }

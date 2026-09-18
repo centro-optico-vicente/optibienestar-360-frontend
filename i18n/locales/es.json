@@ -1494,7 +1494,11 @@
     "collections": {
       "title": "Cobros de mis afiliados",
       "subtitle": "Pagos de membresía de los afiliados de tu red.",
-      "empty": "Sin cobros"
+      "empty": "Sin cobros",
+      "form": {
+        "title": "Registrar cobro",
+        "description": "Registra el pago de membresía de un afiliado de tu cartera para revisión."
+      }
     },
     "payouts": {
       "title": "Mis pagos de comisiones",
@@ -1696,7 +1700,11 @@
     "mine": {
       "title": "Mis pagos",
       "subtitle": "Historial de tus pagos y su estado de revisión.",
-      "empty": "Aún no tienes pagos registrados."
+      "empty": "Aún no tienes pagos registrados.",
+      "form": {
+        "title": "Registrar mi pago",
+        "description": "Registra el pago de tu membresía para revisión."
+      }
     }
   },
   "members": {
