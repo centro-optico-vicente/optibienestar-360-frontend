@@ -636,6 +636,10 @@
       "paymentMethods": {
         "label": "Payment methods",
         "description": "Payment forms: cash, transfer, Zelle, etc."
+      },
+      "paymentsPayouts": {
+        "label": "General payouts",
+        "description": "Commission payments disbursed to promoters."
       }
     },
     "other": {
@@ -1490,6 +1494,20 @@
       "reject": "Reject",
       "noPermissionReject": "You don't have permission to reject",
       "noPermissionDelete": "You don't have permission to delete"
+    },
+    "payouts": {
+      "title": "General payouts",
+      "subtitle": "Commission payments disbursed to promoters (period close).",
+      "searchPlaceholder": "Search by reference…",
+      "empty": "No commission payouts",
+      "detailTitle": "Payment detail",
+      "columns": {
+        "promoter": "Promoter",
+        "category": "Reason",
+        "method": "Method",
+        "reference": "Reference",
+        "reviewedBy": "Reviewed by"
+      }
     },
     "columns": {
       "member": "Member",
