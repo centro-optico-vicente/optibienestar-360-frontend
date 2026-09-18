@@ -137,6 +137,12 @@ export const MAIN_NAV: NavEntry[] = [
       { label: 'Bancos', labelKey: 'nav.items.banks.label', to: '/dashboard/catalogs/banks', icon: 'i-lucide-landmark', description: 'Catálogo de bancos venezolanos (SUDEBAN).', descriptionKey: 'nav.items.banks.description', requires: 'BANK_VIEW_ALL' },
       { label: 'Categorías de pago', labelKey: 'nav.items.paymentCategories.label', to: '/dashboard/catalogs/payment-categories', icon: 'i-lucide-tags', description: 'Motivos de cobro y pago (cuota, comisión, bono, etc.).', descriptionKey: 'nav.items.paymentCategories.description', requires: 'PAYMENT_CATEGORY_VIEW_ALL' },
       { label: 'Métodos de pago', labelKey: 'nav.items.paymentMethods.label', to: '/dashboard/catalogs/payment-methods', icon: 'i-lucide-credit-card', description: 'Formas de pago: efectivo, transferencia, Zelle, etc.', descriptionKey: 'nav.items.paymentMethods.description', requires: 'PAYMENT_METHOD_VIEW_ALL' },
+      // direction=OUT — commission payouts (CommissionPayoutService). Read-only
+      // ledger, no create/approve here (those happen via the commission
+      // period-close action). "Cobros generales" (direction=IN, today's
+      // /dashboard/payments) stays in Afiliaciones until it's relabeled —
+      // hub plan §"Reorganización de menú".
+      { label: 'Pagos generales', labelKey: 'nav.items.paymentsPayouts.label', to: '/dashboard/payments/payouts', icon: 'i-lucide-banknote', description: 'Pagos de comisión ejecutados a promotores.', descriptionKey: 'nav.items.paymentsPayouts.description', requires: 'PAYMENT_VIEW_ALL' },
     ],
   },
   {

@@ -636,6 +636,10 @@
       "paymentMethods": {
         "label": "Métodos de pago",
         "description": "Formas de pago: efectivo, transferencia, Zelle, etc."
+      },
+      "paymentsPayouts": {
+        "label": "Pagos generales",
+        "description": "Pagos de comisión ejecutados a promotores."
       }
     },
     "other": {
@@ -1490,6 +1494,20 @@
       "reject": "Rechazar",
       "noPermissionReject": "No tienes permiso para rechazar",
       "noPermissionDelete": "No tienes permiso para eliminar"
+    },
+    "payouts": {
+      "title": "Pagos generales",
+      "subtitle": "Pagos de comisión ejecutados a promotores (liquidación de período).",
+      "searchPlaceholder": "Buscar por referencia…",
+      "empty": "Sin pagos de comisión",
+      "detailTitle": "Detalle del pago",
+      "columns": {
+        "promoter": "Promotor",
+        "category": "Motivo",
+        "method": "Método",
+        "reference": "Referencia",
+        "reviewedBy": "Revisado por"
+      }
     },
     "columns": {
       "member": "Afiliado",
