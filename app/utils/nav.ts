@@ -79,17 +79,12 @@ export const MAIN_NAV: NavEntry[] = [
     label: 'Afiliaciones',
     labelKey: 'nav.groups.afiliaciones.label',
     icon: 'i-lucide-users',
-    description: 'Planes, membresías, afiliados y sus cobros.',
+    description: 'Planes, membresías y afiliados del programa.',
     descriptionKey: 'nav.groups.afiliaciones.description',
     children: [
       { label: 'Planes', labelKey: 'nav.items.plans.label', to: '/dashboard/plans', icon: 'i-lucide-package', description: 'Planes de cobertura disponibles.', descriptionKey: 'nav.items.plans.description', requires: 'PLAN_VIEW_ALL' },
       { label: 'Membresías', labelKey: 'nav.items.memberships.label', to: '/dashboard/memberships', icon: 'i-lucide-badge-check', description: 'Estado y vigencia de las membresías.', descriptionKey: 'nav.items.memberships.description', requires: 'MEMBERSHIP_VIEW_ALL' },
       { label: 'Afiliados', labelKey: 'nav.items.members.label', to: '/dashboard/members', icon: 'i-lucide-users', description: 'Directorio y expedientes de afiliados.', descriptionKey: 'nav.items.members.description', requires: 'MEMBER_VIEW_ALL' },
-      // Mismo endpoint/pantalla que "Cobros" en Finanzas — se repite acá
-      // porque en el flujo diario de Afiliaciones (registrar/aprobar el
-      // cobro de un afiliado) es más natural encontrarlo junto al resto del
-      // ciclo de vida del afiliado que en el módulo financiero.
-      { label: 'Cobros', labelKey: 'nav.items.payments.label', to: '/dashboard/payments', icon: 'i-lucide-credit-card', description: 'Registro y aprobación de cobros de membresía.', descriptionKey: 'nav.items.payments.description', requires: 'PAYMENT_VIEW_ALL' },
       { label: 'Reporte de pagos', labelKey: 'nav.items.paymentsReport.label', to: '/dashboard/payments/report', icon: 'i-lucide-file-spreadsheet', description: 'Reporte de recaudación y pagos de afiliados.', descriptionKey: 'nav.items.paymentsReport.description', requires: ['PAYMENT_REPORT_GENERATE', 'REPORT_REPORT_GENERATE', 'PAYMENT_VIEW_ALL'] },
     ],
   },
@@ -131,9 +126,14 @@ export const MAIN_NAV: NavEntry[] = [
     // menú") — orden pedido: catálogos primero, vista maestra, luego
     // especializadas. Monedas (ex Datos maestros) y Tasas de cambio (ex
     // Sistema) se mudan aquí por ser el mismo dominio multi-moneda (ADR
-    // 0015). "Cobros" (direction=IN) y "Pagos" (direction=OUT) son el mismo
-    // endpoint/pantalla que sus contrapartes en Afiliaciones/aquí — "Cobros"
-    // se repite en Afiliaciones a propósito (ver esa sección).
+    // 0015); Pagos (ex Afiliaciones) se relabelea a "Cobros".
+    //
+    // Deliberadamente NO se repite ningún `to` en otro grupo (p.ej. Cobros
+    // también en Afiliaciones): `useNav.groupKeyOfPath` abre el PRIMER grupo
+    // de MAIN_NAV cuyo `to` matchea la ruta actual — con la misma ruta en dos
+    // grupos, el sidebar terminaba abriendo Afiliaciones (aparece antes en el
+    // array) aunque el clic viniera de Finanzas, y esa inconsistencia
+    // desencadenaba errores en cascada del Combobox de filtros al re-montar.
     key: 'finanzas',
     label: 'Finanzas',
     labelKey: 'nav.groups.finanzas.label',
