@@ -465,6 +465,10 @@
         "label": "Sales",
         "description": "Program promoters and their commissions."
       },
+      "finanzas": {
+        "label": "Finance",
+        "description": "Payment support catalogs: banks, categories and methods."
+      },
       "seguridad": {
         "label": "Security",
         "description": "Access control by roles and system users."
@@ -620,6 +624,18 @@
       "exchangeRates": {
         "label": "Exchange rates",
         "description": "BCV/API rate history and manual entry."
+      },
+      "banks": {
+        "label": "Banks",
+        "description": "Venezuelan bank catalog (SUDEBAN)."
+      },
+      "paymentCategories": {
+        "label": "Payment categories",
+        "description": "Reasons for collection and payment (fee, commission, bonus, etc.)."
+      },
+      "paymentMethods": {
+        "label": "Payment methods",
+        "description": "Payment forms: cash, transfer, Zelle, etc."
       }
     },
     "other": {
@@ -885,7 +901,15 @@
       "superiorRank": "Superior rank",
       "superiorRankNone": "None (top level)",
       "symbol": "Symbol",
-      "decimalPlaces": "Decimal places"
+      "decimalPlaces": "Decimal places",
+      "shortName": "Commercial name",
+      "taxDocumentType": "Tax ID type",
+      "taxDocumentNumber": "Tax ID number",
+      "direction": "Direction",
+      "mandatoryBankAccount": "Requires bank account",
+      "mandatoryPhone": "Requires phone",
+      "mandatoryEmail": "Requires email",
+      "mandatoryReferenceNumber": "Requires reference number"
     },
     "promoterRanksTree": {
       "title": "Rank tree",
@@ -898,6 +922,8 @@
       "documentTypeCode": "1 to 3 uppercase letters (e.g. CC, CI)",
       "codeMax": "Uppercase/underscore, max {n}",
       "currencyCode": "Three or four uppercase letters (ISO 4217, e.g. USD)",
+      "direction": "Must be IN or OUT",
+      "taxDocumentType": "One letter: J, G, V, E or P",
       "invalidFormat": "Invalid format"
     },
     "registry": {
@@ -952,6 +978,18 @@
       "currencies": {
         "label": "Currencies",
         "labelSingular": "Currency"
+      },
+      "banks": {
+        "label": "Banks",
+        "labelSingular": "Bank"
+      },
+      "payment-categories": {
+        "label": "Payment categories",
+        "labelSingular": "Payment category"
+      },
+      "payment-methods": {
+        "label": "Payment methods",
+        "labelSingular": "Payment method"
       }
     }
   },

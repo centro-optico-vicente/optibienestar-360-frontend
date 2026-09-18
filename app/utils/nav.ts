@@ -52,9 +52,9 @@ export function isNavGroup(entry: NavEntry): entry is NavGroup {
   return 'children' in entry
 }
 
-// Catálogos que viven en su vertical de negocio (Aliados) y por eso NO se repiten
-// en Datos maestros.
-const CATALOGS_IN_VERTICALS = new Set<string>(['ally-types', 'service-categories', 'medical-specialties', 'promoter-types', 'promoter-ranks'])
+// Catálogos que viven en su vertical de negocio (Aliados, Finanzas) y por eso
+// NO se repiten en Datos maestros.
+const CATALOGS_IN_VERTICALS = new Set<string>(['ally-types', 'service-categories', 'medical-specialties', 'promoter-types', 'promoter-ranks', 'banks', 'payment-categories', 'payment-methods'])
 
 // El resto de catálogos alimenta "Datos maestros": derivados del registro, así el
 // grupo y su mosaico quedan siempre sincronizados con lo que existe en el sistema.
@@ -118,6 +118,25 @@ export const MAIN_NAV: NavEntry[] = [
       { label: 'Aprobación de comisiones', labelKey: 'nav.items.commissionApproval.label', to: '/dashboard/commissions/approval', icon: 'i-lucide-badge-check', description: 'Aprobar o rechazar comisiones calculadas antes de su pago.', descriptionKey: 'nav.items.commissionApproval.description', requires: 'COMMISSION_APPROVE' },
       { label: 'Reporte de comisiones', labelKey: 'nav.items.commissionsReport.label', to: '/dashboard/commissions/report', icon: 'i-lucide-file-text', description: 'Reporte general de comisiones devengadas.', descriptionKey: 'nav.items.commissionsReport.description', requires: ['COMMISSION_REPORT_GENERATE', 'REPORT_REPORT_GENERATE', 'COMMISSION_VIEW_ALL', 'COMMISSION_VIEW_OWN'] },
       { label: 'Reporte de pagos de comisiones', labelKey: 'nav.items.commissionPayoutsReport.label', to: '/dashboard/commissions/payouts-report', icon: 'i-lucide-file-check-2', description: 'Reporte de desembolsos y pagos realizados a promotores.', descriptionKey: 'nav.items.commissionPayoutsReport.description', requires: ['COMMISSION_REPORT_GENERATE', 'REPORT_REPORT_GENERATE', 'COMMISSION_VIEW_ALL', 'COMMISSION_VIEW_OWN'] },
+    ],
+  },
+  {
+    // Grupo nuevo (hub plan payments-unification, §"Reorganización de menú").
+    // Arranca solo con los 3 catálogos nuevos (V115/V116) — Monedas (Datos
+    // maestros), Tasas de cambio (Sistema) y Pagos (Afiliaciones) se quedan
+    // donde están por ahora; su mudanza a este grupo, junto con las pantallas
+    // "Movimientos"/"Cobros generales"/"Pagos generales", queda para cuando
+    // el flujo OUT (CommissionPayoutService) esté implementado.
+    key: 'finanzas',
+    label: 'Finanzas',
+    labelKey: 'nav.groups.finanzas.label',
+    icon: 'i-lucide-landmark',
+    description: 'Catálogos de soporte de pagos: bancos, categorías y métodos.',
+    descriptionKey: 'nav.groups.finanzas.description',
+    children: [
+      { label: 'Bancos', labelKey: 'nav.items.banks.label', to: '/dashboard/catalogs/banks', icon: 'i-lucide-landmark', description: 'Catálogo de bancos venezolanos (SUDEBAN).', descriptionKey: 'nav.items.banks.description', requires: 'BANK_VIEW_ALL' },
+      { label: 'Categorías de pago', labelKey: 'nav.items.paymentCategories.label', to: '/dashboard/catalogs/payment-categories', icon: 'i-lucide-tags', description: 'Motivos de cobro y pago (cuota, comisión, bono, etc.).', descriptionKey: 'nav.items.paymentCategories.description', requires: 'PAYMENT_CATEGORY_VIEW_ALL' },
+      { label: 'Métodos de pago', labelKey: 'nav.items.paymentMethods.label', to: '/dashboard/catalogs/payment-methods', icon: 'i-lucide-credit-card', description: 'Formas de pago: efectivo, transferencia, Zelle, etc.', descriptionKey: 'nav.items.paymentMethods.description', requires: 'PAYMENT_METHOD_VIEW_ALL' },
     ],
   },
   {
