@@ -455,7 +455,7 @@
     "groups": {
       "afiliaciones": {
         "label": "Afiliaciones",
-        "description": "Planes, membresías, afiliados y pagos del programa."
+        "description": "Planes, membresías y afiliados del programa."
       },
       "aliados": {
         "label": "Aliados",
@@ -467,7 +467,7 @@
       },
       "finanzas": {
         "label": "Finanzas",
-        "description": "Catálogos de soporte de pagos: bancos, categorías y métodos."
+        "description": "Monedas, bancos, catálogos de pago, movimientos y cobros/pagos del sistema."
       },
       "seguridad": {
         "label": "Seguridad",
@@ -640,6 +640,26 @@
       "paymentsPayouts": {
         "label": "Pagos generales",
         "description": "Pagos de comisión ejecutados a promotores."
+      },
+      "paymentsMovements": {
+        "label": "Movimientos",
+        "description": "Vista maestra de cobros y pagos, ambas direcciones."
+      },
+      "currencies": {
+        "label": "Monedas",
+        "description": "Catálogo de monedas"
+      },
+      "myPayments": {
+        "label": "Mis pagos",
+        "description": "Tu historial de pagos de membresía."
+      },
+      "myNetworkCollections": {
+        "label": "Cobros de mis afiliados",
+        "description": "Pagos de membresía de los afiliados de tu red."
+      },
+      "myCommissionPayouts": {
+        "label": "Mis pagos de comisiones",
+        "description": "Pagos de comisión que te han sido liquidados."
       }
     },
     "other": {
@@ -1470,6 +1490,18 @@
       "noAllyDescription": "Pide al equipo de OptiBienestar 360 que te vincule a tu empresa aliada para poder proponer servicios."
     }
   },
+  "promoterSelf": {
+    "collections": {
+      "title": "Cobros de mis afiliados",
+      "subtitle": "Pagos de membresía de los afiliados de tu red.",
+      "empty": "Sin cobros"
+    },
+    "payouts": {
+      "title": "Mis pagos de comisiones",
+      "subtitle": "Pagos de comisión que te han sido liquidados.",
+      "empty": "Sin pagos de comisión"
+    }
+  },
   "payments": {
     "title": "Pagos",
     "subtitle": "Registro y revisión de pagos manuales: aprobación o rechazo con comprobante.",
@@ -1508,6 +1540,23 @@
         "reference": "Referencia",
         "reviewedBy": "Revisado por"
       }
+    },
+    "movements": {
+      "title": "Movimientos",
+      "subtitle": "Vista maestra de cobros y pagos de comisión, ambas direcciones.",
+      "searchPlaceholder": "Buscar…",
+      "empty": "Sin movimientos",
+      "directionAll": "Todos",
+      "directionIn": "Cobro",
+      "directionOut": "Pago",
+      "columns": {
+        "direction": "Tipo",
+        "subject": "Afiliado / Promotor"
+      }
+    },
+    "mine": {
+      "title": "Mis pagos",
+      "subtitle": "Historial de tus pagos de membresía."
     },
     "columns": {
       "member": "Afiliado",

@@ -455,7 +455,7 @@
     "groups": {
       "afiliaciones": {
         "label": "Affiliations",
-        "description": "Plans, memberships, members and program payments."
+        "description": "Plans, memberships and members of the program."
       },
       "aliados": {
         "label": "Partners",
@@ -467,7 +467,7 @@
       },
       "finanzas": {
         "label": "Finance",
-        "description": "Payment support catalogs: banks, categories and methods."
+        "description": "Currencies, banks, payment catalogs, movements and system collections/payouts."
       },
       "seguridad": {
         "label": "Security",
@@ -640,6 +640,26 @@
       "paymentsPayouts": {
         "label": "General payouts",
         "description": "Commission payments disbursed to promoters."
+      },
+      "paymentsMovements": {
+        "label": "Movements",
+        "description": "Master view of collections and payouts, both directions."
+      },
+      "currencies": {
+        "label": "Currencies",
+        "description": "Currency catalog"
+      },
+      "myPayments": {
+        "label": "My payments",
+        "description": "Your membership payment history."
+      },
+      "myNetworkCollections": {
+        "label": "Collections from my affiliates",
+        "description": "Membership payments from the affiliates in your network."
+      },
+      "myCommissionPayouts": {
+        "label": "My commission payouts",
+        "description": "Commission payouts disbursed to you."
       }
     },
     "other": {
@@ -1470,6 +1490,18 @@
       "noAllyDescription": "Ask the OptiBienestar 360 team to link you to your partner company so you can propose services."
     }
   },
+  "promoterSelf": {
+    "collections": {
+      "title": "Collections from my affiliates",
+      "subtitle": "Membership payments from the affiliates in your network.",
+      "empty": "No collections"
+    },
+    "payouts": {
+      "title": "My commission payouts",
+      "subtitle": "Commission payouts disbursed to you.",
+      "empty": "No commission payouts"
+    }
+  },
   "payments": {
     "title": "Payments",
     "subtitle": "Register and review manual payments: approval or rejection with proof.",
@@ -1508,6 +1540,23 @@
         "reference": "Reference",
         "reviewedBy": "Reviewed by"
       }
+    },
+    "movements": {
+      "title": "Movements",
+      "subtitle": "Master view of collections and commission payouts, both directions.",
+      "searchPlaceholder": "Search…",
+      "empty": "No movements",
+      "directionAll": "All",
+      "directionIn": "Collection",
+      "directionOut": "Payout",
+      "columns": {
+        "direction": "Type",
+        "subject": "Member / Promoter"
+      }
+    },
+    "mine": {
+      "title": "My payments",
+      "subtitle": "History of your membership payments."
     },
     "columns": {
       "member": "Member",

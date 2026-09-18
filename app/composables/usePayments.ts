@@ -98,5 +98,21 @@ export const usePayments = () => {
       },
     })
 
-  return { list, get, register, approve, reject, remove, supportUrl, mine }
+  // ---- Promoter self-service (hub plan payments-unification, "Mis portales") ----
+  /**
+   * `direction=IN` -> "Cobros de mis afiliados" (collections from the
+   * promoter's downline); `direction=OUT` -> "Mis pagos de comisiones"
+   * (commission payouts disbursed to the promoter). PROMOTER_VIEW_OWN.
+   */
+  const mineForPromoter = (direction: 'IN' | 'OUT', params: Pick<ListParams, 'page' | 'size' | 'sort'> = {}) =>
+    useApi<Page<PaymentDto>>('/v1/promoter/me/payments', {
+      query: {
+        direction,
+        page: params.page ?? 0,
+        size: params.size ?? 20,
+        sort: params.sort?.length ? params.sort : ['receivedAt,desc'],
+      },
+    })
+
+  return { list, get, register, approve, reject, remove, supportUrl, mine, mineForPromoter }
 }
