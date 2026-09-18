@@ -63,5 +63,14 @@ export const usePromoters = () => {
   const commissionsSummary = (uuid: string) =>
     useApi<CommissionPeriodSummaryDto[]>(`/v1/admin/promoters/${uuid}/commissions/summary`)
 
-  return { list, get, create, update, remove, usage, portfolio, commissionsSummary }
+  /**
+   * Self-service dashboard of the logged-in promoter (GET /v1/promoter/me,
+   * PROMOTER_VIEW_OWN) — same shape as `portfolio()` but resolved from the
+   * JWT instead of a path uuid. Used to populate the member picker on the
+   * "Cobros de mis afiliados" registration form without a separate search
+   * endpoint scoped to the caller's own downline.
+   */
+  const me = () => useApi<PromoterDashboardDto>('/v1/promoter/me')
+
+  return { list, get, create, update, remove, usage, portfolio, commissionsSummary, me }
 }

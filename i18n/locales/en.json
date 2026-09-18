@@ -1494,7 +1494,11 @@
     "collections": {
       "title": "Collections from my affiliates",
       "subtitle": "Membership payments from the affiliates in your network.",
-      "empty": "No collections"
+      "empty": "No collections",
+      "form": {
+        "title": "Register a collection",
+        "description": "Register a membership payment for an affiliate in your portfolio for review."
+      }
     },
     "payouts": {
       "title": "My commission payouts",
@@ -1696,7 +1700,11 @@
     "mine": {
       "title": "My payments",
       "subtitle": "History of your payments and their review status.",
-      "empty": "You don't have any registered payments yet."
+      "empty": "You don't have any registered payments yet.",
+      "form": {
+        "title": "Register my payment",
+        "description": "Register your membership payment for review."
+      }
     }
   },
   "members": {

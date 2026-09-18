@@ -167,6 +167,32 @@ export interface PaymentCreateRequest {
   adminNotes?: string
 }
 
+/**
+ * Body of POST /v1/me/payments (multipart `payment` part). Same shape as
+ * {@link PaymentCreateRequest} minus `membershipUuid`/`payerUserUuid` — the
+ * backend resolves the caller's own active membership; the caller is
+ * implicitly the payer.
+ */
+export interface MyPaymentCreateRequest {
+  amount: string
+  currency?: string
+  paymentMethod: PaymentMethod
+  referenceNumber?: string
+  paymentDate: string
+  inscription?: boolean
+  appliedPeriod?: string
+  adminNotes?: string
+}
+
+/**
+ * Body of POST /v1/promoter/me/payments (multipart `payment` part) — a
+ * promoter registering a collection on behalf of an affiliate in their own
+ * downline (server verifies portfolio ownership).
+ */
+export interface DownlinePaymentCreateRequest extends MyPaymentCreateRequest {
+  memberUuid: string
+}
+
 /** Optional body of PUT /v1/admin/payments/{uuid}/approve. */
 export interface PaymentApproveRequest {
   /** Optional approval note (max 500). */
