@@ -23,6 +23,7 @@ const { can } = usePermissions()
 const canApprove = computed(() => can('PAYMENT_APPROVE'))
 const canReject = computed(() => can('PAYMENT_REJECT'))
 const canViewMember = computed(() => can('MEMBER_VIEW_ALL'))
+const canViewCurrency = computed(() => can('CURRENCY_VIEW_ALL'))
 const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('PAYMENT_RECORD_AUDIT_VIEW'))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('PAYMENT_REPORT_AUDIT_VIEW'))
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
@@ -210,6 +211,16 @@ function onReviewed(updated: PaymentDto) {
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.amount') }}</dt>
             <dd class="text-prohealth-900 text-lg font-semibold mt-0.5">
               <MoneyWithTooltip :display="payment.amount_Display" :converted-display="payment.amountConverted_Display" :rate-date="payment.exchangeRateDate" />
+            </dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.currency') }}</dt>
+            <dd class="mt-0.5">
+              <CommonEntityLinkCell
+                :to="payment.currency_Uuid ? `/dashboard/catalogs/currencies?edit=${payment.currency_Uuid}` : null"
+                :label="payment.currency_Display || payment.currency_Code"
+                :can="canViewCurrency"
+              />
             </dd>
           </div>
           <div>

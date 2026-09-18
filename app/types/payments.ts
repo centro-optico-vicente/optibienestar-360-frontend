@@ -85,9 +85,14 @@ export interface PaymentDto {
   currency: string
   amount_Display?: string | null
   currency_Code?: string | null
+  /** FK pair (hub ADR 0014) — quick-link to `/dashboard/catalogs/currencies`. */
+  currency_Uuid?: string | null
+  currency_Display?: string | null
   amountConverted?: number | string | null
   amountConverted_Display?: string | null
   convertedCurrency_Code?: string | null
+  convertedCurrency_Uuid?: string | null
+  convertedCurrency_Display?: string | null
   exchangeRateUsed?: number | string | null
   exchangeRateDate?: string | null
   // Method + reference

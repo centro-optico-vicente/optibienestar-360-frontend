@@ -22,6 +22,7 @@ const canUpdate = computed(() => can('PLAN_UPDATE'))
 const canDelete = computed(() => can('PLAN_DELETE'))
 const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('PLAN_RECORD_AUDIT_VIEW'))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('PLAN_REPORT_AUDIT_VIEW'))
+const canViewCurrency = computed(() => can('CURRENCY_VIEW_ALL'))
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
 
 // ---- List + pagination + search ----
@@ -296,6 +297,13 @@ function openAudit(p: PlanDto) {
               <td class="px-5 py-3 text-prohealth-700">{{ p.inscriptionFee_Display ?? t('common.empty') }}</td>
               <td class="px-5 py-3 text-prohealth-700">
                 <MoneyWithTooltip :display="p.monthlyFee_Display" :converted-display="p.amountConverted_Display" :rate-date="p.exchangeRateDate" />
+                <div class="text-xs mt-0.5" @click.stop>
+                  <CommonEntityLinkCell
+                    :to="p.currency_Uuid ? `/dashboard/catalogs/currencies?edit=${p.currency_Uuid}` : null"
+                    :label="p.currency_Display || p.currency_Code"
+                    :can="canViewCurrency"
+                  />
+                </div>
               </td>
               <td class="px-5 py-3 text-prohealth-700">
                 {{ t('plans.includedShort', { n: p.includedBeneficiaries }) }}

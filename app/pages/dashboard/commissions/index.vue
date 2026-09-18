@@ -25,6 +25,7 @@ const canApprove = computed(() => can('COMMISSION_APPROVE'))
 const canViewPromoter = computed(() => can('PROMOTER_VIEW_ALL'))
 const canViewPayment = computed(() => can('PAYMENT_VIEW_ALL'))
 const canViewMember = computed(() => can('MEMBER_VIEW_ALL'))
+const canViewCurrency = computed(() => can('CURRENCY_VIEW_ALL'))
 
 // commission_tier and commission share the COMMISSIONS audit domain (V66/V72),
 // same pattern as commission-rules/index.vue.
@@ -479,6 +480,16 @@ async function confirmVoid() {
                 </dd>
               </div>
               <div>
+                <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.currency') }}</dt>
+                <dd class="mt-0.5">
+                  <CommonEntityLinkCell
+                    :to="detail.currency_Uuid ? `/dashboard/catalogs/currencies?edit=${detail.currency_Uuid}` : null"
+                    :label="detail.currency_Display || detail.currency_Code"
+                    :can="canViewCurrency"
+                  />
+                </dd>
+              </div>
+              <div>
                 <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.status') }}</dt>
                 <dd class="mt-0.5">
                   <UBadge :color="statusColor(detail.status)" variant="subtle" size="sm">
@@ -568,6 +579,41 @@ async function confirmVoid() {
               <div class="sm:col-span-2">
                 <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.adminNotes') }}</dt>
                 <dd class="text-prohealth-800 mt-0.5 whitespace-pre-line">{{ detail.adminNotes || t('common.empty') }}</dd>
+              </div>
+            </dl>
+          </div>
+
+          <!-- FX variance (ADR 0015 — devengo-rate vs payout-rate snapshot pair) -->
+          <div v-if="detail.exchangeRateAtEarned || detail.exchangeRateAtPaid">
+            <h3 class="font-bold text-prohealth-900 mb-3">{{ t('commissions.detail.sections.fx') }}</h3>
+            <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-sm">
+              <div>
+                <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.earnedRate') }}</dt>
+                <dd class="text-prohealth-800 mt-0.5">
+                  {{ detail.exchangeRateAtEarned ?? t('common.empty') }}
+                  <span v-if="detail.earnedRateDate" class="text-prohealth-400 text-xs ml-1">({{ formatDate(detail.earnedRateDate, 'short') }})</span>
+                </dd>
+              </div>
+              <div>
+                <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.paidRate') }}</dt>
+                <dd class="text-prohealth-800 mt-0.5">
+                  {{ detail.exchangeRateAtPaid ?? t('common.empty') }}
+                  <span v-if="detail.paidRateDate" class="text-prohealth-400 text-xs ml-1">({{ formatDate(detail.paidRateDate, 'short') }})</span>
+                </dd>
+              </div>
+              <div class="sm:col-span-2">
+                <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.fxVariance') }}</dt>
+                <dd class="mt-0.5">
+                  <template v-if="detail.exchangeRateAtPaid">
+                    <UBadge
+                      :color="Number(detail.fxVarianceAmountConverted) > 0 ? 'error' : Number(detail.fxVarianceAmountConverted) < 0 ? 'success' : 'neutral'"
+                      variant="subtle"
+                      size="sm"
+                    >{{ detail.fxVarianceAmountConverted_Display ?? detail.fxVarianceAmountConverted ?? t('common.empty') }}</UBadge>
+                    <p class="text-prohealth-400 text-xs mt-0.5">{{ t('commissions.detail.fields.fxVarianceHint') }}</p>
+                  </template>
+                  <span v-else class="text-prohealth-400">{{ t('commissions.detail.fields.fxVariancePending') }}</span>
+                </dd>
               </div>
             </dl>
           </div>

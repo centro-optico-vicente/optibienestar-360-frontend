@@ -220,11 +220,23 @@ export interface CommissionDto {
   currency?: string
   amount_Display?: string | null
   currency_Code?: string | null
+  /** FK pair (hub ADR 0014) — quick-link to `/dashboard/catalogs/currencies`. */
+  currency_Uuid?: string | null
+  currency_Display?: string | null
   amountConverted?: number | string | null
   amountConverted_Display?: string | null
   convertedCurrency_Code?: string | null
   exchangeRateUsed?: number | string | null
   exchangeRateDate?: string | null
+  // FX snapshot pair (ADR 0015) — rate at devengo vs. at payout, so the
+  // currency variance the company absorbs between the two moments is
+  // visible. `fxVarianceAmountConverted` is null until both are set.
+  exchangeRateAtEarned?: number | string | null
+  earnedRateDate?: string | null
+  exchangeRateAtPaid?: number | string | null
+  paidRateDate?: string | null
+  fxVarianceAmountConverted?: number | string | null
+  fxVarianceAmountConverted_Display?: string | null
   calculationBasis?: number
   /** XOR con flatAmount */
   commissionPct?: number
