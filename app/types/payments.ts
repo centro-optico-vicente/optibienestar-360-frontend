@@ -66,6 +66,18 @@ export function paymentStatusColor(value?: string | null): 'warning' | 'success'
  */
 export interface PaymentDto {
   uuid: string
+  // Header (V117, hub plan payments-unification) — `direction` distinguishes
+  // a collection (`IN`, the only kind this screen creates) from a commission
+  // payout (`OUT`, written only by CommissionPayoutService). `paymentType` is
+  // the REASON (payment_categories) — not `paymentMethod` below (the
+  // line-level HOW). `membership`/`member`/`plan` below are null for `OUT`.
+  direction?: 'IN' | 'OUT'
+  paymentType_Uuid?: string | null
+  paymentType_Display?: string | null
+  person_Uuid?: string | null
+  person_Display?: string | null
+  promoter_Uuid?: string | null
+  promoter_Display?: string | null
   // Subject (flat refs extracted by the mapper — member/membership resolve
   // to a readable `_Display` server-side, hub ADR 0014)
   membership_Uuid?: string | null

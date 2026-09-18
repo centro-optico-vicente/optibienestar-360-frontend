@@ -2258,6 +2258,7 @@
         "periodEnd": "Fin del período",
         "earnedAt": "Ganada",
         "payoutReference": "Referencia de liquidación",
+        "payoutPaymentUuid": "Pago de liquidación",
         "paidAt": "Pagada",
         "voidedAt": "Anulada",
         "voidReason": "Motivo de anulación",

@@ -254,6 +254,14 @@ export interface CommissionDto {
   periodEnd_Display?: string | null
   earnedAt?: string
   earnedAt_Display?: string | null
+  // Real payout Payment (V118/CommissionPayoutService, hub plan
+  // payments-unification) that disbursed this row — distinct from
+  // `payment_Uuid`/`_Display` above, which is the IN payment that TRIGGERED
+  // it. Null for a still-unpaid row, or histórico PAID rows from before this
+  // FK existed. Quick-links to `/dashboard/payments?edit={uuid}` once that
+  // screen exists (today: no admin screen reads OUT payments yet).
+  payoutPayment_Uuid?: string | null
+  payoutPayment_Display?: string | null
   payoutReference?: string
   paidAt?: string
   paidAt_Display?: string | null

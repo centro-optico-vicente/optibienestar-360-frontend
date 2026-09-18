@@ -2258,6 +2258,7 @@
         "periodEnd": "Period end",
         "earnedAt": "Earned",
         "payoutReference": "Payout reference",
+        "payoutPaymentUuid": "Payout payment",
         "paidAt": "Paid",
         "voidedAt": "Voided",
         "voidReason": "Void reason",

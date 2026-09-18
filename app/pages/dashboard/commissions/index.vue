@@ -565,6 +565,16 @@ async function confirmVoid() {
                 <dd class="text-prohealth-800 mt-0.5 font-mono break-all">{{ detail.payoutReference || t('common.empty') }}</dd>
               </div>
               <div>
+                <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.payoutPaymentUuid') }}</dt>
+                <dd class="mt-0.5">
+                  <CommonEntityLinkCell
+                    :to="detail.payoutPayment_Uuid ? `/dashboard/payments/${detail.payoutPayment_Uuid}` : null"
+                    :label="detail.payoutPayment_Display"
+                    :can="canViewPayment"
+                  />
+                </dd>
+              </div>
+              <div>
                 <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.paidAt') }}</dt>
                 <dd class="text-prohealth-800 mt-0.5">{{ detail.paidAt_Display ?? formatDate(detail.paidAt, 'datetime') }}</dd>
               </div>
