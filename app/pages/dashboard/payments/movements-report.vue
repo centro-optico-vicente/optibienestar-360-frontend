@@ -14,7 +14,7 @@ definePageMeta({
 })
 
 const { t } = useI18n()
-useSeoMeta({ title: () => t('payments.collectionsReport.seoTitle') })
+useSeoMeta({ title: () => t('payments.movementsReport.seoTitle') })
 
 const documentReports = useDocumentReports()
 const promotersApi = usePromoters()
@@ -36,6 +36,7 @@ const defaultCurrencyOptions = [
   { label: 'EUR — Euro (€)', value: 'EUR' },
 ]
 const currencyOptions = ref(defaultCurrencyOptions)
+
 const dynamicPaymentMethods = ref<Array<{ label: string; value: string }>>([])
 
 async function loadCatalogs() {
@@ -81,7 +82,7 @@ async function loadCatalogs() {
         .filter(m => m.value !== '')
     }
   } catch {
-    // Mantiene fallback a PAYMENT_METHOD_OPTIONS
+    // Si no tiene permisos o falla, usa PAYMENT_METHOD_OPTIONS
   } finally {
     loadingCatalogs.value = false
   }
@@ -91,8 +92,14 @@ onMounted(loadCatalogs)
 
 const ALL_VALUE = 'ALL'
 
+const directionOptions = computed(() => [
+  { label: t('payments.movementsReport.directionAll'), value: ALL_VALUE },
+  { label: t('payments.movementsReport.directionIn'), value: 'IN' },
+  { label: t('payments.movementsReport.directionOut'), value: 'OUT' },
+])
+
 const promoterOptions = computed(() => [
-  { label: t('payments.collectionsReport.promoterAll'), value: ALL_VALUE },
+  { label: t('payments.movementsReport.promoterAll'), value: ALL_VALUE },
   ...promoters.value.map(p => ({
     label: `${p.displayName} (${p.referralCode || 'Sin código'})`,
     value: p.uuid,
@@ -100,14 +107,15 @@ const promoterOptions = computed(() => [
 ])
 
 const planOptions = computed(() => [
-  { label: t('payments.collectionsReport.planAll'), value: ALL_VALUE },
+  { label: t('payments.movementsReport.planAll'), value: ALL_VALUE },
   ...plans.value.map(pl => ({
     label: `${pl.name} (${pl.code})`,
     value: pl.uuid,
   })),
 ])
 
-const payFilters = reactive({
+const movementFilters = reactive({
+  direction: ALL_VALUE,
   startDate: '',
   endDate: '',
   status: ALL_VALUE,
@@ -117,23 +125,23 @@ const payFilters = reactive({
   targetCurrency: 'USD',
 })
 
-const payStatusOptions = computed(() => [
-  { label: t('payments.collectionsReport.statusAll'), value: ALL_VALUE },
+const movementStatusOptions = computed(() => [
+  { label: t('payments.movementsReport.statusAll'), value: ALL_VALUE },
   ...PAYMENT_STATUS_OPTIONS.map(o => ({
     label: t(o.labelKey, o.label),
     value: o.value,
   })),
 ])
 
-const payMethodOptions = computed(() => {
+const movementMethodOptions = computed(() => {
   if (dynamicPaymentMethods.value.length > 0) {
     return [
-      { label: t('payments.collectionsReport.methodAll'), value: ALL_VALUE },
+      { label: t('payments.movementsReport.methodAll'), value: ALL_VALUE },
       ...dynamicPaymentMethods.value,
     ]
   }
   return [
-    { label: t('payments.collectionsReport.methodAll'), value: ALL_VALUE },
+    { label: t('payments.movementsReport.methodAll'), value: ALL_VALUE },
     ...PAYMENT_METHOD_OPTIONS.map(o => ({
       label: t(o.labelKey, o.label),
       value: o.value,
@@ -179,20 +187,21 @@ function getDatePresetRange(preset: DatePreset): { startDate: string; endDate: s
   }
 }
 
-function setPayPreset(preset: DatePreset) {
+function setDatePreset(preset: DatePreset) {
   const range = getDatePresetRange(preset)
-  payFilters.startDate = range.startDate
-  payFilters.endDate = range.endDate
+  movementFilters.startDate = range.startDate
+  movementFilters.endDate = range.endDate
 }
 
-function resetPayFilters() {
-  payFilters.startDate = ''
-  payFilters.endDate = ''
-  payFilters.status = ALL_VALUE
-  payFilters.paymentMethod = ALL_VALUE
-  payFilters.plan = ALL_VALUE
-  payFilters.promoter = ALL_VALUE
-  payFilters.targetCurrency = 'USD'
+function resetFilters() {
+  movementFilters.direction = ALL_VALUE
+  movementFilters.startDate = ''
+  movementFilters.endDate = ''
+  movementFilters.status = ALL_VALUE
+  movementFilters.paymentMethod = ALL_VALUE
+  movementFilters.plan = ALL_VALUE
+  movementFilters.promoter = ALL_VALUE
+  movementFilters.targetCurrency = 'USD'
 }
 
 async function executeDownload(format: 'PDF' | 'XLSX') {
@@ -200,17 +209,18 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
   else generatingXlsx.value = true
 
   try {
-    await documentReports.downloadJasperReport('pagos', format, {
-      startDate: payFilters.startDate || undefined,
-      endDate: payFilters.endDate || undefined,
-      status: (payFilters.status && payFilters.status !== ALL_VALUE) ? payFilters.status : undefined,
-      paymentMethod: (payFilters.paymentMethod && payFilters.paymentMethod !== ALL_VALUE) ? payFilters.paymentMethod : undefined,
-      plan: (payFilters.plan && payFilters.plan !== ALL_VALUE) ? payFilters.plan : undefined,
-      promoter: (payFilters.promoter && payFilters.promoter !== ALL_VALUE) ? payFilters.promoter : undefined,
-      targetCurrency: payFilters.targetCurrency || 'USD',
+    await documentReports.downloadJasperReport('movimientos', format, {
+      direction: (movementFilters.direction && movementFilters.direction !== ALL_VALUE) ? movementFilters.direction : undefined,
+      startDate: movementFilters.startDate || undefined,
+      endDate: movementFilters.endDate || undefined,
+      status: (movementFilters.status && movementFilters.status !== ALL_VALUE) ? movementFilters.status : undefined,
+      paymentMethod: (movementFilters.paymentMethod && movementFilters.paymentMethod !== ALL_VALUE) ? movementFilters.paymentMethod : undefined,
+      plan: (movementFilters.plan && movementFilters.plan !== ALL_VALUE) ? movementFilters.plan : undefined,
+      promoter: (movementFilters.promoter && movementFilters.promoter !== ALL_VALUE) ? movementFilters.promoter : undefined,
+      targetCurrency: movementFilters.targetCurrency || 'USD',
     })
   } catch (error: any) {
-    console.error('Error al generar el reporte Jasper de pagos:', error)
+    console.error('Error al generar el reporte general de movimientos:', error)
   } finally {
     if (format === 'PDF') generatingPdf.value = false
     else generatingXlsx.value = false
@@ -224,19 +234,19 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
     <div class="flex flex-wrap items-center justify-between gap-4">
       <div class="space-y-1">
         <div class="flex items-center gap-2 text-sm text-prohealth-600">
-          <NuxtLink to="/dashboard/payments" class="hover:underline flex items-center gap-1">
+          <NuxtLink to="/dashboard/payments/movements" class="hover:underline flex items-center gap-1">
             <UIcon name="i-lucide-arrow-left" class="w-4 h-4" />
-            {{ t('payments.collectionsReport.breadcrumbRoot') }}
+            {{ t('payments.movementsReport.breadcrumbRoot') }}
           </NuxtLink>
           <span>/</span>
-          <span class="text-prohealth-900 font-medium">{{ t('payments.collectionsReport.breadcrumbCurrent') }}</span>
+          <span class="text-prohealth-900 font-medium">{{ t('payments.movementsReport.breadcrumbCurrent') }}</span>
         </div>
         <h1 class="text-2xl font-extrabold text-prohealth-900 flex items-center gap-2">
-          <UIcon name="i-lucide-file-spreadsheet" class="w-7 h-7 text-primary-600" />
-          {{ t('payments.collectionsReport.title') }}
+          <UIcon name="i-lucide-arrow-left-right" class="w-7 h-7 text-primary-600" />
+          {{ t('payments.movementsReport.title') }}
         </h1>
         <p class="text-sm text-prohealth-700/80">
-          {{ t('payments.collectionsReport.subtitle') }}
+          {{ t('payments.movementsReport.subtitle') }}
         </p>
       </div>
 
@@ -247,7 +257,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
           icon="i-lucide-history"
           size="sm"
         >
-          {{ t('payments.collectionsReport.historyButton') }}
+          {{ t('payments.movementsReport.historyButton') }}
         </UButton>
       </NuxtLink>
     </div>
@@ -258,19 +268,35 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
         <div>
           <h2 class="text-base font-bold text-prohealth-900 flex items-center gap-2">
             <UIcon name="i-lucide-sliders-horizontal" class="w-5 h-5 text-primary-600" />
-            {{ t('payments.collectionsReport.paramsTitle') }}
+            {{ t('payments.movementsReport.paramsTitle') }}
           </h2>
           <p class="text-xs text-prohealth-600 mt-0.5">
-            {{ t('payments.collectionsReport.paramsSubtitle') }}
+            {{ t('payments.movementsReport.paramsSubtitle') }}
           </p>
         </div>
         <UBadge color="primary" variant="subtle" size="md">JasperReports</UBadge>
       </div>
 
+      <!-- Dirección de Flujo -->
+      <div>
+        <label class="block text-xs font-semibold text-prohealth-700 mb-1.5">
+          {{ t('payments.movementsReport.direction') }}
+        </label>
+        <USelectMenu
+          v-model="movementFilters.direction"
+          :items="directionOptions"
+          label-key="label"
+          value-key="value"
+          icon="i-lucide-arrow-left-right"
+          :ui="{ content: 'z-[100]' }"
+          class="w-full sm:w-1/2"
+        />
+      </div>
+
       <!-- Presets de fecha -->
       <div>
         <label class="block text-xs font-semibold text-prohealth-700 mb-1.5">
-          {{ t('payments.collectionsReport.quickPresets') }}
+          {{ t('payments.movementsReport.quickPresets') }}
         </label>
         <div class="flex flex-wrap items-center gap-2">
           <UButton
@@ -278,36 +304,36 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             color="neutral"
             variant="subtle"
             icon="i-lucide-list"
-            @click="setPayPreset('all')"
+            @click="setDatePreset('all')"
           >
-            {{ t('payments.collectionsReport.presetAll') }}
+            {{ t('payments.movementsReport.presetAll') }}
           </UButton>
           <UButton
             size="xs"
             color="neutral"
             variant="subtle"
             icon="i-lucide-calendar"
-            @click="setPayPreset('currentYear')"
+            @click="setDatePreset('currentYear')"
           >
-            {{ t('payments.collectionsReport.presetCurrentYear') }}
+            {{ t('payments.movementsReport.presetCurrentYear') }}
           </UButton>
           <UButton
             size="xs"
             color="neutral"
             variant="subtle"
             icon="i-lucide-calendar-arrow-up"
-            @click="setPayPreset('previousMonth')"
+            @click="setDatePreset('previousMonth')"
           >
-            {{ t('payments.collectionsReport.presetPreviousMonth') }}
+            {{ t('payments.movementsReport.presetPreviousMonth') }}
           </UButton>
           <UButton
             size="xs"
             color="neutral"
             variant="subtle"
             icon="i-lucide-calendar-days"
-            @click="setPayPreset('currentMonth')"
+            @click="setDatePreset('currentMonth')"
           >
-            {{ t('payments.collectionsReport.presetCurrentMonth') }}
+            {{ t('payments.movementsReport.presetCurrentMonth') }}
           </UButton>
         </div>
       </div>
@@ -316,19 +342,19 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label class="block text-xs font-semibold text-prohealth-700 mb-1">
-            {{ t('payments.collectionsReport.startDate') }}
+            {{ t('payments.movementsReport.startDate') }}
           </label>
           <AppDatePicker
-            v-model="payFilters.startDate"
+            v-model="movementFilters.startDate"
             placeholder="DD/MM/AAAA"
           />
         </div>
         <div>
           <label class="block text-xs font-semibold text-prohealth-700 mb-1">
-            {{ t('payments.collectionsReport.endDate') }}
+            {{ t('payments.movementsReport.endDate') }}
           </label>
           <AppDatePicker
-            v-model="payFilters.endDate"
+            v-model="movementFilters.endDate"
             placeholder="DD/MM/AAAA"
           />
         </div>
@@ -338,16 +364,16 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label class="block text-xs font-semibold text-prohealth-700 mb-1">
-            {{ t('payments.collectionsReport.status') }}
+            {{ t('payments.movementsReport.status') }}
           </label>
           <USelectMenu
             clear
-            v-model="payFilters.status"
-            :items="payStatusOptions"
+            v-model="movementFilters.status"
+            :items="movementStatusOptions"
             label-key="label"
             value-key="value"
             icon="i-lucide-shield-check"
-            :placeholder="t('payments.collectionsReport.statusAll')"
+            :placeholder="t('payments.movementsReport.statusAll')"
             :ui="{ content: 'z-[100]' }"
             class="w-full"
           />
@@ -355,16 +381,16 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
 
         <div>
           <label class="block text-xs font-semibold text-prohealth-700 mb-1">
-            {{ t('payments.collectionsReport.paymentMethod') }}
+            {{ t('payments.movementsReport.paymentMethod') }}
           </label>
           <USelectMenu
             clear
-            v-model="payFilters.paymentMethod"
-            :items="payMethodOptions"
+            v-model="movementFilters.paymentMethod"
+            :items="movementMethodOptions"
             label-key="label"
             value-key="value"
             icon="i-lucide-wallet"
-            :placeholder="t('payments.collectionsReport.methodAll')"
+            :placeholder="t('payments.movementsReport.methodAll')"
             :ui="{ content: 'z-[100]' }"
             class="w-full"
           />
@@ -375,12 +401,12 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label class="block text-xs font-semibold text-prohealth-700 mb-1">
-            {{ t('payments.collectionsReport.plan') }}
+            {{ t('payments.movementsReport.plan') }}
           </label>
           <div class="flex items-center gap-2">
             <USelectMenu
               clear
-              v-model="payFilters.plan"
+              v-model="movementFilters.plan"
               :items="planOptions"
               label-key="label"
               value-key="value"
@@ -389,7 +415,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
               class="w-full"
             />
             <CommonEntityQuickLinkButton
-              :to="payFilters.plan && payFilters.plan !== ALL_VALUE ? `/dashboard/plans/${payFilters.plan}` : null"
+              :to="movementFilters.plan && movementFilters.plan !== ALL_VALUE ? `/dashboard/plans/${movementFilters.plan}` : null"
               :can="canViewPlan"
               @navigate="(to: string) => navigateTo(to)"
             />
@@ -398,22 +424,22 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
 
         <div>
           <label class="block text-xs font-semibold text-prohealth-700 mb-1">
-            {{ t('payments.collectionsReport.promoter') }}
+            {{ t('payments.movementsReport.promoter') }}
           </label>
           <div class="flex items-center gap-2">
             <USelectMenu
               clear
-              v-model="payFilters.promoter"
+              v-model="movementFilters.promoter"
               :items="promoterOptions"
               label-key="label"
               value-key="value"
               icon="i-lucide-user"
-              :placeholder="t('payments.collectionsReport.promoterAll')"
+              :placeholder="t('payments.movementsReport.promoterAll')"
               :ui="{ content: 'z-[100]' }"
               class="w-full"
             />
             <CommonEntityQuickLinkButton
-              :to="payFilters.promoter && payFilters.promoter !== ALL_VALUE ? `/dashboard/promoters/${payFilters.promoter}` : null"
+              :to="movementFilters.promoter && movementFilters.promoter !== ALL_VALUE ? `/dashboard/promoters/${movementFilters.promoter}` : null"
               :can="canViewPromoter"
               @navigate="(to: string) => navigateTo(to)"
             />
@@ -425,11 +451,11 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label class="block text-xs font-semibold text-prohealth-700 mb-1">
-            {{ t('payments.collectionsReport.targetCurrency') }}
+            {{ t('payments.movementsReport.targetCurrency') }}
           </label>
           <USelectMenu
             clear
-            v-model="payFilters.targetCurrency"
+            v-model="movementFilters.targetCurrency"
             :items="currencyOptions"
             label-key="label"
             value-key="value"
@@ -438,7 +464,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             class="w-full"
           />
           <p class="text-[11px] text-prohealth-500 mt-1">
-            {{ t('payments.collectionsReport.currencyHelp') }}
+            {{ t('payments.movementsReport.currencyHelp') }}
           </p>
         </div>
       </div>
@@ -450,9 +476,9 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
           variant="ghost"
           icon="i-lucide-rotate-ccw"
           size="sm"
-          @click="resetPayFilters"
+          @click="resetFilters"
         >
-          {{ t('payments.collectionsReport.clearFilters') }}
+          {{ t('payments.movementsReport.clearFilters') }}
         </UButton>
 
         <div class="flex items-center gap-3">
@@ -463,7 +489,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             :loading="generatingXlsx"
             @click="executeDownload('XLSX')"
           >
-            {{ t('payments.collectionsReport.downloadExcel') }}
+            {{ t('payments.movementsReport.downloadExcel') }}
           </UButton>
 
           <UButton
@@ -473,7 +499,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             :loading="generatingPdf"
             @click="executeDownload('PDF')"
           >
-            {{ t('payments.collectionsReport.downloadPdf') }}
+            {{ t('payments.movementsReport.downloadPdf') }}
           </UButton>
         </div>
       </div>

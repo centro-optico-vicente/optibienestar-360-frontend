@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { es, en } from '@nuxt/ui/locale'
+
 const auth = useAuthStore()
 const { fetchMe } = useAuth()
 const { locale } = useI18n()
@@ -20,10 +22,12 @@ onMounted(() => {
   // Si hay sesión, refrescar el perfil en segundo plano (datos/roles actualizados).
   if (auth.accessToken) fetchMe()
 })
+
+const nuxtUiLocale = computed(() => (locale.value === 'en' ? en : es))
 </script>
 
 <template>
-  <UApp>
+  <UApp :locale="nuxtUiLocale">
     <NuxtLoadingIndicator color="#9FD537" />
     <NuxtLayout>
       <NuxtPage />
