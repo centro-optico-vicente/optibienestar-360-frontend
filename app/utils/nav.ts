@@ -85,7 +85,7 @@ export const MAIN_NAV: NavEntry[] = [
       { label: 'Planes', labelKey: 'nav.items.plans.label', to: '/dashboard/plans', icon: 'i-lucide-package', description: 'Planes de cobertura disponibles.', descriptionKey: 'nav.items.plans.description', requires: 'PLAN_VIEW_ALL' },
       { label: 'Membresías', labelKey: 'nav.items.memberships.label', to: '/dashboard/memberships', icon: 'i-lucide-badge-check', description: 'Estado y vigencia de las membresías.', descriptionKey: 'nav.items.memberships.description', requires: 'MEMBERSHIP_VIEW_ALL' },
       { label: 'Afiliados', labelKey: 'nav.items.members.label', to: '/dashboard/members', icon: 'i-lucide-users', description: 'Directorio y expedientes de afiliados.', descriptionKey: 'nav.items.members.description', requires: 'MEMBER_VIEW_ALL' },
-      { label: 'Reporte de pagos', labelKey: 'nav.items.paymentsReport.label', to: '/dashboard/payments/report', icon: 'i-lucide-file-spreadsheet', description: 'Reporte de recaudación y pagos de afiliados.', descriptionKey: 'nav.items.paymentsReport.description', requires: ['PAYMENT_REPORT_GENERATE', 'REPORT_REPORT_GENERATE', 'PAYMENT_VIEW_ALL'] },
+      { label: 'Reporte de cobros de afiliados', labelKey: 'nav.items.paymentsReport.label', to: '/dashboard/payments/report', icon: 'i-lucide-file-spreadsheet', description: 'Reporte de recaudación y cobros de afiliados.', descriptionKey: 'nav.items.paymentsReport.description', requires: ['PAYMENT_REPORT_GENERATE', 'REPORT_REPORT_GENERATE', 'PAYMENT_VIEW_ALL'] },
     ],
   },
   {
@@ -152,6 +152,7 @@ export const MAIN_NAV: NavEntry[] = [
       // ledger, no create/approve here (those happen via the commission
       // period-close action).
       { label: 'Pagos', labelKey: 'nav.items.paymentsPayouts.label', to: '/dashboard/payments/payouts', icon: 'i-lucide-banknote', description: 'Pagos de comisión ejecutados a promotores.', descriptionKey: 'nav.items.paymentsPayouts.description', requires: 'PAYMENT_VIEW_ALL' },
+      { label: 'Reporte general de pagos y cobros', labelKey: 'nav.items.paymentsMovementsReport.label', to: '/dashboard/payments/movements-report', icon: 'i-lucide-arrow-left-right', description: 'Reporte Jasper consolidado de cobros y pagos en ambas direcciones.', descriptionKey: 'nav.items.paymentsMovementsReport.description', requires: ['PAYMENT_REPORT_GENERATE', 'REPORT_REPORT_GENERATE', 'PAYMENT_VIEW_ALL'] },
     ],
   },
   {
@@ -204,7 +205,8 @@ export const MAIN_NAV: NavEntry[] = [
     children: [
       { label: 'Reporte de comisiones', labelKey: 'nav.items.commissionsReport.label', to: '/dashboard/commissions/report', icon: 'i-lucide-file-text', description: 'Reporte general de comisiones devengadas.', descriptionKey: 'nav.items.commissionsReport.description', requires: ['COMMISSION_REPORT_GENERATE', 'REPORT_REPORT_GENERATE', 'COMMISSION_VIEW_ALL', 'COMMISSION_VIEW_OWN'] },
       { label: 'Reporte de pagos de comisiones', labelKey: 'nav.items.commissionPayoutsReport.label', to: '/dashboard/commissions/payouts-report', icon: 'i-lucide-file-check-2', description: 'Reporte de desembolsos y pagos realizados a promotores.', descriptionKey: 'nav.items.commissionPayoutsReport.description', requires: ['COMMISSION_REPORT_GENERATE', 'REPORT_REPORT_GENERATE', 'COMMISSION_VIEW_ALL', 'COMMISSION_VIEW_OWN'] },
-      { label: 'Reporte de pagos', labelKey: 'nav.items.paymentsReport.label', to: '/dashboard/payments/report', icon: 'i-lucide-file-spreadsheet', description: 'Reporte de recaudación y pagos de afiliados.', descriptionKey: 'nav.items.paymentsReport.description', requires: ['PAYMENT_REPORT_GENERATE', 'REPORT_REPORT_GENERATE', 'PAYMENT_VIEW_ALL'] },
+      { label: 'Reporte de cobros de afiliados', labelKey: 'nav.items.paymentsReport.label', to: '/dashboard/payments/report', icon: 'i-lucide-file-spreadsheet', description: 'Reporte de recaudación y cobros de afiliados.', descriptionKey: 'nav.items.paymentsReport.description', requires: ['PAYMENT_REPORT_GENERATE', 'REPORT_REPORT_GENERATE', 'PAYMENT_VIEW_ALL'] },
+      { label: 'Reporte general de pagos y cobros', labelKey: 'nav.items.paymentsMovementsReport.label', to: '/dashboard/payments/movements-report', icon: 'i-lucide-arrow-left-right', description: 'Reporte Jasper consolidado de cobros y pagos en ambas direcciones.', descriptionKey: 'nav.items.paymentsMovementsReport.description', requires: ['PAYMENT_REPORT_GENERATE', 'REPORT_REPORT_GENERATE', 'PAYMENT_VIEW_ALL'] },
       { label: 'Reportes generados', labelKey: 'nav.items.auditReports.label', to: '/dashboard/security/reports', icon: 'i-lucide-shield-alert', description: 'Historial global de reportes generados.', descriptionKey: 'nav.items.auditReports.description', requires: 'REPORT_AUDIT_VIEW_ALL' },
     ],
   },

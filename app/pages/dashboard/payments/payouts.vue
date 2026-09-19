@@ -25,6 +25,7 @@ const payments = usePayments()
 const { can } = usePermissions()
 
 const canViewPromoter = computed(() => can('PROMOTER_VIEW_ALL'))
+const canViewCurrency = computed(() => can('CURRENCY_VIEW_ALL'))
 
 const data = ref<PaymentDto[]>([])
 const total = ref(0)
@@ -121,7 +122,7 @@ function openDetail(p: PaymentDto) {
       </div>
       <div class="flex items-center gap-2">
         <ListRefreshMenu :loading="loading" variant="ghost" @refresh="load" @reset="resetFilters" />
-        <ReportPrintButton variant="ghost" />
+        <ReportPrintButton table-name="payments" :search-query="search" variant="ghost" />
       </div>
     </div>
 
@@ -168,12 +169,13 @@ function openDetail(p: PaymentDto) {
                 {{ t('payments.columns.status') }}
                 <SortIndicator :state="sort.stateOf('status')" :multi-active="isMultiSort" @clear="sort.remove('status')" />
               </th>
+              <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-prohealth-100">
-            <TableSkeleton v-if="loading" :rows="8" :cols="6" />
+            <TableSkeleton v-if="loading" :rows="8" :cols="7" />
             <tr v-else-if="data.length === 0">
-              <td colspan="6" class="px-5 py-12 text-center text-prohealth-500">
+              <td colspan="7" class="px-5 py-12 text-center text-prohealth-500">
                 <UIcon name="i-lucide-banknote" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
                 {{ t('payments.payouts.empty') }}
               </td>
@@ -193,13 +195,42 @@ function openDetail(p: PaymentDto) {
                 />
               </td>
               <td class="px-5 py-3 text-prohealth-800">{{ p.paymentType_Display ?? t('common.empty') }}</td>
-              <td class="px-5 py-3 font-medium text-prohealth-900">{{ p.amount_Display ?? p.amount }}</td>
+              <td class="px-5 py-3 font-semibold text-prohealth-900">
+                <MoneyWithTooltip :display="p.amount_Display" :converted-display="p.amountConverted_Display" :rate-date="p.exchangeRateDate" />
+                <div class="text-xs font-normal mt-0.5" @click.stop>
+                  <CommonEntityLinkCell
+                    :to="p.currency_Uuid ? `/dashboard/catalogs/currencies?edit=${p.currency_Uuid}` : null"
+                    :label="p.currency_Display || p.currency_Code"
+                    :can="canViewCurrency"
+                  />
+                </div>
+              </td>
               <td class="px-5 py-3 text-prohealth-600 font-mono">{{ p.referenceNumber || t('common.empty') }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ p.paymentDate_Display ?? formatDate(p.paymentDate, 'short') }}</td>
               <td class="px-5 py-3">
                 <UBadge :color="paymentStatusColor(p.status)" variant="subtle" size="sm">
                   {{ p.status_Display ?? statusLabel(p.status) }}
                 </UBadge>
+              </td>
+              <td class="px-5 py-3" @click.stop>
+                <div class="flex items-center justify-end gap-1">
+                  <UTooltip :text="t('payments.tooltips.viewDetail')">
+                    <UButton
+                      color="neutral"
+                      variant="ghost"
+                      icon="i-lucide-eye"
+                      size="sm"
+                      @click="openDetail(p)"
+                    />
+                  </UTooltip>
+                  <ReportPrintButton
+                    table-name="payments"
+                    :record-uuid="p.uuid"
+                    icon-only
+                    variant="ghost"
+                    size="sm"
+                  />
+                </div>
               </td>
             </tr>
           </tbody>
@@ -274,7 +305,13 @@ function openDetail(p: PaymentDto) {
         </dl>
       </template>
       <template #footer>
-        <div class="w-full flex justify-end">
+        <div class="w-full flex items-center justify-between">
+          <ReportPrintButton
+            v-if="detail"
+            table-name="payments"
+            :record-uuid="detail.uuid"
+            size="sm"
+          />
           <UButton color="neutral" variant="ghost" @click="detailOpen = false">{{ t('common.close') }}</UButton>
         </div>
       </template>

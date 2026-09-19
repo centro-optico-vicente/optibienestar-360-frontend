@@ -23,7 +23,7 @@ const emit = defineEmits<{
   'update:modelValue': [value: DateTimeRange]
 }>()
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const { formatDate } = useFormatters()
 
 function parseDatePart(iso: string): CalendarDate {

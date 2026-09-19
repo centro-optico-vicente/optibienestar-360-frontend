@@ -14,11 +14,10 @@ definePageMeta({
 })
 
 const { t } = useI18n()
-useSeoMeta({ title: () => 'Reporte de Comisiones — OptiBienestar 360' })
+useSeoMeta({ title: () => t('commissions.report.seoTitle') })
 
 const documentReports = useDocumentReports()
 const promotersApi = usePromoters()
-const toast = useToast()
 const { can } = usePermissions()
 const canViewPromoter = computed(() => can('PROMOTER_VIEW_ALL'))
 
@@ -66,12 +65,19 @@ onMounted(loadCatalogs)
 const ALL_VALUE = 'ALL'
 
 const promoterOptions = computed(() => [
-  { label: 'Todos los promotores', value: ALL_VALUE },
+  { label: t('commissions.report.promoterAll'), value: ALL_VALUE },
   ...promoters.value.map(p => ({
     label: `${p.displayName} (${p.referralCode || 'Sin código'})`,
     value: p.uuid,
   })),
 ])
+
+function formatDateIso(d: Date): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
 
 const commFilters = reactive({
   startDate: '',
@@ -84,25 +90,18 @@ const commFilters = reactive({
 })
 
 const commStatusOptions = computed(() => [
-  { label: 'Todos los estados', value: ALL_VALUE },
+  { label: t('commissions.report.statusAll'), value: ALL_VALUE },
   ...COMMISSION_STATUS_OPTIONS.map(o => ({
     label: t(o.labelKey, o.label),
     value: o.value,
   })),
 ])
 
-const commAppliesToOptions = [
-  { label: 'Todos los conceptos', value: ALL_VALUE },
-  { label: 'Inscripción (Primera cuota)', value: 'INSCRIPTION' },
-  { label: 'Mensualidad (Recurrente)', value: 'MONTHLY' },
-]
-
-function formatDateIso(d: Date): string {
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
-}
+const commAppliesToOptions = computed(() => [
+  { label: t('commissions.report.appliesToAll'), value: ALL_VALUE },
+  { label: t('commissions.report.appliesToInscription'), value: 'INSCRIPTION' },
+  { label: t('commissions.report.appliesToMonthly'), value: 'MONTHLY' },
+])
 
 type DatePreset = 'all' | 'currentYear' | 'previousMonth' | 'currentMonth'
 
@@ -182,17 +181,17 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
         <div class="flex items-center gap-2 text-sm text-prohealth-600">
           <NuxtLink to="/dashboard/commissions" class="hover:underline flex items-center gap-1">
             <UIcon name="i-lucide-arrow-left" class="w-4 h-4" />
-            Comercial
+            {{ t('commissions.report.breadcrumbRoot') }}
           </NuxtLink>
           <span>/</span>
-          <span class="text-prohealth-900 font-medium">Reporte de Comisiones</span>
+          <span class="text-prohealth-900 font-medium">{{ t('commissions.report.breadcrumbCurrent') }}</span>
         </div>
         <h1 class="text-2xl font-extrabold text-prohealth-900 flex items-center gap-2">
           <UIcon name="i-lucide-file-text" class="w-7 h-7 text-primary-600" />
-          Reporte de Comisiones
+          {{ t('commissions.report.title') }}
         </h1>
         <p class="text-sm text-prohealth-700/80">
-          Consolidado oficial de comisiones devengadas por promotor, con subtotales agrupados, base de cálculo y estado de liquidación.
+          {{ t('commissions.report.subtitle') }}
         </p>
       </div>
 
@@ -203,7 +202,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
           icon="i-lucide-history"
           size="sm"
         >
-          Historial de descargas
+          {{ t('commissions.report.historyButton') }}
         </UButton>
       </NuxtLink>
     </div>
@@ -214,10 +213,10 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
         <div>
           <h2 class="text-base font-bold text-prohealth-900 flex items-center gap-2">
             <UIcon name="i-lucide-sliders-horizontal" class="w-5 h-5 text-primary-600" />
-            Parámetros del Reporte
+            {{ t('commissions.report.paramsTitle') }}
           </h2>
           <p class="text-xs text-prohealth-600 mt-0.5">
-            Personaliza el rango de fechas y filtros. Deja los campos vacíos para abarcar todos los registros.
+            {{ t('commissions.report.paramsSubtitle') }}
           </p>
         </div>
         <UBadge color="primary" variant="subtle" size="md">JasperReports</UBadge>
@@ -226,7 +225,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
       <!-- Presets de fecha -->
       <div>
         <label class="block text-xs font-semibold text-prohealth-700 mb-1.5">
-          Accesos rápidos de fecha:
+          {{ t('commissions.report.quickPresets') }}
         </label>
         <div class="flex flex-wrap items-center gap-2">
           <UButton
@@ -236,7 +235,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             icon="i-lucide-list"
             @click="setCommPreset('all')"
           >
-            Todo el historial
+            {{ t('commissions.report.presetAll') }}
           </UButton>
           <UButton
             size="xs"
@@ -245,7 +244,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             icon="i-lucide-calendar"
             @click="setCommPreset('currentYear')"
           >
-            Año actual
+            {{ t('commissions.report.presetCurrentYear') }}
           </UButton>
           <UButton
             size="xs"
@@ -254,7 +253,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             icon="i-lucide-calendar-arrow-up"
             @click="setCommPreset('previousMonth')"
           >
-            Mes anterior
+            {{ t('commissions.report.presetPreviousMonth') }}
           </UButton>
           <UButton
             size="xs"
@@ -263,31 +262,29 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             icon="i-lucide-calendar-days"
             @click="setCommPreset('currentMonth')"
           >
-            Mes actual
+            {{ t('commissions.report.presetCurrentMonth') }}
           </UButton>
         </div>
       </div>
 
-      <!-- Rango de fechas manual -->
+      <!-- Rango de fechas con AppDatePicker -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label class="block text-xs font-semibold text-prohealth-700 mb-1">
-            Fecha Período Desde
+            {{ t('commissions.report.startDate') }}
           </label>
-          <UInput
+          <AppDatePicker
             v-model="commFilters.startDate"
-            type="date"
-            class="w-full"
+            placeholder="DD/MM/AAAA"
           />
         </div>
         <div>
           <label class="block text-xs font-semibold text-prohealth-700 mb-1">
-            Fecha Período Hasta
+            {{ t('commissions.report.endDate') }}
           </label>
-          <UInput
+          <AppDatePicker
             v-model="commFilters.endDate"
-            type="date"
-            class="w-full"
+            placeholder="DD/MM/AAAA"
           />
         </div>
       </div>
@@ -295,7 +292,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
       <!-- Promotor Comercial -->
       <div>
         <label class="block text-xs font-semibold text-prohealth-700 mb-1">
-          Promotor Comercial
+          {{ t('commissions.report.promoter') }}
         </label>
         <div class="flex items-center gap-2">
           <USelectMenu
@@ -305,7 +302,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             label-key="label"
             value-key="value"
             icon="i-lucide-user"
-            placeholder="Todos los promotores"
+            :placeholder="t('commissions.report.promoterAll')"
             :ui="{ content: 'z-[100]' }"
             class="w-full"
           />
@@ -321,7 +318,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label class="block text-xs font-semibold text-prohealth-700 mb-1">
-            Estado de la Comisión
+            {{ t('commissions.report.status') }}
           </label>
           <USelectMenu
             clear
@@ -330,7 +327,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             label-key="label"
             value-key="value"
             icon="i-lucide-tag"
-            placeholder="Todos los estados"
+            :placeholder="t('commissions.report.statusAll')"
             :ui="{ content: 'z-[100]' }"
             class="w-full"
           />
@@ -338,7 +335,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
 
         <div>
           <label class="block text-xs font-semibold text-prohealth-700 mb-1">
-            Concepto / Aplica A
+            {{ t('commissions.report.appliesTo') }}
           </label>
           <USelectMenu
             clear
@@ -347,7 +344,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             label-key="label"
             value-key="value"
             icon="i-lucide-layers"
-            placeholder="Todos los conceptos"
+            :placeholder="t('commissions.report.appliesToAll')"
             :ui="{ content: 'z-[100]' }"
             class="w-full"
           />
@@ -358,7 +355,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label class="block text-xs font-semibold text-prohealth-700 mb-1">
-            Moneda de Salida (Conversión)
+            {{ t('commissions.report.targetCurrency') }}
           </label>
           <USelectMenu
             clear
@@ -371,22 +368,20 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             class="w-full"
           />
           <p class="text-[11px] text-prohealth-500 mt-1">
-            Moneda en la que se calculará la columna de monto convertido.
+            {{ t('commissions.report.currencyHelp') }}
           </p>
         </div>
 
         <div>
           <label class="block text-xs font-semibold text-prohealth-700 mb-1">
-            Fecha de Conversión
+            {{ t('commissions.report.conversionDate') }}
           </label>
-          <UInput
+          <AppDatePicker
             v-model="commFilters.conversionDate"
-            type="date"
-            icon="i-lucide-calendar"
-            class="w-full"
+            placeholder="DD/MM/AAAA"
           />
           <p class="text-[11px] text-prohealth-500 mt-1">
-            Tasa de cambio vigente a esta fecha (por defecto el día actual).
+            {{ t('commissions.report.currencyHelp') }}
           </p>
         </div>
       </div>
@@ -400,7 +395,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
           size="sm"
           @click="resetCommFilters"
         >
-          Limpiar filtros
+          {{ t('commissions.report.clearFilters') }}
         </UButton>
 
         <div class="flex items-center gap-3">
@@ -411,7 +406,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             :loading="generatingXlsx"
             @click="executeDownload('XLSX')"
           >
-            Descargar Excel
+            {{ t('commissions.report.downloadExcel') }}
           </UButton>
 
           <UButton
@@ -421,7 +416,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             :loading="generatingPdf"
             @click="executeDownload('PDF')"
           >
-            Descargar PDF
+            {{ t('commissions.report.downloadPdf') }}
           </UButton>
         </div>
       </div>

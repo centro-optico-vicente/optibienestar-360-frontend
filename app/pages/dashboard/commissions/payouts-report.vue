@@ -13,11 +13,10 @@ definePageMeta({
 })
 
 const { t } = useI18n()
-useSeoMeta({ title: () => 'Reporte de Pagos de Comisiones — OptiBienestar 360' })
+useSeoMeta({ title: () => t('commissions.payoutsReport.seoTitle') })
 
 const documentReports = useDocumentReports()
 const promotersApi = usePromoters()
-const toast = useToast()
 const { can } = usePermissions()
 const canViewPromoter = computed(() => can('PROMOTER_VIEW_ALL'))
 
@@ -65,7 +64,7 @@ onMounted(loadCatalogs)
 const ALL_VALUE = 'ALL'
 
 const promoterOptions = computed(() => [
-  { label: 'Todos los promotores', value: ALL_VALUE },
+  { label: t('commissions.payoutsReport.promoterAll'), value: ALL_VALUE },
   ...promoters.value.map(p => ({
     label: `${p.displayName} (${p.referralCode || 'Sin código'})`,
     value: p.uuid,
@@ -161,17 +160,17 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
         <div class="flex items-center gap-2 text-sm text-prohealth-600">
           <NuxtLink to="/dashboard/commissions" class="hover:underline flex items-center gap-1">
             <UIcon name="i-lucide-arrow-left" class="w-4 h-4" />
-            Comercial
+            {{ t('commissions.payoutsReport.breadcrumbRoot') }}
           </NuxtLink>
           <span>/</span>
-          <span class="text-prohealth-900 font-medium">Reporte de Pagos de Comisiones</span>
+          <span class="text-prohealth-900 font-medium">{{ t('commissions.payoutsReport.breadcrumbCurrent') }}</span>
         </div>
         <h1 class="text-2xl font-extrabold text-prohealth-900 flex items-center gap-2">
           <UIcon name="i-lucide-file-check-2" class="w-7 h-7 text-primary-600" />
-          Reporte de Pagos de Comisiones
+          {{ t('commissions.payoutsReport.title') }}
         </h1>
         <p class="text-sm text-prohealth-700/80">
-          Liquidaciones y desembolsos efectivamente pagados a promotores (estado Pagada / PAID), con fecha de pago y referencia bancaria.
+          {{ t('commissions.payoutsReport.subtitle') }}
         </p>
       </div>
 
@@ -182,7 +181,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
           icon="i-lucide-history"
           size="sm"
         >
-          Historial de descargas
+          {{ t('commissions.payoutsReport.historyButton') }}
         </UButton>
       </NuxtLink>
     </div>
@@ -193,10 +192,10 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
         <div>
           <h2 class="text-base font-bold text-prohealth-900 flex items-center gap-2">
             <UIcon name="i-lucide-sliders-horizontal" class="w-5 h-5 text-primary-600" />
-            Parámetros del Reporte de Pagos Realizados
+            {{ t('commissions.payoutsReport.paramsTitle') }}
           </h2>
           <p class="text-xs text-prohealth-600 mt-0.5">
-            Filtra por fecha de desembolso, promotor o referencia de pago. Solo incluye comisiones en estado PAGADA (PAID).
+            {{ t('commissions.payoutsReport.paramsSubtitle') }}
           </p>
         </div>
         <UBadge color="primary" variant="subtle" size="md">JasperReports</UBadge>
@@ -205,7 +204,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
       <!-- Presets de fecha -->
       <div>
         <label class="block text-xs font-semibold text-prohealth-700 mb-1.5">
-          Accesos rápidos de fecha de desembolso:
+          {{ t('commissions.payoutsReport.quickPresets') }}
         </label>
         <div class="flex flex-wrap items-center gap-2">
           <UButton
@@ -215,7 +214,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             icon="i-lucide-list"
             @click="setPayoutPreset('all')"
           >
-            Todo el historial
+            {{ t('commissions.payoutsReport.presetAll') }}
           </UButton>
           <UButton
             size="xs"
@@ -224,7 +223,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             icon="i-lucide-calendar"
             @click="setPayoutPreset('currentYear')"
           >
-            Año actual
+            {{ t('commissions.payoutsReport.presetCurrentYear') }}
           </UButton>
           <UButton
             size="xs"
@@ -233,7 +232,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             icon="i-lucide-calendar-arrow-up"
             @click="setPayoutPreset('previousMonth')"
           >
-            Mes anterior
+            {{ t('commissions.payoutsReport.presetPreviousMonth') }}
           </UButton>
           <UButton
             size="xs"
@@ -242,31 +241,29 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             icon="i-lucide-calendar-days"
             @click="setPayoutPreset('currentMonth')"
           >
-            Mes actual
+            {{ t('commissions.payoutsReport.presetCurrentMonth') }}
           </UButton>
         </div>
       </div>
 
-      <!-- Rango de fechas manual -->
+      <!-- Rango de fechas con AppDatePicker -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label class="block text-xs font-semibold text-prohealth-700 mb-1">
-            Fecha Desembolso Desde
+            {{ t('commissions.payoutsReport.startDate') }}
           </label>
-          <UInput
+          <AppDatePicker
             v-model="payoutFilters.startDate"
-            type="date"
-            class="w-full"
+            placeholder="DD/MM/AAAA"
           />
         </div>
         <div>
           <label class="block text-xs font-semibold text-prohealth-700 mb-1">
-            Fecha Desembolso Hasta
+            {{ t('commissions.payoutsReport.endDate') }}
           </label>
-          <UInput
+          <AppDatePicker
             v-model="payoutFilters.endDate"
-            type="date"
-            class="w-full"
+            placeholder="DD/MM/AAAA"
           />
         </div>
       </div>
@@ -275,7 +272,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label class="block text-xs font-semibold text-prohealth-700 mb-1">
-            Promotor Comercial
+            {{ t('commissions.payoutsReport.promoter') }}
           </label>
           <div class="flex items-center gap-2">
             <USelectMenu
@@ -285,7 +282,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
               label-key="label"
               value-key="value"
               icon="i-lucide-user"
-              placeholder="Todos los promotores"
+              :placeholder="t('commissions.payoutsReport.promoterAll')"
               :ui="{ content: 'z-[100]' }"
               class="w-full"
             />
@@ -299,11 +296,11 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
 
         <div>
           <label class="block text-xs font-semibold text-prohealth-700 mb-1">
-            Referencia de Pago / Desembolso
+            {{ t('commissions.payoutsReport.payoutReference') }}
           </label>
           <UInput
             v-model="payoutFilters.payoutReference"
-            placeholder="Ej: PAG-202609-001 o N° Transferencia"
+            :placeholder="t('commissions.payoutsReport.payoutReferencePlaceholder')"
             icon="i-lucide-hash"
             class="w-full"
           />
@@ -314,7 +311,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label class="block text-xs font-semibold text-prohealth-700 mb-1">
-            Moneda de Salida (Conversión)
+            {{ t('commissions.payoutsReport.targetCurrency') }}
           </label>
           <USelectMenu
             clear
@@ -327,7 +324,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             class="w-full"
           />
           <p class="text-[11px] text-prohealth-500 mt-1">
-            Convierte el monto de cada comisión a la tasa de cambio vigente a su fecha de pago.
+            {{ t('commissions.payoutsReport.currencyHelp') }}
           </p>
         </div>
       </div>
@@ -341,7 +338,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
           size="sm"
           @click="resetPayoutFilters"
         >
-          Limpiar filtros
+          {{ t('commissions.payoutsReport.clearFilters') }}
         </UButton>
 
         <div class="flex items-center gap-3">
@@ -352,7 +349,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             :loading="generatingXlsx"
             @click="executeDownload('XLSX')"
           >
-            Descargar Excel
+            {{ t('commissions.payoutsReport.downloadExcel') }}
           </UButton>
 
           <UButton
@@ -362,7 +359,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             :loading="generatingPdf"
             @click="executeDownload('PDF')"
           >
-            Descargar PDF
+            {{ t('commissions.payoutsReport.downloadPdf') }}
           </UButton>
         </div>
       </div>
