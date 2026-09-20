@@ -2801,6 +2801,8 @@
     "deactivatedToast": "Campaña desactivada",
     "deleteConfirmPermanent": "Esta campaña no está en uso — se eliminará de forma permanente.",
     "deleteConfirmDeactivate": "Esta campaña está vinculada a {count} regla(s)/transacción(es) — se desactivará en lugar de eliminarse.",
+    "deletedToast": "Campaña eliminada",
+    "deleteConfirm": "¿Está seguro de que desea eliminar {name}?",
     "columns": {
       "name": "Nombre",
       "vigency": "Vigencia",

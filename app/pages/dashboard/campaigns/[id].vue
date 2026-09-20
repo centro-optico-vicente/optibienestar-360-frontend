@@ -186,35 +186,21 @@ function pct(v?: number | string | null): string {
 // =========================================================
 const deleteOpen = ref(false)
 const deleting = ref(false)
-const usageChecking = ref(false)
-const usageInfo = ref<{ inUse: boolean, count: number } | null>(null)
 
-async function openDelete() {
+function openDelete() {
   if (!campaign.value) return
   deleteOpen.value = true
-  usageChecking.value = true
-  usageInfo.value = null
-  try {
-    usageInfo.value = await campaignsApi.usage(campaign.value.uuid)
-  }
-  catch {
-    usageInfo.value = null
-  }
-  finally {
-    usageChecking.value = false
-  }
 }
 
 async function confirmDelete() {
   if (!campaign.value) return
   deleting.value = true
-  const wasPhysical = usageInfo.value?.inUse === false
   try {
-    await campaignsApi.remove(campaign.value.uuid, wasPhysical)
+    await campaignsApi.remove(campaign.value.uuid)
     toast.add({
-      title: wasPhysical ? t('campaigns.deletedPermanentToast') : t('campaigns.deactivatedToast'),
-      color: wasPhysical ? 'success' : 'info',
-      icon: wasPhysical ? 'i-lucide-check-circle' : 'i-lucide-info',
+      title: t('campaigns.deletedToast'),
+      color: 'success',
+      icon: 'i-lucide-check-circle',
     })
     await navigateTo('/dashboard/campaigns')
   }
@@ -838,20 +824,12 @@ async function confirmRemoveException() {
     <!-- Delete campaign confirmation -->
     <UModal v-model:open="deleteOpen" :title="t('campaigns.deleteTitle')">
       <template #body>
-        <div v-if="usageChecking" class="flex items-center gap-2 text-sm text-prohealth-600">
-          <UIcon name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
-          {{ t('common.loading') }}
-        </div>
-        <p v-else class="text-sm text-prohealth-700">
-          {{
-            usageInfo?.inUse === false
-              ? t('campaigns.deleteConfirmPermanent')
-              : t('campaigns.deleteConfirmDeactivate', { count: usageInfo?.count ?? 0 })
-          }}
+        <p class="text-sm text-prohealth-700">
+          {{ t('campaigns.deleteConfirm', { name: campaign?.name }) }}
         </p>
         <div class="flex items-center justify-end gap-3 pt-5">
           <UButton color="neutral" variant="ghost" :disabled="deleting" @click="deleteOpen = false">{{ t('common.cancel') }}</UButton>
-          <UButton color="error" :loading="deleting" :disabled="usageChecking" icon="i-lucide-trash-2" @click="confirmDelete">{{ t('common.delete') }}</UButton>
+          <UButton color="error" :loading="deleting" icon="i-lucide-trash-2" @click="confirmDelete">{{ t('common.delete') }}</UButton>
         </div>
       </template>
     </UModal>
