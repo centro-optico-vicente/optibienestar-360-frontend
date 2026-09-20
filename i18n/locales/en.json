@@ -2907,7 +2907,12 @@
         "createdBy": "Registered by"
       },
       "relaunchToast": "Campaign relaunched",
-      "reportAssumption": "Generates the campaign effectiveness report via the shared document-report engine (ADR 0012)."
+      "effectiveness": {
+        "totalCollected": "Total collected",
+        "transactionCount": "Transactions",
+        "amountAchievedPct": "Amount target %",
+        "countAchievedPct": "Count target %"
+      }
     },
     "exceptions": {
       "addTitle": "Add to campaign",

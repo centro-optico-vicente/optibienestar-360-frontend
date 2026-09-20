@@ -2,10 +2,11 @@
 import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
 import type { ApiError } from '~/types/auth'
 import type {
-  CampaignAudienceMemberDto,
+  CampaignAudienceDto,
   CampaignDto,
+  CampaignEffectivenessDto,
   CampaignExceptionDto,
-  CampaignTransactionDto,
+  CampaignTransactionLinkDto,
 } from '~/types/campaign'
 import { CAMPAIGN_MODE_OPTIONS, CAMPAIGN_SCOPE_OPTIONS } from '~/types/campaign'
 import type { SelectItem } from '~/types/options'
@@ -153,6 +154,34 @@ async function onRelaunched(created: CampaignDto) {
 }
 
 // =========================================================
+// Effectiveness (GET /{uuid}/effectiveness) — JSON summary rendered inline,
+// NOT the ADR-0012 PDF/XLSX/CSV report-download engine (campaigns aren't
+// wired into GenericRecordReportService yet — backend follow-up).
+// =========================================================
+const effectiveness = ref<CampaignEffectivenessDto | null>(null)
+const effectivenessLoading = ref(false)
+const effectivenessLoaded = ref(false)
+
+async function loadEffectiveness() {
+  effectivenessLoading.value = true
+  try {
+    effectiveness.value = await campaignsApi.getEffectiveness(campaignUuid)
+    effectivenessLoaded.value = true
+  }
+  catch {
+    effectiveness.value = null
+  }
+  finally {
+    effectivenessLoading.value = false
+  }
+}
+
+function pct(v?: number | string | null): string {
+  if (v === null || v === undefined) return t('common.empty')
+  return `${Number(v).toFixed(1)}%`
+}
+
+// =========================================================
 // Delete
 // =========================================================
 const deleteOpen = ref(false)
@@ -197,13 +226,14 @@ async function confirmDelete() {
 // Audiencia (scope INCLUDE/EXCLUDE)
 // =========================================================
 const canViewAudience = computed(() => campaign.value ? campaign.value.scope !== 'ALL' : false)
-const audience = ref<CampaignAudienceMemberDto[]>([])
+const audience = ref<CampaignAudienceDto[]>([])
 const audienceLoading = ref(false)
 
 async function loadAudience() {
   audienceLoading.value = true
   try {
-    audience.value = await campaignsApi.audience(campaignUuid)
+    const res = await campaignsApi.audience(campaignUuid, { size: 100 })
+    audience.value = res.content ?? []
   }
   catch {
     audience.value = []
@@ -234,15 +264,16 @@ async function addAudienceMember() {
   finally { addingAudience.value = false }
 }
 
-const audienceRemoveTarget = ref<CampaignAudienceMemberDto | null>(null)
+const audienceRemoveTarget = ref<CampaignAudienceDto | null>(null)
 const audienceRemoveOpen = ref(false)
 const audienceRemoving = ref(false)
-function openRemoveAudience(m: CampaignAudienceMemberDto) { audienceRemoveTarget.value = m; audienceRemoveOpen.value = true }
+function openRemoveAudience(m: CampaignAudienceDto) { audienceRemoveTarget.value = m; audienceRemoveOpen.value = true }
 async function confirmRemoveAudience() {
   if (!audienceRemoveTarget.value) return
   audienceRemoving.value = true
   try {
-    await campaignsApi.removeAudienceMember(campaignUuid, audienceRemoveTarget.value.uuid)
+    // DELETE /audience/{promoterUuid} — routed by the promoter's uuid, not the bridge row's own uuid.
+    await campaignsApi.removeAudienceMember(campaignUuid, audienceRemoveTarget.value.promoter_Uuid)
     audienceRemoveOpen.value = false
     await loadAudience()
     if (campaign.value) campaign.value.audienceCount = audience.value.length
@@ -396,7 +427,7 @@ function onDeleteFromOverrideModal(t: HierarchyOverrideTierDto) { openDeleteRule
 // =========================================================
 // Transacciones de la campaña (read-only)
 // =========================================================
-const txItems = ref<CampaignTransactionDto[]>([])
+const txItems = ref<CampaignTransactionLinkDto[]>([])
 const txTotal = ref(0)
 const txLoading = ref(false)
 const txPage = ref(1)
@@ -419,8 +450,15 @@ async function loadTransactions() {
 }
 watch([txPage, txSize], loadTransactions)
 
-function txSourceLabel(tx: CampaignTransactionDto): string {
-  return tx.automatic ? t('campaigns.detail.sourceAuto') : t('campaigns.detail.sourceException')
+function txSourceLabel(tx: CampaignTransactionLinkDto): string {
+  return tx.source === 'AUTO' ? t('campaigns.detail.sourceAuto') : t('campaigns.detail.sourceException')
+}
+function txReference(tx: CampaignTransactionLinkDto): string {
+  return tx.payment_Display ?? tx.membership_Display ?? t('common.empty')
+}
+function txAmount(tx: CampaignTransactionLinkDto): string {
+  if (tx.amount === null || tx.amount === undefined) return t('common.empty')
+  return formatCurrency(Number(tx.amount), tx.currency_Code || 'USD')
 }
 
 // =========================================================
@@ -448,6 +486,10 @@ async function loadExceptions() {
   }
 }
 watch([exPage, exSize], loadExceptions)
+
+function exReference(ex: CampaignExceptionDto): string {
+  return ex.payment_Display ?? ex.membership_Display ?? t('common.empty')
+}
 
 const exceptionRemoveOpen = ref(false)
 const exceptionRemoveTarget = ref<CampaignExceptionDto | null>(null)
@@ -503,7 +545,9 @@ async function confirmRemoveException() {
 
           <div class="flex items-center gap-2 flex-wrap">
             <RefreshButton size="md" variant="ghost" :icon-only="false" :loading="refreshingAll" :title="t('common.refreshRecord')" @refresh="refreshAll" />
-            <ReportPrintButton :record-uuid="campaign.uuid" table-name="campaigns" variant="ghost" :label="t('campaigns.detail.generateReport')" />
+            <UButton color="neutral" variant="ghost" icon="i-lucide-bar-chart-3" :loading="effectivenessLoading" @click="loadEffectiveness">
+              {{ t('campaigns.detail.generateReport') }}
+            </UButton>
             <UTooltip :text="t('campaigns.detail.relaunch')">
               <UButton color="primary" variant="ghost" icon="i-lucide-rocket" :disabled="!canCreate" @click="openRelaunch">
                 {{ t('campaigns.detail.relaunch') }}
@@ -572,6 +616,30 @@ async function confirmRemoveException() {
             <dd class="text-prohealth-800 mt-0.5 font-mono text-xs break-all">{{ campaign.uuid }}</dd>
           </div>
         </dl>
+      </div>
+
+      <!-- 1b. Efectividad (GET /{uuid}/effectiveness — JSON summary, on-demand) -->
+      <div v-if="effectivenessLoaded" class="bg-white rounded-2xl border border-prohealth-100 p-6">
+        <h2 class="font-bold text-prohealth-900 mb-4">{{ t('campaigns.detail.generateReport') }}</h2>
+        <div v-if="effectiveness" class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('campaigns.detail.effectiveness.totalCollected') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5 text-lg font-bold">{{ money(effectiveness.totalCollected) }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('campaigns.detail.effectiveness.transactionCount') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5 text-lg font-bold">{{ effectiveness.transactionCount }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('campaigns.detail.effectiveness.amountAchievedPct') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5 text-lg font-bold">{{ pct(effectiveness.amountAchievedPct) }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('campaigns.detail.effectiveness.countAchievedPct') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5 text-lg font-bold">{{ pct(effectiveness.countAchievedPct) }}</dd>
+          </div>
+        </div>
+        <p v-else class="text-sm text-prohealth-500">{{ t('common.error') }}</p>
       </div>
 
       <!-- 2. Audiencia -->
@@ -687,12 +755,12 @@ async function confirmRemoveException() {
                 <td colspan="4" class="px-6 py-10 text-center text-prohealth-500">{{ t('campaigns.detail.transactionsEmpty') }}</td>
               </tr>
               <tr v-for="tx in txItems" v-else :key="tx.uuid" class="hover:bg-prohealth-50/50">
-                <td class="px-6 py-3 text-prohealth-600">{{ formatDate(tx.registeredAt, 'datetime') }}</td>
-                <td class="px-6 py-3 font-medium text-prohealth-900">{{ tx.transaction_Display }}</td>
+                <td class="px-6 py-3 text-prohealth-600">{{ formatDate(tx.resolvedAt, 'datetime') }}</td>
+                <td class="px-6 py-3 font-medium text-prohealth-900">{{ txReference(tx) }}</td>
                 <td class="px-6 py-3">
-                  <UBadge :color="tx.automatic ? 'neutral' : 'warning'" variant="subtle" size="sm">{{ txSourceLabel(tx) }}</UBadge>
+                  <UBadge :color="tx.source === 'AUTO' ? 'neutral' : 'warning'" variant="subtle" size="sm">{{ txSourceLabel(tx) }}</UBadge>
                 </td>
-                <td class="px-6 py-3 text-prohealth-700">{{ money(tx.amount) }}</td>
+                <td class="px-6 py-3 text-prohealth-700">{{ txAmount(tx) }}</td>
               </tr>
             </tbody>
           </table>
@@ -721,23 +789,21 @@ async function confirmRemoveException() {
                 <th class="px-6 py-3 font-semibold">{{ t('campaigns.detail.exceptionsColumns.type') }}</th>
                 <th class="px-6 py-3 font-semibold">{{ t('campaigns.detail.exceptionsColumns.transaction') }}</th>
                 <th class="px-6 py-3 font-semibold">{{ t('campaigns.detail.exceptionsColumns.reason') }}</th>
-                <th class="px-6 py-3 font-semibold">{{ t('campaigns.detail.exceptionsColumns.createdBy') }}</th>
                 <th class="px-6 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-prohealth-100">
-              <TableSkeleton v-if="exLoading" :rows="3" :cols="6" />
+              <TableSkeleton v-if="exLoading" :rows="3" :cols="5" />
               <tr v-else-if="exItems.length === 0">
-                <td colspan="6" class="px-6 py-10 text-center text-prohealth-500">{{ t('campaigns.detail.exceptionsEmpty') }}</td>
+                <td colspan="5" class="px-6 py-10 text-center text-prohealth-500">{{ t('campaigns.detail.exceptionsEmpty') }}</td>
               </tr>
               <tr v-for="ex in exItems" v-else :key="ex.uuid" class="hover:bg-prohealth-50/50">
                 <td class="px-6 py-3 text-prohealth-600">{{ formatDate(ex.createdAt, 'datetime') }}</td>
                 <td class="px-6 py-3">
-                  <UBadge :color="ex.type === 'INCLUDE' ? 'success' : 'error'" variant="subtle" size="sm">{{ t(`campaigns.scope.${ex.type}`) }}</UBadge>
+                  <UBadge :color="ex.action === 'INCLUDE' ? 'success' : 'error'" variant="subtle" size="sm">{{ t(`campaigns.scope.${ex.action}`) }}</UBadge>
                 </td>
-                <td class="px-6 py-3 font-medium text-prohealth-900">{{ ex.transaction_Display }}</td>
-                <td class="px-6 py-3 text-prohealth-600">{{ ex.reason }}</td>
-                <td class="px-6 py-3 text-prohealth-600">{{ ex.createdBy_Display || t('common.empty') }}</td>
+                <td class="px-6 py-3 font-medium text-prohealth-900">{{ exReference(ex) }}</td>
+                <td class="px-6 py-3 text-prohealth-600">{{ ex.reason || t('common.empty') }}</td>
                 <td class="px-6 py-3">
                   <div class="flex items-center justify-end gap-1">
                     <UButton v-if="canExceptionDelete" color="error" variant="ghost" icon="i-lucide-trash-2" size="sm" @click="openRemoveException(ex)" />

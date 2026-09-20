@@ -4,12 +4,13 @@
 // screens (bandas de inscripción, bonos por escala, comisión de cobranza,
 // comisión jerárquica adicional) with its own start/end dates.
 //
-// ASSUMPTION (backend in parallel development, not yet confirmed): endpoint
-// paths, exact field names and enum values below follow the REST pattern
-// already used by useCommissionTiers/useHierarchyOverrideTiers and the field
-// names given in the task brief (campaignId, startsAt, endsAt, scope, mode,
-// exclusivityGroup, priority, targetAmount, targetCount, evaluateOnlyAtEnd,
-// payOnlyAtEnd). Adjust here first if the real contract differs.
+// Confirmed against the real backend contract (AdminCampaignController,
+// CampaignDto/CampaignRequest/CampaignRelaunchRequest/CampaignExceptionRequest/
+// CampaignExceptionDto/CampaignTransactionLinkDto/CampaignAudienceDto/
+// CampaignAudienceRequest/CampaignEffectivenessDto — optibienestar-360-backend,
+// modules/campaign/dto). DisplayRef fields (ADR 0014) are never emitted as a
+// nested object — they're flattened into `<name>_Uuid` / `<name>_Display` /
+// `<name>_Code` siblings by DisplayBeanSerializerModifier.
 
 /** ALL: applies to every promoter. INCLUDE/EXCLUDE: applies the audience list below. */
 export type CampaignScope = 'ALL' | 'INCLUDE' | 'EXCLUDE'
@@ -17,7 +18,11 @@ export type CampaignScope = 'ALL' | 'INCLUDE' | 'EXCLUDE'
 /** TARGETED: audience-limited promotion. GENERAL: open to everyone matching the rule criteria. */
 export type CampaignMode = 'TARGETED' | 'GENERAL'
 
-export type CampaignExceptionType = 'INCLUDE' | 'EXCLUDE'
+/** CampaignTransactionException.ExceptionAction. */
+export type CampaignExceptionAction = 'INCLUDE' | 'EXCLUDE'
+
+/** CampaignTransactionLink.LinkSource. */
+export type CampaignTransactionSource = 'AUTO' | 'EXCEPTION_INCLUDE' | 'EXCEPTION_EXCLUDE'
 
 export interface CampaignDto {
   uuid: string
@@ -25,10 +30,10 @@ export interface CampaignDto {
   description?: string | null
   startsAt: string
   endsAt: string
+  /** Raw enabled flag on the entity — `active` below is the resolved effective status. */
+  enabled: boolean
   scope: CampaignScope
   mode: CampaignMode
-  /** Count of audience rows when scope is INCLUDE/EXCLUDE (list column "Alcance"). */
-  audienceCount?: number
   evaluateOnlyAtEnd: boolean
   payOnlyAtEnd: boolean
   targetAmount?: number | string | null
@@ -36,15 +41,18 @@ export interface CampaignDto {
   exclusivityGroup?: string | null
   priority?: number | null
   active: boolean
+  promoterUuids?: string[] | null
   createdAt?: string
   updatedAt?: string
 }
 
+/** Shared create/update body — CampaignRequest (PUT is full-replace, not PATCH). */
 export interface CreateCampaignRequest {
   name: string
   description?: string | null
   startsAt: string
   endsAt: string
+  enabled?: boolean | null
   scope: CampaignScope
   mode: CampaignMode
   evaluateOnlyAtEnd?: boolean
@@ -53,52 +61,86 @@ export interface CreateCampaignRequest {
   targetCount?: number | null
   exclusivityGroup?: string | null
   priority?: number | null
+  promoterUuids?: string[] | null
 }
 
-/** PUT with PATCH semantics: only the fields present are applied. */
-export interface UpdateCampaignRequest extends Partial<CreateCampaignRequest> {
-  active?: boolean
+export type UpdateCampaignRequest = CreateCampaignRequest
+
+/** Body of POST /v1/admin/campaigns/{uuid}/relaunch — every other field is cloned from the source campaign. */
+export interface CampaignRelaunchRequest {
+  startsAt: string
+  endsAt: string
 }
 
-/** A promoter explicitly included/excluded from a campaign's audience (scope != ALL). */
-export interface CampaignAudienceMemberDto {
+/** Body of POST /v1/admin/campaigns/{uuid}/exceptions — exactly one of paymentUuid/membershipUuid must be set. */
+export interface CampaignExceptionRequest {
+  paymentUuid?: string | null
+  membershipUuid?: string | null
+  action: CampaignExceptionAction
+  reason?: string | null
+}
+
+/** Output row for GET /v1/admin/campaigns/{uuid}/exceptions — exactly one of payment/membership is non-null. */
+export interface CampaignExceptionDto {
+  uuid: string
+  action: CampaignExceptionAction
+  action_Display?: string
+  reason?: string | null
+  createdByUuid: string
+  createdAt: string
+  createdAt_Display?: string
+  payment_Uuid?: string | null
+  payment_Display?: string | null
+  membership_Uuid?: string | null
+  membership_Display?: string | null
+}
+
+/** Body of POST /v1/admin/campaigns/{uuid}/audience. */
+export interface CampaignAudienceRequest {
+  promoterUuid: string
+}
+
+/** Output row for GET/POST /v1/admin/campaigns/{uuid}/audience — one CampaignPromoter bridge row. */
+export interface CampaignAudienceDto {
+  /** The bridge row's own uuid — deletion routes by promoterUuid instead. */
   uuid: string
   promoter_Uuid: string
   promoter_Display: string
+  promoterType_Uuid?: string | null
+  promoterType_Display?: string | null
+  rank_Uuid?: string | null
+  rank_Display?: string | null
 }
 
-/** A manual inclusion/exclusion exception over an already-registered payment/enrollment. */
-export interface CampaignExceptionDto {
+/** Output row for GET /v1/admin/campaigns/{uuid}/transactions — a resolved campaign_transaction_links row. */
+export interface CampaignTransactionLinkDto {
   uuid: string
-  type: CampaignExceptionType
-  transaction_Uuid: string
-  transaction_Display: string
-  reason: string
-  createdAt?: string
-  createdBy_Display?: string | null
-}
-
-export interface CreateCampaignExceptionRequest {
-  type: CampaignExceptionType
-  transactionUuid: string
-  reason: string
-}
-
-/** A payment/enrollment transaction linked to the campaign (read-only tab). */
-export interface CampaignTransactionDto {
-  uuid: string
-  transaction_Uuid: string
-  transaction_Display: string
-  automatic: boolean
+  source: CampaignTransactionSource
+  source_Display?: string
+  resolvedAt: string
+  resolvedAt_Display?: string
+  payment_Uuid?: string | null
+  payment_Display?: string | null
+  membership_Uuid?: string | null
+  membership_Display?: string | null
+  /** Populated only for a payment-backed link (null for a membership/enrollment link). */
   amount?: number | string | null
-  registeredAt?: string
+  amount_Display?: string
+  currency_Code?: string | null
 }
 
-export interface RelaunchCampaignRequest {
-  name: string
-  description?: string | null
-  startsAt: string
-  endsAt: string
+/** GET /v1/admin/campaigns/{uuid}/effectiveness — plain JSON summary, not a report-engine download. */
+export interface CampaignEffectivenessDto {
+  campaignUuid: string
+  campaignName: string
+  totalCollected: number | string
+  transactionCount: number
+  targetAmount?: number | string | null
+  targetCount?: number | null
+  /** null when targetAmount is not set (nothing to compute a percentage against). */
+  amountAchievedPct?: number | string | null
+  /** null when targetCount is not set. */
+  countAchievedPct?: number | string | null
 }
 
 export const CAMPAIGN_SCOPE_OPTIONS: { value: CampaignScope, labelKey: string }[] = [
@@ -110,4 +152,9 @@ export const CAMPAIGN_SCOPE_OPTIONS: { value: CampaignScope, labelKey: string }[
 export const CAMPAIGN_MODE_OPTIONS: { value: CampaignMode, labelKey: string }[] = [
   { value: 'TARGETED', labelKey: 'campaigns.mode.TARGETED' },
   { value: 'GENERAL', labelKey: 'campaigns.mode.GENERAL' },
+]
+
+export const CAMPAIGN_EXCEPTION_ACTION_OPTIONS: { value: CampaignExceptionAction, labelKey: string }[] = [
+  { value: 'INCLUDE', labelKey: 'campaigns.scope.INCLUDE' },
+  { value: 'EXCLUDE', labelKey: 'campaigns.scope.EXCLUDE' },
 ]

@@ -91,7 +91,9 @@ const state = reactive<FormState>({
   exclusivityGroup: '',
   priority: '',
 })
-const isActive = ref(true)
+/** Maps to CampaignRequest.enabled — the campaign's active/inactive editable flag on the entity.
+ * NOT the same as CampaignDto.active (soft-delete status, only ever flipped by DELETE). */
+const enabled = ref(true)
 
 const schema = computed(() => z.object({
   name: z.string().min(3, t('validation.minChars', { n: 3 })).max(120, t('validation.maxChars', { n: 120 })),
@@ -119,7 +121,7 @@ function resetForm() {
   state.targetCount = ''
   state.exclusivityGroup = ''
   state.priority = ''
-  isActive.value = true
+  enabled.value = true
 }
 
 function populateFrom(campaign: CampaignDto | null, blankDates: boolean) {
@@ -139,7 +141,7 @@ function populateFrom(campaign: CampaignDto | null, blankDates: boolean) {
   state.targetCount = campaign.targetCount != null ? String(campaign.targetCount) : ''
   state.exclusivityGroup = campaign.exclusivityGroup ?? ''
   state.priority = campaign.priority != null ? String(campaign.priority) : ''
-  isActive.value = campaign.active ?? true
+  enabled.value = campaign.enabled ?? true
 }
 
 watch(() => props.open, (open) => {
@@ -166,20 +168,22 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
     }
     let result: CampaignDto
     if (props.relaunchOf) {
+      // CampaignRelaunchRequest only carries the new dates — name/description/config
+      // are cloned server-side from the source campaign.
       result = await campaigns.relaunch(props.relaunchOf, {
-        name: base.name,
-        description: base.description,
         startsAt: base.startsAt,
         endsAt: base.endsAt,
       })
       toast.add({ title: t('campaigns.detail.relaunchToast'), color: 'success', icon: 'i-lucide-check-circle' })
     }
     else if (mode.value === 'create') {
-      result = await campaigns.create(base as CreateCampaignRequest)
+      result = await campaigns.create({ ...base, enabled: enabled.value } as CreateCampaignRequest)
       toast.add({ title: t('campaigns.createdToast'), color: 'success', icon: 'i-lucide-check-circle' })
     }
     else {
-      result = await campaigns.update(props.campaign!.uuid, { ...base, active: isActive.value } as UpdateCampaignRequest)
+      // CampaignRequest is a full replace (PUT) — `active` isn't a request field
+      // (it's the soft-delete flag, only flipped via DELETE); `enabled` is.
+      result = await campaigns.update(props.campaign!.uuid, { ...base, enabled: enabled.value } as UpdateCampaignRequest)
       toast.add({ title: t('campaigns.updatedToast'), color: 'success', icon: 'i-lucide-check-circle' })
     }
     emit('saved', result)
@@ -258,7 +262,7 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
         </div>
 
         <UFormField v-if="mode === 'edit'" :label="t('campaigns.form.active')">
-          <USwitch v-model="isActive" />
+          <USwitch v-model="enabled" />
         </UFormField>
       </UForm>
     </template>

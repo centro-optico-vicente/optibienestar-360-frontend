@@ -2907,7 +2907,12 @@
         "createdBy": "Registrada por"
       },
       "relaunchToast": "Campaña relanzada",
-      "reportAssumption": "Genera el reporte de efectividad de la campaña mediante el motor de reportes compartido (ADR 0012)."
+      "effectiveness": {
+        "totalCollected": "Total recaudado",
+        "transactionCount": "Transacciones",
+        "amountAchievedPct": "% de meta de monto",
+        "countAchievedPct": "% de meta de cantidad"
+      }
     },
     "exceptions": {
       "addTitle": "Agregar a campaña",

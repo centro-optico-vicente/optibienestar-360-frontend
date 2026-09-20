@@ -1,12 +1,13 @@
 import type { Page } from '~/types/admin'
 import type {
-  CampaignAudienceMemberDto,
+  CampaignAudienceDto,
   CampaignDto,
+  CampaignEffectivenessDto,
   CampaignExceptionDto,
-  CampaignTransactionDto,
-  CreateCampaignExceptionRequest,
+  CampaignExceptionRequest,
+  CampaignRelaunchRequest,
+  CampaignTransactionLinkDto,
   CreateCampaignRequest,
-  RelaunchCampaignRequest,
   UpdateCampaignRequest,
 } from '~/types/campaign'
 
@@ -24,8 +25,8 @@ interface ListParams {
 
 /**
  * Access to commission campaigns (/v1/admin/campaigns — hub plan "commission
- * campaigns"). See app/types/campaign.ts for the contract assumptions this
- * composable is built against pending backend confirmation.
+ * campaigns"). Confirmed against the real backend contract
+ * (AdminCampaignController, optibienestar-360-backend modules/campaign).
  */
 export const useCampaigns = () => {
   const list = (params: ListParams = {}) =>
@@ -56,23 +57,29 @@ export const useCampaigns = () => {
   const usage = (uuid: string) =>
     useApi<{ inUse: boolean, count: number }>(`/v1/admin/campaigns/${uuid}/usage`)
 
-  /** Clones the campaign's associated rules onto a fresh one (new dates, same name/description by default). */
-  const relaunch = (uuid: string, body: RelaunchCampaignRequest) =>
+  /** Clones the campaign's config + anchored commission rules onto a fresh one with new dates. */
+  const relaunch = (uuid: string, body: CampaignRelaunchRequest) =>
     useApi<CampaignDto>(`/v1/admin/campaigns/${uuid}/relaunch`, { method: 'POST', body })
 
+  /** JSON effectiveness summary (GET /{uuid}/effectiveness) — NOT a file download. */
+  const getEffectiveness = (uuid: string) =>
+    useApi<CampaignEffectivenessDto>(`/v1/admin/campaigns/${uuid}/effectiveness`)
+
   // ---- Audience (scope INCLUDE/EXCLUDE) ----
-  const audience = (uuid: string) =>
-    useApi<CampaignAudienceMemberDto[]>(`/v1/admin/campaigns/${uuid}/audience`)
+  const audience = (uuid: string, params: { page?: number, size?: number } = {}) =>
+    useApi<Page<CampaignAudienceDto>>(`/v1/admin/campaigns/${uuid}/audience`, {
+      query: { page: params.page ?? 0, size: params.size ?? 50 },
+    })
 
   const addAudienceMember = (uuid: string, promoterUuid: string) =>
-    useApi<CampaignAudienceMemberDto>(`/v1/admin/campaigns/${uuid}/audience`, { method: 'POST', body: { promoterUuid } })
+    useApi<CampaignAudienceDto>(`/v1/admin/campaigns/${uuid}/audience`, { method: 'POST', body: { promoterUuid } })
 
-  const removeAudienceMember = (uuid: string, audienceUuid: string) =>
-    useApi<null>(`/v1/admin/campaigns/${uuid}/audience/${audienceUuid}`, { method: 'DELETE' })
+  const removeAudienceMember = (uuid: string, promoterUuid: string) =>
+    useApi<null>(`/v1/admin/campaigns/${uuid}/audience/${promoterUuid}`, { method: 'DELETE' })
 
   // ---- Transactions (read-only) ----
   const transactions = (uuid: string, params: { page?: number, size?: number } = {}) =>
-    useApi<Page<CampaignTransactionDto>>(`/v1/admin/campaigns/${uuid}/transactions`, {
+    useApi<Page<CampaignTransactionLinkDto>>(`/v1/admin/campaigns/${uuid}/transactions`, {
       query: { page: params.page ?? 0, size: params.size ?? 20 },
     })
 
@@ -82,8 +89,9 @@ export const useCampaigns = () => {
       query: { page: params.page ?? 0, size: params.size ?? 20 },
     })
 
-  const createException = (uuid: string, body: CreateCampaignExceptionRequest) =>
-    useApi<CampaignExceptionDto>(`/v1/admin/campaigns/${uuid}/exceptions`, { method: 'POST', body })
+  /** Returns the updated CampaignDto (not the exception row) — matches AdminCampaignController#createException. */
+  const createException = (uuid: string, body: CampaignExceptionRequest) =>
+    useApi<CampaignDto>(`/v1/admin/campaigns/${uuid}/exceptions`, { method: 'POST', body })
 
   const removeException = (uuid: string, exceptionUuid: string) =>
     useApi<null>(`/v1/admin/campaigns/${uuid}/exceptions/${exceptionUuid}`, { method: 'DELETE' })
@@ -96,6 +104,7 @@ export const useCampaigns = () => {
     remove,
     usage,
     relaunch,
+    getEffectiveness,
     audience,
     addAudienceMember,
     removeAudienceMember,
