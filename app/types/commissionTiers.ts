@@ -7,7 +7,6 @@
 // of commissionPct / flatAmount is set. PUT uses PATCH semantics.
 
 import type { PlanType } from './plans'
-import type { CatalogRef } from './members'
 
 export type PeriodStrategy = 'DAILY' | 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'SEMIANNUAL' | 'ANNUAL'
 export type AppliesTo = 'INSCRIPTION' | 'MONTHLY' | 'BOTH'
@@ -42,7 +41,8 @@ export interface CommissionTierDto {
   promoterType_Display?: string | null
   promoterType_Code?: string | null
   /** Owning campaign when this tier is campaign-anchored; null for a standing (non-campaign) rule. */
-  campaign: CatalogRef | null
+  campaign_Uuid?: string | null
+  campaign_Display?: string | null
   /** Rule's own effective window — snapshotted from the campaign at creation but independently editable. */
   startsAt: string | null
   endsAt: string | null

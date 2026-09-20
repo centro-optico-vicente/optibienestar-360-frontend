@@ -222,7 +222,7 @@ function populateFrom(tier: HierarchyOverrideTierDto | null) {
   state.flatAmount = tier.flatAmount != null ? String(tier.flatAmount) : ''
   state.flatAmountCurrencyUuid = tier.flatAmountCurrency_Uuid ?? ''
   state.periodStrategy = tier.periodStrategy
-  state.campaignUuid = tier.campaign?.uuid ?? ''
+  state.campaignUuid = tier.campaign_Uuid ?? ''
   state.startsAt = tier.startsAt ? isoToDatetimeLocal(tier.startsAt) : ''
   state.endsAt = tier.endsAt ? isoToDatetimeLocal(tier.endsAt) : ''
   isActive.value = tier.active ?? true

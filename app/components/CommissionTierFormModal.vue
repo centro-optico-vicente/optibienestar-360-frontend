@@ -176,7 +176,7 @@ function populateFrom(tier: CommissionTierDto | null) {
   state.flatAmount = tier.flatAmount != null ? String(tier.flatAmount) : ''
   state.periodStrategy = tier.periodStrategy
   state.appliesTo = tier.appliesTo
-  state.campaignUuid = tier.campaign?.uuid ?? ''
+  state.campaignUuid = tier.campaign_Uuid ?? ''
   state.startsAt = tier.startsAt ? isoToDatetimeLocal(tier.startsAt) : ''
   state.endsAt = tier.endsAt ? isoToDatetimeLocal(tier.endsAt) : ''
   isActive.value = tier.active ?? true

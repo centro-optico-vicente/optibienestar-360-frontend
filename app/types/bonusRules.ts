@@ -5,8 +5,6 @@
 // window (ADR 0013 §2) — additive to the per-payment commissions. PUT is a full
 // replace (BonusRuleRequest is used for both create and update).
 
-import type { CatalogRef } from './members'
-
 export type BonusMetric = 'NEW_SUBSCRIBERS' | 'ACTIVE_SUBSCRIBERS'
 export type AccrualMode = 'PER_BLOCK' | 'THRESHOLD'
 export type WindowStrategy = 'LIFETIME' | 'DAILY' | 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'SEMIANNUAL' | 'ANNUAL' | 'CAMPAIGN'
@@ -59,7 +57,8 @@ export interface BonusRuleDto {
   promoterType_Display?: string | null
   promoterType_Code?: string | null
   /** Owning campaign when this rule is campaign-anchored; null for a standing (non-campaign) rule. */
-  campaign: CatalogRef | null
+  campaign_Uuid?: string | null
+  campaign_Display?: string | null
   /** Rule's own effective window — snapshotted from the campaign at creation but independently editable. */
   startsAt: string | null
   endsAt: string | null

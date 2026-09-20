@@ -124,7 +124,7 @@ const tierSize = ref(DEFAULT_PAGE_SIZE)
 // campaign UUID, it can't express "any campaign" as a boolean sentinel, so
 // filtering "only campaign-linked rules" happens here instead of server-side.
 const tierCampaignOnly = ref(false)
-const tierDisplayData = computed(() => (tierCampaignOnly.value ? tierData.value.filter(t => t.campaign) : tierData.value))
+const tierDisplayData = computed(() => (tierCampaignOnly.value ? tierData.value.filter(t => t.campaign_Uuid) : tierData.value))
 
 // RSQL: planType/appliesTo equality, applied server-side so pagination stays consistent.
 function buildTierFilter(): string | undefined {
@@ -274,7 +274,7 @@ const bonusPage = ref(1)
 const bonusSize = ref(DEFAULT_PAGE_SIZE)
 // See tierCampaignOnly above for why this filter is client-side.
 const bonusCampaignOnly = ref(false)
-const bonusDisplayData = computed(() => (bonusCampaignOnly.value ? bonusData.value.filter(r => r.campaign) : bonusData.value))
+const bonusDisplayData = computed(() => (bonusCampaignOnly.value ? bonusData.value.filter(r => r.campaign_Uuid) : bonusData.value))
 
 // Empty by default: no `sort=` is sent until the user clicks a column, so
 // the backend's own default-sort fallback (entity_config → system_configs
@@ -519,7 +519,7 @@ const overridePage = ref(1)
 const overrideSize = ref(DEFAULT_PAGE_SIZE)
 // See tierCampaignOnly above for why this filter is client-side.
 const overrideCampaignOnly = ref(false)
-const overrideDisplayData = computed(() => (overrideCampaignOnly.value ? overrideData.value.filter(t => t.campaign) : overrideData.value))
+const overrideDisplayData = computed(() => (overrideCampaignOnly.value ? overrideData.value.filter(t => t.campaign_Uuid) : overrideData.value))
 
 // RSQL: category equality, applied server-side so pagination stays consistent.
 function buildOverrideFilter(): string | undefined {
@@ -768,8 +768,8 @@ onMounted(() => {
               </td>
               <td class="px-5 py-3 text-prohealth-600" @click.stop>
                 <CommonEntityLinkCell
-                  :to="tier.campaign ? `/dashboard/campaigns/${tier.campaign.uuid}` : null"
-                  :label="tier.campaign?.name"
+                  :to="tier.campaign_Uuid ? `/dashboard/campaigns/${tier.campaign_Uuid}` : null"
+                  :label="tier.campaign_Display"
                   :can="can('CAMPAIGN_VIEW_ALL')"
                 />
               </td>
@@ -908,8 +908,8 @@ onMounted(() => {
               </td>
               <td class="px-5 py-3 text-prohealth-600" @click.stop>
                 <CommonEntityLinkCell
-                  :to="rule.campaign ? `/dashboard/campaigns/${rule.campaign.uuid}` : null"
-                  :label="rule.campaign?.name"
+                  :to="rule.campaign_Uuid ? `/dashboard/campaigns/${rule.campaign_Uuid}` : null"
+                  :label="rule.campaign_Display"
                   :can="can('CAMPAIGN_VIEW_ALL')"
                 />
               </td>
@@ -1176,8 +1176,8 @@ onMounted(() => {
               </td>
               <td class="px-5 py-3 text-prohealth-600" @click.stop>
                 <CommonEntityLinkCell
-                  :to="tier.campaign ? `/dashboard/campaigns/${tier.campaign.uuid}` : null"
-                  :label="tier.campaign?.name"
+                  :to="tier.campaign_Uuid ? `/dashboard/campaigns/${tier.campaign_Uuid}` : null"
+                  :label="tier.campaign_Display"
                   :can="can('CAMPAIGN_VIEW_ALL')"
                 />
               </td>

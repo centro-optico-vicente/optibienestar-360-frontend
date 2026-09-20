@@ -15,6 +15,9 @@ export interface CollectionCommissionTierDto {
   promoterType_Uuid?: string | null
   promoterType_Display?: string | null
   promoterType_Code?: string | null
+  /** Owning campaign when this tier is campaign-anchored; null for a standing (non-campaign) tier. */
+  campaign_Uuid?: string | null
+  campaign_Display?: string | null
   active: boolean
   status?: string
   createdAt?: string

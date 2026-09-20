@@ -193,7 +193,7 @@ function populateFrom(rule: BonusRuleDto | null) {
   state.rewardPct = rule.rewardPct != null ? String(rule.rewardPct) : ''
   state.rewardCurrency = rule.rewardCurrency ?? 'USD'
   state.includeSystemPromoters = rule.includeSystemPromoters ?? false
-  state.campaignUuid = rule.campaign?.uuid ?? ''
+  state.campaignUuid = rule.campaign_Uuid ?? ''
   state.startsAt = rule.startsAt ? isoToDatetimeLocal(rule.startsAt) : ''
   state.endsAt = rule.endsAt ? isoToDatetimeLocal(rule.endsAt) : ''
   editSnapshot.value = snapEditState()
