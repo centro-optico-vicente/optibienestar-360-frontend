@@ -51,11 +51,8 @@ export const useCampaigns = () => {
   const update = (uuid: string, body: UpdateCampaignRequest) =>
     useApi<CampaignDto>(`/v1/admin/campaigns/${uuid}`, { method: 'PUT', body })
 
-  const remove = (uuid: string, physical = false) =>
-    useApi<null>(`/v1/admin/campaigns/${uuid}`, { method: 'DELETE', query: physical ? { physical: true } : {} })
-
-  const usage = (uuid: string) =>
-    useApi<{ inUse: boolean, count: number }>(`/v1/admin/campaigns/${uuid}/usage`)
+  const remove = (uuid: string) =>
+    useApi<null>(`/v1/admin/campaigns/${uuid}`, { method: 'DELETE' })
 
   /** Clones the campaign's config + anchored commission rules onto a fresh one with new dates. */
   const relaunch = (uuid: string, body: CampaignRelaunchRequest) =>
@@ -102,7 +99,6 @@ export const useCampaigns = () => {
     create,
     update,
     remove,
-    usage,
     relaunch,
     getEffectiveness,
     audience,
