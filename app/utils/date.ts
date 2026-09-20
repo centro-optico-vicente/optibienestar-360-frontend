@@ -35,10 +35,15 @@ export function nowTimeInCaracas(): string {
 export const CARACAS_OFFSET = '-04:00'
 
 export interface DateTimeRange {
-  /** `yyyy-MM-ddTHH:mm:ss-04:00` — a proper ISO-8601 instant with explicit offset. */
-  from: string
-  /** `yyyy-MM-ddTHH:mm:ss-04:00` — a proper ISO-8601 instant with explicit offset. */
-  to: string
+  /** `yyyy-MM-ddTHH:mm:ss-04:00` — a proper ISO-8601 instant with explicit offset. Omitted → no filter (shows the picker's placeholder). */
+  from?: string
+  /** `yyyy-MM-ddTHH:mm:ss-04:00` — a proper ISO-8601 instant with explicit offset. Omitted → no filter (shows the picker's placeholder). */
+  to?: string
+}
+
+/** Empty range — no filter applied, `AuditDateRangePicker` renders its placeholder. */
+export function emptyDateRange(): DateTimeRange {
+  return {}
 }
 
 /** Appends the fixed Caracas UTC offset to a `yyyy-MM-ddTHH:mm[:ss]` local date-time string. */

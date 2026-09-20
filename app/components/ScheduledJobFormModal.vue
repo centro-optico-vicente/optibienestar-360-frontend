@@ -6,6 +6,7 @@ import type {
   ScheduledJobDto,
   ScheduledJobUpdateRequest,
 } from '~/types/scheduling'
+import type { JsonKeyValueMode } from '~/composables/useJsonKeyValueEditor'
 
 // Scheduled-job create/edit form, shared by the list (/dashboard/scheduled-jobs)
 // and the detail (/dashboard/scheduled-jobs/[uuid]) so the fields + validation
@@ -75,6 +76,11 @@ const params = useJsonKeyValueEditor()
 // Descripción legible de la expresión cron, junto al campo — se recalcula
 // en vivo mientras el usuario edita.
 const cronDescriptionText = computed(() => describeCron(state.cronExpression))
+
+const paramTabs = computed(() => [
+  { label: t('scheduledJobs.form.parameters.kvTab'), value: 'kv', icon: 'i-lucide-list' },
+  { label: t('scheduledJobs.form.parameters.jsonTab'), value: 'json', icon: 'i-lucide-braces' },
+])
 
 // Locale-reactive schema — wrapped in computed so validation messages follow the
 // UI locale. `code`: UPPER_SNAKE_CASE ^[A-Z][A-Z0-9_]{0,79}$. `maxSyncSeconds`,
@@ -283,6 +289,7 @@ async function restoreJob() {
               placeholder="DAILY_BILLING"
               class="w-full font-mono"
               :disabled="mode === 'edit'"
+              :ui="mode === 'edit' ? READONLY_FIELD_UI : undefined"
             />
           </UFormField>
           <UFormField :label="t('scheduledJobs.form.fields.timezone')" name="timezone" required>
@@ -371,25 +378,14 @@ async function restoreJob() {
 
         <!-- Parámetros libres (JSONB `parameters`) — clave/valor ↔ JSON crudo -->
         <div>
-          <div class="flex items-center justify-between mb-2">
-            <p class="text-xs font-medium text-prohealth-700">{{ t('scheduledJobs.form.parameters.title') }}</p>
-            <UButtonGroup size="xs">
-              <UButton
-                :color="params.mode.value === 'kv' ? 'primary' : 'neutral'"
-                :variant="params.mode.value === 'kv' ? 'solid' : 'outline'"
-                @click="params.switchMode('kv')"
-              >
-                {{ t('scheduledJobs.form.parameters.kvTab') }}
-              </UButton>
-              <UButton
-                :color="params.mode.value === 'json' ? 'primary' : 'neutral'"
-                :variant="params.mode.value === 'json' ? 'solid' : 'outline'"
-                @click="params.switchMode('json')"
-              >
-                {{ t('scheduledJobs.form.parameters.jsonTab') }}
-              </UButton>
-            </UButtonGroup>
-          </div>
+          <p class="text-xs font-medium text-prohealth-700 mb-2">{{ t('scheduledJobs.form.parameters.title') }}</p>
+          <UTabs
+            :model-value="params.mode.value"
+            :items="paramTabs"
+            :content="false"
+            class="mb-3"
+            @update:model-value="(v) => params.switchMode(v as JsonKeyValueMode)"
+          />
 
           <div v-if="params.mode.value === 'kv'" class="space-y-2">
             <div v-for="(row, index) in params.pairs.value" :key="index" class="flex flex-wrap items-center gap-2">
