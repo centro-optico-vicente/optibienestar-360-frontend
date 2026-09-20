@@ -64,10 +64,17 @@ const state = reactive<FormState>({
   enabled: true,
   allowConcurrent: false,
   maxSyncSeconds: '30',
-  maxRetryAttempts: '0',
-  retryDelaySeconds: '0',
+  maxRetryAttempts: '5',
+  retryDelaySeconds: '10',
   active: true,
 })
+
+// Parámetros clave/valor ↔ JSON crudo (parameters JSONB del job).
+const params = useJsonKeyValueEditor()
+
+// Descripción legible de la expresión cron, junto al campo — se recalcula
+// en vivo mientras el usuario edita.
+const cronDescriptionText = computed(() => describeCron(state.cronExpression))
 
 // Locale-reactive schema — wrapped in computed so validation messages follow the
 // UI locale. `code`: UPPER_SNAKE_CASE ^[A-Z][A-Z0-9_]{0,79}$. `maxSyncSeconds`,
@@ -107,9 +114,10 @@ function populateFrom(j: ScheduledJobDto | null) {
     state.enabled = true
     state.allowConcurrent = false
     state.maxSyncSeconds = '30'
-    state.maxRetryAttempts = '0'
-    state.retryDelaySeconds = '0'
+    state.maxRetryAttempts = '5'
+    state.retryDelaySeconds = '10'
     state.active = true
+    params.load({})
     return
   }
   state.code = j.code ?? ''
@@ -120,9 +128,10 @@ function populateFrom(j: ScheduledJobDto | null) {
   state.enabled = j.enabled ?? true
   state.allowConcurrent = j.allowConcurrent ?? false
   state.maxSyncSeconds = j.maxSyncSeconds != null ? String(j.maxSyncSeconds) : '30'
-  state.maxRetryAttempts = j.maxRetryAttempts != null ? String(j.maxRetryAttempts) : '0'
-  state.retryDelaySeconds = j.retryDelaySeconds != null ? String(j.retryDelaySeconds) : '0'
+  state.maxRetryAttempts = j.maxRetryAttempts != null ? String(j.maxRetryAttempts) : '5'
+  state.retryDelaySeconds = j.retryDelaySeconds != null ? String(j.retryDelaySeconds) : '10'
   state.active = j.active ?? true
+  params.load(j.parameters)
   editSnapshot.value = snapEditState()
 }
 
@@ -164,6 +173,11 @@ watch(() => props.open, async (open) => {
 })
 
 async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
+  const parameters = params.resolve()
+  if (parameters === null) {
+    toast.add({ title: t('scheduledJobs.form.parameters.invalidJson'), color: 'error', icon: 'i-lucide-alert-triangle' })
+    return
+  }
   isSubmitting.value = true
   try {
     let result: ScheduledJobDto
@@ -179,6 +193,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         maxSyncSeconds: Number(state.maxSyncSeconds),
         maxRetryAttempts: Number(state.maxRetryAttempts),
         retryDelaySeconds: Number(state.retryDelaySeconds),
+        parameters,
       }
       result = await jobs.create(body)
       toast.add({ title: t('scheduledJobs.createdToast'), color: 'success', icon: 'i-lucide-check-circle' })
@@ -194,6 +209,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         maxSyncSeconds: Number(state.maxSyncSeconds),
         maxRetryAttempts: Number(state.maxRetryAttempts),
         retryDelaySeconds: Number(state.retryDelaySeconds),
+        parameters,
         active: state.active,
       }
       result = await jobs.update(props.job!.uuid, body)
@@ -288,7 +304,12 @@ async function restoreJob() {
           required
           :help="t('scheduledJobs.form.cronHelp')"
         >
-          <UInput v-model="state.cronExpression" placeholder="0 0 3 * * *" class="w-full font-mono" />
+          <div class="flex items-center gap-2">
+            <UInput v-model="state.cronExpression" placeholder="0 0 3 * * *" class="w-full font-mono" />
+            <UTooltip v-if="cronDescriptionText" :text="cronDescriptionText">
+              <UIcon name="i-lucide-info" class="w-4 h-4 text-prohealth-400 shrink-0" />
+            </UTooltip>
+          </div>
         </UFormField>
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -346,6 +367,60 @@ async function restoreJob() {
             :title="t('scheduledJobs.form.runnerSection.notRegisteredTitle')"
             :description="t('scheduledJobs.form.runnerSection.notRegisteredBody', { code: job.code })"
           />
+        </div>
+
+        <!-- Parámetros libres (JSONB `parameters`) — clave/valor ↔ JSON crudo -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <p class="text-xs font-medium text-prohealth-700">{{ t('scheduledJobs.form.parameters.title') }}</p>
+            <UButtonGroup size="xs">
+              <UButton
+                :color="params.mode.value === 'kv' ? 'primary' : 'neutral'"
+                :variant="params.mode.value === 'kv' ? 'solid' : 'outline'"
+                @click="params.switchMode('kv')"
+              >
+                {{ t('scheduledJobs.form.parameters.kvTab') }}
+              </UButton>
+              <UButton
+                :color="params.mode.value === 'json' ? 'primary' : 'neutral'"
+                :variant="params.mode.value === 'json' ? 'solid' : 'outline'"
+                @click="params.switchMode('json')"
+              >
+                {{ t('scheduledJobs.form.parameters.jsonTab') }}
+              </UButton>
+            </UButtonGroup>
+          </div>
+
+          <div v-if="params.mode.value === 'kv'" class="space-y-2">
+            <div v-for="(row, index) in params.pairs.value" :key="index" class="flex flex-wrap items-center gap-2">
+              <UInput
+                v-model="row.key"
+                :placeholder="t('scheduledJobs.form.parameters.keyPlaceholder')"
+                :aria-label="t('scheduledJobs.form.parameters.keyPlaceholder')"
+                class="w-full sm:w-48 font-mono"
+              />
+              <UInput
+                v-model="row.value"
+                :placeholder="t('scheduledJobs.form.parameters.valuePlaceholder')"
+                :aria-label="t('scheduledJobs.form.parameters.valuePlaceholder')"
+                class="w-full sm:flex-1"
+              />
+              <UButton
+                color="error"
+                variant="ghost"
+                icon="i-lucide-trash-2"
+                size="sm"
+                :aria-label="t('common.delete')"
+                @click="params.removeRow(index)"
+              />
+            </div>
+            <UButton color="primary" variant="outline" icon="i-lucide-plus" size="sm" @click="params.addRow()">
+              {{ t('scheduledJobs.form.parameters.addRow') }}
+            </UButton>
+          </div>
+          <div v-else>
+            <UTextarea v-model="params.json.value" :rows="6" class="w-full font-mono text-xs" />
+          </div>
         </div>
 
         <!-- Discard unsaved changes before refreshing -->

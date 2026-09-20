@@ -1,5 +1,7 @@
 import type { Page } from '~/types/admin'
 import type {
+  JobRunOutcome,
+  JobTriggerSource,
   ManualRunResponse,
   ScheduledJobCreateRequest,
   ScheduledJobDto,
@@ -22,6 +24,12 @@ interface RunListParams {
   size?: number
   /** Multi-column sort — repeated as `sort=` query params. */
   sort?: string[]
+  outcome?: JobRunOutcome
+  triggeredBy?: JobTriggerSource
+  /** ISO instant (inclusive), filters by `startedAt`. */
+  from?: string
+  /** ISO instant (inclusive), filters by `startedAt`. */
+  to?: string
 }
 
 /**
@@ -73,6 +81,10 @@ export const useScheduledJobs = () => {
         page: params.page ?? 0,
         size: params.size ?? 20,
         ...(params.sort?.length ? { sort: params.sort } : {}),
+        ...(params.outcome ? { outcome: params.outcome } : {}),
+        ...(params.triggeredBy ? { triggeredBy: params.triggeredBy } : {}),
+        ...(params.from ? { from: params.from } : {}),
+        ...(params.to ? { to: params.to } : {}),
       },
     })
 

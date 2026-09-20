@@ -52,7 +52,8 @@
       "tooltip": "≈ {convertedDisplay} (rate as of {rateDate})",
       "tooltipNoDate": "≈ {convertedDisplay}"
     },
-    "close": "Close"
+    "close": "Close",
+    "clearFilters": "Clear filters"
   },
   "locale": {
     "change": "Change language"
@@ -1628,7 +1629,12 @@
     },
     "mine": {
       "title": "My payments",
-      "subtitle": "History of your membership payments."
+      "subtitle": "History of your payments and their review status.",
+      "empty": "You don't have any registered payments yet.",
+      "form": {
+        "title": "Register my payment",
+        "description": "Register your membership payment for review."
+      }
     },
     "columns": {
       "member": "Member",
@@ -1764,15 +1770,6 @@
       "rejectButton": "Reject payment",
       "approvedToast": "Payment approved",
       "rejectedToast": "Payment rejected"
-    },
-    "mine": {
-      "title": "My payments",
-      "subtitle": "History of your payments and their review status.",
-      "empty": "You don't have any registered payments yet.",
-      "form": {
-        "title": "Register my payment",
-        "description": "Register your membership payment for review."
-      }
     }
   },
   "members": {
@@ -2689,6 +2686,16 @@
         "started": "Started",
         "duration": "Duration",
         "error": "Error"
+      },
+      "policyFields": {
+        "runner": "Executor",
+        "noRunner": "No executor registered"
+      },
+      "parametersTitle": "Task/execution parameters",
+      "parametersSavedToast": "Parameters updated",
+      "runFilters": {
+        "outcome": "Outcome",
+        "trigger": "Source"
       }
     },
     "form": {
@@ -2725,6 +2732,15 @@
         "registered": "Executed by class:",
         "notRegisteredTitle": "No executor registered",
         "notRegisteredBody": "No ScheduledJobRunner class is registered for code \"{code}\". This job will never run until one is added in the backend."
+      },
+      "parameters": {
+        "title": "Parameters",
+        "kvTab": "Key/value",
+        "jsonTab": "Raw JSON",
+        "keyPlaceholder": "key",
+        "valuePlaceholder": "value",
+        "addRow": "+ Add parameter",
+        "invalidJson": "Parameters JSON is invalid"
       }
     }
   },
