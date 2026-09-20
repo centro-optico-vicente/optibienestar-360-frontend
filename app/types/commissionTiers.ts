@@ -30,6 +30,7 @@ export const APPLIES_TO_OPTIONS: { label: string, value: AppliesTo, labelKey: st
 export interface CommissionTierDto {
   uuid: string
   name: string
+  description?: string | null
   planType?: PlanType | string | null
   thresholdCount: number
   commissionPct?: number | string | null
@@ -39,9 +40,6 @@ export interface CommissionTierDto {
   promoterType_Uuid?: string | null
   promoterType_Display?: string | null
   promoterType_Code?: string | null
-  /** ASSUMPTION: optional link to a commission campaign (campaign_id FK) — not yet confirmed by backend. */
-  campaign_Uuid?: string | null
-  campaign_Display?: string | null
   active: boolean
   status?: string
   createdAt?: string
@@ -50,6 +48,7 @@ export interface CommissionTierDto {
 
 export interface CreateCommissionTierRequest {
   name: string
+  description?: string | null
   planType?: PlanType | null
   thresholdCount?: number
   commissionPct?: string | null
@@ -57,7 +56,7 @@ export interface CreateCommissionTierRequest {
   periodStrategy: PeriodStrategy
   appliesTo: AppliesTo
   promoterTypeUuid?: string | null
-  /** ASSUMPTION: sets the owning campaign when created from the campaign ficha's "Add rule" flow. */
+  /** Sets the owning campaign when created from the campaign ficha's "Add rule" flow. Not yet a real backend field on CommissionTierCreateRequest (see report) — sent as a harmless no-op until the backend wires campaignUuid/startsAt/endsAt into the DTO. */
   campaignUuid?: string | null
 }
 

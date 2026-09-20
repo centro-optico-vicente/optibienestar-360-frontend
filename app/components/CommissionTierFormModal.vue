@@ -17,7 +17,7 @@ import { PLAN_TYPE_OPTIONS } from '~/types/plans'
 const props = defineProps<{
   open: boolean
   tier?: CommissionTierDto | null
-  /** Preset campaign_id (ASSUMPTION, not yet confirmed) when created from the campaign ficha's "Add rule" flow. */
+  /** Preset campaign_id when created from the campaign ficha's "Add rule" flow. Not yet a real backend field on this create/update request (see report); harmless no-op until the backend adds it. */
   campaignUuid?: string | null
 }>()
 
@@ -56,6 +56,7 @@ const rewardKindOptions = computed(() => [
 
 interface FormState {
   name: string
+  description: string
   planType: string
   thresholdCount: string
   rewardKind: 'PCT' | 'FLAT'
@@ -67,6 +68,7 @@ interface FormState {
 
 const state = reactive<FormState>({
   name: '',
+  description: '',
   planType: '',
   thresholdCount: '0',
   rewardKind: 'PCT',
@@ -83,6 +85,7 @@ const schema = computed(() => {
   const int = z.string().regex(/^\d+$/, t('commissionRules.form.integersOnly'))
   return z.object({
     name: z.string().min(3, t('validation.minChars', { n: 3 })).max(80, t('validation.maxChars', { n: 80 })),
+    description: z.string().optional(),
     thresholdCount: int,
     commissionPct: state.rewardKind === 'PCT' ? money : z.string().optional(),
     flatAmount: state.rewardKind === 'FLAT' ? money : z.string().optional(),
@@ -102,6 +105,7 @@ const reloading = ref(false)
 function populateFrom(tier: CommissionTierDto | null) {
   if (!tier) {
     state.name = ''
+    state.description = ''
     state.planType = ''
     state.thresholdCount = '0'
     state.rewardKind = 'PCT'
@@ -114,6 +118,7 @@ function populateFrom(tier: CommissionTierDto | null) {
     return
   }
   state.name = tier.name
+  state.description = tier.description ?? ''
   state.planType = tier.planType ?? ''
   state.thresholdCount = String(tier.thresholdCount ?? 0)
   state.rewardKind = tier.flatAmount != null ? 'FLAT' : 'PCT'
@@ -148,6 +153,7 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
   try {
     const base = {
       name: state.name.trim(),
+      description: state.description.trim() || null,
       planType: state.planType || null,
       thresholdCount: Number(state.thresholdCount),
       commissionPct: state.rewardKind === 'PCT' ? state.commissionPct.trim() : null,
@@ -212,6 +218,10 @@ async function restoreTier() {
       <UForm ref="formRef" :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
         <UFormField :label="t('commissionRules.tiers.form.name')" name="name" required>
           <UInput v-model="state.name" class="w-full" />
+        </UFormField>
+
+        <UFormField :label="t('commissionRules.tiers.form.description')" name="description">
+          <UTextarea v-model="state.description" :rows="2" class="w-full" />
         </UFormField>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">

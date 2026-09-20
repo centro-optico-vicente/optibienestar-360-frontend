@@ -20,7 +20,7 @@ import type { SelectItem } from '~/types/options'
 const props = defineProps<{
   open: boolean
   tier?: HierarchyOverrideTierDto | null
-  /** Preset campaign_id (ASSUMPTION, not yet confirmed) when created from the campaign ficha's "Add rule" flow. */
+  /** Preset campaign_id when created from the campaign ficha's "Add rule" flow. Not yet a real backend field on this create/update request (see report); harmless no-op until the backend adds it. */
   campaignUuid?: string | null
 }>()
 
@@ -96,6 +96,7 @@ async function loadCurrencyOptions() {
 
 interface FormState {
   name: string
+  description: string
   rankUuid: string
   category: OverrideCategory | undefined
   thresholdCount: string
@@ -108,6 +109,7 @@ interface FormState {
 
 const state = reactive<FormState>({
   name: '',
+  description: '',
   rankUuid: '',
   category: undefined,
   thresholdCount: '0',
@@ -125,6 +127,7 @@ const schema = computed(() => {
   const int = z.string().regex(/^\d+$/, t('commissionRules.form.integersOnly'))
   return z.object({
     name: z.string().min(3, t('validation.minChars', { n: 3 })).max(80, t('validation.maxChars', { n: 80 })),
+    description: z.string().optional(),
     rankUuid: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
     category: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
     thresholdCount: int,
@@ -148,6 +151,7 @@ const reloading = ref(false)
 function populateFrom(tier: HierarchyOverrideTierDto | null) {
   if (!tier) {
     state.name = ''
+    state.description = ''
     state.rankUuid = ''
     state.category = undefined
     state.thresholdCount = '0'
@@ -161,6 +165,7 @@ function populateFrom(tier: HierarchyOverrideTierDto | null) {
     return
   }
   state.name = tier.name
+  state.description = tier.description ?? ''
   state.rankUuid = tier.rank_Uuid ?? ''
   state.category = tier.category
   state.thresholdCount = String(tier.thresholdCount ?? 0)
@@ -201,6 +206,7 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
   try {
     const base = {
       name: state.name.trim(),
+      description: state.description.trim() || null,
       rankUuid: state.rankUuid,
       category: state.category!,
       thresholdCount: Number(state.thresholdCount),
@@ -266,6 +272,10 @@ async function restoreTier() {
       <UForm ref="formRef" :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
         <UFormField :label="t('hierarchyOverrideTiers.form.name')" name="name" required>
           <UInput v-model="state.name" class="w-full" />
+        </UFormField>
+
+        <UFormField :label="t('hierarchyOverrideTiers.form.description')" name="description">
+          <UTextarea v-model="state.description" :rows="2" class="w-full" />
         </UFormField>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">

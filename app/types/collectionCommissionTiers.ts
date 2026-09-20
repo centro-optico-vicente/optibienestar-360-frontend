@@ -15,9 +15,6 @@ export interface CollectionCommissionTierDto {
   promoterType_Uuid?: string | null
   promoterType_Display?: string | null
   promoterType_Code?: string | null
-  /** ASSUMPTION: optional link to a commission campaign (campaign_id FK) — not yet confirmed by backend. */
-  campaign_Uuid?: string | null
-  campaign_Display?: string | null
   active: boolean
   status?: string
   createdAt?: string
@@ -29,7 +26,7 @@ export interface CreateCollectionCommissionTierRequest {
   maxDays: number
   commissionPct: string
   promoterTypeUuid?: string | null
-  /** ASSUMPTION: sets the owning campaign when created from the campaign ficha's "Add rule" flow. */
+  /** Sets the owning campaign when created from the campaign ficha's "Add rule" flow. Not yet a real backend field — CollectionCommissionTier has no campaign_id column at all (see report) — sent as a harmless no-op. */
   campaignUuid?: string | null
 }
 

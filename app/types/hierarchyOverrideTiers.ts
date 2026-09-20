@@ -19,6 +19,7 @@ export const OVERRIDE_CATEGORY_OPTIONS: { label: string, value: OverrideCategory
 export interface HierarchyOverrideTierDto {
   uuid: string
   name: string
+  description?: string | null
   rank_Uuid?: string | null
   rank_Display?: string | null
   category: OverrideCategory
@@ -29,9 +30,6 @@ export interface HierarchyOverrideTierDto {
   flatAmountCurrency_Display?: string | null
   flatAmountCurrency_Code?: string | null
   periodStrategy: PeriodStrategy
-  /** ASSUMPTION: optional link to a commission campaign (campaign_id FK) — not yet confirmed by backend. */
-  campaign_Uuid?: string | null
-  campaign_Display?: string | null
   active: boolean
   status?: string
   createdAt?: string
@@ -40,6 +38,7 @@ export interface HierarchyOverrideTierDto {
 
 export interface CreateHierarchyOverrideTierRequest {
   name: string
+  description?: string | null
   rankUuid: string
   category: OverrideCategory
   thresholdCount?: number
@@ -47,7 +46,7 @@ export interface CreateHierarchyOverrideTierRequest {
   flatAmount?: string | null
   flatAmountCurrencyUuid?: string | null
   periodStrategy: PeriodStrategy
-  /** ASSUMPTION: sets the owning campaign when created from the campaign ficha's "Add rule" flow. */
+  /** Sets the owning campaign when created from the campaign ficha's "Add rule" flow. Not yet a real backend field on HierarchyOverrideTierCreateRequest (see report) — sent as a harmless no-op until the backend wires campaignUuid/startsAt/endsAt into the DTO. */
   campaignUuid?: string | null
 }
 

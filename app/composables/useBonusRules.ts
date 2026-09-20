@@ -10,7 +10,7 @@ interface ListParams {
   q?: string
   includeInactive?: boolean
   promoterTypeUuid?: string
-  /** ASSUMPTION: filters rules linked to a commission campaign — used by the campaign ficha's "Rules" tab. */
+  /** Filters rules linked to a commission campaign — used by the campaign ficha's "Rules" tab. Not yet a real backend filter param (see report); harmless no-op query param until the backend adds it. */
   campaignUuid?: string
 }
 
