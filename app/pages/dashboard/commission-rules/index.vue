@@ -999,8 +999,9 @@ onMounted(() => {
                 {{ t('commissionRules.collectionTiers.columns.name') }}
                 <SortIndicator :state="collectionSort.stateOf('name')" :multi-active="collectionIsMultiSort" @clear="collectionSort.remove('name')" />
               </th>
+              <th class="px-5 py-3 font-semibold">{{ t('commissionRules.collectionTiers.columns.basis') }}</th>
               <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="collectionSort.toggle('maxDays')">
-                {{ t('commissionRules.collectionTiers.columns.maxDays') }}
+                {{ t('commissionRules.collectionTiers.columns.bucket') }}
                 <SortIndicator :state="collectionSort.stateOf('maxDays')" :multi-active="collectionIsMultiSort" @clear="collectionSort.remove('maxDays')" />
               </th>
               <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="collectionSort.toggle('commissionPct')">
@@ -1015,9 +1016,9 @@ onMounted(() => {
             </tr>
           </thead>
           <tbody class="divide-y divide-prohealth-100">
-            <TableSkeleton v-if="collectionLoading" :rows="4" :cols="5" />
+            <TableSkeleton v-if="collectionLoading" :rows="4" :cols="6" />
             <tr v-else-if="collectionData.length === 0">
-              <td colspan="5" class="px-5 py-10 text-center text-prohealth-500">{{ t('commissionRules.collectionTiers.empty') }}</td>
+              <td colspan="6" class="px-5 py-10 text-center text-prohealth-500">{{ t('commissionRules.collectionTiers.empty') }}</td>
             </tr>
             <tr
               v-for="tier in collectionData"
@@ -1028,8 +1029,9 @@ onMounted(() => {
               @click="canUpdateCollection && openEditCollectionTier(tier)"
             >
               <td class="px-5 py-3 font-medium text-prohealth-900">{{ tier.name }}</td>
-              <td class="px-5 py-3 text-prohealth-600">{{ tier.maxDays }}</td>
-              <td class="px-5 py-3 text-prohealth-600">{{ tier.commissionPct }}%</td>
+              <td class="px-5 py-3 text-prohealth-600">{{ tier.basis === 'AMOUNT' ? t('commissionRules.collectionTiers.form.basisAmount') : t('commissionRules.collectionTiers.form.basisDays') }}</td>
+              <td class="px-5 py-3 text-prohealth-600">{{ tier.basis === 'AMOUNT' ? tier.maxAmount : tier.maxDays }}</td>
+              <td class="px-5 py-3 text-prohealth-600">{{ tier.commissionPct != null ? `${tier.commissionPct}%` : `${tier.flatAmount} ${tier.flatAmountCurrency_Code ?? ''}` }}</td>
               <td class="px-5 py-3">
                 <UBadge :color="tier.active ? 'success' : 'neutral'" variant="subtle" size="sm">
                   {{ tier.active ? t('catalogs.status.active') : t('catalogs.status.inactive') }}

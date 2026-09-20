@@ -67,6 +67,17 @@ const canUpdateOverride = computed(() => can('HIERARCHY_OVERRIDE_TIER_UPDATE'))
 const canDeleteOverride = computed(() => can('HIERARCHY_OVERRIDE_TIER_DELETE'))
 
 const pageSizeItems = buildPageSizeItems(t)
+const detailTabs = computed(() => [
+  ...(campaign.value?.scope !== 'ALL' ? [{ label: t('campaigns.detail.tabs.audience'), value: 'audience', icon: 'i-lucide-users' }] : []),
+  { label: t('campaigns.detail.tabs.rules'), value: 'rules', icon: 'i-lucide-list-checks' },
+  { label: t('campaigns.detail.tabs.transactions'), value: 'transactions', icon: 'i-lucide-receipt' },
+  { label: t('campaigns.detail.tabs.exceptions'), value: 'exceptions', icon: 'i-lucide-triangle-alert' },
+])
+const activeDetailTab = ref('rules')
+const auditOpen = ref(false)
+const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL'))
+const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL'))
+const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
 
 // =========================================================
 // Campaign load
@@ -74,6 +85,10 @@ const pageSizeItems = buildPageSizeItems(t)
 const campaign = ref<CampaignDto | null>(null)
 const loading = ref(true)
 const notFound = ref(false)
+
+watch(campaign, (value) => {
+  if (value) activeDetailTab.value = value.scope === 'ALL' ? 'rules' : 'audience'
+}, { immediate: true })
 
 async function loadCampaign() {
   loading.value = true
@@ -112,6 +127,7 @@ async function refreshAll() {
 onMounted(async () => {
   await loadCampaign()
   await Promise.all([
+    loadEffectiveness(),
     canViewAudience.value ? loadAudience() : Promise.resolve(),
     canViewTiers.value ? loadTiers() : Promise.resolve(),
     canViewBonus.value ? loadBonus() : Promise.resolve(),
@@ -506,7 +522,6 @@ async function confirmRemoveException() {
       <USkeleton class="h-4 w-40 rounded" />
       <USkeleton class="h-4 w-full max-w-lg rounded" />
     </div>
-
     <div v-else-if="notFound || !campaign" class="bg-white rounded-2xl border border-prohealth-100 p-12 text-center">
       <UIcon name="i-lucide-search-x" class="w-10 h-10 mx-auto mb-3 text-prohealth-300" />
       <p class="text-prohealth-700 font-semibold">{{ t('campaigns.detail.notFoundTitle') }}</p>
@@ -515,7 +530,7 @@ async function confirmRemoveException() {
 
     <template v-else>
       <!-- Header + actions -->
-      <div class="bg-white rounded-2xl border border-prohealth-100 p-6">
+      <div class="bg-white rounded-2xl border border-prohealth-100 p-6 space-y-5">
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div>
             <div class="flex items-center gap-3 flex-wrap">
@@ -531,9 +546,10 @@ async function confirmRemoveException() {
 
           <div class="flex items-center gap-2 flex-wrap">
             <RefreshButton size="md" variant="ghost" :icon-only="false" :loading="refreshingAll" :title="t('common.refreshRecord')" @refresh="refreshAll" />
-            <UButton color="neutral" variant="ghost" icon="i-lucide-bar-chart-3" :loading="effectivenessLoading" @click="loadEffectiveness">
-              {{ t('campaigns.detail.generateReport') }}
-            </UButton>
+            <ReportPrintButton table-name="campaigns" :record-uuid="campaign.uuid" variant="ghost" />
+            <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
+              <UButton color="neutral" variant="ghost" icon="i-lucide-history" @click="auditOpen = true" />
+            </UTooltip>
             <UTooltip :text="t('campaigns.detail.relaunch')">
               <UButton color="primary" variant="ghost" icon="i-lucide-rocket" :disabled="!canCreate" @click="openRelaunch">
                 {{ t('campaigns.detail.relaunch') }}
@@ -547,10 +563,9 @@ async function confirmRemoveException() {
         </div>
 
         <p v-if="campaign.description" class="text-sm text-prohealth-700 mt-4 max-w-3xl">{{ campaign.description }}</p>
-      </div>
 
       <!-- 1. Datos generales -->
-      <div class="bg-white rounded-2xl border border-prohealth-100 p-6">
+      <div class="pt-5 border-t border-prohealth-100">
         <h2 class="font-bold text-prohealth-900 mb-4">{{ t('campaigns.detail.generalData') }}</h2>
         <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 text-sm">
           <div>
@@ -603,10 +618,14 @@ async function confirmRemoveException() {
           </div>
         </dl>
       </div>
+      </div>
 
-      <!-- 1b. Efectividad (GET /{uuid}/effectiveness — JSON summary, on-demand) -->
-      <div v-if="effectivenessLoaded" class="bg-white rounded-2xl border border-prohealth-100 p-6">
-        <h2 class="font-bold text-prohealth-900 mb-4">{{ t('campaigns.detail.generateReport') }}</h2>
+      <!-- 1b. Campaign metrics -->
+      <div class="bg-white rounded-2xl border border-prohealth-100 p-6">
+        <div class="flex items-center justify-between gap-3 mb-4">
+          <h2 class="font-bold text-prohealth-900">{{ t('campaigns.detail.metrics') }}</h2>
+          <RefreshButton :loading="effectivenessLoading" :title="t('common.refreshSection')" @refresh="loadEffectiveness" />
+        </div>
         <div v-if="effectiveness" class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('campaigns.detail.effectiveness.totalCollected') }}</dt>
@@ -625,11 +644,13 @@ async function confirmRemoveException() {
             <dd class="text-prohealth-800 mt-0.5 text-lg font-bold">{{ pct(effectiveness.countAchievedPct) }}</dd>
           </div>
         </div>
+        <p v-else-if="effectivenessLoading" class="text-sm text-prohealth-500">{{ t('common.loading') }}</p>
         <p v-else class="text-sm text-prohealth-500">{{ t('common.error') }}</p>
       </div>
+      <UTabs v-model="activeDetailTab" :items="detailTabs" :content="false" />
 
       <!-- 2. Audiencia -->
-      <div v-if="campaign.scope !== 'ALL'" class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
+      <div v-if="campaign.scope !== 'ALL'" v-show="activeDetailTab === 'audience'" class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
         <div class="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-b border-prohealth-100">
           <div>
             <h2 class="font-bold text-prohealth-900">{{ t('campaigns.detail.audience') }}</h2>
@@ -674,7 +695,7 @@ async function confirmRemoveException() {
       </div>
 
       <!-- 3. Reglas de comisión asociadas -->
-      <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
+      <div v-show="activeDetailTab === 'rules'" class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
         <div class="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-b border-prohealth-100">
           <h2 class="font-bold text-prohealth-900">{{ t('campaigns.detail.rules') }}</h2>
           <div class="flex items-center gap-2">
@@ -719,7 +740,7 @@ async function confirmRemoveException() {
       </div>
 
       <!-- 4. Transacciones de la campaña -->
-      <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
+      <div v-show="activeDetailTab === 'transactions'" class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
         <div class="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-b border-prohealth-100">
           <h2 class="font-bold text-prohealth-900">{{ t('campaigns.detail.transactions') }}</h2>
           <RefreshButton :loading="txLoading" :title="t('common.refreshSection')" @refresh="loadTransactions" />
@@ -761,7 +782,7 @@ async function confirmRemoveException() {
       </div>
 
       <!-- 5. Excepciones registradas -->
-      <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
+      <div v-show="activeDetailTab === 'exceptions'" class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
         <div class="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-b border-prohealth-100">
           <h2 class="font-bold text-prohealth-900">{{ t('campaigns.detail.exceptions') }}</h2>
           <RefreshButton :loading="exLoading" :title="t('common.refreshSection')" @refresh="loadExceptions" />
@@ -810,7 +831,7 @@ async function confirmRemoveException() {
     </template>
 
     <!-- Edit modal (shared) -->
-    <CampaignFormModal v-model:open="formOpen" :campaign="campaign" @saved="onSaved" />
+    <CampaignFormModal v-model:open="formOpen" :campaign="campaign" @saved="onSaved" @delete="openDelete" />
 
     <!-- Relaunch modal (shared component, relaunchOf redirects submission to POST /relaunch) -->
     <CampaignFormModal
@@ -846,10 +867,10 @@ async function confirmRemoveException() {
     </UModal>
 
     <!-- Rule modals (reused as-is from commission-rules/index.vue, campaignUuid preset only on create) -->
-    <CommissionTierFormModal v-model:open="tierFormOpen" :tier="editingTier" :campaign-uuid="campaignUuid" @saved="loadAllRules" @delete="onDeleteFromTierModal" />
-    <BonusRuleFormModal v-model:open="bonusFormOpen" :rule="editingBonus" :campaign-uuid="campaignUuid" @saved="loadAllRules" @delete="onDeleteFromBonusModal" />
-    <CollectionCommissionTierFormModal v-model:open="collectionFormOpen" :tier="editingCollection" :campaign-uuid="campaignUuid" @saved="loadAllRules" @delete="onDeleteFromCollectionModal" />
-    <HierarchyOverrideTierFormModal v-model:open="overrideFormOpen" :tier="editingOverride" :campaign-uuid="campaignUuid" @saved="loadAllRules" @delete="onDeleteFromOverrideModal" />
+    <CommissionTierFormModal v-model:open="tierFormOpen" :tier="editingTier" :campaign-uuid="campaignUuid" :campaign-display="campaign?.name" @saved="loadAllRules" @delete="onDeleteFromTierModal" />
+    <BonusRuleFormModal v-model:open="bonusFormOpen" :rule="editingBonus" :campaign-uuid="campaignUuid" :campaign-display="campaign?.name" @saved="loadAllRules" @delete="onDeleteFromBonusModal" />
+    <CollectionCommissionTierFormModal v-model:open="collectionFormOpen" :tier="editingCollection" :campaign-uuid="campaignUuid" :campaign-display="campaign?.name" @saved="loadAllRules" @delete="onDeleteFromCollectionModal" />
+    <HierarchyOverrideTierFormModal v-model:open="overrideFormOpen" :tier="editingOverride" :campaign-uuid="campaignUuid" :campaign-display="campaign?.name" @saved="loadAllRules" @delete="onDeleteFromOverrideModal" />
 
     <!-- Delete rule confirmation -->
     <UModal v-model:open="ruleDeleteOpen" :title="t('common.delete')">
@@ -872,5 +893,15 @@ async function confirmRemoveException() {
         </div>
       </template>
     </UModal>
+
+    <AuditModal
+      v-if="campaign"
+      v-model:open="auditOpen"
+      entity-key="campaign"
+      :entity-uuid="campaign.uuid"
+      :entity-label="campaign.name"
+      :can-view-changes="canViewAuditChanges"
+      :can-view-reports="canViewAuditReports"
+    />
   </div>
 </template>

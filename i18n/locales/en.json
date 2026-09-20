@@ -18,6 +18,7 @@
     "select": "Select",
     "viewAll": "View all",
     "empty": "Not provided",
+    "error": "Error",
     "viewMaster": "View record",
     "currency": "Currency",
     "noAccessToScreen": "You don't have permission to view this screen",
@@ -2822,6 +2823,9 @@
     "form": {
       "createTitle": "New campaign",
       "editTitle": "Edit campaign",
+      "createDescription": "Configure a commercial campaign and its incentive rules.",
+      "editDescription": "Update the campaign configuration and validity.",
+      "relaunchDescription": "Create a new campaign from the current configuration.",
       "name": "Name",
       "description": "Description",
       "startsAt": "Starts at",
@@ -2860,6 +2864,14 @@
       "sourceException": "Exception",
       "relaunch": "Relaunch campaign",
       "generateReport": "Generate report",
+      "metrics": "Metrics",
+      "tabs": {
+        "general": "General",
+        "audience": "Audience",
+        "rules": "Commission rules",
+        "transactions": "Transactions",
+        "exceptions": "Exceptions"
+      },
       "seoPage": "Campaign detail",
       "notFoundTitle": "Campaign not found",
       "notFoundBody": "The campaign you are looking for does not exist or was removed.",
@@ -2887,7 +2899,7 @@
         "tier": "Inscription band",
         "bonus": "Scale bonus",
         "collection": "Collection commission",
-        "override": "Hierarchical override"
+        "override": "Additional hierarchy commission"
       },
       "chooseRuleType": "Choose the rule type to add",
       "rulesColumns": {
@@ -3085,6 +3097,8 @@
       "deleteConfirmDeactivate": "This bucket is in use ({count}) — it will be deactivated instead of deleted.",
       "columns": {
         "name": "Name",
+        "basis": "Basis",
+        "bucket": "Limit",
         "maxDays": "Max days",
         "commissionPct": "Percentage"
       },
@@ -3092,9 +3106,19 @@
         "createTitle": "New collection bucket",
         "editTitle": "Edit collection bucket",
         "name": "Name",
+        "description": "Description",
+        "basis": "Basis",
+        "basisDays": "Collection days",
+        "basisAmount": "Collected amount",
         "maxDays": "Max days",
         "maxDaysHelp": "Applies when days-to-collect <= this value.",
+        "maxAmount": "Maximum amount",
         "commissionPct": "Percentage",
+        "flatAmount": "Flat amount",
+        "flatAmountCurrency": "Flat amount currency",
+        "campaign": "Campaign",
+        "startsAt": "Starts",
+        "endsAt": "Ends",
         "submitCreate": "Create bucket",
         "active": "Active"
       }

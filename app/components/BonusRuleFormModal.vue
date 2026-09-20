@@ -25,6 +25,7 @@ const props = defineProps<{
   rule?: BonusRuleDto | null
   /** Preset campaign when created from the campaign ficha's "Add rule" flow. */
   campaignUuid?: string | null
+  campaignDisplay?: string | null
 }>()
 
 const emit = defineEmits<{
@@ -69,6 +70,7 @@ function datetimeLocalToIso(value: string): string | undefined {
 // overwrite the rule's own snapshot dates when the modal opens.
 const suppressCampaignAutofill = ref(false)
 const mode = computed<'create' | 'edit'>(() => (props.rule ? 'edit' : 'create'))
+const campaignLocked = computed(() => mode.value === 'create' && !!props.campaignUuid)
 const isSubmitting = ref(false)
 // Save button lives in the modal's #footer slot, outside the <UForm> element,
 // so it can't use type="submit"; it triggers validation via this instead.
@@ -330,7 +332,11 @@ function openDeleteFromEdit() {
         </UFormField>
 
         <UFormField :label="t('campaigns.form.campaign')" name="campaignUuid" :help="t('campaigns.form.campaignHelp')">
+          <UInput v-if="campaignLocked" :model-value="props.campaignDisplay || state.campaignUuid" disabled readonly icon="i-lucide-rocket" :ui="READONLY_FIELD_UI" class="w-full">
+            <template #trailing><UIcon name="i-lucide-lock-keyhole" class="text-prohealth-400" /></template>
+          </UInput>
           <CommonEntityReferenceSelect
+            v-else
             v-model="state.campaignUuid"
             :search="searchCampaigns"
             entity="campaign"

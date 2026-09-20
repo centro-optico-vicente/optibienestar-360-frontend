@@ -22,6 +22,7 @@ const props = defineProps<{
   tier?: HierarchyOverrideTierDto | null
   /** Preset campaign when created from the campaign ficha's "Add rule" flow. */
   campaignUuid?: string | null
+  campaignDisplay?: string | null
 }>()
 
 const emit = defineEmits<{
@@ -72,6 +73,7 @@ function goToRank(to: string) {
   navigateTo(to)
 }
 const mode = computed<'create' | 'edit'>(() => (props.tier ? 'edit' : 'create'))
+const campaignLocked = computed(() => mode.value === 'create' && !!props.campaignUuid)
 const canManage = computed(() => can(mode.value === 'edit' ? 'HIERARCHY_OVERRIDE_TIER_UPDATE' : 'HIERARCHY_OVERRIDE_TIER_CREATE'))
 const isSubmitting = ref(false)
 // Save button lives in the modal's #footer slot, outside the <UForm> element,
@@ -388,7 +390,11 @@ async function restoreTier() {
         </UFormField>
 
         <UFormField :label="t('campaigns.form.campaign')" name="campaignUuid" :help="t('campaigns.form.campaignHelp')">
+          <UInput v-if="campaignLocked" :model-value="props.campaignDisplay || state.campaignUuid" disabled readonly icon="i-lucide-rocket" :ui="READONLY_FIELD_UI" class="w-full">
+            <template #trailing><UIcon name="i-lucide-lock-keyhole" class="text-prohealth-400" /></template>
+          </UInput>
           <CommonEntityReferenceSelect
+            v-else
             v-model="state.campaignUuid"
             :search="searchCampaigns"
             entity="campaign"

@@ -213,7 +213,7 @@ catch (e: any) {
 
 ## Campos de solo lectura / deshabilitados
 
-Un campo `:disabled` por razón **estructural** (ej. `code`/`email` inmutable una vez creado el
+Un campo `:disabled` o `:readonly` por razón **estructural** (ej. `code`/`email` inmutable una vez creado el
 registro, no un estado transitorio de carga o permisos) debe verse visualmente distinto de un
 campo editable normal — el `disabled:opacity-75` por defecto de Nuxt UI es demasiado sutil para
 leerse a simple vista como "este campo está bloqueado".

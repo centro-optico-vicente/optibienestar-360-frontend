@@ -31,6 +31,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:open': [value: boolean]
   'saved': [campaign: CampaignDto]
+  'delete': [campaign: CampaignDto]
 }>()
 
 const { t } = useI18n()
@@ -44,6 +45,7 @@ const isOpen = computed({
 
 const mode = computed<'create' | 'edit'>(() => (props.campaign && !props.forceCreate ? 'edit' : 'create'))
 const isSubmitting = ref(false)
+const reloading = ref(false)
 const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 
 const scopeOptions = computed(() => CAMPAIGN_SCOPE_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
@@ -144,6 +146,26 @@ function populateFrom(campaign: CampaignDto | null, blankDates: boolean) {
   enabled.value = campaign.enabled ?? true
 }
 
+async function reloadForm() {
+  if (!props.campaign) return
+  reloading.value = true
+  try {
+    populateFrom(await campaigns.get(props.campaign.uuid), false)
+  }
+  catch {
+    // useApi already notified
+  }
+  finally {
+    reloading.value = false
+  }
+}
+
+function requestDelete() {
+  if (!props.campaign) return
+  isOpen.value = false
+  emit('delete', props.campaign)
+}
+
 watch(() => props.open, (open) => {
   if (!open) return
   populateFrom(props.campaign ?? null, props.forceCreate === true)
@@ -202,6 +224,7 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
   <UModal
     v-model:open="isOpen"
     :title="relaunchOf ? t('campaigns.detail.relaunch') : (mode === 'create' ? t('campaigns.form.createTitle') : t('campaigns.form.editTitle'))"
+    :description="relaunchOf ? t('campaigns.form.relaunchDescription') : (mode === 'create' ? t('campaigns.form.createDescription') : t('campaigns.form.editDescription'))"
     :ui="{ content: 'max-w-2xl' }"
   >
     <template #body>
@@ -270,11 +293,19 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
     <template #footer>
       <div class="w-full space-y-2">
         <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
-        <div class="flex items-center justify-end gap-3">
-          <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="isOpen = false">{{ t('common.cancel') }}</UButton>
-          <UButton :color="mode === 'create' ? 'primary' : 'info'" variant="outline" :loading="isSubmitting" icon="i-lucide-save" @click="formRef?.submit()">
-            {{ mode === 'create' ? t('common.saveNew') : t('common.saveChanges') }}
-          </UButton>
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <UButton v-if="mode === 'edit' && campaign" color="error" variant="ghost" icon="i-lucide-trash-2" :disabled="isSubmitting" @click="requestDelete">
+              {{ t('common.delete') }}
+            </UButton>
+          </div>
+          <div class="flex items-center gap-3">
+            <RefreshButton v-if="mode === 'edit'" :icon-only="false" :label="t('common.refresh')" :title="t('common.refresh')" :loading="reloading" :disabled="isSubmitting" @refresh="reloadForm" />
+            <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="isOpen = false">{{ t('common.cancel') }}</UButton>
+            <UButton :color="mode === 'create' ? 'primary' : 'info'" variant="outline" :loading="isSubmitting" icon="i-lucide-save" @click="formRef?.submit()">
+              {{ mode === 'create' ? t('common.saveNew') : t('common.saveChanges') }}
+            </UButton>
+          </div>
         </div>
       </div>
     </template>
