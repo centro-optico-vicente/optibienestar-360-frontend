@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import type { ApiError } from '~/types/auth'
-import type { ScheduledJobDto, ScheduledJobRunDto } from '~/types/scheduling'
+import type { JobRunOutcome, JobTriggerSource, ScheduledJobDto, ScheduledJobRunDto } from '~/types/scheduling'
 import { JOB_RUN_OUTCOME_OPTIONS } from '~/types/scheduling'
 import type { SortDirection } from '~/composables/useTableSort'
+import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
+import { defaultTodayRange } from '~/utils/date'
 
 definePageMeta({
   layout: 'dashboard',
@@ -50,7 +52,11 @@ async function loadJob() {
 
 // ---- Runs history ----
 const runs = ref<ScheduledJobRunDto[]>([])
+const runsTotal = ref(0)
 const runsLoading = ref(false)
+const runsPage = ref(1) // UPagination es 1-based; la API es 0-based
+const runsSize = ref(DEFAULT_PAGE_SIZE)
+const runsPageSizeItems = buildPageSizeItems(t)
 // Empty by default: no `sort=` is sent until the user clicks a column, so
 // the backend's own default-sort fallback (entity_config → system_configs
 // → startedAt DESC) applies.
@@ -61,11 +67,30 @@ const runsIsMultiSort = computed(() => runsSort.orders.value.length > 1)
 // `watch(runsSort.orders, ...)` reload (would otherwise loop forever).
 const runsResetting = ref(false)
 
+const RUN_OUTCOME_OPTIONS = JOB_RUN_OUTCOME_OPTIONS.map(o => ({ label: t(`scheduledJobs.outcome.${o.value}`, o.label), value: o.value }))
+const RUN_TRIGGER_OPTIONS: { label: string, value: JobTriggerSource }[] = [
+  { label: t('scheduledJobs.trigger.SCHEDULED'), value: 'SCHEDULED' },
+  { label: t('scheduledJobs.trigger.MANUAL'), value: 'MANUAL' },
+  { label: t('scheduledJobs.trigger.STARTUP'), value: 'STARTUP' },
+]
+const runsOutcomeFilter = ref<JobRunOutcome | undefined>(undefined)
+const runsTriggerFilter = ref<JobTriggerSource | undefined>(undefined)
+const runsDateRange = ref(defaultTodayRange())
+
 async function loadRuns() {
   runsLoading.value = true
   try {
-    const res = await jobs.listRuns(jobUuid, { size: 20, sort: runsSort.sortParam.value })
+    const res = await jobs.listRuns(jobUuid, {
+      page: runsPage.value - 1,
+      size: runsSize.value,
+      sort: runsSort.sortParam.value,
+      outcome: runsOutcomeFilter.value,
+      triggeredBy: runsTriggerFilter.value,
+      from: runsDateRange.value.from,
+      to: runsDateRange.value.to,
+    })
     runs.value = res.content ?? []
+    runsTotal.value = res.totalElements ?? 0
     // No column clicked yet → reflect the server's own default in the header arrows.
     if (runsSort.orders.value.length === 0 && res.appliedSort?.length) {
       runsResetting.value = true
@@ -77,12 +102,29 @@ async function loadRuns() {
   catch {
     // useApi already shows the error toast
     runs.value = []
+    runsTotal.value = 0
   }
   finally {
     runsLoading.value = false
   }
 }
 watch(runsSort.orders, () => { if (!runsResetting.value) loadRuns() }, { deep: true })
+watch(runsSize, () => { if (!runsResetting.value) runsPage.value = 1 })
+watch([runsPage, runsSize], () => { if (!runsResetting.value) loadRuns() })
+watch([runsOutcomeFilter, runsTriggerFilter, runsDateRange], () => {
+  if (!runsResetting.value) { runsPage.value = 1; loadRuns() }
+}, { deep: true })
+
+function resetRunFilters() {
+  runsResetting.value = true
+  runsOutcomeFilter.value = undefined
+  runsTriggerFilter.value = undefined
+  runsDateRange.value = defaultTodayRange()
+  runsSize.value = DEFAULT_PAGE_SIZE
+  runsPage.value = 1
+  runsResetting.value = false
+  loadRuns()
+}
 
 onMounted(async () => {
   await Promise.all([loadJob(), loadRuns()])
@@ -134,6 +176,34 @@ const formOpen = ref(false)
 
 async function onSaved(updated: ScheduledJobDto) {
   job.value = updated
+}
+
+// ---- Cron legible ----
+const cronDescriptionText = computed(() => job.value ? describeCron(job.value.cronExpression) : null)
+
+// ---- Parámetros de tarea/ejecución (edición in-place, independiente del resto de la ficha) ----
+const params = useJsonKeyValueEditor()
+watch(job, (j) => { if (j) params.load(j.parameters) }, { immediate: true })
+const savingParams = ref(false)
+
+async function saveParams() {
+  if (!job.value) return
+  const parameters = params.resolve()
+  if (parameters === null) {
+    toast.add({ title: t('scheduledJobs.form.parameters.invalidJson'), color: 'error', icon: 'i-lucide-alert-triangle' })
+    return
+  }
+  savingParams.value = true
+  try {
+    job.value = await jobs.update(job.value.uuid, { parameters })
+    toast.add({ title: t('scheduledJobs.detail.parametersSavedToast'), color: 'success', icon: 'i-lucide-check-circle' })
+  }
+  catch {
+    // toast handled by useApi
+  }
+  finally {
+    savingParams.value = false
+  }
 }
 
 // ---- Restore (reverses a soft-deactivation) ----
@@ -332,7 +402,12 @@ onBeforeUnmount(stopPolling)
         <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-4 text-sm">
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('scheduledJobs.form.fields.cronExpression') }}</dt>
-            <dd class="text-prohealth-900 mt-0.5 font-mono">{{ job.cronExpression }}</dd>
+            <dd class="text-prohealth-900 mt-0.5 font-mono flex items-center gap-1.5">
+              {{ job.cronExpression }}
+              <UTooltip v-if="cronDescriptionText" :text="cronDescriptionText">
+                <UIcon name="i-lucide-info" class="w-3.5 h-3.5 text-prohealth-400" />
+              </UTooltip>
+            </dd>
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('scheduledJobs.form.fields.timezone') }}</dt>
@@ -377,7 +452,86 @@ onBeforeUnmount(stopPolling)
               </UBadge>
             </dd>
           </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('scheduledJobs.form.fields.maxRetryAttempts') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ job.maxRetryAttempts }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('scheduledJobs.form.fields.retryDelaySeconds') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ job.retryDelaySeconds }} s</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('scheduledJobs.detail.policyFields.runner') }}</dt>
+            <dd class="mt-0.5">
+              <code v-if="job.runnerRegistered" class="font-mono text-xs bg-prohealth-100 rounded px-1 py-0.5">{{ job.runnerClass }}</code>
+              <UBadge v-else color="warning" variant="subtle" size="sm">{{ t('scheduledJobs.detail.policyFields.noRunner') }}</UBadge>
+            </dd>
+          </div>
         </dl>
+      </div>
+
+      <!-- Task/execution parameters -->
+      <div class="bg-white rounded-2xl border border-prohealth-100 p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-bold text-prohealth-900">{{ t('scheduledJobs.detail.parametersTitle') }}</h2>
+          <UButtonGroup size="xs">
+            <UButton
+              :color="params.mode.value === 'kv' ? 'primary' : 'neutral'"
+              :variant="params.mode.value === 'kv' ? 'solid' : 'outline'"
+              @click="params.switchMode('kv')"
+            >
+              {{ t('scheduledJobs.form.parameters.kvTab') }}
+            </UButton>
+            <UButton
+              :color="params.mode.value === 'json' ? 'primary' : 'neutral'"
+              :variant="params.mode.value === 'json' ? 'solid' : 'outline'"
+              @click="params.switchMode('json')"
+            >
+              {{ t('scheduledJobs.form.parameters.jsonTab') }}
+            </UButton>
+          </UButtonGroup>
+        </div>
+
+        <div v-if="params.mode.value === 'kv'" class="space-y-2">
+          <div v-for="(row, index) in params.pairs.value" :key="index" class="flex flex-wrap items-center gap-2">
+            <UInput
+              v-model="row.key"
+              :disabled="!canUpdate"
+              :placeholder="t('scheduledJobs.form.parameters.keyPlaceholder')"
+              :aria-label="t('scheduledJobs.form.parameters.keyPlaceholder')"
+              class="w-full sm:w-48 font-mono"
+            />
+            <UInput
+              v-model="row.value"
+              :disabled="!canUpdate"
+              :placeholder="t('scheduledJobs.form.parameters.valuePlaceholder')"
+              :aria-label="t('scheduledJobs.form.parameters.valuePlaceholder')"
+              class="w-full sm:flex-1"
+            />
+            <UButton
+              v-if="canUpdate"
+              color="error"
+              variant="ghost"
+              icon="i-lucide-trash-2"
+              size="sm"
+              :aria-label="t('common.delete')"
+              @click="params.removeRow(index)"
+            />
+          </div>
+          <p v-if="params.pairs.value.length === 0" class="text-sm text-prohealth-400">{{ t('common.empty') }}</p>
+          <UButton v-if="canUpdate" color="primary" variant="outline" icon="i-lucide-plus" size="sm" @click="params.addRow()">
+            {{ t('scheduledJobs.form.parameters.addRow') }}
+          </UButton>
+        </div>
+        <div v-else>
+          <UTextarea v-model="params.json.value" :disabled="!canUpdate" :rows="6" class="w-full font-mono text-xs" />
+        </div>
+
+        <div v-if="canUpdate" class="flex justify-end mt-3">
+          <UButton color="info" variant="outline" icon="i-lucide-save" :loading="savingParams" @click="saveParams">
+            {{ t('common.saveChanges') }}
+          </UButton>
+        </div>
       </div>
 
       <!-- Last run + metadata -->
@@ -414,9 +568,28 @@ onBeforeUnmount(stopPolling)
 
       <!-- Runs history -->
       <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
-        <div class="flex items-center justify-between px-5 py-4 border-b border-prohealth-100">
+        <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-4 border-b border-prohealth-100">
           <h2 class="font-bold text-prohealth-900">{{ t('scheduledJobs.detail.runsTitle') }}</h2>
-          <div class="flex items-center gap-2">
+          <div class="flex flex-wrap items-center gap-2">
+            <USelectMenu
+              v-model="runsOutcomeFilter"
+              :items="RUN_OUTCOME_OPTIONS"
+              label-key="label"
+              value-key="value"
+              clear
+              :placeholder="t('scheduledJobs.detail.runFilters.outcome')"
+              class="w-44"
+            />
+            <USelectMenu
+              v-model="runsTriggerFilter"
+              :items="RUN_TRIGGER_OPTIONS"
+              label-key="label"
+              value-key="value"
+              clear
+              :placeholder="t('scheduledJobs.detail.runFilters.trigger')"
+              class="w-44"
+            />
+            <AuditDateRangePicker v-model="runsDateRange" />
             <UButton
               v-if="runsHasActiveSort"
               variant="link"
@@ -428,6 +601,14 @@ onBeforeUnmount(stopPolling)
             >
               {{ t('common.clearSort') }}
             </UButton>
+            <UButton
+              variant="ghost"
+              color="neutral"
+              size="sm"
+              icon="i-lucide-filter-x"
+              :title="t('common.clearFilters')"
+              @click="resetRunFilters"
+            />
             <RefreshButton
               :loading="runsLoading"
               :title="t('common.refreshSection')"
@@ -482,6 +663,33 @@ onBeforeUnmount(stopPolling)
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <!-- Paginación -->
+        <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-3 border-t border-prohealth-100">
+          <p class="text-xs text-prohealth-500">
+            {{ t('scheduledJobs.paginationSummary', { shown: runs.length, total: runsTotal }) }}
+          </p>
+          <div class="flex items-center gap-3">
+            <UPagination
+              v-if="runsSize !== UNPAGED_PAGE_SIZE"
+              v-model:page="runsPage"
+              :total="runsTotal"
+              :items-per-page="runsSize"
+            />
+            <UTooltip :text="t('catalogs.pageSizeLabel')">
+              <USelectMenu
+                v-model="runsSize"
+                :items="runsPageSizeItems"
+                label-key="label"
+                value-key="value"
+                icon="i-lucide-list"
+                :search-input="false"
+                :aria-label="t('catalogs.pageSizeLabel')"
+                class="w-40"
+              />
+            </UTooltip>
+          </div>
         </div>
       </div>
     </template>

@@ -48,6 +48,8 @@ export interface ScheduledJobDto {
   runnerClass?: string | null
   /** false → el código no tiene ningún ScheduledJobRunner asociado; el job nunca se ejecutará. */
   runnerRegistered: boolean
+  /** Configuración libre clave/valor leída por el runner (V94), ej. `{ baseUrl: "..." }`. */
+  parameters?: Record<string, unknown>
   // Snapshot de la última ejecución
   lastRunAt?: string
   lastRunAt_Display?: string | null
@@ -80,10 +82,12 @@ export interface ScheduledJobCreateRequest {
   allowConcurrent?: boolean
   /** >= 0, default 30 en el backend */
   maxSyncSeconds?: number
-  /** 0-10, default 0 en el backend */
+  /** 0-10, default 5 en el backend */
   maxRetryAttempts?: number
-  /** 0-3600, default 0 en el backend */
+  /** 0-3600, default 10 en el backend */
   retryDelaySeconds?: number
+  /** default {} en el backend (V94) */
+  parameters?: Record<string, unknown>
 }
 
 /** Body de PUT /v1/admin/scheduled-jobs/{uuid} (PATCH semantics; `code` no editable). */
@@ -100,6 +104,7 @@ export interface ScheduledJobUpdateRequest {
   maxRetryAttempts?: number
   /** 0-3600 */
   retryDelaySeconds?: number
+  parameters?: Record<string, unknown>
   /** knob de soft-delete */
   active?: boolean
   status?: string

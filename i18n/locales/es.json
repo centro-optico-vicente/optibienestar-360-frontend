@@ -52,7 +52,8 @@
       "tooltip": "≈ {convertedDisplay} (tasa del {rateDate})",
       "tooltipNoDate": "≈ {convertedDisplay}"
     },
-    "close": "Cerrar"
+    "close": "Cerrar",
+    "clearFilters": "Limpiar filtros"
   },
   "locale": {
     "change": "Cambiar idioma"
@@ -1628,7 +1629,12 @@
     },
     "mine": {
       "title": "Mis pagos",
-      "subtitle": "Historial de tus pagos de membresía."
+      "subtitle": "Historial de tus pagos y su estado de revisión.",
+      "empty": "Aún no tienes pagos registrados.",
+      "form": {
+        "title": "Registrar mi pago",
+        "description": "Registra el pago de tu membresía para revisión."
+      }
     },
     "columns": {
       "member": "Afiliado",
@@ -1764,15 +1770,6 @@
       "rejectButton": "Rechazar pago",
       "approvedToast": "Pago aprobado",
       "rejectedToast": "Pago rechazado"
-    },
-    "mine": {
-      "title": "Mis pagos",
-      "subtitle": "Historial de tus pagos y su estado de revisión.",
-      "empty": "Aún no tienes pagos registrados.",
-      "form": {
-        "title": "Registrar mi pago",
-        "description": "Registra el pago de tu membresía para revisión."
-      }
     }
   },
   "members": {
@@ -2689,6 +2686,16 @@
         "started": "Inicio",
         "duration": "Duración",
         "error": "Error"
+      },
+      "policyFields": {
+        "runner": "Ejecutor",
+        "noRunner": "Sin ejecutor registrado"
+      },
+      "parametersTitle": "Parámetros de tarea/ejecución",
+      "parametersSavedToast": "Parámetros actualizados",
+      "runFilters": {
+        "outcome": "Estatus",
+        "trigger": "Origen"
       }
     },
     "form": {
@@ -2725,6 +2732,15 @@
         "registered": "Ejecutado por la clase:",
         "notRegisteredTitle": "Sin ejecutor registrado",
         "notRegisteredBody": "No existe ninguna clase ScheduledJobRunner registrada para el código \"{code}\". Este trabajo nunca se ejecutará hasta que se agregue en el backend."
+      },
+      "parameters": {
+        "title": "Parámetros",
+        "kvTab": "Clave/valor",
+        "jsonTab": "JSON crudo",
+        "keyPlaceholder": "clave",
+        "valuePlaceholder": "valor",
+        "addRow": "+ Agregar parámetro",
+        "invalidJson": "El JSON de parámetros no es válido"
       }
     }
   },
