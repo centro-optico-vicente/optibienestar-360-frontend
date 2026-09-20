@@ -626,6 +626,10 @@
         "label": "Commission Rules",
         "description": "Inscription bands, scale bonuses and collection commission."
       },
+      "campaigns": {
+        "label": "Campaigns",
+        "description": "Targeted or general commercial campaigns with associated commission rules."
+      },
       "exchangeRates": {
         "label": "Exchange rates",
         "description": "BCV/API rate history and manual entry."
@@ -2783,6 +2787,89 @@
       }
     }
   },
+  "campaigns": {
+    "title": "Campaigns",
+    "subtitle": "Targeted or general commercial campaigns with associated commission rules.",
+    "searchPlaceholder": "Search by name...",
+    "empty": "No campaigns configured",
+    "paginationSummary": "Showing {shown} of {total}",
+    "viewDetail": "View detail",
+    "createdToast": "Campaign created",
+    "updatedToast": "Campaign updated",
+    "deleteTitle": "Delete campaign",
+    "deletedPermanentToast": "Campaign permanently deleted",
+    "deactivatedToast": "Campaign deactivated",
+    "deleteConfirmPermanent": "This campaign is not in use — it will be permanently deleted.",
+    "deleteConfirmDeactivate": "This campaign is linked to {count} rule(s)/transaction(s) — it will be deactivated instead of deleted.",
+    "columns": {
+      "name": "Name",
+      "vigency": "Vigency",
+      "scope": "Scope",
+      "mode": "Mode",
+      "campaign": "Campaign"
+    },
+    "scope": {
+      "ALL": "All promoters",
+      "INCLUDE": "Includes",
+      "EXCLUDE": "Excludes"
+    },
+    "mode": {
+      "TARGETED": "Targeted",
+      "GENERAL": "General"
+    },
+    "form": {
+      "createTitle": "New campaign",
+      "editTitle": "Edit campaign",
+      "name": "Name",
+      "description": "Description",
+      "startsAt": "Starts at",
+      "endsAt": "Ends at",
+      "scope": "Audience scope",
+      "mode": "Mode",
+      "evaluateOnlyAtEnd": "Evaluate only at end",
+      "evaluateOnlyAtEndHelp": "Targets are checked only once the campaign ends, not incrementally.",
+      "payOnlyAtEnd": "Pay only at end",
+      "payOnlyAtEndHelp": "Commissions earned under this campaign are paid out only after it ends.",
+      "targetAmount": "Target amount",
+      "targetCount": "Target count",
+      "targetHelp": "Optional target used by the effectiveness report.",
+      "exclusivityGroup": "Exclusivity group",
+      "exclusivityGroupHelp": "Campaigns sharing a group are mutually exclusive per transaction.",
+      "priority": "Priority",
+      "priorityHelp": "Higher priority wins when multiple campaigns qualify.",
+      "active": "Active",
+      "campaign": "Campaign",
+      "campaignHelp": "Selecting a campaign autofills the vigency dates below (still editable)."
+    },
+    "detail": {
+      "generalData": "General data",
+      "audience": "Audience",
+      "audienceEmpty": "No audience members added",
+      "addAudienceMember": "Add promoter",
+      "rules": "Associated commission rules",
+      "rulesEmpty": "No rules linked to this campaign",
+      "addRule": "Add rule to this campaign",
+      "transactions": "Campaign transactions",
+      "transactionsEmpty": "No transactions linked",
+      "exceptions": "Registered exceptions",
+      "exceptionsEmpty": "No manual exceptions registered",
+      "source": "Source",
+      "sourceAuto": "Automatic",
+      "sourceException": "Exception",
+      "relaunch": "Relaunch campaign",
+      "generateReport": "Generate report"
+    },
+    "exceptions": {
+      "addTitle": "Add to campaign",
+      "removeTitle": "Remove from campaign",
+      "type": "Type",
+      "reason": "Reason",
+      "transaction": "Transaction",
+      "createdToast": "Exception registered",
+      "removedToast": "Exception removed"
+    },
+    "reglasExpress": "Express rules"
+  },
   "commissionRules": {
     "title": "Commission Rules",
     "subtitle": "Inscription bands, scale bonuses and collection commission the engine uses.",
@@ -2790,7 +2877,7 @@
       "tiers": "Inscription Bands",
       "bonusRules": "Scale Bonuses",
       "collectionTiers": "Collection Commission",
-      "overrideTiers": "Hierarchy Override"
+      "overrideTiers": "Additional hierarchy commission"
     },
     "appliesTo": {
       "INSCRIPTION": "Inscription",
@@ -2950,12 +3037,12 @@
   },
   "hierarchyOverrideTiers": {
     "searchPlaceholder": "Search by name...",
-    "empty": "No override bands configured",
+    "empty": "No additional hierarchy commission bands configured",
     "paginationSummary": "Showing {shown} of {total}",
     "createdToast": "Band created",
     "updatedToast": "Band updated",
     "restoredToast": "Band restored",
-    "deleteTitle": "Delete override band",
+    "deleteTitle": "Delete additional hierarchy commission band",
     "deletedPermanentToast": "Band permanently deleted",
     "deactivatedToast": "Band deactivated",
     "deleteConfirmPermanent": "This band is not in use — it will be permanently deleted.",
@@ -2976,8 +3063,8 @@
       "reward": "Reward"
     },
     "form": {
-      "createTitle": "New override band",
-      "editTitle": "Edit override band",
+      "createTitle": "New additional hierarchy commission band",
+      "editTitle": "Edit additional hierarchy commission band",
       "name": "Name",
       "rank": "Rank",
       "category": "Category",
