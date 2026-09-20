@@ -303,6 +303,7 @@ export const CATALOGS: CatalogDef[] = [
     labelSingularKey: 'catalogs.registry.currencies.labelSingular',
     icon: 'i-lucide-coins',
     codeField: 'code',
+    auditEntityKey: 'currency',
     fields: [
       { name: 'code', label: 'Código', labelKey: 'catalogs.fields.code', type: 'text', required: true, onlyCreate: true, regex: /^[A-Z]{3,4}$/, regexMsg: 'Tres o cuatro letras mayúsculas (ISO 4217, p.ej. USD)', regexMsgKey: 'catalogs.validation.currencyCode', max: 4, placeholder: 'USD' },
       { name: 'name', label: 'Nombre', labelKey: 'catalogs.fields.name', type: 'text', required: true, max: 60 },
