@@ -15,6 +15,7 @@ import {
   REWARD_TYPE_OPTIONS,
   WINDOW_STRATEGY_OPTIONS,
 } from '~/types/bonusRules'
+import type { SelectItem } from '~/types/options'
 
 // Create/edit form for a bonus rule (bono por escala, ADR 0013 §2). The backend
 // replaces the whole row on PUT (no PATCH semantics), so both create and update
@@ -22,6 +23,8 @@ import {
 const props = defineProps<{
   open: boolean
   rule?: BonusRuleDto | null
+  /** Preset campaign when created from the campaign ficha's "Add rule" flow. */
+  campaignUuid?: string | null
 }>()
 
 const emit = defineEmits<{
@@ -32,12 +35,39 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const bonusRules = useBonusRules()
+const campaignsApi = useCampaigns()
 const toast = useToast()
 
 const isOpen = computed({
   get: () => props.open,
   set: (v: boolean) => emit('update:open', v),
 })
+
+// ---- Campaign selector (async search) + date autofill ----
+// NOTE: this is the NEW campaign/startsAt/endsAt anchor — distinct from the
+// legacy campaignStart/campaignEnd fields below (WindowStrategy.CAMPAIGN).
+async function searchCampaigns(q: string): Promise<SelectItem[]> {
+  const res = await campaignsApi.list({ q, size: 20 })
+  return (res.content ?? []).map(c => ({ label: c.name, value: c.uuid }))
+}
+function goToCampaign(to: string) {
+  isOpen.value = false
+  navigateTo(to)
+}
+function isoToDatetimeLocal(iso: string): string {
+  if (!iso) return ''
+  const d = new Date(iso)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+function datetimeLocalToIso(value: string): string | undefined {
+  if (!value) return undefined
+  const d = new Date(value)
+  return Number.isNaN(d.getTime()) ? undefined : d.toISOString()
+}
+// Guards the campaign-select watcher during populateFrom so it doesn't
+// overwrite the rule's own snapshot dates when the modal opens.
+const suppressCampaignAutofill = ref(false)
 const mode = computed<'create' | 'edit'>(() => (props.rule ? 'edit' : 'create'))
 const isSubmitting = ref(false)
 // Save button lives in the modal's #footer slot, outside the <UForm> element,
@@ -63,6 +93,9 @@ interface FormState {
   rewardPct: string
   rewardCurrency: string
   includeSystemPromoters: boolean
+  campaignUuid: string
+  startsAt: string
+  endsAt: string
 }
 
 const state = reactive<FormState>({
@@ -79,6 +112,21 @@ const state = reactive<FormState>({
   rewardPct: '',
   rewardCurrency: 'USD',
   includeSystemPromoters: false,
+  campaignUuid: '',
+  startsAt: '',
+  endsAt: '',
+})
+
+// Selecting a campaign defaults startsAt/endsAt from it (still overridable);
+// clearing the campaign does NOT clear already-set dates.
+watch(() => state.campaignUuid, async (uuid) => {
+  if (suppressCampaignAutofill.value || !uuid) return
+  try {
+    const campaign = await campaignsApi.get(uuid)
+    state.startsAt = isoToDatetimeLocal(campaign.startsAt)
+    state.endsAt = isoToDatetimeLocal(campaign.endsAt)
+  }
+  catch { /* useApi already notified */ }
 })
 
 const isCampaign = computed(() => state.windowStrategy === 'CAMPAIGN')
@@ -110,6 +158,7 @@ const discardConfirmOpen = ref(false)
 const reloading = ref(false)
 
 function populateFrom(rule: BonusRuleDto | null) {
+  suppressCampaignAutofill.value = true
   if (!rule) {
     editSnapshot.value = ''
     state.name = ''
@@ -125,6 +174,10 @@ function populateFrom(rule: BonusRuleDto | null) {
     state.rewardPct = ''
     state.rewardCurrency = 'USD'
     state.includeSystemPromoters = false
+    state.campaignUuid = props.campaignUuid ?? ''
+    state.startsAt = ''
+    state.endsAt = ''
+    nextTick(() => { suppressCampaignAutofill.value = false })
     return
   }
   state.name = rule.name
@@ -140,7 +193,11 @@ function populateFrom(rule: BonusRuleDto | null) {
   state.rewardPct = rule.rewardPct != null ? String(rule.rewardPct) : ''
   state.rewardCurrency = rule.rewardCurrency ?? 'USD'
   state.includeSystemPromoters = rule.includeSystemPromoters ?? false
+  state.campaignUuid = rule.campaign_Uuid ?? ''
+  state.startsAt = rule.startsAt ? isoToDatetimeLocal(rule.startsAt) : ''
+  state.endsAt = rule.endsAt ? isoToDatetimeLocal(rule.endsAt) : ''
   editSnapshot.value = snapEditState()
+  nextTick(() => { suppressCampaignAutofill.value = false })
 }
 
 watch(() => props.open, (open) => { if (open) populateFrom(props.rule ?? null) })
@@ -178,6 +235,9 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
       rewardPct: state.rewardType === 'PERCENTAGE' ? state.rewardPct.trim() : null,
       rewardCurrency: state.rewardCurrency,
       includeSystemPromoters: state.includeSystemPromoters,
+      campaignUuid: state.campaignUuid || null,
+      startsAt: datetimeLocalToIso(state.startsAt) ?? null,
+      endsAt: datetimeLocalToIso(state.endsAt) ?? null,
     }
     let result: BonusRuleDto
     if (mode.value === 'create') {
@@ -268,6 +328,27 @@ function openDeleteFromEdit() {
         <UFormField :label="t('commissionRules.bonusRules.form.includeSystemPromoters')" name="includeSystemPromoters">
           <USwitch v-model="state.includeSystemPromoters" />
         </UFormField>
+
+        <UFormField :label="t('campaigns.form.campaign')" name="campaignUuid" :help="t('campaigns.form.campaignHelp')">
+          <CommonEntityReferenceSelect
+            v-model="state.campaignUuid"
+            :search="searchCampaigns"
+            entity="campaign"
+            :placeholder="t('common.select')"
+            :search-placeholder="t('campaigns.searchPlaceholder')"
+            icon="i-lucide-rocket"
+            @navigate="goToCampaign"
+          />
+        </UFormField>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <UFormField :label="t('commissionRules.bonusRules.form.startsAt')" name="startsAt">
+            <UInput v-model="state.startsAt" type="datetime-local" class="w-full" />
+          </UFormField>
+          <UFormField :label="t('commissionRules.bonusRules.form.endsAt')" name="endsAt">
+            <UInput v-model="state.endsAt" type="datetime-local" class="w-full" />
+          </UFormField>
+        </div>
 
         <!-- Discard unsaved changes before refreshing -->
         <UModal v-model:open="discardConfirmOpen" :title="t('common.discardChangesTitle')">

@@ -626,6 +626,10 @@
         "label": "Reglas de comisión",
         "description": "Bandas de inscripción, bonos por escala y comisión de cobranza."
       },
+      "campaigns": {
+        "label": "Campañas",
+        "description": "Campañas comerciales dirigidas o generales con reglas de comisión asociadas."
+      },
       "exchangeRates": {
         "label": "Tasas de cambio",
         "description": "Historial de tasas BCV/API y carga manual."
@@ -2783,6 +2787,146 @@
       }
     }
   },
+  "campaigns": {
+    "title": "Campañas",
+    "subtitle": "Campañas comerciales dirigidas o generales con reglas de comisión asociadas.",
+    "searchPlaceholder": "Buscar por nombre...",
+    "empty": "Sin campañas configuradas",
+    "paginationSummary": "Mostrando {shown} de {total}",
+    "viewDetail": "Ver detalle",
+    "createdToast": "Campaña creada",
+    "updatedToast": "Campaña actualizada",
+    "deleteTitle": "Eliminar campaña",
+    "deletedPermanentToast": "Campaña eliminada permanentemente",
+    "deactivatedToast": "Campaña desactivada",
+    "deleteConfirmPermanent": "Esta campaña no está en uso — se eliminará de forma permanente.",
+    "deleteConfirmDeactivate": "Esta campaña está vinculada a {count} regla(s)/transacción(es) — se desactivará en lugar de eliminarse.",
+    "deletedToast": "Campaña eliminada",
+    "deleteConfirm": "¿Está seguro de que desea eliminar {name}?",
+    "columns": {
+      "name": "Nombre",
+      "vigency": "Vigencia",
+      "scope": "Alcance",
+      "mode": "Modo",
+      "campaign": "Campaña"
+    },
+    "scope": {
+      "ALL": "Todos los promotores",
+      "INCLUDE": "Incluye",
+      "EXCLUDE": "Excluye"
+    },
+    "mode": {
+      "TARGETED": "Dirigida",
+      "GENERAL": "General"
+    },
+    "form": {
+      "createTitle": "Nueva campaña",
+      "editTitle": "Editar campaña",
+      "name": "Nombre",
+      "description": "Descripción",
+      "startsAt": "Inicia",
+      "endsAt": "Finaliza",
+      "scope": "Alcance de audiencia",
+      "mode": "Modo",
+      "evaluateOnlyAtEnd": "Evaluar solo al finalizar",
+      "evaluateOnlyAtEndHelp": "Las metas se verifican solo cuando la campaña finaliza, no de forma incremental.",
+      "payOnlyAtEnd": "Pagar solo al finalizar",
+      "payOnlyAtEndHelp": "Las comisiones generadas bajo esta campaña se pagan solo después de finalizada.",
+      "targetAmount": "Meta de monto",
+      "targetCount": "Meta de cantidad",
+      "targetHelp": "Meta opcional usada por el reporte de efectividad.",
+      "exclusivityGroup": "Grupo de exclusividad",
+      "exclusivityGroupHelp": "Las campañas que comparten un grupo son mutuamente excluyentes por transacción.",
+      "priority": "Prioridad",
+      "priorityHelp": "La mayor prioridad gana cuando varias campañas califican.",
+      "active": "Activa",
+      "campaign": "Campaña",
+      "campaignHelp": "Al seleccionar una campaña se autocompletan las fechas de vigencia (aún editables)."
+    },
+    "detail": {
+      "generalData": "Datos generales",
+      "audience": "Audiencia",
+      "audienceEmpty": "Sin miembros de audiencia agregados",
+      "addAudienceMember": "Agregar promotor",
+      "rules": "Reglas de comisión asociadas",
+      "rulesEmpty": "Sin reglas vinculadas a esta campaña",
+      "addRule": "Agregar regla a esta campaña",
+      "transactions": "Transacciones de la campaña",
+      "transactionsEmpty": "Sin transacciones vinculadas",
+      "exceptions": "Excepciones registradas",
+      "exceptionsEmpty": "Sin excepciones manuales registradas",
+      "source": "Origen",
+      "sourceAuto": "Automático",
+      "sourceException": "Excepción",
+      "relaunch": "Relanzar campaña",
+      "generateReport": "Generar reporte",
+      "seoPage": "Detalle de campaña",
+      "notFoundTitle": "Campaña no encontrada",
+      "notFoundBody": "La campaña que buscas no existe o fue eliminada.",
+      "fields": {
+        "name": "Nombre",
+        "description": "Descripción",
+        "startsAt": "Inicia",
+        "endsAt": "Finaliza",
+        "scope": "Alcance de audiencia",
+        "mode": "Modo",
+        "evaluateOnlyAtEnd": "Evaluar solo al finalizar",
+        "payOnlyAtEnd": "Pagar solo al finalizar",
+        "targetAmount": "Meta de monto",
+        "targetCount": "Meta de cantidad",
+        "exclusivityGroup": "Grupo de exclusividad",
+        "priority": "Prioridad",
+        "active": "Activa",
+        "createdAt": "Creada",
+        "updatedAt": "Actualizada",
+        "uuid": "UUID"
+      },
+      "audiencePlaceholder": "Buscar promotor por nombre...",
+      "audienceRemoveConfirm": "¿Quitar a este promotor de la audiencia de la campaña?",
+      "ruleTypes": {
+        "tier": "Banda de inscripción",
+        "bonus": "Bono por escala",
+        "collection": "Comisión de cobranza",
+        "override": "Override jerárquico"
+      },
+      "chooseRuleType": "Elige el tipo de regla a agregar",
+      "rulesColumns": {
+        "type": "Tipo",
+        "name": "Nombre",
+        "params": "Parámetros clave"
+      },
+      "transactionsColumns": {
+        "date": "Fecha",
+        "transaction": "Transacción",
+        "source": "Origen",
+        "amount": "Monto"
+      },
+      "exceptionsColumns": {
+        "date": "Fecha",
+        "type": "Tipo",
+        "transaction": "Transacción",
+        "reason": "Motivo",
+        "createdBy": "Registrada por"
+      },
+      "relaunchToast": "Campaña relanzada",
+      "effectiveness": {
+        "totalCollected": "Total recaudado",
+        "transactionCount": "Transacciones",
+        "amountAchievedPct": "% de meta de monto",
+        "countAchievedPct": "% de meta de cantidad"
+      }
+    },
+    "exceptions": {
+      "addTitle": "Agregar a campaña",
+      "removeTitle": "Quitar de campaña",
+      "type": "Tipo",
+      "reason": "Motivo",
+      "transaction": "Transacción",
+      "createdToast": "Excepción registrada",
+      "removedToast": "Excepción eliminada"
+    },
+    "reglasExpress": "Reglas express"
+  },
   "commissionRules": {
     "title": "Reglas de comisión",
     "subtitle": "Bandas de inscripción, bonos por escala y comisión de cobranza que usa el motor de comisiones.",
@@ -2790,7 +2934,7 @@
       "tiers": "Bandas de inscripción",
       "bonusRules": "Bonos por escala",
       "collectionTiers": "Comisión de cobranza",
-      "overrideTiers": "Override jerárquico"
+      "overrideTiers": "Comisión jerárquica adicional"
     },
     "appliesTo": {
       "INSCRIPTION": "Inscripción",
@@ -2836,7 +2980,8 @@
     "filters": {
       "allPromoterTypes": "Todos los tipos de promotor",
       "allPlanTypes": "Todos los planes",
-      "allAppliesTo": "Todos"
+      "allAppliesTo": "Todos",
+      "campaignOnly": "Solo reglas de campaña"
     },
     "tiers": {
       "new": "Nueva banda",
@@ -2861,12 +3006,14 @@
         "planType": "Plan",
         "threshold": "Umbral",
         "reward": "Recompensa",
-        "appliesTo": "Aplica a"
+        "appliesTo": "Aplica a",
+        "campaign": "Campaña"
       },
       "form": {
         "createTitle": "Nueva banda de comisión",
         "editTitle": "Editar banda de comisión",
         "name": "Nombre",
+        "description": "Descripción",
         "planType": "Plan",
         "planTypeHelp": "Vacío = aplica a todos los planes.",
         "thresholdCount": "Umbral (conteo mensual)",
@@ -2877,7 +3024,9 @@
         "commissionPct": "Porcentaje",
         "flatAmount": "Monto fijo",
         "submitCreate": "Crear banda",
-        "active": "Activo"
+        "active": "Activo",
+        "startsAt": "Inicia",
+        "endsAt": "Finaliza"
       }
     },
     "bonusRules": {
@@ -2896,7 +3045,8 @@
         "accrual": "Acumulación",
         "threshold": "Umbral",
         "window": "Ventana",
-        "reward": "Recompensa"
+        "reward": "Recompensa",
+        "campaign": "Campaña"
       },
       "form": {
         "createTitle": "Nueva regla de bono",
@@ -2907,13 +3057,15 @@
         "accrual": "Acumulación",
         "thresholdCount": "Umbral",
         "windowStrategy": "Ventana",
-        "campaignStart": "Inicio de campaña",
-        "campaignEnd": "Fin de campaña",
+        "campaignStart": "Inicio de campaña (ventana fija)",
+        "campaignEnd": "Fin de campaña (ventana fija)",
         "rewardType": "Tipo de recompensa",
         "flatAmount": "Monto fijo",
         "rewardPct": "Porcentaje",
         "includeSystemPromoters": "Incluir promotores del sistema",
-        "submitCreate": "Crear regla"
+        "submitCreate": "Crear regla",
+        "startsAt": "Inicia",
+        "endsAt": "Finaliza"
       }
     },
     "collectionTiers": {
@@ -2950,12 +3102,12 @@
   },
   "hierarchyOverrideTiers": {
     "searchPlaceholder": "Buscar por nombre...",
-    "empty": "Sin bandas de override configuradas",
+    "empty": "Sin bandas de comisión jerárquica adicional configuradas",
     "paginationSummary": "Mostrando {shown} de {total}",
     "createdToast": "Banda creada",
     "updatedToast": "Banda actualizada",
     "restoredToast": "Banda reactivada",
-    "deleteTitle": "Eliminar banda de override",
+    "deleteTitle": "Eliminar banda de comisión jerárquica adicional",
     "deletedPermanentToast": "Banda eliminada permanentemente",
     "deactivatedToast": "Banda desactivada",
     "deleteConfirmPermanent": "Esta banda no está en uso — se eliminará de forma permanente.",
@@ -2973,12 +3125,14 @@
       "rank": "Cargo",
       "category": "Categoría",
       "threshold": "Umbral",
-      "reward": "Recompensa"
+      "reward": "Recompensa",
+      "campaign": "Campaña"
     },
     "form": {
-      "createTitle": "Nueva banda de override",
-      "editTitle": "Editar banda de override",
+      "createTitle": "Nueva banda de comisión jerárquica adicional",
+      "editTitle": "Editar banda de comisión jerárquica adicional",
       "name": "Nombre",
+      "description": "Descripción",
       "rank": "Cargo",
       "category": "Categoría",
       "thresholdCount": "Umbral (volumen de equipo)",
@@ -2988,7 +3142,9 @@
       "overridePct": "Porcentaje de override",
       "flatAmount": "Monto fijo",
       "flatAmountCurrency": "Moneda del monto fijo",
-      "active": "Activo"
+      "active": "Activo",
+      "startsAt": "Inicia",
+      "endsAt": "Finaliza"
     }
   },
   "reports": {

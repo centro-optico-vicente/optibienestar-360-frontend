@@ -20,6 +20,8 @@ import type { SelectItem } from '~/types/options'
 const props = defineProps<{
   open: boolean
   tier?: HierarchyOverrideTierDto | null
+  /** Preset campaign when created from the campaign ficha's "Add rule" flow. */
+  campaignUuid?: string | null
 }>()
 
 const emit = defineEmits<{
@@ -32,8 +34,33 @@ const { t } = useI18n()
 const tiers = useHierarchyOverrideTiers()
 const hierarchy = usePromoterHierarchy()
 const currencies = useCurrencies()
+const campaignsApi = useCampaigns()
 const toast = useToast()
 const { can } = usePermissions()
+
+// ---- Campaign selector (async search) + date autofill ----
+async function searchCampaigns(q: string): Promise<SelectItem[]> {
+  const res = await campaignsApi.list({ q, size: 20 })
+  return (res.content ?? []).map(c => ({ label: c.name, value: c.uuid }))
+}
+function goToCampaign(to: string) {
+  isOpen.value = false
+  navigateTo(to)
+}
+function isoToDatetimeLocal(iso: string): string {
+  if (!iso) return ''
+  const d = new Date(iso)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+function datetimeLocalToIso(value: string): string | undefined {
+  if (!value) return undefined
+  const d = new Date(value)
+  return Number.isNaN(d.getTime()) ? undefined : d.toISOString()
+}
+// Guards the campaign-select watcher during populateFrom so it doesn't
+// overwrite the tier's own snapshot dates when the modal opens.
+const suppressCampaignAutofill = ref(false)
 
 const isOpen = computed({
   get: () => props.open,
@@ -94,6 +121,7 @@ async function loadCurrencyOptions() {
 
 interface FormState {
   name: string
+  description: string
   rankUuid: string
   category: OverrideCategory | undefined
   thresholdCount: string
@@ -102,10 +130,14 @@ interface FormState {
   flatAmount: string
   flatAmountCurrencyUuid: string
   periodStrategy: PeriodStrategy | undefined
+  campaignUuid: string
+  startsAt: string
+  endsAt: string
 }
 
 const state = reactive<FormState>({
   name: '',
+  description: '',
   rankUuid: '',
   category: undefined,
   thresholdCount: '0',
@@ -114,6 +146,21 @@ const state = reactive<FormState>({
   flatAmount: '',
   flatAmountCurrencyUuid: '',
   periodStrategy: 'MONTHLY',
+  campaignUuid: '',
+  startsAt: '',
+  endsAt: '',
+})
+
+// Selecting a campaign defaults startsAt/endsAt from it (still overridable);
+// clearing the campaign does NOT clear already-set dates.
+watch(() => state.campaignUuid, async (uuid) => {
+  if (suppressCampaignAutofill.value || !uuid) return
+  try {
+    const campaign = await campaignsApi.get(uuid)
+    state.startsAt = isoToDatetimeLocal(campaign.startsAt)
+    state.endsAt = isoToDatetimeLocal(campaign.endsAt)
+  }
+  catch { /* useApi already notified */ }
 })
 // Kept outside `state` (a string-only form-state map) so the boolean isn't coerced.
 const isActive = ref(true)
@@ -123,6 +170,7 @@ const schema = computed(() => {
   const int = z.string().regex(/^\d+$/, t('commissionRules.form.integersOnly'))
   return z.object({
     name: z.string().min(3, t('validation.minChars', { n: 3 })).max(80, t('validation.maxChars', { n: 80 })),
+    description: z.string().optional(),
     rankUuid: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
     category: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
     thresholdCount: int,
@@ -144,8 +192,10 @@ const discardConfirmOpen = ref(false)
 const reloading = ref(false)
 
 function populateFrom(tier: HierarchyOverrideTierDto | null) {
+  suppressCampaignAutofill.value = true
   if (!tier) {
     state.name = ''
+    state.description = ''
     state.rankUuid = ''
     state.category = undefined
     state.thresholdCount = '0'
@@ -154,11 +204,16 @@ function populateFrom(tier: HierarchyOverrideTierDto | null) {
     state.flatAmount = ''
     state.flatAmountCurrencyUuid = ''
     state.periodStrategy = 'MONTHLY'
+    state.campaignUuid = props.campaignUuid ?? ''
+    state.startsAt = ''
+    state.endsAt = ''
     isActive.value = true
     editSnapshot.value = ''
+    nextTick(() => { suppressCampaignAutofill.value = false })
     return
   }
   state.name = tier.name
+  state.description = tier.description ?? ''
   state.rankUuid = tier.rank_Uuid ?? ''
   state.category = tier.category
   state.thresholdCount = String(tier.thresholdCount ?? 0)
@@ -167,8 +222,12 @@ function populateFrom(tier: HierarchyOverrideTierDto | null) {
   state.flatAmount = tier.flatAmount != null ? String(tier.flatAmount) : ''
   state.flatAmountCurrencyUuid = tier.flatAmountCurrency_Uuid ?? ''
   state.periodStrategy = tier.periodStrategy
+  state.campaignUuid = tier.campaign_Uuid ?? ''
+  state.startsAt = tier.startsAt ? isoToDatetimeLocal(tier.startsAt) : ''
+  state.endsAt = tier.endsAt ? isoToDatetimeLocal(tier.endsAt) : ''
   isActive.value = tier.active ?? true
   editSnapshot.value = snapEditState()
+  nextTick(() => { suppressCampaignAutofill.value = false })
 }
 
 watch(() => props.open, async (open) => {
@@ -199,6 +258,7 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
   try {
     const base = {
       name: state.name.trim(),
+      description: state.description.trim() || null,
       rankUuid: state.rankUuid,
       category: state.category!,
       thresholdCount: Number(state.thresholdCount),
@@ -206,6 +266,9 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
       flatAmount: state.rewardKind === 'FLAT' ? state.flatAmount.trim() : null,
       flatAmountCurrencyUuid: state.rewardKind === 'FLAT' ? state.flatAmountCurrencyUuid : null,
       periodStrategy: state.periodStrategy!,
+      campaignUuid: state.campaignUuid || null,
+      startsAt: datetimeLocalToIso(state.startsAt) ?? null,
+      endsAt: datetimeLocalToIso(state.endsAt) ?? null,
     }
     let result: HierarchyOverrideTierDto
     if (mode.value === 'create') {
@@ -266,6 +329,10 @@ async function restoreTier() {
           <UInput v-model="state.name" class="w-full" />
         </UFormField>
 
+        <UFormField :label="t('hierarchyOverrideTiers.form.description')" name="description">
+          <UTextarea v-model="state.description" :rows="2" class="w-full" />
+        </UFormField>
+
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('hierarchyOverrideTiers.form.rank')" name="rankUuid" required>
             <CommonEntityReferenceSelect
@@ -319,6 +386,27 @@ async function restoreTier() {
             class="w-full"
           />
         </UFormField>
+
+        <UFormField :label="t('campaigns.form.campaign')" name="campaignUuid" :help="t('campaigns.form.campaignHelp')">
+          <CommonEntityReferenceSelect
+            v-model="state.campaignUuid"
+            :search="searchCampaigns"
+            entity="campaign"
+            :placeholder="t('common.select')"
+            :search-placeholder="t('campaigns.searchPlaceholder')"
+            icon="i-lucide-rocket"
+            @navigate="goToCampaign"
+          />
+        </UFormField>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <UFormField :label="t('hierarchyOverrideTiers.form.startsAt')" name="startsAt">
+            <UInput v-model="state.startsAt" type="datetime-local" class="w-full" />
+          </UFormField>
+          <UFormField :label="t('hierarchyOverrideTiers.form.endsAt')" name="endsAt">
+            <UInput v-model="state.endsAt" type="datetime-local" class="w-full" />
+          </UFormField>
+        </div>
 
         <UFormField v-if="mode === 'edit'" :label="t('hierarchyOverrideTiers.form.active')">
           <USwitch v-model="isActive" />

@@ -626,6 +626,10 @@
         "label": "Commission Rules",
         "description": "Inscription bands, scale bonuses and collection commission."
       },
+      "campaigns": {
+        "label": "Campaigns",
+        "description": "Targeted or general commercial campaigns with associated commission rules."
+      },
       "exchangeRates": {
         "label": "Exchange rates",
         "description": "BCV/API rate history and manual entry."
@@ -2783,6 +2787,146 @@
       }
     }
   },
+  "campaigns": {
+    "title": "Campaigns",
+    "subtitle": "Targeted or general commercial campaigns with associated commission rules.",
+    "searchPlaceholder": "Search by name...",
+    "empty": "No campaigns configured",
+    "paginationSummary": "Showing {shown} of {total}",
+    "viewDetail": "View detail",
+    "createdToast": "Campaign created",
+    "updatedToast": "Campaign updated",
+    "deleteTitle": "Delete campaign",
+    "deletedPermanentToast": "Campaign permanently deleted",
+    "deactivatedToast": "Campaign deactivated",
+    "deleteConfirmPermanent": "This campaign is not in use — it will be permanently deleted.",
+    "deleteConfirmDeactivate": "This campaign is linked to {count} rule(s)/transaction(s) — it will be deactivated instead of deleted.",
+    "deletedToast": "Campaign deleted",
+    "deleteConfirm": "Are you sure you want to delete {name}?",
+    "columns": {
+      "name": "Name",
+      "vigency": "Vigency",
+      "scope": "Scope",
+      "mode": "Mode",
+      "campaign": "Campaign"
+    },
+    "scope": {
+      "ALL": "All promoters",
+      "INCLUDE": "Includes",
+      "EXCLUDE": "Excludes"
+    },
+    "mode": {
+      "TARGETED": "Targeted",
+      "GENERAL": "General"
+    },
+    "form": {
+      "createTitle": "New campaign",
+      "editTitle": "Edit campaign",
+      "name": "Name",
+      "description": "Description",
+      "startsAt": "Starts at",
+      "endsAt": "Ends at",
+      "scope": "Audience scope",
+      "mode": "Mode",
+      "evaluateOnlyAtEnd": "Evaluate only at end",
+      "evaluateOnlyAtEndHelp": "Targets are checked only once the campaign ends, not incrementally.",
+      "payOnlyAtEnd": "Pay only at end",
+      "payOnlyAtEndHelp": "Commissions earned under this campaign are paid out only after it ends.",
+      "targetAmount": "Target amount",
+      "targetCount": "Target count",
+      "targetHelp": "Optional target used by the effectiveness report.",
+      "exclusivityGroup": "Exclusivity group",
+      "exclusivityGroupHelp": "Campaigns sharing a group are mutually exclusive per transaction.",
+      "priority": "Priority",
+      "priorityHelp": "Higher priority wins when multiple campaigns qualify.",
+      "active": "Active",
+      "campaign": "Campaign",
+      "campaignHelp": "Selecting a campaign autofills the vigency dates below (still editable)."
+    },
+    "detail": {
+      "generalData": "General data",
+      "audience": "Audience",
+      "audienceEmpty": "No audience members added",
+      "addAudienceMember": "Add promoter",
+      "rules": "Associated commission rules",
+      "rulesEmpty": "No rules linked to this campaign",
+      "addRule": "Add rule to this campaign",
+      "transactions": "Campaign transactions",
+      "transactionsEmpty": "No transactions linked",
+      "exceptions": "Registered exceptions",
+      "exceptionsEmpty": "No manual exceptions registered",
+      "source": "Source",
+      "sourceAuto": "Automatic",
+      "sourceException": "Exception",
+      "relaunch": "Relaunch campaign",
+      "generateReport": "Generate report",
+      "seoPage": "Campaign detail",
+      "notFoundTitle": "Campaign not found",
+      "notFoundBody": "The campaign you are looking for does not exist or was removed.",
+      "fields": {
+        "name": "Name",
+        "description": "Description",
+        "startsAt": "Starts at",
+        "endsAt": "Ends at",
+        "scope": "Audience scope",
+        "mode": "Mode",
+        "evaluateOnlyAtEnd": "Evaluate only at end",
+        "payOnlyAtEnd": "Pay only at end",
+        "targetAmount": "Target amount",
+        "targetCount": "Target count",
+        "exclusivityGroup": "Exclusivity group",
+        "priority": "Priority",
+        "active": "Active",
+        "createdAt": "Created at",
+        "updatedAt": "Updated at",
+        "uuid": "UUID"
+      },
+      "audiencePlaceholder": "Search promoter by name...",
+      "audienceRemoveConfirm": "Remove this promoter from the campaign audience?",
+      "ruleTypes": {
+        "tier": "Inscription band",
+        "bonus": "Scale bonus",
+        "collection": "Collection commission",
+        "override": "Hierarchical override"
+      },
+      "chooseRuleType": "Choose the rule type to add",
+      "rulesColumns": {
+        "type": "Type",
+        "name": "Name",
+        "params": "Key parameters"
+      },
+      "transactionsColumns": {
+        "date": "Date",
+        "transaction": "Transaction",
+        "source": "Source",
+        "amount": "Amount"
+      },
+      "exceptionsColumns": {
+        "date": "Date",
+        "type": "Type",
+        "transaction": "Transaction",
+        "reason": "Reason",
+        "createdBy": "Registered by"
+      },
+      "relaunchToast": "Campaign relaunched",
+      "effectiveness": {
+        "totalCollected": "Total collected",
+        "transactionCount": "Transactions",
+        "amountAchievedPct": "Amount target %",
+        "countAchievedPct": "Count target %"
+      }
+    },
+    "exceptions": {
+      "addTitle": "Add to campaign",
+      "removeTitle": "Remove from campaign",
+      "type": "Type",
+      "reason": "Reason",
+      "transaction": "Transaction",
+      "createdToast": "Exception registered",
+      "removedToast": "Exception removed"
+    },
+    "reglasExpress": "Express rules"
+  },
   "commissionRules": {
     "title": "Commission Rules",
     "subtitle": "Inscription bands, scale bonuses and collection commission the engine uses.",
@@ -2790,7 +2934,7 @@
       "tiers": "Inscription Bands",
       "bonusRules": "Scale Bonuses",
       "collectionTiers": "Collection Commission",
-      "overrideTiers": "Hierarchy Override"
+      "overrideTiers": "Additional hierarchy commission"
     },
     "appliesTo": {
       "INSCRIPTION": "Inscription",
@@ -2836,7 +2980,8 @@
     "filters": {
       "allPromoterTypes": "All promoter types",
       "allPlanTypes": "All plans",
-      "allAppliesTo": "All"
+      "allAppliesTo": "All",
+      "campaignOnly": "Campaign rules only"
     },
     "tiers": {
       "new": "New band",
@@ -2861,12 +3006,14 @@
         "planType": "Plan",
         "threshold": "Threshold",
         "reward": "Reward",
-        "appliesTo": "Applies to"
+        "appliesTo": "Applies to",
+        "campaign": "Campaign"
       },
       "form": {
         "createTitle": "New commission band",
         "editTitle": "Edit commission band",
         "name": "Name",
+        "description": "Description",
         "planType": "Plan",
         "planTypeHelp": "Empty = applies to every plan.",
         "thresholdCount": "Threshold (monthly count)",
@@ -2877,7 +3024,9 @@
         "commissionPct": "Percentage",
         "flatAmount": "Flat amount",
         "submitCreate": "Create band",
-        "active": "Active"
+        "active": "Active",
+        "startsAt": "Starts",
+        "endsAt": "Ends"
       }
     },
     "bonusRules": {
@@ -2896,7 +3045,8 @@
         "accrual": "Accrual",
         "threshold": "Threshold",
         "window": "Window",
-        "reward": "Reward"
+        "reward": "Reward",
+        "campaign": "Campaign"
       },
       "form": {
         "createTitle": "New bonus rule",
@@ -2907,13 +3057,15 @@
         "accrual": "Accrual",
         "thresholdCount": "Threshold",
         "windowStrategy": "Window",
-        "campaignStart": "Campaign start",
-        "campaignEnd": "Campaign end",
+        "campaignStart": "Campaign start (fixed window)",
+        "campaignEnd": "Campaign end (fixed window)",
         "rewardType": "Reward type",
         "flatAmount": "Flat amount",
         "rewardPct": "Percentage",
         "includeSystemPromoters": "Include system promoters",
-        "submitCreate": "Create rule"
+        "submitCreate": "Create rule",
+        "startsAt": "Starts",
+        "endsAt": "Ends"
       }
     },
     "collectionTiers": {
@@ -2950,12 +3102,12 @@
   },
   "hierarchyOverrideTiers": {
     "searchPlaceholder": "Search by name...",
-    "empty": "No override bands configured",
+    "empty": "No additional hierarchy commission bands configured",
     "paginationSummary": "Showing {shown} of {total}",
     "createdToast": "Band created",
     "updatedToast": "Band updated",
     "restoredToast": "Band restored",
-    "deleteTitle": "Delete override band",
+    "deleteTitle": "Delete additional hierarchy commission band",
     "deletedPermanentToast": "Band permanently deleted",
     "deactivatedToast": "Band deactivated",
     "deleteConfirmPermanent": "This band is not in use — it will be permanently deleted.",
@@ -2973,12 +3125,14 @@
       "rank": "Rank",
       "category": "Category",
       "threshold": "Threshold",
-      "reward": "Reward"
+      "reward": "Reward",
+      "campaign": "Campaign"
     },
     "form": {
-      "createTitle": "New override band",
-      "editTitle": "Edit override band",
+      "createTitle": "New additional hierarchy commission band",
+      "editTitle": "Edit additional hierarchy commission band",
       "name": "Name",
+      "description": "Description",
       "rank": "Rank",
       "category": "Category",
       "thresholdCount": "Threshold (team volume)",
@@ -2988,7 +3142,9 @@
       "overridePct": "Override percentage",
       "flatAmount": "Flat amount",
       "flatAmountCurrency": "Flat amount currency",
-      "active": "Active"
+      "active": "Active",
+      "startsAt": "Starts",
+      "endsAt": "Ends"
     }
   },
   "reports": {

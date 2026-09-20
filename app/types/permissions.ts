@@ -148,6 +148,16 @@ export const PERMISSIONS = [
   'HIERARCHY_OVERRIDE_TIER_UPDATE',
   'HIERARCHY_OVERRIDE_TIER_DELETE',
 
+  // CAMPAIGNS — commission campaigns (targeted/general promotions that can
+  // scope and pre-fill the 4 commission-rule types, plus manual exceptions
+  // over already-registered payments/enrollments).
+  'CAMPAIGN_VIEW_ALL',
+  'CAMPAIGN_CREATE',
+  'CAMPAIGN_UPDATE',
+  'CAMPAIGN_DELETE',
+  'CAMPAIGN_EXCEPTION_CREATE',
+  'CAMPAIGN_EXCEPTION_DELETE',
+
   // COMMISSIONS
   'COMMISSION_VIEW_ALL',
   'COMMISSION_VIEW_OWN',

@@ -14,6 +14,8 @@ interface ListParams {
   q?: string
   includeInactive?: boolean
   promoterTypeUuid?: string
+  /** Filters rules linked to a commission campaign — used by the campaign ficha's "Rules" tab. Not yet a real backend filter param (see report); harmless no-op query param until the backend adds it. */
+  campaignUuid?: string
 }
 
 /**
@@ -32,6 +34,7 @@ export const useCollectionCommissionTiers = () => {
         ...(params.q ? { q: params.q } : {}),
         ...(params.includeInactive ? { includeInactive: 'true' } : {}),
         ...(params.promoterTypeUuid ? { promoterTypeUuid: params.promoterTypeUuid } : {}),
+        ...(params.campaignUuid ? { campaignUuid: params.campaignUuid } : {}),
       },
     })
 

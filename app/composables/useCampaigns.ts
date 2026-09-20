@@ -1,0 +1,112 @@
+import type { Page } from '~/types/admin'
+import type {
+  CampaignAudienceDto,
+  CampaignDto,
+  CampaignEffectivenessDto,
+  CampaignExceptionDto,
+  CampaignExceptionRequest,
+  CampaignRelaunchRequest,
+  CampaignTransactionLinkDto,
+  CreateCampaignRequest,
+  UpdateCampaignRequest,
+} from '~/types/campaign'
+
+interface ListParams {
+  page?: number
+  size?: number
+  sort?: string[]
+  q?: string
+  includeInactive?: boolean
+  /** Only campaigns currently within [startsAt, endsAt] — used by the rule-form campaign picker. */
+  onlyActiveWindow?: boolean
+  /** Only TARGETED campaigns currently vigent — used by the payment/enrollment registration form. */
+  onlyTargetedVigent?: boolean
+}
+
+/**
+ * Access to commission campaigns (/v1/admin/campaigns — hub plan "commission
+ * campaigns"). Confirmed against the real backend contract
+ * (AdminCampaignController, optibienestar-360-backend modules/campaign).
+ */
+export const useCampaigns = () => {
+  const list = (params: ListParams = {}) =>
+    useApi<Page<CampaignDto>>('/v1/admin/campaigns', {
+      query: {
+        page: params.page ?? 0,
+        size: params.size ?? 50,
+        ...(params.sort?.length ? { sort: params.sort } : {}),
+        ...(params.q ? { q: params.q } : {}),
+        ...(params.includeInactive ? { includeInactive: 'true' } : {}),
+        ...(params.onlyActiveWindow ? { onlyActiveWindow: 'true' } : {}),
+        ...(params.onlyTargetedVigent ? { onlyTargetedVigent: 'true' } : {}),
+      },
+    })
+
+  const get = (uuid: string) =>
+    useApi<CampaignDto>(`/v1/admin/campaigns/${uuid}`)
+
+  const create = (body: CreateCampaignRequest) =>
+    useApi<CampaignDto>('/v1/admin/campaigns', { method: 'POST', body })
+
+  const update = (uuid: string, body: UpdateCampaignRequest) =>
+    useApi<CampaignDto>(`/v1/admin/campaigns/${uuid}`, { method: 'PUT', body })
+
+  const remove = (uuid: string) =>
+    useApi<null>(`/v1/admin/campaigns/${uuid}`, { method: 'DELETE' })
+
+  /** Clones the campaign's config + anchored commission rules onto a fresh one with new dates. */
+  const relaunch = (uuid: string, body: CampaignRelaunchRequest) =>
+    useApi<CampaignDto>(`/v1/admin/campaigns/${uuid}/relaunch`, { method: 'POST', body })
+
+  /** JSON effectiveness summary (GET /{uuid}/effectiveness) — NOT a file download. */
+  const getEffectiveness = (uuid: string) =>
+    useApi<CampaignEffectivenessDto>(`/v1/admin/campaigns/${uuid}/effectiveness`)
+
+  // ---- Audience (scope INCLUDE/EXCLUDE) ----
+  const audience = (uuid: string, params: { page?: number, size?: number } = {}) =>
+    useApi<Page<CampaignAudienceDto>>(`/v1/admin/campaigns/${uuid}/audience`, {
+      query: { page: params.page ?? 0, size: params.size ?? 50 },
+    })
+
+  const addAudienceMember = (uuid: string, promoterUuid: string) =>
+    useApi<CampaignAudienceDto>(`/v1/admin/campaigns/${uuid}/audience`, { method: 'POST', body: { promoterUuid } })
+
+  const removeAudienceMember = (uuid: string, promoterUuid: string) =>
+    useApi<null>(`/v1/admin/campaigns/${uuid}/audience/${promoterUuid}`, { method: 'DELETE' })
+
+  // ---- Transactions (read-only) ----
+  const transactions = (uuid: string, params: { page?: number, size?: number } = {}) =>
+    useApi<Page<CampaignTransactionLinkDto>>(`/v1/admin/campaigns/${uuid}/transactions`, {
+      query: { page: params.page ?? 0, size: params.size ?? 20 },
+    })
+
+  // ---- Manual exceptions ----
+  const exceptions = (uuid: string, params: { page?: number, size?: number } = {}) =>
+    useApi<Page<CampaignExceptionDto>>(`/v1/admin/campaigns/${uuid}/exceptions`, {
+      query: { page: params.page ?? 0, size: params.size ?? 20 },
+    })
+
+  /** Returns the updated CampaignDto (not the exception row) — matches AdminCampaignController#createException. */
+  const createException = (uuid: string, body: CampaignExceptionRequest) =>
+    useApi<CampaignDto>(`/v1/admin/campaigns/${uuid}/exceptions`, { method: 'POST', body })
+
+  const removeException = (uuid: string, exceptionUuid: string) =>
+    useApi<null>(`/v1/admin/campaigns/${uuid}/exceptions/${exceptionUuid}`, { method: 'DELETE' })
+
+  return {
+    list,
+    get,
+    create,
+    update,
+    remove,
+    relaunch,
+    getEffectiveness,
+    audience,
+    addAudienceMember,
+    removeAudienceMember,
+    transactions,
+    exceptions,
+    createException,
+    removeException,
+  }
+}

@@ -119,6 +119,12 @@ const tierPlanType = ref<PlanType | undefined>(undefined)
 const tierAppliesTo = ref<AppliesTo | undefined>(undefined)
 const tierPage = ref(1)
 const tierSize = ref(DEFAULT_PAGE_SIZE)
+// Client-side toggle ("reglas express" / campaign-only), applied over the
+// already-fetched page: the backend's campaignUuid filter needs a specific
+// campaign UUID, it can't express "any campaign" as a boolean sentinel, so
+// filtering "only campaign-linked rules" happens here instead of server-side.
+const tierCampaignOnly = ref(false)
+const tierDisplayData = computed(() => (tierCampaignOnly.value ? tierData.value.filter(t => t.campaign_Uuid) : tierData.value))
 
 // RSQL: planType/appliesTo equality, applied server-side so pagination stays consistent.
 function buildTierFilter(): string | undefined {
@@ -187,6 +193,7 @@ async function resetTierFilters() {
   tierPromoterTypeUuid.value = undefined
   tierPlanType.value = undefined
   tierAppliesTo.value = undefined
+  tierCampaignOnly.value = false
   tierSort.reset()
   tierSize.value = DEFAULT_PAGE_SIZE
   tierPage.value = 1
@@ -265,6 +272,9 @@ const bonusIncludeInactive = ref(false)
 const bonusPromoterTypeUuid = ref<string | undefined>(undefined)
 const bonusPage = ref(1)
 const bonusSize = ref(DEFAULT_PAGE_SIZE)
+// See tierCampaignOnly above for why this filter is client-side.
+const bonusCampaignOnly = ref(false)
+const bonusDisplayData = computed(() => (bonusCampaignOnly.value ? bonusData.value.filter(r => r.campaign_Uuid) : bonusData.value))
 
 // Empty by default: no `sort=` is sent until the user clicks a column, so
 // the backend's own default-sort fallback (entity_config → system_configs
@@ -322,6 +332,7 @@ async function resetBonusFilters() {
   bonusSearch.value = ''
   bonusIncludeInactive.value = false
   bonusPromoterTypeUuid.value = undefined
+  bonusCampaignOnly.value = false
   bonusSort.reset()
   bonusSize.value = DEFAULT_PAGE_SIZE
   bonusPage.value = 1
@@ -506,6 +517,9 @@ const overrideRankUuid = ref<string | undefined>(undefined)
 const overrideCategory = ref<OverrideCategory | undefined>(undefined)
 const overridePage = ref(1)
 const overrideSize = ref(DEFAULT_PAGE_SIZE)
+// See tierCampaignOnly above for why this filter is client-side.
+const overrideCampaignOnly = ref(false)
+const overrideDisplayData = computed(() => (overrideCampaignOnly.value ? overrideData.value.filter(t => t.campaign_Uuid) : overrideData.value))
 
 // RSQL: category equality, applied server-side so pagination stays consistent.
 function buildOverrideFilter(): string | undefined {
@@ -569,6 +583,7 @@ async function resetOverrideFilters() {
   overrideIncludeInactive.value = false
   overrideRankUuid.value = undefined
   overrideCategory.value = undefined
+  overrideCampaignOnly.value = false
   overrideSort.reset()
   overrideSize.value = DEFAULT_PAGE_SIZE
   overridePage.value = 1
@@ -693,6 +708,7 @@ onMounted(() => {
           class="w-48"
         />
         <UCheckbox v-model="tierIncludeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
+        <UCheckbox v-model="tierCampaignOnly" :label="t('commissionRules.filters.campaignOnly')" class="self-center" />
         <UButton
           v-if="tierHasActiveSort"
           variant="link"
@@ -726,16 +742,17 @@ onMounted(() => {
                 {{ t('commissionRules.tiers.columns.appliesTo') }}
                 <SortIndicator :state="tierSort.stateOf('appliesTo')" :multi-active="tierIsMultiSort" @clear="tierSort.remove('appliesTo')" />
               </th>
+              <th class="px-5 py-3 font-semibold">{{ t('commissionRules.tiers.columns.campaign') }}</th>
               <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-prohealth-100">
-            <TableSkeleton v-if="tierLoading" :rows="4" :cols="6" />
-            <tr v-else-if="tierData.length === 0">
-              <td colspan="6" class="px-5 py-10 text-center text-prohealth-500">{{ t('commissionRules.tiers.empty') }}</td>
+            <TableSkeleton v-if="tierLoading" :rows="4" :cols="7" />
+            <tr v-else-if="tierDisplayData.length === 0">
+              <td colspan="7" class="px-5 py-10 text-center text-prohealth-500">{{ t('commissionRules.tiers.empty') }}</td>
             </tr>
             <tr
-              v-for="tier in tierData"
+              v-for="tier in tierDisplayData"
               v-else
               :key="tier.uuid"
               class="hover:bg-prohealth-50/50"
@@ -749,6 +766,13 @@ onMounted(() => {
               <td class="px-5 py-3">
                 <UBadge color="primary" variant="subtle" size="sm">{{ t(`commissionRules.appliesTo.${tier.appliesTo}`) }}</UBadge>
               </td>
+              <td class="px-5 py-3 text-prohealth-600" @click.stop>
+                <CommonEntityLinkCell
+                  :to="tier.campaign_Uuid ? `/dashboard/campaigns/${tier.campaign_Uuid}` : null"
+                  :label="tier.campaign_Display"
+                  :can="can('CAMPAIGN_VIEW_ALL')"
+                />
+              </td>
               <td class="px-5 py-3" @click.stop>
                 <div class="flex items-center justify-end gap-1">
                   <UButton v-if="canUpdateTiers" color="info" variant="ghost" icon="i-lucide-pencil" size="sm" @click="openEditTier(tier)" />
@@ -761,30 +785,30 @@ onMounted(() => {
             </tr>
           </tbody>
         </table>
-      </div>
-      <div class="flex items-center flex-wrap justify-between gap-3 px-5 py-3 border-t border-prohealth-100 shrink-0">
-        <p class="text-xs text-prohealth-500">
-          {{ t('commissionRules.tiers.paginationSummary', { shown: tierData.length, total: tierTotal }) }}
-        </p>
-        <div class="flex items-center gap-3">
-          <UPagination
-            v-if="tierSize !== UNPAGED_PAGE_SIZE"
-            v-model:page="tierPage"
-            :total="tierTotal"
-            :items-per-page="tierSize"
-          />
-          <UTooltip :text="$t('catalogs.pageSizeLabel')">
-            <USelectMenu
-              v-model="tierSize"
-              :items="pageSizeItems"
-              label-key="label"
-              value-key="value"
-              icon="i-lucide-list"
-              :search-input="false"
-              :aria-label="$t('catalogs.pageSizeLabel')"
-              class="w-40"
+        <div class="flex items-center flex-wrap justify-between gap-3 px-5 py-3 border-t border-prohealth-100 shrink-0">
+          <p class="text-xs text-prohealth-500">
+            {{ t('commissionRules.tiers.paginationSummary', { shown: tierDisplayData.length, total: tierTotal }) }}
+          </p>
+          <div class="flex items-center gap-3">
+            <UPagination
+              v-if="tierSize !== UNPAGED_PAGE_SIZE"
+              v-model:page="tierPage"
+              :total="tierTotal"
+              :items-per-page="tierSize"
             />
-          </UTooltip>
+            <UTooltip :text="$t('catalogs.pageSizeLabel')">
+              <USelectMenu
+                v-model="tierSize"
+                :items="pageSizeItems"
+                label-key="label"
+                value-key="value"
+                icon="i-lucide-list"
+                :search-input="false"
+                :aria-label="$t('catalogs.pageSizeLabel')"
+                class="w-40"
+              />
+            </UTooltip>
+          </div>
         </div>
       </div>
     </div>
@@ -815,6 +839,7 @@ onMounted(() => {
           class="w-56"
         />
         <UCheckbox v-model="bonusIncludeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
+        <UCheckbox v-model="bonusCampaignOnly" :label="t('commissionRules.filters.campaignOnly')" class="self-center" />
         <UButton
           v-if="bonusHasActiveSort"
           variant="link"
@@ -853,16 +878,17 @@ onMounted(() => {
                 {{ t('catalogs.columns.status') }}
                 <SortIndicator :state="bonusSort.stateOf('active')" :multi-active="bonusIsMultiSort" @clear="bonusSort.remove('active')" />
               </th>
+              <th class="px-5 py-3 font-semibold">{{ t('commissionRules.bonusRules.columns.campaign') }}</th>
               <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-prohealth-100">
-            <TableSkeleton v-if="bonusLoading" :rows="4" :cols="8" />
-            <tr v-else-if="bonusData.length === 0">
-              <td colspan="8" class="px-5 py-10 text-center text-prohealth-500">{{ t('commissionRules.bonusRules.empty') }}</td>
+            <TableSkeleton v-if="bonusLoading" :rows="4" :cols="9" />
+            <tr v-else-if="bonusDisplayData.length === 0">
+              <td colspan="9" class="px-5 py-10 text-center text-prohealth-500">{{ t('commissionRules.bonusRules.empty') }}</td>
             </tr>
             <tr
-              v-for="rule in bonusData"
+              v-for="rule in bonusDisplayData"
               v-else
               :key="rule.uuid"
               class="hover:bg-prohealth-50/50"
@@ -880,6 +906,13 @@ onMounted(() => {
                   {{ rule.active ? t('catalogs.status.active') : t('catalogs.status.inactive') }}
                 </UBadge>
               </td>
+              <td class="px-5 py-3 text-prohealth-600" @click.stop>
+                <CommonEntityLinkCell
+                  :to="rule.campaign_Uuid ? `/dashboard/campaigns/${rule.campaign_Uuid}` : null"
+                  :label="rule.campaign_Display"
+                  :can="can('CAMPAIGN_VIEW_ALL')"
+                />
+              </td>
               <td class="px-5 py-3" @click.stop>
                 <div class="flex items-center justify-end gap-1">
                   <UButton v-if="canUpdateBonus" color="info" variant="ghost" icon="i-lucide-pencil" size="sm" @click="openEditBonus(rule)" />
@@ -892,30 +925,30 @@ onMounted(() => {
             </tr>
           </tbody>
         </table>
-      </div>
-      <div class="flex items-center flex-wrap justify-between gap-3 px-5 py-3 border-t border-prohealth-100 shrink-0">
-        <p class="text-xs text-prohealth-500">
-          {{ t('commissionRules.bonusRules.paginationSummary', { shown: bonusData.length, total: bonusTotal }) }}
-        </p>
-        <div class="flex items-center gap-3">
-          <UPagination
-            v-if="bonusSize !== UNPAGED_PAGE_SIZE"
-            v-model:page="bonusPage"
-            :total="bonusTotal"
-            :items-per-page="bonusSize"
-          />
-          <UTooltip :text="$t('catalogs.pageSizeLabel')">
-            <USelectMenu
-              v-model="bonusSize"
-              :items="pageSizeItems"
-              label-key="label"
-              value-key="value"
-              icon="i-lucide-list"
-              :search-input="false"
-              :aria-label="$t('catalogs.pageSizeLabel')"
-              class="w-40"
+        <div class="flex items-center flex-wrap justify-between gap-3 px-5 py-3 border-t border-prohealth-100 shrink-0">
+          <p class="text-xs text-prohealth-500">
+            {{ t('commissionRules.bonusRules.paginationSummary', { shown: bonusDisplayData.length, total: bonusTotal }) }}
+          </p>
+          <div class="flex items-center gap-3">
+            <UPagination
+              v-if="bonusSize !== UNPAGED_PAGE_SIZE"
+              v-model:page="bonusPage"
+              :total="bonusTotal"
+              :items-per-page="bonusSize"
             />
-          </UTooltip>
+            <UTooltip :text="$t('catalogs.pageSizeLabel')">
+              <USelectMenu
+                v-model="bonusSize"
+                :items="pageSizeItems"
+                label-key="label"
+                value-key="value"
+                icon="i-lucide-list"
+                :search-input="false"
+                :aria-label="$t('catalogs.pageSizeLabel')"
+                class="w-40"
+              />
+            </UTooltip>
+          </div>
         </div>
       </div>
     </div>
@@ -1011,30 +1044,30 @@ onMounted(() => {
             </tr>
           </tbody>
         </table>
-      </div>
-      <div class="flex items-center flex-wrap justify-between gap-3 px-5 py-3 border-t border-prohealth-100 shrink-0">
-        <p class="text-xs text-prohealth-500">
-          {{ t('commissionRules.collectionTiers.paginationSummary', { shown: collectionData.length, total: collectionTotal }) }}
-        </p>
-        <div class="flex items-center gap-3">
-          <UPagination
-            v-if="collectionSize !== UNPAGED_PAGE_SIZE"
-            v-model:page="collectionPage"
-            :total="collectionTotal"
-            :items-per-page="collectionSize"
-          />
-          <UTooltip :text="$t('catalogs.pageSizeLabel')">
-            <USelectMenu
-              v-model="collectionSize"
-              :items="pageSizeItems"
-              label-key="label"
-              value-key="value"
-              icon="i-lucide-list"
-              :search-input="false"
-              :aria-label="$t('catalogs.pageSizeLabel')"
-              class="w-40"
+        <div class="flex items-center flex-wrap justify-between gap-3 px-5 py-3 border-t border-prohealth-100 shrink-0">
+          <p class="text-xs text-prohealth-500">
+            {{ t('commissionRules.collectionTiers.paginationSummary', { shown: collectionData.length, total: collectionTotal }) }}
+          </p>
+          <div class="flex items-center gap-3">
+            <UPagination
+              v-if="collectionSize !== UNPAGED_PAGE_SIZE"
+              v-model:page="collectionPage"
+              :total="collectionTotal"
+              :items-per-page="collectionSize"
             />
-          </UTooltip>
+            <UTooltip :text="$t('catalogs.pageSizeLabel')">
+              <USelectMenu
+                v-model="collectionSize"
+                :items="pageSizeItems"
+                label-key="label"
+                value-key="value"
+                icon="i-lucide-list"
+                :search-input="false"
+                :aria-label="$t('catalogs.pageSizeLabel')"
+                class="w-40"
+              />
+            </UTooltip>
+          </div>
         </div>
       </div>
     </div>
@@ -1074,6 +1107,7 @@ onMounted(() => {
           class="w-48"
         />
         <UCheckbox v-model="overrideIncludeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
+        <UCheckbox v-model="overrideCampaignOnly" :label="t('commissionRules.filters.campaignOnly')" class="self-center" />
         <UButton
           v-if="overrideHasActiveSort"
           variant="link"
@@ -1105,16 +1139,17 @@ onMounted(() => {
                 {{ t('catalogs.columns.status') }}
                 <SortIndicator :state="overrideSort.stateOf('active')" :multi-active="overrideIsMultiSort" @clear="overrideSort.remove('active')" />
               </th>
+              <th class="px-5 py-3 font-semibold">{{ t('hierarchyOverrideTiers.columns.campaign') }}</th>
               <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-prohealth-100">
-            <TableSkeleton v-if="overrideLoading" :rows="4" :cols="7" />
-            <tr v-else-if="overrideData.length === 0">
-              <td colspan="7" class="px-5 py-10 text-center text-prohealth-500">{{ t('hierarchyOverrideTiers.empty') }}</td>
+            <TableSkeleton v-if="overrideLoading" :rows="4" :cols="8" />
+            <tr v-else-if="overrideDisplayData.length === 0">
+              <td colspan="8" class="px-5 py-10 text-center text-prohealth-500">{{ t('hierarchyOverrideTiers.empty') }}</td>
             </tr>
             <tr
-              v-for="tier in overrideData"
+              v-for="tier in overrideDisplayData"
               v-else
               :key="tier.uuid"
               class="hover:bg-prohealth-50/50"
@@ -1139,6 +1174,13 @@ onMounted(() => {
                   {{ tier.active ? t('catalogs.status.active') : t('catalogs.status.inactive') }}
                 </UBadge>
               </td>
+              <td class="px-5 py-3 text-prohealth-600" @click.stop>
+                <CommonEntityLinkCell
+                  :to="tier.campaign_Uuid ? `/dashboard/campaigns/${tier.campaign_Uuid}` : null"
+                  :label="tier.campaign_Display"
+                  :can="can('CAMPAIGN_VIEW_ALL')"
+                />
+              </td>
               <td class="px-5 py-3" @click.stop>
                 <div class="flex items-center justify-end gap-1">
                   <UButton v-if="canUpdateOverride" color="info" variant="ghost" icon="i-lucide-pencil" size="sm" @click="openEditOverrideTier(tier)" />
@@ -1148,30 +1190,30 @@ onMounted(() => {
             </tr>
           </tbody>
         </table>
-      </div>
-      <div class="flex items-center flex-wrap justify-between gap-3 px-5 py-3 border-t border-prohealth-100 shrink-0">
-        <p class="text-xs text-prohealth-500">
-          {{ t('hierarchyOverrideTiers.paginationSummary', { shown: overrideData.length, total: overrideTotal }) }}
-        </p>
-        <div class="flex items-center gap-3">
-          <UPagination
-            v-if="overrideSize !== UNPAGED_PAGE_SIZE"
-            v-model:page="overridePage"
-            :total="overrideTotal"
-            :items-per-page="overrideSize"
-          />
-          <UTooltip :text="$t('catalogs.pageSizeLabel')">
-            <USelectMenu
-              v-model="overrideSize"
-              :items="pageSizeItems"
-              label-key="label"
-              value-key="value"
-              icon="i-lucide-list"
-              :search-input="false"
-              :aria-label="$t('catalogs.pageSizeLabel')"
-              class="w-40"
+        <div class="flex items-center flex-wrap justify-between gap-3 px-5 py-3 border-t border-prohealth-100 shrink-0">
+          <p class="text-xs text-prohealth-500">
+            {{ t('hierarchyOverrideTiers.paginationSummary', { shown: overrideDisplayData.length, total: overrideTotal }) }}
+          </p>
+          <div class="flex items-center gap-3">
+            <UPagination
+              v-if="overrideSize !== UNPAGED_PAGE_SIZE"
+              v-model:page="overridePage"
+              :total="overrideTotal"
+              :items-per-page="overrideSize"
             />
-          </UTooltip>
+            <UTooltip :text="$t('catalogs.pageSizeLabel')">
+              <USelectMenu
+                v-model="overrideSize"
+                :items="pageSizeItems"
+                label-key="label"
+                value-key="value"
+                icon="i-lucide-list"
+                :search-input="false"
+                :aria-label="$t('catalogs.pageSizeLabel')"
+                class="w-40"
+              />
+            </UTooltip>
+          </div>
         </div>
       </div>
     </div>

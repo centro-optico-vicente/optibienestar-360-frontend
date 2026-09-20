@@ -19,6 +19,7 @@ export const OVERRIDE_CATEGORY_OPTIONS: { label: string, value: OverrideCategory
 export interface HierarchyOverrideTierDto {
   uuid: string
   name: string
+  description?: string | null
   rank_Uuid?: string | null
   rank_Display?: string | null
   category: OverrideCategory
@@ -29,6 +30,12 @@ export interface HierarchyOverrideTierDto {
   flatAmountCurrency_Display?: string | null
   flatAmountCurrency_Code?: string | null
   periodStrategy: PeriodStrategy
+  /** Owning campaign when this tier is campaign-anchored; null for a standing (non-campaign) rule. */
+  campaign_Uuid?: string | null
+  campaign_Display?: string | null
+  /** Rule's own effective window — snapshotted from the campaign at creation but independently editable. */
+  startsAt: string | null
+  endsAt: string | null
   active: boolean
   status?: string
   createdAt?: string
@@ -37,6 +44,7 @@ export interface HierarchyOverrideTierDto {
 
 export interface CreateHierarchyOverrideTierRequest {
   name: string
+  description?: string | null
   rankUuid: string
   category: OverrideCategory
   thresholdCount?: number
@@ -44,6 +52,11 @@ export interface CreateHierarchyOverrideTierRequest {
   flatAmount?: string | null
   flatAmountCurrencyUuid?: string | null
   periodStrategy: PeriodStrategy
+  /** Sets the owning campaign, e.g. when created from the campaign ficha's "Add rule" flow. Omit/null = standing (non-campaign) rule. */
+  campaignUuid?: string | null
+  /** Rule's own effective window — defaults from the selected campaign's dates but stays independently editable. */
+  startsAt?: string | null
+  endsAt?: string | null
 }
 
 /** PUT with PATCH semantics: only the fields present are applied. */

@@ -33,6 +33,7 @@ export type EntityReferenceKey =
   | 'promoter_type'
   | 'promoter_rank'
   | 'document_type'
+  | 'campaign'
 
 interface EntityReferenceDef {
   /** Builds the target route from the select's current value (usually a uuid). */
@@ -70,6 +71,7 @@ const ENTITY_ROUTES: Partial<Record<EntityReferenceKey, EntityReferenceDef>> = {
   promoter: { to: uuid => `/dashboard/promoters/${uuid}`, permission: 'PROMOTER_VIEW_ALL' },
   scheduled_job: { to: uuid => `/dashboard/scheduled-jobs/${uuid}`, permission: 'JOB_VIEW_ALL' },
   document_type: { to: () => '/dashboard/catalogs/document-types', permission: 'DOCUMENT_TYPE_VIEW_ALL' },
+  campaign: { to: uuid => `/dashboard/campaigns/${uuid}`, permission: 'CAMPAIGN_VIEW_ALL' },
 }
 
 export interface EntityReferenceLink {
