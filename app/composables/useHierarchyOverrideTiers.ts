@@ -14,6 +14,8 @@ interface ListParams {
   q?: string
   includeInactive?: boolean
   rankUuid?: string
+  /** ASSUMPTION: filters rules linked to a commission campaign — used by the campaign ficha's "Rules" tab. */
+  campaignUuid?: string
 }
 
 /**
@@ -32,6 +34,7 @@ export const useHierarchyOverrideTiers = () => {
         ...(params.q ? { q: params.q } : {}),
         ...(params.includeInactive ? { includeInactive: 'true' } : {}),
         ...(params.rankUuid ? { rankUuid: params.rankUuid } : {}),
+        ...(params.campaignUuid ? { campaignUuid: params.campaignUuid } : {}),
       },
     })
 

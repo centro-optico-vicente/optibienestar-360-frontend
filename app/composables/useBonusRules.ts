@@ -10,6 +10,8 @@ interface ListParams {
   q?: string
   includeInactive?: boolean
   promoterTypeUuid?: string
+  /** ASSUMPTION: filters rules linked to a commission campaign — used by the campaign ficha's "Rules" tab. */
+  campaignUuid?: string
 }
 
 /**
@@ -28,6 +30,7 @@ export const useBonusRules = () => {
         ...(params.q ? { q: params.q } : {}),
         ...(params.includeInactive ? { includeInactive: 'true' } : {}),
         ...(params.promoterTypeUuid ? { promoterTypeUuid: params.promoterTypeUuid } : {}),
+        ...(params.campaignUuid ? { campaignUuid: params.campaignUuid } : {}),
       },
     })
 

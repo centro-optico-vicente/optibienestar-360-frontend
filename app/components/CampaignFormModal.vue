@@ -19,6 +19,13 @@ const props = defineProps<{
   campaign?: CampaignDto | null
   /** Forces create mode even when `campaign` carries data (relaunch prefill). */
   forceCreate?: boolean
+  /**
+   * UUID of the campaign being relaunched. When set (together with `forceCreate`
+   * and `campaign` prefilled with blank dates), submission calls
+   * `useCampaigns().relaunch(relaunchOf, ...)` instead of `create`, so the
+   * backend clones the source campaign's associated rules onto the new one.
+   */
+  relaunchOf?: string | null
 }>()
 
 const emit = defineEmits<{
@@ -158,7 +165,16 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
       priority: state.priority.trim() ? Number(state.priority) : null,
     }
     let result: CampaignDto
-    if (mode.value === 'create') {
+    if (props.relaunchOf) {
+      result = await campaigns.relaunch(props.relaunchOf, {
+        name: base.name,
+        description: base.description,
+        startsAt: base.startsAt,
+        endsAt: base.endsAt,
+      })
+      toast.add({ title: t('campaigns.detail.relaunchToast'), color: 'success', icon: 'i-lucide-check-circle' })
+    }
+    else if (mode.value === 'create') {
       result = await campaigns.create(base as CreateCampaignRequest)
       toast.add({ title: t('campaigns.createdToast'), color: 'success', icon: 'i-lucide-check-circle' })
     }
@@ -181,7 +197,7 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
 <template>
   <UModal
     v-model:open="isOpen"
-    :title="mode === 'create' ? t('campaigns.form.createTitle') : t('campaigns.form.editTitle')"
+    :title="relaunchOf ? t('campaigns.detail.relaunch') : (mode === 'create' ? t('campaigns.form.createTitle') : t('campaigns.form.editTitle'))"
     :ui="{ content: 'max-w-2xl' }"
   >
     <template #body>

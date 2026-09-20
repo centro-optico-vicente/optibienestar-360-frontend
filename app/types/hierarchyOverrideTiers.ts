@@ -29,6 +29,9 @@ export interface HierarchyOverrideTierDto {
   flatAmountCurrency_Display?: string | null
   flatAmountCurrency_Code?: string | null
   periodStrategy: PeriodStrategy
+  /** ASSUMPTION: optional link to a commission campaign (campaign_id FK) — not yet confirmed by backend. */
+  campaign_Uuid?: string | null
+  campaign_Display?: string | null
   active: boolean
   status?: string
   createdAt?: string
@@ -44,6 +47,8 @@ export interface CreateHierarchyOverrideTierRequest {
   flatAmount?: string | null
   flatAmountCurrencyUuid?: string | null
   periodStrategy: PeriodStrategy
+  /** ASSUMPTION: sets the owning campaign when created from the campaign ficha's "Add rule" flow. */
+  campaignUuid?: string | null
 }
 
 /** PUT with PATCH semantics: only the fields present are applied. */

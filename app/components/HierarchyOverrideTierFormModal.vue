@@ -20,6 +20,8 @@ import type { SelectItem } from '~/types/options'
 const props = defineProps<{
   open: boolean
   tier?: HierarchyOverrideTierDto | null
+  /** Preset campaign_id (ASSUMPTION, not yet confirmed) when created from the campaign ficha's "Add rule" flow. */
+  campaignUuid?: string | null
 }>()
 
 const emit = defineEmits<{
@@ -209,7 +211,7 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
     }
     let result: HierarchyOverrideTierDto
     if (mode.value === 'create') {
-      result = await tiers.create(base as CreateHierarchyOverrideTierRequest)
+      result = await tiers.create({ ...base, campaignUuid: props.campaignUuid ?? null } as CreateHierarchyOverrideTierRequest)
       toast.add({ title: t('hierarchyOverrideTiers.createdToast'), color: 'success', icon: 'i-lucide-check-circle' })
     }
     else {

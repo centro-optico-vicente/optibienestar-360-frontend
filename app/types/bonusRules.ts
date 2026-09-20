@@ -55,6 +55,9 @@ export interface BonusRuleDto {
   promoterType_Uuid?: string | null
   promoterType_Display?: string | null
   promoterType_Code?: string | null
+  /** ASSUMPTION: optional link to a commission campaign (campaign_id FK, distinct from windowStrategy CAMPAIGN) — not yet confirmed by backend. */
+  campaign_Uuid?: string | null
+  campaign_Display?: string | null
   active: boolean
   createdAt?: string
 }
@@ -75,4 +78,6 @@ export interface BonusRuleRequest {
   rewardCurrency?: string
   includeSystemPromoters?: boolean
   promoterTypeUuid?: string | null
+  /** ASSUMPTION: sets the owning campaign when created from the campaign ficha's "Add rule" flow. */
+  campaignUuid?: string | null
 }

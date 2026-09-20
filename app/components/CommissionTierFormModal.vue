@@ -17,6 +17,8 @@ import { PLAN_TYPE_OPTIONS } from '~/types/plans'
 const props = defineProps<{
   open: boolean
   tier?: CommissionTierDto | null
+  /** Preset campaign_id (ASSUMPTION, not yet confirmed) when created from the campaign ficha's "Add rule" flow. */
+  campaignUuid?: string | null
 }>()
 
 const emit = defineEmits<{
@@ -155,7 +157,7 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
     }
     let result: CommissionTierDto
     if (mode.value === 'create') {
-      result = await tiers.create(base as CreateCommissionTierRequest)
+      result = await tiers.create({ ...base, campaignUuid: props.campaignUuid ?? null } as CreateCommissionTierRequest)
       toast.add({ title: t('commissionRules.tiers.createdToast'), color: 'success', icon: 'i-lucide-check-circle' })
     }
     else {

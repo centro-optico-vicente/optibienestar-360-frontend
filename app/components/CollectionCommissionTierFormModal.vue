@@ -12,6 +12,8 @@ import type {
 const props = defineProps<{
   open: boolean
   tier?: CollectionCommissionTierDto | null
+  /** Preset campaign_id (ASSUMPTION, not yet confirmed) when created from the campaign ficha's "Add rule" flow. */
+  campaignUuid?: string | null
 }>()
 
 const emit = defineEmits<{
@@ -103,6 +105,7 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
         name: state.name.trim(),
         maxDays: Number(state.maxDays),
         commissionPct: state.commissionPct.trim(),
+        campaignUuid: props.campaignUuid ?? null,
       }
       result = await tiers.create(body)
       toast.add({ title: t('commissionRules.collectionTiers.createdToast'), color: 'success', icon: 'i-lucide-check-circle' })

@@ -22,6 +22,8 @@ import {
 const props = defineProps<{
   open: boolean
   rule?: BonusRuleDto | null
+  /** Preset campaign_id (ASSUMPTION, not yet confirmed) when created from the campaign ficha's "Add rule" flow. */
+  campaignUuid?: string | null
 }>()
 
 const emit = defineEmits<{
@@ -181,7 +183,7 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
     }
     let result: BonusRuleDto
     if (mode.value === 'create') {
-      result = await bonusRules.create(body)
+      result = await bonusRules.create({ ...body, campaignUuid: props.campaignUuid ?? null })
       toast.add({ title: t('commissionRules.bonusRules.createdToast'), color: 'success', icon: 'i-lucide-check-circle' })
     }
     else {

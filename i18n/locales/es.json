@@ -2857,7 +2857,57 @@
       "sourceAuto": "Automático",
       "sourceException": "Excepción",
       "relaunch": "Relanzar campaña",
-      "generateReport": "Generar reporte"
+      "generateReport": "Generar reporte",
+      "seoPage": "Detalle de campaña",
+      "notFoundTitle": "Campaña no encontrada",
+      "notFoundBody": "La campaña que buscas no existe o fue eliminada.",
+      "fields": {
+        "name": "Nombre",
+        "description": "Descripción",
+        "startsAt": "Inicia",
+        "endsAt": "Finaliza",
+        "scope": "Alcance de audiencia",
+        "mode": "Modo",
+        "evaluateOnlyAtEnd": "Evaluar solo al finalizar",
+        "payOnlyAtEnd": "Pagar solo al finalizar",
+        "targetAmount": "Meta de monto",
+        "targetCount": "Meta de cantidad",
+        "exclusivityGroup": "Grupo de exclusividad",
+        "priority": "Prioridad",
+        "active": "Activa",
+        "createdAt": "Creada",
+        "updatedAt": "Actualizada",
+        "uuid": "UUID"
+      },
+      "audiencePlaceholder": "Buscar promotor por nombre...",
+      "audienceRemoveConfirm": "¿Quitar a este promotor de la audiencia de la campaña?",
+      "ruleTypes": {
+        "tier": "Banda de inscripción",
+        "bonus": "Bono por escala",
+        "collection": "Comisión de cobranza",
+        "override": "Override jerárquico"
+      },
+      "chooseRuleType": "Elige el tipo de regla a agregar",
+      "rulesColumns": {
+        "type": "Tipo",
+        "name": "Nombre",
+        "params": "Parámetros clave"
+      },
+      "transactionsColumns": {
+        "date": "Fecha",
+        "transaction": "Transacción",
+        "source": "Origen",
+        "amount": "Monto"
+      },
+      "exceptionsColumns": {
+        "date": "Fecha",
+        "type": "Tipo",
+        "transaction": "Transacción",
+        "reason": "Motivo",
+        "createdBy": "Registrada por"
+      },
+      "relaunchToast": "Campaña relanzada",
+      "reportAssumption": "Genera el reporte de efectividad de la campaña mediante el motor de reportes compartido (ADR 0012)."
     },
     "exceptions": {
       "addTitle": "Agregar a campaña",

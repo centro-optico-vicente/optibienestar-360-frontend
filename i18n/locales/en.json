@@ -2857,7 +2857,57 @@
       "sourceAuto": "Automatic",
       "sourceException": "Exception",
       "relaunch": "Relaunch campaign",
-      "generateReport": "Generate report"
+      "generateReport": "Generate report",
+      "seoPage": "Campaign detail",
+      "notFoundTitle": "Campaign not found",
+      "notFoundBody": "The campaign you are looking for does not exist or was removed.",
+      "fields": {
+        "name": "Name",
+        "description": "Description",
+        "startsAt": "Starts at",
+        "endsAt": "Ends at",
+        "scope": "Audience scope",
+        "mode": "Mode",
+        "evaluateOnlyAtEnd": "Evaluate only at end",
+        "payOnlyAtEnd": "Pay only at end",
+        "targetAmount": "Target amount",
+        "targetCount": "Target count",
+        "exclusivityGroup": "Exclusivity group",
+        "priority": "Priority",
+        "active": "Active",
+        "createdAt": "Created at",
+        "updatedAt": "Updated at",
+        "uuid": "UUID"
+      },
+      "audiencePlaceholder": "Search promoter by name...",
+      "audienceRemoveConfirm": "Remove this promoter from the campaign audience?",
+      "ruleTypes": {
+        "tier": "Inscription band",
+        "bonus": "Scale bonus",
+        "collection": "Collection commission",
+        "override": "Hierarchical override"
+      },
+      "chooseRuleType": "Choose the rule type to add",
+      "rulesColumns": {
+        "type": "Type",
+        "name": "Name",
+        "params": "Key parameters"
+      },
+      "transactionsColumns": {
+        "date": "Date",
+        "transaction": "Transaction",
+        "source": "Source",
+        "amount": "Amount"
+      },
+      "exceptionsColumns": {
+        "date": "Date",
+        "type": "Type",
+        "transaction": "Transaction",
+        "reason": "Reason",
+        "createdBy": "Registered by"
+      },
+      "relaunchToast": "Campaign relaunched",
+      "reportAssumption": "Generates the campaign effectiveness report via the shared document-report engine (ADR 0012)."
     },
     "exceptions": {
       "addTitle": "Add to campaign",
