@@ -23,6 +23,8 @@ export interface CatalogItem {
   active_Display?: string | null
   code?: string
   isoCode?: string
+  symbol?: string
+  decimalPlaces?: number
   description?: string
   locale?: string
   country_Uuid?: string | null

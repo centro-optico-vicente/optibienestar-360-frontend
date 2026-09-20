@@ -86,6 +86,7 @@ useSeoMeta({
 })
 
 const hasDescription = computed(() => def.value?.fields.some(f => f.name === 'description') ?? false)
+const hasCurrencyDetails = computed(() => def.value?.key === 'currencies')
 
 // The "parent" column header uses the FK field's own label (e.g. "Estado / Departamento",
 // "País") instead of the generic "Padre", which reads clearer per catalog.
@@ -100,6 +101,7 @@ const columnCount = computed(() => {
   if (def.value?.codeField) n++
   if (def.value?.parentDisplayField) n++
   if (hasDescription.value) n++
+  if (hasCurrencyDetails.value) n += 2
   n++ // status
   return n
 })
@@ -379,12 +381,17 @@ watch([allRanks, editingUuid], () => {
   }
 }, { immediate: true })
 
-// Fields visible in the current form. `onlyCreate` fields are hidden on edit,
-// except `parent` FK selects: those stay visible (disabled) so the admin can
-// see which parent the record belongs to.
+// Keep immutable fields visible while editing so the record's natural key and
+// parent relationship remain identifiable; buildBody() still excludes them
+// from update requests.
 const formFields = computed(() =>
-  (def.value?.fields ?? []).filter(f => mode.value === 'create' || !f.onlyCreate || f.type === 'parent'),
+  def.value?.fields ?? [],
 )
+
+function formFieldClass(field: CatalogField): string {
+  if (!hasCurrencyDetails.value) return ''
+  return field.name === 'symbol' || field.name === 'decimalPlaces' ? 'col-span-1' : 'col-span-2'
+}
 
 const schema = computed(() => {
   const shape: Record<string, z.ZodTypeAny> = {}
@@ -676,6 +683,12 @@ async function confirmDelete() {
                 {{ $t('catalogs.columns.name') }}
                 <SortIndicator :state="sort.stateOf('name')" :multi-active="isMultiSort" @clear="sort.remove('name')" />
               </th>
+              <th v-if="hasCurrencyDetails" class="px-5 py-3 font-semibold">
+                {{ $t('catalogs.fields.symbol') }}
+              </th>
+              <th v-if="hasCurrencyDetails" class="px-5 py-3 font-semibold">
+                {{ $t('catalogs.fields.decimalPlaces') }}
+              </th>
               <th
                 v-if="def.parentDisplayField"
                 class="px-5 py-3 font-semibold cursor-pointer select-none"
@@ -719,6 +732,12 @@ async function confirmDelete() {
                 <UBadge color="neutral" variant="subtle">{{ item[def.codeField] }}</UBadge>
               </td>
               <td class="px-5 py-3 font-medium text-prohealth-900">{{ item.name }}</td>
+              <td v-if="hasCurrencyDetails" class="px-5 py-3 font-mono text-prohealth-700">
+                {{ item.symbol || $t('common.empty') }}
+              </td>
+              <td v-if="hasCurrencyDetails" class="px-5 py-3 text-prohealth-700">
+                {{ item.decimalPlaces ?? $t('common.empty') }}
+              </td>
               <td v-if="def.parentDisplayField" class="px-5 py-3 text-prohealth-600" @click.stop>
                 <CommonEntityLinkCell
                   :to="parentEditLink(parentUuidOf(item))"
@@ -816,10 +835,17 @@ async function confirmDelete() {
       :title="mode === 'create' ? $t('catalogs.modalCreateTitle', { entity: catLabelSingular(def) }) : $t('catalogs.modalEditTitle', { entity: catLabelSingular(def) })"
     >
       <template #body>
-        <UForm ref="formRef" :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
+        <UForm
+          ref="formRef"
+          :schema="schema"
+          :state="state"
+          :class="hasCurrencyDetails ? 'grid grid-cols-2 gap-x-4 gap-y-4' : 'space-y-4'"
+          @submit="onSubmit"
+        >
           <UFormField
             v-for="f in formFields"
             :key="f.name"
+            :class="formFieldClass(f)"
             :label="fieldLabel(f)"
             :name="f.name"
             :required="f.required"
@@ -854,6 +880,7 @@ async function confirmDelete() {
               type="number"
               :min="f.min"
               :placeholder="f.placeholder"
+              :disabled="mode === 'edit' && f.onlyCreate"
               class="w-full"
             />
             <USwitch
@@ -865,6 +892,7 @@ async function confirmDelete() {
               v-model="state[f.name]"
               :placeholder="f.placeholder"
               :maxlength="f.max"
+              :disabled="mode === 'edit' && f.onlyCreate"
               class="w-full"
             />
           </UFormField>

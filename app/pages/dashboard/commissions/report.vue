@@ -20,6 +20,7 @@ const documentReports = useDocumentReports()
 const promotersApi = usePromoters()
 const { can } = usePermissions()
 const canViewPromoter = computed(() => can('PROMOTER_VIEW_ALL'))
+const canViewCurrency = computed(() => can('CURRENCY_VIEW_ALL'))
 
 const generatingPdf = ref(false)
 const generatingXlsx = ref(false)
@@ -33,6 +34,10 @@ const defaultCurrencyOptions = [
   { label: 'EUR — Euro (€)', value: 'EUR' },
 ]
 const currencyOptions = ref(defaultCurrencyOptions)
+
+function currencyLink(code: string | null | undefined): string | null {
+  return code ? `/dashboard/catalogs/currencies?code=${encodeURIComponent(code)}` : null
+}
 
 async function loadCatalogs() {
   loadingCatalogs.value = true
@@ -357,16 +362,23 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
           <label class="block text-xs font-semibold text-prohealth-700 mb-1">
             {{ t('commissions.report.targetCurrency') }}
           </label>
-          <USelectMenu
-            clear
-            v-model="commFilters.targetCurrency"
-            :items="currencyOptions"
-            label-key="label"
-            value-key="value"
-            icon="i-lucide-coins"
-            :ui="{ content: 'z-[100]' }"
-            class="w-full"
-          />
+          <div class="flex items-center gap-2">
+            <USelectMenu
+              clear
+              v-model="commFilters.targetCurrency"
+              :items="currencyOptions"
+              label-key="label"
+              value-key="value"
+              icon="i-lucide-coins"
+              :ui="{ content: 'z-[100]' }"
+              class="w-full"
+            />
+            <CommonEntityQuickLinkButton
+              :to="currencyLink(commFilters.targetCurrency)"
+              :can="canViewCurrency"
+              @navigate="(to: string) => navigateTo(to)"
+            />
+          </div>
           <p class="text-[11px] text-prohealth-500 mt-1">
             {{ t('commissions.report.currencyHelp') }}
           </p>
