@@ -289,6 +289,7 @@ function requestDelete() {
             autocomplete="off"
             class="w-full"
             :disabled="mode === 'edit'"
+            :ui="mode === 'edit' ? READONLY_FIELD_UI : undefined"
           />
         </UFormField>
 

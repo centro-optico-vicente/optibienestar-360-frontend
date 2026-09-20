@@ -4,7 +4,8 @@ import type { JobRunOutcome, JobTriggerSource, ScheduledJobDto, ScheduledJobRunD
 import { JOB_RUN_OUTCOME_OPTIONS } from '~/types/scheduling'
 import type { SortDirection } from '~/composables/useTableSort'
 import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
-import { defaultTodayRange } from '~/utils/date'
+import { emptyDateRange } from '~/utils/date'
+import type { JsonKeyValueMode } from '~/composables/useJsonKeyValueEditor'
 
 definePageMeta({
   layout: 'dashboard',
@@ -75,7 +76,7 @@ const RUN_TRIGGER_OPTIONS: { label: string, value: JobTriggerSource }[] = [
 ]
 const runsOutcomeFilter = ref<JobRunOutcome | undefined>(undefined)
 const runsTriggerFilter = ref<JobTriggerSource | undefined>(undefined)
-const runsDateRange = ref(defaultTodayRange())
+const runsDateRange = ref(emptyDateRange())
 
 async function loadRuns() {
   runsLoading.value = true
@@ -119,7 +120,7 @@ function resetRunFilters() {
   runsResetting.value = true
   runsOutcomeFilter.value = undefined
   runsTriggerFilter.value = undefined
-  runsDateRange.value = defaultTodayRange()
+  runsDateRange.value = emptyDateRange()
   runsSize.value = DEFAULT_PAGE_SIZE
   runsPage.value = 1
   runsResetting.value = false
@@ -185,6 +186,41 @@ const cronDescriptionText = computed(() => job.value ? describeCron(job.value.cr
 const params = useJsonKeyValueEditor()
 watch(job, (j) => { if (j) params.load(j.parameters) }, { immediate: true })
 const savingParams = ref(false)
+
+const paramTabs = computed(() => [
+  { label: t('scheduledJobs.form.parameters.kvTab'), value: 'kv', icon: 'i-lucide-list' },
+  { label: t('scheduledJobs.form.parameters.jsonTab'), value: 'json', icon: 'i-lucide-braces' },
+])
+
+// Popover-based add/edit for the key/value table — no directly-editable text
+// boxes sitting in the row (only the modal keeps that direct-edit style).
+const paramsPopoverIndex = ref<number | 'new' | null>(null)
+const paramsDraftKey = ref('')
+const paramsDraftValue = ref('')
+
+function openAddParamPopover() {
+  paramsDraftKey.value = ''
+  paramsDraftValue.value = ''
+  paramsPopoverIndex.value = 'new'
+}
+function openEditParamPopover(index: number) {
+  const row = params.pairs.value[index]
+  paramsDraftKey.value = row?.key ?? ''
+  paramsDraftValue.value = row?.value ?? ''
+  paramsPopoverIndex.value = index
+}
+function commitParamPopover() {
+  const key = paramsDraftKey.value.trim()
+  if (!key) { paramsPopoverIndex.value = null; return }
+  if (paramsPopoverIndex.value === 'new') {
+    params.pairs.value.push({ key, value: paramsDraftValue.value })
+  }
+  else if (typeof paramsPopoverIndex.value === 'number') {
+    const row = params.pairs.value[paramsPopoverIndex.value]
+    if (row) { row.key = key; row.value = paramsDraftValue.value }
+  }
+  paramsPopoverIndex.value = null
+}
 
 async function saveParams() {
   if (!job.value) return
@@ -472,56 +508,73 @@ onBeforeUnmount(stopPolling)
 
       <!-- Task/execution parameters -->
       <div class="bg-white rounded-2xl border border-prohealth-100 p-6">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="font-bold text-prohealth-900">{{ t('scheduledJobs.detail.parametersTitle') }}</h2>
-          <UButtonGroup size="xs">
-            <UButton
-              :color="params.mode.value === 'kv' ? 'primary' : 'neutral'"
-              :variant="params.mode.value === 'kv' ? 'solid' : 'outline'"
-              @click="params.switchMode('kv')"
-            >
-              {{ t('scheduledJobs.form.parameters.kvTab') }}
-            </UButton>
-            <UButton
-              :color="params.mode.value === 'json' ? 'primary' : 'neutral'"
-              :variant="params.mode.value === 'json' ? 'solid' : 'outline'"
-              @click="params.switchMode('json')"
-            >
-              {{ t('scheduledJobs.form.parameters.jsonTab') }}
-            </UButton>
-          </UButtonGroup>
-        </div>
+        <h2 class="font-bold text-prohealth-900 mb-4">{{ t('scheduledJobs.detail.parametersTitle') }}</h2>
 
-        <div v-if="params.mode.value === 'kv'" class="space-y-2">
-          <div v-for="(row, index) in params.pairs.value" :key="index" class="flex flex-wrap items-center gap-2">
-            <UInput
-              v-model="row.key"
-              :disabled="!canUpdate"
-              :placeholder="t('scheduledJobs.form.parameters.keyPlaceholder')"
-              :aria-label="t('scheduledJobs.form.parameters.keyPlaceholder')"
-              class="w-full sm:w-48 font-mono"
-            />
-            <UInput
-              v-model="row.value"
-              :disabled="!canUpdate"
-              :placeholder="t('scheduledJobs.form.parameters.valuePlaceholder')"
-              :aria-label="t('scheduledJobs.form.parameters.valuePlaceholder')"
-              class="w-full sm:flex-1"
-            />
-            <UButton
-              v-if="canUpdate"
-              color="error"
-              variant="ghost"
-              icon="i-lucide-trash-2"
-              size="sm"
-              :aria-label="t('common.delete')"
-              @click="params.removeRow(index)"
-            />
+        <UTabs
+          :model-value="params.mode.value"
+          :items="paramTabs"
+          :content="false"
+          class="mb-4"
+          @update:model-value="(v) => params.switchMode(v as JsonKeyValueMode)"
+        />
+
+        <div v-if="params.mode.value === 'kv'">
+          <p v-if="params.pairs.value.length === 0" class="text-sm text-prohealth-400 py-2">{{ t('common.empty') }}</p>
+          <div
+            v-for="(row, index) in params.pairs.value"
+            :key="index"
+            class="flex items-center justify-between gap-3 py-2 border-b border-prohealth-50 last:border-0"
+          >
+            <div class="min-w-0 flex items-baseline gap-2">
+              <code class="font-mono text-xs text-prohealth-500 shrink-0">{{ row.key }}</code>
+              <span class="text-sm text-prohealth-800 truncate">{{ row.value }}</span>
+            </div>
+            <div v-if="canUpdate" class="flex items-center gap-1 shrink-0">
+              <UPopover
+                :open="paramsPopoverIndex === index"
+                @update:open="(v: boolean) => { if (!v) paramsPopoverIndex = null }"
+              >
+                <UButton color="neutral" variant="ghost" icon="i-lucide-pencil" size="xs" @click="openEditParamPopover(index)" />
+                <template #content>
+                  <div class="p-3 space-y-2 w-64">
+                    <UInput v-model="paramsDraftKey" :placeholder="t('scheduledJobs.form.parameters.keyPlaceholder')" class="w-full font-mono" />
+                    <UInput v-model="paramsDraftValue" :placeholder="t('scheduledJobs.form.parameters.valuePlaceholder')" class="w-full" />
+                    <div class="flex justify-end gap-2 pt-1">
+                      <UButton size="xs" color="neutral" variant="ghost" @click="paramsPopoverIndex = null">{{ t('common.cancel') }}</UButton>
+                      <UButton size="xs" color="primary" @click="commitParamPopover">{{ t('common.save') }}</UButton>
+                    </div>
+                  </div>
+                </template>
+              </UPopover>
+              <UButton
+                color="error"
+                variant="ghost"
+                icon="i-lucide-trash-2"
+                size="xs"
+                :aria-label="t('common.delete')"
+                @click="params.removeRow(index)"
+              />
+            </div>
           </div>
-          <p v-if="params.pairs.value.length === 0" class="text-sm text-prohealth-400">{{ t('common.empty') }}</p>
-          <UButton v-if="canUpdate" color="primary" variant="outline" icon="i-lucide-plus" size="sm" @click="params.addRow()">
-            {{ t('scheduledJobs.form.parameters.addRow') }}
-          </UButton>
+          <UPopover
+            v-if="canUpdate"
+            :open="paramsPopoverIndex === 'new'"
+            @update:open="(v: boolean) => { if (!v) paramsPopoverIndex = null }"
+          >
+            <UButton color="primary" variant="outline" icon="i-lucide-plus" size="sm" class="mt-3" @click="openAddParamPopover">
+              {{ t('scheduledJobs.form.parameters.addRow') }}
+            </UButton>
+            <template #content>
+              <div class="p-3 space-y-2 w-64">
+                <UInput v-model="paramsDraftKey" :placeholder="t('scheduledJobs.form.parameters.keyPlaceholder')" class="w-full font-mono" />
+                <UInput v-model="paramsDraftValue" :placeholder="t('scheduledJobs.form.parameters.valuePlaceholder')" class="w-full" />
+                <div class="flex justify-end gap-2 pt-1">
+                  <UButton size="xs" color="neutral" variant="ghost" @click="paramsPopoverIndex = null">{{ t('common.cancel') }}</UButton>
+                  <UButton size="xs" color="primary" @click="commitParamPopover">{{ t('common.save') }}</UButton>
+                </div>
+              </div>
+            </template>
+          </UPopover>
         </div>
         <div v-else>
           <UTextarea v-model="params.json.value" :disabled="!canUpdate" :rows="6" class="w-full font-mono text-xs" />

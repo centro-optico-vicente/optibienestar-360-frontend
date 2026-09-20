@@ -26,17 +26,15 @@ const emit = defineEmits<{
 const { t, locale } = useI18n()
 const { formatDate } = useFormatters()
 
-function parseDatePart(iso: string): CalendarDate {
+function parseDatePart(iso: string | undefined): CalendarDate | undefined {
+  if (!iso) return undefined
   const [y, m, d] = (iso.split('T')[0] ?? '').split('-').map(Number)
-  if (!y || !m || !d) {
-    const today = new Date()
-    return new CalendarDate(today.getFullYear(), today.getMonth() + 1, today.getDate())
-  }
+  if (!y || !m || !d) return undefined
   return new CalendarDate(y, m, d)
 }
 
-function parseTimePart(iso: string): string {
-  return iso.split('T')[1]?.slice(0, 5) || '00:00'
+function parseTimePart(iso: string | undefined): string {
+  return iso?.split('T')[1]?.slice(0, 5) || '00:00'
 }
 
 const range = ref<{ start: LooseDateValue, end: LooseDateValue }>({
@@ -48,7 +46,8 @@ const endTime = ref(parseTimePart(props.modelValue.to))
 const open = ref(false)
 
 function todayCalendarDate(): CalendarDate {
-  return parseDatePart(todayInCaracas())
+  // todayInCaracas() always yields a well-formed yyyy-MM-dd, so this never falls back to undefined.
+  return parseDatePart(todayInCaracas())!
 }
 
 /** `startOfWeek`/`endOfWeek` need a locale to know the first day of week — Monday for `es-VE`. */
@@ -81,8 +80,12 @@ function applyShortcut(shortcut: Shortcut) {
   endTime.value = '23:59'
 }
 
+/** Truly empties the filter (no default shortcut applied) — distinct from picking "today". */
 function clearRange() {
-  applyShortcut(shortcuts[0]![0]!)
+  range.value = { start: undefined, end: undefined }
+  startTime.value = '00:00'
+  endTime.value = '23:59'
+  emit('update:modelValue', {})
 }
 
 function toIso(date: LooseDateValue, time: string): string | undefined {

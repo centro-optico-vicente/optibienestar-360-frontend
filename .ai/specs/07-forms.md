@@ -211,6 +211,28 @@ catch (e: any) {
 - **Confirmación destructiva:** modal antes de delete/cancel (no destructive con un click)
 - **Atajos teclado:** Enter submit, Esc cancel
 
+## Campos de solo lectura / deshabilitados
+
+Un campo `:disabled` por razón **estructural** (ej. `code`/`email` inmutable una vez creado el
+registro, no un estado transitorio de carga o permisos) debe verse visualmente distinto de un
+campo editable normal — el `disabled:opacity-75` por defecto de Nuxt UI es demasiado sutil para
+leerse a simple vista como "este campo está bloqueado".
+
+Convención: además de `:disabled`, pasar el override `READONLY_FIELD_UI` (de
+`app/utils/formFieldStyles.ts`, auto-importado) al prop `:ui`:
+
+```vue
+<UInput
+  v-model="state.code"
+  :disabled="mode === 'edit'"
+  :ui="mode === 'edit' ? READONLY_FIELD_UI : undefined"
+/>
+```
+
+Aplica a cualquier campo (`UInput`, `UTextarea`, `USelectMenu`, etc.) que se vuelva
+estructuralmente inmutable en modo edición — no solo a `code`. Ejemplos ya migrados:
+`ScheduledJobFormModal.vue` (`code`), `UserFormModal.vue` (`email`).
+
 ## Anti-patterns
 
 ❌ Calcular total/descuentos en frontend (backend lo hace)
