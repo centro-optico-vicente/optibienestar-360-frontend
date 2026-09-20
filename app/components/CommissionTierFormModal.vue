@@ -20,6 +20,7 @@ const props = defineProps<{
   tier?: CommissionTierDto | null
   /** Preset campaign when created from the campaign ficha's "Add rule" flow. */
   campaignUuid?: string | null
+  campaignDisplay?: string | null
 }>()
 
 const emit = defineEmits<{
@@ -63,14 +64,17 @@ const isOpen = computed({
   set: (v: boolean) => emit('update:open', v),
 })
 const mode = computed<'create' | 'edit'>(() => (props.tier ? 'edit' : 'create'))
+const campaignLocked = computed(() => mode.value === 'create' && !!props.campaignUuid)
 const canManage = computed(() => can(mode.value === 'edit' ? 'COMMISSION_TIER_UPDATE' : 'COMMISSION_TIER_CREATE'))
 const isSubmitting = ref(false)
+const ALL_PLANS_VALUE = '__ALL_PLANS__'
 // Save button lives in the modal's #footer slot, outside the <UForm> element,
 // so it can't use type="submit"; it triggers validation via this instead.
 const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 
 const planTypeOptions = computed(() => [
-  { label: t('commissionRules.tiers.allPlans'), value: '' },
+  // USelectMenu reserves an empty string for clearing the selection.
+  { label: t('commissionRules.tiers.allPlans'), value: ALL_PLANS_VALUE },
   ...PLAN_TYPE_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })),
 ])
 const periodOptions = computed(() => PERIOD_STRATEGY_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
@@ -83,7 +87,7 @@ const rewardKindOptions = computed(() => [
 interface FormState {
   name: string
   description: string
-  planType: string
+  planType: string | undefined
   thresholdCount: string
   rewardKind: 'PCT' | 'FLAT'
   commissionPct: string
@@ -98,7 +102,7 @@ interface FormState {
 const state = reactive<FormState>({
   name: '',
   description: '',
-  planType: '',
+  planType: ALL_PLANS_VALUE,
   thresholdCount: '0',
   rewardKind: 'PCT',
   commissionPct: '',
@@ -152,7 +156,7 @@ function populateFrom(tier: CommissionTierDto | null) {
   if (!tier) {
     state.name = ''
     state.description = ''
-    state.planType = ''
+    state.planType = ALL_PLANS_VALUE
     state.thresholdCount = '0'
     state.rewardKind = 'PCT'
     state.commissionPct = ''
@@ -169,7 +173,7 @@ function populateFrom(tier: CommissionTierDto | null) {
   }
   state.name = tier.name
   state.description = tier.description ?? ''
-  state.planType = tier.planType ?? ''
+  state.planType = tier.planType ?? ALL_PLANS_VALUE
   state.thresholdCount = String(tier.thresholdCount ?? 0)
   state.rewardKind = tier.flatAmount != null ? 'FLAT' : 'PCT'
   state.commissionPct = tier.commissionPct != null ? String(tier.commissionPct) : ''
@@ -208,7 +212,7 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
     const base = {
       name: state.name.trim(),
       description: state.description.trim() || null,
-      planType: state.planType || null,
+      planType: state.planType && state.planType !== ALL_PLANS_VALUE ? state.planType : null,
       thresholdCount: Number(state.thresholdCount),
       commissionPct: state.rewardKind === 'PCT' ? state.commissionPct.trim() : null,
       flatAmount: state.rewardKind === 'FLAT' ? state.flatAmount.trim() : null,
@@ -316,7 +320,11 @@ async function restoreTier() {
         </div>
 
         <UFormField :label="t('campaigns.form.campaign')" name="campaignUuid" :help="t('campaigns.form.campaignHelp')">
+          <UInput v-if="campaignLocked" :model-value="props.campaignDisplay || state.campaignUuid" disabled readonly icon="i-lucide-rocket" :ui="READONLY_FIELD_UI" class="w-full">
+            <template #trailing><UIcon name="i-lucide-lock-keyhole" class="text-prohealth-400" /></template>
+          </UInput>
           <CommonEntityReferenceSelect
+            v-else
             v-model="state.campaignUuid"
             :search="searchCampaigns"
             entity="campaign"

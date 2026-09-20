@@ -18,6 +18,7 @@
     "select": "Selecciona",
     "viewAll": "Ver todo",
     "empty": "Sin información",
+    "error": "Error",
     "viewMaster": "Ver registro",
     "currency": "Moneda",
     "noAccessToScreen": "No tienes permiso para ver esta pantalla",
@@ -2822,6 +2823,9 @@
     "form": {
       "createTitle": "Nueva campaña",
       "editTitle": "Editar campaña",
+      "createDescription": "Configura una campaña comercial y sus reglas de incentivo.",
+      "editDescription": "Actualiza la configuración y vigencia de la campaña.",
+      "relaunchDescription": "Crea una nueva campaña a partir de la configuración actual.",
       "name": "Nombre",
       "description": "Descripción",
       "startsAt": "Inicia",
@@ -2860,6 +2864,14 @@
       "sourceException": "Excepción",
       "relaunch": "Relanzar campaña",
       "generateReport": "Generar reporte",
+      "metrics": "Métricas",
+      "tabs": {
+        "general": "General",
+        "audience": "Audiencia",
+        "rules": "Reglas de comisión",
+        "transactions": "Transacciones",
+        "exceptions": "Excepciones"
+      },
       "seoPage": "Detalle de campaña",
       "notFoundTitle": "Campaña no encontrada",
       "notFoundBody": "La campaña que buscas no existe o fue eliminada.",
@@ -2887,7 +2899,7 @@
         "tier": "Banda de inscripción",
         "bonus": "Bono por escala",
         "collection": "Comisión de cobranza",
-        "override": "Override jerárquico"
+        "override": "Comisión jerárquica adicional"
       },
       "chooseRuleType": "Elige el tipo de regla a agregar",
       "rulesColumns": {
@@ -3085,6 +3097,8 @@
       "deleteConfirmDeactivate": "Este tramo está en uso ({count}) — se desactivará en lugar de eliminarse.",
       "columns": {
         "name": "Nombre",
+        "basis": "Base",
+        "bucket": "Límite",
         "maxDays": "Días máx.",
         "commissionPct": "Porcentaje"
       },
@@ -3092,9 +3106,19 @@
         "createTitle": "Nuevo tramo de cobranza",
         "editTitle": "Editar tramo de cobranza",
         "name": "Nombre",
+        "description": "Descripción",
+        "basis": "Criterio",
+        "basisDays": "Días de cobro",
+        "basisAmount": "Monto cobrado",
         "maxDays": "Días máximos",
         "maxDaysHelp": "Aplica cuando días de cobro <= este valor.",
+        "maxAmount": "Monto máximo",
         "commissionPct": "Porcentaje",
+        "flatAmount": "Monto fijo",
+        "flatAmountCurrency": "Moneda del monto fijo",
+        "campaign": "Campaña",
+        "startsAt": "Inicia",
+        "endsAt": "Finaliza",
         "submitCreate": "Crear tramo",
         "active": "Activo"
       }

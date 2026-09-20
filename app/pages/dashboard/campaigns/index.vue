@@ -22,6 +22,9 @@ useSeoMeta({ title: () => t('common.seoTitle', { page: t('nav.items.campaigns.la
 const canCreate = computed(() => can('CAMPAIGN_CREATE'))
 const canUpdate = computed(() => can('CAMPAIGN_UPDATE'))
 const canDelete = computed(() => can('CAMPAIGN_DELETE'))
+const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL'))
+const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL'))
+const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
 
 const campaignsApi = useCampaigns()
 
@@ -118,6 +121,12 @@ async function onSaved() { formOpen.value = false; await load() }
 const deleteOpen = ref(false)
 const deleting = ref(false)
 const target = ref<CampaignDto | null>(null)
+const auditOpen = ref(false)
+const auditTarget = ref<CampaignDto | null>(null)
+function openAudit(campaign: CampaignDto) {
+  auditTarget.value = campaign
+  auditOpen.value = true
+}
 
 function openDelete(c: CampaignDto) {
   target.value = c
@@ -153,6 +162,12 @@ onMounted(load)
       </div>
       <div class="flex items-center gap-2">
         <ListRefreshMenu :loading="loading" variant="ghost" @refresh="load" @reset="resetFilters" />
+        <ReportPrintButton
+          table-name="campaigns"
+          :search-query="search"
+          :include-inactive="includeInactive"
+          variant="ghost"
+        />
         <UButton v-if="canCreate" color="primary" variant="outline" icon="i-lucide-plus" @click="openCreate">
           {{ t('common.new') }}
         </UButton>
@@ -181,7 +196,8 @@ onMounted(load)
       </UButton>
     </div>
 
-    <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
+    <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-19rem)] min-h-[20rem]">
+      <div class="overflow-auto flex-1">
       <table class="w-full text-sm">
         <thead class="bg-prohealth-50/60">
           <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
@@ -213,6 +229,7 @@ onMounted(load)
             :key="c.uuid"
             class="hover:bg-prohealth-50/50"
             :class="{ 'opacity-60': !c.active }"
+            @dblclick="(e: MouseEvent) => { if (!(e.target as HTMLElement).closest('button, a')) navigateTo(`/dashboard/campaigns/${c.uuid}`) }"
           >
             <td class="px-5 py-3 font-medium text-prohealth-900">
               <NuxtLink :to="`/dashboard/campaigns/${c.uuid}`" class="hover:underline">{{ c.name }}</NuxtLink>
@@ -230,16 +247,21 @@ onMounted(load)
             <td class="px-5 py-3">
               <div class="flex items-center justify-end gap-1">
                 <UTooltip :text="t('campaigns.viewDetail')">
-                  <UButton color="neutral" variant="ghost" icon="i-lucide-file-search" size="sm" :to="`/dashboard/campaigns/${c.uuid}`" />
+                  <UButton color="neutral" variant="ghost" icon="i-lucide-eye" size="sm" :to="`/dashboard/campaigns/${c.uuid}`" />
                 </UTooltip>
                 <UButton v-if="canUpdate" color="info" variant="ghost" icon="i-lucide-pencil" size="sm" @click="openQuickEdit(c)" />
+                <ReportPrintButton table-name="campaigns" :record-uuid="c.uuid" icon-only variant="ghost" size="sm" />
+                <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
+                  <UButton color="neutral" variant="ghost" icon="i-lucide-history" size="sm" @click="openAudit(c)" />
+                </UTooltip>
                 <UButton v-if="canDelete" color="error" variant="ghost" icon="i-lucide-trash-2" size="sm" class="ms-2" @click="openDelete(c)" />
               </div>
             </td>
           </tr>
         </tbody>
       </table>
-      <div class="flex items-center flex-wrap justify-between gap-3 px-5 py-3 border-t border-prohealth-100 shrink-0">
+        </div>
+        <div class="flex items-center flex-wrap justify-between gap-3 px-5 py-3 border-t border-prohealth-100 shrink-0">
         <p class="text-xs text-prohealth-500">
           {{ t('campaigns.paginationSummary', { shown: items.length, total }) }}
         </p>
@@ -266,7 +288,7 @@ onMounted(load)
       </div>
     </div>
 
-    <CampaignFormModal v-model:open="formOpen" :campaign="editingCampaign" @saved="onSaved" />
+    <CampaignFormModal v-model:open="formOpen" :campaign="editingCampaign" @saved="onSaved" @delete="openDelete" />
 
     <UModal v-model:open="deleteOpen" :title="t('campaigns.deleteTitle')">
       <template #body>
@@ -279,5 +301,15 @@ onMounted(load)
         </div>
       </template>
     </UModal>
+
+    <AuditModal
+      v-if="auditTarget"
+      v-model:open="auditOpen"
+      entity-key="campaign"
+      :entity-uuid="auditTarget.uuid"
+      :entity-label="auditTarget.name"
+      :can-view-changes="canViewAuditChanges"
+      :can-view-reports="canViewAuditReports"
+    />
   </div>
 </template>

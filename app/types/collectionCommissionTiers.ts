@@ -10,14 +10,23 @@
 export interface CollectionCommissionTierDto {
   uuid: string
   name: string
+  description?: string | null
+  basis: 'DAYS' | 'AMOUNT'
   maxDays: number
+  maxAmount?: number | string | null
   commissionPct: number | string
+  flatAmount?: number | string | null
+  flatAmountCurrency_Uuid?: string | null
+  flatAmountCurrency_Display?: string | null
+  flatAmountCurrency_Code?: string | null
   promoterType_Uuid?: string | null
   promoterType_Display?: string | null
   promoterType_Code?: string | null
   /** Owning campaign when this tier is campaign-anchored; null for a standing (non-campaign) tier. */
   campaign_Uuid?: string | null
   campaign_Display?: string | null
+  startsAt?: string | null
+  endsAt?: string | null
   active: boolean
   status?: string
   createdAt?: string
@@ -26,11 +35,17 @@ export interface CollectionCommissionTierDto {
 
 export interface CreateCollectionCommissionTierRequest {
   name: string
-  maxDays: number
-  commissionPct: string
+  description?: string | null
+  basis: 'DAYS' | 'AMOUNT'
+  maxDays?: number | null
+  maxAmount?: string | null
+  commissionPct?: string | null
+  flatAmount?: string | null
+  flatAmountCurrencyUuid?: string | null
   promoterTypeUuid?: string | null
-  /** Sets the owning campaign when created from the campaign ficha's "Add rule" flow. Not yet a real backend field — CollectionCommissionTier has no campaign_id column at all (see report) — sent as a harmless no-op. */
   campaignUuid?: string | null
+  startsAt?: string | null
+  endsAt?: string | null
 }
 
 /** PUT with PATCH semantics: only the fields present are applied. */

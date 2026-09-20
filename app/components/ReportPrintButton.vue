@@ -78,6 +78,8 @@ const requiredPermission = computed<Permission>(() => {
     referral: 'REFERRAL_REPORT_GENERATE',
     scheduledjobs: 'JOB_REPORT_GENERATE',
     scheduledjob: 'JOB_REPORT_GENERATE',
+    campaigns: 'CAMPAIGN_REPORT_GENERATE',
+    campaign: 'CAMPAIGN_REPORT_GENERATE',
   }
   return map[table] || 'REPORT_REPORT_GENERATE'
 })
@@ -163,4 +165,3 @@ const defaultLabel = computed(() => {
     </div>
   </template>
 </template>
-
