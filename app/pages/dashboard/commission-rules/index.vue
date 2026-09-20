@@ -761,30 +761,30 @@ onMounted(() => {
             </tr>
           </tbody>
         </table>
-      </div>
-      <div class="flex items-center flex-wrap justify-between gap-3 px-5 py-3 border-t border-prohealth-100 shrink-0">
-        <p class="text-xs text-prohealth-500">
-          {{ t('commissionRules.tiers.paginationSummary', { shown: tierData.length, total: tierTotal }) }}
-        </p>
-        <div class="flex items-center gap-3">
-          <UPagination
-            v-if="tierSize !== UNPAGED_PAGE_SIZE"
-            v-model:page="tierPage"
-            :total="tierTotal"
-            :items-per-page="tierSize"
-          />
-          <UTooltip :text="$t('catalogs.pageSizeLabel')">
-            <USelectMenu
-              v-model="tierSize"
-              :items="pageSizeItems"
-              label-key="label"
-              value-key="value"
-              icon="i-lucide-list"
-              :search-input="false"
-              :aria-label="$t('catalogs.pageSizeLabel')"
-              class="w-40"
+        <div class="flex items-center flex-wrap justify-between gap-3 px-5 py-3 border-t border-prohealth-100 shrink-0">
+          <p class="text-xs text-prohealth-500">
+            {{ t('commissionRules.tiers.paginationSummary', { shown: tierData.length, total: tierTotal }) }}
+          </p>
+          <div class="flex items-center gap-3">
+            <UPagination
+              v-if="tierSize !== UNPAGED_PAGE_SIZE"
+              v-model:page="tierPage"
+              :total="tierTotal"
+              :items-per-page="tierSize"
             />
-          </UTooltip>
+            <UTooltip :text="$t('catalogs.pageSizeLabel')">
+              <USelectMenu
+                v-model="tierSize"
+                :items="pageSizeItems"
+                label-key="label"
+                value-key="value"
+                icon="i-lucide-list"
+                :search-input="false"
+                :aria-label="$t('catalogs.pageSizeLabel')"
+                class="w-40"
+              />
+            </UTooltip>
+          </div>
         </div>
       </div>
     </div>
@@ -892,30 +892,30 @@ onMounted(() => {
             </tr>
           </tbody>
         </table>
-      </div>
-      <div class="flex items-center flex-wrap justify-between gap-3 px-5 py-3 border-t border-prohealth-100 shrink-0">
-        <p class="text-xs text-prohealth-500">
-          {{ t('commissionRules.bonusRules.paginationSummary', { shown: bonusData.length, total: bonusTotal }) }}
-        </p>
-        <div class="flex items-center gap-3">
-          <UPagination
-            v-if="bonusSize !== UNPAGED_PAGE_SIZE"
-            v-model:page="bonusPage"
-            :total="bonusTotal"
-            :items-per-page="bonusSize"
-          />
-          <UTooltip :text="$t('catalogs.pageSizeLabel')">
-            <USelectMenu
-              v-model="bonusSize"
-              :items="pageSizeItems"
-              label-key="label"
-              value-key="value"
-              icon="i-lucide-list"
-              :search-input="false"
-              :aria-label="$t('catalogs.pageSizeLabel')"
-              class="w-40"
+        <div class="flex items-center flex-wrap justify-between gap-3 px-5 py-3 border-t border-prohealth-100 shrink-0">
+          <p class="text-xs text-prohealth-500">
+            {{ t('commissionRules.bonusRules.paginationSummary', { shown: bonusData.length, total: bonusTotal }) }}
+          </p>
+          <div class="flex items-center gap-3">
+            <UPagination
+              v-if="bonusSize !== UNPAGED_PAGE_SIZE"
+              v-model:page="bonusPage"
+              :total="bonusTotal"
+              :items-per-page="bonusSize"
             />
-          </UTooltip>
+            <UTooltip :text="$t('catalogs.pageSizeLabel')">
+              <USelectMenu
+                v-model="bonusSize"
+                :items="pageSizeItems"
+                label-key="label"
+                value-key="value"
+                icon="i-lucide-list"
+                :search-input="false"
+                :aria-label="$t('catalogs.pageSizeLabel')"
+                class="w-40"
+              />
+            </UTooltip>
+          </div>
         </div>
       </div>
     </div>
@@ -1011,30 +1011,30 @@ onMounted(() => {
             </tr>
           </tbody>
         </table>
-      </div>
-      <div class="flex items-center flex-wrap justify-between gap-3 px-5 py-3 border-t border-prohealth-100 shrink-0">
-        <p class="text-xs text-prohealth-500">
-          {{ t('commissionRules.collectionTiers.paginationSummary', { shown: collectionData.length, total: collectionTotal }) }}
-        </p>
-        <div class="flex items-center gap-3">
-          <UPagination
-            v-if="collectionSize !== UNPAGED_PAGE_SIZE"
-            v-model:page="collectionPage"
-            :total="collectionTotal"
-            :items-per-page="collectionSize"
-          />
-          <UTooltip :text="$t('catalogs.pageSizeLabel')">
-            <USelectMenu
-              v-model="collectionSize"
-              :items="pageSizeItems"
-              label-key="label"
-              value-key="value"
-              icon="i-lucide-list"
-              :search-input="false"
-              :aria-label="$t('catalogs.pageSizeLabel')"
-              class="w-40"
+        <div class="flex items-center flex-wrap justify-between gap-3 px-5 py-3 border-t border-prohealth-100 shrink-0">
+          <p class="text-xs text-prohealth-500">
+            {{ t('commissionRules.collectionTiers.paginationSummary', { shown: collectionData.length, total: collectionTotal }) }}
+          </p>
+          <div class="flex items-center gap-3">
+            <UPagination
+              v-if="collectionSize !== UNPAGED_PAGE_SIZE"
+              v-model:page="collectionPage"
+              :total="collectionTotal"
+              :items-per-page="collectionSize"
             />
-          </UTooltip>
+            <UTooltip :text="$t('catalogs.pageSizeLabel')">
+              <USelectMenu
+                v-model="collectionSize"
+                :items="pageSizeItems"
+                label-key="label"
+                value-key="value"
+                icon="i-lucide-list"
+                :search-input="false"
+                :aria-label="$t('catalogs.pageSizeLabel')"
+                class="w-40"
+              />
+            </UTooltip>
+          </div>
         </div>
       </div>
     </div>
@@ -1148,30 +1148,30 @@ onMounted(() => {
             </tr>
           </tbody>
         </table>
-      </div>
-      <div class="flex items-center flex-wrap justify-between gap-3 px-5 py-3 border-t border-prohealth-100 shrink-0">
-        <p class="text-xs text-prohealth-500">
-          {{ t('hierarchyOverrideTiers.paginationSummary', { shown: overrideData.length, total: overrideTotal }) }}
-        </p>
-        <div class="flex items-center gap-3">
-          <UPagination
-            v-if="overrideSize !== UNPAGED_PAGE_SIZE"
-            v-model:page="overridePage"
-            :total="overrideTotal"
-            :items-per-page="overrideSize"
-          />
-          <UTooltip :text="$t('catalogs.pageSizeLabel')">
-            <USelectMenu
-              v-model="overrideSize"
-              :items="pageSizeItems"
-              label-key="label"
-              value-key="value"
-              icon="i-lucide-list"
-              :search-input="false"
-              :aria-label="$t('catalogs.pageSizeLabel')"
-              class="w-40"
+        <div class="flex items-center flex-wrap justify-between gap-3 px-5 py-3 border-t border-prohealth-100 shrink-0">
+          <p class="text-xs text-prohealth-500">
+            {{ t('hierarchyOverrideTiers.paginationSummary', { shown: overrideData.length, total: overrideTotal }) }}
+          </p>
+          <div class="flex items-center gap-3">
+            <UPagination
+              v-if="overrideSize !== UNPAGED_PAGE_SIZE"
+              v-model:page="overridePage"
+              :total="overrideTotal"
+              :items-per-page="overrideSize"
             />
-          </UTooltip>
+            <UTooltip :text="$t('catalogs.pageSizeLabel')">
+              <USelectMenu
+                v-model="overrideSize"
+                :items="pageSizeItems"
+                label-key="label"
+                value-key="value"
+                icon="i-lucide-list"
+                :search-input="false"
+                :aria-label="$t('catalogs.pageSizeLabel')"
+                class="w-40"
+              />
+            </UTooltip>
+          </div>
         </div>
       </div>
     </div>
