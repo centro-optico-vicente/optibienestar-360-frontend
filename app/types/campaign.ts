@@ -44,6 +44,8 @@ export interface CampaignDto {
   promoterUuids?: string[] | null
   createdAt?: string
   updatedAt?: string
+  /** Client-only: populated locally after fetching the audience list, not returned by the backend. */
+  audienceCount?: number
 }
 
 /** Shared create/update body — CampaignRequest (PUT is full-replace, not PATCH). */
