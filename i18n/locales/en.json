@@ -2973,7 +2973,8 @@
     "filters": {
       "allPromoterTypes": "All promoter types",
       "allPlanTypes": "All plans",
-      "allAppliesTo": "All"
+      "allAppliesTo": "All",
+      "campaignOnly": "Campaign rules only"
     },
     "tiers": {
       "new": "New band",
@@ -2998,7 +2999,8 @@
         "planType": "Plan",
         "threshold": "Threshold",
         "reward": "Reward",
-        "appliesTo": "Applies to"
+        "appliesTo": "Applies to",
+        "campaign": "Campaign"
       },
       "form": {
         "createTitle": "New commission band",
@@ -3015,7 +3017,9 @@
         "commissionPct": "Percentage",
         "flatAmount": "Flat amount",
         "submitCreate": "Create band",
-        "active": "Active"
+        "active": "Active",
+        "startsAt": "Starts",
+        "endsAt": "Ends"
       }
     },
     "bonusRules": {
@@ -3034,7 +3038,8 @@
         "accrual": "Accrual",
         "threshold": "Threshold",
         "window": "Window",
-        "reward": "Reward"
+        "reward": "Reward",
+        "campaign": "Campaign"
       },
       "form": {
         "createTitle": "New bonus rule",
@@ -3045,13 +3050,15 @@
         "accrual": "Accrual",
         "thresholdCount": "Threshold",
         "windowStrategy": "Window",
-        "campaignStart": "Campaign start",
-        "campaignEnd": "Campaign end",
+        "campaignStart": "Campaign start (fixed window)",
+        "campaignEnd": "Campaign end (fixed window)",
         "rewardType": "Reward type",
         "flatAmount": "Flat amount",
         "rewardPct": "Percentage",
         "includeSystemPromoters": "Include system promoters",
-        "submitCreate": "Create rule"
+        "submitCreate": "Create rule",
+        "startsAt": "Starts",
+        "endsAt": "Ends"
       }
     },
     "collectionTiers": {
@@ -3111,7 +3118,8 @@
       "rank": "Rank",
       "category": "Category",
       "threshold": "Threshold",
-      "reward": "Reward"
+      "reward": "Reward",
+      "campaign": "Campaign"
     },
     "form": {
       "createTitle": "New additional hierarchy commission band",
@@ -3127,7 +3135,9 @@
       "overridePct": "Override percentage",
       "flatAmount": "Flat amount",
       "flatAmountCurrency": "Flat amount currency",
-      "active": "Active"
+      "active": "Active",
+      "startsAt": "Starts",
+      "endsAt": "Ends"
     }
   },
   "reports": {

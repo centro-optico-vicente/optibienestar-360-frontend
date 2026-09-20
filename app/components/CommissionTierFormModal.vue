@@ -10,6 +10,7 @@ import type {
 } from '~/types/commissionTiers'
 import { APPLIES_TO_OPTIONS, PERIOD_STRATEGY_OPTIONS } from '~/types/commissionTiers'
 import { PLAN_TYPE_OPTIONS } from '~/types/plans'
+import type { SelectItem } from '~/types/options'
 
 // Create/edit form for a commission tier (bandas de inscripción, ADR 0013 §1).
 // Exactly one of commissionPct / flatAmount is set — the "reward" select below
@@ -17,7 +18,7 @@ import { PLAN_TYPE_OPTIONS } from '~/types/plans'
 const props = defineProps<{
   open: boolean
   tier?: CommissionTierDto | null
-  /** Preset campaign_id when created from the campaign ficha's "Add rule" flow. Not yet a real backend field on this create/update request (see report); harmless no-op until the backend adds it. */
+  /** Preset campaign when created from the campaign ficha's "Add rule" flow. */
   campaignUuid?: string | null
 }>()
 
@@ -29,8 +30,33 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const tiers = useCommissionTiers()
+const campaignsApi = useCampaigns()
 const toast = useToast()
 const { can } = usePermissions()
+
+// ---- Campaign selector (async search) + date autofill ----
+async function searchCampaigns(q: string): Promise<SelectItem[]> {
+  const res = await campaignsApi.list({ q, size: 20 })
+  return (res.content ?? []).map(c => ({ label: c.name, value: c.uuid }))
+}
+function goToCampaign(to: string) {
+  isOpen.value = false
+  navigateTo(to)
+}
+function isoToDatetimeLocal(iso: string): string {
+  if (!iso) return ''
+  const d = new Date(iso)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+function datetimeLocalToIso(value: string): string | undefined {
+  if (!value) return undefined
+  const d = new Date(value)
+  return Number.isNaN(d.getTime()) ? undefined : d.toISOString()
+}
+// Guards the campaign-select watcher during populateFrom so it doesn't
+// overwrite the tier's own snapshot dates when the modal opens.
+const suppressCampaignAutofill = ref(false)
 
 const isOpen = computed({
   get: () => props.open,
@@ -64,6 +90,9 @@ interface FormState {
   flatAmount: string
   periodStrategy: PeriodStrategy | undefined
   appliesTo: AppliesTo | undefined
+  campaignUuid: string
+  startsAt: string
+  endsAt: string
 }
 
 const state = reactive<FormState>({
@@ -76,6 +105,22 @@ const state = reactive<FormState>({
   flatAmount: '',
   periodStrategy: 'MONTHLY',
   appliesTo: 'BOTH',
+  campaignUuid: '',
+  startsAt: '',
+  endsAt: '',
+})
+
+// Selecting a campaign defaults startsAt/endsAt from it (still overridable);
+// clearing the campaign does NOT clear already-set dates (ADR: rules snapshot
+// their own window).
+watch(() => state.campaignUuid, async (uuid) => {
+  if (suppressCampaignAutofill.value || !uuid) return
+  try {
+    const campaign = await campaignsApi.get(uuid)
+    state.startsAt = isoToDatetimeLocal(campaign.startsAt)
+    state.endsAt = isoToDatetimeLocal(campaign.endsAt)
+  }
+  catch { /* useApi already notified */ }
 })
 // Kept outside `state` (a string-only form-state map) so the boolean isn't coerced.
 const isActive = ref(true)
@@ -103,6 +148,7 @@ const discardConfirmOpen = ref(false)
 const reloading = ref(false)
 
 function populateFrom(tier: CommissionTierDto | null) {
+  suppressCampaignAutofill.value = true
   if (!tier) {
     state.name = ''
     state.description = ''
@@ -113,8 +159,12 @@ function populateFrom(tier: CommissionTierDto | null) {
     state.flatAmount = ''
     state.periodStrategy = 'MONTHLY'
     state.appliesTo = 'BOTH'
+    state.campaignUuid = props.campaignUuid ?? ''
+    state.startsAt = ''
+    state.endsAt = ''
     isActive.value = true
     editSnapshot.value = ''
+    nextTick(() => { suppressCampaignAutofill.value = false })
     return
   }
   state.name = tier.name
@@ -126,8 +176,12 @@ function populateFrom(tier: CommissionTierDto | null) {
   state.flatAmount = tier.flatAmount != null ? String(tier.flatAmount) : ''
   state.periodStrategy = tier.periodStrategy
   state.appliesTo = tier.appliesTo
+  state.campaignUuid = tier.campaign?.uuid ?? ''
+  state.startsAt = tier.startsAt ? isoToDatetimeLocal(tier.startsAt) : ''
+  state.endsAt = tier.endsAt ? isoToDatetimeLocal(tier.endsAt) : ''
   isActive.value = tier.active ?? true
   editSnapshot.value = snapEditState()
+  nextTick(() => { suppressCampaignAutofill.value = false })
 }
 
 watch(() => props.open, (open) => { if (open) populateFrom(props.tier ?? null) })
@@ -160,10 +214,13 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
       flatAmount: state.rewardKind === 'FLAT' ? state.flatAmount.trim() : null,
       periodStrategy: state.periodStrategy!,
       appliesTo: state.appliesTo!,
+      campaignUuid: state.campaignUuid || null,
+      startsAt: datetimeLocalToIso(state.startsAt) ?? null,
+      endsAt: datetimeLocalToIso(state.endsAt) ?? null,
     }
     let result: CommissionTierDto
     if (mode.value === 'create') {
-      result = await tiers.create({ ...base, campaignUuid: props.campaignUuid ?? null } as CreateCommissionTierRequest)
+      result = await tiers.create(base as CreateCommissionTierRequest)
       toast.add({ title: t('commissionRules.tiers.createdToast'), color: 'success', icon: 'i-lucide-check-circle' })
     }
     else {
@@ -255,6 +312,27 @@ async function restoreTier() {
             <UInput v-model="state.flatAmount" placeholder="5.00" class="w-full">
               <template #leading><span class="text-prohealth-400 text-sm">$</span></template>
             </UInput>
+          </UFormField>
+        </div>
+
+        <UFormField :label="t('campaigns.form.campaign')" name="campaignUuid" :help="t('campaigns.form.campaignHelp')">
+          <CommonEntityReferenceSelect
+            v-model="state.campaignUuid"
+            :search="searchCampaigns"
+            entity="campaign"
+            :placeholder="t('common.select')"
+            :search-placeholder="t('campaigns.searchPlaceholder')"
+            icon="i-lucide-rocket"
+            @navigate="goToCampaign"
+          />
+        </UFormField>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <UFormField :label="t('commissionRules.tiers.form.startsAt')" name="startsAt">
+            <UInput v-model="state.startsAt" type="datetime-local" class="w-full" />
+          </UFormField>
+          <UFormField :label="t('commissionRules.tiers.form.endsAt')" name="endsAt">
+            <UInput v-model="state.endsAt" type="datetime-local" class="w-full" />
           </UFormField>
         </div>
 

@@ -5,6 +5,8 @@
 // window (ADR 0013 §2) — additive to the per-payment commissions. PUT is a full
 // replace (BonusRuleRequest is used for both create and update).
 
+import type { CatalogRef } from './members'
+
 export type BonusMetric = 'NEW_SUBSCRIBERS' | 'ACTIVE_SUBSCRIBERS'
 export type AccrualMode = 'PER_BLOCK' | 'THRESHOLD'
 export type WindowStrategy = 'LIFETIME' | 'DAILY' | 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'SEMIANNUAL' | 'ANNUAL' | 'CAMPAIGN'
@@ -45,6 +47,7 @@ export interface BonusRuleDto {
   accrual: AccrualMode
   thresholdCount: number
   windowStrategy: WindowStrategy
+  /** Legacy WindowStrategy.CAMPAIGN fixed range — a DIFFERENT, older mechanism than the campaign/startsAt/endsAt anchor below. Do not conflate. */
   campaignStart?: string | null
   campaignEnd?: string | null
   rewardType: RewardType
@@ -55,6 +58,11 @@ export interface BonusRuleDto {
   promoterType_Uuid?: string | null
   promoterType_Display?: string | null
   promoterType_Code?: string | null
+  /** Owning campaign when this rule is campaign-anchored; null for a standing (non-campaign) rule. */
+  campaign: CatalogRef | null
+  /** Rule's own effective window — snapshotted from the campaign at creation but independently editable. */
+  startsAt: string | null
+  endsAt: string | null
   active: boolean
   createdAt?: string
 }
@@ -75,6 +83,9 @@ export interface BonusRuleRequest {
   rewardCurrency?: string
   includeSystemPromoters?: boolean
   promoterTypeUuid?: string | null
-  /** Sets the owning campaign when created from the campaign ficha's "Add rule" flow. Not yet a real backend field on BonusRuleRequest — the entity has a campaign_id column but BonusRuleDto/BonusRuleRequest don't expose it yet (see report) — sent as a harmless no-op. */
+  /** Sets the owning campaign, e.g. when created from the campaign ficha's "Add rule" flow. Omit/null = standing (non-campaign) rule. Distinct from the legacy campaignStart/campaignEnd (WindowStrategy.CAMPAIGN) above. */
   campaignUuid?: string | null
+  /** Rule's own effective window — defaults from the selected campaign's dates but stays independently editable. */
+  startsAt?: string | null
+  endsAt?: string | null
 }

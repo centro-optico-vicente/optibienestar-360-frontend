@@ -8,6 +8,7 @@
 // Exactly one of overridePct / flatAmount is set. PUT uses PATCH semantics.
 
 import type { PeriodStrategy } from './commissionTiers'
+import type { CatalogRef } from './members'
 
 export type OverrideCategory = 'INSCRIPTION' | 'COLLECTION'
 
@@ -30,6 +31,11 @@ export interface HierarchyOverrideTierDto {
   flatAmountCurrency_Display?: string | null
   flatAmountCurrency_Code?: string | null
   periodStrategy: PeriodStrategy
+  /** Owning campaign when this tier is campaign-anchored; null for a standing (non-campaign) rule. */
+  campaign: CatalogRef | null
+  /** Rule's own effective window — snapshotted from the campaign at creation but independently editable. */
+  startsAt: string | null
+  endsAt: string | null
   active: boolean
   status?: string
   createdAt?: string
@@ -46,8 +52,11 @@ export interface CreateHierarchyOverrideTierRequest {
   flatAmount?: string | null
   flatAmountCurrencyUuid?: string | null
   periodStrategy: PeriodStrategy
-  /** Sets the owning campaign when created from the campaign ficha's "Add rule" flow. Not yet a real backend field on HierarchyOverrideTierCreateRequest (see report) — sent as a harmless no-op until the backend wires campaignUuid/startsAt/endsAt into the DTO. */
+  /** Sets the owning campaign, e.g. when created from the campaign ficha's "Add rule" flow. Omit/null = standing (non-campaign) rule. */
   campaignUuid?: string | null
+  /** Rule's own effective window — defaults from the selected campaign's dates but stays independently editable. */
+  startsAt?: string | null
+  endsAt?: string | null
 }
 
 /** PUT with PATCH semantics: only the fields present are applied. */
