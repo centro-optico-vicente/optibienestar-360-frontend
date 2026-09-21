@@ -143,7 +143,7 @@ async function confirmDelete() {
               <td class="px-5 py-3 text-prohealth-800">{{ p.member_Display ?? t('common.empty') }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ p.plan_Display ?? t('common.empty') }}</td>
               <td class="px-5 py-3 font-medium text-prohealth-900">{{ p.amount_Display ?? p.amount }}</td>
-              <td class="px-5 py-3 text-prohealth-600">{{ p.paymentDate_Display ?? formatDate(p.paymentDate, 'short') }}</td>
+              <td class="px-5 py-3 text-prohealth-600">{{ p.paymentDate_Display ?? formatDate(p.paymentDate, 'datetime') }}</td>
               <td class="px-5 py-3">
                 <UBadge :color="paymentStatusColor(p.status)" variant="subtle" size="sm">
                   {{ p.status_Display ?? statusLabel(p.status) }}

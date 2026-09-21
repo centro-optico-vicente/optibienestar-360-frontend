@@ -36,7 +36,7 @@ const ENTITY_ROUTES: Partial<Record<AuditEntityKey, { path: (uuid: string) => st
   plan: { path: uuid => `/dashboard/plans/${uuid}`, permission: 'PLAN_VIEW_ALL' },
   ally: { path: uuid => `/dashboard/allies/${uuid}`, permission: 'ALLY_VIEW_ALL' },
   member: { path: uuid => `/dashboard/members/${uuid}`, permission: 'MEMBER_VIEW_ALL' },
-  payment: { path: uuid => `/dashboard/payments/${uuid}`, permission: 'PAYMENT_VIEW_ALL' },
+  payment: { path: uuid => `/dashboard/collections/${uuid}`, permission: 'PAYMENT_VIEW_ALL' },
   promoter: { path: uuid => `/dashboard/promoters/${uuid}`, permission: 'PROMOTER_VIEW_ALL' },
   scheduled_job: { path: uuid => `/dashboard/scheduled-jobs/${uuid}`, permission: 'JOB_VIEW_ALL' },
 }

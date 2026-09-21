@@ -29,16 +29,16 @@ export const PAYMENT_METHOD_OPTIONS: { label: string, value: PaymentMethod, labe
   { label: 'Otro', value: 'OTHER', labelKey: 'payments.methods.OTHER' },
 ]
 
-// ---- Payment currency (ADR 0015 — the only two currencies actually in play:
-// VES per ADR 0010, USD per ADR 0008; the full currency master supports more,
-// but a payment is always received in one of these two) ----
-export const PAYMENT_CURRENCY_OPTIONS: { label: string, value: string }[] = [
-  { label: 'USD', value: 'USD' },
-  { label: 'VES', value: 'VES' },
+
+// ---- Bank account type (payment_lines.bank_account_type, free VARCHAR(40) —
+// restricted here to the two types actually used in Venezuela banking) ----
+export const BANK_ACCOUNT_TYPE_OPTIONS: { label: string, value: string }[] = [
+  { label: 'Corriente', value: 'CORRIENTE' },
+  { label: 'Ahorro', value: 'AHORRO' },
 ]
 
 // ---- Review status (PENDING/APPROVED/REJECTED) ----
-export type PaymentStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
+export type PaymentStatus = 'DRAFT' | 'PENDING' | 'APPROVED' | 'REJECTED'
 
 // `label` is the Spanish fallback; `labelKey` resolves to i18n at the usage point.
 export const PAYMENT_STATUS_OPTIONS: { label: string, value: PaymentStatus, labelKey: string }[] = [
@@ -50,6 +50,7 @@ export const PAYMENT_STATUS_OPTIONS: { label: string, value: PaymentStatus, labe
 /** Status badge color (Nuxt UI palette). */
 export function paymentStatusColor(value?: string | null): 'warning' | 'success' | 'error' | 'neutral' {
   switch (value) {
+    case 'DRAFT':
     case 'PENDING': return 'warning'
     case 'APPROVED': return 'success'
     case 'REJECTED': return 'error'
@@ -110,6 +111,9 @@ export interface PaymentDto {
   // Method + reference
   paymentMethod: PaymentMethod | string
   paymentMethod_Display?: string | null
+  /** FK pair (hub ADR 0014) — only populated when the method's `mandatoryBank` is true. */
+  bank_Uuid?: string | null
+  bank_Display?: string | null
   referenceNumber?: string | null
   // Dates
   paymentDate: string
@@ -148,13 +152,27 @@ export interface PaymentDto {
  * Body (JSON part `payment`) of POST /v1/admin/payments (multipart/form-data).
  * The proof travels apart as the `support` part (optional file).
  * `amount` as string to avoid precision loss (BigDecimal accepts string).
+ *
+ * Method-detail fields (bank/identification/account/phone/email) mirror
+ * {@link OutPaymentCreateRequest} — same `payment-methods` catalog (UUID +
+ * `mandatory*` flags) and the same `banks` catalog, shared between IN and OUT
+ * at the backend's `payment_lines` table.
  */
 export interface PaymentCreateRequest {
   membershipUuid: string
   amount: string
   /** ISO 4217 (3 letters). Defaults to USD in the backend when omitted. */
   currency?: string
-  paymentMethod: PaymentMethod
+  paymentMethodUuid: string
+  /** Required only when the selected method's `mandatoryBank` flag is set. */
+  bankUuid?: string
+  identification?: string
+  bankAccountType?: string
+  bankAccountCode?: string
+  /** Required only when the selected method's `mandatoryBankAccount` flag is set. */
+  bankAccountIdentifier?: string
+  phone?: string
+  email?: string
   referenceNumber?: string
   /** ISO date (yyyy-MM-dd). Must not be in the future. */
   paymentDate: string
@@ -167,6 +185,27 @@ export interface PaymentCreateRequest {
   adminNotes?: string
 }
 
+export interface OutPaymentCreateRequest {
+  paymentCategoryUuid: string
+  promoterUuid: string
+  personUuid: string
+  amount: string
+  currency?: string
+  paymentMethodUuid: string
+  bankUuid?: string
+  identification?: string
+  bankAccountType?: string
+  bankAccountCode?: string
+  bankAccountIdentifier?: string
+  phone?: string
+  email?: string
+  referenceNumber?: string
+  paymentDate: string
+  adminNotes?: string
+}
+
+export type OutPaymentUpdateRequest = OutPaymentCreateRequest
+
 /**
  * Body of POST /v1/me/payments (multipart `payment` part). Same shape as
  * {@link PaymentCreateRequest} minus `membershipUuid`/`payerUserUuid` — the
@@ -176,7 +215,16 @@ export interface PaymentCreateRequest {
 export interface MyPaymentCreateRequest {
   amount: string
   currency?: string
-  paymentMethod: PaymentMethod
+  paymentMethodUuid: string
+  /** Required only when the selected method's `mandatoryBank` flag is set. */
+  bankUuid?: string
+  identification?: string
+  bankAccountType?: string
+  bankAccountCode?: string
+  /** Required only when the selected method's `mandatoryBankAccount` flag is set. */
+  bankAccountIdentifier?: string
+  phone?: string
+  email?: string
   referenceNumber?: string
   paymentDate: string
   inscription?: boolean

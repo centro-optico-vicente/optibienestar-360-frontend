@@ -148,11 +148,11 @@ export const MAIN_NAV: NavEntry[] = [
       { label: 'Categorías de pago', labelKey: 'nav.items.paymentCategories.label', to: '/dashboard/catalogs/payment-categories', icon: 'i-lucide-tags', description: 'Motivos de cobro y pago (cuota, comisión, bono, etc.).', descriptionKey: 'nav.items.paymentCategories.description', requires: 'PAYMENT_CATEGORY_VIEW_ALL' },
       { label: 'Métodos de pago', labelKey: 'nav.items.paymentMethods.label', to: '/dashboard/catalogs/payment-methods', icon: 'i-lucide-credit-card', description: 'Formas de pago: efectivo, transferencia, Zelle, etc.', descriptionKey: 'nav.items.paymentMethods.description', requires: 'PAYMENT_METHOD_VIEW_ALL' },
       { label: 'Movimientos', labelKey: 'nav.items.paymentsMovements.label', to: '/dashboard/payments/movements', icon: 'i-lucide-arrow-left-right', description: 'Vista maestra de cobros y pagos, ambas direcciones.', descriptionKey: 'nav.items.paymentsMovements.description', requires: 'PAYMENT_VIEW_ALL' },
-      { label: 'Cobros', labelKey: 'nav.items.payments.label', to: '/dashboard/payments', icon: 'i-lucide-credit-card', description: 'Registro y aprobación de cobros de membresía.', descriptionKey: 'nav.items.payments.description', requires: 'PAYMENT_VIEW_ALL' },
+      { label: 'Cobros', labelKey: 'nav.items.payments.label', to: '/dashboard/collections', icon: 'i-lucide-credit-card', description: 'Registro y aprobación de cobros de membresía.', descriptionKey: 'nav.items.payments.description', requires: 'PAYMENT_VIEW_ALL' },
       // direction=OUT — commission payouts (CommissionPayoutService). Read-only
       // ledger, no create/approve here (those happen via the commission
       // period-close action).
-      { label: 'Pagos', labelKey: 'nav.items.paymentsPayouts.label', to: '/dashboard/payments/payouts', icon: 'i-lucide-banknote', description: 'Pagos de comisión ejecutados a promotores.', descriptionKey: 'nav.items.paymentsPayouts.description', requires: 'PAYMENT_VIEW_ALL' },
+      { label: 'Pagos', labelKey: 'nav.items.paymentsPayouts.label', to: '/dashboard/payments', icon: 'i-lucide-banknote', description: 'Pagos de comisión ejecutados a promotores.', descriptionKey: 'nav.items.paymentsPayouts.description', requires: 'PAYMENT_VIEW_ALL' },
       { label: 'Reporte general de pagos y cobros', labelKey: 'nav.items.paymentsMovementsReport.label', to: '/dashboard/payments/movements-report', icon: 'i-lucide-arrow-left-right', description: 'Reporte Jasper consolidado de cobros y pagos en ambas direcciones.', descriptionKey: 'nav.items.paymentsMovementsReport.description', requires: ['PAYMENT_REPORT_GENERATE', 'REPORT_REPORT_GENERATE', 'PAYMENT_VIEW_ALL'] },
     ],
   },

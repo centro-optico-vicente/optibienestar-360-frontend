@@ -383,7 +383,12 @@ export const CATALOGS: CatalogDef[] = [
     fields: [
       { name: 'code', label: 'Código', labelKey: 'catalogs.fields.code', type: 'text', required: true, onlyCreate: true, regex: CODE_40, regexMsg: codeMsg(40), regexMsgKey: 'catalogs.validation.codeMax', max: 40, placeholder: 'BANK_TRANSFER' },
       { name: 'name', label: 'Nombre', labelKey: 'catalogs.fields.name', type: 'text', required: true, max: 80 },
+      { name: 'description', label: 'Descripción', labelKey: 'catalogs.fields.description', type: 'textarea', max: 255 },
       { name: 'mandatoryBankAccount', label: 'Exige cuenta bancaria', labelKey: 'catalogs.fields.mandatoryBankAccount', type: 'checkbox' },
+      { name: 'mandatoryBank', label: 'Exige banco', labelKey: 'catalogs.fields.mandatoryBank', type: 'checkbox' },
+      { name: 'mandatoryIdentification', label: 'Exige identificación', labelKey: 'catalogs.fields.mandatoryIdentification', type: 'checkbox' },
+      { name: 'mandatoryAccountType', label: 'Exige tipo de cuenta', labelKey: 'catalogs.fields.mandatoryAccountType', type: 'checkbox' },
+      { name: 'mandatoryAccountCode', label: 'Exige código de cuenta', labelKey: 'catalogs.fields.mandatoryAccountCode', type: 'checkbox' },
       { name: 'mandatoryPhone', label: 'Exige teléfono', labelKey: 'catalogs.fields.mandatoryPhone', type: 'checkbox' },
       { name: 'mandatoryEmail', label: 'Exige correo', labelKey: 'catalogs.fields.mandatoryEmail', type: 'checkbox' },
       { name: 'mandatoryReferenceNumber', label: 'Exige número de referencia', labelKey: 'catalogs.fields.mandatoryReferenceNumber', type: 'checkbox' },

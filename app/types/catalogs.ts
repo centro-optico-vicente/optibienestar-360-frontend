@@ -53,6 +53,10 @@ export interface CatalogItem {
   direction?: 'IN' | 'OUT'
   // `payment-methods` (V115) — which extra fields a line using this method demands.
   mandatoryBankAccount?: boolean
+  mandatoryBank?: boolean
+  mandatoryIdentification?: boolean
+  mandatoryAccountType?: boolean
+  mandatoryAccountCode?: boolean
   mandatoryPhone?: boolean
   mandatoryEmail?: boolean
   mandatoryReferenceNumber?: boolean

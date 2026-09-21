@@ -37,7 +37,9 @@ export const useFormatters = () => {
   const formatCurrency = (amount: number | null | undefined, currency?: string): string => {
     if (amount === null || amount === undefined || Number.isNaN(amount)) return EMPTY
     const resolvedCurrency = currency ?? organizationState.value?.referenceCurrency_Code ?? 'USD'
-    return new Intl.NumberFormat(LOCALE, { style: 'currency', currency: resolvedCurrency }).format(amount)
+    // narrowSymbol: es-VE's default 'symbol' renders USD as "US$" — the
+    // narrow form gives the plain "$" the business actually wants.
+    return new Intl.NumberFormat(LOCALE, { style: 'currency', currency: resolvedCurrency, currencyDisplay: 'narrowSymbol' }).format(amount)
   }
 
   /** Number with thousands separators in the VE convention. */
