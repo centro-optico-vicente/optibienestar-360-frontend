@@ -88,7 +88,7 @@ function allocationLabel(p: PaymentDto): string {
             <MoneyWithTooltip :display="p.amount_Display" :converted-display="p.amountConverted_Display" :rate-date="p.exchangeRateDate" />
           </p>
           <p class="text-xs text-prohealth-500">
-            {{ methodLabel(p.paymentMethod) }} · {{ formatDate(p.paymentDate, 'short') }} · {{ allocationLabel(p) }}
+            {{ methodLabel(p.paymentMethod) }} · {{ formatDate(p.paymentDate, 'datetime') }} · {{ allocationLabel(p) }}
           </p>
         </div>
         <UBadge :color="paymentStatusColor(p.status)" variant="subtle" size="sm">

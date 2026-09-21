@@ -2,6 +2,7 @@
 import type { SelectItem } from '~/types/options'
 import type { EntityReferenceKey } from '~/utils/entity-references'
 import { resolveEntityReference } from '~/utils/entity-references'
+import { DEFAULT_DEBOUNCE_MS } from '~/utils/debounce-config'
 
 // Standard widget for any FK-to-entity select: filterable (client-side `items` or
 // server-side debounced `search`), always clearable, and paired with the quick-link
@@ -13,7 +14,10 @@ import { resolveEntityReference } from '~/utils/entity-references'
 // - `items`: static/pre-loaded list (small finite catalogs) — filtering is client-side,
 //   the default USelectMenu behavior.
 // - `search`: async function `(q) => SelectItem[]` for server-side lookups (users,
-//   members...) — debounced, only fires once `q` reaches `minSearchLength`.
+//   members...) — debounced via the shared `DEFAULT_DEBOUNCE_MS` config
+//   (see `.ai/specs/08-debounce-search-inputs.md`). `q` may be empty — an
+//   empty query still fires (debounced) so opening the dropdown with no
+//   typing lists the first results instead of requiring a minimum length.
 //
 // The quick-link route + permission are resolved from `entity` via the central
 // registry (`~/utils/entity-references.ts`) so a route change is a one-file edit
@@ -23,6 +27,8 @@ const props = withDefaults(defineProps<{
   modelValue?: string
   items?: SelectItem[]
   search?: (q: string) => Promise<SelectItem[]>
+  /** Minimum characters before `search` fires. Defaults to 0 — no minimum,
+   *  so opening the dropdown with an empty query lists the first results. */
   minSearchLength?: number
   debounceMs?: number
   /** Registry key resolving the quick-link's route + permission from the current value. */
@@ -42,8 +48,8 @@ const props = withDefaults(defineProps<{
   modelValue: undefined,
   items: undefined,
   search: undefined,
-  minSearchLength: 2,
-  debounceMs: 400,
+  minSearchLength: 0,
+  debounceMs: DEFAULT_DEBOUNCE_MS,
   entity: undefined,
   to: null,
   can: true,
@@ -77,25 +83,25 @@ const searchTerm = ref('')
 const searchResults = ref<SelectItem[]>([])
 const searching = ref(false)
 
-let searchTimer: ReturnType<typeof setTimeout> | undefined
+const runSearch = useSearchDebounce(async (term: string) => {
+  searching.value = true
+  try {
+    searchResults.value = await props.search!(term)
+  }
+  catch {
+    searchResults.value = []
+  }
+  finally {
+    searching.value = false
+  }
+}, props.debounceMs)
+
 watch(searchTerm, (q) => {
   if (!isServerSearch.value) return
-  clearTimeout(searchTimer)
   const term = q.trim()
   if (term.length < props.minSearchLength) return
-  searchTimer = setTimeout(async () => {
-    searching.value = true
-    try {
-      searchResults.value = await props.search!(term)
-    }
-    catch {
-      searchResults.value = []
-    }
-    finally {
-      searching.value = false
-    }
-  }, props.debounceMs)
-})
+  runSearch(term)
+}, { immediate: true })
 
 const displayItems = computed(() => (isServerSearch.value ? searchResults.value : (props.items ?? [])))
 const isLoading = computed(() => props.loading || searching.value)

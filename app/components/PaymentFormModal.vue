@@ -4,8 +4,9 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 import { memberOptionLabel } from '~/types/members'
 import type { MembershipDto } from '~/types/memberships'
 import type { SelectItem } from '~/types/options'
-import type { PaymentCreateRequest, PaymentDto, PaymentMethod } from '~/types/payments'
-import { PAYMENT_CURRENCY_OPTIONS, PAYMENT_METHOD_OPTIONS } from '~/types/payments'
+import type { PaymentCreateRequest, PaymentDto } from '~/types/payments'
+import { BANK_ACCOUNT_TYPE_OPTIONS } from '~/types/payments'
+import type { CatalogItem } from '~/types/catalogs'
 
 // Register a manual payment (POST /v1/admin/payments, multipart). There is no edit:
 // a payment is registered and then approved/rejected. The flow is a cascade —
@@ -24,7 +25,22 @@ const payments = usePayments()
 const members = useMembers()
 const memberships = useMemberships()
 const exchangeRates = useExchangeRates()
+const methodsApi = useCatalog('/v1/admin/payment-methods')
+const banksApi = useCatalog('/v1/admin/banks')
+const currenciesApi = useCatalog('/v1/admin/currencies')
 const toast = useToast()
+const { can } = usePermissions()
+
+// Quick-link buttons next to Método/Banco/Moneda, same resolver used by
+// CommonEntityReferenceSelect — opens the catalog's admin screen in a new
+// tab so the form in progress isn't lost.
+const canViewMethods = computed(() => can('PAYMENT_METHOD_VIEW_ALL'))
+const canViewBanks = computed(() => can('BANK_VIEW_ALL'))
+const canViewCurrencies = computed(() => can('CURRENCY_VIEW_ALL'))
+
+function openCatalog(to: string) {
+  window.open(to, '_blank', 'noopener')
+}
 
 function goToMember(to: string) {
   isOpen.value = false
@@ -40,9 +56,59 @@ const isSubmitting = ref(false)
 // so it can't use type="submit"; it triggers validation via this instead.
 const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 
-// Payment method options localized at the consumption point (labelKey → i18n).
-const methodOptions = computed(() => PAYMENT_METHOD_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
-const currencyOptions = PAYMENT_CURRENCY_OPTIONS
+// Payment method + bank catalogs (same dynamic `payment-methods`/`banks`
+// catalogs OutPaymentFormModal uses — UUID + `mandatory*` flags per method).
+const methodOptions = ref<{ label: string, value: string }[]>([])
+const bankOptions = ref<{ label: string, value: string }[]>([])
+const banksByUuid = ref<Record<string, CatalogItem>>({})
+const selectedMethod = ref<CatalogItem | null>(null)
+const loadingMethods = ref(false)
+const currencyOptions = ref<{ label: string, value: string }[]>([])
+const loadingCurrencies = ref(false)
+
+async function loadMethodsAndBanks() {
+  loadingMethods.value = true
+  try {
+    const [methods, banks] = await Promise.all([methodsApi.listAll(), banksApi.listAll()])
+    methodOptions.value = methods
+      .filter((method: CatalogItem) => method.active)
+      .map((method: CatalogItem) => ({ label: method.name, value: method.uuid }))
+    const activeBanks = banks.filter((bank: CatalogItem) => bank.active)
+    bankOptions.value = activeBanks
+      .map((bank: CatalogItem) => ({ label: bank.code ? `${bank.code} — ${bank.name}` : bank.name, value: bank.uuid }))
+    banksByUuid.value = Object.fromEntries(activeBanks.map((bank: CatalogItem) => [bank.uuid, bank]))
+  }
+  catch {
+    methodOptions.value = []
+    bankOptions.value = []
+  }
+  finally {
+    loadingMethods.value = false
+  }
+}
+
+// Currency dropdown label uses the real `symbol` from the master (ADR 0015)
+// — "USD ($)" — not a hardcoded code -> symbol map. `value` sent to the
+// backend stays the ISO `code`, same contract as before.
+async function loadCurrencies() {
+  loadingCurrencies.value = true
+  try {
+    const currencies = await currenciesApi.listAll()
+    currencyOptions.value = currencies
+      .filter((currency: CatalogItem) => currency.active)
+      .map((currency: CatalogItem) => ({ label: `${currency.code} (${currency.symbol})`, value: currency.code! }))
+  }
+  catch {
+    currencyOptions.value = []
+  }
+  finally {
+    loadingCurrencies.value = false
+  }
+}
+
+function datetimeLocalToIso(value: string): string {
+  return new Date(value).toISOString()
+}
 
 // ---- Member search (server-side, debounced via CommonEntityReferenceSelect) ----
 async function searchMembers(q: string) {
@@ -56,7 +122,14 @@ interface FormState {
   membershipUuid: string
   amount: string
   currency: string
-  paymentMethod: PaymentMethod | undefined
+  paymentMethodUuid: string
+  bankUuid: string
+  identification: string
+  bankAccountType: string
+  bankAccountCode: string
+  bankAccountIdentifier: string
+  phone: string
+  email: string
   referenceNumber: string
   paymentDate: string
   inscription: boolean
@@ -69,12 +142,33 @@ const state = reactive<FormState>({
   membershipUuid: '',
   amount: '',
   currency: 'USD',
-  paymentMethod: undefined,
+  paymentMethodUuid: '',
+  bankUuid: '',
+  identification: '',
+  bankAccountType: '',
+  bankAccountCode: '',
+  bankAccountIdentifier: '',
+  phone: '',
+  email: '',
   referenceNumber: '',
   paymentDate: '',
   inscription: false,
   appliedPeriod: '',
   adminNotes: '',
+})
+
+watch(() => state.paymentMethodUuid, async (uuid) => {
+  selectedMethod.value = uuid ? await useApi<CatalogItem>(`/v1/admin/payment-methods/${uuid}`) : null
+})
+
+// When a bank is picked and the method requires an account code, prefix
+// bankAccountCode with the bank's SUDEBAN code so the user only fills in
+// the rest of the account number.
+watch(() => state.bankUuid, (uuid) => {
+  const bank = uuid ? banksByUuid.value[uuid] : null
+  if (!bank?.code || !selectedMethod.value?.mandatoryAccountCode) return
+  const prefix = `${bank.code}-`
+  if (!state.bankAccountCode.startsWith(prefix)) state.bankAccountCode = prefix
 })
 
 // ---- Selected member's memberships ----
@@ -138,7 +232,7 @@ watch([() => state.membershipUuid, () => state.amount, () => state.currency, () 
   // `paymentDate` may still be empty while the admin is filling the form —
   // undefined falls back to "now" on the backend, same as before this date
   // was wired in.
-  const asOfDate = state.paymentDate || undefined
+  const asOfDate = state.paymentDate ? state.paymentDate.slice(0, 10) : undefined
   previewTimer = setTimeout(async () => {
     try {
       const rate = await exchangeRates.current(state.currency, targetCurrency, asOfDate)
@@ -193,8 +287,17 @@ const schema = computed(() => z.object({
     .regex(/^\d+(\.\d{1,2})?$/, t('payments.form.validation.amountInvalid'))
     .refine(v => Number(v) >= 0.01, t('payments.form.validation.amountMin')),
   currency: z.string().min(1, t('validation.required')),
-  paymentMethod: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
-  referenceNumber: z.string().max(80, t('validation.maxChars', { n: 80 })).optional(),
+  paymentMethodUuid: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
+  bankUuid: selectedMethod.value?.mandatoryBank ? z.string().min(1, t('validation.required')) : z.string().optional(),
+  identification: selectedMethod.value?.mandatoryIdentification ? z.string().min(1, t('validation.required')) : z.string().optional(),
+  bankAccountType: selectedMethod.value?.mandatoryAccountType ? z.string().min(1, t('validation.required')) : z.string().optional(),
+  bankAccountCode: selectedMethod.value?.mandatoryAccountCode ? z.string().min(1, t('validation.required')) : z.string().optional(),
+  bankAccountIdentifier: selectedMethod.value?.mandatoryBankAccount ? z.string().min(1, t('validation.required')) : z.string().optional(),
+  phone: selectedMethod.value?.mandatoryPhone ? z.string().min(1, t('validation.required')) : z.string().optional(),
+  email: selectedMethod.value?.mandatoryEmail ? z.string().email(t('validation.emailInvalid')) : z.string().optional(),
+  referenceNumber: selectedMethod.value?.mandatoryReferenceNumber
+    ? z.string().min(1, t('validation.required'))
+    : z.string().max(80, t('validation.maxChars', { n: 80 })).optional(),
   paymentDate: z.string().min(1, t('validation.required')).refine(notFuture, t('payments.form.validation.dateFuture')),
   appliedPeriod: z.string().optional(),
   adminNotes: z.string().optional(),
@@ -205,19 +308,31 @@ function resetForm() {
   state.membershipUuid = ''
   state.amount = ''
   state.currency = 'USD'
-  state.paymentMethod = undefined
+  state.paymentMethodUuid = ''
+  state.bankUuid = ''
+  state.identification = ''
+  state.bankAccountType = ''
+  state.bankAccountCode = ''
+  state.bankAccountIdentifier = ''
+  state.phone = ''
+  state.email = ''
   state.referenceNumber = ''
   state.paymentDate = ''
   state.inscription = false
   state.appliedPeriod = ''
   state.adminNotes = ''
+  selectedMethod.value = null
   membershipOptions.value = []
   clearFile()
 }
 
 // Reset the form every time it opens (always creation mode).
 watch(() => props.open, (open) => {
-  if (open) resetForm()
+  if (open) {
+    resetForm()
+    loadMethodsAndBanks()
+    loadCurrencies()
+  }
 })
 
 async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
@@ -227,9 +342,16 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       membershipUuid: state.membershipUuid,
       amount: state.amount.trim(),
       currency: state.currency.trim() ? state.currency.trim().toUpperCase() : undefined,
-      paymentMethod: state.paymentMethod!,
+      paymentMethodUuid: state.paymentMethodUuid,
+      bankUuid: state.bankUuid || undefined,
+      identification: state.identification || undefined,
+      bankAccountType: state.bankAccountType || undefined,
+      bankAccountCode: state.bankAccountCode || undefined,
+      bankAccountIdentifier: state.bankAccountIdentifier || undefined,
+      phone: state.phone || undefined,
+      email: state.email || undefined,
       referenceNumber: state.referenceNumber.trim() || undefined,
-      paymentDate: state.paymentDate,
+      paymentDate: datetimeLocalToIso(state.paymentDate),
       inscription: state.inscription,
       // inscription = one-time -> no period; recurring -> first day of the covered month.
       appliedPeriod: state.inscription
@@ -256,7 +378,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     v-model:open="isOpen"
     :title="t('payments.form.title')"
     :description="t('payments.form.description')"
-    :ui="{ content: 'max-w-2xl' }"
+    :ui="{ content: 'max-w-3xl' }"
   >
     <template #body>
       <UForm ref="formRef" :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
@@ -298,35 +420,31 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           </p>
         </div>
 
-        <!-- Amount + method -->
+        <!-- Date + amount + currency, in that order, same line -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <UFormField :label="t('payments.form.fields.amount')" name="amount" required class="sm:col-span-1">
-            <UInput v-model="state.amount" placeholder="10.00" class="w-full">
+          <UFormField class="sm:col-span-1" :label="t('payments.form.fields.paymentDate')" name="paymentDate" required>
+            <UInput v-model="state.paymentDate" type="datetime-local" class="w-full" />
+          </UFormField>
+          <UFormField class="sm:col-span-1" :label="t('payments.form.fields.amount')" name="amount" required>
+            <UInput v-model="state.amount" placeholder="10.00" class="w-full text-right">
               <template #leading>
                 <span class="text-prohealth-400 text-sm">$</span>
               </template>
             </UInput>
           </UFormField>
-          <UFormField :label="t('payments.form.fields.currency')" name="currency" required :help="t('payments.form.fields.currencyHelp')">
-            <USelectMenu
-              clear
-              v-model="state.currency"
-              :items="currencyOptions"
-              label-key="label"
-              value-key="value"
-              class="w-full font-mono"
-            />
-          </UFormField>
-          <UFormField :label="t('payments.form.fields.method')" name="paymentMethod" required>
-            <USelectMenu
-              clear
-              v-model="state.paymentMethod"
-              :items="methodOptions"
-              label-key="label"
-              value-key="value"
-              :placeholder="t('common.select')"
-              class="w-full"
-            />
+          <UFormField class="sm:col-span-1" :label="t('payments.form.fields.currency')" name="currency" required>
+            <div class="flex items-center gap-1">
+              <USelectMenu
+                clear
+                v-model="state.currency"
+                :items="currencyOptions"
+                label-key="label"
+                value-key="value"
+                :loading="loadingCurrencies"
+                class="w-full font-mono"
+              />
+              <CommonEntityQuickLinkButton :to="'/dashboard/catalogs/currencies'" :can="canViewCurrencies" @navigate="openCatalog" />
+            </div>
           </UFormField>
         </div>
         <p v-if="ratePreview" class="text-xs text-prohealth-500 -mt-2">
@@ -340,28 +458,41 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
             }) }}
         </p>
 
+        <!-- Reference + method -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <UFormField :label="t('payments.form.fields.reference')" name="referenceNumber" :help="t('payments.form.fields.referenceHelp')">
+          <UFormField :label="t('payments.form.fields.reference')" name="referenceNumber" :help="t('payments.form.fields.referenceHelp')" :required="Boolean(selectedMethod?.mandatoryReferenceNumber)">
             <UInput v-model="state.referenceNumber" :placeholder="t('payments.form.placeholders.reference')" class="w-full" />
           </UFormField>
-          <UFormField :label="t('payments.form.fields.paymentDate')" name="paymentDate" required :help="t('payments.form.fields.paymentDateHelp')">
-            <UInput v-model="state.paymentDate" type="date" class="w-full" />
+          <UFormField :label="t('payments.form.fields.method')" name="paymentMethodUuid" required>
+            <div class="flex items-center gap-1">
+              <USelectMenu
+                clear
+                v-model="state.paymentMethodUuid"
+                :items="methodOptions"
+                label-key="label"
+                value-key="value"
+                :loading="loadingMethods"
+                :placeholder="t('common.select')"
+                class="w-full"
+              />
+              <CommonEntityQuickLinkButton :to="'/dashboard/catalogs/payment-methods'" :can="canViewMethods" @navigate="openCatalog" />
+            </div>
           </UFormField>
         </div>
 
-        <!-- Allocation -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
-          <UFormField :label="t('payments.form.fields.inscription')" name="inscription" :help="t('payments.form.fields.inscriptionHelp')">
-            <USwitch v-model="state.inscription" />
+        <div v-if="selectedMethod?.mandatoryIdentification || selectedMethod?.mandatoryBank || selectedMethod?.mandatoryBankAccount || selectedMethod?.mandatoryAccountType || selectedMethod?.mandatoryAccountCode || selectedMethod?.mandatoryPhone || selectedMethod?.mandatoryEmail" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <UFormField v-if="selectedMethod?.mandatoryIdentification" :label="t('payments.payouts.fields.identification')" name="identification" required><UInput class="w-full" v-model="state.identification" /></UFormField>
+          <UFormField v-if="selectedMethod?.mandatoryBank" :label="t('payments.payouts.fields.bank')" name="bankUuid" required>
+            <div class="flex items-center gap-1">
+              <USelectMenu class="w-full" v-model="state.bankUuid" :items="bankOptions" label-key="label" value-key="value" :placeholder="t('common.select')" />
+              <CommonEntityQuickLinkButton :to="'/dashboard/catalogs/banks'" :can="canViewBanks" @navigate="openCatalog" />
+            </div>
           </UFormField>
-          <UFormField
-            v-if="!state.inscription"
-            :label="t('payments.form.fields.coveredMonth')"
-            name="appliedPeriod"
-            :help="t('payments.form.fields.coveredMonthHelp')"
-          >
-            <UInput v-model="state.appliedPeriod" type="month" class="w-full" />
-          </UFormField>
+          <UFormField v-if="selectedMethod?.mandatoryBankAccount" :label="t('payments.payouts.fields.accountIdentifier')" name="bankAccountIdentifier" required><UInput class="w-full" v-model="state.bankAccountIdentifier" /></UFormField>
+          <UFormField v-if="selectedMethod?.mandatoryAccountType" :label="t('payments.payouts.fields.accountType')" name="bankAccountType" required><USelectMenu class="w-full" v-model="state.bankAccountType" :items="BANK_ACCOUNT_TYPE_OPTIONS" label-key="label" value-key="value" :placeholder="t('common.select')" /></UFormField>
+          <UFormField v-if="selectedMethod?.mandatoryAccountCode" :label="t('payments.payouts.fields.accountCode')" name="bankAccountCode" required><UInput class="w-full" v-model="state.bankAccountCode" /></UFormField>
+          <UFormField v-if="selectedMethod?.mandatoryPhone" :label="t('payments.payouts.fields.phone')" name="phone" required><UInput class="w-full" v-model="state.phone" /></UFormField>
+          <UFormField v-if="selectedMethod?.mandatoryEmail" :label="t('payments.payouts.fields.email')" name="email" required><UInput class="w-full" v-model="state.email" type="email" /></UFormField>
         </div>
 
         <UFormField :label="t('payments.form.fields.adminNotes')" name="adminNotes">
@@ -369,7 +500,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         </UFormField>
 
         <!-- Proof of payment -->
-        <UFormField :label="t('payments.form.fields.proof')" :help="t('payments.form.fields.proofHelp')">
+        <UFormField :label="t('payments.form.fields.proof')">
           <div class="flex flex-wrap items-center gap-3">
             <input
               ref="fileInput"
@@ -385,7 +516,23 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
               <UButton color="neutral" variant="ghost" icon="i-lucide-x" size="xs" @click="clearFile" />
             </div>
           </div>
+          <p class="text-xs text-prohealth-500 mt-1">{{ t('payments.form.fields.proofHelp') }}</p>
         </UFormField>
+
+        <!-- Allocation (motivo-equivalent fields for a collection) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+          <UFormField :label="t('payments.form.fields.inscription')" name="inscription" :help="t('payments.form.fields.inscriptionHelp')">
+            <USwitch v-model="state.inscription" />
+          </UFormField>
+          <UFormField
+            v-if="!state.inscription"
+            :label="t('payments.form.fields.coveredMonth')"
+            name="appliedPeriod"
+            :help="t('payments.form.fields.coveredMonthHelp')"
+          >
+            <UInput v-model="state.appliedPeriod" type="month" class="w-full" />
+          </UFormField>
+        </div>
 
       </UForm>
     </template>

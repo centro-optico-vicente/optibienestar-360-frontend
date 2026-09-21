@@ -568,7 +568,7 @@ async function confirmVoid() {
                 <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.payoutPaymentUuid') }}</dt>
                 <dd class="mt-0.5">
                   <CommonEntityLinkCell
-                    :to="detail.payoutPayment_Uuid ? `/dashboard/payments/${detail.payoutPayment_Uuid}` : null"
+                    :to="detail.payoutPayment_Uuid ? `/dashboard/collections/${detail.payoutPayment_Uuid}` : null"
                     :label="detail.payoutPayment_Display"
                     :can="canViewPayment"
                   />
@@ -636,7 +636,7 @@ async function confirmVoid() {
                 <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.paymentUuid') }}</dt>
                 <dd class="mt-0.5">
                   <CommonEntityLinkCell
-                    :to="detail.payment_Uuid ? `/dashboard/payments/${detail.payment_Uuid}` : null"
+                    :to="detail.payment_Uuid ? `/dashboard/collections/${detail.payment_Uuid}` : null"
                     :label="detail.payment_Display"
                     :can="canViewPayment"
                   />

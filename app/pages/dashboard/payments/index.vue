@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
 import type { PaymentDto, PaymentStatus } from '~/types/payments'
-import {
-  PAYMENT_STATUS_OPTIONS,
-  paymentStatusColor,
-} from '~/types/payments'
+import { PAYMENT_STATUS_OPTIONS, paymentStatusColor } from '~/types/payments'
 import type { SortDirection } from '~/composables/useTableSort'
 
+// "Pagos" is the administrative OUT ledger for commission payouts and manual
+// payment entries, including their review workflow.
 definePageMeta({
   layout: 'dashboard',
   middleware: 'can',
@@ -16,31 +15,20 @@ definePageMeta({
 const { t } = useI18n()
 const { formatDate } = useFormatters()
 
-useSeoMeta({ title: () => t('common.seoTitle', { page: t('payments.title') }) })
+useSeoMeta({ title: () => t('common.seoTitle', { page: t('payments.payouts.title') }) })
 
 const payments = usePayments()
 const { can } = usePermissions()
-const toast = useToast()
 
-const canRegister = computed(() => can('PAYMENT_CREATE'))
+const canViewPromoter = computed(() => can('PROMOTER_VIEW_ALL'))
+const canViewCurrency = computed(() => can('CURRENCY_VIEW_ALL'))
+const canCreate = computed(() => can('PAYMENT_CREATE'))
+const canUpdate = computed(() => can('PAYMENT_UPDATE'))
+const canDelete = computed(() => can('PAYMENT_DELETE'))
+const canProcess = computed(() => can('PAYMENT_PROCESS'))
 const canApprove = computed(() => can('PAYMENT_APPROVE'))
 const canReject = computed(() => can('PAYMENT_REJECT'))
-const canViewMember = computed(() => can('MEMBER_VIEW_ALL'))
-const canViewCurrency = computed(() => can('CURRENCY_VIEW_ALL'))
-const canDelete = computed(() => can('PAYMENT_DELETE'))
-const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('PAYMENT_RECORD_AUDIT_VIEW'))
-const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('PAYMENT_REPORT_AUDIT_VIEW'))
-const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
 
-const auditOpen = ref(false)
-const auditTarget = ref<PaymentDto | null>(null)
-
-function openAudit(p: PaymentDto) {
-  auditTarget.value = p
-  auditOpen.value = true
-}
-
-// ---- Listing + filters + pagination ----
 const data = ref<PaymentDto[]>([])
 const total = ref(0)
 const loading = ref(false)
@@ -48,22 +36,19 @@ const page = ref(1) // UPagination is 1-based; the API is 0-based
 const size = ref(DEFAULT_PAGE_SIZE)
 const pageSizeItems = buildPageSizeItems(t)
 const search = ref('')
-const statusFilter = ref<PaymentStatus | ''>('')
+const statusFilter = ref<PaymentStatus | null>(null)
 // Empty by default: no `sort=` is sent until the user clicks a column, so
-// the backend's own default-sort fallback (entity_config → system_configs
-// → receivedAt DESC) applies.
+// the backend's own default-sort fallback applies — same as the IN screen.
 const sort = useTableSort([])
 const hasActiveSort = computed(() => sort.hasActiveSort.value)
 const isMultiSort = computed(() => sort.orders.value.length > 1)
 
-// Status filter options (with "All" first), localized at the consumption point.
 const statusFilterOptions = computed(() => [
-  { label: t('payments.statusFilterAll'), value: '' },
+  { label: t('payments.statusFilterAll'), value: null },
   ...PAYMENT_STATUS_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })),
 ])
 
 function buildFilter(): string | undefined {
-  // RSQL: status equality. The queue leverages the (status, received_at DESC) index.
   return statusFilter.value ? `status==${statusFilter.value}` : undefined
 }
 
@@ -75,12 +60,11 @@ async function load() {
       size: size.value,
       sort: sort.sortParam.value,
       filter: buildFilter(),
-      // Free-text over referenceNumber, adminNotes and supportFileName.
+      direction: 'OUT',
       q: search.value.trim() || undefined,
     })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
-    // No column clicked yet → reflect the server's own default in the header arrows.
     if (sort.orders.value.length === 0 && res.appliedSort?.length) {
       resetting.value = true
       sort.seedServerDefault(res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection })))
@@ -98,7 +82,6 @@ async function load() {
   }
 }
 
-// Guards the filter watchers so "clear filters and refresh" fires a single reload.
 const resetting = ref(false)
 
 watch(size, () => { if (!resetting.value) page.value = 1 })
@@ -120,7 +103,7 @@ watch(sort.orders, () => { if (!resetting.value) load() }, { deep: true })
 async function resetFilters() {
   resetting.value = true
   search.value = ''
-  statusFilter.value = ''
+  statusFilter.value = null
   sort.reset()
   size.value = DEFAULT_PAGE_SIZE
   page.value = 1
@@ -131,71 +114,78 @@ async function resetFilters() {
 
 onMounted(load)
 
-// ---- Presentation helpers ----
-// Enum label resolvers (fall back to the raw value).
-function methodLabel(m?: string | null): string {
-  return m ? t(`payments.methods.${m}`, m) : t('common.empty')
-}
 function statusLabel(s?: string | null): string {
   return s ? t(`payments.status.${s}`, s) : t('common.empty')
 }
 
-// ---- Register (modal) ----
+function methodLabel(m?: string | null): string {
+  return m ? t(`payments.methods.${m}`, m) : t('common.empty')
+}
+
+// ---- Detail and DRAFT workflow ----
+const detailOpen = ref(false)
+const detail = ref<PaymentDto | null>(null)
 const formOpen = ref(false)
+const formTarget = ref<PaymentDto | null>(null)
+const deleting = ref(false)
+
+function openDetail(p: PaymentDto) {
+  detail.value = p
+  detailOpen.value = true
+}
+
+function openCreate() {
+  formTarget.value = null
+  formOpen.value = true
+}
+
+function openEdit(p: PaymentDto) {
+  formTarget.value = p
+  formOpen.value = true
+}
 
 async function onSaved() {
-  // A new payment enters as PENDING; reload honoring the current filter.
-  page.value = 1
+  formOpen.value = false
   await load()
 }
 
-// ---- Review (approve/reject) ----
-const reviewOpen = ref(false)
-const reviewAction = ref<'approve' | 'reject'>('approve')
-const reviewTarget = ref<PaymentDto | null>(null)
-
-function openReview(p: PaymentDto, action: 'approve' | 'reject') {
-  reviewTarget.value = p
-  reviewAction.value = action
-  reviewOpen.value = true
-}
-
-function onReviewed(updated: PaymentDto) {
-  // Replace the row in-place to reflect the new status without a full reload.
-  const idx = data.value.findIndex(p => p.uuid === updated.uuid)
-  if (idx !== -1) data.value[idx] = updated
-}
-
-function isPending(p: PaymentDto): boolean {
-  return p.status === 'PENDING'
-}
-
-// ---- Delete (only while still PENDING — a mistaken registration, not yet reviewed) ----
-const deleteOpen = ref(false)
-const deleting = ref(false)
-const target = ref<PaymentDto | null>(null)
-
-function openDelete(p: PaymentDto) {
-  target.value = p
-  deleteOpen.value = true
-}
-
-async function confirmDelete() {
-  if (!target.value) return
+async function removePayment(p: PaymentDto) {
+  if (!window.confirm(t('payments.payouts.deleteConfirm'))) return
   deleting.value = true
   try {
-    await payments.remove(target.value.uuid)
-    toast.add({ title: t('payments.deletedToast'), color: 'success', icon: 'i-lucide-check-circle' })
-    deleteOpen.value = false
-    // If the page is left empty after deleting, step back one.
-    if (data.value.length === 1 && page.value > 1) page.value -= 1
-    else await load()
+    await payments.removeOut(p.uuid)
+    detailOpen.value = false
+    await load()
   }
   catch {
-    // useApi already notified the error (422 already reviewed, etc.)
+    // useApi already reports the API error.
   }
   finally {
     deleting.value = false
+  }
+}
+
+async function processPayment(p: PaymentDto) {
+  try {
+    await payments.processOut(p.uuid)
+    await load()
+  }
+  catch {
+    // useApi already reports the API error.
+  }
+}
+
+async function reviewPayment(p: PaymentDto, approve: boolean) {
+  const reason = approve ? undefined : window.prompt('Motivo del rechazo')
+  if (!approve && !reason?.trim()) return
+  try {
+    if (approve) await payments.approveOut(p.uuid)
+    else await payments.rejectOut(p.uuid, reason!.trim())
+    detailOpen.value = false
+    await load()
+  }
+  catch {
+    // useApi already reports the API error.
   }
 }
 </script>
@@ -205,22 +195,14 @@ async function confirmDelete() {
     <!-- Header -->
     <div class="flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-extrabold text-prohealth-900">{{ t('payments.title') }}</h1>
-        <p class="text-sm text-prohealth-700/70 mt-1">
-          {{ t('payments.subtitle') }}
-        </p>
+        <h1 class="text-2xl font-extrabold text-prohealth-900">{{ t('payments.payouts.title') }}</h1>
+        <p class="text-sm text-prohealth-700/70 mt-1">{{ t('payments.payouts.subtitle') }}</p>
       </div>
       <div class="flex items-center gap-2">
         <ListRefreshMenu :loading="loading" variant="ghost" @refresh="load" @reset="resetFilters" />
-        <ReportPrintButton variant="ghost" />
-        <UTooltip :text="canRegister ? t('payments.createTooltip') : t('payments.noPermissionRegister')">
-          <UButton
-            color="primary"
-            variant="outline"
-            icon="i-lucide-plus"
-            :disabled="!canRegister"
-            @click="formOpen = true"
-          >
+        <ReportPrintButton table-name="payments" :search-query="search" variant="ghost" />
+        <UTooltip :text="canCreate ? t('payments.createTooltip') : t('payments.noPermissionRegister')">
+          <UButton color="primary" variant="outline" icon="i-lucide-plus" :disabled="!canCreate" @click="openCreate">
             {{ t('common.new') }}
           </UButton>
         </UTooltip>
@@ -231,13 +213,12 @@ async function confirmDelete() {
     <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
       <UInput
         v-model="search"
-        :placeholder="t('payments.searchPlaceholder')"
+        :placeholder="t('payments.payouts.searchPlaceholder')"
         icon="i-lucide-search"
         size="lg"
         class="w-full max-w-md"
       />
       <USelectMenu
-        clear
         v-model="statusFilter"
         :items="statusFilterOptions"
         label-key="label"
@@ -265,24 +246,18 @@ async function confirmDelete() {
         <table class="w-full text-sm">
           <thead class="sticky top-0 bg-white z-10">
             <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
-              <th class="px-5 py-3 font-semibold">{{ t('payments.columns.member') }}</th>
-              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('plan_Code')">
-                {{ t('payments.columns.planReference') }}
-                <SortIndicator :state="sort.stateOf('plan_Code')" :multi-active="isMultiSort" @clear="sort.remove('plan_Code')" />
-              </th>
+              <th class="px-5 py-3 font-semibold">{{ t('payments.payouts.columns.promoter') }}</th>
+              <th class="px-5 py-3 font-semibold">{{ t('payments.payouts.columns.category') }}</th>
               <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('amount')">
                 {{ t('payments.columns.amount') }}
                 <SortIndicator :state="sort.stateOf('amount')" :multi-active="isMultiSort" @clear="sort.remove('amount')" />
               </th>
-              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('paymentMethod')">
-                {{ t('payments.columns.method') }}
-                <SortIndicator :state="sort.stateOf('paymentMethod')" :multi-active="isMultiSort" @clear="sort.remove('paymentMethod')" />
-              </th>
+              <th class="px-5 py-3 font-semibold">{{ t('payments.payouts.columns.method') }}</th>
+              <th class="px-5 py-3 font-semibold">{{ t('payments.payouts.columns.reference') }}</th>
               <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('paymentDate')">
                 {{ t('payments.columns.date') }}
                 <SortIndicator :state="sort.stateOf('paymentDate')" :multi-active="isMultiSort" @clear="sort.remove('paymentDate')" />
               </th>
-              <th class="px-5 py-3 font-semibold">{{ t('payments.columns.proof') }}</th>
               <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('status')">
                 {{ t('payments.columns.status') }}
                 <SortIndicator :state="sort.stateOf('status')" :multi-active="isMultiSort" @clear="sort.remove('status')" />
@@ -294,8 +269,8 @@ async function confirmDelete() {
             <TableSkeleton v-if="loading" :rows="8" :cols="8" />
             <tr v-else-if="data.length === 0">
               <td colspan="8" class="px-5 py-12 text-center text-prohealth-500">
-                <UIcon name="i-lucide-receipt" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
-                {{ t('payments.empty') }}
+                <UIcon name="i-lucide-banknote" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
+                {{ t('payments.payouts.empty') }}
               </td>
             </tr>
             <tr
@@ -303,22 +278,16 @@ async function confirmDelete() {
               v-else
               :key="p.uuid"
               class="hover:bg-prohealth-50/50 cursor-pointer"
-              @click="navigateTo(`/dashboard/payments/${p.uuid}`)"
+              @click="openDetail(p)"
             >
               <td class="px-5 py-3" @click.stop>
                 <CommonEntityLinkCell
-                  :to="p.member_Uuid ? `/dashboard/members/${p.member_Uuid}` : null"
-                  :label="p.member_Display"
-                  :can="canViewMember"
+                  :to="p.promoter_Uuid ? `/dashboard/promoters/${p.promoter_Uuid}` : null"
+                  :label="p.promoter_Display"
+                  :can="canViewPromoter"
                 />
               </td>
-              <td class="px-5 py-3">
-                <div class="font-semibold text-prohealth-900 font-mono">{{ p.plan_Code || t('common.empty') }}</div>
-                <div class="text-xs text-prohealth-500">
-                  {{ p.referenceNumber || t('payments.noReference') }}
-                  <UBadge v-if="p.inscription" color="primary" variant="subtle" size="sm" class="ml-1">{{ t('payments.allocation.inscription') }}</UBadge>
-                </div>
-              </td>
+              <td class="px-5 py-3 text-prohealth-800">{{ p.paymentType_Display ?? t('common.empty') }}</td>
               <td class="px-5 py-3 font-semibold text-prohealth-900">
                 <MoneyWithTooltip :display="p.amount_Display" :converted-display="p.amountConverted_Display" :rate-date="p.exchangeRateDate" />
                 <div class="text-xs font-normal mt-0.5" @click.stop>
@@ -329,16 +298,11 @@ async function confirmDelete() {
                   />
                 </div>
               </td>
-              <td class="px-5 py-3 text-prohealth-700">{{ p.paymentMethod_Display ?? methodLabel(p.paymentMethod) }}</td>
-              <td class="px-5 py-3 text-prohealth-600">{{ p.paymentDate_Display ?? formatDate(p.paymentDate, 'short') }}</td>
-              <td class="px-5 py-3">
-                <UIcon
-                  v-if="p.supportFileAvailable"
-                  name="i-lucide-paperclip"
-                  class="w-4 h-4 text-prohealth-500"
-                />
-                <span v-else class="text-prohealth-300">{{ t('common.empty') }}</span>
+              <td class="px-5 py-3 text-prohealth-600">
+                {{ p.paymentMethod_Display ?? methodLabel(p.paymentMethod) }}
               </td>
+              <td class="px-5 py-3 text-prohealth-600 font-mono">{{ p.referenceNumber || t('common.empty') }}</td>
+              <td class="px-5 py-3 text-prohealth-600">{{ p.paymentDate_Display ?? formatDate(p.paymentDate, 'datetime') }}</td>
               <td class="px-5 py-3">
                 <UBadge :color="paymentStatusColor(p.status)" variant="subtle" size="sm">
                   {{ p.status_Display ?? statusLabel(p.status) }}
@@ -352,9 +316,18 @@ async function confirmDelete() {
                       variant="ghost"
                       icon="i-lucide-eye"
                       size="sm"
-                      :to="`/dashboard/payments/${p.uuid}`"
+                      @click="openDetail(p)"
                     />
                   </UTooltip>
+                  <UTooltip v-if="canUpdate && p.status === 'DRAFT'" :text="t('common.edit')">
+                    <UButton color="neutral" variant="ghost" icon="i-lucide-pencil" size="sm" @click="openEdit(p)" />
+                  </UTooltip>
+                  <UTooltip v-if="canDelete && p.status === 'DRAFT'" :text="t('common.delete')">
+                    <UButton color="error" variant="ghost" icon="i-lucide-trash-2" size="sm" :loading="deleting" @click="removePayment(p)" />
+                  </UTooltip>
+                  <UButton v-if="canProcess && p.status === 'DRAFT'" color="primary" variant="ghost" icon="i-lucide-send" size="sm" @click="processPayment(p)" />
+                  <UButton v-if="canApprove && p.status === 'PENDING'" color="success" variant="ghost" icon="i-lucide-check" size="sm" @click="reviewPayment(p, true)" />
+                  <UButton v-if="canReject && p.status === 'PENDING'" color="error" variant="ghost" icon="i-lucide-x" size="sm" @click="reviewPayment(p, false)" />
                   <ReportPrintButton
                     table-name="payments"
                     :record-uuid="p.uuid"
@@ -362,68 +335,17 @@ async function confirmDelete() {
                     variant="ghost"
                     size="sm"
                   />
-                  <template v-if="isPending(p)">
-                    <UTooltip :text="canApprove ? t('payments.tooltips.approve') : t('payments.tooltips.noPermissionApprove')">
-                      <UButton
-                        color="success"
-                        variant="ghost"
-                        icon="i-lucide-check"
-                        size="sm"
-                        :disabled="!canApprove"
-                        @click="openReview(p, 'approve')"
-                      />
-                    </UTooltip>
-                    <UTooltip :text="canReject ? t('payments.tooltips.reject') : t('payments.tooltips.noPermissionReject')">
-                      <UButton
-                        color="error"
-                        variant="ghost"
-                        icon="i-lucide-x"
-                        size="sm"
-                        :disabled="!canReject"
-                        @click="openReview(p, 'reject')"
-                      />
-                    </UTooltip>
-                  </template>
-                  <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
-                    <UButton
-                      color="neutral"
-                      variant="ghost"
-                      icon="i-lucide-history"
-                      size="sm"
-                      @click="openAudit(p)"
-                    />
-                  </UTooltip>
-                  <UTooltip v-if="isPending(p)" :text="canDelete ? t('common.delete') : t('payments.tooltips.noPermissionDelete')">
-                    <UButton
-                      color="error"
-                      variant="ghost"
-                      icon="i-lucide-trash-2"
-                      size="sm"
-                      class="ms-2"
-                      :disabled="!canDelete"
-                      @click="openDelete(p)"
-                    />
-                  </UTooltip>
                 </div>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
-
-      <!-- Pagination -->
-      <div class="flex items-center flex-wrap justify-between gap-3 px-5 py-3 border-t border-prohealth-100 shrink-0">
-        <p class="text-xs text-prohealth-500">
-          {{ t('payments.paginationSummary', { shown: data.length, total }) }}
-        </p>
+      <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-3 border-t border-prohealth-100 shrink-0">
+        <p class="text-xs text-prohealth-500">{{ t('catalogs.recordCount', { count: total }) }}</p>
         <div class="flex items-center gap-3">
-          <UPagination
-            v-if="size !== UNPAGED_PAGE_SIZE"
-            v-model:page="page"
-            :total="total"
-            :items-per-page="size"
-          />
-          <UTooltip :text="$t('catalogs.pageSizeLabel')">
+          <UPagination v-if="size !== UNPAGED_PAGE_SIZE" v-model:page="page" :total="total" :items-per-page="size" />
+          <UTooltip :text="t('catalogs.pageSizeLabel')">
             <USelectMenu
               v-model="size"
               :items="pageSizeItems"
@@ -431,7 +353,7 @@ async function confirmDelete() {
               value-key="value"
               icon="i-lucide-list"
               :search-input="false"
-              :aria-label="$t('catalogs.pageSizeLabel')"
+              :aria-label="t('catalogs.pageSizeLabel')"
               class="w-40"
             />
           </UTooltip>
@@ -439,42 +361,72 @@ async function confirmDelete() {
       </div>
     </div>
 
-    <!-- Register modal -->
-    <PaymentFormModal v-model:open="formOpen" @saved="onSaved" />
-
-    <!-- Approve/reject modal -->
-    <PaymentReviewModal
-      v-model:open="reviewOpen"
-      :action="reviewAction"
-      :payment="reviewTarget"
-      @reviewed="onReviewed"
-    />
-
-    <!-- Delete confirmation modal (PENDING only) -->
-    <UModal v-model:open="deleteOpen" :title="t('payments.delete.title')">
+    <!-- Detail modal (read-only) -->
+    <UModal v-model:open="detailOpen" :title="t('payments.payouts.detailTitle')">
       <template #body>
-        <p class="text-sm text-prohealth-700">{{ t('payments.delete.confirm') }}</p>
-        <div class="flex items-center justify-end gap-3 pt-5">
-          <UButton color="neutral" variant="ghost" :disabled="deleting" @click="deleteOpen = false">
-            {{ t('common.cancel') }}
+        <dl v-if="detail" class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-sm">
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.payouts.columns.promoter') }}</dt>
+            <dd class="mt-0.5">
+              <CommonEntityLinkCell
+                :to="detail.promoter_Uuid ? `/dashboard/promoters/${detail.promoter_Uuid}` : null"
+                :label="detail.promoter_Display"
+                :can="canViewPromoter"
+              />
+            </dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.payouts.columns.category') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ detail.paymentType_Display ?? t('common.empty') }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.columns.amount') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ detail.amount_Display ?? detail.amount }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.payouts.columns.method') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ detail.paymentMethod_Display ?? methodLabel(detail.paymentMethod) }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.payouts.columns.reference') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5 font-mono break-all">{{ detail.referenceNumber || t('common.empty') }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.columns.date') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ detail.paymentDate_Display ?? formatDate(detail.paymentDate, 'datetime') }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.columns.status') }}</dt>
+            <dd class="mt-0.5">
+              <UBadge :color="paymentStatusColor(detail.status)" variant="subtle" size="sm">
+                {{ detail.status_Display ?? statusLabel(detail.status) }}
+              </UBadge>
+            </dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.payouts.columns.reviewedBy') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ detail.reviewedBy_Display || t('common.empty') }}</dd>
+          </div>
+        </dl>
+      </template>
+      <template #footer>
+        <div class="w-full flex items-center justify-between">
+          <ReportPrintButton
+            v-if="detail"
+            table-name="payments"
+            :record-uuid="detail.uuid"
+            size="sm"
+          />
+          <UButton color="neutral" variant="ghost" @click="detailOpen = false">{{ t('common.close') }}</UButton>
+          <UButton v-if="detail && canUpdate && detail.status === 'DRAFT'" color="primary" variant="outline" @click="detailOpen = false; openEdit(detail)">
+            {{ t('common.edit') }}
           </UButton>
-          <UButton color="error" :loading="deleting" icon="i-lucide-trash-2" @click="confirmDelete">
+          <UButton v-if="detail && canDelete && detail.status === 'DRAFT'" color="error" variant="outline" :loading="deleting" @click="removePayment(detail)">
             {{ t('common.delete') }}
           </UButton>
         </div>
       </template>
     </UModal>
-
-    <!-- Audit modal -->
-    <AuditModal
-      v-if="auditTarget"
-      v-model:open="auditOpen"
-      entity-key="payment"
-      :entity-uuid="auditTarget.uuid"
-      :entity-label="auditTarget.plan_Code ?? undefined"
-      :entity-code="auditTarget.referenceNumber"
-      :can-view-changes="canViewAuditChanges"
-      :can-view-reports="canViewAuditReports"
-    />
+    <OutPaymentFormModal v-model:open="formOpen" :payment="formTarget" @saved="onSaved" />
   </div>
 </template>

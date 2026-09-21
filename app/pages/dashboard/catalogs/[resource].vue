@@ -88,6 +88,7 @@ useSeoMeta({
 const hasDescription = computed(() => def.value?.fields.some(f => f.name === 'description') ?? false)
 const hasCurrencyDetails = computed(() => def.value?.key === 'currencies')
 const hasBankDetails = computed(() => def.value?.key === 'banks')
+const hasPaymentMethodDetails = computed(() => def.value?.key === 'payment-methods')
 
 // The "parent" column header uses the FK field's own label (e.g. "Estado / Departamento",
 // "País") instead of the generic "Padre", which reads clearer per catalog.
@@ -396,6 +397,9 @@ function formFieldClass(field: CatalogField): string {
   }
   if (hasBankDetails.value) {
     return field.name === 'taxDocumentType' || field.name === 'taxDocumentNumber' ? 'col-span-1' : 'col-span-2'
+  }
+  if (hasPaymentMethodDetails.value) {
+    return field.type === 'checkbox' ? 'col-span-1 p-1' : 'col-span-2'
   }
   return ''
 }
@@ -852,14 +856,14 @@ async function confirmDelete() {
     <UModal
       v-model:open="formOpen"
       :title="mode === 'create' ? $t('catalogs.modalCreateTitle', { entity: catLabelSingular(def) }) : $t('catalogs.modalEditTitle', { entity: catLabelSingular(def) })"
-      :ui="hasBankDetails ? { content: 'sm:max-w-2xl' } : undefined"
+      :ui="hasBankDetails || hasPaymentMethodDetails ? { content: 'sm:max-w-2xl' } : undefined"
     >
       <template #body>
         <UForm
           ref="formRef"
           :schema="schema"
           :state="state"
-          :class="hasCurrencyDetails || hasBankDetails ? 'grid grid-cols-2 gap-x-4 gap-y-4' : 'space-y-4'"
+          :class="hasCurrencyDetails || hasBankDetails || hasPaymentMethodDetails ? 'grid grid-cols-2 gap-x-4 gap-y-4' : 'space-y-4'"
           @submit="onSubmit"
         >
           <UFormField

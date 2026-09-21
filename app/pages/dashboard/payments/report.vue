@@ -229,7 +229,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
     <div class="flex flex-wrap items-center justify-between gap-4">
       <div class="space-y-1">
         <div class="flex items-center gap-2 text-sm text-prohealth-600">
-          <NuxtLink to="/dashboard/payments" class="hover:underline flex items-center gap-1">
+          <NuxtLink to="/dashboard/collections" class="hover:underline flex items-center gap-1">
             <UIcon name="i-lucide-arrow-left" class="w-4 h-4" />
             {{ t('payments.collectionsReport.breadcrumbRoot') }}
           </NuxtLink>

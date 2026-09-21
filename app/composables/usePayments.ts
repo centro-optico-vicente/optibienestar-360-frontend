@@ -7,6 +7,8 @@ import type {
   PaymentDto,
   PaymentRejectRequest,
   PaymentSupportUrlDto,
+  OutPaymentCreateRequest,
+  OutPaymentUpdateRequest,
 } from '~/types/payments'
 
 interface ListParams {
@@ -68,6 +70,29 @@ export const usePayments = () => {
     if (support) form.append('support', support)
     return useApi<PaymentDto>('/v1/admin/payments', { method: 'POST', body: form })
   }
+
+  const registerOut = (payload: OutPaymentCreateRequest, support?: File | null) => {
+    const form = new FormData()
+    form.append('payment', new Blob([JSON.stringify(payload)], { type: 'application/json' }))
+    if (support) form.append('support', support)
+    return useApi<PaymentDto>('/v1/admin/payments/out', { method: 'POST', body: form })
+  }
+
+  const updateOut = (uuid: string, payload: OutPaymentUpdateRequest, support?: File | null) => {
+    return useApi<PaymentDto>(`/v1/admin/payments/${uuid}/out`, { method: 'PUT', body: payload })
+  }
+
+  const removeOut = (uuid: string) =>
+    useApi<void>(`/v1/admin/payments/${uuid}/out`, { method: 'DELETE' })
+
+  const processOut = (uuid: string) =>
+    useApi<PaymentDto>(`/v1/admin/payments/${uuid}/out/process`, { method: 'PUT' })
+
+  const approveOut = (uuid: string, reason?: string) =>
+    useApi<PaymentDto>(`/v1/admin/payments/${uuid}/out/approve`, { method: 'PUT', body: reason ? { reason } : {} })
+
+  const rejectOut = (uuid: string, reason: string) =>
+    useApi<PaymentDto>(`/v1/admin/payments/${uuid}/out/reject`, { method: 'PUT', body: { reason } })
 
   /** Approve a PENDING payment. `reason` is an optional approval note. */
   const approve = (uuid: string, reason?: string) =>
@@ -165,7 +190,7 @@ export const usePayments = () => {
     useApi<void>(`/v1/promoter/me/payments/${uuid}`, { method: 'DELETE' })
 
   return {
-    list, get, register, approve, reject, remove, supportUrl, mine, mineForPromoter,
+    list, get, register, registerOut, updateOut, removeOut, processOut, approveOut, rejectOut, approve, reject, remove, supportUrl, mine, mineForPromoter,
     registerOwn, removeOwn,
     registerForDownline, approveForDownline, rejectForDownline, removeForDownline,
   }
