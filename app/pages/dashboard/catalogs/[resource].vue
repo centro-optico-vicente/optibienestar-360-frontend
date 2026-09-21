@@ -87,6 +87,7 @@ useSeoMeta({
 
 const hasDescription = computed(() => def.value?.fields.some(f => f.name === 'description') ?? false)
 const hasCurrencyDetails = computed(() => def.value?.key === 'currencies')
+const hasBankDetails = computed(() => def.value?.key === 'banks')
 
 // The "parent" column header uses the FK field's own label (e.g. "Estado / Departamento",
 // "País") instead of the generic "Padre", which reads clearer per catalog.
@@ -99,6 +100,7 @@ const parentColumnLabel = computed(() => {
 const columnCount = computed(() => {
   let n = 2 // name + actions
   if (def.value?.codeField) n++
+  if (hasBankDetails.value) n += 2 // RIF + commercial name
   if (def.value?.parentDisplayField) n++
   if (hasDescription.value) n++
   if (hasCurrencyDetails.value) n += 2
@@ -389,8 +391,13 @@ const formFields = computed(() =>
 )
 
 function formFieldClass(field: CatalogField): string {
-  if (!hasCurrencyDetails.value) return ''
-  return field.name === 'symbol' || field.name === 'decimalPlaces' ? 'col-span-1' : 'col-span-2'
+  if (hasCurrencyDetails.value) {
+    return field.name === 'symbol' || field.name === 'decimalPlaces' ? 'col-span-1' : 'col-span-2'
+  }
+  if (hasBankDetails.value) {
+    return field.name === 'taxDocumentType' || field.name === 'taxDocumentNumber' ? 'col-span-1' : 'col-span-2'
+  }
+  return ''
 }
 
 const schema = computed(() => {
@@ -679,9 +686,15 @@ async function confirmDelete() {
                 {{ $t('catalogs.columns.code') }}
                 <SortIndicator :state="sort.stateOf(def.codeField)" :multi-active="isMultiSort" @clear="sort.remove(def.codeField)" />
               </th>
+              <th v-if="hasBankDetails" class="px-5 py-3 font-semibold">
+                {{ $t('catalogs.fields.taxDocumentType') }}
+              </th>
               <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('name')">
                 {{ $t('catalogs.columns.name') }}
                 <SortIndicator :state="sort.stateOf('name')" :multi-active="isMultiSort" @clear="sort.remove('name')" />
+              </th>
+              <th v-if="hasBankDetails" class="px-5 py-3 font-semibold">
+                {{ $t('catalogs.fields.shortName') }}
               </th>
               <th v-if="hasCurrencyDetails" class="px-5 py-3 font-semibold">
                 {{ $t('catalogs.fields.symbol') }}
@@ -731,7 +744,13 @@ async function confirmDelete() {
               <td v-if="def.codeField" class="px-5 py-3">
                 <UBadge color="neutral" variant="subtle">{{ item[def.codeField] }}</UBadge>
               </td>
+              <td v-if="hasBankDetails" class="px-5 py-3 font-mono text-prohealth-700">
+                {{ item.taxDocumentType && item.taxDocumentNumber ? `${item.taxDocumentType}-${item.taxDocumentNumber}` : $t('common.empty') }}
+              </td>
               <td class="px-5 py-3 font-medium text-prohealth-900">{{ item.name }}</td>
+              <td v-if="hasBankDetails" class="px-5 py-3 text-prohealth-700">
+                {{ item.shortName || $t('common.empty') }}
+              </td>
               <td v-if="hasCurrencyDetails" class="px-5 py-3 font-mono text-prohealth-700">
                 {{ item.symbol || $t('common.empty') }}
               </td>
@@ -833,13 +852,14 @@ async function confirmDelete() {
     <UModal
       v-model:open="formOpen"
       :title="mode === 'create' ? $t('catalogs.modalCreateTitle', { entity: catLabelSingular(def) }) : $t('catalogs.modalEditTitle', { entity: catLabelSingular(def) })"
+      :ui="hasBankDetails ? { content: 'sm:max-w-2xl' } : undefined"
     >
       <template #body>
         <UForm
           ref="formRef"
           :schema="schema"
           :state="state"
-          :class="hasCurrencyDetails ? 'grid grid-cols-2 gap-x-4 gap-y-4' : 'space-y-4'"
+          :class="hasCurrencyDetails || hasBankDetails ? 'grid grid-cols-2 gap-x-4 gap-y-4' : 'space-y-4'"
           @submit="onSubmit"
         >
           <UFormField
@@ -872,6 +892,16 @@ async function confirmDelete() {
               v-model="state[f.name]"
               :rows="2"
               :maxlength="f.max"
+              class="w-full"
+            />
+            <USelectMenu
+              v-else-if="f.type === 'select'"
+              v-model="state[f.name]"
+              :items="f.options ?? []"
+              label-key="label"
+              value-key="value"
+              :placeholder="$t('catalogs.selectPlaceholder', { field: fieldLabel(f).toLowerCase() })"
+              :disabled="mode === 'edit' && f.onlyCreate"
               class="w-full"
             />
             <UInput

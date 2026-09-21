@@ -331,10 +331,10 @@ export const CATALOGS: CatalogDef[] = [
     auditReportPermission: 'BANK_REPORT_AUDIT_VIEW',
     fields: [
       { name: 'code', label: 'Código', labelKey: 'catalogs.fields.code', type: 'text', required: true, onlyCreate: true, regex: /^[0-9]{1,10}$/, regexMsg: 'Código SUDEBAN numérico, máx. 10 dígitos', regexMsgKey: 'catalogs.validation.codeMax', max: 10, placeholder: '0102' },
+      { name: 'taxDocumentType', label: 'Tipo de RIF', labelKey: 'catalogs.fields.taxDocumentType', type: 'select', required: true, options: [{ label: 'J — RIF jurídico', value: 'J' }, { label: 'G — RIF gubernamental', value: 'G' }] },
+      { name: 'taxDocumentNumber', label: 'Número de RIF', labelKey: 'catalogs.fields.taxDocumentNumber', type: 'text', required: true, max: 20, placeholder: '070133805' },
       { name: 'name', label: 'Nombre', labelKey: 'catalogs.fields.name', type: 'text', required: true, max: 120, placeholder: 'Banco de Venezuela S.A.C.A. Banco Universal' },
       { name: 'shortName', label: 'Nombre comercial', labelKey: 'catalogs.fields.shortName', type: 'text', required: true, max: 60, placeholder: 'Banco de Venezuela' },
-      { name: 'taxDocumentType', label: 'Tipo de RIF', labelKey: 'catalogs.fields.taxDocumentType', type: 'text', required: true, regex: /^[JVEGP]$/, regexMsg: 'Una letra: J, G, V, E o P', regexMsgKey: 'catalogs.validation.taxDocumentType', max: 1, placeholder: 'J' },
-      { name: 'taxDocumentNumber', label: 'Número de RIF', labelKey: 'catalogs.fields.taxDocumentNumber', type: 'text', required: true, max: 20, placeholder: '070133805' },
     ],
   },
   {

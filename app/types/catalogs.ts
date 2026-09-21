@@ -66,7 +66,7 @@ export interface CatalogField {
   label: string
   /** i18n key for the label; resolved on the page. */
   labelKey?: string
-  type: 'text' | 'textarea' | 'parent' | 'number' | 'checkbox'
+  type: 'text' | 'textarea' | 'parent' | 'number' | 'checkbox' | 'select'
   required?: boolean
   /** Validation pattern (e.g. uppercase code). Only applies to text/textarea. */
   regex?: RegExp
@@ -77,6 +77,8 @@ export interface CatalogField {
   /** type === 'number' only: minimum accepted value. */
   min?: number
   placeholder?: string
+  /** Select options for type === 'select'. */
+  options?: { label: string, value: string }[]
   /** Immutable on edit (code/isoCode and FKs are only set on create). */
   onlyCreate?: boolean
   /** When type === 'parent': key of the parent catalog in the registry. */
