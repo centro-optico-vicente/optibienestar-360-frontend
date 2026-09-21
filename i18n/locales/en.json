@@ -615,6 +615,10 @@
         "label": "Scheduled jobs",
         "description": "Automated system tasks and their run history."
       },
+      "organization": {
+        "label": "Organization",
+        "description": "The organization's legal, tax and currency data."
+      },
       "systemConfig": {
         "label": "System configuration",
         "description": "Global system parameters such as report footers."
@@ -3215,6 +3219,29 @@
     "recordError": "Failed to generate record report",
     "listFilePrefix": "list",
     "recordFilePrefix": "record"
+  },
+  "organization": {
+    "title": "Organization",
+    "subtitle": "The organization's legal, tax and currency data.",
+    "seoTitle": "Organization — OptiBienestar 360",
+    "saveButton": "Save changes",
+    "updatedToast": "Organization updated successfully",
+    "loadError": "Could not load the organization information",
+    "fields": {
+      "name": "Trade name",
+      "legalName": "Legal name",
+      "taxIdentifier": "Tax identifier",
+      "logoKey": "Logo (storage file reference)",
+      "logoKeyHelp": "Storage key of an already-uploaded logo file. Image upload will be added later.",
+      "officialCurrency": "Official currency",
+      "officialCurrencyHelp": "Legal-tender currency used for invoicing and tax reports.",
+      "referenceCurrency": "Reference currency",
+      "referenceCurrencyHelp": "Currency used to quote plans, commissions and prizes."
+    },
+    "sections": {
+      "general": "General information",
+      "currencies": "Currencies"
+    }
   },
   "systemConfig": {
     "title": "System Configuration",
