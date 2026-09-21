@@ -615,6 +615,10 @@
         "label": "Trabajos programados",
         "description": "Tareas automáticas del sistema y su historial de ejecución."
       },
+      "organization": {
+        "label": "Organización",
+        "description": "Datos legales, fiscales y monedas de la organización."
+      },
       "systemConfig": {
         "label": "Configuración del sistema",
         "description": "Parámetros globales del sistema como el pie de página de reportes."
@@ -3215,6 +3219,29 @@
     "recordError": "Error al generar la ficha del registro",
     "listFilePrefix": "listado",
     "recordFilePrefix": "ficha"
+  },
+  "organization": {
+    "title": "Organización",
+    "subtitle": "Datos legales, fiscales y monedas de la organización.",
+    "seoTitle": "Organización — OptiBienestar 360",
+    "saveButton": "Guardar cambios",
+    "updatedToast": "Organización actualizada con éxito",
+    "loadError": "No se pudo cargar la información de la organización",
+    "fields": {
+      "name": "Nombre comercial",
+      "legalName": "Razón social",
+      "taxIdentifier": "RIF / identificador fiscal",
+      "logoKey": "Logo (referencia de archivo en almacenamiento)",
+      "logoKeyHelp": "Clave del archivo del logo ya subido al almacenamiento. La carga de imágenes se agregará más adelante.",
+      "officialCurrency": "Moneda oficial",
+      "officialCurrencyHelp": "Moneda de curso legal usada en facturación y reportes fiscales.",
+      "referenceCurrency": "Moneda de referencia",
+      "referenceCurrencyHelp": "Moneda usada para cotizar planes, comisiones y premios."
+    },
+    "sections": {
+      "general": "Datos generales",
+      "currencies": "Monedas"
+    }
   },
   "systemConfig": {
     "title": "Configuración del sistema",
