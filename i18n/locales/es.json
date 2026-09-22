@@ -2596,8 +2596,7 @@
       "title": "Aprobación de comisiones",
       "subtitle": "Una comisión calculada es una simulación hasta que se aprueba — solo lo aprobado puede pagarse.",
       "fields": {
-        "periodStart": "Inicio del período",
-        "periodEnd": "Fin del período"
+        "period": "Período"
       },
       "loadButton": "Cargar período",
       "empty": "No hay comisiones en este período.",

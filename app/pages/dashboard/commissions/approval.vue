@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CommissionApprovalGroupDto } from '~/types/promoters'
+import { defaultThisMonthRange, type DateTimeRange } from '~/utils/date'
 
 definePageMeta({
   layout: 'dashboard',
@@ -14,19 +15,20 @@ const commissionApproval = useCommissionApproval()
 const toast = useToast()
 
 // ---- Period + load ----
-const periodStart = ref('')
-const periodEnd = ref('')
+const periodRange = ref<DateTimeRange>(defaultThisMonthRange())
 const groups = ref<CommissionApprovalGroupDto[]>([])
 const loading = ref(false)
 const loaded = ref(false)
 
-const periodValid = computed(() => !!periodStart.value && !!periodEnd.value && periodEnd.value >= periodStart.value)
+const periodValid = computed(() => !!periodRange.value.from && !!periodRange.value.to)
 
 async function load() {
   if (!periodValid.value) return
   loading.value = true
   try {
-    groups.value = await commissionApproval.approvalQueue(periodStart.value, periodEnd.value)
+    const periodStart = periodRange.value.from!.slice(0, 10)
+    const periodEnd = periodRange.value.to!.slice(0, 10)
+    groups.value = await commissionApproval.approvalQueue(periodStart, periodEnd)
     // Preselect every editable (PENDING) row per the backend's own `checked` flag —
     // locked rows never enter this set, only their own read-only state renders them.
     selected.value = new Set(
@@ -41,6 +43,8 @@ async function load() {
     loading.value = false
   }
 }
+
+onMounted(load)
 
 // ---- Selection (uuids of editable rows currently checked, across all groups) ----
 const selected = ref<Set<string>>(new Set())
@@ -125,11 +129,8 @@ async function onReject(reason: string) {
 
     <!-- Period picker -->
     <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-end gap-3">
-      <UFormField :label="t('commissions.approval.fields.periodStart')">
-        <UInput v-model="periodStart" type="date" class="w-full" />
-      </UFormField>
-      <UFormField :label="t('commissions.approval.fields.periodEnd')">
-        <UInput v-model="periodEnd" type="date" class="w-full" />
+      <UFormField :label="t('commissions.approval.fields.period')">
+        <AuditDateRangePicker v-model="periodRange" />
       </UFormField>
       <UButton color="primary" variant="outline" icon="i-lucide-search" :disabled="!periodValid" :loading="loading" @click="load">
         {{ t('commissions.approval.loadButton') }}

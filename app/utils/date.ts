@@ -60,3 +60,14 @@ export function defaultTodayRange(): DateTimeRange {
     to: withCaracasOffset(`${d}T${nowTimeInCaracas()}:00`),
   }
 }
+
+/** Default "this month" range (VE) — same calendar-month math as `AuditDateRangePicker`'s "Este mes" shortcut. */
+export function defaultThisMonthRange(): DateTimeRange {
+  const [y, m] = todayInCaracas().split('-').map(Number) as [number, number]
+  const lastDay = new Date(Date.UTC(y, m, 0)).getUTCDate()
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return {
+    from: withCaracasOffset(`${y}-${pad(m)}-01T00:00:00`),
+    to: withCaracasOffset(`${y}-${pad(m)}-${pad(lastDay)}T23:59:00`),
+  }
+}
