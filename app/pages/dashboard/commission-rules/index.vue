@@ -51,6 +51,7 @@ const tabs = computed(() => [
   { label: t('commissionRules.tabs.bonusRules'), value: 'bonusRules', icon: 'i-lucide-gift' },
   { label: t('commissionRules.tabs.collectionTiers'), value: 'collectionTiers', icon: 'i-lucide-calendar-clock' },
   { label: t('commissionRules.tabs.overrideTiers'), value: 'overrideTiers', icon: 'i-lucide-network' },
+  { label: t('commissionRules.tabs.campaignRules'), value: 'campaignRules', icon: 'i-lucide-rocket' },
 ])
 const activeTab = ref('tiers')
 const pageSizeItems = buildPageSizeItems(t)
@@ -204,9 +205,9 @@ async function resetTierFilters() {
 
 const tierFormOpen = ref(false)
 const editingTier = ref<CommissionTierDto | null>(null)
-function openCreateTier() { editingTier.value = null; tierFormOpen.value = true }
+function openCreateTier() { editingTier.value = null; tierModalCampaignUuid.value = null; tierModalCampaignDisplay.value = null; tierFormOpen.value = true }
 function openEditTier(tier: CommissionTierDto) { editingTier.value = tier; tierFormOpen.value = true }
-async function onTierSaved() { await loadTiers() }
+async function onTierSaved() { await loadTiers(); await loadCrTiers() }
 
 const tierDeleteOpen = ref(false)
 const tierDeleting = ref(false)
@@ -343,9 +344,9 @@ async function resetBonusFilters() {
 
 const bonusFormOpen = ref(false)
 const editingBonus = ref<BonusRuleDto | null>(null)
-function openCreateBonus() { editingBonus.value = null; bonusFormOpen.value = true }
+function openCreateBonus() { editingBonus.value = null; bonusModalCampaignUuid.value = null; bonusModalCampaignDisplay.value = null; bonusFormOpen.value = true }
 function openEditBonus(rule: BonusRuleDto) { editingBonus.value = rule; bonusFormOpen.value = true }
-async function onBonusSaved() { await loadBonusRules() }
+async function onBonusSaved() { await loadBonusRules(); await loadCrBonus() }
 
 const bonusDeleteOpen = ref(false)
 const bonusDeleting = ref(false)
@@ -386,6 +387,9 @@ const collectionIncludeInactive = ref(false)
 const collectionPromoterTypeUuid = ref<string | undefined>(undefined)
 const collectionPage = ref(1)
 const collectionSize = ref(DEFAULT_PAGE_SIZE)
+// See tierCampaignOnly above for why this filter is client-side.
+const collectionCampaignOnly = ref(false)
+const collectionDisplayData = computed(() => (collectionCampaignOnly.value ? collectionData.value.filter(t => t.campaign_Uuid) : collectionData.value))
 
 // Empty by default: no `sort=` is sent until the user clicks a column, so
 // the backend's own default-sort fallback (entity_config → system_configs
@@ -443,6 +447,7 @@ async function resetCollectionFilters() {
   collectionSearch.value = ''
   collectionIncludeInactive.value = false
   collectionPromoterTypeUuid.value = undefined
+  collectionCampaignOnly.value = false
   collectionSort.reset()
   collectionSize.value = DEFAULT_PAGE_SIZE
   collectionPage.value = 1
@@ -453,9 +458,9 @@ async function resetCollectionFilters() {
 
 const collectionFormOpen = ref(false)
 const editingCollectionTier = ref<CollectionCommissionTierDto | null>(null)
-function openCreateCollectionTier() { editingCollectionTier.value = null; collectionFormOpen.value = true }
+function openCreateCollectionTier() { editingCollectionTier.value = null; collectionModalCampaignUuid.value = null; collectionModalCampaignDisplay.value = null; collectionFormOpen.value = true }
 function openEditCollectionTier(tier: CollectionCommissionTierDto) { editingCollectionTier.value = tier; collectionFormOpen.value = true }
-async function onCollectionTierSaved() { await loadCollectionTiers() }
+async function onCollectionTierSaved() { await loadCollectionTiers(); await loadCrCollection() }
 
 const collectionDeleteOpen = ref(false)
 const collectionDeleting = ref(false)
@@ -594,9 +599,9 @@ async function resetOverrideFilters() {
 
 const overrideFormOpen = ref(false)
 const editingOverrideTier = ref<HierarchyOverrideTierDto | null>(null)
-function openCreateOverrideTier() { editingOverrideTier.value = null; overrideFormOpen.value = true }
+function openCreateOverrideTier() { editingOverrideTier.value = null; overrideModalCampaignUuid.value = null; overrideModalCampaignDisplay.value = null; overrideFormOpen.value = true }
 function openEditOverrideTier(tier: HierarchyOverrideTierDto) { editingOverrideTier.value = tier; overrideFormOpen.value = true }
-async function onOverrideTierSaved() { await loadOverrideTiers() }
+async function onOverrideTierSaved() { await loadOverrideTiers(); await loadCrOverride() }
 
 const overrideDeleteOpen = ref(false)
 const overrideDeleting = ref(false)
@@ -646,6 +651,179 @@ function overrideReward(tier: HierarchyOverrideTierDto): string {
   return t('common.empty')
 }
 
+// =========================================================
+// Tab 5 — Reglas de campaña (server-side campaignUuid filter
+// across the 4 rule types, plus "Nueva regla" pre-loaded with the
+// selected campaign)
+// =========================================================
+async function searchCampaignsForFilter(q: string): Promise<SelectItem[]> {
+  const res = await campaignsApi.list({ q, size: 20 })
+  return (res.content ?? []).map(c => ({ label: c.name, value: c.uuid }))
+}
+const campaignsApi = useCampaigns()
+const crCampaignUuid = ref<string | undefined>(undefined)
+const crCampaignDisplay = ref<string | undefined>(undefined)
+const crCampaignLoading = ref(false)
+watch(crCampaignUuid, async (uuid) => {
+  if (!uuid) {
+    crCampaignDisplay.value = undefined
+  }
+  else {
+    crCampaignLoading.value = true
+    try {
+      const campaign = await campaignsApi.get(uuid)
+      crCampaignDisplay.value = campaign.name
+    }
+    catch {
+      crCampaignDisplay.value = undefined
+    }
+    finally {
+      crCampaignLoading.value = false
+    }
+  }
+  crTierPage.value = 1
+  crBonusPage.value = 1
+  crCollectionPage.value = 1
+  crOverridePage.value = 1
+  await loadCrAll()
+})
+
+// Lazy-load the campaign-rules tab's tables the first time it's opened
+// (avoids 4 extra requests on every page load for a tab most sessions won't visit).
+let crLoaded = false
+watch(activeTab, (tab) => {
+  if (tab === 'campaignRules' && !crLoaded) {
+    crLoaded = true
+    loadCrAll()
+  }
+})
+
+const crTierData = ref<CommissionTierDto[]>([])
+const crTierTotal = ref(0)
+const crTierLoading = ref(false)
+const crTierPage = ref(1)
+async function loadCrTiers() {
+  if (!canViewTiers.value) return
+  crTierLoading.value = true
+  try {
+    const res = await tierApi.list({ page: crTierPage.value - 1, size: DEFAULT_PAGE_SIZE, campaignUuid: crCampaignUuid.value })
+    crTierData.value = res.content ?? []
+    crTierTotal.value = res.totalElements ?? 0
+  }
+  catch {
+    crTierData.value = []
+    crTierTotal.value = 0
+  }
+  finally {
+    crTierLoading.value = false
+  }
+}
+watch(crTierPage, () => loadCrTiers())
+
+const crBonusData = ref<BonusRuleDto[]>([])
+const crBonusTotal = ref(0)
+const crBonusLoading = ref(false)
+const crBonusPage = ref(1)
+async function loadCrBonus() {
+  if (!canViewBonus.value) return
+  crBonusLoading.value = true
+  try {
+    const res = await bonusApi.list({ page: crBonusPage.value - 1, size: DEFAULT_PAGE_SIZE, campaignUuid: crCampaignUuid.value })
+    crBonusData.value = res.content ?? []
+    crBonusTotal.value = res.totalElements ?? 0
+  }
+  catch {
+    crBonusData.value = []
+    crBonusTotal.value = 0
+  }
+  finally {
+    crBonusLoading.value = false
+  }
+}
+watch(crBonusPage, () => loadCrBonus())
+
+const crCollectionData = ref<CollectionCommissionTierDto[]>([])
+const crCollectionTotal = ref(0)
+const crCollectionLoading = ref(false)
+const crCollectionPage = ref(1)
+async function loadCrCollection() {
+  if (!canViewCollection.value) return
+  crCollectionLoading.value = true
+  try {
+    const res = await collectionApi.list({ page: crCollectionPage.value - 1, size: DEFAULT_PAGE_SIZE, campaignUuid: crCampaignUuid.value })
+    crCollectionData.value = res.content ?? []
+    crCollectionTotal.value = res.totalElements ?? 0
+  }
+  catch {
+    crCollectionData.value = []
+    crCollectionTotal.value = 0
+  }
+  finally {
+    crCollectionLoading.value = false
+  }
+}
+watch(crCollectionPage, () => loadCrCollection())
+
+const crOverrideData = ref<HierarchyOverrideTierDto[]>([])
+const crOverrideTotal = ref(0)
+const crOverrideLoading = ref(false)
+const crOverridePage = ref(1)
+async function loadCrOverride() {
+  if (!canViewOverride.value) return
+  crOverrideLoading.value = true
+  try {
+    const res = await overrideApi.list({ page: crOverridePage.value - 1, size: DEFAULT_PAGE_SIZE, campaignUuid: crCampaignUuid.value })
+    crOverrideData.value = res.content ?? []
+    crOverrideTotal.value = res.totalElements ?? 0
+  }
+  catch {
+    crOverrideData.value = []
+    crOverrideTotal.value = 0
+  }
+  finally {
+    crOverrideLoading.value = false
+  }
+}
+watch(crOverridePage, () => loadCrOverride())
+
+async function loadCrAll() {
+  await Promise.all([loadCrTiers(), loadCrBonus(), loadCrCollection(), loadCrOverride()])
+}
+
+// "Nueva regla" from this tab: preset campaignUuid/campaignDisplay + lock the
+// field in the modal (campaignLocked = mode==='create' && !!campaignUuid).
+const tierModalCampaignUuid = ref<string | null>(null)
+const tierModalCampaignDisplay = ref<string | null>(null)
+function openCreateTierForCampaign() {
+  editingTier.value = null
+  tierModalCampaignUuid.value = crCampaignUuid.value ?? null
+  tierModalCampaignDisplay.value = crCampaignDisplay.value ?? null
+  tierFormOpen.value = true
+}
+const bonusModalCampaignUuid = ref<string | null>(null)
+const bonusModalCampaignDisplay = ref<string | null>(null)
+function openCreateBonusForCampaign() {
+  editingBonus.value = null
+  bonusModalCampaignUuid.value = crCampaignUuid.value ?? null
+  bonusModalCampaignDisplay.value = crCampaignDisplay.value ?? null
+  bonusFormOpen.value = true
+}
+const collectionModalCampaignUuid = ref<string | null>(null)
+const collectionModalCampaignDisplay = ref<string | null>(null)
+function openCreateCollectionTierForCampaign() {
+  editingCollectionTier.value = null
+  collectionModalCampaignUuid.value = crCampaignUuid.value ?? null
+  collectionModalCampaignDisplay.value = crCampaignDisplay.value ?? null
+  collectionFormOpen.value = true
+}
+const overrideModalCampaignUuid = ref<string | null>(null)
+const overrideModalCampaignDisplay = ref<string | null>(null)
+function openCreateOverrideTierForCampaign() {
+  editingOverrideTier.value = null
+  overrideModalCampaignUuid.value = crCampaignUuid.value ?? null
+  overrideModalCampaignDisplay.value = crCampaignDisplay.value ?? null
+  overrideFormOpen.value = true
+}
 onMounted(() => {
   if (canViewTiers.value) loadTiers()
   if (canViewBonus.value) loadBonusRules()
@@ -979,6 +1157,7 @@ onMounted(() => {
           class="w-56"
         />
         <UCheckbox v-model="collectionIncludeInactive" :label="t('catalogs.includeInactive')" class="self-center" />
+        <UCheckbox v-model="collectionCampaignOnly" :label="t('commissionRules.filters.campaignOnly')" class="self-center" />
         <UButton
           v-if="collectionHasActiveSort"
           variant="link"
@@ -1012,16 +1191,17 @@ onMounted(() => {
                 {{ t('catalogs.columns.status') }}
                 <SortIndicator :state="collectionSort.stateOf('active')" :multi-active="collectionIsMultiSort" @clear="collectionSort.remove('active')" />
               </th>
+              <th class="px-5 py-3 font-semibold">{{ t('commissionRules.collectionTiers.columns.campaign') }}</th>
               <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-prohealth-100">
-            <TableSkeleton v-if="collectionLoading" :rows="4" :cols="6" />
-            <tr v-else-if="collectionData.length === 0">
-              <td colspan="6" class="px-5 py-10 text-center text-prohealth-500">{{ t('commissionRules.collectionTiers.empty') }}</td>
+            <TableSkeleton v-if="collectionLoading" :rows="4" :cols="7" />
+            <tr v-else-if="collectionDisplayData.length === 0">
+              <td colspan="7" class="px-5 py-10 text-center text-prohealth-500">{{ t('commissionRules.collectionTiers.empty') }}</td>
             </tr>
             <tr
-              v-for="tier in collectionData"
+              v-for="tier in collectionDisplayData"
               v-else
               :key="tier.uuid"
               class="hover:bg-prohealth-50/50"
@@ -1037,6 +1217,13 @@ onMounted(() => {
                   {{ tier.active ? t('catalogs.status.active') : t('catalogs.status.inactive') }}
                 </UBadge>
               </td>
+              <td class="px-5 py-3 text-prohealth-600" @click.stop>
+                <CommonEntityLinkCell
+                  :to="tier.campaign_Uuid ? `/dashboard/campaigns/${tier.campaign_Uuid}` : null"
+                  :label="tier.campaign_Display"
+                  :can="can('CAMPAIGN_VIEW_ALL')"
+                />
+              </td>
               <td class="px-5 py-3" @click.stop>
                 <div class="flex items-center justify-end gap-1">
                   <UButton v-if="canUpdateCollection" color="info" variant="ghost" icon="i-lucide-pencil" size="sm" @click="openEditCollectionTier(tier)" />
@@ -1048,7 +1235,7 @@ onMounted(() => {
         </table>
         <div class="flex items-center flex-wrap justify-between gap-3 px-5 py-3 border-t border-prohealth-100 shrink-0">
           <p class="text-xs text-prohealth-500">
-            {{ t('commissionRules.collectionTiers.paginationSummary', { shown: collectionData.length, total: collectionTotal }) }}
+            {{ t('commissionRules.collectionTiers.paginationSummary', { shown: collectionDisplayData.length, total: collectionTotal }) }}
           </p>
           <div class="flex items-center gap-3">
             <UPagination
@@ -1220,11 +1407,285 @@ onMounted(() => {
       </div>
     </div>
 
+    <!-- Tab 5: Reglas de campaña -->
+    <div v-show="activeTab === 'campaignRules'" class="space-y-4">
+      <p class="text-sm text-prohealth-700/70">{{ t('commissionRules.campaignRules.subtitle') }}</p>
+
+      <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
+        <CommonEntityReferenceSelect
+          v-model="crCampaignUuid"
+          :search="searchCampaignsForFilter"
+          entity="campaign"
+          :loading="crCampaignLoading"
+          :placeholder="t('commissionRules.campaignRules.campaignPlaceholder')"
+          :search-placeholder="t('campaigns.searchPlaceholder')"
+          icon="i-lucide-rocket"
+          class="w-full max-w-sm"
+        />
+      </div>
+
+      <p v-if="!crCampaignUuid" class="text-sm text-prohealth-500 italic">
+        {{ t('commissionRules.campaignRules.noCampaignSelected') }}
+      </p>
+
+      <template v-else>
+        <!-- Bandas de inscripción -->
+        <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
+          <div class="flex items-center justify-between px-5 py-3 border-b border-prohealth-100">
+            <h3 class="font-semibold text-prohealth-900">{{ t('commissionRules.campaignRules.sections.tiers') }}</h3>
+            <UButton v-if="canCreateTiers" color="primary" variant="outline" size="sm" icon="i-lucide-plus" @click="openCreateTierForCampaign">
+              {{ t('common.new') }}
+            </UButton>
+          </div>
+          <table class="w-full text-sm">
+            <thead class="bg-prohealth-50/60">
+              <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
+                <th class="px-5 py-3 font-semibold">{{ t('commissionRules.tiers.columns.name') }}</th>
+                <th class="px-5 py-3 font-semibold">{{ t('commissionRules.tiers.columns.planType') }}</th>
+                <th class="px-5 py-3 font-semibold">{{ t('commissionRules.tiers.columns.threshold') }}</th>
+                <th class="px-5 py-3 font-semibold">{{ t('commissionRules.tiers.columns.reward') }}</th>
+                <th class="px-5 py-3 font-semibold">{{ t('commissionRules.tiers.columns.appliesTo') }}</th>
+                <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-prohealth-100">
+              <TableSkeleton v-if="crTierLoading" :rows="3" :cols="6" />
+              <tr v-else-if="crTierData.length === 0">
+                <td colspan="6" class="px-5 py-8 text-center text-prohealth-500">{{ t('commissionRules.tiers.empty') }}</td>
+              </tr>
+              <tr
+                v-for="tier in crTierData"
+                v-else
+                :key="tier.uuid"
+                class="hover:bg-prohealth-50/50"
+                :class="{ 'opacity-60': !tier.active, 'cursor-pointer': canUpdateTiers }"
+                @click="canUpdateTiers && openEditTier(tier)"
+              >
+                <td class="px-5 py-3 font-medium text-prohealth-900">{{ tier.name }}</td>
+                <td class="px-5 py-3 text-prohealth-600">{{ tier.planType ? t(`plans.types.${tier.planType}`) : t('commissionRules.tiers.allPlans') }}</td>
+                <td class="px-5 py-3 text-prohealth-600">{{ tier.thresholdCount }}</td>
+                <td class="px-5 py-3 text-prohealth-600">{{ tierReward(tier) }}</td>
+                <td class="px-5 py-3"><UBadge color="primary" variant="subtle" size="sm">{{ t(`commissionRules.appliesTo.${tier.appliesTo}`) }}</UBadge></td>
+                <td class="px-5 py-3" @click.stop>
+                  <div class="flex items-center justify-end gap-1">
+                    <UButton v-if="canUpdateTiers" color="info" variant="ghost" icon="i-lucide-pencil" size="sm" @click="openEditTier(tier)" />
+                    <UButton v-if="canDeleteTiers" color="error" variant="ghost" icon="i-lucide-trash-2" size="sm" class="ms-2" @click="openDeleteTier(tier)" />
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div v-if="crTierTotal > DEFAULT_PAGE_SIZE" class="flex justify-end px-5 py-3 border-t border-prohealth-100">
+            <UPagination v-model:page="crTierPage" :total="crTierTotal" :items-per-page="DEFAULT_PAGE_SIZE" />
+          </div>
+        </div>
+
+        <!-- Bonos por escala -->
+        <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
+          <div class="flex items-center justify-between px-5 py-3 border-b border-prohealth-100">
+            <h3 class="font-semibold text-prohealth-900">{{ t('commissionRules.campaignRules.sections.bonusRules') }}</h3>
+            <UButton v-if="canCreateBonus" color="primary" variant="outline" size="sm" icon="i-lucide-plus" @click="openCreateBonusForCampaign">
+              {{ t('common.new') }}
+            </UButton>
+          </div>
+          <table class="w-full text-sm">
+            <thead class="bg-prohealth-50/60">
+              <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
+                <th class="px-5 py-3 font-semibold">{{ t('commissionRules.bonusRules.columns.name') }}</th>
+                <th class="px-5 py-3 font-semibold">{{ t('commissionRules.bonusRules.columns.metric') }}</th>
+                <th class="px-5 py-3 font-semibold">{{ t('commissionRules.bonusRules.columns.threshold') }}</th>
+                <th class="px-5 py-3 font-semibold">{{ t('commissionRules.bonusRules.columns.reward') }}</th>
+                <th class="px-5 py-3 font-semibold">{{ t('catalogs.columns.status') }}</th>
+                <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-prohealth-100">
+              <TableSkeleton v-if="crBonusLoading" :rows="3" :cols="6" />
+              <tr v-else-if="crBonusData.length === 0">
+                <td colspan="6" class="px-5 py-8 text-center text-prohealth-500">{{ t('commissionRules.bonusRules.empty') }}</td>
+              </tr>
+              <tr
+                v-for="rule in crBonusData"
+                v-else
+                :key="rule.uuid"
+                class="hover:bg-prohealth-50/50"
+                :class="{ 'opacity-60': !rule.active, 'cursor-pointer': canUpdateBonus }"
+                @click="canUpdateBonus && openEditBonus(rule)"
+              >
+                <td class="px-5 py-3 font-medium text-prohealth-900">{{ rule.name }}</td>
+                <td class="px-5 py-3 text-prohealth-600">{{ t(`commissionRules.bonusMetrics.${rule.metric}`) }}</td>
+                <td class="px-5 py-3 text-prohealth-600">{{ rule.thresholdCount }}</td>
+                <td class="px-5 py-3 text-prohealth-600">{{ bonusReward(rule) }}</td>
+                <td class="px-5 py-3">
+                  <UBadge :color="rule.active ? 'success' : 'neutral'" variant="subtle" size="sm">
+                    {{ rule.active ? t('catalogs.status.active') : t('catalogs.status.inactive') }}
+                  </UBadge>
+                </td>
+                <td class="px-5 py-3" @click.stop>
+                  <div class="flex items-center justify-end gap-1">
+                    <UButton v-if="canUpdateBonus" color="info" variant="ghost" icon="i-lucide-pencil" size="sm" @click="openEditBonus(rule)" />
+                    <UButton v-if="canDeleteBonus" color="error" variant="ghost" icon="i-lucide-trash-2" size="sm" class="ms-2" @click="openDeleteBonus(rule)" />
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div v-if="crBonusTotal > DEFAULT_PAGE_SIZE" class="flex justify-end px-5 py-3 border-t border-prohealth-100">
+            <UPagination v-model:page="crBonusPage" :total="crBonusTotal" :items-per-page="DEFAULT_PAGE_SIZE" />
+          </div>
+        </div>
+
+        <!-- Comisión de cobranza -->
+        <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
+          <div class="flex items-center justify-between px-5 py-3 border-b border-prohealth-100">
+            <h3 class="font-semibold text-prohealth-900">{{ t('commissionRules.campaignRules.sections.collectionTiers') }}</h3>
+            <UButton v-if="canCreateCollection" color="primary" variant="outline" size="sm" icon="i-lucide-plus" @click="openCreateCollectionTierForCampaign">
+              {{ t('common.new') }}
+            </UButton>
+          </div>
+          <table class="w-full text-sm">
+            <thead class="bg-prohealth-50/60">
+              <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
+                <th class="px-5 py-3 font-semibold">{{ t('commissionRules.collectionTiers.columns.name') }}</th>
+                <th class="px-5 py-3 font-semibold">{{ t('commissionRules.collectionTiers.columns.basis') }}</th>
+                <th class="px-5 py-3 font-semibold">{{ t('commissionRules.collectionTiers.columns.bucket') }}</th>
+                <th class="px-5 py-3 font-semibold">{{ t('commissionRules.collectionTiers.columns.commissionPct') }}</th>
+                <th class="px-5 py-3 font-semibold">{{ t('catalogs.columns.status') }}</th>
+                <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-prohealth-100">
+              <TableSkeleton v-if="crCollectionLoading" :rows="3" :cols="6" />
+              <tr v-else-if="crCollectionData.length === 0">
+                <td colspan="6" class="px-5 py-8 text-center text-prohealth-500">{{ t('commissionRules.collectionTiers.empty') }}</td>
+              </tr>
+              <tr
+                v-for="tier in crCollectionData"
+                v-else
+                :key="tier.uuid"
+                class="hover:bg-prohealth-50/50"
+                :class="{ 'opacity-60': !tier.active, 'cursor-pointer': canUpdateCollection }"
+                @click="canUpdateCollection && openEditCollectionTier(tier)"
+              >
+                <td class="px-5 py-3 font-medium text-prohealth-900">{{ tier.name }}</td>
+                <td class="px-5 py-3 text-prohealth-600">{{ tier.basis === 'AMOUNT' ? t('commissionRules.collectionTiers.form.basisAmount') : t('commissionRules.collectionTiers.form.basisDays') }}</td>
+                <td class="px-5 py-3 text-prohealth-600">{{ tier.basis === 'AMOUNT' ? tier.maxAmount : tier.maxDays }}</td>
+                <td class="px-5 py-3 text-prohealth-600">{{ tier.commissionPct != null ? `${tier.commissionPct}%` : `${tier.flatAmount} ${tier.flatAmountCurrency_Code ?? ''}` }}</td>
+                <td class="px-5 py-3">
+                  <UBadge :color="tier.active ? 'success' : 'neutral'" variant="subtle" size="sm">
+                    {{ tier.active ? t('catalogs.status.active') : t('catalogs.status.inactive') }}
+                  </UBadge>
+                </td>
+                <td class="px-5 py-3" @click.stop>
+                  <div class="flex items-center justify-end gap-1">
+                    <UButton v-if="canUpdateCollection" color="info" variant="ghost" icon="i-lucide-pencil" size="sm" @click="openEditCollectionTier(tier)" />
+                    <UButton v-if="canDeleteCollection" color="error" variant="ghost" icon="i-lucide-trash-2" size="sm" class="ms-2" @click="openDeleteCollectionTier(tier)" />
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div v-if="crCollectionTotal > DEFAULT_PAGE_SIZE" class="flex justify-end px-5 py-3 border-t border-prohealth-100">
+            <UPagination v-model:page="crCollectionPage" :total="crCollectionTotal" :items-per-page="DEFAULT_PAGE_SIZE" />
+          </div>
+        </div>
+
+        <!-- Comisión jerárquica adicional -->
+        <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
+          <div class="flex items-center justify-between px-5 py-3 border-b border-prohealth-100">
+            <h3 class="font-semibold text-prohealth-900">{{ t('commissionRules.campaignRules.sections.overrideTiers') }}</h3>
+            <UButton v-if="canCreateOverride" color="primary" variant="outline" size="sm" icon="i-lucide-plus" @click="openCreateOverrideTierForCampaign">
+              {{ t('common.new') }}
+            </UButton>
+          </div>
+          <table class="w-full text-sm">
+            <thead class="bg-prohealth-50/60">
+              <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
+                <th class="px-5 py-3 font-semibold">{{ t('hierarchyOverrideTiers.columns.name') }}</th>
+                <th class="px-5 py-3 font-semibold">{{ t('hierarchyOverrideTiers.columns.rank') }}</th>
+                <th class="px-5 py-3 font-semibold">{{ t('hierarchyOverrideTiers.columns.category') }}</th>
+                <th class="px-5 py-3 font-semibold">{{ t('hierarchyOverrideTiers.columns.reward') }}</th>
+                <th class="px-5 py-3 font-semibold">{{ t('catalogs.columns.status') }}</th>
+                <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-prohealth-100">
+              <TableSkeleton v-if="crOverrideLoading" :rows="3" :cols="6" />
+              <tr v-else-if="crOverrideData.length === 0">
+                <td colspan="6" class="px-5 py-8 text-center text-prohealth-500">{{ t('hierarchyOverrideTiers.empty') }}</td>
+              </tr>
+              <tr
+                v-for="tier in crOverrideData"
+                v-else
+                :key="tier.uuid"
+                class="hover:bg-prohealth-50/50"
+                :class="{ 'opacity-60': !tier.active, 'cursor-pointer': canUpdateOverride }"
+                @click="canUpdateOverride && openEditOverrideTier(tier)"
+              >
+                <td class="px-5 py-3 font-medium text-prohealth-900">{{ tier.name }}</td>
+                <td class="px-5 py-3 text-prohealth-600" @click.stop>
+                  <CommonEntityLinkCell
+                    :to="tier.rank_Uuid ? `/dashboard/catalogs/promoter-ranks?edit=${tier.rank_Uuid}` : null"
+                    :label="tier.rank_Display"
+                    :can="canViewPromoterRank"
+                  />
+                </td>
+                <td class="px-5 py-3"><UBadge color="primary" variant="subtle" size="sm">{{ t(`hierarchyOverrideTiers.category.${tier.category}`) }}</UBadge></td>
+                <td class="px-5 py-3 text-prohealth-600">{{ overrideReward(tier) }}</td>
+                <td class="px-5 py-3">
+                  <UBadge :color="tier.active ? 'success' : 'neutral'" variant="subtle" size="sm">
+                    {{ tier.active ? t('catalogs.status.active') : t('catalogs.status.inactive') }}
+                  </UBadge>
+                </td>
+                <td class="px-5 py-3" @click.stop>
+                  <div class="flex items-center justify-end gap-1">
+                    <UButton v-if="canUpdateOverride" color="info" variant="ghost" icon="i-lucide-pencil" size="sm" @click="openEditOverrideTier(tier)" />
+                    <UButton v-if="canDeleteOverride" color="error" variant="ghost" icon="i-lucide-trash-2" size="sm" class="ms-2" @click="openDeleteOverrideTier(tier)" />
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div v-if="crOverrideTotal > DEFAULT_PAGE_SIZE" class="flex justify-end px-5 py-3 border-t border-prohealth-100">
+            <UPagination v-model:page="crOverridePage" :total="crOverrideTotal" :items-per-page="DEFAULT_PAGE_SIZE" />
+          </div>
+        </div>
+      </template>
+    </div>
+
     <!-- Modals -->
-    <CommissionTierFormModal v-model:open="tierFormOpen" :tier="editingTier" @saved="onTierSaved" @delete="onDeleteTierFromEdit" />
-    <BonusRuleFormModal v-model:open="bonusFormOpen" :rule="editingBonus" @saved="onBonusSaved" @delete="onDeleteBonusFromEdit" />
-    <CollectionCommissionTierFormModal v-model:open="collectionFormOpen" :tier="editingCollectionTier" @saved="onCollectionTierSaved" @delete="onDeleteCollectionTierFromEdit" />
-    <HierarchyOverrideTierFormModal v-model:open="overrideFormOpen" :tier="editingOverrideTier" @saved="onOverrideTierSaved" @delete="onDeleteOverrideTierFromEdit" />
+    <CommissionTierFormModal
+      v-model:open="tierFormOpen"
+      :tier="editingTier"
+      :campaign-uuid="tierModalCampaignUuid"
+      :campaign-display="tierModalCampaignDisplay"
+      @saved="onTierSaved"
+      @delete="onDeleteTierFromEdit"
+    />
+    <BonusRuleFormModal
+      v-model:open="bonusFormOpen"
+      :rule="editingBonus"
+      :campaign-uuid="bonusModalCampaignUuid"
+      :campaign-display="bonusModalCampaignDisplay"
+      @saved="onBonusSaved"
+      @delete="onDeleteBonusFromEdit"
+    />
+    <CollectionCommissionTierFormModal
+      v-model:open="collectionFormOpen"
+      :tier="editingCollectionTier"
+      :campaign-uuid="collectionModalCampaignUuid"
+      :campaign-display="collectionModalCampaignDisplay"
+      @saved="onCollectionTierSaved"
+      @delete="onDeleteCollectionTierFromEdit"
+    />
+    <HierarchyOverrideTierFormModal
+      v-model:open="overrideFormOpen"
+      :tier="editingOverrideTier"
+      :campaign-uuid="overrideModalCampaignUuid"
+      :campaign-display="overrideModalCampaignDisplay"
+      @saved="onOverrideTierSaved"
+      @delete="onDeleteOverrideTierFromEdit"
+    />
 
     <!-- Delete confirmations -->
     <UModal v-model:open="tierDeleteOpen" :title="t('commissionRules.tiers.deleteTitle')">

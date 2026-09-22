@@ -13,7 +13,7 @@ import type { SelectItem } from '~/types/options'
 const props = defineProps<{
   open: boolean
   tier?: CollectionCommissionTierDto | null
-  /** Preset campaign_id when created from the campaign ficha's "Add rule" flow. Not yet a real backend field on this entity (see report); harmless no-op until the backend adds it. */
+  /** Preset campaign_id when created from the campaign ficha's "Add rule" flow, or from the "Reglas de Campaña" tab. */
   campaignUuid?: string | null
   campaignDisplay?: string | null
 }>()

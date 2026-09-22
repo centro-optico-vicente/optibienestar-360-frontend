@@ -2999,7 +2999,20 @@
       "tiers": "Inscription Bands",
       "bonusRules": "Scale Bonuses",
       "collectionTiers": "Collection Commission",
-      "overrideTiers": "Additional hierarchy commission"
+      "overrideTiers": "Additional hierarchy commission",
+      "campaignRules": "Campaign Rules"
+    },
+    "campaignRules": {
+      "subtitle": "Filter and create commission rules anchored to a specific campaign.",
+      "campaignLabel": "Campaign",
+      "campaignPlaceholder": "Select a campaign...",
+      "noCampaignSelected": "Select a campaign to see its rules.",
+      "sections": {
+        "tiers": "Inscription Bands",
+        "bonusRules": "Scale Bonuses",
+        "collectionTiers": "Collection Commission",
+        "overrideTiers": "Additional hierarchy commission"
+      }
     },
     "appliesTo": {
       "INSCRIPTION": "Inscription",
@@ -3157,7 +3170,8 @@
         "basis": "Basis",
         "bucket": "Limit",
         "maxDays": "Max days",
-        "commissionPct": "Percentage"
+        "commissionPct": "Percentage",
+        "campaign": "Campaign"
       },
       "form": {
         "createTitle": "New collection bucket",
