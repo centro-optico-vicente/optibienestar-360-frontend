@@ -48,7 +48,7 @@ async function loadCurrencyOptions() {
   loadingCurrencies.value = true
   try {
     const options = await currencies.options()
-    currencyItems.value = options.filter(o => o.code).map(o => ({ label: `${o.code} — ${o.label}`, value: o.uuid }))
+    currencyItems.value = options.filter(o => o.code).map(o => ({ label: o.label, value: o.uuid }))
   }
   catch { currencyItems.value = [] }
   finally { loadingCurrencies.value = false }
@@ -56,6 +56,10 @@ async function loadCurrencyOptions() {
 async function searchCampaigns(q: string): Promise<SelectItem[]> {
   const res = await campaignsApi.list({ q, size: 20 })
   return (res.content ?? []).map(c => ({ label: c.name, value: c.uuid }))
+}
+function goToCurrency(to: string) {
+  isOpen.value = false
+  navigateTo(to)
 }
 function isoToDatetimeLocal(iso: string): string {
   if (!iso) return ''
@@ -255,7 +259,7 @@ async function restoreTier() {
   <UModal
     v-model:open="isOpen"
     :title="mode === 'create' ? t('commissionRules.collectionTiers.form.createTitle') : t('commissionRules.collectionTiers.form.editTitle')"
-    :ui="{ content: 'max-w-lg' }"
+    :ui="{ content: 'max-w-2xl' }"
   >
     <template #body>
       <UForm ref="formRef" :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
@@ -294,7 +298,15 @@ async function restoreTier() {
         </div>
 
         <UFormField v-if="state.rewardKind === 'FLAT'" :label="t('commissionRules.collectionTiers.form.flatAmountCurrency')" name="flatAmountCurrencyUuid" required>
-          <USelectMenu v-model="state.flatAmountCurrencyUuid" :items="currencyItems" label-key="label" value-key="value" :loading="loadingCurrencies" class="w-full" />
+          <CommonEntityReferenceSelect
+            v-model="state.flatAmountCurrencyUuid"
+            :items="currencyItems"
+            entity="currency"
+            :loading="loadingCurrencies"
+            :placeholder="t('common.select')"
+            icon="i-lucide-coins"
+            @navigate="goToCurrency"
+          />
         </UFormField>
 
         <UFormField :label="t('campaigns.form.campaign')" name="campaignUuid">
@@ -314,10 +326,10 @@ async function restoreTier() {
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('commissionRules.tiers.form.startsAt')" name="startsAt">
-            <UInput v-model="state.startsAt" type="datetime-local" class="w-full" />
+            <AppDateTimePicker v-model="state.startsAt" />
           </UFormField>
           <UFormField :label="t('commissionRules.tiers.form.endsAt')" name="endsAt">
-            <UInput v-model="state.endsAt" type="datetime-local" class="w-full" />
+            <AppDateTimePicker v-model="state.endsAt" />
           </UFormField>
         </div>
 

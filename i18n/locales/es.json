@@ -3128,6 +3128,7 @@
         "rewardType": "Tipo de recompensa",
         "flatAmount": "Monto fijo",
         "rewardPct": "Porcentaje",
+        "rewardCurrency": "Moneda de la recompensa",
         "includeSystemPromoters": "Incluir promotores del sistema",
         "submitCreate": "Crear regla",
         "startsAt": "Inicia",

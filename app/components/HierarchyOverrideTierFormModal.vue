@@ -111,7 +111,7 @@ async function loadCurrencyOptions() {
   loadingCurrencies.value = true
   try {
     const options = await currencies.options()
-    currencyItems.value = options.filter(o => o.code).map(o => ({ label: `${o.code} — ${o.label}`, value: o.uuid }))
+    currencyItems.value = options.filter(o => o.code).map(o => ({ label: o.label, value: o.uuid }))
   }
   catch {
     currencyItems.value = []
@@ -119,6 +119,10 @@ async function loadCurrencyOptions() {
   finally {
     loadingCurrencies.value = false
   }
+}
+function goToCurrency(to: string) {
+  isOpen.value = false
+  navigateTo(to)
 }
 
 interface FormState {
@@ -377,15 +381,14 @@ async function restoreTier() {
         </div>
 
         <UFormField v-if="state.rewardKind === 'FLAT'" :label="t('hierarchyOverrideTiers.form.flatAmountCurrency')" name="flatAmountCurrencyUuid" required>
-          <USelectMenu
-            clear
+          <CommonEntityReferenceSelect
             v-model="state.flatAmountCurrencyUuid"
             :items="currencyItems"
-            label-key="label"
-            value-key="value"
+            entity="currency"
             :loading="loadingCurrencies"
             :placeholder="t('common.select')"
-            class="w-full"
+            icon="i-lucide-coins"
+            @navigate="goToCurrency"
           />
         </UFormField>
 
@@ -407,10 +410,10 @@ async function restoreTier() {
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('hierarchyOverrideTiers.form.startsAt')" name="startsAt">
-            <UInput v-model="state.startsAt" type="datetime-local" class="w-full" />
+            <AppDateTimePicker v-model="state.startsAt" />
           </UFormField>
           <UFormField :label="t('hierarchyOverrideTiers.form.endsAt')" name="endsAt">
-            <UInput v-model="state.endsAt" type="datetime-local" class="w-full" />
+            <AppDateTimePicker v-model="state.endsAt" />
           </UFormField>
         </div>
 

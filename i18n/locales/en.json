@@ -3128,6 +3128,7 @@
         "rewardType": "Reward type",
         "flatAmount": "Flat amount",
         "rewardPct": "Percentage",
+        "rewardCurrency": "Reward currency",
         "includeSystemPromoters": "Include system promoters",
         "submitCreate": "Create rule",
         "startsAt": "Starts",
