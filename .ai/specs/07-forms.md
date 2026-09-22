@@ -233,6 +233,39 @@ Aplica a cualquier campo (`UInput`, `UTextarea`, `USelectMenu`, etc.) que se vue
 estructuralmente inmutable en modo edición — no solo a `code`. Ejemplos ya migrados:
 `ScheduledJobFormModal.vue` (`code`), `UserFormModal.vue` (`email`).
 
+## Moneda en selects
+
+Todo `USelectMenu`/`CommonEntityReferenceSelect` que liste monedas (`Currency`) debe mostrar la etiqueta como:
+
+```
+<Código> (<Símbolo>)
+```
+
+Ejemplos: `USD ($)`, `VES (Bs.)`, `EUR (€)`. Es la convención por defecto para **cualquier dropdown de moneda**, salvo que se indique explícitamente otro formato. Se resuelve en el origen (backend), no por formateo client-side:
+
+```java
+// CurrencyService.labelOf
+private static String labelOf(Currency c) {
+    return c.getCode() + " (" + c.getSymbol() + ")";
+}
+```
+
+El frontend consume `option.label` directamente (ver `CommissionTierFormModal.vue`, `currencyItems`), sin concatenar código/nombre por su cuenta.
+
+## Atajos de fecha/hora (`AppDateTimePicker`, `AuditDateRangePicker`)
+
+Todo selector de fecha/fecha-hora con panel de atajos agrupa los shortcuts en 3 secciones, en este orden, separadas por `USeparator`:
+
+1. **Día** — Hoy, Ayer, Mañana
+2. **Semana** — 1er día de la semana, Último día laborable de la semana (viernes), Último día de la semana (domingo)
+3. **Mes** — 1er día del mes, Quincena (día 15), Último día del mes
+
+La semana se calcula con un helper propio (`mondayOfWeek`), **no** con `startOfWeek(date, 'es-VE')` de `@internationalized/date` — el CLDR de `es-VE` empieza la semana en domingo, no en lunes, así que ese helper daba el día equivocado. `mondayOfWeek` usa `date.toDate('America/Caracas').getDay()` (0=dom…6=sáb, Gregoriano puro, sin locale) y resta el offset a lunes; el "último día laborable" es `mondayOfWeek + 4 días` (viernes) y el "último día de la semana" es `mondayOfWeek + 6 días` (domingo).
+
+Componente de referencia para un campo de fecha-hora **único**: `app/components/AppDateTimePicker.vue`. Para un **rango**: `app/components/AuditDateRangePicker.vue` (pendiente unificar sus 3 grupos exactos con esta convención si se toca de nuevo — hoy agrupa Día/Semana completa/Mes sin el desglose de "último día laborable").
+
+i18n: claves bajo `common.dateTimePicker.shortcuts.*` (picker único) / `audit.dateRange.shortcuts.*` (rango).
+
 ## Anti-patterns
 
 ❌ Calcular total/descuentos en frontend (backend lo hace)

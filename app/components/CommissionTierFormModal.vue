@@ -43,7 +43,7 @@ async function loadCurrencyOptions() {
   loadingCurrencies.value = true
   try {
     const options = await currencies.options()
-    currencyItems.value = options.filter(o => o.code).map(o => ({ label: `${o.code} — ${o.label}`, value: o.uuid }))
+    currencyItems.value = options.filter(o => o.code).map(o => ({ label: o.label, value: o.uuid }))
   }
   catch { currencyItems.value = [] }
   finally { loadingCurrencies.value = false }
@@ -55,6 +55,10 @@ async function searchCampaigns(q: string): Promise<SelectItem[]> {
   return (res.content ?? []).map(c => ({ label: c.name, value: c.uuid }))
 }
 function goToCampaign(to: string) {
+  isOpen.value = false
+  navigateTo(to)
+}
+function goToCurrency(to: string) {
   isOpen.value = false
   navigateTo(to)
 }
@@ -344,7 +348,15 @@ async function restoreTier() {
         </div>
 
         <UFormField v-if="state.rewardKind === 'FLAT'" :label="t('commissionRules.tiers.form.flatAmountCurrency')" name="flatAmountCurrencyUuid" required>
-          <USelectMenu v-model="state.flatAmountCurrencyUuid" :items="currencyItems" label-key="label" value-key="value" :loading="loadingCurrencies" class="w-full" />
+          <CommonEntityReferenceSelect
+            v-model="state.flatAmountCurrencyUuid"
+            :items="currencyItems"
+            entity="currency"
+            :loading="loadingCurrencies"
+            :placeholder="t('common.select')"
+            icon="i-lucide-coins"
+            @navigate="goToCurrency"
+          />
         </UFormField>
 
         <UFormField :label="t('campaigns.form.campaign')" name="campaignUuid" :help="t('campaigns.form.campaignHelp')">
@@ -365,10 +377,10 @@ async function restoreTier() {
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('commissionRules.tiers.form.startsAt')" name="startsAt">
-            <UInput v-model="state.startsAt" type="datetime-local" class="w-full" />
+            <AppDateTimePicker v-model="state.startsAt" />
           </UFormField>
           <UFormField :label="t('commissionRules.tiers.form.endsAt')" name="endsAt">
-            <UInput v-model="state.endsAt" type="datetime-local" class="w-full" />
+            <AppDateTimePicker v-model="state.endsAt" />
           </UFormField>
         </div>
 

@@ -34,6 +34,7 @@ export type EntityReferenceKey =
   | 'promoter_rank'
   | 'document_type'
   | 'campaign'
+  | 'currency'
 
 interface EntityReferenceDef {
   /** Builds the target route from the select's current value (usually a uuid). */
@@ -56,6 +57,7 @@ const CATALOG_ENTITY_KEYS: Partial<Record<EntityReferenceKey, string>> = {
   ally_type: 'ally-types',
   promoter_type: 'promoter-types',
   promoter_rank: 'promoter-ranks',
+  currency: 'currencies',
 }
 
 // Entities with their own standalone [uuid] detail screen, plus catalog-backed

@@ -173,12 +173,14 @@ cacheado con `useState` (mismo patrón que `useDocumentTypes`).
 
 ## Selects que referencian otra entidad → `CommonEntityReferenceSelect`
 
-> **Regla:** cualquier select cuyo valor sea el UUID (o código) de otra entidad — no una lista
-> de opciones fijas — se implementa con `CommonEntityReferenceSelect`
+> **Regla:** cualquier select cuyo valor sea el UUID (o código) de otra entidad **que tenga su
+> propia pantalla** — pago, moneda, tipo de promotor, campaña, plan, usuario, aliado, etc. — no
+> una lista de opciones fijas, se implementa con `CommonEntityReferenceSelect`
 > (`app/components/common/EntityReferenceSelect.vue`), **nunca** un `USelectMenu` +
-> `CommonEntityQuickLinkButton` a mano. El componente ya trae filtro (client-side vía `items` o
-> server-side vía `search`), botón de limpiar (`clear`, siempre activo) y el botón de
-> acceso rápido a la pantalla de la entidad referenciada.
+> `CommonEntityQuickLinkButton` a mano, y **nunca** un `USelectMenu` plano sin acceso rápido. El
+> componente ya trae filtro (client-side vía `items` o server-side vía `search`), botón de
+> limpiar (`clear`, siempre activo) y el **botón de acceso rápido** a la pantalla de la entidad
+> referenciada — es obligatorio en todo select de este tipo, no opcional ni "solo si hay espacio".
 
 ```vue
 <!-- Catálogo pequeño precargado (items estáticos) -->
@@ -234,7 +236,8 @@ que todavía no está en el registro — preferir siempre `entity`.
 ## Reglas
 
 - **Selects de catálogo nunca hardcodeados.** Tipo de documento → `useDocumentTypes()`; otros → `useCatalog()`/`usePublicCatalog()` (ver sección arriba).
-- **Selects que referencian otra entidad siempre usan `CommonEntityReferenceSelect`** con la prop `entity` (ver sección arriba) — nunca `USelectMenu` + `CommonEntityQuickLinkButton` a mano.
+- **Selects que referencian otra entidad siempre usan `CommonEntityReferenceSelect`** con la prop `entity` (ver sección arriba) — nunca `USelectMenu` + `CommonEntityQuickLinkButton` a mano. El botón de acceso rápido a la pantalla de esa entidad (pago, moneda, tipo de promotor, campaña, etc.) es obligatorio siempre que la entidad tenga pantalla propia.
+- **Montos/cantidades/números:** alineados a la derecha en campo, tabla o vista de detalle; negativos en texto rojo (ver [hub `09-numeric-value-alignment.md`](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/specs/09-numeric-value-alignment.md)).
 - **Validar formato en frontend, reglas de negocio en backend**
 - **Loading state explícito** (`isSubmitting` deshabilita el botón)
 - **Submit en Enter** funciona por default con `@submit.prevent`
