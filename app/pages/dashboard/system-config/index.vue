@@ -51,6 +51,9 @@ const isSubmitting = ref(false)
 
 const state = reactive({
   reportFooter: '',
+  whatsapp: '',
+  instagram: '',
+  facebook: '',
   auditCreateMode: 'PER_ENTITY' as AuditMode,
   auditUpdateMode: 'PER_ENTITY' as AuditMode,
   auditDeleteMode: 'PER_ENTITY' as AuditMode,
@@ -66,6 +69,21 @@ const schema = computed(() =>
     reportFooter: z
       .string()
       .max(500, t('validation.maxChars', { n: 500 }))
+      .optional()
+      .or(z.literal('')),
+    whatsapp: z
+      .string()
+      .max(30, t('validation.maxChars', { n: 30 }))
+      .optional()
+      .or(z.literal('')),
+    instagram: z
+      .string()
+      .max(255, t('validation.maxChars', { n: 255 }))
+      .optional()
+      .or(z.literal('')),
+    facebook: z
+      .string()
+      .max(255, t('validation.maxChars', { n: 255 }))
       .optional()
       .or(z.literal('')),
     auditCreateMode: z.enum(['PER_ENTITY', 'FORCE_ENABLED', 'FORCE_DISABLED']),
@@ -101,6 +119,9 @@ async function load() {
   try {
     const res = await systemConfigApi.get()
     state.reportFooter = res.reportFooter || ''
+    state.whatsapp = res.whatsapp || ''
+    state.instagram = res.instagram || ''
+    state.facebook = res.facebook || ''
     state.auditCreateMode = res.auditCreateMode
     state.auditUpdateMode = res.auditUpdateMode
     state.auditDeleteMode = res.auditDeleteMode
@@ -143,6 +164,9 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
   try {
     const updated = await systemConfigApi.update({
       reportFooter: state.reportFooter,
+      whatsapp: state.whatsapp,
+      instagram: state.instagram,
+      facebook: state.facebook,
       ...(canUpdateAudit.value
         ? {
             auditCreateMode: state.auditCreateMode,
@@ -157,6 +181,9 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         : {}),
     })
     state.reportFooter = updated.reportFooter
+    state.whatsapp = updated.whatsapp || ''
+    state.instagram = updated.instagram || ''
+    state.facebook = updated.facebook || ''
     state.auditCreateMode = updated.auditCreateMode
     state.auditUpdateMode = updated.auditUpdateMode
     state.auditDeleteMode = updated.auditDeleteMode
@@ -241,6 +268,41 @@ onMounted(load)
               v-model="state.reportFooter"
               :placeholder="t('systemConfig.fields.reportFooterPlaceholder')"
               :rows="3"
+              class="w-full"
+              :disabled="!canUpdate || isSubmitting"
+            />
+          </UFormField>
+        </div>
+
+        <!-- Redes sociales -->
+        <div class="bg-white rounded-2xl border border-prohealth-100 p-6 shadow-sm space-y-4">
+          <div>
+            <h2 class="text-base font-bold text-prohealth-900">{{ t('systemConfig.sections.socialLinks') }}</h2>
+            <p class="text-xs text-prohealth-700/70 mt-0.5">{{ t('systemConfig.sections.socialLinksHelp') }}</p>
+          </div>
+          <UFormField :label="t('systemConfig.fields.whatsapp')" name="whatsapp">
+            <UInput
+              v-model="state.whatsapp"
+              icon="i-simple-icons-whatsapp"
+              :placeholder="t('systemConfig.fields.whatsappPlaceholder')"
+              class="w-full"
+              :disabled="!canUpdate || isSubmitting"
+            />
+          </UFormField>
+          <UFormField :label="t('systemConfig.fields.instagram')" name="instagram">
+            <UInput
+              v-model="state.instagram"
+              icon="i-simple-icons-instagram"
+              :placeholder="t('systemConfig.fields.instagramPlaceholder')"
+              class="w-full"
+              :disabled="!canUpdate || isSubmitting"
+            />
+          </UFormField>
+          <UFormField :label="t('systemConfig.fields.facebook')" name="facebook">
+            <UInput
+              v-model="state.facebook"
+              icon="i-simple-icons-facebook"
+              :placeholder="t('systemConfig.fields.facebookPlaceholder')"
               class="w-full"
               :disabled="!canUpdate || isSubmitting"
             />

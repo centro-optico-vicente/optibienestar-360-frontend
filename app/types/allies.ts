@@ -19,8 +19,12 @@ export interface AllyDto {
   email?: string
   phone?: string
   website?: string
+  whatsapp?: string
+  instagram?: string
+  facebook?: string
   address?: string
   city?: CityRef
+  googleMapsUrl?: string
   description?: string
   joinedAt?: string
   published?: boolean
@@ -83,8 +87,12 @@ export interface CreateAllyRequest {
   email?: string
   phone?: string
   website?: string
+  whatsapp?: string
+  instagram?: string
+  facebook?: string
   address?: string
   cityUuid?: string
+  googleMapsUrl?: string
   description?: string
   joinedAt?: string
   published?: boolean
@@ -297,8 +305,12 @@ export interface PublicAllyDto {
   email?: string
   phone?: string
   website?: string
+  whatsapp?: string
+  instagram?: string
+  facebook?: string
   address?: string
   city?: CatalogRef
+  googleMapsUrl?: string
   description?: string
   specialties?: CatalogRef[]
   services?: AllyServiceDto[]

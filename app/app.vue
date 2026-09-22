@@ -5,6 +5,15 @@ const auth = useAuthStore()
 const { fetchMe } = useAuth()
 const { locale } = useI18n()
 const { applyHint, syncFromUser } = useAppLocale()
+const { checkPending } = usePendingTerms()
+
+// Re-checked on every auth state change (login, logout, hydration) — covers
+// "a new T&C version was published while the user had no active session"
+// without needing an explicit invalidation, since /v1/me/terms/pending always
+// resolves against whatever is vigente right now.
+watch(() => auth.isAuthenticated, (isAuthenticated) => {
+  if (isAuthenticated) checkPending()
+}, { immediate: true })
 
 // Keep <html lang> in sync with the active UI locale (a11y/SEO).
 useHead({ htmlAttrs: { lang: () => locale.value } })
@@ -32,5 +41,6 @@ const nuxtUiLocale = computed(() => (locale.value === 'en' ? en : es))
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
+    <TermsAcceptanceModal />
   </UApp>
 </template>

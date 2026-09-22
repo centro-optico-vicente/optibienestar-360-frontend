@@ -89,6 +89,16 @@ export default defineAppConfig({
 });
 ```
 
+## Acento de marca OptiBienestar 360 (pendiente de asset final)
+
+Brief de rediseño de logotipo/isotipo (`LOGOTIPO.docx`, repo hub) propone paleta
+propia para el sub-brand: `opti-blue #0056B3`, `opti-green #00B85C`,
+`opti-orange #FF5E00`. Se agregaron como tokens CSS (`--color-opti-*` en
+`app/assets/css/main.css`) para usarlos en el nuevo logotipo/isotipo cuando el
+diseñador entregue el SVG. **No reemplazan** `prohealth` (color `primary` de Nuxt
+UI, usado en 70+ archivos) — eso sería un rebrand completo de la app y debe
+decidirse aparte, con el asset final en mano.
+
 ## Status colors (semantic)
 
 | Status | Color | Token |

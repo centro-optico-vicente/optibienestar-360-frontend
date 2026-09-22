@@ -120,8 +120,12 @@ interface FormState {
   email: string
   phone: string
   website: string
+  whatsapp: string
+  instagram: string
+  facebook: string
   address: string
   cityUuid: string | undefined
+  googleMapsUrl: string
   description: string
   joinedAt: string
   published: boolean
@@ -137,8 +141,12 @@ const state = reactive<FormState>({
   email: '',
   phone: '',
   website: '',
+  whatsapp: '',
+  instagram: '',
+  facebook: '',
   address: '',
   cityUuid: undefined,
+  googleMapsUrl: '',
   description: '',
   joinedAt: '',
   published: false,
@@ -156,7 +164,11 @@ const schema = computed(() => {
     email: z.string().email(t('validation.emailInvalid')).optional().or(z.literal('')),
     phone: z.string().optional(),
     website: z.string().url(t('validation.invalidUrl')).optional().or(z.literal('')),
+    whatsapp: z.string().optional(),
+    instagram: z.string().optional(),
+    facebook: z.string().optional(),
     address: z.string().optional(),
+    googleMapsUrl: z.string().url(t('validation.invalidUrl')).optional().or(z.literal('')),
     description: z.string().optional(),
     joinedAt: z.string().optional(),
   }
@@ -171,8 +183,12 @@ function resetForm() {
   state.email = ''
   state.phone = ''
   state.website = ''
+  state.whatsapp = ''
+  state.instagram = ''
+  state.facebook = ''
   state.address = ''
   state.cityUuid = undefined
+  state.googleMapsUrl = ''
   state.description = ''
   state.joinedAt = ''
   state.published = false
@@ -200,9 +216,13 @@ function populateEditForm(full: AllyDto) {
   state.email = full.email ?? ''
   state.phone = full.phone ?? ''
   state.website = full.website ?? ''
+  state.whatsapp = full.whatsapp ?? ''
+  state.instagram = full.instagram ?? ''
+  state.facebook = full.facebook ?? ''
   state.address = full.address ?? ''
   pendingCityUuid.value = full.city?.uuid
   selectedStateUuid.value = full.city?.state_Uuid ?? undefined
+  state.googleMapsUrl = full.googleMapsUrl ?? ''
   state.description = full.description ?? ''
   state.joinedAt = full.joinedAt ?? ''
   state.published = full.published ?? false
@@ -267,8 +287,12 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         email: state.email || undefined,
         phone: state.phone || undefined,
         website: state.website || undefined,
+        whatsapp: state.whatsapp || undefined,
+        instagram: state.instagram || undefined,
+        facebook: state.facebook || undefined,
         address: state.address || undefined,
         cityUuid: state.cityUuid,
+        googleMapsUrl: state.googleMapsUrl || undefined,
         description: state.description || undefined,
         joinedAt: state.joinedAt || undefined,
         published: state.published,
@@ -287,8 +311,12 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         email: state.email || undefined,
         phone: state.phone || undefined,
         website: state.website || undefined,
+        whatsapp: state.whatsapp || undefined,
+        instagram: state.instagram || undefined,
+        facebook: state.facebook || undefined,
         address: state.address || undefined,
         cityUuid: state.cityUuid,
+        googleMapsUrl: state.googleMapsUrl || undefined,
         description: state.description || undefined,
         joinedAt: state.joinedAt || undefined,
         published: state.published,
@@ -398,6 +426,18 @@ function requestDelete() {
           <UInput v-model="state.website" placeholder="https://…" class="w-full" />
         </UFormField>
 
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <UFormField :label="t('allies.form.fields.whatsapp')" name="whatsapp">
+            <UInput v-model="state.whatsapp" icon="i-simple-icons-whatsapp" placeholder="+58 414 0000000" class="w-full" />
+          </UFormField>
+          <UFormField :label="t('allies.form.fields.instagram')" name="instagram">
+            <UInput v-model="state.instagram" icon="i-simple-icons-instagram" placeholder="https://instagram.com/…" class="w-full" />
+          </UFormField>
+          <UFormField :label="t('allies.form.fields.facebook')" name="facebook">
+            <UInput v-model="state.facebook" icon="i-simple-icons-facebook" placeholder="https://facebook.com/…" class="w-full" />
+          </UFormField>
+        </div>
+
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('allies.form.fields.state')" name="stateUuid">
             <CommonEntityReferenceSelect
@@ -422,6 +462,10 @@ function requestDelete() {
 
         <UFormField :label="t('allies.form.fields.address')" name="address">
           <UInput v-model="state.address" class="w-full" />
+        </UFormField>
+
+        <UFormField :label="t('allies.form.fields.googleMapsUrl')" name="googleMapsUrl">
+          <UInput v-model="state.googleMapsUrl" icon="i-lucide-map-pin" placeholder="https://maps.app.goo.gl/…" class="w-full" />
         </UFormField>
 
         <UFormField :label="t('allies.form.fields.description')" name="description">

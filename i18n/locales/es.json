@@ -638,7 +638,7 @@
       },
       "organization": {
         "label": "Organización",
-        "description": "Datos legales, fiscales y monedas de la organización."
+        "description": "Datos legales, fiscales y monedas de la organización, y términos y condiciones por rol."
       },
       "systemConfig": {
         "label": "Configuración del sistema",
@@ -1289,9 +1289,13 @@
         "email": "Email",
         "phone": "Teléfono",
         "website": "Sitio web",
+        "whatsapp": "WhatsApp",
+        "instagram": "Instagram",
+        "facebook": "Facebook",
         "state": "Estado (región)",
         "city": "Ciudad",
         "address": "Dirección",
+        "googleMapsUrl": "Enlace de Google Maps",
         "description": "Descripción",
         "specialties": "Especialidades",
         "joinedAt": "Fecha de alianza",
@@ -1308,12 +1312,17 @@
       "notFoundTitle": "Aliado no encontrado",
       "notFoundBody": "El registro no existe o fue eliminado.",
       "memberSince": "Aliado desde {date}",
+      "viewOnMap": "Ver en Google Maps",
       "fields": {
         "email": "Email",
         "phone": "Teléfono",
         "website": "Sitio web",
+        "whatsapp": "WhatsApp",
+        "instagram": "Instagram",
+        "facebook": "Facebook",
         "city": "Ciudad",
         "address": "Dirección",
+        "googleMapsUrl": "Enlace de Google Maps",
         "description": "Descripción"
       }
     },
@@ -3328,7 +3337,7 @@
   },
   "organization": {
     "title": "Organización",
-    "subtitle": "Datos legales, fiscales y monedas de la organización.",
+    "subtitle": "Datos legales, fiscales y monedas de la organización, y términos y condiciones que cada usuario debe aceptar.",
     "seoTitle": "Organización — OptiBienestar 360",
     "saveButton": "Guardar cambios",
     "updatedToast": "Organización actualizada con éxito",
@@ -3346,7 +3355,30 @@
     },
     "sections": {
       "general": "Datos generales",
-      "currencies": "Monedas"
+      "currencies": "Monedas",
+      "terms": "Términos y condiciones"
+    },
+    "terms": {
+      "help": "Un documento por rol. Cada afiliado, promotor o aliado debe aceptar el que le corresponde en su primer inicio de sesión.",
+      "types": {
+        "AFILIADO": "Afiliados",
+        "PROMOTOR": "Promotores",
+        "ALIADO": "Aliados"
+      },
+      "currentSince": "Versión vigente desde {date}",
+      "noCurrent": "Aún no hay una versión vigente para este tipo.",
+      "editingScheduled": "Estás editando una versión programada (todavía no vigente).",
+      "fields": {
+        "title": "Título",
+        "content": "Contenido (markdown)",
+        "validFrom": "Vigente desde",
+        "isPublic": "Es público"
+      },
+      "isPublicHelp": "Expone esta versión sin autenticación en /v1/public/terms.",
+      "missingFields": "Completa título, contenido y fecha de vigencia",
+      "savedToast": "Versión guardada correctamente",
+      "publishNew": "Publicar nueva versión",
+      "saveScheduled": "Guardar versión programada"
     }
   },
   "systemConfig": {
@@ -3356,10 +3388,18 @@
     "fields": {
       "reportFooter": "Pie de página de los reportes",
       "reportFooterHelp": "Texto que aparecerá en el pie de página de todos los documentos y fichas PDF generados.",
-      "reportFooterPlaceholder": "Ej. Creado desde compañía de ejemplo"
+      "reportFooterPlaceholder": "Ej. Creado desde compañía de ejemplo",
+      "whatsapp": "WhatsApp",
+      "whatsappPlaceholder": "+58 414 0000000",
+      "instagram": "Instagram",
+      "instagramPlaceholder": "https://instagram.com/tu_usuario",
+      "facebook": "Facebook",
+      "facebookPlaceholder": "https://facebook.com/tu_pagina"
     },
     "sections": {
       "reports": "Reportes",
+      "socialLinks": "Redes sociales",
+      "socialLinksHelp": "Enlaces globales mostrados en el sitio público (pie de página, contacto).",
       "dataChangeAudit": "Auditoría de cambios de datos",
       "reportAudit": "Auditoría de reportes",
       "sessions": "Sesión y uso del sistema"
@@ -3406,6 +3446,17 @@
     },
     "updatedToast": "Configuración actualizada correctamente",
     "saveButton": "Guardar cambios"
+  },
+  "markdownEditor": {
+    "source": "Markdown",
+    "preview": "Vista previa"
+  },
+  "termsAcceptance": {
+    "title": "Términos y condiciones",
+    "subtitle": "Debes leer y aceptar los siguientes documentos para continuar.",
+    "scrollHint": "Desplázate hasta el final para poder aceptar",
+    "acceptLabel": "He leído y acepto este documento",
+    "continue": "Continuar"
   },
   "entityConfig": {
     "title": "Configuración de entidades",
