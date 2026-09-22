@@ -3071,6 +3071,7 @@
         "rewardKind": "Tipo de recompensa",
         "commissionPct": "Porcentaje",
         "flatAmount": "Monto fijo",
+        "flatAmountCurrency": "Moneda del monto fijo",
         "submitCreate": "Crear banda",
         "active": "Activo",
         "startsAt": "Inicia",

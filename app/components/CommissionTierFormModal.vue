@@ -32,8 +32,22 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const tiers = useCommissionTiers()
 const campaignsApi = useCampaigns()
+const currencies = useCurrencies()
 const toast = useToast()
 const { can } = usePermissions()
+
+// ---- Currency options (flat-amount reward) ----
+const currencyItems = ref<SelectItem[]>([])
+const loadingCurrencies = ref(false)
+async function loadCurrencyOptions() {
+  loadingCurrencies.value = true
+  try {
+    const options = await currencies.options()
+    currencyItems.value = options.filter(o => o.code).map(o => ({ label: `${o.code} — ${o.label}`, value: o.uuid }))
+  }
+  catch { currencyItems.value = [] }
+  finally { loadingCurrencies.value = false }
+}
 
 // ---- Campaign selector (async search) + date autofill ----
 async function searchCampaigns(q: string): Promise<SelectItem[]> {
@@ -92,6 +106,7 @@ interface FormState {
   rewardKind: 'PCT' | 'FLAT'
   commissionPct: string
   flatAmount: string
+  flatAmountCurrencyUuid: string
   periodStrategy: PeriodStrategy | undefined
   appliesTo: AppliesTo | undefined
   campaignUuid: string
@@ -107,6 +122,7 @@ const state = reactive<FormState>({
   rewardKind: 'PCT',
   commissionPct: '',
   flatAmount: '',
+  flatAmountCurrencyUuid: '',
   periodStrategy: 'MONTHLY',
   appliesTo: 'BOTH',
   campaignUuid: '',
@@ -138,6 +154,7 @@ const schema = computed(() => {
     thresholdCount: int,
     commissionPct: state.rewardKind === 'PCT' ? money : z.string().optional(),
     flatAmount: state.rewardKind === 'FLAT' ? money : z.string().optional(),
+    flatAmountCurrencyUuid: state.rewardKind === 'FLAT' ? z.string().min(1, t('validation.required')) : z.string().optional(),
     periodStrategy: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
     appliesTo: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
   })
@@ -161,6 +178,7 @@ function populateFrom(tier: CommissionTierDto | null) {
     state.rewardKind = 'PCT'
     state.commissionPct = ''
     state.flatAmount = ''
+    state.flatAmountCurrencyUuid = ''
     state.periodStrategy = 'MONTHLY'
     state.appliesTo = 'BOTH'
     state.campaignUuid = props.campaignUuid ?? ''
@@ -178,6 +196,7 @@ function populateFrom(tier: CommissionTierDto | null) {
   state.rewardKind = tier.flatAmount != null ? 'FLAT' : 'PCT'
   state.commissionPct = tier.commissionPct != null ? String(tier.commissionPct) : ''
   state.flatAmount = tier.flatAmount != null ? String(tier.flatAmount) : ''
+  state.flatAmountCurrencyUuid = tier.flatAmountCurrency_Uuid ?? ''
   state.periodStrategy = tier.periodStrategy
   state.appliesTo = tier.appliesTo
   state.campaignUuid = tier.campaign_Uuid ?? ''
@@ -188,7 +207,11 @@ function populateFrom(tier: CommissionTierDto | null) {
   nextTick(() => { suppressCampaignAutofill.value = false })
 }
 
-watch(() => props.open, (open) => { if (open) populateFrom(props.tier ?? null) })
+watch(() => props.open, async (open) => {
+  if (!open) return
+  populateFrom(props.tier ?? null)
+  if (currencyItems.value.length === 0) await loadCurrencyOptions()
+})
 
 async function reloadForm() {
   if (!props.tier) return
@@ -216,6 +239,7 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
       thresholdCount: Number(state.thresholdCount),
       commissionPct: state.rewardKind === 'PCT' ? state.commissionPct.trim() : null,
       flatAmount: state.rewardKind === 'FLAT' ? state.flatAmount.trim() : null,
+      flatAmountCurrencyUuid: state.rewardKind === 'FLAT' ? state.flatAmountCurrencyUuid : null,
       periodStrategy: state.periodStrategy!,
       appliesTo: state.appliesTo!,
       campaignUuid: state.campaignUuid || null,
@@ -318,6 +342,10 @@ async function restoreTier() {
             </UInput>
           </UFormField>
         </div>
+
+        <UFormField v-if="state.rewardKind === 'FLAT'" :label="t('commissionRules.tiers.form.flatAmountCurrency')" name="flatAmountCurrencyUuid" required>
+          <USelectMenu v-model="state.flatAmountCurrencyUuid" :items="currencyItems" label-key="label" value-key="value" :loading="loadingCurrencies" class="w-full" />
+        </UFormField>
 
         <UFormField :label="t('campaigns.form.campaign')" name="campaignUuid" :help="t('campaigns.form.campaignHelp')">
           <UInput v-if="campaignLocked" :model-value="props.campaignDisplay || state.campaignUuid" disabled readonly icon="i-lucide-rocket" :ui="READONLY_FIELD_UI" class="w-full">

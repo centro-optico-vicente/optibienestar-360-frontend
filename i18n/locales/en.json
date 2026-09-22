@@ -3071,6 +3071,7 @@
         "rewardKind": "Reward type",
         "commissionPct": "Percentage",
         "flatAmount": "Flat amount",
+        "flatAmountCurrency": "Flat amount currency",
         "submitCreate": "Create band",
         "active": "Active",
         "startsAt": "Starts",
