@@ -2999,7 +2999,20 @@
       "tiers": "Bandas de inscripción",
       "bonusRules": "Bonos por escala",
       "collectionTiers": "Comisión de cobranza",
-      "overrideTiers": "Comisión jerárquica adicional"
+      "overrideTiers": "Comisión jerárquica adicional",
+      "campaignRules": "Reglas de campaña"
+    },
+    "campaignRules": {
+      "subtitle": "Filtra y crea reglas de comisión ancladas a una campaña específica.",
+      "campaignLabel": "Campaña",
+      "campaignPlaceholder": "Selecciona una campaña...",
+      "noCampaignSelected": "Selecciona una campaña para ver sus reglas.",
+      "sections": {
+        "tiers": "Bandas de inscripción",
+        "bonusRules": "Bonos por escala",
+        "collectionTiers": "Comisión de cobranza",
+        "overrideTiers": "Comisión jerárquica adicional"
+      }
     },
     "appliesTo": {
       "INSCRIPTION": "Inscripción",
@@ -3157,7 +3170,8 @@
         "basis": "Base",
         "bucket": "Límite",
         "maxDays": "Días máx.",
-        "commissionPct": "Porcentaje"
+        "commissionPct": "Porcentaje",
+        "campaign": "Campaña"
       },
       "form": {
         "createTitle": "Nuevo tramo de cobranza",
