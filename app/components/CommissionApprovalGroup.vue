@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import type { CommissionApprovalGroupDto } from '~/types/promoters'
+import type { CommissionApprovalGroupDto, CommissionApprovalRowDto } from '~/types/promoters'
 import { commissionStatusColor } from '~/types/promoters'
+import { APPLIES_TO_OPTIONS } from '~/types/commissionTiers'
 
 /**
  * Un nodo de promotor (nivel 1, colapsable) de la tabla de aprobación
@@ -27,6 +28,15 @@ const { can } = usePermissions()
 const canViewPromoter = computed(() => can('PROMOTER_VIEW_ALL'))
 
 const expanded = ref(true)
+
+/** `appliesTo_Display` isn't populated by this endpoint — translate the raw enum locally. */
+function appliesToLabel(row: CommissionApprovalRowDto): string {
+  if (row.appliesTo_Display) {
+    return row.appliesTo_Display
+  }
+  const option = APPLIES_TO_OPTIONS.find(o => o.value === row.appliesTo)
+  return option ? t(option.labelKey) : (row.appliesTo ?? '')
+}
 
 const editableRows = computed(() => props.group.rows.filter(r => !r.locked))
 
@@ -102,7 +112,7 @@ function money(v?: number | null, currency?: string | null): string {
                 @update:model-value="(v: boolean | 'indeterminate') => emit('toggle-row', row.uuid, v === true)"
               />
             </td>
-            <td class="px-4 py-2 text-prohealth-700">{{ row.appliesTo_Display || row.appliesTo }}</td>
+            <td class="px-4 py-2 text-prohealth-700">{{ appliesToLabel(row) }}</td>
             <td class="px-4 py-2 text-right font-medium text-prohealth-900">{{ money(row.amount, row.currencyCode) }}</td>
             <td class="px-4 py-2 text-prohealth-500 text-xs">{{ formatDate(row.earnedAt, 'datetime') }}</td>
             <td class="px-4 py-2">

@@ -2596,8 +2596,7 @@
       "title": "Commission approval",
       "subtitle": "A calculated commission is a simulation until approved — only approved ones can be paid.",
       "fields": {
-        "periodStart": "Period start",
-        "periodEnd": "Period end"
+        "period": "Period"
       },
       "loadButton": "Load period",
       "empty": "No commissions in this period.",
