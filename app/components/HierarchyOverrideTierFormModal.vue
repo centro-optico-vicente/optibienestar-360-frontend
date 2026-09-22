@@ -380,7 +380,7 @@ async function restoreTier() {
           </UFormField>
         </div>
 
-        <UFormField v-if="state.rewardKind === 'FLAT'" :label="t('hierarchyOverrideTiers.form.flatAmountCurrency')" name="flatAmountCurrencyUuid" required>
+        <UFormField v-if="state.rewardKind === 'FLAT'" :label="t('hierarchyOverrideTiers.form.flatAmountCurrency')" name="flatAmountCurrencyUuid" required :help="t('hierarchyOverrideTiers.form.flatAmountCurrencyHelp')">
           <CommonEntityReferenceSelect
             v-model="state.flatAmountCurrencyUuid"
             :items="currencyItems"

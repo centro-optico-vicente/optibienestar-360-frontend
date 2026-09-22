@@ -350,7 +350,7 @@ function openDeleteFromEdit() {
           </UFormField>
         </div>
 
-        <UFormField v-if="state.rewardType === 'FLAT'" :label="t('commissionRules.bonusRules.form.rewardCurrency')" name="rewardCurrencyUuid" required>
+        <UFormField v-if="state.rewardType === 'FLAT'" :label="t('commissionRules.bonusRules.form.rewardCurrency')" name="rewardCurrencyUuid" required :help="t('commissionRules.bonusRules.form.rewardCurrencyHelp')">
           <CommonEntityReferenceSelect
             v-model="state.rewardCurrencyUuid"
             :items="currencyItems"
