@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { CommissionApprovalGroupDto, CommissionApprovalRowDto } from '~/types/promoters'
-import { commissionStatusColor } from '~/types/promoters'
+import { commissionStatusColor, isCommissionRowCheckable } from '~/types/promoters'
 import { APPLIES_TO_OPTIONS } from '~/types/commissionTiers'
 
 /**
@@ -38,7 +38,10 @@ function appliesToLabel(row: CommissionApprovalRowDto): string {
   return option ? t(option.labelKey) : (row.appliesTo ?? '')
 }
 
-const editableRows = computed(() => props.group.rows.filter(r => !r.locked))
+// `!r.locked` (PENDING) covers the approve/reject flow; an APPROVED row is
+// also checkable (E.2) so it can feed the "Generar pagos" bulk action —
+// still never toggled by anything below (see `isCommissionRowCheckable`).
+const editableRows = computed(() => props.group.rows.filter(isCommissionRowCheckable))
 
 const groupState = computed<boolean | 'indeterminate'>(() => {
   const ids = editableRows.value.map(r => r.uuid)
@@ -49,8 +52,8 @@ const groupState = computed<boolean | 'indeterminate'>(() => {
   return 'indeterminate'
 })
 
-function isChecked(uuid: string, row: { locked: boolean, checked: boolean }): boolean {
-  return row.locked ? row.checked : props.selected.has(uuid)
+function isChecked(uuid: string, row: CommissionApprovalRowDto): boolean {
+  return isCommissionRowCheckable(row) ? props.selected.has(uuid) : row.checked
 }
 
 function money(v?: number | null, currency?: string | null): string {
@@ -108,7 +111,7 @@ function money(v?: number | null, currency?: string | null): string {
             <td class="px-4 py-2">
               <UCheckbox
                 :model-value="isChecked(row.uuid, row)"
-                :disabled="row.locked"
+                :disabled="!isCommissionRowCheckable(row)"
                 @update:model-value="(v: boolean | 'indeterminate') => emit('toggle-row', row.uuid, v === true)"
               />
             </td>

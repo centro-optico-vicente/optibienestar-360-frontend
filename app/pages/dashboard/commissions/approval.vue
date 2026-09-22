@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CommissionApprovalGroupDto } from '~/types/promoters'
+import { isCommissionRowCheckable } from '~/types/promoters'
 import { defaultThisMonthRange, type DateTimeRange } from '~/utils/date'
 
 definePageMeta({
@@ -58,7 +59,7 @@ function toggleRow(uuid: string, checked: boolean) {
 }
 
 function toggleGroup(group: CommissionApprovalGroupDto, checked: boolean) {
-  const editableIds = group.rows.filter(r => !r.locked).map(r => r.uuid)
+  const editableIds = group.rows.filter(isCommissionRowCheckable).map(r => r.uuid)
   const next = new Set(selected.value)
   for (const id of editableIds) {
     if (checked) next.add(id)
@@ -128,12 +129,12 @@ async function onReject(reason: string) {
     </div>
 
     <!-- Period picker -->
-    <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-end gap-3">
+    <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-end justify-between gap-3">
       <UFormField :label="t('commissions.approval.fields.period')">
         <AuditDateRangePicker v-model="periodRange" />
       </UFormField>
-      <UButton color="primary" variant="outline" icon="i-lucide-search" :disabled="!periodValid" :loading="loading" @click="load">
-        {{ t('commissions.approval.loadButton') }}
+      <UButton color="primary" variant="outline" icon="i-lucide-refresh-cw" :disabled="!periodValid" :loading="loading" @click="load">
+        {{ t('commissions.approval.refreshButton') }}
       </UButton>
     </div>
 

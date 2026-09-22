@@ -306,13 +306,17 @@ export interface CommissionPayoutPerPromoter {
  * Response of POST /v1/admin/commissions/payout (@JsonInclude(NON_NULL)).
  * `periodStart`/`periodEnd`/`dryRun`/`executedAt` carry a `_Display` sibling;
  * `totalAmount` does NOT (same MONEY→VES case, see `PromoterDto`).
+ *
+ * Shared verbatim with POST /v1/admin/commissions/payout/by-selection (E.2)
+ * — that endpoint has no single date range, so `periodStart`/`periodEnd`
+ * come back omitted (`@JsonInclude(NON_NULL)`), hence optional here.
  */
 export interface CommissionPayoutResponse {
-  periodStart: string
+  periodStart?: string
   periodStart_Display?: string | null
-  periodEnd: string
+  periodEnd?: string
   periodEnd_Display?: string | null
-  payoutReference: string
+  payoutReference?: string
   dryRun: boolean
   dryRun_Display?: string | null
   totalPromoters: number
@@ -492,6 +496,31 @@ export interface CommissionApprovalGroupDto {
 /** Body de POST /v1/admin/commissions/approve — granularidad por fila, nunca bulk por promotor. */
 export interface ApproveCommissionsRequest {
   commissionUuids: string[]
+}
+
+/**
+ * Front-end-only extension of the approval table's checkable set (E.2): a
+ * `PENDING` row is checkable for approve/reject; an `APPROVED` row is also
+ * checkable, but only to feed the "Generar pagos" bulk action below — the
+ * backend's own `locked` flag (used for the disabled/read-only paint) stays
+ * true for both, since approve/reject still require strictly `PENDING`.
+ */
+export function isCommissionRowCheckable(row: Pick<CommissionApprovalRowDto, 'status'>): boolean {
+  return row.status === 'PENDING' || row.status === 'APPROVED'
+}
+
+/** "Generar pagos" screen: only APPROVED rows are payable (unlike approval.vue, PENDING never is). */
+export function isPayableCommissionRow(row: Pick<CommissionDto, 'status'>): boolean {
+  return row.status === 'APPROVED'
+}
+
+/** Body de POST /v1/admin/commissions/payout/by-selection — paga las filas APPROVED elegidas a mano. */
+export interface CommissionPayoutBySelectionRequest {
+  commissionUuids: string[]
+  paymentMethodUuid: string
+  currencyUuid: string
+  payoutReference?: string
+  dryRun?: boolean
 }
 
 /** Body de POST /v1/admin/commissions/reject — `reason` es obligatorio y cascada a los overrides jerárquicos dependientes. */

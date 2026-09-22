@@ -580,6 +580,10 @@
         "label": "Aprobación de comisiones",
         "description": "Aprobar o rechazar comisiones calculadas antes de su pago."
       },
+      "commissionPayoutGenerate": {
+        "label": "Generar pagos de comisiones",
+        "description": "Seleccionar comisiones aprobadas y generar su pago."
+      },
       "commissionsReport": {
         "label": "Reporte de comisiones",
         "description": "Reporte general de comisiones devengadas."
@@ -2559,6 +2563,38 @@
       "successToast": "Período liquidado: {promoters} promotores, {commissions} comisiones, {amount}.",
       "invalidRange": "El fin del período debe ser posterior o igual al inicio."
     },
+    "payoutBySelection": {
+      "title": "Generar pagos de la selección",
+      "description": "Paga las comisiones APPROVED seleccionadas a mano en la tabla de aprobación.",
+      "dryRunNote": "La previsualización solo calcula totales: no marca comisiones como pagadas ni envía correos.",
+      "fields": {
+        "method": "Método de pago",
+        "currency": "Moneda",
+        "payoutReference": "Referencia de liquidación"
+      },
+      "referencePlaceholder": "p. ej. LIQ-2026-07",
+      "selectionSummary": "{count} comisiones seleccionadas",
+      "preview": "Previsualizar",
+      "previewTitle": "Resumen de la selección",
+      "totals": {
+        "promoters": "Promotores",
+        "commissions": "Comisiones",
+        "amount": "Total",
+        "executedAt": "Ejecutado"
+      },
+      "perPromoter": {
+        "name": "Promotor",
+        "code": "Código",
+        "count": "Comisiones",
+        "amount": "Total",
+        "email": "Correo"
+      },
+      "emptyPreview": "No hay comisiones en la selección.",
+      "back": "Volver",
+      "confirm": "Confirmar pago",
+      "confirmDescription": "Al confirmar se marcarán las comisiones seleccionadas como PAGADAS y se enviará un correo con el desglose a cada promotor. Esta acción no se puede deshacer.",
+      "successToast": "Pagos generados: {promoters} promotores, {commissions} comisiones, {amount}."
+    },
     "reRating": {
       "button": "Re-ratear cierre de mes",
       "title": "Re-rating retroactivo de comisiones",
@@ -2599,10 +2635,12 @@
         "period": "Período"
       },
       "loadButton": "Cargar período",
+      "refreshButton": "Refrescar",
       "empty": "No hay comisiones en este período.",
       "selectedCount": "{count} comisiones seleccionadas",
       "approveButton": "Aprobar seleccionadas",
       "rejectButton": "Rechazar seleccionadas",
+      "generatePayoutButton": "Generar pagos",
       "approvedToast": "{count} comisiones aprobadas correctamente.",
       "rejectedToast": "{count} comisiones rechazadas ({overrides} overrides jerárquicos anulados en cascada).",
       "columns": {
@@ -2616,6 +2654,38 @@
         "notice": "El motivo se aplicará a todas las filas seleccionadas y cascadeará a los overrides jerárquicos que dependan de ellas.",
         "reasonLabel": "Motivo del rechazo",
         "confirmButton": "Rechazar"
+      }
+    },
+    "payoutGenerate": {
+      "title": "Generar pagos de comisiones",
+      "subtitle": "Selecciona comisiones aprobadas con los filtros de abajo y genera su pago — solo las filas Aprobadas se pueden marcar.",
+      "filtersTitle": "Filtros",
+      "fields": {
+        "period": "Período",
+        "clearPeriod": "Limpiar período",
+        "promoterType": "Tipo de promotor",
+        "promoter": "Promotor",
+        "appliesTo": "Concepto",
+        "status": "Estado",
+        "amountFrom": "Monto desde",
+        "amountTo": "Monto hasta",
+        "campaign": "Campaña",
+        "rank": "Cargo"
+      },
+      "clearAll": "Limpiar filtros",
+      "refreshButton": "Refrescar",
+      "empty": "No hay comisiones con los filtros aplicados.",
+      "selectAll": "Marcar todos",
+      "deselectAll": "Desmarcar todos",
+      "selectedCount": "{count} seleccionadas",
+      "generatePayoutButton": "Generar pagos",
+      "paginationSummary": "Mostrando {shown} de {total}",
+      "columns": {
+        "promoter": "Promotor",
+        "appliesTo": "Concepto",
+        "amount": "Monto",
+        "earnedAt": "Ganada",
+        "status": "Estado"
       }
     },
     "overrideReRating": {
