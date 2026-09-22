@@ -35,6 +35,9 @@ export interface CommissionTierDto {
   thresholdCount: number
   commissionPct?: number | string | null
   flatAmount?: number | string | null
+  flatAmountCurrency_Uuid?: string | null
+  flatAmountCurrency_Display?: string | null
+  flatAmountCurrency_Code?: string | null
   periodStrategy: PeriodStrategy
   appliesTo: AppliesTo
   promoterType_Uuid?: string | null
@@ -59,6 +62,7 @@ export interface CreateCommissionTierRequest {
   thresholdCount?: number
   commissionPct?: string | null
   flatAmount?: string | null
+  flatAmountCurrencyUuid?: string | null
   periodStrategy: PeriodStrategy
   appliesTo: AppliesTo
   promoterTypeUuid?: string | null

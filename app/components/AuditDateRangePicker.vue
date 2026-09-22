@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CalendarDate, startOfMonth, startOfWeek, endOfMonth, endOfWeek } from '@internationalized/date'
+import { CalendarDate, startOfMonth, endOfMonth } from '@internationalized/date'
 import { todayInCaracas, withCaracasOffset } from '~/utils/date'
 import type { DateTimeRange } from '~/utils/date'
 
@@ -50,8 +50,17 @@ function todayCalendarDate(): CalendarDate {
   return parseDatePart(todayInCaracas())!
 }
 
-/** `startOfWeek`/`endOfWeek` need a locale to know the first day of week — Monday for `es-VE`. */
-const WEEK_LOCALE = 'es-VE'
+/**
+ * Monday-first week, Venezuela business convention (lunes a domingo) — NOT
+ * derived from `startOfWeek(date, 'es-VE')`, whose CLDR week data starts on
+ * Sunday for `es-VE` and silently gave the wrong "first day of week".
+ * `toDate().getDay()` is plain Gregorian (0=Sun…6=Sat), locale-independent.
+ */
+function mondayOfWeek(d: CalendarDate): CalendarDate {
+  const jsDay = d.toDate('America/Caracas').getDay()
+  const offsetFromMonday = (jsDay + 6) % 7
+  return d.subtract({ days: offsetFromMonday })
+}
 
 interface Shortcut { key: string, range: () => { start: CalendarDate, end: CalendarDate } }
 
@@ -62,9 +71,9 @@ const shortcuts: Shortcut[][] = [
     { key: 'tomorrow', range: () => { const d = todayCalendarDate().add({ days: 1 }); return { start: d, end: d } } },
   ],
   [
-    { key: 'lastWeek', range: () => { const w = startOfWeek(todayCalendarDate(), WEEK_LOCALE).subtract({ weeks: 1 }); return { start: w, end: endOfWeek(w, WEEK_LOCALE) } } },
-    { key: 'thisWeek', range: () => { const w = startOfWeek(todayCalendarDate(), WEEK_LOCALE); return { start: w, end: endOfWeek(w, WEEK_LOCALE) } } },
-    { key: 'nextWeek', range: () => { const w = startOfWeek(todayCalendarDate(), WEEK_LOCALE).add({ weeks: 1 }); return { start: w, end: endOfWeek(w, WEEK_LOCALE) } } },
+    { key: 'lastWeek', range: () => { const w = mondayOfWeek(todayCalendarDate()).subtract({ weeks: 1 }); return { start: w, end: w.add({ days: 6 }) } } },
+    { key: 'thisWeek', range: () => { const w = mondayOfWeek(todayCalendarDate()); return { start: w, end: w.add({ days: 6 }) } } },
+    { key: 'nextWeek', range: () => { const w = mondayOfWeek(todayCalendarDate()).add({ weeks: 1 }); return { start: w, end: w.add({ days: 6 }) } } },
   ],
   [
     { key: 'lastMonth', range: () => { const m = startOfMonth(todayCalendarDate()).subtract({ months: 1 }); return { start: m, end: endOfMonth(m) } } },

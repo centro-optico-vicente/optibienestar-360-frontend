@@ -4,6 +4,23 @@
     "tagline": "Cuidamos lo que más amas"
   },
   "common": {
+    "dateTimePicker": {
+      "placeholder": "Selecciona fecha y hora",
+      "time": "Hora",
+      "confirm": "Confirmar",
+      "clear": "Limpiar",
+      "shortcuts": {
+        "today": "Hoy",
+        "yesterday": "Ayer",
+        "tomorrow": "Mañana",
+        "firstDayOfWeek": "1er día de la semana",
+        "lastBusinessDayOfWeek": "Último día laborable de la semana",
+        "lastDayOfWeek": "Último día de la semana",
+        "firstDayOfMonth": "1er día del mes",
+        "fortnight": "Quincena (día 15)",
+        "lastDayOfMonth": "Último día del mes"
+      }
+    },
     "loading": "Cargando…",
     "save": "Guardar",
     "saveChanges": "Guardar cambios",
@@ -3071,6 +3088,7 @@
         "rewardKind": "Tipo de recompensa",
         "commissionPct": "Porcentaje",
         "flatAmount": "Monto fijo",
+        "flatAmountCurrency": "Moneda del monto fijo",
         "submitCreate": "Crear banda",
         "active": "Activo",
         "startsAt": "Inicia",

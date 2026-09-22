@@ -4,6 +4,23 @@
     "tagline": "We care for what you love most"
   },
   "common": {
+    "dateTimePicker": {
+      "placeholder": "Select date and time",
+      "time": "Time",
+      "confirm": "Confirm",
+      "clear": "Clear",
+      "shortcuts": {
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "tomorrow": "Tomorrow",
+        "firstDayOfWeek": "First day of week",
+        "lastBusinessDayOfWeek": "Last business day of week",
+        "lastDayOfWeek": "Last day of week",
+        "firstDayOfMonth": "1st day of month",
+        "fortnight": "Fortnight (day 15)",
+        "lastDayOfMonth": "Last day of month"
+      }
+    },
     "loading": "Loading…",
     "save": "Save",
     "saveChanges": "Save changes",
@@ -3071,6 +3088,7 @@
         "rewardKind": "Reward type",
         "commissionPct": "Percentage",
         "flatAmount": "Flat amount",
+        "flatAmountCurrency": "Flat amount currency",
         "submitCreate": "Create band",
         "active": "Active",
         "startsAt": "Starts",
