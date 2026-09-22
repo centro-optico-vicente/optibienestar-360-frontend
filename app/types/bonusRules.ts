@@ -52,6 +52,8 @@ export interface BonusRuleDto {
   flatAmount?: number | string | null
   rewardPct?: number | string | null
   rewardCurrency: string
+  rewardCurrencyRef_Uuid?: string | null
+  rewardCurrencyRef_Display?: string | null
   includeSystemPromoters: boolean
   promoterType_Uuid?: string | null
   promoterType_Display?: string | null
@@ -80,6 +82,7 @@ export interface BonusRuleRequest {
   flatAmount?: string | null
   rewardPct?: string | null
   rewardCurrency?: string
+  rewardCurrencyUuid?: string | null
   includeSystemPromoters?: boolean
   promoterTypeUuid?: string | null
   /** Sets the owning campaign, e.g. when created from the campaign ficha's "Add rule" flow. Omit/null = standing (non-campaign) rule. Distinct from the legacy campaignStart/campaignEnd (WindowStrategy.CAMPAIGN) above. */

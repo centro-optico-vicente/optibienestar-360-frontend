@@ -37,12 +37,26 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const bonusRules = useBonusRules()
 const campaignsApi = useCampaigns()
+const currencies = useCurrencies()
 const toast = useToast()
 
 const isOpen = computed({
   get: () => props.open,
   set: (v: boolean) => emit('update:open', v),
 })
+
+// ---- Currency options (flat-amount reward) ----
+const currencyItems = ref<SelectItem[]>([])
+const loadingCurrencies = ref(false)
+async function loadCurrencyOptions() {
+  loadingCurrencies.value = true
+  try {
+    const options = await currencies.options()
+    currencyItems.value = options.filter(o => o.code).map(o => ({ label: o.label, value: o.uuid }))
+  }
+  catch { currencyItems.value = [] }
+  finally { loadingCurrencies.value = false }
+}
 
 // ---- Campaign selector (async search) + date autofill ----
 // NOTE: this is the NEW campaign/startsAt/endsAt anchor — distinct from the
@@ -52,6 +66,10 @@ async function searchCampaigns(q: string): Promise<SelectItem[]> {
   return (res.content ?? []).map(c => ({ label: c.name, value: c.uuid }))
 }
 function goToCampaign(to: string) {
+  isOpen.value = false
+  navigateTo(to)
+}
+function goToCurrency(to: string) {
   isOpen.value = false
   navigateTo(to)
 }
@@ -93,7 +111,7 @@ interface FormState {
   rewardType: RewardType | undefined
   flatAmount: string
   rewardPct: string
-  rewardCurrency: string
+  rewardCurrencyUuid: string
   includeSystemPromoters: boolean
   campaignUuid: string
   startsAt: string
@@ -112,7 +130,7 @@ const state = reactive<FormState>({
   rewardType: 'FLAT',
   flatAmount: '',
   rewardPct: '',
-  rewardCurrency: 'USD',
+  rewardCurrencyUuid: '',
   includeSystemPromoters: false,
   campaignUuid: '',
   startsAt: '',
@@ -148,6 +166,7 @@ const schema = computed(() => {
     rewardType: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
     flatAmount: state.rewardType === 'FLAT' ? money : z.string().optional(),
     rewardPct: state.rewardType === 'PERCENTAGE' ? money : z.string().optional(),
+    rewardCurrencyUuid: state.rewardType === 'FLAT' ? z.string().min(1, t('validation.required')) : z.string().optional(),
   })
 })
 
@@ -174,7 +193,7 @@ function populateFrom(rule: BonusRuleDto | null) {
     state.rewardType = 'FLAT'
     state.flatAmount = ''
     state.rewardPct = ''
-    state.rewardCurrency = 'USD'
+    state.rewardCurrencyUuid = ''
     state.includeSystemPromoters = false
     state.campaignUuid = props.campaignUuid ?? ''
     state.startsAt = ''
@@ -193,7 +212,7 @@ function populateFrom(rule: BonusRuleDto | null) {
   state.rewardType = rule.rewardType
   state.flatAmount = rule.flatAmount != null ? String(rule.flatAmount) : ''
   state.rewardPct = rule.rewardPct != null ? String(rule.rewardPct) : ''
-  state.rewardCurrency = rule.rewardCurrency ?? 'USD'
+  state.rewardCurrencyUuid = rule.rewardCurrencyRef_Uuid ?? ''
   state.includeSystemPromoters = rule.includeSystemPromoters ?? false
   state.campaignUuid = rule.campaign_Uuid ?? ''
   state.startsAt = rule.startsAt ? isoToDatetimeLocal(rule.startsAt) : ''
@@ -202,7 +221,11 @@ function populateFrom(rule: BonusRuleDto | null) {
   nextTick(() => { suppressCampaignAutofill.value = false })
 }
 
-watch(() => props.open, (open) => { if (open) populateFrom(props.rule ?? null) })
+watch(() => props.open, async (open) => {
+  if (!open) return
+  populateFrom(props.rule ?? null)
+  if (currencyItems.value.length === 0) await loadCurrencyOptions()
+})
 
 async function reloadForm() {
   if (!props.rule) return
@@ -235,7 +258,7 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
       rewardType: state.rewardType!,
       flatAmount: state.rewardType === 'FLAT' ? state.flatAmount.trim() : null,
       rewardPct: state.rewardType === 'PERCENTAGE' ? state.rewardPct.trim() : null,
-      rewardCurrency: state.rewardCurrency,
+      rewardCurrencyUuid: state.rewardType === 'FLAT' ? state.rewardCurrencyUuid : null,
       includeSystemPromoters: state.includeSystemPromoters,
       campaignUuid: state.campaignUuid || null,
       startsAt: datetimeLocalToIso(state.startsAt) ?? null,
@@ -327,6 +350,18 @@ function openDeleteFromEdit() {
           </UFormField>
         </div>
 
+        <UFormField v-if="state.rewardType === 'FLAT'" :label="t('commissionRules.bonusRules.form.rewardCurrency')" name="rewardCurrencyUuid" required :help="t('commissionRules.bonusRules.form.rewardCurrencyHelp')">
+          <CommonEntityReferenceSelect
+            v-model="state.rewardCurrencyUuid"
+            :items="currencyItems"
+            entity="currency"
+            :loading="loadingCurrencies"
+            :placeholder="t('common.select')"
+            icon="i-lucide-coins"
+            @navigate="goToCurrency"
+          />
+        </UFormField>
+
         <UFormField :label="t('commissionRules.bonusRules.form.includeSystemPromoters')" name="includeSystemPromoters">
           <USwitch v-model="state.includeSystemPromoters" />
         </UFormField>
@@ -349,10 +384,10 @@ function openDeleteFromEdit() {
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('commissionRules.bonusRules.form.startsAt')" name="startsAt">
-            <UInput v-model="state.startsAt" type="datetime-local" class="w-full" />
+            <AppDateTimePicker v-model="state.startsAt" />
           </UFormField>
           <UFormField :label="t('commissionRules.bonusRules.form.endsAt')" name="endsAt">
-            <UInput v-model="state.endsAt" type="datetime-local" class="w-full" />
+            <AppDateTimePicker v-model="state.endsAt" />
           </UFormField>
         </div>
 
