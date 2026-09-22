@@ -1,6 +1,7 @@
 import type { Page } from '~/types/admin'
 import type {
   CommissionDto,
+  CommissionPayoutBySelectionRequest,
   CommissionPayoutRequest,
   CommissionPayoutResponse,
   CommissionReRatingRequest,
@@ -19,6 +20,10 @@ interface ListParams {
   filter?: string
   q?: string
   includeInactive?: boolean
+  /** "Generar pagos" screen's dedicated filters — not reachable via the generic RSQL `filter`. */
+  promoterTypeUuid?: string
+  promoterRankUuid?: string
+  campaignUuid?: string
 }
 
 /**
@@ -43,6 +48,9 @@ export const useCommissions = () => {
         ...(params.filter ? { filter: params.filter } : {}),
         ...(params.q ? { q: params.q } : {}),
         ...(params.includeInactive ? { includeInactive: 'true' } : {}),
+        ...(params.promoterTypeUuid ? { promoterTypeUuid: params.promoterTypeUuid } : {}),
+        ...(params.promoterRankUuid ? { promoterRankUuid: params.promoterRankUuid } : {}),
+        ...(params.campaignUuid ? { campaignUuid: params.campaignUuid } : {}),
       },
     })
 
@@ -56,6 +64,15 @@ export const useCommissions = () => {
    */
   const payout = (body: CommissionPayoutRequest) =>
     useApi<CommissionPayoutResponse>('/v1/admin/commissions/payout', { method: 'POST', body })
+
+  /**
+   * Paga un conjunto de comisiones elegidas a mano en la tabla de aprobación
+   * (E.2) — todas deben estar APPROVED; el backend rechaza (400) el pedido
+   * completo si alguna no lo está. Usar `dryRun: true` para previsualizar
+   * totales sin escribir en BD ni enviar correos.
+   */
+  const payoutBySelection = (body: CommissionPayoutBySelectionRequest) =>
+    useApi<CommissionPayoutResponse>('/v1/admin/commissions/payout/by-selection', { method: 'POST', body })
 
   /**
    * Cierre de mes: recalcula todas las comisiones INSCRIPTION PENDING del rango a la
@@ -90,5 +107,5 @@ export const useCommissions = () => {
   const voidCommission = (uuid: string, reason: string) =>
     useApi<CommissionDto>(`/v1/admin/commissions/${uuid}/void`, { method: 'POST', body: { reason } })
 
-  return { list, get, payout, reRate, overrideReRate, retroactiveTopUps, voidCommission }
+  return { list, get, payout, payoutBySelection, reRate, overrideReRate, retroactiveTopUps, voidCommission }
 }

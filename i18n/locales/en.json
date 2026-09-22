@@ -580,6 +580,10 @@
         "label": "Commission approval",
         "description": "Approve or reject calculated commissions before payout."
       },
+      "commissionPayoutGenerate": {
+        "label": "Generate commission payouts",
+        "description": "Select approved commissions and generate their payout."
+      },
       "commissionsReport": {
         "label": "Commissions report",
         "description": "General report of earned commissions."
@@ -2559,6 +2563,38 @@
       "successToast": "Period settled: {promoters} promoters, {commissions} commissions, {amount}.",
       "invalidRange": "The period end must be on or after the start."
     },
+    "payoutBySelection": {
+      "title": "Generate payouts for the selection",
+      "description": "Pays the APPROVED commissions hand-picked in the approval table.",
+      "dryRunNote": "The preview only computes totals: it does not mark commissions as paid or send emails.",
+      "fields": {
+        "method": "Payment method",
+        "currency": "Currency",
+        "payoutReference": "Payout reference"
+      },
+      "referencePlaceholder": "e.g. PAY-2026-07",
+      "selectionSummary": "{count} commissions selected",
+      "preview": "Preview",
+      "previewTitle": "Selection summary",
+      "totals": {
+        "promoters": "Promoters",
+        "commissions": "Commissions",
+        "amount": "Total",
+        "executedAt": "Executed"
+      },
+      "perPromoter": {
+        "name": "Promoter",
+        "code": "Code",
+        "count": "Commissions",
+        "amount": "Total",
+        "email": "Email"
+      },
+      "emptyPreview": "There are no commissions in the selection.",
+      "back": "Back",
+      "confirm": "Confirm payout",
+      "confirmDescription": "Confirming marks the selected commissions as PAID and emails a breakdown to each promoter. This action cannot be undone.",
+      "successToast": "Payouts generated: {promoters} promoters, {commissions} commissions, {amount}."
+    },
     "reRating": {
       "button": "Re-rate month close",
       "title": "Retroactive commission re-rating",
@@ -2599,10 +2635,12 @@
         "period": "Period"
       },
       "loadButton": "Load period",
+      "refreshButton": "Refresh",
       "empty": "No commissions in this period.",
       "selectedCount": "{count} commissions selected",
       "approveButton": "Approve selected",
       "rejectButton": "Reject selected",
+      "generatePayoutButton": "Generate payouts",
       "approvedToast": "{count} commissions approved successfully.",
       "rejectedToast": "{count} commissions rejected ({overrides} hierarchy overrides voided in cascade).",
       "columns": {
@@ -2616,6 +2654,38 @@
         "notice": "The reason will apply to every selected row and cascade to any hierarchy override that depends on them.",
         "reasonLabel": "Rejection reason",
         "confirmButton": "Reject"
+      }
+    },
+    "payoutGenerate": {
+      "title": "Generate commission payouts",
+      "subtitle": "Select approved commissions with the filters below and generate their payout — only Approved rows can be checked.",
+      "filtersTitle": "Filters",
+      "fields": {
+        "period": "Period",
+        "clearPeriod": "Clear period",
+        "promoterType": "Promoter type",
+        "promoter": "Promoter",
+        "appliesTo": "Applies to",
+        "status": "Status",
+        "amountFrom": "Amount from",
+        "amountTo": "Amount to",
+        "campaign": "Campaign",
+        "rank": "Rank"
+      },
+      "clearAll": "Clear filters",
+      "refreshButton": "Refresh",
+      "empty": "No commissions match the applied filters.",
+      "selectAll": "Select all",
+      "deselectAll": "Deselect all",
+      "selectedCount": "{count} selected",
+      "generatePayoutButton": "Generate payouts",
+      "paginationSummary": "Showing {shown} of {total}",
+      "columns": {
+        "promoter": "Promoter",
+        "appliesTo": "Applies to",
+        "amount": "Amount",
+        "earnedAt": "Earned",
+        "status": "Status"
       }
     },
     "overrideReRating": {
