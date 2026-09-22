@@ -476,8 +476,8 @@
         "label": "Afiliaciones",
         "description": "Planes, membresías y afiliados del programa."
       },
-      "aliados": {
-        "label": "Aliados",
+      "alliances": {
+        "label": "Alianzas",
         "description": "Red de aliados prestadores, su clasificación y servicios."
       },
       "comercial": {
@@ -556,8 +556,8 @@
         "label": "Organigrama de promotores",
         "description": "Jerarquía de supervisión y cargos."
       },
-      "alliesDirectory": {
-        "label": "Directorio de aliados",
+      "allies": {
+        "label": "Aliados",
         "description": "Comercios y prestadores de la red."
       },
       "serviceCategories": {

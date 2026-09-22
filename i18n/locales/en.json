@@ -476,8 +476,8 @@
         "label": "Affiliations",
         "description": "Plans, memberships and program members."
       },
-      "aliados": {
-        "label": "Partners",
+      "alliances": {
+        "label": "Alliances",
         "description": "Network of provider partners, their classification and services."
       },
       "comercial": {
@@ -556,8 +556,8 @@
         "label": "Promoter org chart",
         "description": "Supervision hierarchy and ranks."
       },
-      "alliesDirectory": {
-        "label": "Partner directory",
+      "allies": {
+        "label": "Partners",
         "description": "Network businesses and providers."
       },
       "serviceCategories": {
