@@ -941,7 +941,17 @@ onMounted(() => {
               <td class="px-5 py-3 font-medium text-prohealth-900">{{ tier.name }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ tier.planType ? t(`plans.types.${tier.planType}`) : t('commissionRules.tiers.allPlans') }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ tier.thresholdCount }}</td>
-              <td class="px-5 py-3 text-prohealth-600">{{ tierReward(tier) }}</td>
+              <td class="px-5 py-3 text-prohealth-600" @click.stop>
+                <template v-if="tier.flatAmount != null">
+                  <CurrencyConverterDisplay :amount="tier.flatAmount" :currency="tier.flatAmountCurrency_Code" v-slot="{ result }">
+                    <span class="inline-flex items-center gap-1">
+                      {{ tierReward(tier) }}
+                      <CurrencyConverterTrigger :result="result" />
+                    </span>
+                  </CurrencyConverterDisplay>
+                </template>
+                <template v-else>{{ tierReward(tier) }}</template>
+              </td>
               <td class="px-5 py-3">
                 <UBadge color="primary" variant="subtle" size="sm">{{ t(`commissionRules.appliesTo.${tier.appliesTo}`) }}</UBadge>
               </td>
@@ -1083,7 +1093,17 @@ onMounted(() => {
               <td class="px-5 py-3 text-prohealth-600">{{ t(`commissionRules.accrualModes.${rule.accrual}`) }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ rule.thresholdCount }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ t(`commissionRules.windowStrategies.${rule.windowStrategy}`) }}</td>
-              <td class="px-5 py-3 text-prohealth-600">{{ bonusReward(rule) }}</td>
+              <td class="px-5 py-3 text-prohealth-600" @click.stop>
+                <template v-if="rule.rewardType === 'FLAT'">
+                  <CurrencyConverterDisplay :amount="rule.flatAmount" :currency="rule.rewardCurrency" v-slot="{ result }">
+                    <span class="inline-flex items-center gap-1">
+                      {{ bonusReward(rule) }}
+                      <CurrencyConverterTrigger :result="result" />
+                    </span>
+                  </CurrencyConverterDisplay>
+                </template>
+                <template v-else>{{ bonusReward(rule) }}</template>
+              </td>
               <td class="px-5 py-3">
                 <UBadge :color="rule.active ? 'success' : 'neutral'" variant="subtle" size="sm">
                   {{ rule.active ? t('catalogs.status.active') : t('catalogs.status.inactive') }}
@@ -1477,7 +1497,17 @@ onMounted(() => {
                 <td class="px-5 py-3 font-medium text-prohealth-900">{{ tier.name }}</td>
                 <td class="px-5 py-3 text-prohealth-600">{{ tier.planType ? t(`plans.types.${tier.planType}`) : t('commissionRules.tiers.allPlans') }}</td>
                 <td class="px-5 py-3 text-prohealth-600">{{ tier.thresholdCount }}</td>
-                <td class="px-5 py-3 text-prohealth-600">{{ tierReward(tier) }}</td>
+                <td class="px-5 py-3 text-prohealth-600" @click.stop>
+                  <template v-if="tier.flatAmount != null">
+                    <CurrencyConverterDisplay :amount="tier.flatAmount" :currency="tier.flatAmountCurrency_Code" v-slot="{ result }">
+                      <span class="inline-flex items-center gap-1">
+                        {{ tierReward(tier) }}
+                        <CurrencyConverterTrigger :result="result" />
+                      </span>
+                    </CurrencyConverterDisplay>
+                  </template>
+                  <template v-else>{{ tierReward(tier) }}</template>
+                </td>
                 <td class="px-5 py-3"><UBadge color="primary" variant="subtle" size="sm">{{ t(`commissionRules.appliesTo.${tier.appliesTo}`) }}</UBadge></td>
                 <td class="px-5 py-3" @click.stop>
                   <EntityChipsCell :items="tier.promoterTypes" :empty-label="t('commissionRules.filters.allPromoterTypes')" />
@@ -1532,7 +1562,17 @@ onMounted(() => {
                 <td class="px-5 py-3 font-medium text-prohealth-900">{{ rule.name }}</td>
                 <td class="px-5 py-3 text-prohealth-600">{{ t(`commissionRules.bonusMetrics.${rule.metric}`) }}</td>
                 <td class="px-5 py-3 text-prohealth-600">{{ rule.thresholdCount }}</td>
-                <td class="px-5 py-3 text-prohealth-600">{{ bonusReward(rule) }}</td>
+                <td class="px-5 py-3 text-prohealth-600" @click.stop>
+                <template v-if="rule.rewardType === 'FLAT'">
+                  <CurrencyConverterDisplay :amount="rule.flatAmount" :currency="rule.rewardCurrency" v-slot="{ result }">
+                    <span class="inline-flex items-center gap-1">
+                      {{ bonusReward(rule) }}
+                      <CurrencyConverterTrigger :result="result" />
+                    </span>
+                  </CurrencyConverterDisplay>
+                </template>
+                <template v-else>{{ bonusReward(rule) }}</template>
+              </td>
                 <td class="px-5 py-3">
                   <UBadge :color="rule.active ? 'success' : 'neutral'" variant="subtle" size="sm">
                     {{ rule.active ? t('catalogs.status.active') : t('catalogs.status.inactive') }}

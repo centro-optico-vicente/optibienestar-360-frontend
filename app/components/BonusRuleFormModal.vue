@@ -17,6 +17,7 @@ import {
   WINDOW_STRATEGY_OPTIONS,
 } from '~/types/bonusRules'
 import type { SelectItem } from '~/types/options'
+import { clampTodayToRange } from '~/utils/date'
 
 // Create/edit form for a bonus rule (bono por escala, ADR 0013 §2). The backend
 // replaces the whole row on PUT (no PATCH semantics), so both create and update
@@ -62,16 +63,24 @@ const isOpen = computed({
 
 // ---- Currency options (flat-amount reward) ----
 const currencyItems = ref<SelectItem[]>([])
+const currencyCodeByUuid = ref<Record<string, string>>({})
 const loadingCurrencies = ref(false)
 async function loadCurrencyOptions() {
   loadingCurrencies.value = true
   try {
     const options = await currencies.options()
-    currencyItems.value = options.filter(o => o.code).map(o => ({ label: o.label, value: o.uuid }))
+    const withCode = options.filter(o => o.code)
+    currencyItems.value = withCode.map(o => ({ label: o.label, value: o.uuid }))
+    currencyCodeByUuid.value = Object.fromEntries(withCode.map(o => [o.uuid, o.code as string]))
   }
   catch { currencyItems.value = [] }
   finally { loadingCurrencies.value = false }
 }
+
+/** Resolves `rewardCurrencyUuid` to its ISO code for `CurrencyConverterDisplay`. */
+const rewardCurrencyCode = computed(() => currencyCodeByUuid.value[state.rewardCurrencyUuid] ?? null)
+/** Same reasoning as `CommissionTierFormModal` — clamp "today" into the rule's own window. */
+const flatAmountConversionDate = computed(() => clampTodayToRange(state.startsAt, state.endsAt))
 
 // ---- Campaign selector (async search) + date autofill ----
 // NOTE: this is the NEW campaign/startsAt/endsAt anchor — distinct from the
@@ -396,9 +405,14 @@ function openDeleteFromEdit() {
             <USelectMenu clear v-model="state.rewardType" :items="rewardTypeOptions" label-key="label" value-key="value" class="w-full" />
           </UFormField>
           <UFormField v-if="state.rewardType === 'FLAT'" :label="t('commissionRules.bonusRules.form.flatAmount')" name="flatAmount" required>
-            <UInput v-model="state.flatAmount" placeholder="100.00" class="w-full">
-              <template #leading><span class="text-prohealth-400 text-sm">$</span></template>
-            </UInput>
+            <CurrencyConverterDisplay :amount="state.flatAmount" :currency="rewardCurrencyCode" :date="flatAmountConversionDate" v-slot="{ result }">
+              <UInput v-model="state.flatAmount" placeholder="100.00" class="w-full">
+                <template #leading><span class="text-prohealth-400 text-sm">$</span></template>
+                <template #trailing>
+                  <CurrencyConverterTrigger :result="result" />
+                </template>
+              </UInput>
+            </CurrencyConverterDisplay>
           </UFormField>
           <UFormField v-else :label="t('commissionRules.bonusRules.form.rewardPct')" name="rewardPct" required>
             <UInput v-model="state.rewardPct" placeholder="10.00" class="w-full">
