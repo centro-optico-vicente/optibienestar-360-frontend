@@ -471,6 +471,7 @@
     "manage": "Manage",
     "viewAllMosaic": "View all as grid",
     "searchPlaceholder": "Search members, plans…",
+    "searchNoResults": "No views found for \"{query}\"",
     "groups": {
       "afiliaciones": {
         "label": "Affiliations",
@@ -3351,11 +3352,19 @@
       "officialCurrency": "Official currency",
       "officialCurrencyHelp": "Legal-tender currency used for invoicing and tax reports.",
       "referenceCurrency": "Reference currency",
-      "referenceCurrencyHelp": "Currency used to quote plans, commissions and prizes."
+      "referenceCurrencyHelp": "Currency used to quote plans, commissions and prizes.",
+      "whatsapp": "WhatsApp",
+      "whatsappPlaceholder": "+1 555 0000000",
+      "instagram": "Instagram",
+      "instagramPlaceholder": "https://instagram.com/your_handle",
+      "facebook": "Facebook",
+      "facebookPlaceholder": "https://facebook.com/your_page"
     },
     "sections": {
       "general": "General information",
       "currencies": "Currencies",
+      "socialLinks": "Social links",
+      "socialLinksHelp": "Global links shown across the public site (footer, contact).",
       "terms": "Terms and conditions"
     },
     "terms": {
@@ -3388,18 +3397,10 @@
     "fields": {
       "reportFooter": "Report Footer",
       "reportFooterHelp": "Text displayed in the footer of all generated PDF documents.",
-      "reportFooterPlaceholder": "e.g. Created from example company",
-      "whatsapp": "WhatsApp",
-      "whatsappPlaceholder": "+1 555 0000000",
-      "instagram": "Instagram",
-      "instagramPlaceholder": "https://instagram.com/your_handle",
-      "facebook": "Facebook",
-      "facebookPlaceholder": "https://facebook.com/your_page"
+      "reportFooterPlaceholder": "e.g. Created from example company"
     },
     "sections": {
       "reports": "Reports",
-      "socialLinks": "Social links",
-      "socialLinksHelp": "Global links shown across the public site (footer, contact).",
       "dataChangeAudit": "Data change audit",
       "reportAudit": "Report audit",
       "sessions": "Session and system usage"

@@ -471,6 +471,7 @@
     "manage": "Gestionar",
     "viewAllMosaic": "Ver todo en mosaico",
     "searchPlaceholder": "Buscar afiliados, planes…",
+    "searchNoResults": "No se encontraron vistas para \"{query}\"",
     "groups": {
       "afiliaciones": {
         "label": "Afiliaciones",
@@ -3351,11 +3352,19 @@
       "officialCurrency": "Moneda oficial",
       "officialCurrencyHelp": "Moneda de curso legal usada en facturación y reportes fiscales.",
       "referenceCurrency": "Moneda de referencia",
-      "referenceCurrencyHelp": "Moneda usada para cotizar planes, comisiones y premios."
+      "referenceCurrencyHelp": "Moneda usada para cotizar planes, comisiones y premios.",
+      "whatsapp": "WhatsApp",
+      "whatsappPlaceholder": "+58 414 0000000",
+      "instagram": "Instagram",
+      "instagramPlaceholder": "https://instagram.com/tu_usuario",
+      "facebook": "Facebook",
+      "facebookPlaceholder": "https://facebook.com/tu_pagina"
     },
     "sections": {
       "general": "Datos generales",
       "currencies": "Monedas",
+      "socialLinks": "Redes sociales",
+      "socialLinksHelp": "Enlaces globales mostrados en el sitio público (pie de página, contacto).",
       "terms": "Términos y condiciones"
     },
     "terms": {
@@ -3388,18 +3397,10 @@
     "fields": {
       "reportFooter": "Pie de página de los reportes",
       "reportFooterHelp": "Texto que aparecerá en el pie de página de todos los documentos y fichas PDF generados.",
-      "reportFooterPlaceholder": "Ej. Creado desde compañía de ejemplo",
-      "whatsapp": "WhatsApp",
-      "whatsappPlaceholder": "+58 414 0000000",
-      "instagram": "Instagram",
-      "instagramPlaceholder": "https://instagram.com/tu_usuario",
-      "facebook": "Facebook",
-      "facebookPlaceholder": "https://facebook.com/tu_pagina"
+      "reportFooterPlaceholder": "Ej. Creado desde compañía de ejemplo"
     },
     "sections": {
       "reports": "Reportes",
-      "socialLinks": "Redes sociales",
-      "socialLinksHelp": "Enlaces globales mostrados en el sitio público (pie de página, contacto).",
       "dataChangeAudit": "Auditoría de cambios de datos",
       "reportAudit": "Auditoría de reportes",
       "sessions": "Sesión y uso del sistema"

@@ -33,6 +33,9 @@ const state = reactive({
   legalName: '',
   taxIdentifier: '',
   logoKey: '',
+  whatsapp: '',
+  instagram: '',
+  facebook: '',
   officialCurrencyUuid: undefined as string | undefined,
   referenceCurrencyUuid: undefined as string | undefined,
 })
@@ -43,6 +46,21 @@ const schema = computed(() =>
     legalName: z.string().optional().or(z.literal('')),
     taxIdentifier: z.string().optional().or(z.literal('')),
     logoKey: z.string().optional().or(z.literal('')),
+    whatsapp: z
+      .string()
+      .max(30, t('validation.maxChars', { n: 30 }))
+      .optional()
+      .or(z.literal('')),
+    instagram: z
+      .string()
+      .max(255, t('validation.maxChars', { n: 255 }))
+      .optional()
+      .or(z.literal('')),
+    facebook: z
+      .string()
+      .max(255, t('validation.maxChars', { n: 255 }))
+      .optional()
+      .or(z.literal('')),
     officialCurrencyUuid: z.string().optional(),
     referenceCurrencyUuid: z.string().optional(),
   })
@@ -77,6 +95,9 @@ async function load() {
       state.legalName = org.legalName ?? ''
       state.taxIdentifier = org.taxIdentifier ?? ''
       state.logoKey = org.logoKey ?? ''
+      state.whatsapp = org.whatsapp ?? ''
+      state.instagram = org.instagram ?? ''
+      state.facebook = org.facebook ?? ''
       state.officialCurrencyUuid = org.officialCurrency_Uuid ?? undefined
       state.referenceCurrencyUuid = org.referenceCurrency_Uuid ?? undefined
     }
@@ -109,6 +130,9 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       legalName: state.legalName || undefined,
       taxIdentifier: state.taxIdentifier || undefined,
       logoKey: state.logoKey || undefined,
+      whatsapp: state.whatsapp || undefined,
+      instagram: state.instagram || undefined,
+      facebook: state.facebook || undefined,
       officialCurrencyUuid: state.officialCurrencyUuid,
       referenceCurrencyUuid: state.referenceCurrencyUuid,
     })
@@ -116,6 +140,9 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     state.legalName = updated.legalName ?? ''
     state.taxIdentifier = updated.taxIdentifier ?? ''
     state.logoKey = updated.logoKey ?? ''
+    state.whatsapp = updated.whatsapp ?? ''
+    state.instagram = updated.instagram ?? ''
+    state.facebook = updated.facebook ?? ''
     state.officialCurrencyUuid = updated.officialCurrency_Uuid ?? undefined
     state.referenceCurrencyUuid = updated.referenceCurrency_Uuid ?? undefined
     snapshot.value = snapshotState()
@@ -374,6 +401,41 @@ onMounted(() => {
               value-key="value"
               :loading="loadingCurrencies"
               :search-input="false"
+              class="w-full"
+              :disabled="!canUpdate || isSubmitting"
+            />
+          </UFormField>
+        </div>
+
+        <!-- Redes sociales -->
+        <div class="bg-white rounded-2xl border border-prohealth-100 p-6 shadow-sm space-y-4">
+          <div>
+            <h2 class="text-base font-bold text-prohealth-900">{{ t('organization.sections.socialLinks') }}</h2>
+            <p class="text-xs text-prohealth-700/70 mt-0.5">{{ t('organization.sections.socialLinksHelp') }}</p>
+          </div>
+          <UFormField :label="t('organization.fields.whatsapp')" name="whatsapp">
+            <UInput
+              v-model="state.whatsapp"
+              icon="i-simple-icons-whatsapp"
+              :placeholder="t('organization.fields.whatsappPlaceholder')"
+              class="w-full"
+              :disabled="!canUpdate || isSubmitting"
+            />
+          </UFormField>
+          <UFormField :label="t('organization.fields.instagram')" name="instagram">
+            <UInput
+              v-model="state.instagram"
+              icon="i-simple-icons-instagram"
+              :placeholder="t('organization.fields.instagramPlaceholder')"
+              class="w-full"
+              :disabled="!canUpdate || isSubmitting"
+            />
+          </UFormField>
+          <UFormField :label="t('organization.fields.facebook')" name="facebook">
+            <UInput
+              v-model="state.facebook"
+              icon="i-simple-icons-facebook"
+              :placeholder="t('organization.fields.facebookPlaceholder')"
               class="w-full"
               :disabled="!canUpdate || isSubmitting"
             />

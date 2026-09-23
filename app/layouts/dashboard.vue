@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import logoUrl from '~/assets/centro-optico-vicente-logo.png'
-import { OTHER_NAV } from '~/utils/nav'
+import { OTHER_NAV, isNavGroup } from '~/utils/nav'
 
 const auth = useAuthStore()
 const { logout } = useAuth()
 const route = useRoute()
+const router = useRouter()
 const { can } = usePermissions()
 
 // Warms useFormatters().formatCurrency's default-currency fallback (ADR
@@ -50,6 +51,59 @@ const isSidebarOpen = ref<boolean>(false)
 // Colapso del sidebar en escritorio. Persistido para que la elección sobreviva
 // a una recarga de página.
 const isSidebarCollapsed = useLocalStorage<boolean>('dashboard-sidebar-collapsed', false)
+
+// Buscador del menú (⌘K/Ctrl+K enfoca el input): filtra sobre las hojas ya
+// visibles (permiso-filtradas) de visibleNav + OTHER_NAV, sin depender de un
+// índice aparte — cualquier vista nueva del menú queda buscable gratis.
+interface NavSearchResult { label: string, to: string, icon: string, groupLabel?: string }
+
+const navSearch = ref('')
+const searchOpen = ref(false)
+const searchWrapperRef = ref<HTMLElement | null>(null)
+const searchInputRef = ref<HTMLInputElement | null>(null)
+
+const flatSearchableLeaves = computed<NavSearchResult[]>(() => {
+  const leaves: NavSearchResult[] = []
+  for (const entry of visibleNav.value) {
+    if (isNavGroup(entry)) {
+      for (const child of entry.children) {
+        leaves.push({ label: child.label, to: child.to, icon: child.icon, groupLabel: entry.label })
+      }
+    }
+    else {
+      leaves.push({ label: entry.label, to: entry.to, icon: entry.icon })
+    }
+  }
+  for (const other of OTHER_NAV) {
+    leaves.push({ label: navLabel(other), to: other.to, icon: other.icon })
+  }
+  return leaves
+})
+
+const searchResults = computed<NavSearchResult[]>(() => {
+  const query = navSearch.value.trim().toLowerCase()
+  if (!query) return []
+  return flatSearchableLeaves.value.filter(leaf => leaf.label.toLowerCase().includes(query)).slice(0, 8)
+})
+
+function clearSearch(): void {
+  navSearch.value = ''
+  searchOpen.value = false
+}
+
+function goToSearchResult(to: string): void {
+  clearSearch()
+  router.push(to)
+}
+
+onClickOutside(searchWrapperRef, () => { searchOpen.value = false })
+
+// `meta_k` self-normalizes to Ctrl+K on non-macOS (useKbd), so this one entry
+// covers ⌘K and Ctrl+K. `usingInput: true` keeps it live even while another
+// field already has focus.
+defineShortcuts({
+  meta_k: { usingInput: true, handler: () => { searchInputRef.value?.focus() } },
+})
 </script>
 
 <template>
@@ -167,14 +221,42 @@ const isSidebarCollapsed = useLocalStorage<boolean>('dashboard-sidebar-collapsed
             square
             @click="isSidebarCollapsed = !isSidebarCollapsed"
           />
-          <div class="hidden md:flex items-center gap-2 flex-1 max-w-md bg-prohealth-50 px-3 py-2 rounded-lg">
-            <UIcon name="i-lucide-search" class="w-4 h-4 text-prohealth-400" />
-            <input
-              type="text"
-              :placeholder="$t('nav.searchPlaceholder')"
-              class="bg-transparent text-sm w-full outline-none placeholder:text-prohealth-400"
+          <div ref="searchWrapperRef" class="hidden md:block relative flex-1 max-w-md">
+            <div class="flex items-center gap-2 bg-prohealth-50 px-3 py-2 rounded-lg">
+              <UIcon name="i-lucide-search" class="w-4 h-4 text-prohealth-400 shrink-0" />
+              <input
+                ref="searchInputRef"
+                v-model="navSearch"
+                type="text"
+                :placeholder="$t('nav.searchPlaceholder')"
+                class="bg-transparent text-sm w-full outline-none placeholder:text-prohealth-400"
+                @focus="searchOpen = true"
+                @keydown.esc="clearSearch"
+              >
+              <kbd class="text-[10px] text-prohealth-500 bg-white border border-prohealth-200 rounded px-1.5 py-0.5 shrink-0">⌘K</kbd>
+            </div>
+
+            <div
+              v-if="searchOpen && navSearch.trim()"
+              class="absolute left-0 right-0 top-full mt-2 bg-white border border-prohealth-100 rounded-lg shadow-lg max-h-80 overflow-y-auto z-30 py-1"
             >
-            <kbd class="text-[10px] text-prohealth-500 bg-white border border-prohealth-200 rounded px-1.5 py-0.5">⌘K</kbd>
+              <button
+                v-for="result in searchResults"
+                :key="result.to"
+                type="button"
+                class="w-full flex items-center gap-3 px-3 py-2 hover:bg-prohealth-50 text-sm text-left"
+                @click="goToSearchResult(result.to)"
+              >
+                <UIcon :name="result.icon" class="w-4 h-4 text-prohealth-400 shrink-0" />
+                <span class="min-w-0">
+                  <span class="block text-prohealth-900 font-medium truncate">{{ result.label }}</span>
+                  <span v-if="result.groupLabel" class="block text-xs text-prohealth-400 truncate">{{ result.groupLabel }}</span>
+                </span>
+              </button>
+              <p v-if="searchResults.length === 0" class="px-3 py-2 text-sm text-prohealth-400">
+                {{ $t('nav.searchNoResults', { query: navSearch.trim() }) }}
+              </p>
+            </div>
           </div>
           <div class="ml-auto flex items-center gap-2">
             <LocaleSwitcher />

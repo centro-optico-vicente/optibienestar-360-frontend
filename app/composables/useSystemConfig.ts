@@ -11,9 +11,6 @@ export const COMMON_SORT_FIELDS = ['id', 'uuid', 'createdAt', 'updatedAt', 'crea
 export interface SystemConfigDto {
   uuid: string
   reportFooter: string
-  whatsapp?: string | null
-  instagram?: string | null
-  facebook?: string | null
   auditCreateMode: AuditMode
   auditUpdateMode: AuditMode
   auditDeleteMode: AuditMode
@@ -28,9 +25,6 @@ export interface SystemConfigDto {
 
 export interface UpdateSystemConfigRequest {
   reportFooter?: string
-  whatsapp?: string
-  instagram?: string
-  facebook?: string
   auditCreateMode?: AuditMode
   auditUpdateMode?: AuditMode
   auditDeleteMode?: AuditMode
