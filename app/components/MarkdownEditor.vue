@@ -47,8 +47,8 @@ const renderedHtml = computed(() => DOMPurify.sanitize(md.render(model.value || 
 .markdown-body :deep(p) { margin: 0.5em 0; line-height: 1.6; }
 .markdown-body :deep(ul), .markdown-body :deep(ol) { margin: 0.4em 0 0.4em 1.3em; }
 .markdown-body :deep(li) { margin: 0.2em 0; }
-.markdown-body :deep(a) { color: theme('colors.prohealth.600'); text-decoration: underline; }
+.markdown-body :deep(a) { color: var(--color-prohealth-600); text-decoration: underline; }
 .markdown-body :deep(strong) { font-weight: 700; }
-.markdown-body :deep(blockquote) { border-left: 3px solid theme('colors.prohealth.200'); padding-left: 0.8em; color: theme('colors.prohealth.600'); }
-.markdown-body :deep(code) { background: theme('colors.prohealth.100'); padding: 0.1em 0.35em; border-radius: 0.25em; font-size: 0.85em; }
+.markdown-body :deep(blockquote) { border-left: 3px solid var(--color-prohealth-200); padding-left: 0.8em; color: var(--color-prohealth-600); }
+.markdown-body :deep(code) { background: var(--color-prohealth-100); padding: 0.1em 0.35em; border-radius: 0.25em; font-size: 0.85em; }
 </style>
