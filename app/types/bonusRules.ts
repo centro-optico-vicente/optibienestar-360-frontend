@@ -47,6 +47,17 @@ export const REWARD_TYPE_OPTIONS: { label: string, value: RewardType, labelKey: 
   { label: 'Porcentaje', value: 'PERCENTAGE', labelKey: 'commissionRules.rewardTypes.PERCENTAGE' },
 ]
 
+/**
+ * The 3 new settlement axes (partial/final/retroactive) never offer CAMPAIGN —
+ * that value is meaningful only for `accrualPeriodStrategy` (legacy
+ * WindowStrategy.CAMPAIGN fixed-range accrual). Unified 4-axis settlement model,
+ * same contract as CommissionTier / CollectionCommissionTier.
+ */
+export type SettlementPeriodStrategy = Exclude<WindowStrategy, 'CAMPAIGN'>
+
+export const SETTLEMENT_PERIOD_STRATEGY_OPTIONS: { label: string, value: SettlementPeriodStrategy, labelKey: string }[] =
+  WINDOW_STRATEGY_OPTIONS.filter((o): o is { label: string, value: SettlementPeriodStrategy, labelKey: string } => o.value !== 'CAMPAIGN')
+
 import type { DisplayRefItem } from './options'
 
 export interface BonusRuleDto {
@@ -63,7 +74,19 @@ export interface BonusRuleDto {
   thresholdAmount?: number | string | null
   thresholdCurrency_Uuid?: string | null
   thresholdCurrency_Display?: string | null
-  windowStrategy: WindowStrategy
+  /** Accrual frequency — renamed from `windowStrategy` (unified 4-axis settlement model). Only this axis may be CAMPAIGN. */
+  accrualPeriodStrategy: WindowStrategy
+  /** Anchor day for `accrualPeriodStrategy` — 1-7 (weekday) if WEEKLY/BIWEEKLY, 1-31 (day of month) if MONTHLY or coarser; null = default. */
+  accrualPeriodAnchor?: number | null
+  /** Partial-settlement frequency — new axis, defaults to `accrualPeriodStrategy`'s value on create. Never CAMPAIGN. */
+  partialSettlementPeriodStrategy?: SettlementPeriodStrategy | null
+  partialSettlementPeriodAnchor?: number | null
+  /** Final-settlement frequency — new axis. Never CAMPAIGN. */
+  finalSettlementPeriodStrategy?: SettlementPeriodStrategy | null
+  finalSettlementPeriodAnchor?: number | null
+  /** Retroactive-settlement frequency — new axis. Never CAMPAIGN. */
+  retroactiveSettlementPeriodStrategy?: SettlementPeriodStrategy | null
+  retroactiveSettlementPeriodAnchor?: number | null
   /** Legacy WindowStrategy.CAMPAIGN fixed range — a DIFFERENT, older mechanism than the campaign/startsAt/endsAt anchor below. Do not conflate. */
   campaignStart?: string | null
   campaignEnd?: string | null
@@ -93,7 +116,14 @@ export interface BonusRuleRequest {
   thresholdCount?: number | null
   thresholdAmount?: string | null
   thresholdCurrencyUuid?: string | null
-  windowStrategy: WindowStrategy
+  accrualPeriodStrategy: WindowStrategy
+  accrualPeriodAnchor?: number | null
+  partialSettlementPeriodStrategy?: SettlementPeriodStrategy | null
+  partialSettlementPeriodAnchor?: number | null
+  finalSettlementPeriodStrategy?: SettlementPeriodStrategy | null
+  finalSettlementPeriodAnchor?: number | null
+  retroactiveSettlementPeriodStrategy?: SettlementPeriodStrategy | null
+  retroactiveSettlementPeriodAnchor?: number | null
   campaignStart?: string | null
   campaignEnd?: string | null
   rewardType: RewardType

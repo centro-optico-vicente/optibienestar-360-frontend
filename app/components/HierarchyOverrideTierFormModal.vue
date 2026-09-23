@@ -87,6 +87,32 @@ const rewardKindOptions = computed(() => [
   { label: t('commissionRules.tiers.rewardKindPct'), value: 'PCT' },
   { label: t('commissionRules.tiers.rewardKindFlat'), value: 'FLAT' },
 ])
+const basisOptions = computed(() => [
+  { label: t('hierarchyOverrideTiers.form.basisCount'), value: 'COUNT' },
+  { label: t('hierarchyOverrideTiers.form.basisAmount'), value: 'AMOUNT' },
+])
+// ---- Settlement-frequency anchors (unified 4-axis model) ----
+// Contextual "anchor day" per axis: weekday select (1-7) when the axis's own
+// strategy is WEEKLY/BIWEEKLY, day-of-month number input (1-31) when it's
+// MONTHLY or coarser, hidden entirely when DAILY.
+type AnchorKind = 'weekday' | 'monthday' | 'none'
+function anchorKindFor(strategy: PeriodStrategy | undefined): AnchorKind {
+  if (!strategy || strategy === 'DAILY') return 'none'
+  if (strategy === 'WEEKLY' || strategy === 'BIWEEKLY') return 'weekday'
+  return 'monthday'
+}
+// Values are kept as strings ('1'..'7') so they share the same string-typed
+// anchor field as the day-of-month input, avoiding a type split per axis.
+const weekdayOptions = computed(() => [
+  { label: t('hierarchyOverrideTiers.form.weekday.1'), value: '1' },
+  { label: t('hierarchyOverrideTiers.form.weekday.2'), value: '2' },
+  { label: t('hierarchyOverrideTiers.form.weekday.3'), value: '3' },
+  { label: t('hierarchyOverrideTiers.form.weekday.4'), value: '4' },
+  { label: t('hierarchyOverrideTiers.form.weekday.5'), value: '5' },
+  { label: t('hierarchyOverrideTiers.form.weekday.6'), value: '6' },
+  { label: t('hierarchyOverrideTiers.form.weekday.7'), value: '7' },
+])
+const showAdvanced = ref(false)
 
 // ---- Rank options (Supervisor/Coordinador catalog, promoter-ranks) ----
 const rankItems = ref<SelectItem[]>([])
@@ -126,6 +152,8 @@ async function loadCurrencyOptions() {
 }
 /** Resolves `flatAmountCurrencyUuid` to its ISO code for `CurrencyConverterDisplay`. */
 const flatAmountCurrencyCode = computed(() => currencyCodeByUuid.value[state.flatAmountCurrencyUuid] ?? null)
+/** Resolves `thresholdAmountCurrencyUuid` (basis=AMOUNT threshold) to its ISO code. */
+const thresholdAmountCurrencyCode = computed(() => currencyCodeByUuid.value[state.thresholdAmountCurrencyUuid] ?? null)
 /** Same reasoning as `CommissionTierFormModal` — clamp "today" into the tier's own window. */
 const flatAmountConversionDate = computed(() => clampTodayToRange(state.startsAt, state.endsAt))
 function goToCurrency(to: string) {
@@ -138,12 +166,22 @@ interface FormState {
   description: string
   rankUuid: string
   category: OverrideCategory | undefined
+  basis: 'COUNT' | 'AMOUNT'
   thresholdCount: string
+  thresholdAmount: string
+  thresholdAmountCurrencyUuid: string
   rewardKind: 'PCT' | 'FLAT'
   overridePct: string
   flatAmount: string
   flatAmountCurrencyUuid: string
-  periodStrategy: PeriodStrategy | undefined
+  accrualPeriodStrategy: PeriodStrategy | undefined
+  accrualPeriodAnchor: string
+  partialSettlementPeriodStrategy: PeriodStrategy | undefined
+  partialSettlementPeriodAnchor: string
+  finalSettlementPeriodStrategy: PeriodStrategy | undefined
+  finalSettlementPeriodAnchor: string
+  retroactiveSettlementPeriodStrategy: PeriodStrategy | undefined
+  retroactiveSettlementPeriodAnchor: string
   campaignUuid: string
   startsAt: string
   endsAt: string
@@ -154,12 +192,25 @@ const state = reactive<FormState>({
   description: '',
   rankUuid: '',
   category: undefined,
+  basis: 'COUNT',
   thresholdCount: '0',
+  thresholdAmount: '',
+  thresholdAmountCurrencyUuid: '',
   rewardKind: 'PCT',
   overridePct: '',
   flatAmount: '',
   flatAmountCurrencyUuid: '',
-  periodStrategy: 'MONTHLY',
+  // New settlement axes default to the same value as accrualPeriodStrategy so
+  // a rule created without touching "advanced settings" behaves exactly like
+  // before (no-op).
+  accrualPeriodStrategy: 'MONTHLY',
+  accrualPeriodAnchor: '',
+  partialSettlementPeriodStrategy: 'MONTHLY',
+  partialSettlementPeriodAnchor: '',
+  finalSettlementPeriodStrategy: 'MONTHLY',
+  finalSettlementPeriodAnchor: '',
+  retroactiveSettlementPeriodStrategy: 'MONTHLY',
+  retroactiveSettlementPeriodAnchor: '',
   campaignUuid: '',
   startsAt: '',
   endsAt: '',
@@ -182,18 +233,28 @@ const isActive = ref(true)
 const schema = computed(() => {
   const money = z.string().regex(/^\d+(\.\d{1,2})?$/, t('commissionRules.form.invalidAmount'))
   const int = z.string().regex(/^\d+$/, t('commissionRules.form.integersOnly'))
+  const anchor = z.string().optional().refine(v => !v || /^\d{1,2}$/.test(v), t('commissionRules.form.integersOnly'))
   return z.object({
     name: z.string().min(3, t('validation.minChars', { n: 3 })).max(80, t('validation.maxChars', { n: 80 })),
     description: z.string().optional(),
     rankUuid: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
     category: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
-    thresholdCount: int,
+    thresholdCount: state.basis === 'COUNT' ? int : z.string().optional(),
+    thresholdAmount: state.basis === 'AMOUNT' ? money : z.string().optional(),
+    thresholdAmountCurrencyUuid: state.basis === 'AMOUNT' ? z.string().min(1, t('validation.required')) : z.string().optional(),
     overridePct: state.rewardKind === 'PCT' ? money : z.string().optional(),
     flatAmount: state.rewardKind === 'FLAT' ? money : z.string().optional(),
     flatAmountCurrencyUuid: state.rewardKind === 'FLAT'
       ? z.string({ message: t('validation.required') }).min(1, t('validation.required'))
       : z.string().optional(),
-    periodStrategy: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
+    accrualPeriodStrategy: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
+    accrualPeriodAnchor: anchor,
+    partialSettlementPeriodStrategy: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
+    partialSettlementPeriodAnchor: anchor,
+    finalSettlementPeriodStrategy: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
+    finalSettlementPeriodAnchor: anchor,
+    retroactiveSettlementPeriodStrategy: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
+    retroactiveSettlementPeriodAnchor: anchor,
   })
 })
 
@@ -212,17 +273,28 @@ function populateFrom(tier: HierarchyOverrideTierDto | null) {
     state.description = ''
     state.rankUuid = ''
     state.category = undefined
+    state.basis = 'COUNT'
     state.thresholdCount = '0'
+    state.thresholdAmount = ''
+    state.thresholdAmountCurrencyUuid = ''
     state.rewardKind = 'PCT'
     state.overridePct = ''
     state.flatAmount = ''
     state.flatAmountCurrencyUuid = ''
-    state.periodStrategy = 'MONTHLY'
+    state.accrualPeriodStrategy = 'MONTHLY'
+    state.accrualPeriodAnchor = ''
+    state.partialSettlementPeriodStrategy = 'MONTHLY'
+    state.partialSettlementPeriodAnchor = ''
+    state.finalSettlementPeriodStrategy = 'MONTHLY'
+    state.finalSettlementPeriodAnchor = ''
+    state.retroactiveSettlementPeriodStrategy = 'MONTHLY'
+    state.retroactiveSettlementPeriodAnchor = ''
     state.campaignUuid = props.campaignUuid ?? ''
     state.startsAt = ''
     state.endsAt = ''
     isActive.value = true
     editSnapshot.value = ''
+    showAdvanced.value = false
     nextTick(() => { suppressCampaignAutofill.value = false })
     return
   }
@@ -230,12 +302,22 @@ function populateFrom(tier: HierarchyOverrideTierDto | null) {
   state.description = tier.description ?? ''
   state.rankUuid = tier.rank_Uuid ?? ''
   state.category = tier.category
+  state.basis = tier.basis ?? 'COUNT'
   state.thresholdCount = String(tier.thresholdCount ?? 0)
+  state.thresholdAmount = tier.thresholdAmount != null ? String(tier.thresholdAmount) : ''
+  state.thresholdAmountCurrencyUuid = tier.thresholdAmountCurrency_Uuid ?? ''
   state.rewardKind = tier.flatAmount != null ? 'FLAT' : 'PCT'
   state.overridePct = tier.overridePct != null ? String(tier.overridePct) : ''
   state.flatAmount = tier.flatAmount != null ? String(tier.flatAmount) : ''
   state.flatAmountCurrencyUuid = tier.flatAmountCurrency_Uuid ?? ''
-  state.periodStrategy = tier.periodStrategy
+  state.accrualPeriodStrategy = tier.accrualPeriodStrategy
+  state.accrualPeriodAnchor = tier.accrualPeriodAnchor != null ? String(tier.accrualPeriodAnchor) : ''
+  state.partialSettlementPeriodStrategy = tier.partialSettlementPeriodStrategy ?? tier.accrualPeriodStrategy
+  state.partialSettlementPeriodAnchor = tier.partialSettlementPeriodAnchor != null ? String(tier.partialSettlementPeriodAnchor) : ''
+  state.finalSettlementPeriodStrategy = tier.finalSettlementPeriodStrategy ?? tier.accrualPeriodStrategy
+  state.finalSettlementPeriodAnchor = tier.finalSettlementPeriodAnchor != null ? String(tier.finalSettlementPeriodAnchor) : ''
+  state.retroactiveSettlementPeriodStrategy = tier.retroactiveSettlementPeriodStrategy ?? tier.accrualPeriodStrategy
+  state.retroactiveSettlementPeriodAnchor = tier.retroactiveSettlementPeriodAnchor != null ? String(tier.retroactiveSettlementPeriodAnchor) : ''
   state.campaignUuid = tier.campaign_Uuid ?? ''
   state.startsAt = tier.startsAt ? isoToDatetimeLocal(tier.startsAt) : ''
   state.endsAt = tier.endsAt ? isoToDatetimeLocal(tier.endsAt) : ''
@@ -275,11 +357,21 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
       description: state.description.trim() || null,
       rankUuid: state.rankUuid,
       category: state.category!,
-      thresholdCount: Number(state.thresholdCount),
+      basis: state.basis,
+      thresholdCount: state.basis === 'COUNT' ? Number(state.thresholdCount) : null,
+      thresholdAmount: state.basis === 'AMOUNT' ? state.thresholdAmount.trim() : null,
+      thresholdAmountCurrencyUuid: state.basis === 'AMOUNT' ? state.thresholdAmountCurrencyUuid : null,
       overridePct: state.rewardKind === 'PCT' ? state.overridePct.trim() : null,
       flatAmount: state.rewardKind === 'FLAT' ? state.flatAmount.trim() : null,
       flatAmountCurrencyUuid: state.rewardKind === 'FLAT' ? state.flatAmountCurrencyUuid : null,
-      periodStrategy: state.periodStrategy!,
+      accrualPeriodStrategy: state.accrualPeriodStrategy!,
+      accrualPeriodAnchor: state.accrualPeriodAnchor ? Number(state.accrualPeriodAnchor) : null,
+      partialSettlementPeriodStrategy: state.partialSettlementPeriodStrategy!,
+      partialSettlementPeriodAnchor: state.partialSettlementPeriodAnchor ? Number(state.partialSettlementPeriodAnchor) : null,
+      finalSettlementPeriodStrategy: state.finalSettlementPeriodStrategy!,
+      finalSettlementPeriodAnchor: state.finalSettlementPeriodAnchor ? Number(state.finalSettlementPeriodAnchor) : null,
+      retroactiveSettlementPeriodStrategy: state.retroactiveSettlementPeriodStrategy!,
+      retroactiveSettlementPeriodAnchor: state.retroactiveSettlementPeriodAnchor ? Number(state.retroactiveSettlementPeriodAnchor) : null,
       campaignUuid: state.campaignUuid || null,
       startsAt: datetimeLocalToIso(state.startsAt) ?? null,
       endsAt: datetimeLocalToIso(state.endsAt) ?? null,
@@ -364,12 +456,93 @@ async function restoreTier() {
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <UFormField :label="t('hierarchyOverrideTiers.form.thresholdCount')" name="thresholdCount" required :help="t('hierarchyOverrideTiers.form.thresholdHelp')">
+          <UFormField :label="t('hierarchyOverrideTiers.form.basis')" name="basis" required>
+            <USelectMenu v-model="state.basis" :items="basisOptions" label-key="label" value-key="value" class="w-full" />
+          </UFormField>
+          <UFormField v-if="state.basis === 'COUNT'" :label="t('hierarchyOverrideTiers.form.thresholdCount')" name="thresholdCount" required :help="t('hierarchyOverrideTiers.form.thresholdHelp')">
             <UInput v-model="state.thresholdCount" inputmode="numeric" class="w-full" />
           </UFormField>
-          <UFormField :label="t('hierarchyOverrideTiers.form.periodStrategy')" name="periodStrategy" required>
-            <USelectMenu clear v-model="state.periodStrategy" :items="periodOptions" label-key="label" value-key="value" class="w-full" />
+          <UFormField v-else :label="t('hierarchyOverrideTiers.form.thresholdAmount')" name="thresholdAmount" required :help="t('hierarchyOverrideTiers.form.thresholdAmountHelp')">
+            <CurrencyConverterDisplay :amount="state.thresholdAmount" :currency="thresholdAmountCurrencyCode" :date="flatAmountConversionDate" v-slot="{ result }">
+              <UInput v-model="state.thresholdAmount" inputmode="decimal" placeholder="100.00" class="w-full">
+                <template #trailing>
+                  <CurrencyConverterTrigger :result="result" />
+                </template>
+              </UInput>
+            </CurrencyConverterDisplay>
           </UFormField>
+        </div>
+        <UFormField v-if="state.basis === 'AMOUNT'" :label="t('hierarchyOverrideTiers.form.thresholdAmountCurrency')" name="thresholdAmountCurrencyUuid" required :help="t('hierarchyOverrideTiers.form.thresholdAmountCurrencyHelp')">
+          <CommonEntityReferenceSelect
+            v-model="state.thresholdAmountCurrencyUuid"
+            :items="currencyItems"
+            entity="currency"
+            :loading="loadingCurrencies"
+            :placeholder="t('common.select')"
+            class="w-full"
+            @navigate="goToCurrency"
+          />
+        </UFormField>
+
+        <UFormField :label="t('hierarchyOverrideTiers.form.accrualPeriodStrategy')" name="accrualPeriodStrategy" required>
+          <USelectMenu clear v-model="state.accrualPeriodStrategy" :items="periodOptions" label-key="label" value-key="value" class="w-full" />
+        </UFormField>
+        <UFormField v-if="anchorKindFor(state.accrualPeriodStrategy) === 'weekday'" :label="t('hierarchyOverrideTiers.form.anchorWeekday')" name="accrualPeriodAnchor">
+          <USelectMenu clear v-model="state.accrualPeriodAnchor" :items="weekdayOptions" label-key="label" value-key="value" class="w-full" />
+        </UFormField>
+        <UFormField v-else-if="anchorKindFor(state.accrualPeriodStrategy) === 'monthday'" :label="t('hierarchyOverrideTiers.form.anchorMonthday')" name="accrualPeriodAnchor" :help="t('hierarchyOverrideTiers.form.anchorMonthdayHelp')">
+          <UInput v-model="state.accrualPeriodAnchor" inputmode="numeric" min="1" max="31" class="w-full" />
+        </UFormField>
+
+        <div>
+          <UButton
+            color="neutral"
+            variant="ghost"
+            size="sm"
+            :icon="showAdvanced ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
+            :label="showAdvanced ? t('hierarchyOverrideTiers.form.hideAdvanced') : t('hierarchyOverrideTiers.form.showAdvanced')"
+            @click="showAdvanced = !showAdvanced"
+          />
+        </div>
+
+        <div v-if="showAdvanced" class="space-y-4 rounded-lg border border-prohealth-200 p-4">
+          <p class="text-sm font-medium text-prohealth-700">{{ t('hierarchyOverrideTiers.form.advancedSection') }}</p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <UFormField :label="t('hierarchyOverrideTiers.form.partialSettlementPeriodStrategy')" name="partialSettlementPeriodStrategy" required>
+              <USelectMenu clear v-model="state.partialSettlementPeriodStrategy" :items="periodOptions" label-key="label" value-key="value" class="w-full" />
+            </UFormField>
+            <UFormField v-if="anchorKindFor(state.partialSettlementPeriodStrategy) === 'weekday'" :label="t('hierarchyOverrideTiers.form.anchorWeekday')" name="partialSettlementPeriodAnchor">
+              <USelectMenu clear v-model="state.partialSettlementPeriodAnchor" :items="weekdayOptions" label-key="label" value-key="value" class="w-full" />
+            </UFormField>
+            <UFormField v-else-if="anchorKindFor(state.partialSettlementPeriodStrategy) === 'monthday'" :label="t('hierarchyOverrideTiers.form.anchorMonthday')" name="partialSettlementPeriodAnchor" :help="t('hierarchyOverrideTiers.form.anchorMonthdayHelp')">
+              <UInput v-model="state.partialSettlementPeriodAnchor" inputmode="numeric" min="1" max="31" class="w-full" />
+            </UFormField>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <UFormField :label="t('hierarchyOverrideTiers.form.finalSettlementPeriodStrategy')" name="finalSettlementPeriodStrategy" required>
+              <USelectMenu clear v-model="state.finalSettlementPeriodStrategy" :items="periodOptions" label-key="label" value-key="value" class="w-full" />
+            </UFormField>
+            <UFormField v-if="anchorKindFor(state.finalSettlementPeriodStrategy) === 'weekday'" :label="t('hierarchyOverrideTiers.form.anchorWeekday')" name="finalSettlementPeriodAnchor">
+              <USelectMenu clear v-model="state.finalSettlementPeriodAnchor" :items="weekdayOptions" label-key="label" value-key="value" class="w-full" />
+            </UFormField>
+            <UFormField v-else-if="anchorKindFor(state.finalSettlementPeriodStrategy) === 'monthday'" :label="t('hierarchyOverrideTiers.form.anchorMonthday')" name="finalSettlementPeriodAnchor" :help="t('hierarchyOverrideTiers.form.anchorMonthdayHelp')">
+              <UInput v-model="state.finalSettlementPeriodAnchor" inputmode="numeric" min="1" max="31" class="w-full" />
+            </UFormField>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <UFormField :label="t('hierarchyOverrideTiers.form.retroactiveSettlementPeriodStrategy')" name="retroactiveSettlementPeriodStrategy" required>
+              <USelectMenu clear v-model="state.retroactiveSettlementPeriodStrategy" :items="periodOptions" label-key="label" value-key="value" class="w-full" />
+            </UFormField>
+            <UFormField v-if="anchorKindFor(state.retroactiveSettlementPeriodStrategy) === 'weekday'" :label="t('hierarchyOverrideTiers.form.anchorWeekday')" name="retroactiveSettlementPeriodAnchor">
+              <USelectMenu clear v-model="state.retroactiveSettlementPeriodAnchor" :items="weekdayOptions" label-key="label" value-key="value" class="w-full" />
+            </UFormField>
+            <UFormField v-else-if="anchorKindFor(state.retroactiveSettlementPeriodStrategy) === 'monthday'" :label="t('hierarchyOverrideTiers.form.anchorMonthday')" name="retroactiveSettlementPeriodAnchor" :help="t('hierarchyOverrideTiers.form.anchorMonthdayHelp')">
+              <UInput v-model="state.retroactiveSettlementPeriodAnchor" inputmode="numeric" min="1" max="31" class="w-full" />
+            </UFormField>
+          </div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">

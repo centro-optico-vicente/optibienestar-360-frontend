@@ -11,6 +11,8 @@ import type { DisplayRefItem } from './options'
 
 export type PeriodStrategy = 'DAILY' | 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'SEMIANNUAL' | 'ANNUAL'
 export type AppliesTo = 'INSCRIPTION' | 'MONTHLY' | 'BOTH'
+/** Threshold basis — count of events (default, current behavior) vs. a money amount. */
+export type ThresholdBasis = 'COUNT' | 'AMOUNT'
 
 export const PERIOD_STRATEGY_OPTIONS: { label: string, value: PeriodStrategy, labelKey: string }[] = [
   { label: 'Diario', value: 'DAILY', labelKey: 'commissionRules.periodStrategies.DAILY' },
@@ -33,13 +35,31 @@ export interface CommissionTierDto {
   name: string
   description?: string | null
   planType?: PlanType | string | null
+  /** Threshold basis — 'COUNT' (default, uses thresholdCount) or 'AMOUNT' (uses thresholdAmount + thresholdAmountCurrency). */
+  basis?: ThresholdBasis | null
   thresholdCount: number
+  thresholdAmount?: number | string | null
+  thresholdAmountCurrency_Uuid?: string | null
+  thresholdAmountCurrency_Display?: string | null
+  thresholdAmountCurrency_Code?: string | null
   commissionPct?: number | string | null
   flatAmount?: number | string | null
   flatAmountCurrency_Uuid?: string | null
   flatAmountCurrency_Display?: string | null
   flatAmountCurrency_Code?: string | null
-  periodStrategy: PeriodStrategy
+  /** Accrual frequency — renamed from `periodStrategy` (unified 4-axis settlement model). */
+  accrualPeriodStrategy: PeriodStrategy
+  /** Anchor day for `accrualPeriodStrategy` — 1-7 (weekday) if WEEKLY/BIWEEKLY, 1-31 (day of month) if MONTHLY or coarser; null = default. */
+  accrualPeriodAnchor?: number | null
+  /** Partial-settlement frequency — new axis, defaults to `accrualPeriodStrategy`'s value on create. */
+  partialSettlementPeriodStrategy?: PeriodStrategy | null
+  partialSettlementPeriodAnchor?: number | null
+  /** Final-settlement frequency — new axis. */
+  finalSettlementPeriodStrategy?: PeriodStrategy | null
+  finalSettlementPeriodAnchor?: number | null
+  /** Retroactive-settlement frequency — new axis. */
+  retroactiveSettlementPeriodStrategy?: PeriodStrategy | null
+  retroactiveSettlementPeriodAnchor?: number | null
   appliesTo: AppliesTo
   /** M:N promoter-type scope (V137, hub plan Part F) — empty = applies to every promoter type. */
   promoterTypes: DisplayRefItem[]
@@ -59,11 +79,21 @@ export interface CreateCommissionTierRequest {
   name: string
   description?: string | null
   planType?: PlanType | null
-  thresholdCount?: number
+  basis?: ThresholdBasis | null
+  thresholdCount?: number | null
+  thresholdAmount?: string | null
+  thresholdAmountCurrencyUuid?: string | null
   commissionPct?: string | null
   flatAmount?: string | null
   flatAmountCurrencyUuid?: string | null
-  periodStrategy: PeriodStrategy
+  accrualPeriodStrategy: PeriodStrategy
+  accrualPeriodAnchor?: number | null
+  partialSettlementPeriodStrategy?: PeriodStrategy | null
+  partialSettlementPeriodAnchor?: number | null
+  finalSettlementPeriodStrategy?: PeriodStrategy | null
+  finalSettlementPeriodAnchor?: number | null
+  retroactiveSettlementPeriodStrategy?: PeriodStrategy | null
+  retroactiveSettlementPeriodAnchor?: number | null
   appliesTo: AppliesTo
   /** Empty/omitted = applies to every promoter type (M:N, V137, hub plan Part F). */
   promoterTypeUuids?: string[] | null
