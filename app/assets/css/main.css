@@ -43,6 +43,12 @@
   --color-cyan-800: #155f80;
   --color-cyan-900: #164f6b;
   --color-cyan-950: #093247;
+
+  /* Acento de marca OptiBienestar 360 (brief LOGOTIPO.docx) — uso puntual en el
+     nuevo logotipo/isotipo. No reemplaza `prohealth` como color primary. */
+  --color-opti-blue: #0056B3;
+  --color-opti-green: #00B85C;
+  --color-opti-orange: #FF5E00;
 }
 
 /* Portal light-only: forzamos TODO el set de tokens de Nuxt UI a tema claro en un

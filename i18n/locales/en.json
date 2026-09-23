@@ -471,6 +471,7 @@
     "manage": "Manage",
     "viewAllMosaic": "View all as grid",
     "searchPlaceholder": "Search members, plans…",
+    "searchNoResults": "No views found for \"{query}\"",
     "groups": {
       "afiliaciones": {
         "label": "Affiliations",
@@ -638,7 +639,7 @@
       },
       "organization": {
         "label": "Organization",
-        "description": "The organization's legal, tax and currency data."
+        "description": "The organization's legal, tax and currency data, and per-role terms and conditions."
       },
       "systemConfig": {
         "label": "System configuration",
@@ -1289,9 +1290,13 @@
         "email": "Email",
         "phone": "Phone",
         "website": "Website",
+        "whatsapp": "WhatsApp",
+        "instagram": "Instagram",
+        "facebook": "Facebook",
         "state": "State (region)",
         "city": "City",
         "address": "Address",
+        "googleMapsUrl": "Google Maps link",
         "description": "Description",
         "specialties": "Specialties",
         "joinedAt": "Partnership date",
@@ -1308,12 +1313,17 @@
       "notFoundTitle": "Partner not found",
       "notFoundBody": "The record doesn't exist or was deleted.",
       "memberSince": "Partner since {date}",
+      "viewOnMap": "View on Google Maps",
       "fields": {
         "email": "Email",
         "phone": "Phone",
         "website": "Website",
+        "whatsapp": "WhatsApp",
+        "instagram": "Instagram",
+        "facebook": "Facebook",
         "city": "City",
         "address": "Address",
+        "googleMapsUrl": "Google Maps link",
         "description": "Description"
       }
     },
@@ -3344,7 +3354,7 @@
   },
   "organization": {
     "title": "Organization",
-    "subtitle": "The organization's legal, tax and currency data.",
+    "subtitle": "The organization's legal, tax and currency data, and the terms and conditions every user must accept.",
     "seoTitle": "Organization — OptiBienestar 360",
     "saveButton": "Save changes",
     "updatedToast": "Organization updated successfully",
@@ -3358,11 +3368,42 @@
       "officialCurrency": "Official currency",
       "officialCurrencyHelp": "Legal-tender currency used for invoicing and tax reports.",
       "referenceCurrency": "Reference currency",
-      "referenceCurrencyHelp": "Currency used to quote plans, commissions and prizes."
+      "referenceCurrencyHelp": "Currency used to quote plans, commissions and prizes.",
+      "whatsapp": "WhatsApp",
+      "whatsappPlaceholder": "+1 555 0000000",
+      "instagram": "Instagram",
+      "instagramPlaceholder": "https://instagram.com/your_handle",
+      "facebook": "Facebook",
+      "facebookPlaceholder": "https://facebook.com/your_page"
     },
     "sections": {
       "general": "General information",
-      "currencies": "Currencies"
+      "currencies": "Currencies",
+      "socialLinks": "Social links",
+      "socialLinksHelp": "Global links shown across the public site (footer, contact).",
+      "terms": "Terms and conditions"
+    },
+    "terms": {
+      "help": "One document per role. Each affiliate, promoter or ally must accept the one that applies to them on first login.",
+      "types": {
+        "AFILIADO": "Members",
+        "PROMOTOR": "Promoters",
+        "ALIADO": "Allies"
+      },
+      "currentSince": "Current version since {date}",
+      "noCurrent": "There is no current version for this type yet.",
+      "editingScheduled": "You are editing a scheduled version (not yet in effect).",
+      "fields": {
+        "title": "Title",
+        "content": "Content (markdown)",
+        "validFrom": "Effective from",
+        "isPublic": "Is public"
+      },
+      "isPublicHelp": "Exposes this version without authentication at /v1/public/terms.",
+      "missingFields": "Fill in the title, content and effective date",
+      "savedToast": "Version saved successfully",
+      "publishNew": "Publish new version",
+      "saveScheduled": "Save scheduled version"
     }
   },
   "systemConfig": {
@@ -3422,6 +3463,17 @@
     },
     "updatedToast": "Configuration updated successfully",
     "saveButton": "Save changes"
+  },
+  "markdownEditor": {
+    "source": "Markdown",
+    "preview": "Preview"
+  },
+  "termsAcceptance": {
+    "title": "Terms and conditions",
+    "subtitle": "You must read and accept the following documents to continue.",
+    "scrollHint": "Scroll to the end to accept",
+    "acceptLabel": "I have read and accept this document",
+    "continue": "Continue"
   },
   "entityConfig": {
     "title": "Entity configuration",

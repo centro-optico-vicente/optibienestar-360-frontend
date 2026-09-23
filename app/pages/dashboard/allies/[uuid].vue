@@ -914,12 +914,43 @@ onMounted(async () => {
             </dd>
           </div>
           <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.detail.fields.whatsapp') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ ally.whatsapp || t('common.empty') }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.detail.fields.instagram') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">
+              <a v-if="ally.instagram" :href="ally.instagram" target="_blank" rel="noopener" class="text-cyan-700 hover:underline">
+                {{ ally.instagram }}
+              </a>
+              <span v-else>{{ t('common.empty') }}</span>
+            </dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.detail.fields.facebook') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">
+              <a v-if="ally.facebook" :href="ally.facebook" target="_blank" rel="noopener" class="text-cyan-700 hover:underline">
+                {{ ally.facebook }}
+              </a>
+              <span v-else>{{ t('common.empty') }}</span>
+            </dd>
+          </div>
+          <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.detail.fields.city') }}</dt>
             <dd class="text-prohealth-800 mt-0.5">{{ ally.city?.name || t('common.empty') }}</dd>
           </div>
           <div class="sm:col-span-2">
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.detail.fields.address') }}</dt>
             <dd class="text-prohealth-800 mt-0.5">{{ ally.address || t('common.empty') }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.detail.fields.googleMapsUrl') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">
+              <a v-if="ally.googleMapsUrl" :href="ally.googleMapsUrl" target="_blank" rel="noopener" class="text-cyan-700 hover:underline">
+                {{ t('allies.detail.viewOnMap') }}
+              </a>
+              <span v-else>{{ t('common.empty') }}</span>
+            </dd>
           </div>
           <div v-if="ally.description" class="sm:col-span-3">
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.detail.fields.description') }}</dt>

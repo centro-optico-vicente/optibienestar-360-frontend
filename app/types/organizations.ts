@@ -9,6 +9,9 @@ export interface OrganizationDto {
   legalName: string | null
   taxIdentifier: string | null
   logoKey: string | null
+  whatsapp: string | null
+  instagram: string | null
+  facebook: string | null
   officialCurrency_Uuid?: string | null
   officialCurrency_Display?: string | null
   /** The country's legal tender (VES) — facturación/reportes fiscales. */
@@ -25,6 +28,9 @@ export interface OrganizationUpdateRequest {
   legalName?: string
   taxIdentifier?: string
   logoKey?: string
+  whatsapp?: string
+  instagram?: string
+  facebook?: string
   officialCurrencyUuid?: string
   referenceCurrencyUuid?: string
 }
