@@ -5,7 +5,11 @@
 // window (ADR 0013 §2) — additive to the per-payment commissions. PUT is a full
 // replace (BonusRuleRequest is used for both create and update).
 
-export type BonusMetric = 'NEW_SUBSCRIBERS' | 'ACTIVE_SUBSCRIBERS'
+// AMOUNT_COLLECTED (Part I) — speculative addition, mirroring the contract
+// described in the hub plan (2026-09-22): the backend side (I-BE) had not
+// landed yet at the time this FE change was made — verify the real field
+// names/enum value against the backend once it ships.
+export type BonusMetric = 'NEW_SUBSCRIBERS' | 'ACTIVE_SUBSCRIBERS' | 'AMOUNT_COLLECTED'
 export type AccrualMode = 'PER_BLOCK' | 'THRESHOLD'
 export type WindowStrategy = 'LIFETIME' | 'DAILY' | 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'SEMIANNUAL' | 'ANNUAL' | 'CAMPAIGN'
 export type RewardType = 'FLAT' | 'PERCENTAGE'
@@ -13,7 +17,13 @@ export type RewardType = 'FLAT' | 'PERCENTAGE'
 export const BONUS_METRIC_OPTIONS: { label: string, value: BonusMetric, labelKey: string }[] = [
   { label: 'Nuevos suscriptores', value: 'NEW_SUBSCRIBERS', labelKey: 'commissionRules.bonusMetrics.NEW_SUBSCRIBERS' },
   { label: 'Suscriptores activos', value: 'ACTIVE_SUBSCRIBERS', labelKey: 'commissionRules.bonusMetrics.ACTIVE_SUBSCRIBERS' },
+  { label: 'Monto recaudado', value: 'AMOUNT_COLLECTED', labelKey: 'commissionRules.bonusMetrics.AMOUNT_COLLECTED' },
 ]
+
+/** Metrics measured by subscriber count (`thresholdCount`) vs. by collected amount (`thresholdAmount`+`thresholdCurrencyUuid`) — mutually exclusive per rule. */
+export function isAmountCollectedMetric(metric: BonusMetric | undefined): boolean {
+  return metric === 'AMOUNT_COLLECTED'
+}
 
 export const ACCRUAL_MODE_OPTIONS: { label: string, value: AccrualMode, labelKey: string }[] = [
   { label: 'Por bloque (repite)', value: 'PER_BLOCK', labelKey: 'commissionRules.accrualModes.PER_BLOCK' },
@@ -37,13 +47,22 @@ export const REWARD_TYPE_OPTIONS: { label: string, value: RewardType, labelKey: 
   { label: 'Porcentaje', value: 'PERCENTAGE', labelKey: 'commissionRules.rewardTypes.PERCENTAGE' },
 ]
 
+import type { DisplayRefItem } from './options'
+
 export interface BonusRuleDto {
   uuid: string
   name: string
   description?: string | null
+  /** M:N promoter-type scope (V137, hub plan Part F) — empty = applies to every promoter type. */
+  promoterTypes: DisplayRefItem[]
   metric: BonusMetric
   accrual: AccrualMode
-  thresholdCount: number
+  /** Required when metric is NEW_SUBSCRIBERS/ACTIVE_SUBSCRIBERS; null when metric is AMOUNT_COLLECTED. */
+  thresholdCount: number | null
+  /** Required when metric is AMOUNT_COLLECTED; null otherwise. Compared with the sum of collected payments, converted to `thresholdCurrency`. */
+  thresholdAmount?: number | string | null
+  thresholdCurrency_Uuid?: string | null
+  thresholdCurrency_Display?: string | null
   windowStrategy: WindowStrategy
   /** Legacy WindowStrategy.CAMPAIGN fixed range — a DIFFERENT, older mechanism than the campaign/startsAt/endsAt anchor below. Do not conflate. */
   campaignStart?: string | null
@@ -55,9 +74,6 @@ export interface BonusRuleDto {
   rewardCurrencyRef_Uuid?: string | null
   rewardCurrencyRef_Display?: string | null
   includeSystemPromoters: boolean
-  promoterType_Uuid?: string | null
-  promoterType_Display?: string | null
-  promoterType_Code?: string | null
   /** Owning campaign when this rule is campaign-anchored; null for a standing (non-campaign) rule. */
   campaign_Uuid?: string | null
   campaign_Display?: string | null
@@ -74,7 +90,9 @@ export interface BonusRuleRequest {
   description?: string
   metric: BonusMetric
   accrual: AccrualMode
-  thresholdCount: number
+  thresholdCount?: number | null
+  thresholdAmount?: string | null
+  thresholdCurrencyUuid?: string | null
   windowStrategy: WindowStrategy
   campaignStart?: string | null
   campaignEnd?: string | null
@@ -84,7 +102,8 @@ export interface BonusRuleRequest {
   rewardCurrency?: string
   rewardCurrencyUuid?: string | null
   includeSystemPromoters?: boolean
-  promoterTypeUuid?: string | null
+  /** Empty/omitted = applies to every promoter type (M:N, V137, hub plan Part F). */
+  promoterTypeUuids?: string[] | null
   /** Sets the owning campaign, e.g. when created from the campaign ficha's "Add rule" flow. Omit/null = standing (non-campaign) rule. Distinct from the legacy campaignStart/campaignEnd (WindowStrategy.CAMPAIGN) above. */
   campaignUuid?: string | null
   /** Rule's own effective window — defaults from the selected campaign's dates but stays independently editable. */

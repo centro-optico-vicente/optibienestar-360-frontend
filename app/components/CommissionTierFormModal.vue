@@ -33,6 +33,7 @@ const { t } = useI18n()
 const tiers = useCommissionTiers()
 const campaignsApi = useCampaigns()
 const currencies = useCurrencies()
+const promoterTypeOptions = useCatalogOptions('promoter-types')
 const toast = useToast()
 const { can } = usePermissions()
 
@@ -47,6 +48,19 @@ async function loadCurrencyOptions() {
   }
   catch { currencyItems.value = [] }
   finally { loadingCurrencies.value = false }
+}
+
+// ---- Promoter-type scope (M:N, hub plan Part F) — empty selection = applies to every type ----
+const promoterTypeItems = ref<SelectItem[]>([])
+const loadingPromoterTypes = ref(false)
+async function loadPromoterTypeOptions() {
+  loadingPromoterTypes.value = true
+  try {
+    const options = await promoterTypeOptions.options({ limit: 100 })
+    promoterTypeItems.value = options.map(o => ({ label: o.label, value: o.uuid }))
+  }
+  catch { promoterTypeItems.value = [] }
+  finally { loadingPromoterTypes.value = false }
 }
 
 // ---- Campaign selector (async search) + date autofill ----
@@ -111,6 +125,7 @@ interface FormState {
   commissionPct: string
   flatAmount: string
   flatAmountCurrencyUuid: string
+  promoterTypeUuids: string[]
   periodStrategy: PeriodStrategy | undefined
   appliesTo: AppliesTo | undefined
   campaignUuid: string
@@ -127,6 +142,7 @@ const state = reactive<FormState>({
   commissionPct: '',
   flatAmount: '',
   flatAmountCurrencyUuid: '',
+  promoterTypeUuids: [],
   periodStrategy: 'MONTHLY',
   appliesTo: 'BOTH',
   campaignUuid: '',
@@ -183,6 +199,7 @@ function populateFrom(tier: CommissionTierDto | null) {
     state.commissionPct = ''
     state.flatAmount = ''
     state.flatAmountCurrencyUuid = ''
+    state.promoterTypeUuids = []
     state.periodStrategy = 'MONTHLY'
     state.appliesTo = 'BOTH'
     state.campaignUuid = props.campaignUuid ?? ''
@@ -201,6 +218,7 @@ function populateFrom(tier: CommissionTierDto | null) {
   state.commissionPct = tier.commissionPct != null ? String(tier.commissionPct) : ''
   state.flatAmount = tier.flatAmount != null ? String(tier.flatAmount) : ''
   state.flatAmountCurrencyUuid = tier.flatAmountCurrency_Uuid ?? ''
+  state.promoterTypeUuids = (tier.promoterTypes ?? []).map(p => p.uuid)
   state.periodStrategy = tier.periodStrategy
   state.appliesTo = tier.appliesTo
   state.campaignUuid = tier.campaign_Uuid ?? ''
@@ -215,6 +233,7 @@ watch(() => props.open, async (open) => {
   if (!open) return
   populateFrom(props.tier ?? null)
   if (currencyItems.value.length === 0) await loadCurrencyOptions()
+  if (promoterTypeItems.value.length === 0) await loadPromoterTypeOptions()
 })
 
 async function reloadForm() {
@@ -244,6 +263,7 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
       commissionPct: state.rewardKind === 'PCT' ? state.commissionPct.trim() : null,
       flatAmount: state.rewardKind === 'FLAT' ? state.flatAmount.trim() : null,
       flatAmountCurrencyUuid: state.rewardKind === 'FLAT' ? state.flatAmountCurrencyUuid : null,
+      promoterTypeUuids: state.promoterTypeUuids,
       periodStrategy: state.periodStrategy!,
       appliesTo: state.appliesTo!,
       campaignUuid: state.campaignUuid || null,
@@ -356,6 +376,21 @@ async function restoreTier() {
             :placeholder="t('common.select')"
             icon="i-lucide-coins"
             @navigate="goToCurrency"
+          />
+        </UFormField>
+
+        <UFormField :label="t('commissionRules.form.promoterTypes')" name="promoterTypeUuids" :help="t('commissionRules.form.promoterTypesHelp')">
+          <USelectMenu
+            clear
+            v-model="state.promoterTypeUuids"
+            :items="promoterTypeItems"
+            label-key="label"
+            value-key="value"
+            multiple
+            :loading="loadingPromoterTypes"
+            icon="i-lucide-tags"
+            :placeholder="t('commissionRules.form.promoterTypesPlaceholder')"
+            class="w-full"
           />
         </UFormField>
 

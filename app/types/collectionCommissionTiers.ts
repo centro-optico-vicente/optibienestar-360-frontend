@@ -7,6 +7,8 @@
 // to collect the recurring (MONTHLY) payment (ADR 0013 §3). The engine picks
 // the smallest qualifying maxDays bucket. PUT uses PATCH semantics.
 
+import type { DisplayRefItem } from './options'
+
 export interface CollectionCommissionTierDto {
   uuid: string
   name: string
@@ -19,9 +21,8 @@ export interface CollectionCommissionTierDto {
   flatAmountCurrency_Uuid?: string | null
   flatAmountCurrency_Display?: string | null
   flatAmountCurrency_Code?: string | null
-  promoterType_Uuid?: string | null
-  promoterType_Display?: string | null
-  promoterType_Code?: string | null
+  /** M:N promoter-type scope (V137, hub plan Part F) — empty = applies to every promoter type. */
+  promoterTypes: DisplayRefItem[]
   /** Owning campaign when this tier is campaign-anchored; null for a standing (non-campaign) tier. */
   campaign_Uuid?: string | null
   campaign_Display?: string | null
@@ -42,7 +43,8 @@ export interface CreateCollectionCommissionTierRequest {
   commissionPct?: string | null
   flatAmount?: string | null
   flatAmountCurrencyUuid?: string | null
-  promoterTypeUuid?: string | null
+  /** Empty/omitted = applies to every promoter type (M:N, V137, hub plan Part F). */
+  promoterTypeUuids?: string[] | null
   campaignUuid?: string | null
   startsAt?: string | null
   endsAt?: string | null

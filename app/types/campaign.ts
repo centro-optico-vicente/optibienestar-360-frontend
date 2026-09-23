@@ -37,6 +37,9 @@ export interface CampaignDto {
   evaluateOnlyAtEnd: boolean
   payOnlyAtEnd: boolean
   targetAmount?: number | string | null
+  /** Currency the goal amount is denominated in — speculative addition (Parte adicional, 2026-09-22): verify field name against the real backend DTO once it ships `goalAmountCurrency`/`goalAmountCurrencyUuid`. */
+  targetAmountCurrency_Uuid?: string | null
+  targetAmountCurrency_Display?: string | null
   targetCount?: number | null
   exclusivityGroup?: string | null
   priority?: number | null
@@ -60,6 +63,7 @@ export interface CreateCampaignRequest {
   evaluateOnlyAtEnd?: boolean
   payOnlyAtEnd?: boolean
   targetAmount?: string | null
+  targetAmountCurrencyUuid?: string | null
   targetCount?: number | null
   exclusivityGroup?: string | null
   priority?: number | null

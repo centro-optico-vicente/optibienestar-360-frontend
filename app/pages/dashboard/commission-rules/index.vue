@@ -920,14 +920,15 @@ onMounted(() => {
                 {{ t('commissionRules.tiers.columns.appliesTo') }}
                 <SortIndicator :state="tierSort.stateOf('appliesTo')" :multi-active="tierIsMultiSort" @clear="tierSort.remove('appliesTo')" />
               </th>
+              <th class="px-5 py-3 font-semibold">{{ t('commissionRules.form.promoterTypes') }}</th>
               <th class="px-5 py-3 font-semibold">{{ t('commissionRules.tiers.columns.campaign') }}</th>
               <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-prohealth-100">
-            <TableSkeleton v-if="tierLoading" :rows="4" :cols="7" />
+            <TableSkeleton v-if="tierLoading" :rows="4" :cols="8" />
             <tr v-else-if="tierDisplayData.length === 0">
-              <td colspan="7" class="px-5 py-10 text-center text-prohealth-500">{{ t('commissionRules.tiers.empty') }}</td>
+              <td colspan="8" class="px-5 py-10 text-center text-prohealth-500">{{ t('commissionRules.tiers.empty') }}</td>
             </tr>
             <tr
               v-for="tier in tierDisplayData"
@@ -943,6 +944,9 @@ onMounted(() => {
               <td class="px-5 py-3 text-prohealth-600">{{ tierReward(tier) }}</td>
               <td class="px-5 py-3">
                 <UBadge color="primary" variant="subtle" size="sm">{{ t(`commissionRules.appliesTo.${tier.appliesTo}`) }}</UBadge>
+              </td>
+              <td class="px-5 py-3" @click.stop>
+                <EntityChipsCell :items="tier.promoterTypes" :empty-label="t('commissionRules.filters.allPromoterTypes')" />
               </td>
               <td class="px-5 py-3 text-prohealth-600" @click.stop>
                 <CommonEntityLinkCell
@@ -1056,14 +1060,15 @@ onMounted(() => {
                 {{ t('catalogs.columns.status') }}
                 <SortIndicator :state="bonusSort.stateOf('active')" :multi-active="bonusIsMultiSort" @clear="bonusSort.remove('active')" />
               </th>
+              <th class="px-5 py-3 font-semibold">{{ t('commissionRules.form.promoterTypes') }}</th>
               <th class="px-5 py-3 font-semibold">{{ t('commissionRules.bonusRules.columns.campaign') }}</th>
               <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-prohealth-100">
-            <TableSkeleton v-if="bonusLoading" :rows="4" :cols="9" />
+            <TableSkeleton v-if="bonusLoading" :rows="4" :cols="10" />
             <tr v-else-if="bonusDisplayData.length === 0">
-              <td colspan="9" class="px-5 py-10 text-center text-prohealth-500">{{ t('commissionRules.bonusRules.empty') }}</td>
+              <td colspan="10" class="px-5 py-10 text-center text-prohealth-500">{{ t('commissionRules.bonusRules.empty') }}</td>
             </tr>
             <tr
               v-for="rule in bonusDisplayData"
@@ -1083,6 +1088,9 @@ onMounted(() => {
                 <UBadge :color="rule.active ? 'success' : 'neutral'" variant="subtle" size="sm">
                   {{ rule.active ? t('catalogs.status.active') : t('catalogs.status.inactive') }}
                 </UBadge>
+              </td>
+              <td class="px-5 py-3" @click.stop>
+                <EntityChipsCell :items="rule.promoterTypes" :empty-label="t('commissionRules.filters.allPromoterTypes')" />
               </td>
               <td class="px-5 py-3 text-prohealth-600" @click.stop>
                 <CommonEntityLinkCell
@@ -1191,14 +1199,15 @@ onMounted(() => {
                 {{ t('catalogs.columns.status') }}
                 <SortIndicator :state="collectionSort.stateOf('active')" :multi-active="collectionIsMultiSort" @clear="collectionSort.remove('active')" />
               </th>
+              <th class="px-5 py-3 font-semibold">{{ t('commissionRules.form.promoterTypes') }}</th>
               <th class="px-5 py-3 font-semibold">{{ t('commissionRules.collectionTiers.columns.campaign') }}</th>
               <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-prohealth-100">
-            <TableSkeleton v-if="collectionLoading" :rows="4" :cols="7" />
+            <TableSkeleton v-if="collectionLoading" :rows="4" :cols="8" />
             <tr v-else-if="collectionDisplayData.length === 0">
-              <td colspan="7" class="px-5 py-10 text-center text-prohealth-500">{{ t('commissionRules.collectionTiers.empty') }}</td>
+              <td colspan="8" class="px-5 py-10 text-center text-prohealth-500">{{ t('commissionRules.collectionTiers.empty') }}</td>
             </tr>
             <tr
               v-for="tier in collectionDisplayData"
@@ -1216,6 +1225,9 @@ onMounted(() => {
                 <UBadge :color="tier.active ? 'success' : 'neutral'" variant="subtle" size="sm">
                   {{ tier.active ? t('catalogs.status.active') : t('catalogs.status.inactive') }}
                 </UBadge>
+              </td>
+              <td class="px-5 py-3" @click.stop>
+                <EntityChipsCell :items="tier.promoterTypes" :empty-label="t('commissionRules.filters.allPromoterTypes')" />
               </td>
               <td class="px-5 py-3 text-prohealth-600" @click.stop>
                 <CommonEntityLinkCell
@@ -1445,13 +1457,14 @@ onMounted(() => {
                 <th class="px-5 py-3 font-semibold">{{ t('commissionRules.tiers.columns.threshold') }}</th>
                 <th class="px-5 py-3 font-semibold">{{ t('commissionRules.tiers.columns.reward') }}</th>
                 <th class="px-5 py-3 font-semibold">{{ t('commissionRules.tiers.columns.appliesTo') }}</th>
+                <th class="px-5 py-3 font-semibold">{{ t('commissionRules.form.promoterTypes') }}</th>
                 <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-prohealth-100">
-              <TableSkeleton v-if="crTierLoading" :rows="3" :cols="6" />
+              <TableSkeleton v-if="crTierLoading" :rows="3" :cols="7" />
               <tr v-else-if="crTierData.length === 0">
-                <td colspan="6" class="px-5 py-8 text-center text-prohealth-500">{{ t('commissionRules.tiers.empty') }}</td>
+                <td colspan="7" class="px-5 py-8 text-center text-prohealth-500">{{ t('commissionRules.tiers.empty') }}</td>
               </tr>
               <tr
                 v-for="tier in crTierData"
@@ -1466,6 +1479,9 @@ onMounted(() => {
                 <td class="px-5 py-3 text-prohealth-600">{{ tier.thresholdCount }}</td>
                 <td class="px-5 py-3 text-prohealth-600">{{ tierReward(tier) }}</td>
                 <td class="px-5 py-3"><UBadge color="primary" variant="subtle" size="sm">{{ t(`commissionRules.appliesTo.${tier.appliesTo}`) }}</UBadge></td>
+                <td class="px-5 py-3" @click.stop>
+                  <EntityChipsCell :items="tier.promoterTypes" :empty-label="t('commissionRules.filters.allPromoterTypes')" />
+                </td>
                 <td class="px-5 py-3" @click.stop>
                   <div class="flex items-center justify-end gap-1">
                     <UButton v-if="canUpdateTiers" color="info" variant="ghost" icon="i-lucide-pencil" size="sm" @click="openEditTier(tier)" />
@@ -1496,13 +1512,14 @@ onMounted(() => {
                 <th class="px-5 py-3 font-semibold">{{ t('commissionRules.bonusRules.columns.threshold') }}</th>
                 <th class="px-5 py-3 font-semibold">{{ t('commissionRules.bonusRules.columns.reward') }}</th>
                 <th class="px-5 py-3 font-semibold">{{ t('catalogs.columns.status') }}</th>
+                <th class="px-5 py-3 font-semibold">{{ t('commissionRules.form.promoterTypes') }}</th>
                 <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-prohealth-100">
-              <TableSkeleton v-if="crBonusLoading" :rows="3" :cols="6" />
+              <TableSkeleton v-if="crBonusLoading" :rows="3" :cols="7" />
               <tr v-else-if="crBonusData.length === 0">
-                <td colspan="6" class="px-5 py-8 text-center text-prohealth-500">{{ t('commissionRules.bonusRules.empty') }}</td>
+                <td colspan="7" class="px-5 py-8 text-center text-prohealth-500">{{ t('commissionRules.bonusRules.empty') }}</td>
               </tr>
               <tr
                 v-for="rule in crBonusData"
@@ -1520,6 +1537,9 @@ onMounted(() => {
                   <UBadge :color="rule.active ? 'success' : 'neutral'" variant="subtle" size="sm">
                     {{ rule.active ? t('catalogs.status.active') : t('catalogs.status.inactive') }}
                   </UBadge>
+                </td>
+                <td class="px-5 py-3" @click.stop>
+                  <EntityChipsCell :items="rule.promoterTypes" :empty-label="t('commissionRules.filters.allPromoterTypes')" />
                 </td>
                 <td class="px-5 py-3" @click.stop>
                   <div class="flex items-center justify-end gap-1">
@@ -1551,13 +1571,14 @@ onMounted(() => {
                 <th class="px-5 py-3 font-semibold">{{ t('commissionRules.collectionTiers.columns.bucket') }}</th>
                 <th class="px-5 py-3 font-semibold">{{ t('commissionRules.collectionTiers.columns.commissionPct') }}</th>
                 <th class="px-5 py-3 font-semibold">{{ t('catalogs.columns.status') }}</th>
+                <th class="px-5 py-3 font-semibold">{{ t('commissionRules.form.promoterTypes') }}</th>
                 <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-prohealth-100">
-              <TableSkeleton v-if="crCollectionLoading" :rows="3" :cols="6" />
+              <TableSkeleton v-if="crCollectionLoading" :rows="3" :cols="7" />
               <tr v-else-if="crCollectionData.length === 0">
-                <td colspan="6" class="px-5 py-8 text-center text-prohealth-500">{{ t('commissionRules.collectionTiers.empty') }}</td>
+                <td colspan="7" class="px-5 py-8 text-center text-prohealth-500">{{ t('commissionRules.collectionTiers.empty') }}</td>
               </tr>
               <tr
                 v-for="tier in crCollectionData"
@@ -1575,6 +1596,9 @@ onMounted(() => {
                   <UBadge :color="tier.active ? 'success' : 'neutral'" variant="subtle" size="sm">
                     {{ tier.active ? t('catalogs.status.active') : t('catalogs.status.inactive') }}
                   </UBadge>
+                </td>
+                <td class="px-5 py-3" @click.stop>
+                  <EntityChipsCell :items="tier.promoterTypes" :empty-label="t('commissionRules.filters.allPromoterTypes')" />
                 </td>
                 <td class="px-5 py-3" @click.stop>
                   <div class="flex items-center justify-end gap-1">

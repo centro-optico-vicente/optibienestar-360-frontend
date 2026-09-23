@@ -3033,6 +3033,7 @@
         "evaluateOnlyAtEnd": "Evaluar solo al finalizar",
         "payOnlyAtEnd": "Pagar solo al finalizar",
         "targetAmount": "Meta de monto",
+        "targetAmountCurrency": "Moneda de la meta",
         "targetCount": "Meta de cantidad",
         "exclusivityGroup": "Grupo de exclusividad",
         "priority": "Prioridad",
@@ -3082,8 +3083,11 @@
       "type": "Tipo",
       "reason": "Motivo",
       "transaction": "Transacción",
+      "transactionHelp": "UUID del pago o de la inscripción a incluir/excluir",
       "createdToast": "Excepción registrada",
-      "removedToast": "Excepción eliminada"
+      "removedToast": "Excepción eliminada",
+      "addRowTooltip": "Agregar excepción de campaña",
+      "noCampaignsPermission": "Sin permiso para gestionar excepciones de campaña"
     },
     "reglasExpress": "Reglas express"
   },
@@ -3125,7 +3129,8 @@
     },
     "bonusMetrics": {
       "NEW_SUBSCRIBERS": "Nuevos suscriptores",
-      "ACTIVE_SUBSCRIBERS": "Suscriptores activos"
+      "ACTIVE_SUBSCRIBERS": "Suscriptores activos",
+      "AMOUNT_COLLECTED": "Monto recaudado"
     },
     "accrualModes": {
       "PER_BLOCK": "Por bloque (repite)",
@@ -3148,7 +3153,10 @@
     },
     "form": {
       "invalidAmount": "Monto no válido",
-      "integersOnly": "Solo números enteros"
+      "integersOnly": "Solo números enteros",
+      "promoterTypes": "Tipos de promotor",
+      "promoterTypesHelp": "Vacío = aplica a todos los tipos de promotor.",
+      "promoterTypesPlaceholder": "Todos los tipos"
     },
     "filters": {
       "allPromoterTypes": "Todos los tipos de promotor",
@@ -3231,6 +3239,9 @@
         "metric": "Métrica",
         "accrual": "Acumulación",
         "thresholdCount": "Umbral",
+        "thresholdAmount": "Umbral (monto)",
+        "thresholdCurrency": "Moneda del umbral",
+        "thresholdCurrencyHelp": "Moneda contra la que se compara el monto recaudado — independiente de la moneda de la recompensa.",
         "windowStrategy": "Ventana",
         "campaignStart": "Inicio de campaña (ventana fija)",
         "campaignEnd": "Fin de campaña (ventana fija)",
