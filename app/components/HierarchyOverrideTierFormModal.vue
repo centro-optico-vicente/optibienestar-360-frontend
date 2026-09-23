@@ -11,6 +11,7 @@ import { OVERRIDE_CATEGORY_OPTIONS } from '~/types/hierarchyOverrideTiers'
 import type { PeriodStrategy } from '~/types/commissionTiers'
 import { PERIOD_STRATEGY_OPTIONS } from '~/types/commissionTiers'
 import type { SelectItem } from '~/types/options'
+import { clampTodayToRange } from '~/utils/date'
 
 // Create/edit form for a hierarchy-override band (Supervisor/Coordinador
 // override %, hub plan §2). Exactly one of overridePct / flatAmount is set —
@@ -106,12 +107,15 @@ async function loadRankOptions() {
 
 // ---- Currency options (flatAmount's own currency FK, ADR 0015) ----
 const currencyItems = ref<SelectItem[]>([])
+const currencyCodeByUuid = ref<Record<string, string>>({})
 const loadingCurrencies = ref(false)
 async function loadCurrencyOptions() {
   loadingCurrencies.value = true
   try {
     const options = await currencies.options()
-    currencyItems.value = options.filter(o => o.code).map(o => ({ label: o.label, value: o.uuid }))
+    const withCode = options.filter(o => o.code)
+    currencyItems.value = withCode.map(o => ({ label: o.label, value: o.uuid }))
+    currencyCodeByUuid.value = Object.fromEntries(withCode.map(o => [o.uuid, o.code as string]))
   }
   catch {
     currencyItems.value = []
@@ -120,6 +124,10 @@ async function loadCurrencyOptions() {
     loadingCurrencies.value = false
   }
 }
+/** Resolves `flatAmountCurrencyUuid` to its ISO code for `CurrencyConverterDisplay`. */
+const flatAmountCurrencyCode = computed(() => currencyCodeByUuid.value[state.flatAmountCurrencyUuid] ?? null)
+/** Same reasoning as `CommissionTierFormModal` — clamp "today" into the tier's own window. */
+const flatAmountConversionDate = computed(() => clampTodayToRange(state.startsAt, state.endsAt))
 function goToCurrency(to: string) {
   isOpen.value = false
   navigateTo(to)
@@ -374,9 +382,14 @@ async function restoreTier() {
             </UInput>
           </UFormField>
           <UFormField v-else :label="t('hierarchyOverrideTiers.form.flatAmount')" name="flatAmount" required>
-            <UInput v-model="state.flatAmount" placeholder="5.00" class="w-full">
-              <template #leading><span class="text-prohealth-400 text-sm">$</span></template>
-            </UInput>
+            <CurrencyConverterDisplay :amount="state.flatAmount" :currency="flatAmountCurrencyCode" :date="flatAmountConversionDate" v-slot="{ result }">
+              <UInput v-model="state.flatAmount" placeholder="5.00" class="w-full">
+                <template #leading><span class="text-prohealth-400 text-sm">$</span></template>
+                <template #trailing>
+                  <CurrencyConverterTrigger :result="result" />
+                </template>
+              </UInput>
+            </CurrencyConverterDisplay>
           </UFormField>
         </div>
 

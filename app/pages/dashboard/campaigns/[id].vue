@@ -365,7 +365,11 @@ function bonusParams(rule: BonusRuleDto): string {
   return `${t('commissionRules.bonusRules.columns.threshold')}: ${rule.thresholdCount} · ${reward}`
 }
 function collectionParams(tier: CollectionCommissionTierDto): string {
-  return `${t('commissionRules.collectionTiers.columns.maxDays')}: ${tier.maxDays} · ${tier.commissionPct}%`
+  const bucket = tier.basis === 'AMOUNT'
+    ? `${t('commissionRules.collectionTiers.form.minAmount')}: ${money(tier.minAmount, tier.minAmountCurrency_Code)}`
+    : `${t('commissionRules.collectionTiers.columns.maxDays')}: ${tier.maxDays}`
+  const reward = tier.commissionPct != null ? `${tier.commissionPct}%` : money(tier.flatAmount, tier.flatAmountCurrency_Code)
+  return `${bucket} · ${reward}`
 }
 function overrideParams(tier: HierarchyOverrideTierDto): string {
   const reward = tier.overridePct != null ? `${tier.overridePct}%` : `${tier.flatAmount ?? '—'} ${tier.flatAmountCurrency_Code ?? ''}`.trim()
