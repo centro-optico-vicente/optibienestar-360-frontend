@@ -13,9 +13,17 @@ const EMPTY = '—'
 type DateInput = string | number | Date | null | undefined
 type DateFormat = 'short' | 'long' | 'datetime'
 
+const BARE_DATE = /^\d{4}-\d{2}-\d{2}$/
+
 function toDate(value: DateInput): Date | null {
   if (value === null || value === undefined || value === '') return null
-  const d = value instanceof Date ? value : new Date(value)
+  if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value
+  // A bare `yyyy-MM-dd` (a backend LocalDate with no time — rateDate,
+  // operationDate, etc.) is parsed by `new Date()` as midnight UTC. Formatted
+  // in `America/Caracas` (UTC-4, ADR 0010) that lands at 20:00 the PREVIOUS
+  // day, so the displayed date is always one day off. Anchor it at noon UTC
+  // instead — any real-world zone offset still lands on the same calendar day.
+  const d = typeof value === 'string' && BARE_DATE.test(value) ? new Date(`${value}T12:00:00Z`) : new Date(value)
   return Number.isNaN(d.getTime()) ? null : d
 }
 

@@ -395,8 +395,13 @@ async function confirmVoid() {
                 </div>
                 <div class="text-xs text-prohealth-500 font-mono">{{ c.promoter_Code || t('common.empty') }}</div>
               </td>
-              <td class="px-5 py-3 font-semibold text-prohealth-900">
-                <MoneyWithTooltip :display="c.amount_Display" :converted-display="c.amountConverted_Display" :rate-date="c.exchangeRateDate" />
+              <td class="px-5 py-3 font-semibold text-prohealth-900" @click.stop>
+                <CurrencyConverterDisplay :amount="c.amount" :currency="c.currency_Code" :date="c.earnedAt" v-slot="{ result }">
+                  <span class="inline-flex items-center gap-1">
+                    {{ c.amount_Display }}
+                    <CurrencyConverterTrigger :result="result" />
+                  </span>
+                </CurrencyConverterDisplay>
               </td>
               <td class="px-5 py-3 text-prohealth-700">{{ calcLabel(c) }}</td>
               <td class="px-5 py-3">
@@ -476,7 +481,12 @@ async function confirmVoid() {
               <div>
                 <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.amount') }}</dt>
                 <dd class="text-prohealth-900 text-lg font-semibold mt-0.5">
-                  <MoneyWithTooltip :display="detail.amount_Display" :converted-display="detail.amountConverted_Display" :rate-date="detail.exchangeRateDate" />
+                  <CurrencyConverterDisplay :amount="detail.amount" :currency="detail.currency_Code" :date="detail.earnedAt" v-slot="{ result }">
+                    <span class="inline-flex items-center gap-1">
+                      {{ detail.amount_Display }}
+                      <CurrencyConverterTrigger :result="result" />
+                    </span>
+                  </CurrencyConverterDisplay>
                 </dd>
               </div>
               <div>

@@ -39,16 +39,22 @@ const { can } = usePermissions()
 
 // ---- Currency options (flat-amount reward) ----
 const currencyItems = ref<SelectItem[]>([])
+const currencyCodeByUuid = ref<Record<string, string>>({})
 const loadingCurrencies = ref(false)
 async function loadCurrencyOptions() {
   loadingCurrencies.value = true
   try {
     const options = await currencies.options()
-    currencyItems.value = options.filter(o => o.code).map(o => ({ label: o.label, value: o.uuid }))
+    const withCode = options.filter(o => o.code)
+    currencyItems.value = withCode.map(o => ({ label: o.label, value: o.uuid }))
+    currencyCodeByUuid.value = Object.fromEntries(withCode.map(o => [o.uuid, o.code as string]))
   }
   catch { currencyItems.value = [] }
   finally { loadingCurrencies.value = false }
 }
+
+/** Resolves `flatAmountCurrencyUuid` to its ISO code for `CurrencyConverterDisplay`. */
+const flatAmountCurrencyCode = computed(() => currencyCodeByUuid.value[state.flatAmountCurrencyUuid] ?? null)
 
 // ---- Promoter-type scope (M:N, hub plan Part F) — empty selection = applies to every type ----
 const promoterTypeItems = ref<SelectItem[]>([])
@@ -361,9 +367,14 @@ async function restoreTier() {
             </UInput>
           </UFormField>
           <UFormField v-else :label="t('commissionRules.tiers.form.flatAmount')" name="flatAmount" required>
-            <UInput v-model="state.flatAmount" placeholder="5.00" class="w-full">
-              <template #leading><span class="text-prohealth-400 text-sm">$</span></template>
-            </UInput>
+            <CurrencyConverterDisplay :amount="state.flatAmount" :currency="flatAmountCurrencyCode" v-slot="{ result }">
+              <UInput v-model="state.flatAmount" placeholder="5.00" class="w-full">
+                <template #leading><span class="text-prohealth-400 text-sm">$</span></template>
+                <template #trailing>
+                  <CurrencyConverterTrigger :result="result" />
+                </template>
+              </UInput>
+            </CurrencyConverterDisplay>
           </UFormField>
         </div>
 

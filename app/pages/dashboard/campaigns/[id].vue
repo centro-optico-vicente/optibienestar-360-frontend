@@ -14,6 +14,7 @@ import type { CommissionTierDto } from '~/types/commissionTiers'
 import type { BonusRuleDto } from '~/types/bonusRules'
 import type { CollectionCommissionTierDto } from '~/types/collectionCommissionTiers'
 import type { HierarchyOverrideTierDto } from '~/types/hierarchyOverrideTiers'
+import { todayInCaracas } from '~/utils/date'
 
 // Ficha/detail page for a commission campaign (hub plan "commission campaigns").
 // Follows the layout conventions of promoters/[uuid].vue: header card with
@@ -36,6 +37,7 @@ const route = useRoute()
 const campaignUuid = route.params.id as string
 
 const campaignsApi = useCampaigns()
+const currenciesApi = useCurrencies()
 const tierApi = useCommissionTiers()
 const bonusApi = useBonusRules()
 const collectionApi = useCollectionCommissionTiers()
@@ -83,6 +85,32 @@ const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditRep
 // Campaign load
 // =========================================================
 const campaign = ref<CampaignDto | null>(null)
+
+// ---- Target amount conversion (currency code lookup + clamped date) ----
+const currencyCodeByUuid = ref<Record<string, string>>({})
+currenciesApi.options().then((options) => {
+  currencyCodeByUuid.value = Object.fromEntries(options.filter(o => o.code).map(o => [o.uuid, o.code as string]))
+}).catch(() => {})
+
+const targetAmountCurrencyCode = computed(() =>
+  campaign.value?.targetAmountCurrency_Uuid ? (currencyCodeByUuid.value[campaign.value.targetAmountCurrency_Uuid] ?? null) : null,
+)
+
+/**
+ * Same reasoning as the form: the goal amount has no single "as of" date,
+ * it applies for the whole campaign window. Clamp "today" into
+ * `[startsAt, endsAt]` so the conversion always reflects a valid vigency
+ * date instead of "now" possibly falling outside the campaign.
+ */
+const targetAmountConversionDate = computed(() => {
+  const start = campaign.value?.startsAt ? campaign.value.startsAt.slice(0, 10) : null
+  const end = campaign.value?.endsAt ? campaign.value.endsAt.slice(0, 10) : null
+  if (!start && !end) return null
+  const today = todayInCaracas()
+  if (start && today < start) return start
+  if (end && today > end) return end
+  return today
+})
 const loading = ref(true)
 const notFound = ref(false)
 
@@ -601,8 +629,13 @@ async function confirmRemoveException() {
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('campaigns.detail.fields.targetAmount') }}</dt>
             <dd class="text-prohealth-800 mt-0.5">
-              {{ money(campaign.targetAmount) }}
-              <span v-if="campaign.targetAmountCurrency_Display" class="text-xs text-prohealth-500">({{ campaign.targetAmountCurrency_Display }})</span>
+              <CurrencyConverterDisplay :amount="campaign.targetAmount" :currency="targetAmountCurrencyCode" :date="targetAmountConversionDate" v-slot="{ result }">
+                <span class="inline-flex items-center gap-1">
+                  {{ money(campaign.targetAmount) }}
+                  <span v-if="campaign.targetAmountCurrency_Display" class="text-xs text-prohealth-500">({{ campaign.targetAmountCurrency_Display }})</span>
+                  <CurrencyConverterTrigger :result="result" />
+                </span>
+              </CurrencyConverterDisplay>
             </dd>
           </div>
           <div>

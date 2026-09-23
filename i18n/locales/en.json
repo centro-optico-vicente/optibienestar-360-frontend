@@ -70,6 +70,16 @@
       "tooltip": "≈ {convertedDisplay} (rate as of {rateDate})",
       "tooltipNoDate": "≈ {convertedDisplay}"
     },
+    "currencyConverter": {
+      "trigger": "View converted amount",
+      "tooltipLabel": "Converted amount:",
+      "tooltipRateDateLabel": "Rate date:",
+      "noRate": "No converted amount for this date",
+      "sourceAmount": "Source Amount",
+      "convertedAmount": "Converted Amount",
+      "rate": "Exchange Rate",
+      "rateDate": "Exchange Rate Date"
+    },
     "close": "Close",
     "clearFilters": "Clear filters"
   },
@@ -1672,8 +1682,6 @@
         "phone": "Phone",
         "email": "Email"
       },
-      "exchangeRatePreview": "≈ {amount} (rate as of {rateDate})",
-      "exchangeRatePreviewNoDate": "≈ {amount}",
       "searchPlaceholder": "Search by reference…",
       "empty": "No commission payouts",
       "detailTitle": "Payment detail",
@@ -1822,9 +1830,7 @@
         "amountInvalid": "Invalid amount (up to 2 decimals)",
         "amountMin": "Must be greater than 0",
         "dateFuture": "The date can't be in the future"
-      },
-      "exchangeRatePreview": "≈ {amount} per the plan (rate as of {rateDate})",
-      "exchangeRatePreviewNoDate": "≈ {amount} per the plan"
+      }
     },
     "review": {
       "approveTitle": "Approve payment",
