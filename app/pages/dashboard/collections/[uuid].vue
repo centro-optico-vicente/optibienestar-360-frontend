@@ -151,7 +151,12 @@ function onReviewed(updated: PaymentDto) {
           <div>
             <div class="flex items-center gap-3 flex-wrap">
               <h1 class="text-2xl font-extrabold text-prohealth-900">
-                <MoneyWithTooltip :display="payment.amount_Display" :converted-display="payment.amountConverted_Display" :rate-date="payment.exchangeRateDate" />
+                <CurrencyConverterDisplay :amount="payment.amount" :currency="payment.currency_Code" :date="payment.paymentDate" v-slot="{ result }">
+                  <span class="inline-flex items-center gap-1">
+                    {{ payment.amount_Display }}
+                    <CurrencyConverterTrigger :result="result" />
+                  </span>
+                </CurrencyConverterDisplay>
               </h1>
               <UBadge :color="paymentStatusColor(payment.status)" variant="subtle">
                 {{ payment.status_Display ?? statusLabel(payment.status) }}
@@ -210,7 +215,12 @@ function onReviewed(updated: PaymentDto) {
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.amount') }}</dt>
             <dd class="text-prohealth-900 text-lg font-semibold mt-0.5">
-              <MoneyWithTooltip :display="payment.amount_Display" :converted-display="payment.amountConverted_Display" :rate-date="payment.exchangeRateDate" />
+              <CurrencyConverterDisplay :amount="payment.amount" :currency="payment.currency_Code" :date="payment.paymentDate" v-slot="{ result }">
+                <span class="inline-flex items-center gap-1">
+                  {{ payment.amount_Display }}
+                  <CurrencyConverterTrigger :result="result" />
+                </span>
+              </CurrencyConverterDisplay>
             </dd>
           </div>
           <div>

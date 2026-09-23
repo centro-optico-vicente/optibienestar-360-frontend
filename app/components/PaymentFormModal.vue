@@ -20,11 +20,9 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const { formatCurrency, formatDate } = useFormatters()
 const payments = usePayments()
 const members = useMembers()
 const memberships = useMemberships()
-const exchangeRates = useExchangeRates()
 const methodsApi = useCatalog('/v1/admin/payment-methods')
 const banksApi = useCatalog('/v1/admin/banks')
 const currenciesApi = useCatalog('/v1/admin/currencies')
@@ -207,48 +205,6 @@ watch(() => state.memberUuid, async (memberUuid) => {
 
 const selectedMembership = computed(() => membershipsByUuid.value[state.membershipUuid])
 
-// ---- Live exchange-rate preview (ADR 0015 §7 Caso B) ----
-// What the amount/currency entered so far would convert to in the selected
-// membership's own currency, at the rate vigente right now — informational
-// only, debounced, and silently skipped on any error (bad amount format
-// mid-typing, no rate available, etc.): it must never block registering
-// the payment. Uses the generic /v1/exchange-rates/current lookup (not
-// payment-specific — the same one commissions/ally-services previews would
-// use) and multiplies client-side; the backend only resolves the rate
-// itself (bidirectional-pair fallback included).
-interface RatePreview { convertedAmount: number, convertedCurrencyCode: string, rateDate: string | null }
-const ratePreview = ref<RatePreview | null>(null)
-let previewTimer: ReturnType<typeof setTimeout> | undefined
-
-watch([() => state.membershipUuid, () => state.amount, () => state.currency, () => state.paymentDate], () => {
-  clearTimeout(previewTimer)
-  ratePreview.value = null
-  const membership = selectedMembership.value
-  const amount = state.amount.trim()
-  if (!membership || !membership.currency_Code || !/^\d+(\.\d{1,2})?$/.test(amount) || Number(amount) <= 0) return
-  // Same currency as the plan: nothing to preview, the amount already reads in that currency.
-  if (membership.currency_Code === state.currency) return
-  const targetCurrency = membership.currency_Code
-  // `paymentDate` may still be empty while the admin is filling the form —
-  // undefined falls back to "now" on the backend, same as before this date
-  // was wired in.
-  const asOfDate = state.paymentDate ? state.paymentDate.slice(0, 10) : undefined
-  previewTimer = setTimeout(async () => {
-    try {
-      const rate = await exchangeRates.current(state.currency, targetCurrency, asOfDate)
-      if (!rate.available || rate.rate === null) return
-      ratePreview.value = {
-        convertedAmount: Number(amount) * Number(rate.rate),
-        convertedCurrencyCode: targetCurrency,
-        rateDate: rate.rateDate,
-      }
-    }
-    catch {
-      ratePreview.value = null
-    }
-  }, 500)
-})
-
 // ---- Proof of payment (optional) ----
 const supportFile = ref<File | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
@@ -426,11 +382,16 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
             <UInput v-model="state.paymentDate" type="datetime-local" class="w-full" />
           </UFormField>
           <UFormField class="sm:col-span-1" :label="t('payments.form.fields.amount')" name="amount" required>
-            <UInput v-model="state.amount" placeholder="10.00" class="w-full text-right">
-              <template #leading>
-                <span class="text-prohealth-400 text-sm">$</span>
-              </template>
-            </UInput>
+            <CurrencyConverterDisplay :amount="state.amount" :currency="state.currency" :date="state.paymentDate" v-slot="{ result }">
+              <UInput v-model="state.amount" placeholder="10.00" class="w-full text-right">
+                <template #leading>
+                  <span class="text-prohealth-400 text-sm">$</span>
+                </template>
+                <template #trailing>
+                  <CurrencyConverterTrigger :result="result" />
+                </template>
+              </UInput>
+            </CurrencyConverterDisplay>
           </UFormField>
           <UFormField class="sm:col-span-1" :label="t('payments.form.fields.currency')" name="currency" required>
             <div class="flex items-center gap-1">
@@ -447,17 +408,6 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
             </div>
           </UFormField>
         </div>
-        <p v-if="ratePreview" class="text-xs text-prohealth-500 -mt-2">
-          {{ ratePreview.rateDate
-            ? t('payments.form.exchangeRatePreview', {
-              amount: formatCurrency(ratePreview.convertedAmount, ratePreview.convertedCurrencyCode),
-              rateDate: formatDate(ratePreview.rateDate, 'short'),
-            })
-            : t('payments.form.exchangeRatePreviewNoDate', {
-              amount: formatCurrency(ratePreview.convertedAmount, ratePreview.convertedCurrencyCode),
-            }) }}
-        </p>
-
         <!-- Reference + method -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('payments.form.fields.reference')" name="referenceNumber" :help="t('payments.form.fields.referenceHelp')" :required="Boolean(selectedMethod?.mandatoryReferenceNumber)">

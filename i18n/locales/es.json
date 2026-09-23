@@ -70,6 +70,16 @@
       "tooltip": "≈ {convertedDisplay} (tasa del {rateDate})",
       "tooltipNoDate": "≈ {convertedDisplay}"
     },
+    "currencyConverter": {
+      "trigger": "Ver monto convertido",
+      "tooltipLabel": "Monto convertido:",
+      "tooltipRateDateLabel": "Fecha de la tasa:",
+      "noRate": "No hay monto convertido para esta fecha",
+      "sourceAmount": "Monto Origen",
+      "convertedAmount": "Monto Convertido",
+      "rate": "Tasa de Cambio",
+      "rateDate": "Fecha de Tasa de Cambio"
+    },
     "close": "Cerrar",
     "clearFilters": "Limpiar filtros"
   },
@@ -1672,8 +1682,6 @@
         "phone": "Teléfono",
         "email": "Correo electrónico"
       },
-      "exchangeRatePreview": "≈ {amount} (tasa del {rateDate})",
-      "exchangeRatePreviewNoDate": "≈ {amount}",
       "searchPlaceholder": "Buscar por referencia…",
       "empty": "Sin pagos de comisión",
       "detailTitle": "Detalle del pago",
@@ -1822,9 +1830,7 @@
         "amountInvalid": "Monto no válido (hasta 2 decimales)",
         "amountMin": "Debe ser mayor que 0",
         "dateFuture": "La fecha no puede ser futura"
-      },
-      "exchangeRatePreview": "≈ {amount} según el plan (tasa del {rateDate})",
-      "exchangeRatePreviewNoDate": "≈ {amount} según el plan"
+      }
     },
     "review": {
       "approveTitle": "Aprobar pago",

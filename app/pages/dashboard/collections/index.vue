@@ -319,7 +319,12 @@ async function confirmDelete() {
                 </div>
               </td>
               <td class="px-5 py-3 font-semibold text-prohealth-900">
-                <MoneyWithTooltip :display="p.amount_Display" :converted-display="p.amountConverted_Display" :rate-date="p.exchangeRateDate" />
+                <CurrencyConverterDisplay :amount="p.amount" :currency="p.currency_Code" :date="p.paymentDate" v-slot="{ result }">
+                  <span class="inline-flex items-center gap-1" @click.stop>
+                    {{ p.amount_Display }}
+                    <CurrencyConverterTrigger :result="result" />
+                  </span>
+                </CurrencyConverterDisplay>
                 <div class="text-xs font-normal mt-0.5" @click.stop>
                   <CommonEntityLinkCell
                     :to="p.currency_Uuid ? `/dashboard/catalogs/currencies?edit=${p.currency_Uuid}` : null"

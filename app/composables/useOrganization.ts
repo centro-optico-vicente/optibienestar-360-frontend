@@ -1,4 +1,4 @@
-import type { OrganizationDto, OrganizationUpdateRequest } from '~/types/organizations'
+import type { OrganizationCurrenciesDto, OrganizationDto, OrganizationUpdateRequest } from '~/types/organizations'
 
 /**
  * The single `organizations` row (ADR 0015 §4, `GET/PUT /v1/admin/organizations/me`).
@@ -15,6 +15,8 @@ import type { OrganizationDto, OrganizationUpdateRequest } from '~/types/organiz
 export const useOrganization = () => {
   const organization = useState<OrganizationDto | null>('organization', () => null)
   const loaded = useState<boolean>('organization-loaded', () => false)
+  const currencies = useState<OrganizationCurrenciesDto | null>('organization-currencies', () => null)
+  const currenciesLoaded = useState<boolean>('organization-currencies-loaded', () => false)
 
   async function ensureLoaded(): Promise<OrganizationDto | null> {
     if (loaded.value) return organization.value
@@ -35,5 +37,23 @@ export const useOrganization = () => {
         return result
       })
 
-  return { organization, ensureLoaded, update }
+  /**
+   * The org's two system currencies via `GET /v1/organizations/currencies` —
+   * open to any authenticated caller, no `ORGANIZATION_VIEW` needed, so this
+   * is what `useCurrencyConverter` uses instead of `ensureLoaded()`/`organization`.
+   * Cached the same way: once per session, `null` on failure (never throws).
+   */
+  async function getCurrencies(): Promise<OrganizationCurrenciesDto | null> {
+    if (currenciesLoaded.value) return currencies.value
+    currenciesLoaded.value = true
+    try {
+      currencies.value = await useApi<OrganizationCurrenciesDto>('/v1/organizations/currencies', { silent: true })
+    }
+    catch {
+      currencies.value = null
+    }
+    return currencies.value
+  }
+
+  return { organization, ensureLoaded, update, getCurrencies }
 }

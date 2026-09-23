@@ -22,6 +22,24 @@ export interface OrganizationDto {
   referenceCurrency_Code?: string | null
 }
 
+/** A currency stripped to what an unprivileged caller needs — no uuid, no active flag. */
+export interface OrganizationCurrencyRef {
+  code: string
+  symbol: string
+  decimalPlaces: number
+}
+
+/**
+ * Response of GET /v1/organizations/currencies — the org's two system
+ * currencies only, open to any authenticated caller regardless of role
+ * (unlike `OrganizationDto`, which requires `ORGANIZATION_VIEW`). Either
+ * field can be `null` if the org hasn't configured that currency yet.
+ */
+export interface OrganizationCurrenciesDto {
+  official: OrganizationCurrencyRef | null
+  reference: OrganizationCurrencyRef | null
+}
+
 /** Body of PUT /v1/admin/organizations/me. `officialCurrencyUuid`/`referenceCurrencyUuid` omitted (undefined) leave the existing value unchanged. */
 export interface OrganizationUpdateRequest {
   name: string
