@@ -1219,7 +1219,7 @@ onMounted(() => {
             >
               <td class="px-5 py-3 font-medium text-prohealth-900">{{ tier.name }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ tier.basis === 'AMOUNT' ? t('commissionRules.collectionTiers.form.basisAmount') : t('commissionRules.collectionTiers.form.basisDays') }}</td>
-              <td class="px-5 py-3 text-prohealth-600">{{ tier.basis === 'AMOUNT' ? tier.maxAmount : tier.maxDays }}</td>
+              <td class="px-5 py-3 text-prohealth-600">{{ tier.basis === 'AMOUNT' ? `${tier.minAmount} ${tier.minAmountCurrency_Code ?? ''}` : tier.maxDays }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ tier.commissionPct != null ? `${tier.commissionPct}%` : `${tier.flatAmount} ${tier.flatAmountCurrency_Code ?? ''}` }}</td>
               <td class="px-5 py-3">
                 <UBadge :color="tier.active ? 'success' : 'neutral'" variant="subtle" size="sm">
@@ -1590,7 +1590,7 @@ onMounted(() => {
               >
                 <td class="px-5 py-3 font-medium text-prohealth-900">{{ tier.name }}</td>
                 <td class="px-5 py-3 text-prohealth-600">{{ tier.basis === 'AMOUNT' ? t('commissionRules.collectionTiers.form.basisAmount') : t('commissionRules.collectionTiers.form.basisDays') }}</td>
-                <td class="px-5 py-3 text-prohealth-600">{{ tier.basis === 'AMOUNT' ? tier.maxAmount : tier.maxDays }}</td>
+                <td class="px-5 py-3 text-prohealth-600">{{ tier.basis === 'AMOUNT' ? `${tier.minAmount} ${tier.minAmountCurrency_Code ?? ''}` : tier.maxDays }}</td>
                 <td class="px-5 py-3 text-prohealth-600">{{ tier.commissionPct != null ? `${tier.commissionPct}%` : `${tier.flatAmount} ${tier.flatAmountCurrency_Code ?? ''}` }}</td>
                 <td class="px-5 py-3">
                   <UBadge :color="tier.active ? 'success' : 'neutral'" variant="subtle" size="sm">

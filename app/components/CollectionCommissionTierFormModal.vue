@@ -7,6 +7,7 @@ import type {
   UpdateCollectionCommissionTierRequest,
 } from '~/types/collectionCommissionTiers'
 import type { SelectItem } from '~/types/options'
+import { clampTodayToRange } from '~/utils/date'
 
 // Create/edit form for a collection commission tier (comisión de cobranza por
 // días, ADR 0013 §3, V44) — a decreasing-% bucket by days-to-collect.
@@ -44,16 +45,25 @@ const isSubmitting = ref(false)
 // so it can't use type="submit"; it triggers validation via this instead.
 const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 const currencyItems = ref<SelectItem[]>([])
+const currencyCodeByUuid = ref<Record<string, string>>({})
 const loadingCurrencies = ref(false)
 async function loadCurrencyOptions() {
   loadingCurrencies.value = true
   try {
     const options = await currencies.options()
-    currencyItems.value = options.filter(o => o.code).map(o => ({ label: o.label, value: o.uuid }))
+    const withCode = options.filter(o => o.code)
+    currencyItems.value = withCode.map(o => ({ label: o.label, value: o.uuid }))
+    currencyCodeByUuid.value = Object.fromEntries(withCode.map(o => [o.uuid, o.code as string]))
   }
   catch { currencyItems.value = [] }
   finally { loadingCurrencies.value = false }
 }
+/** Resolves `flatAmountCurrencyUuid` to its ISO code for `CurrencyConverterDisplay`. */
+const flatAmountCurrencyCode = computed(() => currencyCodeByUuid.value[state.flatAmountCurrencyUuid] ?? null)
+/** Resolves `minAmountCurrencyUuid` (basis=AMOUNT threshold) to its ISO code. */
+const minAmountCurrencyCode = computed(() => currencyCodeByUuid.value[state.minAmountCurrencyUuid] ?? null)
+/** Same reasoning as `CommissionTierFormModal` — clamp "today" into the tier's own window. */
+const flatAmountConversionDate = computed(() => clampTodayToRange(state.startsAt, state.endsAt))
 // ---- Promoter-type scope (M:N, hub plan Part F) — empty selection = applies to every type ----
 const promoterTypeItems = ref<SelectItem[]>([])
 const loadingPromoterTypes = ref(false)
@@ -99,7 +109,8 @@ interface FormState {
   description: string
   basis: 'DAYS' | 'AMOUNT'
   maxDays: string
-  maxAmount: string
+  minAmount: string
+  minAmountCurrencyUuid: string
   rewardKind: 'PCT' | 'FLAT'
   commissionPct: string
   flatAmount: string
@@ -111,7 +122,7 @@ interface FormState {
 }
 
 const state = reactive<FormState>({
-  name: '', description: '', basis: 'DAYS', maxDays: '', maxAmount: '',
+  name: '', description: '', basis: 'DAYS', maxDays: '', minAmount: '', minAmountCurrencyUuid: '',
   rewardKind: 'PCT', commissionPct: '', flatAmount: '', flatAmountCurrencyUuid: '',
   promoterTypeUuids: [],
   campaignUuid: '', startsAt: '', endsAt: '',
@@ -123,7 +134,8 @@ const schema = computed(() => z.object({
   name: z.string().min(3, t('validation.minChars', { n: 3 })).max(80, t('validation.maxChars', { n: 80 })),
   description: z.string().optional(),
   maxDays: state.basis === 'DAYS' ? z.string().regex(/^[1-9]\d*$/, t('commissionRules.form.integersOnly')) : z.string().optional(),
-  maxAmount: state.basis === 'AMOUNT' ? z.string().regex(/^\d+(\.\d{1,2})?$/, t('commissionRules.form.invalidAmount')) : z.string().optional(),
+  minAmount: state.basis === 'AMOUNT' ? z.string().regex(/^\d+(\.\d{1,2})?$/, t('commissionRules.form.invalidAmount')) : z.string().optional(),
+  minAmountCurrencyUuid: state.basis === 'AMOUNT' ? z.string().min(1, t('validation.required')) : z.string().optional(),
   commissionPct: state.rewardKind === 'PCT' ? z.string().regex(/^\d+(\.\d{1,2})?$/, t('commissionRules.form.invalidAmount')) : z.string().optional(),
   flatAmount: state.rewardKind === 'FLAT' ? z.string().regex(/^\d+(\.\d{1,2})?$/, t('commissionRules.form.invalidAmount')) : z.string().optional(),
   flatAmountCurrencyUuid: state.rewardKind === 'FLAT' ? z.string().min(1, t('validation.required')) : z.string().optional(),
@@ -143,7 +155,8 @@ function populateFrom(tier: CollectionCommissionTierDto | null) {
     state.description = ''
     state.basis = 'DAYS'
     state.maxDays = ''
-    state.maxAmount = ''
+    state.minAmount = ''
+    state.minAmountCurrencyUuid = ''
     state.rewardKind = 'PCT'
     state.commissionPct = ''
     state.flatAmount = ''
@@ -160,7 +173,8 @@ function populateFrom(tier: CollectionCommissionTierDto | null) {
   state.description = tier.description ?? ''
   state.basis = tier.basis ?? 'DAYS'
   state.maxDays = String(tier.maxDays)
-  state.maxAmount = tier.maxAmount != null ? String(tier.maxAmount) : ''
+  state.minAmount = tier.minAmount != null ? String(tier.minAmount) : ''
+  state.minAmountCurrencyUuid = tier.minAmountCurrency_Uuid ?? ''
   state.rewardKind = tier.flatAmount != null ? 'FLAT' : 'PCT'
   state.commissionPct = tier.commissionPct != null ? String(tier.commissionPct) : ''
   state.flatAmount = tier.flatAmount != null ? String(tier.flatAmount) : ''
@@ -206,7 +220,8 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
         description: state.description.trim() || null,
         basis: state.basis,
         maxDays: state.basis === 'DAYS' ? Number(state.maxDays) : null,
-        maxAmount: state.basis === 'AMOUNT' ? state.maxAmount.trim() : null,
+        minAmount: state.basis === 'AMOUNT' ? state.minAmount.trim() : null,
+        minAmountCurrencyUuid: state.basis === 'AMOUNT' ? state.minAmountCurrencyUuid : null,
         commissionPct: state.rewardKind === 'PCT' ? state.commissionPct.trim() : null,
         flatAmount: state.rewardKind === 'FLAT' ? state.flatAmount.trim() : null,
         flatAmountCurrencyUuid: state.rewardKind === 'FLAT' ? state.flatAmountCurrencyUuid : null,
@@ -224,7 +239,8 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
         description: state.description.trim() || null,
         basis: state.basis,
         maxDays: state.basis === 'DAYS' ? Number(state.maxDays) : null,
-        maxAmount: state.basis === 'AMOUNT' ? state.maxAmount.trim() : null,
+        minAmount: state.basis === 'AMOUNT' ? state.minAmount.trim() : null,
+        minAmountCurrencyUuid: state.basis === 'AMOUNT' ? state.minAmountCurrencyUuid : null,
         commissionPct: state.rewardKind === 'PCT' ? state.commissionPct.trim() : null,
         flatAmount: state.rewardKind === 'FLAT' ? state.flatAmount.trim() : null,
         flatAmountCurrencyUuid: state.rewardKind === 'FLAT' ? state.flatAmountCurrencyUuid : null,
@@ -298,10 +314,27 @@ async function restoreTier() {
           <UFormField v-if="state.basis === 'DAYS'" :label="t('commissionRules.collectionTiers.form.maxDays')" name="maxDays" required :help="t('commissionRules.collectionTiers.form.maxDaysHelp')">
             <UInput v-model="state.maxDays" inputmode="numeric" placeholder="5" class="w-full" />
           </UFormField>
-          <UFormField v-else :label="t('commissionRules.collectionTiers.form.maxAmount')" name="maxAmount" required>
-            <UInput v-model="state.maxAmount" inputmode="decimal" placeholder="100.00" class="w-full" />
+          <UFormField v-else :label="t('commissionRules.collectionTiers.form.minAmount')" name="minAmount" required :help="t('commissionRules.collectionTiers.form.minAmountHelp')">
+            <CurrencyConverterDisplay :amount="state.minAmount" :currency="minAmountCurrencyCode" :date="flatAmountConversionDate" v-slot="{ result }">
+              <UInput v-model="state.minAmount" inputmode="decimal" placeholder="100.00" class="w-full">
+                <template #trailing>
+                  <CurrencyConverterTrigger :result="result" />
+                </template>
+              </UInput>
+            </CurrencyConverterDisplay>
           </UFormField>
         </div>
+        <UFormField v-if="state.basis === 'AMOUNT'" :label="t('commissionRules.collectionTiers.form.minAmountCurrency')" name="minAmountCurrencyUuid" required :help="t('commissionRules.collectionTiers.form.minAmountCurrencyHelp')">
+          <CommonEntityReferenceSelect
+            v-model="state.minAmountCurrencyUuid"
+            :items="currencyItems"
+            entity="currency"
+            :loading="loadingCurrencies"
+            :placeholder="t('common.select')"
+            class="w-full"
+            @navigate="goToCurrency"
+          />
+        </UFormField>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('commissionRules.tiers.form.rewardKind')" name="rewardKind" required>
@@ -313,7 +346,13 @@ async function restoreTier() {
             </UInput>
           </UFormField>
           <UFormField v-else :label="t('commissionRules.collectionTiers.form.flatAmount')" name="flatAmount" required>
-            <UInput v-model="state.flatAmount" placeholder="5.00" class="w-full" />
+            <CurrencyConverterDisplay :amount="state.flatAmount" :currency="flatAmountCurrencyCode" :date="flatAmountConversionDate" v-slot="{ result }">
+              <UInput v-model="state.flatAmount" placeholder="5.00" class="w-full">
+                <template #trailing>
+                  <CurrencyConverterTrigger :result="result" />
+                </template>
+              </UInput>
+            </CurrencyConverterDisplay>
           </UFormField>
         </div>
 
