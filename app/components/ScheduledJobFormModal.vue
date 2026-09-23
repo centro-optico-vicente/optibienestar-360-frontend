@@ -267,7 +267,7 @@ async function restoreJob() {
     v-model:open="isOpen"
     :title="mode === 'create' ? t('scheduledJobs.form.createTitle') : t('scheduledJobs.form.editTitle')"
     :description="mode === 'create' ? t('scheduledJobs.form.createDescription') : t('scheduledJobs.form.editDescription')"
-    :ui="{ content: 'max-w-2xl' }"
+    :ui="{ content: 'max-w-3xl' }"
   >
     <template #body>
       <div v-if="loadingDetail" class="py-12 flex flex-col items-center justify-center gap-2 text-prohealth-500">
