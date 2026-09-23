@@ -147,6 +147,10 @@ export interface CampaignEffectivenessDto {
   amountAchievedPct?: number | string | null
   /** null when targetCount is not set. */
   countAchievedPct?: number | string | null
+  /** Currency both totalCollected and targetAmount were converted/expressed into (campaign's targetAmountCurrency, or USD). */
+  currency_Uuid?: string | null
+  currency_Display?: string | null
+  currency_Code?: string | null
 }
 
 export const CAMPAIGN_SCOPE_OPTIONS: { value: CampaignScope, labelKey: string }[] = [
