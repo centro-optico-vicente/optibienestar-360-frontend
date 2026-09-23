@@ -576,8 +576,8 @@
         "description": "Categorías de los servicios ofrecidos."
       },
       "medicalSpecialties": {
-        "label": "Especialidades médicas",
-        "description": "Especialidades médicas de los aliados."
+        "label": "Profesiones",
+        "description": "Profesiones y actividades de los aliados."
       },
       "promoters": {
         "label": "Promotores",
@@ -831,7 +831,7 @@
       "years": "Años en el sector",
       "satisfaction": "Satisfacción de afiliados",
       "careCount": "Atenciones al año",
-      "specialties": "Especialidades cubiertas"
+      "specialties": "Profesiones cubiertas"
     },
     "about": {
       "eyebrow": "Sobre nosotros",
@@ -1030,8 +1030,8 @@
         "labelSingular": "Ocupación"
       },
       "medical-specialties": {
-        "label": "Especialidades médicas",
-        "labelSingular": "Especialidad médica"
+        "label": "Profesiones",
+        "labelSingular": "Profesión"
       },
       "service-categories": {
         "label": "Categorías de servicio",
@@ -1134,7 +1134,7 @@
       "document_type": "Tipo de documento",
       "marital_status": "Estado civil",
       "occupation": "Ocupación",
-      "medical_specialty": "Especialidad médica",
+      "medical_specialty": "Profesión",
       "service_category": "Categoría de servicio",
       "promoter_type": "Tipo de promotor"
     }
@@ -1308,7 +1308,7 @@
         "address": "Dirección",
         "googleMapsUrl": "Enlace de Google Maps",
         "description": "Descripción",
-        "specialties": "Especialidades",
+        "specialties": "Profesiones",
         "joinedAt": "Fecha de alianza",
         "published": "Publicado en directorio",
         "status": "Estado"
@@ -1339,7 +1339,7 @@
     },
     "tabs": {
       "services": "Servicios",
-      "specialties": "Especialidades",
+      "specialties": "Profesiones",
       "agreements": "Acuerdos",
       "staff": "Personal"
     },
@@ -1387,11 +1387,11 @@
       }
     },
     "specialties": {
-      "title": "Especialidades",
-      "hint": "Especialidades médicas que ofrece el aliado.",
-      "add": "Añadir especialidad",
+      "title": "Profesiones",
+      "hint": "Profesiones y actividades que ofrece el aliado.",
+      "add": "Añadir profesión",
       "addButton": "Añadir",
-      "empty": "Sin especialidades asignadas."
+      "empty": "Sin profesiones asignadas."
     },
     "agreements": {
       "title": "Acuerdos",
@@ -1497,7 +1497,7 @@
         "search": "Buscar por nombre…",
         "state": "Estado",
         "city": "Ciudad",
-        "specialty": "Especialidad",
+        "specialty": "Profesión",
         "clear": "Limpiar filtros"
       },
       "detail": {

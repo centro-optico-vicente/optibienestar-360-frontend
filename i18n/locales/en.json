@@ -576,8 +576,8 @@
         "description": "Categories of the offered services."
       },
       "medicalSpecialties": {
-        "label": "Medical specialties",
-        "description": "Partners' medical specialties."
+        "label": "Professions",
+        "description": "Professions and business activities of the partners."
       },
       "promoters": {
         "label": "Promoters",
@@ -831,7 +831,7 @@
       "years": "Years in the sector",
       "satisfaction": "Member satisfaction",
       "careCount": "Visits per year",
-      "specialties": "Specialties covered"
+      "specialties": "Professions covered"
     },
     "about": {
       "eyebrow": "About us",
@@ -1030,8 +1030,8 @@
         "labelSingular": "Occupation"
       },
       "medical-specialties": {
-        "label": "Medical specialties",
-        "labelSingular": "Medical specialty"
+        "label": "Professions",
+        "labelSingular": "Profession"
       },
       "service-categories": {
         "label": "Service categories",
@@ -1134,7 +1134,7 @@
       "document_type": "Document type",
       "marital_status": "Marital status",
       "occupation": "Occupation",
-      "medical_specialty": "Medical specialty",
+      "medical_specialty": "Profession",
       "service_category": "Service category",
       "promoter_type": "Promoter type"
     }
@@ -1308,7 +1308,7 @@
         "address": "Address",
         "googleMapsUrl": "Google Maps link",
         "description": "Description",
-        "specialties": "Specialties",
+        "specialties": "Professions",
         "joinedAt": "Partnership date",
         "published": "Published in directory",
         "status": "Status"
@@ -1339,7 +1339,7 @@
     },
     "tabs": {
       "services": "Services",
-      "specialties": "Specialties",
+      "specialties": "Professions",
       "agreements": "Agreements",
       "staff": "Staff"
     },
@@ -1387,11 +1387,11 @@
       }
     },
     "specialties": {
-      "title": "Specialties",
-      "hint": "Medical specialties the partner offers.",
-      "add": "Add specialty",
+      "title": "Professions",
+      "hint": "Professions and business activities the partner offers.",
+      "add": "Add profession",
       "addButton": "Add",
-      "empty": "No specialties assigned."
+      "empty": "No professions assigned."
     },
     "agreements": {
       "title": "Agreements",
@@ -1497,7 +1497,7 @@
         "search": "Search by name…",
         "state": "State",
         "city": "City",
-        "specialty": "Specialty",
+        "specialty": "Profession",
         "clear": "Clear filters"
       },
       "detail": {
