@@ -11,6 +11,7 @@
 // PUT uses PATCH semantics.
 
 import type { DisplayRefItem } from './options'
+import type { PeriodStrategy } from './commissionTiers'
 
 export interface CollectionCommissionTierDto {
   uuid: string
@@ -30,6 +31,19 @@ export interface CollectionCommissionTierDto {
   flatAmountCurrency_Code?: string | null
   /** M:N promoter-type scope (V137, hub plan Part F) — empty = applies to every promoter type. */
   promoterTypes: DisplayRefItem[]
+  /** Accrual frequency (unified 4-axis settlement model, new — this entity had no frequency axis before). */
+  accrualPeriodStrategy: PeriodStrategy
+  /** Anchor day for `accrualPeriodStrategy` — 1-7 (weekday) if WEEKLY/BIWEEKLY, 1-31 (day of month) if MONTHLY or coarser; null = default. */
+  accrualPeriodAnchor?: number | null
+  /** Partial-settlement frequency — new axis, defaults to `accrualPeriodStrategy`'s value on create. */
+  partialSettlementPeriodStrategy?: PeriodStrategy | null
+  partialSettlementPeriodAnchor?: number | null
+  /** Final-settlement frequency — new axis. */
+  finalSettlementPeriodStrategy?: PeriodStrategy | null
+  finalSettlementPeriodAnchor?: number | null
+  /** Retroactive-settlement frequency — new axis. */
+  retroactiveSettlementPeriodStrategy?: PeriodStrategy | null
+  retroactiveSettlementPeriodAnchor?: number | null
   /** Owning campaign when this tier is campaign-anchored; null for a standing (non-campaign) tier. */
   campaign_Uuid?: string | null
   campaign_Display?: string | null
@@ -53,6 +67,14 @@ export interface CreateCollectionCommissionTierRequest {
   flatAmountCurrencyUuid?: string | null
   /** Empty/omitted = applies to every promoter type (M:N, V137, hub plan Part F). */
   promoterTypeUuids?: string[] | null
+  accrualPeriodStrategy: PeriodStrategy
+  accrualPeriodAnchor?: number | null
+  partialSettlementPeriodStrategy?: PeriodStrategy | null
+  partialSettlementPeriodAnchor?: number | null
+  finalSettlementPeriodStrategy?: PeriodStrategy | null
+  finalSettlementPeriodAnchor?: number | null
+  retroactiveSettlementPeriodStrategy?: PeriodStrategy | null
+  retroactiveSettlementPeriodAnchor?: number | null
   campaignUuid?: string | null
   startsAt?: string | null
   endsAt?: string | null

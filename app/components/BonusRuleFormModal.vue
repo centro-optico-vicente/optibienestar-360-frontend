@@ -7,6 +7,7 @@ import type {
   BonusRuleDto,
   BonusRuleRequest,
   RewardType,
+  SettlementPeriodStrategy,
   WindowStrategy,
 } from '~/types/bonusRules'
 import {
@@ -14,6 +15,7 @@ import {
   BONUS_METRIC_OPTIONS,
   isAmountCollectedMetric,
   REWARD_TYPE_OPTIONS,
+  SETTLEMENT_PERIOD_STRATEGY_OPTIONS,
   WINDOW_STRATEGY_OPTIONS,
 } from '~/types/bonusRules'
 import type { SelectItem } from '~/types/options'
@@ -79,6 +81,8 @@ async function loadCurrencyOptions() {
 
 /** Resolves `rewardCurrencyUuid` to its ISO code for `CurrencyConverterDisplay`. */
 const rewardCurrencyCode = computed(() => currencyCodeByUuid.value[state.rewardCurrencyUuid] ?? null)
+/** Resolves `thresholdCurrencyUuid` (metric=AMOUNT_COLLECTED threshold) to its ISO code. */
+const thresholdCurrencyCode = computed(() => currencyCodeByUuid.value[state.thresholdCurrencyUuid] ?? null)
 /** Same reasoning as `CommissionTierFormModal` — clamp "today" into the rule's own window. */
 const flatAmountConversionDate = computed(() => clampTodayToRange(state.startsAt, state.endsAt))
 
@@ -120,8 +124,35 @@ const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 
 const metricOptions = computed(() => BONUS_METRIC_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
 const accrualOptions = computed(() => ACCRUAL_MODE_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
+// Accrual-period axis — the only one that may offer CAMPAIGN (legacy fixed range).
 const windowOptions = computed(() => WINDOW_STRATEGY_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
+// Settlement axes (partial/final/retroactive) — CAMPAIGN excluded, same contract as
+// CommissionTierFormModal / CollectionCommissionTierFormModal.
+const settlementPeriodOptions = computed(() => SETTLEMENT_PERIOD_STRATEGY_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
 const rewardTypeOptions = computed(() => REWARD_TYPE_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
+
+// ---- Settlement-frequency anchors (unified 4-axis model) ----
+// Contextual "anchor day" per axis: weekday select (1-7) when the axis's own
+// strategy is WEEKLY/BIWEEKLY, day-of-month number input (1-31) when it's
+// MONTHLY or coarser, hidden when DAILY, LIFETIME or CAMPAIGN (no periodic anchor).
+type AnchorKind = 'weekday' | 'monthday' | 'none'
+function anchorKindFor(strategy: WindowStrategy | SettlementPeriodStrategy | undefined): AnchorKind {
+  if (!strategy || strategy === 'DAILY' || strategy === 'LIFETIME' || strategy === 'CAMPAIGN') return 'none'
+  if (strategy === 'WEEKLY' || strategy === 'BIWEEKLY') return 'weekday'
+  return 'monthday'
+}
+// Values are kept as strings ('1'..'7') so they share the same string-typed
+// anchor field as the day-of-month input, avoiding a type split per axis.
+const weekdayOptions = computed(() => [
+  { label: t('commissionRules.bonusRules.form.weekday.1'), value: '1' },
+  { label: t('commissionRules.bonusRules.form.weekday.2'), value: '2' },
+  { label: t('commissionRules.bonusRules.form.weekday.3'), value: '3' },
+  { label: t('commissionRules.bonusRules.form.weekday.4'), value: '4' },
+  { label: t('commissionRules.bonusRules.form.weekday.5'), value: '5' },
+  { label: t('commissionRules.bonusRules.form.weekday.6'), value: '6' },
+  { label: t('commissionRules.bonusRules.form.weekday.7'), value: '7' },
+])
+const showAdvanced = ref(false)
 
 interface FormState {
   name: string
@@ -131,7 +162,14 @@ interface FormState {
   thresholdCount: string
   thresholdAmount: string
   thresholdCurrencyUuid: string
-  windowStrategy: WindowStrategy | undefined
+  accrualPeriodStrategy: WindowStrategy | undefined
+  accrualPeriodAnchor: string
+  partialSettlementPeriodStrategy: SettlementPeriodStrategy | undefined
+  partialSettlementPeriodAnchor: string
+  finalSettlementPeriodStrategy: SettlementPeriodStrategy | undefined
+  finalSettlementPeriodAnchor: string
+  retroactiveSettlementPeriodStrategy: SettlementPeriodStrategy | undefined
+  retroactiveSettlementPeriodAnchor: string
   campaignStart: string
   campaignEnd: string
   rewardType: RewardType | undefined
@@ -153,7 +191,17 @@ const state = reactive<FormState>({
   thresholdCount: '',
   thresholdAmount: '',
   thresholdCurrencyUuid: '',
-  windowStrategy: 'MONTHLY',
+  accrualPeriodStrategy: 'MONTHLY',
+  accrualPeriodAnchor: '',
+  // New settlement axes default to the same value as accrualPeriodStrategy so
+  // a rule created without touching "advanced settings" behaves exactly like
+  // before (no-op).
+  partialSettlementPeriodStrategy: 'MONTHLY',
+  partialSettlementPeriodAnchor: '',
+  finalSettlementPeriodStrategy: 'MONTHLY',
+  finalSettlementPeriodAnchor: '',
+  retroactiveSettlementPeriodStrategy: 'MONTHLY',
+  retroactiveSettlementPeriodAnchor: '',
   campaignStart: '',
   campaignEnd: '',
   rewardType: 'FLAT',
@@ -179,12 +227,13 @@ watch(() => state.campaignUuid, async (uuid) => {
   catch { /* useApi already notified */ }
 })
 
-const isCampaign = computed(() => state.windowStrategy === 'CAMPAIGN')
+const isCampaign = computed(() => state.accrualPeriodStrategy === 'CAMPAIGN')
 const isAmountCollected = computed(() => isAmountCollectedMetric(state.metric))
 
 const schema = computed(() => {
   const money = z.string().regex(/^\d+(\.\d{1,2})?$/, t('commissionRules.form.invalidAmount'))
   const int = z.string().regex(/^\d+$/, t('commissionRules.form.integersOnly'))
+  const anchor = z.string().optional().refine(v => !v || /^\d{1,2}$/.test(v), t('commissionRules.form.integersOnly'))
   return z.object({
     name: z.string().min(3, t('validation.minChars', { n: 3 })).max(150, t('validation.maxChars', { n: 150 })),
     description: z.string().optional(),
@@ -193,7 +242,14 @@ const schema = computed(() => {
     thresholdCount: isAmountCollected.value ? z.string().optional() : int,
     thresholdAmount: isAmountCollected.value ? money : z.string().optional(),
     thresholdCurrencyUuid: isAmountCollected.value ? z.string().min(1, t('validation.required')) : z.string().optional(),
-    windowStrategy: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
+    accrualPeriodStrategy: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
+    accrualPeriodAnchor: anchor,
+    partialSettlementPeriodStrategy: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
+    partialSettlementPeriodAnchor: anchor,
+    finalSettlementPeriodStrategy: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
+    finalSettlementPeriodAnchor: anchor,
+    retroactiveSettlementPeriodStrategy: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
+    retroactiveSettlementPeriodAnchor: anchor,
     campaignStart: isCampaign.value ? z.string().min(1, t('validation.required')) : z.string().optional(),
     campaignEnd: isCampaign.value ? z.string().min(1, t('validation.required')) : z.string().optional(),
     rewardType: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
@@ -222,7 +278,14 @@ function populateFrom(rule: BonusRuleDto | null) {
     state.thresholdCount = ''
     state.thresholdAmount = ''
     state.thresholdCurrencyUuid = ''
-    state.windowStrategy = 'MONTHLY'
+    state.accrualPeriodStrategy = 'MONTHLY'
+    state.accrualPeriodAnchor = ''
+    state.partialSettlementPeriodStrategy = 'MONTHLY'
+    state.partialSettlementPeriodAnchor = ''
+    state.finalSettlementPeriodStrategy = 'MONTHLY'
+    state.finalSettlementPeriodAnchor = ''
+    state.retroactiveSettlementPeriodStrategy = 'MONTHLY'
+    state.retroactiveSettlementPeriodAnchor = ''
     state.campaignStart = ''
     state.campaignEnd = ''
     state.rewardType = 'FLAT'
@@ -234,6 +297,7 @@ function populateFrom(rule: BonusRuleDto | null) {
     state.campaignUuid = props.campaignUuid ?? ''
     state.startsAt = ''
     state.endsAt = ''
+    showAdvanced.value = false
     nextTick(() => { suppressCampaignAutofill.value = false })
     return
   }
@@ -244,7 +308,14 @@ function populateFrom(rule: BonusRuleDto | null) {
   state.thresholdCount = rule.thresholdCount != null ? String(rule.thresholdCount) : ''
   state.thresholdAmount = rule.thresholdAmount != null ? String(rule.thresholdAmount) : ''
   state.thresholdCurrencyUuid = rule.thresholdCurrency_Uuid ?? ''
-  state.windowStrategy = rule.windowStrategy
+  state.accrualPeriodStrategy = rule.accrualPeriodStrategy
+  state.accrualPeriodAnchor = rule.accrualPeriodAnchor != null ? String(rule.accrualPeriodAnchor) : ''
+  state.partialSettlementPeriodStrategy = rule.partialSettlementPeriodStrategy ?? (rule.accrualPeriodStrategy === 'CAMPAIGN' ? 'MONTHLY' : rule.accrualPeriodStrategy)
+  state.partialSettlementPeriodAnchor = rule.partialSettlementPeriodAnchor != null ? String(rule.partialSettlementPeriodAnchor) : ''
+  state.finalSettlementPeriodStrategy = rule.finalSettlementPeriodStrategy ?? (rule.accrualPeriodStrategy === 'CAMPAIGN' ? 'MONTHLY' : rule.accrualPeriodStrategy)
+  state.finalSettlementPeriodAnchor = rule.finalSettlementPeriodAnchor != null ? String(rule.finalSettlementPeriodAnchor) : ''
+  state.retroactiveSettlementPeriodStrategy = rule.retroactiveSettlementPeriodStrategy ?? (rule.accrualPeriodStrategy === 'CAMPAIGN' ? 'MONTHLY' : rule.accrualPeriodStrategy)
+  state.retroactiveSettlementPeriodAnchor = rule.retroactiveSettlementPeriodAnchor != null ? String(rule.retroactiveSettlementPeriodAnchor) : ''
   state.campaignStart = rule.campaignStart ?? ''
   state.campaignEnd = rule.campaignEnd ?? ''
   state.rewardType = rule.rewardType
@@ -294,7 +365,14 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
       thresholdCount: isAmountCollected.value ? null : Number(state.thresholdCount),
       thresholdAmount: isAmountCollected.value ? state.thresholdAmount.trim() : null,
       thresholdCurrencyUuid: isAmountCollected.value ? state.thresholdCurrencyUuid : null,
-      windowStrategy: state.windowStrategy!,
+      accrualPeriodStrategy: state.accrualPeriodStrategy!,
+      accrualPeriodAnchor: state.accrualPeriodAnchor ? Number(state.accrualPeriodAnchor) : null,
+      partialSettlementPeriodStrategy: state.partialSettlementPeriodStrategy!,
+      partialSettlementPeriodAnchor: state.partialSettlementPeriodAnchor ? Number(state.partialSettlementPeriodAnchor) : null,
+      finalSettlementPeriodStrategy: state.finalSettlementPeriodStrategy!,
+      finalSettlementPeriodAnchor: state.finalSettlementPeriodAnchor ? Number(state.finalSettlementPeriodAnchor) : null,
+      retroactiveSettlementPeriodStrategy: state.retroactiveSettlementPeriodStrategy!,
+      retroactiveSettlementPeriodAnchor: state.retroactiveSettlementPeriodAnchor ? Number(state.retroactiveSettlementPeriodAnchor) : null,
       campaignStart: isCampaign.value ? state.campaignStart : null,
       campaignEnd: isCampaign.value ? state.campaignEnd : null,
       rewardType: state.rewardType!,
@@ -364,14 +442,25 @@ function openDeleteFromEdit() {
             <UInput v-model="state.thresholdCount" inputmode="numeric" class="w-full" />
           </UFormField>
           <UFormField v-else :label="t('commissionRules.bonusRules.form.thresholdAmount')" name="thresholdAmount" required>
-            <UInput v-model="state.thresholdAmount" placeholder="400.00" class="w-full">
-              <template #leading><span class="text-prohealth-400 text-sm">$</span></template>
-            </UInput>
+            <CurrencyConverterDisplay :amount="state.thresholdAmount" :currency="thresholdCurrencyCode" :date="flatAmountConversionDate" v-slot="{ result }">
+              <UInput v-model="state.thresholdAmount" placeholder="400.00" class="w-full">
+                <template #leading><span class="text-prohealth-400 text-sm">$</span></template>
+                <template #trailing>
+                  <CurrencyConverterTrigger :result="result" />
+                </template>
+              </UInput>
+            </CurrencyConverterDisplay>
           </UFormField>
-          <UFormField :label="t('commissionRules.bonusRules.form.windowStrategy')" name="windowStrategy" required>
-            <USelectMenu clear v-model="state.windowStrategy" :items="windowOptions" label-key="label" value-key="value" class="w-full" />
+          <UFormField :label="t('commissionRules.bonusRules.form.accrualPeriodStrategy')" name="accrualPeriodStrategy" required :help="t('commissionRules.bonusRules.form.accrualPeriodStrategyHelp')">
+            <USelectMenu clear v-model="state.accrualPeriodStrategy" :items="windowOptions" label-key="label" value-key="value" class="w-full" />
           </UFormField>
         </div>
+        <UFormField v-if="anchorKindFor(state.accrualPeriodStrategy) === 'weekday'" :label="t('commissionRules.bonusRules.form.anchorWeekday')" name="accrualPeriodAnchor">
+          <USelectMenu clear v-model="state.accrualPeriodAnchor" :items="weekdayOptions" label-key="label" value-key="value" class="w-full" />
+        </UFormField>
+        <UFormField v-else-if="anchorKindFor(state.accrualPeriodStrategy) === 'monthday'" :label="t('commissionRules.bonusRules.form.anchorMonthday')" name="accrualPeriodAnchor" :help="t('commissionRules.bonusRules.form.anchorMonthdayHelp')">
+          <UInput v-model="state.accrualPeriodAnchor" inputmode="numeric" min="1" max="31" class="w-full" />
+        </UFormField>
 
         <UFormField
           v-if="isAmountCollected"
@@ -398,6 +487,57 @@ function openDeleteFromEdit() {
           <UFormField :label="t('commissionRules.bonusRules.form.campaignEnd')" name="campaignEnd" required>
             <UInput v-model="state.campaignEnd" type="date" class="w-full" />
           </UFormField>
+        </div>
+
+        <div>
+          <UButton
+            color="neutral"
+            variant="ghost"
+            size="sm"
+            :icon="showAdvanced ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
+            :label="showAdvanced ? t('commissionRules.bonusRules.form.hideAdvanced') : t('commissionRules.bonusRules.form.showAdvanced')"
+            @click="showAdvanced = !showAdvanced"
+          />
+        </div>
+
+        <div v-if="showAdvanced" class="space-y-4 rounded-lg border border-prohealth-200 p-4">
+          <p class="text-sm font-medium text-prohealth-700">{{ t('commissionRules.bonusRules.form.advancedSection') }}</p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <UFormField :label="t('commissionRules.bonusRules.form.partialSettlementPeriodStrategy')" name="partialSettlementPeriodStrategy" required>
+              <USelectMenu clear v-model="state.partialSettlementPeriodStrategy" :items="settlementPeriodOptions" label-key="label" value-key="value" class="w-full" />
+            </UFormField>
+            <UFormField v-if="anchorKindFor(state.partialSettlementPeriodStrategy) === 'weekday'" :label="t('commissionRules.bonusRules.form.anchorWeekday')" name="partialSettlementPeriodAnchor">
+              <USelectMenu clear v-model="state.partialSettlementPeriodAnchor" :items="weekdayOptions" label-key="label" value-key="value" class="w-full" />
+            </UFormField>
+            <UFormField v-else-if="anchorKindFor(state.partialSettlementPeriodStrategy) === 'monthday'" :label="t('commissionRules.bonusRules.form.anchorMonthday')" name="partialSettlementPeriodAnchor" :help="t('commissionRules.bonusRules.form.anchorMonthdayHelp')">
+              <UInput v-model="state.partialSettlementPeriodAnchor" inputmode="numeric" min="1" max="31" class="w-full" />
+            </UFormField>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <UFormField :label="t('commissionRules.bonusRules.form.finalSettlementPeriodStrategy')" name="finalSettlementPeriodStrategy" required>
+              <USelectMenu clear v-model="state.finalSettlementPeriodStrategy" :items="settlementPeriodOptions" label-key="label" value-key="value" class="w-full" />
+            </UFormField>
+            <UFormField v-if="anchorKindFor(state.finalSettlementPeriodStrategy) === 'weekday'" :label="t('commissionRules.bonusRules.form.anchorWeekday')" name="finalSettlementPeriodAnchor">
+              <USelectMenu clear v-model="state.finalSettlementPeriodAnchor" :items="weekdayOptions" label-key="label" value-key="value" class="w-full" />
+            </UFormField>
+            <UFormField v-else-if="anchorKindFor(state.finalSettlementPeriodStrategy) === 'monthday'" :label="t('commissionRules.bonusRules.form.anchorMonthday')" name="finalSettlementPeriodAnchor" :help="t('commissionRules.bonusRules.form.anchorMonthdayHelp')">
+              <UInput v-model="state.finalSettlementPeriodAnchor" inputmode="numeric" min="1" max="31" class="w-full" />
+            </UFormField>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <UFormField :label="t('commissionRules.bonusRules.form.retroactiveSettlementPeriodStrategy')" name="retroactiveSettlementPeriodStrategy" required>
+              <USelectMenu clear v-model="state.retroactiveSettlementPeriodStrategy" :items="settlementPeriodOptions" label-key="label" value-key="value" class="w-full" />
+            </UFormField>
+            <UFormField v-if="anchorKindFor(state.retroactiveSettlementPeriodStrategy) === 'weekday'" :label="t('commissionRules.bonusRules.form.anchorWeekday')" name="retroactiveSettlementPeriodAnchor">
+              <USelectMenu clear v-model="state.retroactiveSettlementPeriodAnchor" :items="weekdayOptions" label-key="label" value-key="value" class="w-full" />
+            </UFormField>
+            <UFormField v-else-if="anchorKindFor(state.retroactiveSettlementPeriodStrategy) === 'monthday'" :label="t('commissionRules.bonusRules.form.anchorMonthday')" name="retroactiveSettlementPeriodAnchor" :help="t('commissionRules.bonusRules.form.anchorMonthdayHelp')">
+              <UInput v-model="state.retroactiveSettlementPeriodAnchor" inputmode="numeric" min="1" max="31" class="w-full" />
+            </UFormField>
+          </div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">

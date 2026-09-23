@@ -1092,7 +1092,7 @@ onMounted(() => {
               <td class="px-5 py-3 text-prohealth-600">{{ t(`commissionRules.bonusMetrics.${rule.metric}`) }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ t(`commissionRules.accrualModes.${rule.accrual}`) }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ rule.thresholdCount }}</td>
-              <td class="px-5 py-3 text-prohealth-600">{{ t(`commissionRules.windowStrategies.${rule.windowStrategy}`) }}</td>
+              <td class="px-5 py-3 text-prohealth-600">{{ t(`commissionRules.windowStrategies.${rule.accrualPeriodStrategy}`) }}</td>
               <td class="px-5 py-3 text-prohealth-600" @click.stop>
                 <template v-if="rule.rewardType === 'FLAT'">
                   <CurrencyConverterDisplay :amount="rule.flatAmount" :currency="rule.rewardCurrency" v-slot="{ result }">
