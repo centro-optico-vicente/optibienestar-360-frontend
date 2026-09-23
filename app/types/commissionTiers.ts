@@ -7,6 +7,7 @@
 // of commissionPct / flatAmount is set. PUT uses PATCH semantics.
 
 import type { PlanType } from './plans'
+import type { DisplayRefItem } from './options'
 
 export type PeriodStrategy = 'DAILY' | 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'SEMIANNUAL' | 'ANNUAL'
 export type AppliesTo = 'INSCRIPTION' | 'MONTHLY' | 'BOTH'
@@ -40,9 +41,8 @@ export interface CommissionTierDto {
   flatAmountCurrency_Code?: string | null
   periodStrategy: PeriodStrategy
   appliesTo: AppliesTo
-  promoterType_Uuid?: string | null
-  promoterType_Display?: string | null
-  promoterType_Code?: string | null
+  /** M:N promoter-type scope (V137, hub plan Part F) — empty = applies to every promoter type. */
+  promoterTypes: DisplayRefItem[]
   /** Owning campaign when this tier is campaign-anchored; null for a standing (non-campaign) rule. */
   campaign_Uuid?: string | null
   campaign_Display?: string | null
@@ -65,7 +65,8 @@ export interface CreateCommissionTierRequest {
   flatAmountCurrencyUuid?: string | null
   periodStrategy: PeriodStrategy
   appliesTo: AppliesTo
-  promoterTypeUuid?: string | null
+  /** Empty/omitted = applies to every promoter type (M:N, V137, hub plan Part F). */
+  promoterTypeUuids?: string[] | null
   /** Sets the owning campaign, e.g. when created from the campaign ficha's "Add rule" flow. Omit/null = standing (non-campaign) rule. */
   campaignUuid?: string | null
   /** Rule's own effective window — defaults from the selected campaign's dates but stays independently editable. */

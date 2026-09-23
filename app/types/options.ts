@@ -15,6 +15,18 @@ export interface SelectItem {
 }
 
 /**
+ * Raw shape of a backend `DisplayRef` (`core.display.DisplayRef`) when it appears
+ * INSIDE a list field (e.g. `List<DisplayRef> promoterTypes`) — unlike a top-level
+ * `@Display`-annotated FK field (flattened into `<name>_Uuid`/`_Display`, ADR 0014),
+ * a list of refs is serialized as-is by Jackson: `{ uuid, code, name }` per element.
+ */
+export interface DisplayRefItem {
+  uuid: string
+  code: string | null
+  name: string | null
+}
+
+/**
  * Adapta `Option[]` al par `{label,value}` que esperan los `USelectMenu` existentes.
  * Los inactivos se marcan en la etiqueta (en vez de ocultarse) para que un `currentValue`
  * ya asignado pero desactivado siga siendo visible en el select.

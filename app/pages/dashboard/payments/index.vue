@@ -28,6 +28,15 @@ const canDelete = computed(() => can('PAYMENT_DELETE'))
 const canProcess = computed(() => can('PAYMENT_PROCESS'))
 const canApprove = computed(() => can('PAYMENT_APPROVE'))
 const canReject = computed(() => can('PAYMENT_REJECT'))
+const canExceptionCreate = computed(() => can('CAMPAIGN_EXCEPTION_CREATE'))
+
+// ---- Campaign exception (Part G): row action to include/exclude a payment ----
+const exceptionOpen = ref(false)
+const exceptionPayment = ref<PaymentDto | null>(null)
+function openExceptionModal(p: PaymentDto) {
+  exceptionPayment.value = p
+  exceptionOpen.value = true
+}
 
 const data = ref<PaymentDto[]>([])
 const total = ref(0)
@@ -328,6 +337,9 @@ async function reviewPayment(p: PaymentDto, approve: boolean) {
                   <UButton v-if="canProcess && p.status === 'DRAFT'" color="primary" variant="ghost" icon="i-lucide-send" size="sm" @click="processPayment(p)" />
                   <UButton v-if="canApprove && p.status === 'PENDING'" color="success" variant="ghost" icon="i-lucide-check" size="sm" @click="reviewPayment(p, true)" />
                   <UButton v-if="canReject && p.status === 'PENDING'" color="error" variant="ghost" icon="i-lucide-x" size="sm" @click="reviewPayment(p, false)" />
+                  <UTooltip v-if="canExceptionCreate" :text="t('campaigns.exceptions.addRowTooltip')">
+                    <UButton color="neutral" variant="ghost" icon="i-lucide-rocket" size="sm" @click="openExceptionModal(p)" />
+                  </UTooltip>
                   <ReportPrintButton
                     table-name="payments"
                     :record-uuid="p.uuid"
@@ -428,5 +440,10 @@ async function reviewPayment(p: PaymentDto, approve: boolean) {
       </template>
     </UModal>
     <OutPaymentFormModal v-model:open="formOpen" :payment="formTarget" @saved="onSaved" />
+    <CampaignExceptionFormModal
+      v-model:open="exceptionOpen"
+      :payment-uuid="exceptionPayment?.uuid"
+      :payment-display="exceptionPayment?.referenceNumber || exceptionPayment?.promoter_Display"
+    />
   </div>
 </template>

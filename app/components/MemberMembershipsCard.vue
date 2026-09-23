@@ -29,6 +29,15 @@ const canViewPlan = computed(() => can('PLAN_VIEW_ALL'))
 const canEnroll = computed(() => can('MEMBERSHIP_CREATE'))
 const canCancel = computed(() => can('MEMBERSHIP_CANCEL'))
 const canReactivate = computed(() => can('MEMBERSHIP_REACTIVATE'))
+const canExceptionCreate = computed(() => can('CAMPAIGN_EXCEPTION_CREATE'))
+
+// ---- Campaign exception (Part G): row action to include/exclude a membership ----
+const exceptionOpen = ref(false)
+const exceptionMembership = ref<MembershipDto | null>(null)
+function openExceptionModal(m: MembershipDto) {
+  exceptionMembership.value = m
+  exceptionOpen.value = true
+}
 
 // ---- Listing ----
 const data = ref<MembershipDto[]>([])
@@ -269,12 +278,21 @@ async function confirmLifecycle() {
                     @click="openLifecycle(m, 'reactivate')"
                   />
                 </UTooltip>
+                <UTooltip v-if="canExceptionCreate" :text="t('campaigns.exceptions.addRowTooltip')">
+                  <UButton color="neutral" variant="ghost" icon="i-lucide-rocket" size="sm" @click="openExceptionModal(m)" />
+                </UTooltip>
               </div>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
+
+    <CampaignExceptionFormModal
+      v-model:open="exceptionOpen"
+      :membership-uuid="exceptionMembership?.uuid"
+      :membership-display="exceptionMembership?.planName"
+    />
 
     <!-- Enroll modal -->
     <UModal

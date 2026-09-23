@@ -9,6 +9,7 @@ import type {
   UpdateCampaignRequest,
 } from '~/types/campaign'
 import { CAMPAIGN_MODE_OPTIONS, CAMPAIGN_SCOPE_OPTIONS } from '~/types/campaign'
+import type { SelectItem } from '~/types/options'
 
 // Create/edit form for a commission campaign. Used both as the standalone
 // "quick edit" modal from the list and as the base for the "Relanzar campaña"
@@ -36,7 +37,25 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const campaigns = useCampaigns()
+const currencies = useCurrencies()
 const toast = useToast()
+
+// ---- Currency options (goal amount) — same pattern as CommissionTierFormModal ----
+const currencyItems = ref<SelectItem[]>([])
+const loadingCurrencies = ref(false)
+async function loadCurrencyOptions() {
+  loadingCurrencies.value = true
+  try {
+    const options = await currencies.options()
+    currencyItems.value = options.filter(o => o.code).map(o => ({ label: o.label, value: o.uuid }))
+  }
+  catch { currencyItems.value = [] }
+  finally { loadingCurrencies.value = false }
+}
+function goToCurrency(to: string) {
+  isOpen.value = false
+  navigateTo(to)
+}
 
 const isOpen = computed({
   get: () => props.open,
@@ -62,6 +81,7 @@ interface FormState {
   evaluateOnlyAtEnd: boolean
   payOnlyAtEnd: boolean
   targetAmount: string
+  targetAmountCurrencyUuid: string
   targetCount: string
   exclusivityGroup: string
   priority: string
@@ -89,6 +109,7 @@ const state = reactive<FormState>({
   evaluateOnlyAtEnd: false,
   payOnlyAtEnd: false,
   targetAmount: '',
+  targetAmountCurrencyUuid: '',
   targetCount: '',
   exclusivityGroup: '',
   priority: '',
@@ -105,6 +126,7 @@ const schema = computed(() => z.object({
   scope: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
   mode: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
   targetAmount: z.string().optional().or(z.literal('')),
+  targetAmountCurrencyUuid: state.targetAmount.trim() ? z.string().min(1, t('validation.required')) : z.string().optional(),
   targetCount: z.string().regex(/^\d*$/, t('commissionRules.form.integersOnly')).optional().or(z.literal('')),
   exclusivityGroup: z.string().max(80, t('validation.maxChars', { n: 80 })).optional().or(z.literal('')),
   priority: z.string().regex(/^\d*$/, t('commissionRules.form.integersOnly')).optional().or(z.literal('')),
@@ -120,6 +142,7 @@ function resetForm() {
   state.evaluateOnlyAtEnd = false
   state.payOnlyAtEnd = false
   state.targetAmount = ''
+  state.targetAmountCurrencyUuid = ''
   state.targetCount = ''
   state.exclusivityGroup = ''
   state.priority = ''
@@ -140,6 +163,7 @@ function populateFrom(campaign: CampaignDto | null, blankDates: boolean) {
   state.evaluateOnlyAtEnd = campaign.evaluateOnlyAtEnd
   state.payOnlyAtEnd = campaign.payOnlyAtEnd
   state.targetAmount = campaign.targetAmount != null ? String(campaign.targetAmount) : ''
+  state.targetAmountCurrencyUuid = campaign.targetAmountCurrency_Uuid ?? ''
   state.targetCount = campaign.targetCount != null ? String(campaign.targetCount) : ''
   state.exclusivityGroup = campaign.exclusivityGroup ?? ''
   state.priority = campaign.priority != null ? String(campaign.priority) : ''
@@ -166,9 +190,10 @@ function requestDelete() {
   emit('delete', props.campaign)
 }
 
-watch(() => props.open, (open) => {
+watch(() => props.open, async (open) => {
   if (!open) return
   populateFrom(props.campaign ?? null, props.forceCreate === true)
+  if (currencyItems.value.length === 0) await loadCurrencyOptions()
 })
 
 async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
@@ -184,6 +209,7 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
       evaluateOnlyAtEnd: state.evaluateOnlyAtEnd,
       payOnlyAtEnd: state.payOnlyAtEnd,
       targetAmount: state.targetAmount.trim() || null,
+      targetAmountCurrencyUuid: state.targetAmount.trim() ? state.targetAmountCurrencyUuid : null,
       targetCount: state.targetCount.trim() ? Number(state.targetCount) : null,
       exclusivityGroup: state.exclusivityGroup.trim() || null,
       priority: state.priority.trim() ? Number(state.priority) : null,
@@ -274,6 +300,23 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
             <UInput v-model="state.targetCount" inputmode="numeric" class="w-full" />
           </UFormField>
         </div>
+
+        <UFormField
+          v-if="state.targetAmount.trim()"
+          :label="t('campaigns.form.targetAmountCurrency')"
+          name="targetAmountCurrencyUuid"
+          required
+        >
+          <CommonEntityReferenceSelect
+            v-model="state.targetAmountCurrencyUuid"
+            :items="currencyItems"
+            entity="currency"
+            :loading="loadingCurrencies"
+            :placeholder="t('common.select')"
+            icon="i-lucide-coins"
+            @navigate="goToCurrency"
+          />
+        </UFormField>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('campaigns.form.exclusivityGroup')" name="exclusivityGroup" :help="t('campaigns.form.exclusivityGroupHelp')">

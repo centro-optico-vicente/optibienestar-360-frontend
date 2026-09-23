@@ -138,9 +138,9 @@ onMounted(async () => {
   ])
 })
 
-function money(v?: number | string | null): string {
+function money(v?: number | string | null, currencyCode?: string | null): string {
   if (v === null || v === undefined || v === '') return t('common.empty')
-  return formatCurrency(Number(v), 'USD')
+  return formatCurrency(Number(v), currencyCode || 'USD')
 }
 
 function scopeLabel(c: CampaignDto): string {
@@ -493,6 +493,12 @@ function exReference(ex: CampaignExceptionDto): string {
   return ex.payment_Display ?? ex.membership_Display ?? t('common.empty')
 }
 
+const exceptionAddOpen = ref(false)
+async function onExceptionAdded() {
+  exceptionAddOpen.value = false
+  await Promise.all([loadExceptions(), loadTransactions()])
+}
+
 const exceptionRemoveOpen = ref(false)
 const exceptionRemoveTarget = ref<CampaignExceptionDto | null>(null)
 const exceptionRemoving = ref(false)
@@ -594,7 +600,10 @@ async function confirmRemoveException() {
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('campaigns.detail.fields.targetAmount') }}</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ money(campaign.targetAmount) }}</dd>
+            <dd class="text-prohealth-800 mt-0.5">
+              {{ money(campaign.targetAmount) }}
+              <span v-if="campaign.targetAmountCurrency_Display" class="text-xs text-prohealth-500">({{ campaign.targetAmountCurrency_Display }})</span>
+            </dd>
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('campaigns.detail.fields.targetCount') }}</dt>
@@ -785,7 +794,19 @@ async function confirmRemoveException() {
       <div v-show="activeDetailTab === 'exceptions'" class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
         <div class="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-b border-prohealth-100">
           <h2 class="font-bold text-prohealth-900">{{ t('campaigns.detail.exceptions') }}</h2>
-          <RefreshButton :loading="exLoading" :title="t('common.refreshSection')" @refresh="loadExceptions" />
+          <div class="flex items-center gap-2">
+            <UButton
+              v-if="canExceptionCreate"
+              color="primary"
+              variant="outline"
+              size="sm"
+              icon="i-lucide-plus"
+              @click="exceptionAddOpen = true"
+            >
+              {{ t('campaigns.exceptions.addTitle') }}
+            </UButton>
+            <RefreshButton :loading="exLoading" :title="t('common.refreshSection')" @refresh="loadExceptions" />
+          </div>
         </div>
 
         <div class="overflow-x-auto">
@@ -882,6 +903,14 @@ async function confirmRemoveException() {
         </div>
       </template>
     </UModal>
+
+    <!-- Add exception -->
+    <CampaignExceptionFormModal
+      v-model:open="exceptionAddOpen"
+      :campaign-uuid="campaignUuid"
+      :campaign-display="campaign?.name"
+      @success="onExceptionAdded"
+    />
 
     <!-- Remove exception confirmation -->
     <UModal v-model:open="exceptionRemoveOpen" :title="t('campaigns.exceptions.removeTitle')">

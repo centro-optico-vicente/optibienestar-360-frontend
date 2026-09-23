@@ -12,6 +12,7 @@ import type {
 import {
   ACCRUAL_MODE_OPTIONS,
   BONUS_METRIC_OPTIONS,
+  isAmountCollectedMetric,
   REWARD_TYPE_OPTIONS,
   WINDOW_STRATEGY_OPTIONS,
 } from '~/types/bonusRules'
@@ -38,7 +39,21 @@ const { t } = useI18n()
 const bonusRules = useBonusRules()
 const campaignsApi = useCampaigns()
 const currencies = useCurrencies()
+const promoterTypeOptions = useCatalogOptions('promoter-types')
 const toast = useToast()
+
+// ---- Promoter-type scope (M:N, hub plan Part F) — empty selection = applies to every type ----
+const promoterTypeItems = ref<SelectItem[]>([])
+const loadingPromoterTypes = ref(false)
+async function loadPromoterTypeOptions() {
+  loadingPromoterTypes.value = true
+  try {
+    const options = await promoterTypeOptions.options({ limit: 100 })
+    promoterTypeItems.value = options.map(o => ({ label: o.label, value: o.uuid }))
+  }
+  catch { promoterTypeItems.value = [] }
+  finally { loadingPromoterTypes.value = false }
+}
 
 const isOpen = computed({
   get: () => props.open,
@@ -105,6 +120,8 @@ interface FormState {
   metric: BonusMetric | undefined
   accrual: AccrualMode | undefined
   thresholdCount: string
+  thresholdAmount: string
+  thresholdCurrencyUuid: string
   windowStrategy: WindowStrategy | undefined
   campaignStart: string
   campaignEnd: string
@@ -113,6 +130,7 @@ interface FormState {
   rewardPct: string
   rewardCurrencyUuid: string
   includeSystemPromoters: boolean
+  promoterTypeUuids: string[]
   campaignUuid: string
   startsAt: string
   endsAt: string
@@ -124,6 +142,8 @@ const state = reactive<FormState>({
   metric: 'NEW_SUBSCRIBERS',
   accrual: 'THRESHOLD',
   thresholdCount: '',
+  thresholdAmount: '',
+  thresholdCurrencyUuid: '',
   windowStrategy: 'MONTHLY',
   campaignStart: '',
   campaignEnd: '',
@@ -132,6 +152,7 @@ const state = reactive<FormState>({
   rewardPct: '',
   rewardCurrencyUuid: '',
   includeSystemPromoters: false,
+  promoterTypeUuids: [],
   campaignUuid: '',
   startsAt: '',
   endsAt: '',
@@ -150,6 +171,7 @@ watch(() => state.campaignUuid, async (uuid) => {
 })
 
 const isCampaign = computed(() => state.windowStrategy === 'CAMPAIGN')
+const isAmountCollected = computed(() => isAmountCollectedMetric(state.metric))
 
 const schema = computed(() => {
   const money = z.string().regex(/^\d+(\.\d{1,2})?$/, t('commissionRules.form.invalidAmount'))
@@ -159,7 +181,9 @@ const schema = computed(() => {
     description: z.string().optional(),
     metric: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
     accrual: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
-    thresholdCount: int,
+    thresholdCount: isAmountCollected.value ? z.string().optional() : int,
+    thresholdAmount: isAmountCollected.value ? money : z.string().optional(),
+    thresholdCurrencyUuid: isAmountCollected.value ? z.string().min(1, t('validation.required')) : z.string().optional(),
     windowStrategy: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
     campaignStart: isCampaign.value ? z.string().min(1, t('validation.required')) : z.string().optional(),
     campaignEnd: isCampaign.value ? z.string().min(1, t('validation.required')) : z.string().optional(),
@@ -187,6 +211,8 @@ function populateFrom(rule: BonusRuleDto | null) {
     state.metric = 'NEW_SUBSCRIBERS'
     state.accrual = 'THRESHOLD'
     state.thresholdCount = ''
+    state.thresholdAmount = ''
+    state.thresholdCurrencyUuid = ''
     state.windowStrategy = 'MONTHLY'
     state.campaignStart = ''
     state.campaignEnd = ''
@@ -195,6 +221,7 @@ function populateFrom(rule: BonusRuleDto | null) {
     state.rewardPct = ''
     state.rewardCurrencyUuid = ''
     state.includeSystemPromoters = false
+    state.promoterTypeUuids = []
     state.campaignUuid = props.campaignUuid ?? ''
     state.startsAt = ''
     state.endsAt = ''
@@ -205,7 +232,9 @@ function populateFrom(rule: BonusRuleDto | null) {
   state.description = rule.description ?? ''
   state.metric = rule.metric
   state.accrual = rule.accrual
-  state.thresholdCount = String(rule.thresholdCount ?? '')
+  state.thresholdCount = rule.thresholdCount != null ? String(rule.thresholdCount) : ''
+  state.thresholdAmount = rule.thresholdAmount != null ? String(rule.thresholdAmount) : ''
+  state.thresholdCurrencyUuid = rule.thresholdCurrency_Uuid ?? ''
   state.windowStrategy = rule.windowStrategy
   state.campaignStart = rule.campaignStart ?? ''
   state.campaignEnd = rule.campaignEnd ?? ''
@@ -214,6 +243,7 @@ function populateFrom(rule: BonusRuleDto | null) {
   state.rewardPct = rule.rewardPct != null ? String(rule.rewardPct) : ''
   state.rewardCurrencyUuid = rule.rewardCurrencyRef_Uuid ?? ''
   state.includeSystemPromoters = rule.includeSystemPromoters ?? false
+  state.promoterTypeUuids = (rule.promoterTypes ?? []).map(p => p.uuid)
   state.campaignUuid = rule.campaign_Uuid ?? ''
   state.startsAt = rule.startsAt ? isoToDatetimeLocal(rule.startsAt) : ''
   state.endsAt = rule.endsAt ? isoToDatetimeLocal(rule.endsAt) : ''
@@ -225,6 +255,7 @@ watch(() => props.open, async (open) => {
   if (!open) return
   populateFrom(props.rule ?? null)
   if (currencyItems.value.length === 0) await loadCurrencyOptions()
+  if (promoterTypeItems.value.length === 0) await loadPromoterTypeOptions()
 })
 
 async function reloadForm() {
@@ -251,7 +282,9 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
       description: state.description.trim() || undefined,
       metric: state.metric!,
       accrual: state.accrual!,
-      thresholdCount: Number(state.thresholdCount),
+      thresholdCount: isAmountCollected.value ? null : Number(state.thresholdCount),
+      thresholdAmount: isAmountCollected.value ? state.thresholdAmount.trim() : null,
+      thresholdCurrencyUuid: isAmountCollected.value ? state.thresholdCurrencyUuid : null,
       windowStrategy: state.windowStrategy!,
       campaignStart: isCampaign.value ? state.campaignStart : null,
       campaignEnd: isCampaign.value ? state.campaignEnd : null,
@@ -260,6 +293,7 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
       rewardPct: state.rewardType === 'PERCENTAGE' ? state.rewardPct.trim() : null,
       rewardCurrencyUuid: state.rewardType === 'FLAT' ? state.rewardCurrencyUuid : null,
       includeSystemPromoters: state.includeSystemPromoters,
+      promoterTypeUuids: state.promoterTypeUuids,
       campaignUuid: state.campaignUuid || null,
       startsAt: datetimeLocalToIso(state.startsAt) ?? null,
       endsAt: datetimeLocalToIso(state.endsAt) ?? null,
@@ -317,13 +351,36 @@ function openDeleteFromEdit() {
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <UFormField :label="t('commissionRules.bonusRules.form.thresholdCount')" name="thresholdCount" required>
+          <UFormField v-if="!isAmountCollected" :label="t('commissionRules.bonusRules.form.thresholdCount')" name="thresholdCount" required>
             <UInput v-model="state.thresholdCount" inputmode="numeric" class="w-full" />
+          </UFormField>
+          <UFormField v-else :label="t('commissionRules.bonusRules.form.thresholdAmount')" name="thresholdAmount" required>
+            <UInput v-model="state.thresholdAmount" placeholder="400.00" class="w-full">
+              <template #leading><span class="text-prohealth-400 text-sm">$</span></template>
+            </UInput>
           </UFormField>
           <UFormField :label="t('commissionRules.bonusRules.form.windowStrategy')" name="windowStrategy" required>
             <USelectMenu clear v-model="state.windowStrategy" :items="windowOptions" label-key="label" value-key="value" class="w-full" />
           </UFormField>
         </div>
+
+        <UFormField
+          v-if="isAmountCollected"
+          :label="t('commissionRules.bonusRules.form.thresholdCurrency')"
+          name="thresholdCurrencyUuid"
+          required
+          :help="t('commissionRules.bonusRules.form.thresholdCurrencyHelp')"
+        >
+          <CommonEntityReferenceSelect
+            v-model="state.thresholdCurrencyUuid"
+            :items="currencyItems"
+            entity="currency"
+            :loading="loadingCurrencies"
+            :placeholder="t('common.select')"
+            icon="i-lucide-coins"
+            @navigate="goToCurrency"
+          />
+        </UFormField>
 
         <div v-if="isCampaign" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('commissionRules.bonusRules.form.campaignStart')" name="campaignStart" required>
@@ -364,6 +421,21 @@ function openDeleteFromEdit() {
 
         <UFormField :label="t('commissionRules.bonusRules.form.includeSystemPromoters')" name="includeSystemPromoters">
           <USwitch v-model="state.includeSystemPromoters" />
+        </UFormField>
+
+        <UFormField :label="t('commissionRules.form.promoterTypes')" name="promoterTypeUuids" :help="t('commissionRules.form.promoterTypesHelp')">
+          <USelectMenu
+            clear
+            v-model="state.promoterTypeUuids"
+            :items="promoterTypeItems"
+            label-key="label"
+            value-key="value"
+            multiple
+            :loading="loadingPromoterTypes"
+            icon="i-lucide-tags"
+            :placeholder="t('commissionRules.form.promoterTypesPlaceholder')"
+            class="w-full"
+          />
         </UFormField>
 
         <UFormField :label="t('campaigns.form.campaign')" name="campaignUuid" :help="t('campaigns.form.campaignHelp')">

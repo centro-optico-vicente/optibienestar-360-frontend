@@ -3033,6 +3033,7 @@
         "evaluateOnlyAtEnd": "Evaluate only at end",
         "payOnlyAtEnd": "Pay only at end",
         "targetAmount": "Target amount",
+        "targetAmountCurrency": "Goal currency",
         "targetCount": "Target count",
         "exclusivityGroup": "Exclusivity group",
         "priority": "Priority",
@@ -3082,8 +3083,11 @@
       "type": "Type",
       "reason": "Reason",
       "transaction": "Transaction",
+      "transactionHelp": "UUID of the payment or membership to include/exclude",
       "createdToast": "Exception registered",
-      "removedToast": "Exception removed"
+      "removedToast": "Exception removed",
+      "addRowTooltip": "Add campaign exception",
+      "noCampaignsPermission": "No permission to manage campaign exceptions"
     },
     "reglasExpress": "Express rules"
   },
@@ -3125,7 +3129,8 @@
     },
     "bonusMetrics": {
       "NEW_SUBSCRIBERS": "New subscribers",
-      "ACTIVE_SUBSCRIBERS": "Active subscribers"
+      "ACTIVE_SUBSCRIBERS": "Active subscribers",
+      "AMOUNT_COLLECTED": "Amount collected"
     },
     "accrualModes": {
       "PER_BLOCK": "Per block (repeats)",
@@ -3148,7 +3153,10 @@
     },
     "form": {
       "invalidAmount": "Invalid amount",
-      "integersOnly": "Integers only"
+      "integersOnly": "Integers only",
+      "promoterTypes": "Promoter types",
+      "promoterTypesHelp": "Empty = applies to every promoter type.",
+      "promoterTypesPlaceholder": "All types"
     },
     "filters": {
       "allPromoterTypes": "All promoter types",
@@ -3231,6 +3239,9 @@
         "metric": "Metric",
         "accrual": "Accrual",
         "thresholdCount": "Threshold",
+        "thresholdAmount": "Threshold (amount)",
+        "thresholdCurrency": "Threshold currency",
+        "thresholdCurrencyHelp": "Currency the collected amount is compared against — independent of the reward currency.",
         "windowStrategy": "Window",
         "campaignStart": "Campaign start (fixed window)",
         "campaignEnd": "Campaign end (fixed window)",
