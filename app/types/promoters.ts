@@ -498,15 +498,9 @@ export interface ApproveCommissionsRequest {
   commissionUuids: string[]
 }
 
-/**
- * Front-end-only extension of the approval table's checkable set (E.2): a
- * `PENDING` row is checkable for approve/reject; an `APPROVED` row is also
- * checkable, but only to feed the "Generar pagos" bulk action below — the
- * backend's own `locked` flag (used for the disabled/read-only paint) stays
- * true for both, since approve/reject still require strictly `PENDING`.
- */
+/** A `PENDING` row is checkable for approve/reject — the only status the backend accepts. */
 export function isCommissionRowCheckable(row: Pick<CommissionApprovalRowDto, 'status'>): boolean {
-  return row.status === 'PENDING' || row.status === 'APPROVED'
+  return row.status === 'PENDING'
 }
 
 /** "Generar pagos" screen: only APPROVED rows are payable (unlike approval.vue, PENDING never is). */

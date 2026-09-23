@@ -2631,12 +2631,26 @@
       "button": "Approve commissions",
       "title": "Commission approval",
       "subtitle": "A calculated commission is a simulation until approved — only approved ones can be paid.",
+      "filtersTitle": "Filters",
       "fields": {
-        "period": "Period"
+        "period": "Period",
+        "clearPeriod": "Clear period",
+        "promoterType": "Promoter type",
+        "promoter": "Promoter",
+        "appliesTo": "Applies to",
+        "status": "Status",
+        "amountFrom": "Amount from",
+        "amountTo": "Amount to",
+        "campaign": "Campaign",
+        "rank": "Rank"
       },
+      "clearAll": "Clear filters",
       "loadButton": "Load period",
       "refreshButton": "Refresh",
-      "empty": "No commissions in this period.",
+      "empty": "No commissions match the applied filters.",
+      "paginationSummary": "Showing {shown} of {total}",
+      "groupByPromoter": "Group by promoter",
+      "selectAll": "Select all",
       "selectedCount": "{count} commissions selected",
       "approveButton": "Approve selected",
       "rejectButton": "Reject selected",
@@ -2644,6 +2658,7 @@
       "approvedToast": "{count} commissions approved successfully.",
       "rejectedToast": "{count} commissions rejected ({overrides} hierarchy overrides voided in cascade).",
       "columns": {
+        "promoter": "Promoter",
         "appliesTo": "Applies to",
         "amount": "Amount",
         "earnedAt": "Earned",
@@ -2686,7 +2701,8 @@
         "amount": "Amount",
         "earnedAt": "Earned",
         "status": "Status"
-      }
+      },
+      "groupByPromoter": "Group by promoter"
     },
     "overrideReRating": {
       "button": "Re-rate hierarchy override",

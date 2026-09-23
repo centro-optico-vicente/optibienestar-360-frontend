@@ -54,6 +54,23 @@ const rankUuid = ref<string | undefined>(undefined)
 const appliesToOptions = computed(() => APPLIES_TO_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
 const statusOptions = computed(() => COMMISSION_STATUS_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
 
+// Same resolution order as CommissionApprovalGroup's `appliesToLabel`:
+// server-resolved `_Display` first, then the local i18n catalog, then the raw value.
+function appliesToLabel(row: CommissionDto): string {
+  if (row.appliesTo_Display) {
+    return row.appliesTo_Display
+  }
+  const option = APPLIES_TO_OPTIONS.find(o => o.value === row.appliesTo)
+  return option ? t(option.labelKey) : (row.appliesTo ?? '')
+}
+
+// Shared `ui` override for `type="number"` inputs: hides the native
+// increment/decrement spin buttons, which otherwise overlap the
+// right-aligned text and money `$` prefix, so the caret lands where expected.
+const NUMBER_INPUT_UI = {
+  base: 'w-full text-right [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none',
+}
+
 async function searchPromoters(q: string): Promise<SelectItem[]> {
   const res = await promotersApi.list({ q, size: 20 })
   return (res.content ?? []).map(p => ({ label: p.displayName, value: p.uuid }))
@@ -139,6 +156,20 @@ const size = ref(DEFAULT_PAGE_SIZE)
 const pageSizeItems = buildPageSizeItems(t)
 const resetting = ref(false)
 
+// The scrollable body keeps its `scrollTop` across reloads (sort click, page
+// change, filter change) because the DOM node itself never unmounts — only
+// its rows do. Left alone, a reorder (e.g. sorting by promoter) can leave the
+// viewport scrolled past the new first group's header row, which then sits
+// hidden behind the sticky `<thead>` while that group's own data rows — far
+// enough down to still be in view — render normally, looking like a group
+// with no header at all. Reset to the top on every reload so row 1 is always
+// under, not behind, the sticky header.
+const tableScrollEl = ref<HTMLDivElement | null>(null)
+
+// ---- Grouping (mutually exclusive with server-side pagination — see watchers below) ----
+const groupByPromoter = ref(false)
+const expandedGroups = ref<Set<string>>(new Set())
+
 // Empty by default: no `sort=` is sent until the user clicks a column, same
 // convention as commissions/index.vue — the backend's own default-sort
 // fallback applies until then.
@@ -179,12 +210,25 @@ async function load() {
   finally {
     selected.value = new Set()
     loading.value = false
+    await nextTick()
+    if (tableScrollEl.value) tableScrollEl.value.scrollTop = 0
   }
 }
 
 watch(size, () => { if (!resetting.value) page.value = 1 })
 watch([page, size], () => { if (!resetting.value) load() })
 watch(sort.orders, () => { if (!resetting.value) load() }, { deep: true })
+
+// Grouping and server-side pagination are mutually exclusive — a promoter
+// could otherwise be split across pages. Neither watcher re-triggers the
+// other: each only assigns when the target isn't already at that value, so
+// the resulting no-op change on the other ref never fires its own watcher.
+watch(groupByPromoter, (v) => {
+  if (v && size.value !== UNPAGED_PAGE_SIZE) size.value = UNPAGED_PAGE_SIZE
+})
+watch(size, (s) => {
+  if (s !== UNPAGED_PAGE_SIZE && groupByPromoter.value) groupByPromoter.value = false
+})
 
 let filterTimer: ReturnType<typeof setTimeout> | undefined
 watch(
@@ -228,6 +272,82 @@ function toggleRow(uuid: string, checked: boolean) {
 function toggleAll(checked: boolean) {
   const next = new Set(selected.value)
   for (const row of payableRows.value) {
+    if (checked) next.add(row.uuid)
+    else next.delete(row.uuid)
+  }
+  selected.value = next
+}
+
+// ---- Grouping by promoter (client-side clustering of `data.value`) ----
+// Uses a Map, not an assumption that rows of the same promoter are
+// contiguous — no sort is pinned here, so they can appear in any order
+// depending on whichever column the user has sorted.
+interface CommissionGroup {
+  key: string
+  label: string
+  code?: string
+  rows: CommissionDto[]
+}
+
+const groupedByPromoterRows = computed<CommissionGroup[] | null>(() => {
+  if (!groupByPromoter.value) return null
+  const map = new Map<string, CommissionGroup>()
+  for (const row of data.value) {
+    const key = row.promoter_Uuid || row.promoter_Display || ''
+    let group = map.get(key)
+    if (!group) {
+      group = { key, label: row.promoter_Display || t('common.empty'), code: row.promoter_Code || undefined, rows: [] }
+      map.set(key, group)
+    }
+    group.rows.push(row)
+  }
+  return Array.from(map.values())
+})
+
+// Groups open by default: whenever the clustering changes (grouping just
+// turned on, or fresh `data` while it's on), expand every key it doesn't
+// already know about instead of collapsing everything — that would also
+// discard a user's manual collapse on an unrelated reload.
+watch(groupedByPromoterRows, (groups) => {
+  if (!groups) return
+  const next = new Set(expandedGroups.value)
+  let changed = false
+  for (const group of groups) {
+    if (!next.has(group.key)) {
+      next.add(group.key)
+      changed = true
+    }
+  }
+  if (changed) expandedGroups.value = next
+})
+
+function isGroupExpanded(key: string): boolean {
+  return expandedGroups.value.has(key)
+}
+
+function toggleGroupExpanded(key: string) {
+  const next = new Set(expandedGroups.value)
+  if (next.has(key)) next.delete(key)
+  else next.add(key)
+  expandedGroups.value = next
+}
+
+function groupPayableRows(group: CommissionGroup): CommissionDto[] {
+  return group.rows.filter(isPayableCommissionRow)
+}
+
+function groupState(group: CommissionGroup): boolean | 'indeterminate' {
+  const ids = groupPayableRows(group).map(r => r.uuid)
+  if (ids.length === 0) return false
+  const count = ids.filter(id => selected.value.has(id)).length
+  if (count === 0) return false
+  if (count === ids.length) return true
+  return 'indeterminate'
+}
+
+function toggleGroupAll(group: CommissionGroup, checked: boolean) {
+  const next = new Set(selected.value)
+  for (const row of groupPayableRows(group)) {
     if (checked) next.add(row.uuid)
     else next.delete(row.uuid)
   }
@@ -338,7 +458,7 @@ async function onPayoutDone() {
           </UFormField>
 
           <UFormField :label="t('commissions.payoutGenerate.fields.amountFrom')">
-            <UInput v-model="amountFrom" type="number" min="0" class="w-full text-right">
+            <UInput v-model="amountFrom" type="number" min="0" class="w-full" :ui="NUMBER_INPUT_UI">
               <template #leading>
                 <span class="text-prohealth-400 text-sm">$</span>
               </template>
@@ -349,7 +469,7 @@ async function onPayoutDone() {
           </UFormField>
 
           <UFormField :label="t('commissions.payoutGenerate.fields.amountTo')">
-            <UInput v-model="amountTo" type="number" min="0" class="w-full text-right">
+            <UInput v-model="amountTo" type="number" min="0" class="w-full" :ui="NUMBER_INPUT_UI">
               <template #leading>
                 <span class="text-prohealth-400 text-sm">$</span>
               </template>
@@ -395,36 +515,58 @@ async function onPayoutDone() {
 
     <!-- Table: fixed height + internal scroll, sticky header -->
     <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-26rem)] min-h-[20rem]">
-      <div class="overflow-auto flex-1">
+      <div ref="tableScrollEl" class="overflow-auto flex-1">
         <table class="w-full text-sm">
           <thead class="sticky top-0 bg-white z-10">
             <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
-              <th class="px-4 py-2.5 w-8">
+              <th class="px-4 py-2.5 w-8 text-center">
                 <UCheckbox
                   :model-value="masterState"
                   :disabled="payableRows.length === 0"
                   @update:model-value="(v: boolean | 'indeterminate') => toggleAll(v === true)"
                 />
               </th>
-              <th class="px-4 py-2.5 font-semibold cursor-pointer select-none" @click="sort.toggle('promoter_Display')">
-                {{ t('commissions.payoutGenerate.columns.promoter') }}
-                <SortIndicator :state="sort.stateOf('promoter_Display')" :multi-active="isMultiSort" @clear="sort.remove('promoter_Display')" />
+              <th class="px-4 py-2.5 font-semibold cursor-pointer select-none text-center" @click="sort.toggle('promoter_Display')">
+                <span class="flex items-center justify-center gap-1">
+                  {{ t('commissions.payoutGenerate.columns.promoter') }}
+                  <SortIndicator
+                    :state="sort.stateOf('promoter_Display')"
+                    :multi-active="isMultiSort"
+                    @clear="sort.remove('promoter_Display')"
+                  />
+                </span>
               </th>
-              <th class="px-4 py-2.5 font-semibold cursor-pointer select-none" @click="sort.toggle('appliesTo')">
-                {{ t('commissions.payoutGenerate.columns.appliesTo') }}
-                <SortIndicator :state="sort.stateOf('appliesTo')" :multi-active="isMultiSort" @clear="sort.remove('appliesTo')" />
+              <th class="px-4 py-2.5 font-semibold cursor-pointer select-none text-center" @click="sort.toggle('appliesTo')">
+                <span class="flex items-center justify-center gap-1">
+                  {{ t('commissions.payoutGenerate.columns.appliesTo') }}
+                  <SortIndicator
+                    :state="sort.stateOf('appliesTo')"
+                    :multi-active="isMultiSort"
+                    @clear="sort.remove('appliesTo')"
+                  />
+                </span>
               </th>
-              <th class="px-4 py-2.5 font-semibold text-right cursor-pointer select-none" @click="sort.toggle('amount')">
-                {{ t('commissions.payoutGenerate.columns.amount') }}
-                <SortIndicator :state="sort.stateOf('amount')" :multi-active="isMultiSort" @clear="sort.remove('amount')" />
+              <th class="px-4 py-2.5 font-semibold cursor-pointer select-none text-center" @click="sort.toggle('amount')">
+                <span class="flex items-center justify-center gap-1">
+                  {{ t('commissions.payoutGenerate.columns.amount') }}
+                  <SortIndicator :state="sort.stateOf('amount')" :multi-active="isMultiSort" @clear="sort.remove('amount')" />
+                </span>
               </th>
-              <th class="px-4 py-2.5 font-semibold cursor-pointer select-none" @click="sort.toggle('earnedAt')">
-                {{ t('commissions.payoutGenerate.columns.earnedAt') }}
-                <SortIndicator :state="sort.stateOf('earnedAt')" :multi-active="isMultiSort" @clear="sort.remove('earnedAt')" />
+              <th class="px-4 py-2.5 font-semibold cursor-pointer select-none text-center" @click="sort.toggle('earnedAt')">
+                <span class="flex items-center justify-center gap-1">
+                  {{ t('commissions.payoutGenerate.columns.earnedAt') }}
+                  <SortIndicator :state="sort.stateOf('earnedAt')" :multi-active="isMultiSort" @clear="sort.remove('earnedAt')" />
+                </span>
               </th>
-              <th class="px-4 py-2.5 font-semibold cursor-pointer select-none" @click="sort.toggle('status')">
-                {{ t('commissions.payoutGenerate.columns.status') }}
-                <SortIndicator :state="sort.stateOf('status')" :multi-active="isMultiSort" @clear="sort.remove('status')" />
+              <th class="px-4 py-2.5 font-semibold cursor-pointer select-none text-center" @click="sort.toggle('status')">
+                <span class="flex items-center justify-center gap-1">
+                  {{ t('commissions.payoutGenerate.columns.status') }}
+                  <SortIndicator
+                    :state="sort.stateOf('status')"
+                    :multi-active="isMultiSort"
+                    @clear="sort.remove('status')"
+                  />
+                </span>
               </th>
             </tr>
           </thead>
@@ -436,35 +578,99 @@ async function onPayoutDone() {
                 {{ t('commissions.payoutGenerate.empty') }}
               </td>
             </tr>
-            <tr v-for="row in data" v-else :key="row.uuid" class="hover:bg-prohealth-50/50">
-              <td class="px-4 py-2.5">
-                <UCheckbox
-                  :model-value="selected.has(row.uuid)"
-                  :disabled="!isPayableCommissionRow(row)"
-                  @update:model-value="(v: boolean | 'indeterminate') => toggleRow(row.uuid, v === true)"
-                />
-              </td>
-              <td class="px-4 py-2.5">
-                <div class="font-semibold">
-                  <CommonEntityLinkCell
-                    :to="row.promoter_Uuid ? `/dashboard/promoters/${row.promoter_Uuid}` : null"
-                    :label="row.promoter_Display"
-                    :can="canViewPromoter"
+            <template v-else-if="groupedByPromoterRows">
+              <template v-for="group in groupedByPromoterRows" :key="group.key">
+                <tr class="bg-prohealth-50/60 hover:bg-prohealth-100/60 cursor-pointer select-none" @click="toggleGroupExpanded(group.key)">
+                  <td class="px-4 py-2.5" @click.stop>
+                    <UCheckbox
+                      :model-value="groupState(group)"
+                      :disabled="groupPayableRows(group).length === 0"
+                      @update:model-value="(v: boolean | 'indeterminate') => toggleGroupAll(group, v === true)"
+                    />
+                  </td>
+                  <td colspan="5" class="px-4 py-2.5 font-semibold text-prohealth-800">
+                    <span class="inline-flex items-center gap-1.5">
+                      <UIcon :name="isGroupExpanded(group.key) ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'" class="w-4 h-4 text-prohealth-400" />
+                      {{ group.label }}
+                      <span v-if="group.code" class="text-xs font-mono text-prohealth-400 font-normal">{{ group.code }}</span>
+                      <span class="text-xs text-prohealth-400 font-normal">({{ group.rows.length }})</span>
+                    </span>
+                  </td>
+                </tr>
+                <template v-if="isGroupExpanded(group.key)">
+                  <tr
+                    v-for="row in group.rows"
+                    :key="row.uuid"
+                    class="hover:bg-prohealth-50/50"
+                    @dblclick="isPayableCommissionRow(row) && toggleRow(row.uuid, !selected.has(row.uuid))"
+                  >
+                    <td class="px-4 py-2.5">
+                      <UCheckbox
+                        :model-value="selected.has(row.uuid)"
+                        :disabled="!isPayableCommissionRow(row)"
+                        @update:model-value="(v: boolean | 'indeterminate') => toggleRow(row.uuid, v === true)"
+                      />
+                    </td>
+                    <td class="px-4 py-2.5">
+                      <div class="font-semibold">
+                        <CommonEntityLinkCell
+                          :to="row.promoter_Uuid ? `/dashboard/promoters/${row.promoter_Uuid}` : null"
+                          :label="row.promoter_Display"
+                          :can="canViewPromoter"
+                        />
+                      </div>
+                      <div class="text-xs text-prohealth-500 font-mono">{{ row.promoter_Code || t('common.empty') }}</div>
+                    </td>
+                    <td class="px-4 py-2.5 text-prohealth-700">{{ appliesToLabel(row) }}</td>
+                    <td class="px-4 py-2.5 text-right font-medium text-prohealth-900">
+                      <MoneyWithTooltip :display="row.amount_Display" :converted-display="row.amountConverted_Display" :rate-date="row.exchangeRateDate" />
+                    </td>
+                    <td class="px-4 py-2.5 text-prohealth-600 text-xs">{{ row.earnedAt_Display || formatDate(row.earnedAt, 'datetime') }}</td>
+                    <td class="px-4 py-2.5">
+                      <UBadge :color="commissionStatusColor(row.status)" variant="subtle" size="sm">
+                        {{ row.status_Display || row.status }}
+                      </UBadge>
+                    </td>
+                  </tr>
+                </template>
+              </template>
+            </template>
+            <template v-else>
+              <tr
+                v-for="row in data"
+                :key="row.uuid"
+                class="hover:bg-prohealth-50/50"
+                @dblclick="isPayableCommissionRow(row) && toggleRow(row.uuid, !selected.has(row.uuid))"
+              >
+                <td class="px-4 py-2.5">
+                  <UCheckbox
+                    :model-value="selected.has(row.uuid)"
+                    :disabled="!isPayableCommissionRow(row)"
+                    @update:model-value="(v: boolean | 'indeterminate') => toggleRow(row.uuid, v === true)"
                   />
-                </div>
-                <div class="text-xs text-prohealth-500 font-mono">{{ row.promoter_Code || t('common.empty') }}</div>
-              </td>
-              <td class="px-4 py-2.5 text-prohealth-700">{{ row.appliesTo_Display || row.appliesTo }}</td>
-              <td class="px-4 py-2.5 text-right font-medium text-prohealth-900">
-                <MoneyWithTooltip :display="row.amount_Display" :converted-display="row.amountConverted_Display" :rate-date="row.exchangeRateDate" />
-              </td>
-              <td class="px-4 py-2.5 text-prohealth-600 text-xs">{{ row.earnedAt_Display || formatDate(row.earnedAt, 'datetime') }}</td>
-              <td class="px-4 py-2.5">
-                <UBadge :color="commissionStatusColor(row.status)" variant="subtle" size="sm">
-                  {{ row.status_Display || row.status }}
-                </UBadge>
-              </td>
-            </tr>
+                </td>
+                <td class="px-4 py-2.5">
+                  <div class="font-semibold">
+                    <CommonEntityLinkCell
+                      :to="row.promoter_Uuid ? `/dashboard/promoters/${row.promoter_Uuid}` : null"
+                      :label="row.promoter_Display"
+                      :can="canViewPromoter"
+                    />
+                  </div>
+                  <div class="text-xs text-prohealth-500 font-mono">{{ row.promoter_Code || t('common.empty') }}</div>
+                </td>
+                <td class="px-4 py-2.5 text-prohealth-700">{{ appliesToLabel(row) }}</td>
+                <td class="px-4 py-2.5 text-right font-medium text-prohealth-900">
+                  <MoneyWithTooltip :display="row.amount_Display" :converted-display="row.amountConverted_Display" :rate-date="row.exchangeRateDate" />
+                </td>
+                <td class="px-4 py-2.5 text-prohealth-600 text-xs">{{ row.earnedAt_Display || formatDate(row.earnedAt, 'datetime') }}</td>
+                <td class="px-4 py-2.5">
+                  <UBadge :color="commissionStatusColor(row.status)" variant="subtle" size="sm">
+                    {{ row.status_Display || row.status }}
+                  </UBadge>
+                </td>
+              </tr>
+            </template>
           </tbody>
         </table>
       </div>
@@ -495,6 +701,7 @@ async function onPayoutDone() {
             :search-input="false"
             class="w-40"
           />
+          <UCheckbox v-model="groupByPromoter" :label="t('commissions.payoutGenerate.groupByPromoter')" />
         </div>
       </div>
       <UButton

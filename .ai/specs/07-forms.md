@@ -210,6 +210,36 @@ catch (e: any) {
 - **Loading state:** `isSubmitting` deshabilita el botón submit
 - **Confirmación destructiva:** modal antes de delete/cancel (no destructive con un click)
 - **Atajos teclado:** Enter submit, Esc cancel
+- **`UCheckbox`/`USwitch` con texto asociado siempre clickeable desde el label** (ver sección siguiente)
+
+## Checkbox / Switch con label clickeable
+
+Todo `UCheckbox` o `USwitch` que lleve un texto al lado **debe** poder alternar su valor
+clickeando ese texto, no solo el control — es el comportamiento estándar de cualquier
+checkbox/switch bien hecho, y el usuario lo espera por default salvo que se indique
+explícitamente lo contrario para un caso puntual.
+
+Usar siempre la prop nativa `label` (o el slot `#label` para contenido enriquecido, íconos,
+etc.) — **nunca** un `<span>`/texto suelto como hermano del componente, porque no queda
+asociado al input y clickearlo no hace nada:
+
+```vue
+<!-- ✅ Correcto: label nativo, clickeable -->
+<UCheckbox v-model="groupByPromoter" :label="t('commissions.payoutGenerate.groupByPromoter')" />
+<USwitch v-model="active" label="Activo" />
+
+<!-- ❌ Incorrecto: el texto no alterna el valor -->
+<div class="flex items-center gap-2">
+  <UCheckbox v-model="groupByPromoter" />
+  <span>{{ t('commissions.payoutGenerate.groupByPromoter') }}</span>
+</div>
+```
+
+Si el `UCheckbox`/`USwitch` ya vive dentro de un `UFormField` con su propio `label`, ese
+`label` del `UFormField` ya resuelve la asociación — no hace falta duplicar. Si por algún
+motivo no se puede usar la prop `label` (layouts muy específicos), envolver checkbox + texto
+en un `<label>` real (`<label class="cursor-pointer">...<UCheckbox .../> texto</label>`) es
+una alternativa válida, aunque menos idiomática que la prop nativa.
 
 ## Campos de solo lectura / deshabilitados
 

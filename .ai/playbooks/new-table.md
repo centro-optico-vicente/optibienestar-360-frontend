@@ -212,6 +212,42 @@ Ver `app/pages/dashboard/users/index.vue`, `allies/index.vue`, `roles/index.vue`
 
 > Nota: varias tablas anteriores a esta regla (`members`, `promoters`, `plans`, `payments`, `scheduled-jobs`, `commission-rules`) usan un patrón previo de **un solo click** en toda la fila (`@click="... && openEdit(row)"` + `@click.stop` en la celda de acciones) en vez de doble click. Ese patrón sigue siendo válido y no hace falta migrarlo — pero **toda tabla nueva** debe usar el patrón de doble click descrito arriba.
 
+## Doble click en tablas con selección (checkboxes)
+
+Si la tabla es de **selección** (checkbox por fila para una acción en lote, no navegación),
+la regla de arriba no aplica: el doble click en la fila alterna su checkbox en vez de abrir
+detalle/modal — son dos comportamientos de doble click mutuamente excluyentes según el tipo
+de tabla. Reutilizar la misma función de toggle del checkbox y el mismo criterio de
+habilitación (si la fila no es seleccionable, el doble click no hace nada):
+
+```vue
+<tr
+  v-for="row in data"
+  :key="row.uuid"
+  @dblclick="isRowSelectable(row) && toggleRow(row.uuid, !selected.has(row.uuid))"
+>
+```
+
+Ver `app/pages/dashboard/commissions/payouts-generate.vue` como referencia.
+
+## Headers de columna siempre centrados
+
+El contenido de cada `<th>` (label, y el ícono de `SortIndicator` si es ordenable) se centra
+como bloque horizontalmente, independientemente del tipo de dato que muestre esa columna:
+
+```vue
+<th class="px-5 py-3 font-semibold text-center cursor-pointer select-none" @click="sort.toggle('amount')">
+  <span class="flex items-center justify-center gap-1">
+    {{ t('commissions.columns.amount') }}
+    <SortIndicator :state="sort.stateOf('amount')" :multi-active="isMultiSort" @clear="sort.remove('amount')" />
+  </span>
+</th>
+```
+
+Esto es solo para el encabezado — las celdas de datos (`<td>`) mantienen su alineación según
+el tipo de valor (numérico a la derecha per
+[hub `09-numeric-value-alignment.md`](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/specs/09-numeric-value-alignment.md), texto libre a la izquierda).
+
 ## Reglas
 
 - Estado en query params (shareable URLs)
@@ -220,4 +256,5 @@ Ver `app/pages/dashboard/users/index.vue`, `allies/index.vue`, `roles/index.vue`
 - Mobile responsive (cards vs tabla)
 - Whitelist de campos sortable/filterable (lo define backend)
 - Default sort sensato
-- Doble click en la fila abre detalle (si existe) o modal de edición (ver sección arriba)
+- Doble click en la fila abre detalle (si existe) o modal de edición — o, en tablas de selección, alterna el checkbox de esa fila (ver secciones arriba; son mutuamente excluyentes por tabla)
+- Headers de columna siempre centrados (label + ícono de sort como bloque)
