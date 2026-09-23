@@ -14,7 +14,7 @@ import type { CommissionTierDto } from '~/types/commissionTiers'
 import type { BonusRuleDto } from '~/types/bonusRules'
 import type { CollectionCommissionTierDto } from '~/types/collectionCommissionTiers'
 import type { HierarchyOverrideTierDto } from '~/types/hierarchyOverrideTiers'
-import { todayInCaracas } from '~/utils/date'
+import { clampTodayToRange } from '~/utils/date'
 
 // Ficha/detail page for a commission campaign (hub plan "commission campaigns").
 // Follows the layout conventions of promoters/[uuid].vue: header card with
@@ -102,15 +102,8 @@ const targetAmountCurrencyCode = computed(() =>
  * `[startsAt, endsAt]` so the conversion always reflects a valid vigency
  * date instead of "now" possibly falling outside the campaign.
  */
-const targetAmountConversionDate = computed(() => {
-  const start = campaign.value?.startsAt ? campaign.value.startsAt.slice(0, 10) : null
-  const end = campaign.value?.endsAt ? campaign.value.endsAt.slice(0, 10) : null
-  if (!start && !end) return null
-  const today = todayInCaracas()
-  if (start && today < start) return start
-  if (end && today > end) return end
-  return today
-})
+const targetAmountConversionDate = computed(() =>
+  clampTodayToRange(campaign.value?.startsAt, campaign.value?.endsAt))
 const loading = ref(true)
 const notFound = ref(false)
 
@@ -364,11 +357,11 @@ async function loadAllRules() {
 }
 
 function tierParams(tier: CommissionTierDto): string {
-  const reward = tier.commissionPct != null ? `${tier.commissionPct}%` : (tier.flatAmount != null ? `$${tier.flatAmount}` : '—')
+  const reward = tier.commissionPct != null ? `${tier.commissionPct}%` : (tier.flatAmount != null ? money(tier.flatAmount, tier.flatAmountCurrency_Code) : '—')
   return `${t('commissionRules.tiers.columns.threshold')}: ${tier.thresholdCount} · ${reward}`
 }
 function bonusParams(rule: BonusRuleDto): string {
-  const reward = rule.rewardType === 'PERCENTAGE' ? `${rule.rewardPct}%` : `$${rule.flatAmount} ${rule.rewardCurrency}`
+  const reward = rule.rewardType === 'PERCENTAGE' ? `${rule.rewardPct}%` : money(rule.flatAmount, rule.rewardCurrency)
   return `${t('commissionRules.bonusRules.columns.threshold')}: ${rule.thresholdCount} · ${reward}`
 }
 function collectionParams(tier: CollectionCommissionTierDto): string {
@@ -671,7 +664,7 @@ async function confirmRemoveException() {
         <div v-if="effectiveness" class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('campaigns.detail.effectiveness.totalCollected') }}</dt>
-            <dd class="text-prohealth-800 mt-0.5 text-lg font-bold">{{ money(effectiveness.totalCollected) }}</dd>
+            <dd class="text-prohealth-800 mt-0.5 text-lg font-bold">{{ money(effectiveness.totalCollected, effectiveness.currency_Code) }}</dd>
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('campaigns.detail.effectiveness.transactionCount') }}</dt>

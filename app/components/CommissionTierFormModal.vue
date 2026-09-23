@@ -11,6 +11,7 @@ import type {
 import { APPLIES_TO_OPTIONS, PERIOD_STRATEGY_OPTIONS } from '~/types/commissionTiers'
 import { PLAN_TYPE_OPTIONS } from '~/types/plans'
 import type { SelectItem } from '~/types/options'
+import { clampTodayToRange } from '~/utils/date'
 
 // Create/edit form for a commission tier (bandas de inscripción, ADR 0013 §1).
 // Exactly one of commissionPct / flatAmount is set — the "reward" select below
@@ -55,6 +56,13 @@ async function loadCurrencyOptions() {
 
 /** Resolves `flatAmountCurrencyUuid` to its ISO code for `CurrencyConverterDisplay`. */
 const flatAmountCurrencyCode = computed(() => currencyCodeByUuid.value[state.flatAmountCurrencyUuid] ?? null)
+/**
+ * The reward has no single "as of" date — it's valid for the tier's whole
+ * window. Clamp "today" into `[startsAt, endsAt]` so the conversion preview
+ * tracks today's rate while the tier is running and freezes at `endsAt`
+ * once it's over, instead of drifting forward with "now" forever.
+ */
+const flatAmountConversionDate = computed(() => clampTodayToRange(state.startsAt, state.endsAt))
 
 // ---- Promoter-type scope (M:N, hub plan Part F) — empty selection = applies to every type ----
 const promoterTypeItems = ref<SelectItem[]>([])
@@ -367,7 +375,7 @@ async function restoreTier() {
             </UInput>
           </UFormField>
           <UFormField v-else :label="t('commissionRules.tiers.form.flatAmount')" name="flatAmount" required>
-            <CurrencyConverterDisplay :amount="state.flatAmount" :currency="flatAmountCurrencyCode" v-slot="{ result }">
+            <CurrencyConverterDisplay :amount="state.flatAmount" :currency="flatAmountCurrencyCode" :date="flatAmountConversionDate" v-slot="{ result }">
               <UInput v-model="state.flatAmount" placeholder="5.00" class="w-full">
                 <template #leading><span class="text-prohealth-400 text-sm">$</span></template>
                 <template #trailing>

@@ -13,6 +13,25 @@ export function todayInCaracas(): string {
   }).format(new Date())
 }
 
+/**
+ * Clamps "today" (VE timezone) into `[startsAt, endsAt]` (accepts `yyyy-MM-dd`
+ * or full ISO datetime, only the date part is used) — for a currency
+ * conversion tied to a whole window (a campaign goal, a campaign-scoped
+ * rule's reward) rather than a single transaction date. While the window is
+ * running this is just "today"; once it ends the conversion freezes at
+ * `endsAt` instead of drifting forward with "now" forever. `null`/`null` (no
+ * window) returns `null` (caller falls back to its own default, e.g. "now").
+ */
+export function clampTodayToRange(startsAt?: string | null, endsAt?: string | null): string | null {
+  const start = startsAt ? startsAt.slice(0, 10) : null
+  const end = endsAt ? endsAt.slice(0, 10) : null
+  if (!start && !end) return null
+  const today = todayInCaracas()
+  if (start && today < start) return start
+  if (end && today > end) return end
+  return today
+}
+
 /** Current time (HH:mm, 24h) in the VE timezone. */
 export function nowTimeInCaracas(): string {
   return new Intl.DateTimeFormat('en-GB', {
