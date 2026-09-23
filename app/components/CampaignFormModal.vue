@@ -10,6 +10,7 @@ import type {
 } from '~/types/campaign'
 import { CAMPAIGN_MODE_OPTIONS, CAMPAIGN_SCOPE_OPTIONS } from '~/types/campaign'
 import type { SelectItem } from '~/types/options'
+import { todayInCaracas } from '~/utils/date'
 
 // Create/edit form for a commission campaign. Used both as the standalone
 // "quick edit" modal from the list and as the base for the "Relanzar campaña"
@@ -42,16 +43,39 @@ const toast = useToast()
 
 // ---- Currency options (goal amount) — same pattern as CommissionTierFormModal ----
 const currencyItems = ref<SelectItem[]>([])
+const currencyCodeByUuid = ref<Record<string, string>>({})
 const loadingCurrencies = ref(false)
 async function loadCurrencyOptions() {
   loadingCurrencies.value = true
   try {
     const options = await currencies.options()
-    currencyItems.value = options.filter(o => o.code).map(o => ({ label: o.label, value: o.uuid }))
+    const withCode = options.filter(o => o.code)
+    currencyItems.value = withCode.map(o => ({ label: o.label, value: o.uuid }))
+    currencyCodeByUuid.value = Object.fromEntries(withCode.map(o => [o.uuid, o.code as string]))
   }
   catch { currencyItems.value = [] }
   finally { loadingCurrencies.value = false }
 }
+
+/** Resolves `targetAmountCurrencyUuid` to its ISO code for `CurrencyConverterDisplay`. */
+const targetAmountCurrencyCode = computed(() => currencyCodeByUuid.value[state.targetAmountCurrencyUuid] ?? null)
+
+/**
+ * The goal amount has no single "as of" date — it applies for the whole
+ * campaign window. Clamp "today" into `[startsAt, endsAt]` (day granularity
+ * is enough here) so the conversion preview always reflects a valid vigency
+ * date: before the campaign starts it shows the rate as of the start date,
+ * during it today's date, after it ends the rate as of the end date.
+ */
+const targetAmountConversionDate = computed(() => {
+  const start = state.startsAt ? state.startsAt.slice(0, 10) : null
+  const end = state.endsAt ? state.endsAt.slice(0, 10) : null
+  if (!start && !end) return null
+  const today = todayInCaracas()
+  if (start && today < start) return start
+  if (end && today > end) return end
+  return today
+})
 function goToCurrency(to: string) {
   isOpen.value = false
   navigateTo(to)
@@ -292,9 +316,14 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('campaigns.form.targetAmount')" name="targetAmount" :help="t('campaigns.form.targetHelp')">
-            <UInput v-model="state.targetAmount" placeholder="1000.00" class="w-full">
-              <template #leading><span class="text-prohealth-400 text-sm">$</span></template>
-            </UInput>
+            <CurrencyConverterDisplay :amount="state.targetAmount" :currency="targetAmountCurrencyCode" :date="targetAmountConversionDate" v-slot="{ result }">
+              <UInput v-model="state.targetAmount" placeholder="1000.00" class="w-full">
+                <template #leading><span class="text-prohealth-400 text-sm">$</span></template>
+                <template #trailing>
+                  <CurrencyConverterTrigger :result="result" />
+                </template>
+              </UInput>
+            </CurrencyConverterDisplay>
           </UFormField>
           <UFormField :label="t('campaigns.form.targetCount')" name="targetCount">
             <UInput v-model="state.targetCount" inputmode="numeric" class="w-full" />

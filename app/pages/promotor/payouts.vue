@@ -79,7 +79,14 @@ function statusLabel(s?: string | null): string {
             </tr>
             <tr v-for="p in data" v-else :key="p.uuid" class="hover:bg-prohealth-50/50">
               <td class="px-5 py-3 text-prohealth-800">{{ p.paymentType_Display ?? t('common.empty') }}</td>
-              <td class="px-5 py-3 font-medium text-prohealth-900">{{ p.amount_Display ?? p.amount }}</td>
+              <td class="px-5 py-3 font-medium text-prohealth-900">
+                <CurrencyConverterDisplay :amount="p.amount" :currency="p.currency_Code" :date="p.paymentDate" v-slot="{ result }">
+                  <span class="inline-flex items-center gap-1">
+                    {{ p.amount_Display ?? p.amount }}
+                    <CurrencyConverterTrigger :result="result" />
+                  </span>
+                </CurrencyConverterDisplay>
+              </td>
               <td class="px-5 py-3 text-prohealth-600 font-mono">{{ p.referenceNumber || t('common.empty') }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ p.paymentDate_Display ?? formatDate(p.paymentDate, 'datetime') }}</td>
               <td class="px-5 py-3">

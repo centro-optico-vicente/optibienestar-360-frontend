@@ -666,7 +666,12 @@ async function onReject(reason: string) {
                     </td>
                     <td class="px-4 py-2.5 text-prohealth-700">{{ appliesToLabel(row) }}</td>
                     <td class="px-4 py-2.5 text-right font-medium text-prohealth-900">
-                      <MoneyWithTooltip :display="row.amount_Display" :converted-display="row.amountConverted_Display" :rate-date="row.exchangeRateDate" />
+                      <CurrencyConverterDisplay :amount="row.amount" :currency="row.currency_Code" :date="row.earnedAt" v-slot="{ result }">
+                        <span class="inline-flex items-center gap-1">
+                          {{ row.amount_Display }}
+                          <CurrencyConverterTrigger :result="result" />
+                        </span>
+                      </CurrencyConverterDisplay>
                     </td>
                     <td class="px-4 py-2.5 text-prohealth-600 text-xs">{{ row.earnedAt_Display || formatDate(row.earnedAt, 'datetime') }}</td>
                     <td class="px-4 py-2.5">
@@ -704,7 +709,12 @@ async function onReject(reason: string) {
                 </td>
                 <td class="px-4 py-2.5 text-prohealth-700">{{ appliesToLabel(row) }}</td>
                 <td class="px-4 py-2.5 text-right font-medium text-prohealth-900">
-                  <MoneyWithTooltip :display="row.amount_Display" :converted-display="row.amountConverted_Display" :rate-date="row.exchangeRateDate" />
+                  <CurrencyConverterDisplay :amount="row.amount" :currency="row.currency_Code" :date="row.earnedAt" v-slot="{ result }">
+                        <span class="inline-flex items-center gap-1">
+                          {{ row.amount_Display }}
+                          <CurrencyConverterTrigger :result="result" />
+                        </span>
+                      </CurrencyConverterDisplay>
                 </td>
                 <td class="px-4 py-2.5 text-prohealth-600 text-xs">{{ row.earnedAt_Display || formatDate(row.earnedAt, 'datetime') }}</td>
                 <td class="px-4 py-2.5">

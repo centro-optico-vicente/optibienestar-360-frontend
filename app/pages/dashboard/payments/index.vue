@@ -298,7 +298,12 @@ async function reviewPayment(p: PaymentDto, approve: boolean) {
               </td>
               <td class="px-5 py-3 text-prohealth-800">{{ p.paymentType_Display ?? t('common.empty') }}</td>
               <td class="px-5 py-3 font-semibold text-prohealth-900">
-                <MoneyWithTooltip :display="p.amount_Display" :converted-display="p.amountConverted_Display" :rate-date="p.exchangeRateDate" />
+                <CurrencyConverterDisplay :amount="p.amount" :currency="p.currency_Code" :date="p.paymentDate" v-slot="{ result }">
+                  <span class="inline-flex items-center gap-1" @click.stop>
+                    {{ p.amount_Display }}
+                    <CurrencyConverterTrigger :result="result" />
+                  </span>
+                </CurrencyConverterDisplay>
                 <div class="text-xs font-normal mt-0.5" @click.stop>
                   <CommonEntityLinkCell
                     :to="p.currency_Uuid ? `/dashboard/catalogs/currencies?edit=${p.currency_Uuid}` : null"
@@ -393,7 +398,14 @@ async function reviewPayment(p: PaymentDto, approve: boolean) {
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.columns.amount') }}</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ detail.amount_Display ?? detail.amount }}</dd>
+            <dd class="text-prohealth-800 mt-0.5">
+              <CurrencyConverterDisplay :amount="detail.amount" :currency="detail.currency_Code" :date="detail.paymentDate" v-slot="{ result }">
+                <span class="inline-flex items-center gap-1">
+                  {{ detail.amount_Display ?? detail.amount }}
+                  <CurrencyConverterTrigger :result="result" />
+                </span>
+              </CurrencyConverterDisplay>
+            </dd>
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.payouts.columns.method') }}</dt>
