@@ -2631,12 +2631,26 @@
       "button": "Aprobar comisiones",
       "title": "Aprobación de comisiones",
       "subtitle": "Una comisión calculada es una simulación hasta que se aprueba — solo lo aprobado puede pagarse.",
+      "filtersTitle": "Filtros",
       "fields": {
-        "period": "Período"
+        "period": "Período",
+        "clearPeriod": "Limpiar período",
+        "promoterType": "Tipo de promotor",
+        "promoter": "Promotor",
+        "appliesTo": "Concepto",
+        "status": "Estado",
+        "amountFrom": "Monto desde",
+        "amountTo": "Monto hasta",
+        "campaign": "Campaña",
+        "rank": "Cargo"
       },
+      "clearAll": "Limpiar filtros",
       "loadButton": "Cargar período",
       "refreshButton": "Refrescar",
-      "empty": "No hay comisiones en este período.",
+      "empty": "No hay comisiones con los filtros aplicados.",
+      "paginationSummary": "Mostrando {shown} de {total}",
+      "groupByPromoter": "Agrupar por promotor",
+      "selectAll": "Seleccionar todo",
       "selectedCount": "{count} comisiones seleccionadas",
       "approveButton": "Aprobar seleccionadas",
       "rejectButton": "Rechazar seleccionadas",
@@ -2644,7 +2658,8 @@
       "approvedToast": "{count} comisiones aprobadas correctamente.",
       "rejectedToast": "{count} comisiones rechazadas ({overrides} overrides jerárquicos anulados en cascada).",
       "columns": {
-        "appliesTo": "Aplica a",
+        "promoter": "Promotor",
+        "appliesTo": "Concepto",
         "amount": "Monto",
         "earnedAt": "Ganada",
         "status": "Estado"
@@ -2686,7 +2701,8 @@
         "amount": "Monto",
         "earnedAt": "Ganada",
         "status": "Estado"
-      }
+      },
+      "groupByPromoter": "Agrupar por promotor"
     },
     "overrideReRating": {
       "button": "Re-ratear override jerárquico",

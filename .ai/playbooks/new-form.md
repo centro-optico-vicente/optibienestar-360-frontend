@@ -238,6 +238,7 @@ que todavía no está en el registro — preferir siempre `entity`.
 - **Selects de catálogo nunca hardcodeados.** Tipo de documento → `useDocumentTypes()`; otros → `useCatalog()`/`usePublicCatalog()` (ver sección arriba).
 - **Selects que referencian otra entidad siempre usan `CommonEntityReferenceSelect`** con la prop `entity` (ver sección arriba) — nunca `USelectMenu` + `CommonEntityQuickLinkButton` a mano. El botón de acceso rápido a la pantalla de esa entidad (pago, moneda, tipo de promotor, campaña, etc.) es obligatorio siempre que la entidad tenga pantalla propia.
 - **Montos/cantidades/números:** alineados a la derecha en campo, tabla o vista de detalle; negativos en texto rojo (ver [hub `09-numeric-value-alignment.md`](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/specs/09-numeric-value-alignment.md)).
+- **`UCheckbox`/`USwitch` con texto: usar siempre la prop `label` nativa** (o slot `#label`), nunca un `<span>` suelto al lado — el label debe ser clickeable por default (ver [07-forms.md](../specs/07-forms.md#checkbox--switch-con-label-clickeable)).
 - **Validar formato en frontend, reglas de negocio en backend**
 - **Loading state explícito** (`isSubmitting` deshabilita el botón)
 - **Submit en Enter** funciona por default con `@submit.prevent`

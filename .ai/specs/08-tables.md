@@ -220,6 +220,23 @@ async function exportCsv() {
 
 Backend genera el CSV y devuelve con `Content-Disposition: attachment`.
 
+## Selección de filas (checkboxes)
+
+Cuando una tabla tiene filas seleccionables (checkbox por fila, para una acción en lote como
+aprobar/pagar/exportar), el doble click sobre la fila alterna su selección (equivalente a
+clickear su checkbox) en vez de navegar a un detalle o abrir un modal — la sección "Doble
+click en la fila" de abajo (navegar/editar) no aplica a este tipo de tabla, son comportamientos
+mutuamente excluyentes por tabla. Respetar siempre el mismo criterio de habilitación que el
+checkbox (si la fila no es seleccionable, el doble click no hace nada). Ver
+`app/pages/dashboard/commissions/payouts-generate.vue` como referencia.
+
+**Headers siempre centrados:** el contenido de cada `<th>` (label + ícono de sort si la
+columna es ordenable) se centra horizontalmente como bloque (`text-center`, o
+`flex items-center justify-center gap-1` cuando lleva `SortIndicator`). Esto es solo para el
+encabezado — las celdas de datos (`<td>`) mantienen su propia alineación según el tipo de
+valor (texto a la izquierda, numérico a la derecha per
+[hub `09-numeric-value-alignment.md`](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/specs/09-numeric-value-alignment.md)).
+
 ## Reglas
 
 - **Estado en query params** (page, sort, filter) → URLs shareables + back button funcional
@@ -228,6 +245,8 @@ Backend genera el CSV y devuelve con `Content-Disposition: attachment`.
 - **Error state** con retry button
 - **Default sort** sensato por endpoint (usually `createdAt,desc`)
 - **Whitelist de campos sortable/filterable** (definida por backend)
+- **Headers de columna siempre centrados** (label + ícono de sort como bloque); las celdas de datos alinean según su tipo de valor
+- **Toda tabla con filas seleccionables (checkbox) alterna la selección con doble click en la fila**, con el mismo criterio de habilitación que el checkbox
 
 ## Anti-patterns
 
