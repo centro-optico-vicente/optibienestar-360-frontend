@@ -285,7 +285,7 @@ function submitForm() {
         </UFormField>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <UFormField class="sm:col-span-1" :label="t('payments.columns.date')" name="paymentDate" required><UInput class="w-full" v-model="state.paymentDate" type="datetime-local" /></UFormField>
+        <UFormField class="sm:col-span-1" :label="t('payments.columns.date')" name="paymentDate" required><AppDateTimePicker v-model="state.paymentDate" /></UFormField>
         <UFormField class="sm:col-span-1" :label="t('payments.columns.amount')" name="amount" required>
           <CurrencyConverterDisplay :amount="state.amount" :currency="state.currency" :date="state.paymentDate" v-slot="{ result }">
             <UInput class="w-full text-right" v-model="state.amount" inputmode="decimal" :placeholder="t('payments.form.placeholders.amount')">

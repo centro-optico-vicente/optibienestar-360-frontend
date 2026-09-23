@@ -304,7 +304,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <UFormField class="sm:col-span-1" :label="t('payments.form.fields.paymentDate')" name="paymentDate" required>
-            <UInput v-model="state.paymentDate" type="datetime-local" class="w-full" />
+            <AppDateTimePicker v-model="state.paymentDate" />
           </UFormField>
           <UFormField class="sm:col-span-1" :label="t('payments.form.fields.amount')" name="amount" required>
             <UInput v-model="state.amount" placeholder="10.00" class="w-full text-right">
