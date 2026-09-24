@@ -56,7 +56,7 @@ export function isNavGroup(entry: NavEntry): entry is NavGroup {
 // NO se repiten en Datos maestros. `currencies` se muda a Finanzas junto con
 // Tasas de cambio (mismo dominio multi-moneda, ADR 0015) — hub plan
 // payments-unification §"Reorganización de menú".
-const CATALOGS_IN_VERTICALS = new Set<string>(['ally-types', 'service-categories', 'medical-specialties', 'promoter-types', 'promoter-ranks', 'banks', 'payment-categories', 'payment-methods', 'currencies'])
+const CATALOGS_IN_VERTICALS = new Set<string>(['ally-types', 'service-categories', 'professions', 'promoter-types', 'promoter-ranks', 'banks', 'payment-categories', 'payment-methods', 'currencies'])
 
 // El resto de catálogos alimenta "Datos maestros": derivados del registro, así el
 // grupo y su mosaico quedan siempre sincronizados con lo que existe en el sistema.
@@ -98,7 +98,7 @@ export const MAIN_NAV: NavEntry[] = [
     children: [
       { label: 'Tipos de aliado', labelKey: 'nav.items.allyTypes.label', to: '/dashboard/catalogs/ally-types', icon: 'i-lucide-tags', description: 'Clasificación de los aliados.', descriptionKey: 'nav.items.allyTypes.description', requires: 'ALLY_TYPE_VIEW_ALL' },
       { label: 'Categorías de servicio', labelKey: 'nav.items.serviceCategories.label', to: '/dashboard/catalogs/service-categories', icon: 'i-lucide-layers', description: 'Categorías de los servicios ofrecidos.', descriptionKey: 'nav.items.serviceCategories.description', requires: 'SERVICE_CATEGORY_VIEW_ALL' },
-      { label: 'Especialidades médicas', labelKey: 'nav.items.medicalSpecialties.label', to: '/dashboard/catalogs/medical-specialties', icon: 'i-lucide-stethoscope', description: 'Especialidades médicas de los aliados.', descriptionKey: 'nav.items.medicalSpecialties.description', requires: 'MEDICAL_SPECIALTY_VIEW_ALL' },
+      { label: 'Profesiones', labelKey: 'nav.items.professions.label', to: '/dashboard/catalogs/professions', icon: 'i-lucide-stethoscope', description: 'Profesiones de los aliados.', descriptionKey: 'nav.items.professions.description', requires: 'PROFESSION_VIEW_ALL' },
       { label: 'Aliados', labelKey: 'nav.items.allies.label', to: '/dashboard/allies', icon: 'i-lucide-handshake', description: 'Comercios y prestadores de la red.', descriptionKey: 'nav.items.allies.description', requires: 'ALLY_VIEW_ALL' },
     ],
   },

@@ -65,7 +65,8 @@ async function loadAlly() {
   loading.value = true
   try {
     ally.value = await allies.get(allyUuid)
-    specialties.value = ally.value.specialties ?? []
+    professions.value = ally.value.professions ?? []
+    allyTypes.value = ally.value.allyTypes ?? []
   }
   catch (err) {
     if ((err as ApiError).status === 404) notFound.value = true
@@ -97,7 +98,8 @@ async function restoreAlly() {
 const editFormOpen = ref(false)
 function onAllySaved(updated: AllyDto) {
   ally.value = updated
-  specialties.value = updated.specialties ?? []
+  professions.value = updated.professions ?? []
+  allyTypes.value = updated.allyTypes ?? []
 }
 function onAllyRestored() {
   loadAlly()
@@ -148,7 +150,8 @@ const staffStatusOptions = computed(() => STAFF_STATUS_OPTIONS.map(s => ({ label
 // ---- Tabs ----
 const tabs = computed(() => [
   { label: t('allies.tabs.services'), value: 'services', icon: 'i-lucide-briefcase-medical' },
-  { label: t('allies.tabs.specialties'), value: 'specialties', icon: 'i-lucide-stethoscope' },
+  { label: t('allies.tabs.professions'), value: 'professions', icon: 'i-lucide-stethoscope' },
+  { label: t('allies.tabs.allyTypes'), value: 'allyTypes', icon: 'i-lucide-tags' },
   ...(canViewAgreements.value
     ? [{ label: t('allies.tabs.agreements'), value: 'agreements', icon: 'i-lucide-file-signature' }]
     : []),
@@ -346,70 +349,138 @@ function reviewStatusColor(s?: string): 'success' | 'warning' | 'error' | 'neutr
 }
 
 // =========================================================
-// Specialties (ManyToMany)
+// Professions (ManyToMany)
 // =========================================================
-const specialties = ref<CatalogRef[]>([])
-const specialtiesLoading = ref(false)
-const allSpecialtyOptions = ref<{ label: string, value: string }[]>([])
-const specialtyToAdd = ref<string | undefined>(undefined)
-const specialtyMutating = ref(false)
+const professions = ref<CatalogRef[]>([])
+const professionsLoading = ref(false)
+const allProfessionOptions = ref<{ label: string, value: string }[]>([])
+const professionToAdd = ref<string | undefined>(undefined)
+const professionMutating = ref(false)
 
-async function loadSpecialties() {
-  specialtiesLoading.value = true
+async function loadProfessions() {
+  professionsLoading.value = true
   try {
-    specialties.value = await allies.listSpecialties(allyUuid)
+    professions.value = await allies.listProfessions(allyUuid)
   }
   catch {
     // toast handled by useApi
   }
   finally {
-    specialtiesLoading.value = false
+    professionsLoading.value = false
   }
 }
 
-async function loadAllSpecialties() {
+async function loadAllProfessions() {
   try {
-    const items = await useCatalogOptions('medical-specialties').options({ limit: 200 })
-    allSpecialtyOptions.value = toSelectItems(items)
+    const items = await useCatalogOptions('professions').options({ limit: 200 })
+    allProfessionOptions.value = toSelectItems(items)
   }
   catch {
-    allSpecialtyOptions.value = []
+    allProfessionOptions.value = []
   }
 }
 
-/** Only the specialties not yet assigned. */
-const availableSpecialtyOptions = computed(() => {
-  const assigned = new Set(specialties.value.map(s => s.uuid))
-  return allSpecialtyOptions.value.filter(o => !assigned.has(o.value))
+/** Only the professions not yet assigned. */
+const availableProfessionOptions = computed(() => {
+  const assigned = new Set(professions.value.map(s => s.uuid))
+  return allProfessionOptions.value.filter(o => !assigned.has(o.value))
 })
 
-async function addSpecialty() {
-  if (!specialtyToAdd.value) return
-  specialtyMutating.value = true
+async function addProfession() {
+  if (!professionToAdd.value) return
+  professionMutating.value = true
   try {
-    await allies.addSpecialty(allyUuid, specialtyToAdd.value)
-    specialtyToAdd.value = undefined
-    await loadSpecialties()
+    await allies.addProfession(allyUuid, professionToAdd.value)
+    professionToAdd.value = undefined
+    await loadProfessions()
   }
   catch {
     // toast handled by useApi
   }
   finally {
-    specialtyMutating.value = false
+    professionMutating.value = false
   }
 }
 
-async function removeSpecialty(specialtyUuid: string) {
-  specialtyMutating.value = true
+async function removeProfession(professionUuid: string) {
+  professionMutating.value = true
   try {
-    await allies.removeSpecialty(allyUuid, specialtyUuid)
-    await loadSpecialties()
+    await allies.removeProfession(allyUuid, professionUuid)
+    await loadProfessions()
   }
   catch {
     // toast handled by useApi
   }
   finally {
-    specialtyMutating.value = false
+    professionMutating.value = false
+  }
+}
+
+// =========================================================
+// Ally types (ManyToMany)
+// =========================================================
+const allyTypes = ref<CatalogRef[]>([])
+const allyTypesLoading = ref(false)
+const allAllyTypeOptions = ref<{ label: string, value: string }[]>([])
+const allyTypeToAdd = ref<string | undefined>(undefined)
+const allyTypeMutating = ref(false)
+
+async function loadAllyTypes() {
+  allyTypesLoading.value = true
+  try {
+    allyTypes.value = await allies.listAllyTypes(allyUuid)
+  }
+  catch {
+    // toast handled by useApi
+  }
+  finally {
+    allyTypesLoading.value = false
+  }
+}
+
+async function loadAllAllyTypes() {
+  try {
+    const items = await useCatalogOptions('ally-types').options({ limit: 200 })
+    allAllyTypeOptions.value = toSelectItems(items)
+  }
+  catch {
+    allAllyTypeOptions.value = []
+  }
+}
+
+/** Only the ally types not yet assigned. */
+const availableAllyTypeOptions = computed(() => {
+  const assigned = new Set(allyTypes.value.map(s => s.uuid))
+  return allAllyTypeOptions.value.filter(o => !assigned.has(o.value))
+})
+
+async function addAllyType() {
+  if (!allyTypeToAdd.value) return
+  allyTypeMutating.value = true
+  try {
+    await allies.addAllyType(allyUuid, allyTypeToAdd.value)
+    allyTypeToAdd.value = undefined
+    await loadAllyTypes()
+  }
+  catch {
+    // toast handled by useApi
+  }
+  finally {
+    allyTypeMutating.value = false
+  }
+}
+
+async function removeAllyType(allyTypeUuid: string) {
+  allyTypeMutating.value = true
+  try {
+    await allies.removeAllyType(allyUuid, allyTypeUuid)
+    await loadAllyTypes()
+  }
+  catch {
+    // toast handled by useApi
+  }
+  finally {
+    allyTypeMutating.value = false
   }
 }
 
@@ -759,7 +830,7 @@ async function refreshAll() {
   refreshingAll.value = true
   try {
     // loadAgreements / loadStaff early-return without the view permission.
-    await Promise.all([loadAlly(), loadServices(), loadSpecialties(), loadAgreements(), loadStaff()])
+    await Promise.all([loadAlly(), loadServices(), loadProfessions(), loadAllyTypes(), loadAgreements(), loadStaff()])
   }
   finally {
     refreshingAll.value = false
@@ -771,11 +842,13 @@ onMounted(async () => {
   await loadAlly()
   await Promise.all([
     loadServices(),
-    loadSpecialties(),
+    loadProfessions(),
+    loadAllyTypes(),
     loadAgreements(),
     loadStaff(),
     loadCategories(),
-    loadAllSpecialties(),
+    loadAllProfessions(),
+    loadAllAllyTypes(),
     loadUserOptions(),
   ])
 })
@@ -829,8 +902,13 @@ onMounted(async () => {
                 {{ ally.published ? t('allies.published') : t('allies.draft') }}
               </UBadge>
             </div>
-            <p class="text-sm text-prohealth-500 mt-1">
-              {{ ally.allyType?.name || t('allies.fallbackName') }}
+            <p class="text-sm text-prohealth-500 mt-1 flex flex-wrap items-center gap-1">
+              <template v-if="ally.allyTypes?.length">
+                <UBadge v-for="allyTypeRef in ally.allyTypes" :key="allyTypeRef.uuid" color="neutral" variant="subtle" size="sm">
+                  {{ allyTypeRef.name }}
+                </UBadge>
+              </template>
+              <span v-else>{{ t('allies.fallbackName') }}</span>
               <template v-if="ally.taxDocumentNumber"> · {{ ally.taxDocumentType }}-{{ ally.taxDocumentNumber }}</template>
               · {{ t('allies.detail.memberSince', { date: date(ally.joinedAt) }) }}
             </p>
@@ -1099,18 +1177,18 @@ onMounted(async () => {
         </div>
       </div>
 
-      <!-- ============ Specialties ============ -->
-      <div v-show="activeTab === 'specialties'" class="bg-white rounded-2xl border border-prohealth-100">
+      <!-- ============ Professions ============ -->
+      <div v-show="activeTab === 'professions'" class="bg-white rounded-2xl border border-prohealth-100">
         <div class="flex items-center justify-between px-6 py-4 border-b border-prohealth-100 gap-4">
           <div>
-            <h2 class="font-bold text-prohealth-900">{{ t('allies.specialties.title') }}</h2>
-            <p class="text-xs text-prohealth-500 mt-0.5">{{ t('allies.specialties.hint') }}</p>
+            <h2 class="font-bold text-prohealth-900">{{ t('allies.professions.title') }}</h2>
+            <p class="text-xs text-prohealth-500 mt-0.5">{{ t('allies.professions.hint') }}</p>
           </div>
           <div class="flex items-center gap-2">
             <USelectMenu
               clear
-              v-model="specialtyToAdd"
-              :items="availableSpecialtyOptions"
+              v-model="professionToAdd"
+              :items="availableProfessionOptions"
               label-key="label"
               value-key="value"
               :placeholder="t('common.select')"
@@ -1122,31 +1200,31 @@ onMounted(async () => {
               variant="soft"
               icon="i-lucide-plus"
               size="sm"
-              :disabled="!canUpdate || !specialtyToAdd"
-              :loading="specialtyMutating"
-              @click="addSpecialty"
+              :disabled="!canUpdate || !professionToAdd"
+              :loading="professionMutating"
+              @click="addProfession"
             >
-              {{ t('allies.specialties.addButton') }}
+              {{ t('allies.professions.addButton') }}
             </UButton>
             <RefreshButton
-              :loading="specialtiesLoading"
+              :loading="professionsLoading"
               :title="t('common.refreshSection')"
-              @refresh="loadSpecialties"
+              @refresh="loadProfessions"
             />
           </div>
         </div>
 
         <div class="p-6 space-y-5">
           <!-- List -->
-          <div v-if="specialtiesLoading" class="flex gap-2">
+          <div v-if="professionsLoading" class="flex gap-2">
             <USkeleton v-for="i in 3" :key="i" class="h-7 w-28 rounded-full" />
           </div>
-          <p v-else-if="specialties.length === 0" class="text-sm text-prohealth-500">
-            {{ t('allies.specialties.empty') }}
+          <p v-else-if="professions.length === 0" class="text-sm text-prohealth-500">
+            {{ t('allies.professions.empty') }}
           </p>
           <div v-else class="flex flex-wrap gap-2">
             <UBadge
-              v-for="s in specialties"
+              v-for="s in professions"
               :key="s.uuid"
               color="primary"
               variant="subtle"
@@ -1161,8 +1239,78 @@ onMounted(async () => {
                 icon="i-lucide-x"
                 size="xs"
                 :padded="false"
-                :disabled="specialtyMutating"
-                @click="removeSpecialty(s.uuid)"
+                :disabled="professionMutating"
+                @click="removeProfession(s.uuid)"
+              />
+            </UBadge>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ Ally types ============ -->
+      <div v-show="activeTab === 'allyTypes'" class="bg-white rounded-2xl border border-prohealth-100">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-prohealth-100 gap-4">
+          <div>
+            <h2 class="font-bold text-prohealth-900">{{ t('allies.allyTypes.title') }}</h2>
+            <p class="text-xs text-prohealth-500 mt-0.5">{{ t('allies.allyTypes.hint') }}</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <USelectMenu
+              clear
+              v-model="allyTypeToAdd"
+              :items="availableAllyTypeOptions"
+              label-key="label"
+              value-key="value"
+              :placeholder="t('common.select')"
+              :disabled="!canUpdate"
+              class="w-48"
+            />
+            <UButton
+              color="primary"
+              variant="soft"
+              icon="i-lucide-plus"
+              size="sm"
+              :disabled="!canUpdate || !allyTypeToAdd"
+              :loading="allyTypeMutating"
+              @click="addAllyType"
+            >
+              {{ t('allies.allyTypes.addButton') }}
+            </UButton>
+            <RefreshButton
+              :loading="allyTypesLoading"
+              :title="t('common.refreshSection')"
+              @refresh="loadAllyTypes"
+            />
+          </div>
+        </div>
+
+        <div class="p-6 space-y-5">
+          <!-- List -->
+          <div v-if="allyTypesLoading" class="flex gap-2">
+            <USkeleton v-for="i in 3" :key="i" class="h-7 w-28 rounded-full" />
+          </div>
+          <p v-else-if="allyTypes.length === 0" class="text-sm text-prohealth-500">
+            {{ t('allies.allyTypes.empty') }}
+          </p>
+          <div v-else class="flex flex-wrap gap-2">
+            <UBadge
+              v-for="s in allyTypes"
+              :key="s.uuid"
+              color="primary"
+              variant="subtle"
+              size="lg"
+              class="gap-1.5"
+            >
+              {{ s.name }}
+              <UButton
+                v-if="canUpdate"
+                color="primary"
+                variant="link"
+                icon="i-lucide-x"
+                size="xs"
+                :padded="false"
+                :disabled="allyTypeMutating"
+                @click="removeAllyType(s.uuid)"
               />
             </UBadge>
           </div>

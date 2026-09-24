@@ -27,7 +27,6 @@ const toast = useToast()
 const canCreate = computed(() => can('ALLY_CREATE'))
 const canUpdate = computed(() => can('ALLY_UPDATE'))
 const canDelete = computed(() => can('ALLY_DELETE'))
-const canViewAllyType = computed(() => can('ALLY_TYPE_VIEW_ALL'))
 const canViewCity = computed(() => can('CITY_VIEW_ALL'))
 const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('ALLY_RECORD_AUDIT_VIEW'))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('ALLY_REPORT_AUDIT_VIEW'))
@@ -303,9 +302,8 @@ async function confirmDelete() {
                 {{ t('allies.columns.ally') }}
                 <SortIndicator :state="sort.stateOf('name')" :multi-active="isMultiSort" @clear="sort.remove('name')" />
               </th>
-              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('allyType_Display')">
+              <th class="px-5 py-3 font-semibold select-none">
                 {{ t('allies.columns.type') }}
-                <SortIndicator :state="sort.stateOf('allyType_Display')" :multi-active="isMultiSort" @clear="sort.remove('allyType_Display')" />
               </th>
               <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('taxDocumentNumber')">
                 {{ t('allies.columns.taxId') }}
@@ -346,11 +344,18 @@ async function confirmDelete() {
                 <div class="font-semibold text-prohealth-900">{{ a.name }}</div>
               </td>
               <td class="px-5 py-3 text-prohealth-700" @click.stop>
-                <CommonEntityLinkCell
-                  :to="a.allyType_Uuid ? `/dashboard/catalogs/ally-types?edit=${a.allyType_Uuid}` : null"
-                  :label="a.allyType_Display"
-                  :can="canViewAllyType"
-                />
+                <div v-if="a.allyTypeNames?.length" class="flex flex-wrap gap-1">
+                  <UBadge
+                    v-for="name in a.allyTypeNames"
+                    :key="name"
+                    color="neutral"
+                    variant="subtle"
+                    size="sm"
+                  >
+                    {{ name }}
+                  </UBadge>
+                </div>
+                <span v-else class="text-prohealth-400">{{ t('common.empty') }}</span>
               </td>
               <td class="px-5 py-3 text-prohealth-700">
                 <span v-if="a.taxDocumentNumber">{{ a.taxDocumentType }}-{{ a.taxDocumentNumber }}</span>

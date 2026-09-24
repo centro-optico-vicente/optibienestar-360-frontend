@@ -21,8 +21,8 @@ const props = defineProps<{
   mode: 'create' | 'edit'
   /**
    * The list row (AllyListItemDto) carries flat fields and omits email, tax ID,
-   * website, specialties…; the full detail is (re-)fetched by uuid before the
-   * form is populated, whichever shape is passed in.
+   * website, professions, ally types…; the full detail is (re-)fetched by uuid
+   * before the form is populated, whichever shape is passed in.
    */
   ally: AllyRow | null
   canDelete: boolean
@@ -57,7 +57,7 @@ const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 
 // ---- Lazy-loaded catalogs, fetched only when the modal opens ----
 const allyTypeOptions = ref<SelectItem[]>([])
-const specialtyOptions = ref<SelectItem[]>([])
+const professionOptions = ref<SelectItem[]>([])
 const stateOptions = ref<SelectItem[]>([])
 const cityOptions = ref<SelectItem[]>([])
 const { options: documentTypeOptions, load: loadDocumentTypes } = useDocumentTypes()
@@ -73,13 +73,13 @@ async function loadCatalogs() {
       return []
     }
   }
-  const [types, specialties, states] = await Promise.all([
+  const [types, professions, states] = await Promise.all([
     safeOptions('ally-types'),
-    safeOptions('medical-specialties'),
+    safeOptions('professions'),
     safeOptions('states'),
   ])
   allyTypeOptions.value = toSelectItems(types)
-  specialtyOptions.value = toSelectItems(specialties)
+  professionOptions.value = toSelectItems(professions)
   stateOptions.value = toSelectItems(states)
   await loadDocumentTypes()
   catalogsLoaded.value = true
@@ -114,7 +114,7 @@ const statusOptions = computed(() => STATUS_OPTIONS.map(s => ({ label: statusLab
 
 interface FormState {
   name: string
-  allyTypeUuid: string | undefined
+  allyTypeUuids: string[]
   taxDocumentType: string | undefined
   taxDocumentNumber: string
   email: string
@@ -130,12 +130,12 @@ interface FormState {
   joinedAt: string
   published: boolean
   status: string
-  specialtyUuids: string[]
+  professionUuids: string[]
 }
 
 const state = reactive<FormState>({
   name: '',
-  allyTypeUuid: undefined,
+  allyTypeUuids: [],
   taxDocumentType: undefined,
   taxDocumentNumber: '',
   email: '',
@@ -151,14 +151,14 @@ const state = reactive<FormState>({
   joinedAt: '',
   published: false,
   status: 'ACTIVE',
-  specialtyUuids: [],
+  professionUuids: [],
 })
 
 // Locale-reactive schema so validation messages follow the UI locale.
 const schema = computed(() => {
   const base = {
     name: z.string().min(3, t('validation.minChars', { n: 3 })),
-    allyTypeUuid: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
+    allyTypeUuids: z.array(z.string()).min(1, t('validation.required')),
     taxDocumentType: z.string().optional(),
     taxDocumentNumber: z.string().regex(/^\d*$/, t('validation.digitsOnly')).optional(),
     email: z.string().email(t('validation.emailInvalid')).optional().or(z.literal('')),
@@ -177,7 +177,7 @@ const schema = computed(() => {
 
 function resetForm() {
   state.name = ''
-  state.allyTypeUuid = undefined
+  state.allyTypeUuids = []
   state.taxDocumentType = undefined
   state.taxDocumentNumber = ''
   state.email = ''
@@ -193,7 +193,7 @@ function resetForm() {
   state.joinedAt = ''
   state.published = false
   state.status = 'ACTIVE'
-  state.specialtyUuids = []
+  state.professionUuids = []
   selectedStateUuid.value = undefined
   pendingCityUuid.value = undefined
 }
@@ -210,7 +210,7 @@ const discardConfirmOpen = ref(false)
 // Maps a full AllyDto (GET /{uuid}) into the reactive form state.
 function populateEditForm(full: AllyDto) {
   state.name = full.name ?? ''
-  state.allyTypeUuid = full.allyType?.uuid
+  state.allyTypeUuids = (full.allyTypes ?? []).map(at => at.uuid)
   state.taxDocumentType = full.taxDocumentType || undefined
   state.taxDocumentNumber = full.taxDocumentNumber ?? ''
   state.email = full.email ?? ''
@@ -227,7 +227,7 @@ function populateEditForm(full: AllyDto) {
   state.joinedAt = full.joinedAt ?? ''
   state.published = full.published ?? false
   state.status = full.status || 'ACTIVE'
-  state.specialtyUuids = (full.specialties ?? []).map(s => s.uuid)
+  state.professionUuids = (full.professions ?? []).map(s => s.uuid)
   editSnapshot.value = snapshotEditState()
 }
 
@@ -281,7 +281,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     if (props.mode === 'create') {
       const body: CreateAllyRequest = {
         name: state.name,
-        allyTypeUuid: state.allyTypeUuid!,
+        allyTypeUuids: state.allyTypeUuids,
         taxDocumentType: state.taxDocumentType || undefined,
         taxDocumentNumber: state.taxDocumentNumber || undefined,
         email: state.email || undefined,
@@ -296,7 +296,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         description: state.description || undefined,
         joinedAt: state.joinedAt || undefined,
         published: state.published,
-        specialtyUuids: state.specialtyUuids.length ? state.specialtyUuids : undefined,
+        professionUuids: state.professionUuids.length ? state.professionUuids : undefined,
       }
       saved = await allies.create(body)
       toast.add({ title: t('allies.createdToast'), color: 'success', icon: 'i-lucide-check-circle' })
@@ -305,7 +305,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       if (!props.ally) return
       const body: UpdateAllyRequest = {
         name: state.name,
-        allyTypeUuid: state.allyTypeUuid,
+        allyTypeUuids: state.allyTypeUuids,
         taxDocumentType: state.taxDocumentType || undefined,
         taxDocumentNumber: state.taxDocumentNumber || undefined,
         email: state.email || undefined,
@@ -321,8 +321,8 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         joinedAt: state.joinedAt || undefined,
         published: state.published,
         status: state.status,
-        // Replaces the full specialties set.
-        specialtyUuids: state.specialtyUuids,
+        // Replaces the full professions set.
+        professionUuids: state.professionUuids,
       }
       saved = await allies.update(props.ally.uuid, body)
       toast.add({ title: t('allies.updatedToast'), color: 'success', icon: 'i-lucide-check-circle' })
@@ -387,13 +387,17 @@ function requestDelete() {
           <UFormField :label="t('allies.form.fields.name')" name="name" required>
             <UInput v-model="state.name" class="w-full" />
           </UFormField>
-          <UFormField :label="t('allies.form.fields.allyType')" name="allyTypeUuid" required>
-            <CommonEntityReferenceSelect
-              v-model="state.allyTypeUuid"
+          <UFormField :label="t('allies.form.fields.allyTypes')" name="allyTypeUuids" required>
+            <USelectMenu
+              clear
+              v-model="state.allyTypeUuids"
               :items="allyTypeOptions"
-              entity="ally_type"
-              :placeholder="t('common.select')"
-              @navigate="goToCatalogRecord"
+              label-key="label"
+              value-key="value"
+              multiple
+              icon="i-lucide-tags"
+              :placeholder="t('allies.form.selectMultiple')"
+              class="w-full"
             />
           </UFormField>
         </div>
@@ -472,11 +476,11 @@ function requestDelete() {
           <UTextarea v-model="state.description" :rows="2" class="w-full" />
         </UFormField>
 
-        <UFormField :label="t('allies.form.fields.specialties')" name="specialtyUuids">
+        <UFormField :label="t('allies.form.fields.professions')" name="professionUuids">
           <USelectMenu
             clear
-            v-model="state.specialtyUuids"
-            :items="specialtyOptions"
+            v-model="state.professionUuids"
+            :items="professionOptions"
             label-key="label"
             value-key="value"
             multiple

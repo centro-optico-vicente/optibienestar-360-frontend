@@ -76,17 +76,29 @@ export const useAllies = () => {
   const usage = (uuid: string) =>
     useApi<{ inUse: boolean, count: number }>(`/v1/admin/allies/${uuid}/usage`)
 
-  // ---- Especialidades (ManyToMany: añadir/quitar sin body) ----
-  const listSpecialties = (allyUuid: string, sort?: string[]) =>
-    useApi<CatalogRef[]>(`/v1/admin/allies/${allyUuid}/specialties`, {
+  // ---- Profesiones (ManyToMany: añadir/quitar sin body) ----
+  const listProfessions = (allyUuid: string, sort?: string[]) =>
+    useApi<CatalogRef[]>(`/v1/admin/allies/${allyUuid}/professions`, {
       query: sort?.length ? { sort } : {},
     })
 
-  const addSpecialty = (allyUuid: string, specialtyUuid: string) =>
-    useApi<null>(`/v1/admin/allies/${allyUuid}/specialties/${specialtyUuid}`, { method: 'POST' })
+  const addProfession = (allyUuid: string, professionUuid: string) =>
+    useApi<null>(`/v1/admin/allies/${allyUuid}/professions/${professionUuid}`, { method: 'POST' })
 
-  const removeSpecialty = (allyUuid: string, specialtyUuid: string) =>
-    useApi<null>(`/v1/admin/allies/${allyUuid}/specialties/${specialtyUuid}`, { method: 'DELETE' })
+  const removeProfession = (allyUuid: string, professionUuid: string) =>
+    useApi<null>(`/v1/admin/allies/${allyUuid}/professions/${professionUuid}`, { method: 'DELETE' })
+
+  // ---- Tipos de aliado (ManyToMany: añadir/quitar sin body) ----
+  const listAllyTypes = (allyUuid: string, sort?: string[]) =>
+    useApi<CatalogRef[]>(`/v1/admin/allies/${allyUuid}/ally-types`, {
+      query: sort?.length ? { sort } : {},
+    })
+
+  const addAllyType = (allyUuid: string, allyTypeUuid: string) =>
+    useApi<null>(`/v1/admin/allies/${allyUuid}/ally-types/${allyTypeUuid}`, { method: 'POST' })
+
+  const removeAllyType = (allyUuid: string, allyTypeUuid: string) =>
+    useApi<null>(`/v1/admin/allies/${allyUuid}/ally-types/${allyTypeUuid}`, { method: 'DELETE' })
 
   // ---- Servicios ----
   const listServices = (allyUuid: string, sort?: string[]) =>
@@ -152,9 +164,12 @@ export const useAllies = () => {
     remove,
     restore,
     usage,
-    listSpecialties,
-    addSpecialty,
-    removeSpecialty,
+    listProfessions,
+    addProfession,
+    removeProfession,
+    listAllyTypes,
+    addAllyType,
+    removeAllyType,
     listServices,
     createService,
     updateService,
@@ -177,7 +192,7 @@ interface PublicDirectoryParams {
   size?: number
   q?: string
   cityUuid?: string
-  specialtyUuid?: string
+  professionUuid?: string
 }
 
 /**
@@ -193,11 +208,11 @@ export const usePublicAllies = () => {
         size: params.size ?? 20,
         ...(params.q ? { q: params.q } : {}),
         ...(params.cityUuid ? { cityUuid: params.cityUuid } : {}),
-        ...(params.specialtyUuid ? { specialtyUuid: params.specialtyUuid } : {}),
+        ...(params.professionUuid ? { professionUuid: params.professionUuid } : {}),
       },
     })
 
-  /** Detalle público (incluye specialties + servicios APPROVED/PUBLISHED/ACTIVE). */
+  /** Detalle público (incluye professions + servicios APPROVED/PUBLISHED/ACTIVE). */
   const get = (uuid: string) =>
     useApi<PublicAllyDto>(`/v1/public/allies/${uuid}`, { skipAuth: true })
 

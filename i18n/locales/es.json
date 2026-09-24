@@ -575,7 +575,7 @@
         "label": "Categorías de servicio",
         "description": "Categorías de los servicios ofrecidos."
       },
-      "medicalSpecialties": {
+      "professions": {
         "label": "Profesiones",
         "description": "Profesiones y actividades de los aliados."
       },
@@ -831,7 +831,7 @@
       "years": "Años en el sector",
       "satisfaction": "Satisfacción de afiliados",
       "careCount": "Atenciones al año",
-      "specialties": "Profesiones cubiertas"
+      "professions": "Profesiones cubiertas"
     },
     "about": {
       "eyebrow": "Sobre nosotros",
@@ -1029,7 +1029,7 @@
         "label": "Ocupaciones",
         "labelSingular": "Ocupación"
       },
-      "medical-specialties": {
+      "professions": {
         "label": "Profesiones",
         "labelSingular": "Profesión"
       },
@@ -1134,7 +1134,7 @@
       "document_type": "Tipo de documento",
       "marital_status": "Estado civil",
       "occupation": "Ocupación",
-      "medical_specialty": "Profesión",
+      "profession": "Profesión",
       "service_category": "Categoría de servicio",
       "promoter_type": "Tipo de promotor"
     }
@@ -1294,7 +1294,7 @@
       "softDeletedHint": "Este aliado está eliminado (inactivo). Usa Restaurar para reactivarlo.",
       "fields": {
         "name": "Nombre",
-        "allyType": "Tipo de aliado",
+        "allyTypes": "Tipos de aliado",
         "taxDocumentType": "Tipo de documento fiscal",
         "taxDocumentNumber": "Número (RIF)",
         "email": "Email",
@@ -1308,7 +1308,7 @@
         "address": "Dirección",
         "googleMapsUrl": "Enlace de Google Maps",
         "description": "Descripción",
-        "specialties": "Profesiones",
+        "professions": "Profesiones",
         "joinedAt": "Fecha de alianza",
         "published": "Publicado en directorio",
         "status": "Estado"
@@ -1339,7 +1339,8 @@
     },
     "tabs": {
       "services": "Servicios",
-      "specialties": "Profesiones",
+      "professions": "Profesiones",
+      "allyTypes": "Tipos de aliado",
       "agreements": "Acuerdos",
       "staff": "Personal"
     },
@@ -1386,12 +1387,19 @@
         "confirm": "¿Seguro que deseas eliminar el servicio {name}? (soft-delete)"
       }
     },
-    "specialties": {
+    "professions": {
       "title": "Profesiones",
       "hint": "Profesiones y actividades que ofrece el aliado.",
       "add": "Añadir profesión",
       "addButton": "Añadir",
       "empty": "Sin profesiones asignadas."
+    },
+    "allyTypes": {
+      "title": "Tipos de aliado",
+      "hint": "Clasificación de negocio del aliado.",
+      "add": "Añadir tipo",
+      "addButton": "Añadir",
+      "empty": "Sin tipos asignados."
     },
     "agreements": {
       "title": "Acuerdos",
@@ -1497,7 +1505,7 @@
         "search": "Buscar por nombre…",
         "state": "Estado",
         "city": "Ciudad",
-        "specialty": "Profesión",
+        "profession": "Profesión",
         "clear": "Limpiar filtros"
       },
       "detail": {
