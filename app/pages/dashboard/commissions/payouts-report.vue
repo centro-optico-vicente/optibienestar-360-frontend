@@ -136,7 +136,20 @@ function resetPayoutFilters() {
   payoutFilters.targetCurrency = 'USD'
 }
 
+const isDateRangeInvalid = computed(() => {
+  return Boolean(
+    payoutFilters.startDate &&
+    payoutFilters.endDate &&
+    payoutFilters.endDate.trim() < payoutFilters.startDate.trim()
+  )
+})
+
 async function executeDownload(format: 'PDF' | 'XLSX') {
+  if (isDateRangeInvalid.value) {
+    documentReports.validateDateRange(payoutFilters.startDate, payoutFilters.endDate)
+    return
+  }
+
   if (format === 'PDF') generatingPdf.value = true
   else generatingXlsx.value = true
 
@@ -252,25 +265,31 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
       </div>
 
       <!-- Rango de fechas con AppDatePicker -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-xs font-semibold text-prohealth-700 mb-1">
-            {{ t('commissions.payoutsReport.startDate') }}
-          </label>
-          <AppDatePicker
-            v-model="payoutFilters.startDate"
-            placeholder="DD/MM/AAAA"
-          />
+      <div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-prohealth-700 mb-1">
+              {{ t('commissions.payoutsReport.startDate') }}
+            </label>
+            <AppDatePicker
+              v-model="payoutFilters.startDate"
+              placeholder="DD/MM/AAAA"
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-prohealth-700 mb-1">
+              {{ t('commissions.payoutsReport.endDate') }}
+            </label>
+            <AppDatePicker
+              v-model="payoutFilters.endDate"
+              placeholder="DD/MM/AAAA"
+            />
+          </div>
         </div>
-        <div>
-          <label class="block text-xs font-semibold text-prohealth-700 mb-1">
-            {{ t('commissions.payoutsReport.endDate') }}
-          </label>
-          <AppDatePicker
-            v-model="payoutFilters.endDate"
-            placeholder="DD/MM/AAAA"
-          />
-        </div>
+        <p v-if="isDateRangeInvalid" class="text-xs text-error-600 mt-1.5 flex items-center gap-1 font-medium">
+          <UIcon name="i-lucide-alert-circle" class="w-3.5 h-3.5 shrink-0" />
+          {{ t('reports.invalidDateRange') }}
+        </p>
       </div>
 
       <!-- Promotor y Referencia -->
@@ -359,6 +378,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             variant="outline"
             icon="i-lucide-file-spreadsheet"
             :loading="generatingXlsx"
+            :disabled="isDateRangeInvalid"
             @click="executeDownload('XLSX')"
           >
             {{ t('commissions.payoutsReport.downloadExcel') }}
@@ -369,6 +389,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             variant="outline"
             icon="i-lucide-file-text"
             :loading="generatingPdf"
+            :disabled="isDateRangeInvalid"
             @click="executeDownload('PDF')"
           >
             {{ t('commissions.payoutsReport.downloadPdf') }}

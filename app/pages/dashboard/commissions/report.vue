@@ -155,7 +155,20 @@ function resetCommFilters() {
   commFilters.conversionDate = formatDateIso(new Date())
 }
 
+const isDateRangeInvalid = computed(() => {
+  return Boolean(
+    commFilters.startDate &&
+    commFilters.endDate &&
+    commFilters.endDate.trim() < commFilters.startDate.trim()
+  )
+})
+
 async function executeDownload(format: 'PDF' | 'XLSX') {
+  if (isDateRangeInvalid.value) {
+    documentReports.validateDateRange(commFilters.startDate, commFilters.endDate)
+    return
+  }
+
   if (format === 'PDF') generatingPdf.value = true
   else generatingXlsx.value = true
 
@@ -273,25 +286,31 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
       </div>
 
       <!-- Rango de fechas con AppDatePicker -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-xs font-semibold text-prohealth-700 mb-1">
-            {{ t('commissions.report.startDate') }}
-          </label>
-          <AppDatePicker
-            v-model="commFilters.startDate"
-            placeholder="DD/MM/AAAA"
-          />
+      <div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-prohealth-700 mb-1">
+              {{ t('commissions.report.startDate') }}
+            </label>
+            <AppDatePicker
+              v-model="commFilters.startDate"
+              placeholder="DD/MM/AAAA"
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-prohealth-700 mb-1">
+              {{ t('commissions.report.endDate') }}
+            </label>
+            <AppDatePicker
+              v-model="commFilters.endDate"
+              placeholder="DD/MM/AAAA"
+            />
+          </div>
         </div>
-        <div>
-          <label class="block text-xs font-semibold text-prohealth-700 mb-1">
-            {{ t('commissions.report.endDate') }}
-          </label>
-          <AppDatePicker
-            v-model="commFilters.endDate"
-            placeholder="DD/MM/AAAA"
-          />
-        </div>
+        <p v-if="isDateRangeInvalid" class="text-xs text-error-600 mt-1.5 flex items-center gap-1 font-medium">
+          <UIcon name="i-lucide-alert-circle" class="w-3.5 h-3.5 shrink-0" />
+          {{ t('reports.invalidDateRange') }}
+        </p>
       </div>
 
       <!-- Promotor Comercial -->
@@ -416,6 +435,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             variant="outline"
             icon="i-lucide-file-spreadsheet"
             :loading="generatingXlsx"
+            :disabled="isDateRangeInvalid"
             @click="executeDownload('XLSX')"
           >
             {{ t('commissions.report.downloadExcel') }}
@@ -426,6 +446,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             variant="outline"
             icon="i-lucide-file-text"
             :loading="generatingPdf"
+            :disabled="isDateRangeInvalid"
             @click="executeDownload('PDF')"
           >
             {{ t('commissions.report.downloadPdf') }}

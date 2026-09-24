@@ -3458,7 +3458,10 @@
     "recordSuccess": "Record generated successfully",
     "recordError": "Failed to generate record report",
     "listFilePrefix": "list",
-    "recordFilePrefix": "record"
+    "recordFilePrefix": "record",
+    "noData": "No data to display",
+    "invalidDateRange": "The end date must be greater than or equal to the start date",
+    "invalidDateFormat": "Invalid date format. Expected YYYY-MM-DD"
   },
   "organization": {
     "title": "Organization",

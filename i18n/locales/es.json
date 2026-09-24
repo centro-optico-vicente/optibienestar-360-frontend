@@ -3458,7 +3458,10 @@
     "recordSuccess": "Ficha generada con éxito",
     "recordError": "Error al generar la ficha del registro",
     "listFilePrefix": "listado",
-    "recordFilePrefix": "ficha"
+    "recordFilePrefix": "ficha",
+    "noData": "No hay datos para mostrar",
+    "invalidDateRange": "La fecha hacia debe ser mayor o igual a la fecha desde",
+    "invalidDateFormat": "Formato de fecha inválido. Se espera YYYY-MM-DD"
   },
   "organization": {
     "title": "Organización",
