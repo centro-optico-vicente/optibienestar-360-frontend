@@ -23,7 +23,7 @@ const page = ref(1) // UPagination is 1-based; the API is 0-based
 const size = ref(12)
 const search = ref('')
 const cityUuid = ref<string | undefined>(undefined)
-const specialtyUuid = ref<string | undefined>(undefined)
+const professionUuid = ref<string | undefined>(undefined)
 
 async function load() {
   loading.value = true
@@ -33,7 +33,7 @@ async function load() {
       size: size.value,
       q: search.value.trim() || undefined,
       cityUuid: cityUuid.value,
-      specialtyUuid: specialtyUuid.value,
+      professionUuid: professionUuid.value,
     })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
@@ -49,7 +49,7 @@ async function load() {
 }
 
 watch(page, load)
-watch([cityUuid, specialtyUuid], () => {
+watch([cityUuid, professionUuid], () => {
   page.value = 1
   load()
 })
@@ -64,7 +64,7 @@ watch(search, () => {
 
 // ---- Catalogs for the filters ----
 type Option = { label: string, value: string }
-const specialtyOptions = ref<Option[]>([])
+const professionOptions = ref<Option[]>([])
 const stateOptions = ref<Option[]>([])
 const cityOptions = ref<Option[]>([])
 
@@ -83,11 +83,11 @@ async function loadCatalogs() {
       return [] as CatalogItem[]
     }
   }
-  const [specialties, states] = await Promise.all([
-    safeList('medical-specialties'),
+  const [professions, states] = await Promise.all([
+    safeList('professions'),
     safeList('states', { country: 'VE' }),
   ])
-  specialtyOptions.value = toOptions(specialties)
+  professionOptions.value = toOptions(professions)
   stateOptions.value = toOptions(states)
 }
 
@@ -110,11 +110,11 @@ function clearFilters() {
   search.value = ''
   selectedStateUuid.value = undefined
   cityUuid.value = undefined
-  specialtyUuid.value = undefined
+  professionUuid.value = undefined
 }
 
 const hasFilters = computed(() =>
-  Boolean(search.value.trim() || selectedStateUuid.value || cityUuid.value || specialtyUuid.value),
+  Boolean(search.value.trim() || selectedStateUuid.value || cityUuid.value || professionUuid.value),
 )
 
 onMounted(async () => {
@@ -175,11 +175,11 @@ onMounted(async () => {
         <div class="flex items-center gap-2">
           <USelectMenu
             clear
-            v-model="specialtyUuid"
-            :items="specialtyOptions"
+            v-model="professionUuid"
+            :items="professionOptions"
             label-key="label"
             value-key="value"
-            :placeholder="t('allies.public.filters.specialty')"
+            :placeholder="t('allies.public.filters.profession')"
             size="lg"
             class="flex-1"
           />
@@ -235,7 +235,8 @@ onMounted(async () => {
                 {{ a.name }}
               </h3>
               <p class="text-xs text-prohealth-500 mt-0.5">
-                {{ a.allyType?.name || t('allies.fallbackName') }}
+                <template v-if="a.allyTypes?.length">{{ a.allyTypes.map(at => at.name).join(', ') }}</template>
+                <template v-else>{{ t('allies.fallbackName') }}</template>
                 <template v-if="a.city?.name"> · {{ a.city.name }}</template>
               </p>
             </div>
@@ -248,9 +249,9 @@ onMounted(async () => {
             {{ a.description }}
           </p>
 
-          <div v-if="a.specialties?.length" class="flex flex-wrap gap-1.5 mt-4">
+          <div v-if="a.professions?.length" class="flex flex-wrap gap-1.5 mt-4">
             <UBadge
-              v-for="s in a.specialties.slice(0, 3)"
+              v-for="s in a.professions.slice(0, 3)"
               :key="s.uuid"
               color="primary"
               variant="subtle"
@@ -258,8 +259,8 @@ onMounted(async () => {
             >
               {{ s.name }}
             </UBadge>
-            <UBadge v-if="a.specialties.length > 3" color="neutral" variant="subtle" size="sm">
-              +{{ a.specialties.length - 3 }}
+            <UBadge v-if="a.professions.length > 3" color="neutral" variant="subtle" size="sm">
+              +{{ a.professions.length - 3 }}
             </UBadge>
           </div>
 

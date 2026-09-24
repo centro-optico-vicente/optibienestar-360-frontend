@@ -13,7 +13,7 @@ export interface EntityConfigDto {
   auditDelete: boolean
   auditReport: boolean
   captureBeforeAfter: boolean
-  /** Per-entity default sort — field names are the entity's own list-item keys (e.g. `name`, `allyType_Display`). */
+  /** Per-entity default sort — field names are the entity's own list-item keys (e.g. `name`, `city_Display`). */
   defaultSort?: ConfigSortOrder[] | null
   notes?: string | null
   updatedAt?: string

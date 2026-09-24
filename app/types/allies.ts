@@ -2,9 +2,10 @@
 // aligned with the backend integration guide (V11–V12, PRs #57–#67).
 //
 // The admin list is paged (Page<AllyDto>) with RSQL + `q`. The detail includes
-// specialties[]. Sub-resources: services, agreements (ALLY_AGREEMENT_VIEW_ALL/
-// CREATE/UPDATE/DELETE) and users (staff with OWNER/STAFF/VIEWER membership,
-// ALLY_USER_VIEW_ALL/CREATE/UPDATE/DELETE). PUT uses PATCH semantics.
+// professions[] and allyTypes[] (both M:N). Sub-resources: services, agreements
+// (ALLY_AGREEMENT_VIEW_ALL/CREATE/UPDATE/DELETE) and users (staff with
+// OWNER/STAFF/VIEWER membership, ALLY_USER_VIEW_ALL/CREATE/UPDATE/DELETE).
+// PUT uses PATCH semantics.
 
 import type { CatalogRef, CityRef } from '~/types/members'
 
@@ -13,7 +14,7 @@ import type { CatalogRef, CityRef } from '~/types/members'
 export interface AllyDto {
   uuid: string
   name: string
-  allyType?: CatalogRef
+  allyTypes?: CatalogRef[]
   taxDocumentType?: string
   taxDocumentNumber?: string
   email?: string
@@ -32,7 +33,7 @@ export interface AllyDto {
   status?: string
   /** Soft-delete/reactivation flag — distinct from `status` (a business workflow value). */
   active?: boolean
-  specialties?: CatalogRef[]
+  professions?: CatalogRef[]
   services?: AllyServiceDto[]
   createdAt?: string
 }
@@ -44,18 +45,20 @@ export interface AllyDto {
  * travels as the pair `<rel>_Uuid` + `<rel>_Display`, and every
  * presentational scalar as the raw, typed value + a server-resolved,
  * locale-aware `<field>_Display` sibling. Render the `_Display` string
- * directly (`row.allyType_Display ?? t('common.empty')`); keep the raw value
+ * directly (`row.city_Display ?? t('common.empty')`); keep the raw value
  * for sorting and logic. `_Display` fields are read-only — never sent back.
+ * `allyType` is M:N, so it breaks from the pilot's single-FK pattern: it
+ * travels as a plain, backend-formatted `allyTypeNames: string[]` instead.
  *
- * Compact projection: omits email, tax ID, website, specialties… The edit
+ * Compact projection: omits email, tax ID, website, professions… The edit
  * form loads the full {@link AllyDto} via `GET /v1/admin/allies/{uuid}`.
  */
 export interface AllyListItemDto {
   uuid: string
   name: string
 
-  allyType_Uuid: string | null
-  allyType_Display: string | null
+  /** Backend-formatted names of every ally type this partner belongs to (M:N). */
+  allyTypeNames?: string[]
   city_Uuid: string | null
   city_Display: string | null
 
@@ -81,7 +84,7 @@ export interface AllyListItemDto {
 
 export interface CreateAllyRequest {
   name: string
-  allyTypeUuid: string
+  allyTypeUuids: string[]
   taxDocumentType?: string
   taxDocumentNumber?: string
   email?: string
@@ -96,10 +99,10 @@ export interface CreateAllyRequest {
   description?: string
   joinedAt?: string
   published?: boolean
-  specialtyUuids?: string[]
+  professionUuids?: string[]
 }
 
-/** PUT with PATCH semantics; `specialtyUuids` REPLACES the set when sent. */
+/** PUT with PATCH semantics; `professionUuids`/`allyTypeUuids` REPLACE the set when sent. */
 export interface UpdateAllyRequest extends Partial<CreateAllyRequest> {
   status?: string
   active?: boolean
@@ -267,8 +270,7 @@ export interface UpdateAllyUserRequest {
 export interface MyAllyDto {
   uuid: string
   name: string
-  allyType_Uuid?: string | null
-  allyType_Display?: string | null
+  allyTypeNames?: string[]
   logoUrl?: string | null
   phone?: string | null
   allyRole: AllyRole | string
@@ -301,7 +303,7 @@ export interface UserAllyDto {
 export interface PublicAllyDto {
   uuid: string
   name: string
-  allyType?: CatalogRef
+  allyTypes?: CatalogRef[]
   email?: string
   phone?: string
   website?: string
@@ -312,6 +314,6 @@ export interface PublicAllyDto {
   city?: CatalogRef
   googleMapsUrl?: string
   description?: string
-  specialties?: CatalogRef[]
+  professions?: CatalogRef[]
   services?: AllyServiceDto[]
 }

@@ -22,7 +22,7 @@ const CATALOG_ENTITY_KEYS: Partial<Record<AuditEntityKey, string>> = {
   document_type: 'document-types',
   marital_status: 'marital-statuses',
   occupation: 'occupations',
-  medical_specialty: 'medical-specialties',
+  profession: 'professions',
   service_category: 'service-categories',
   ally_type: 'ally-types',
   promoter_type: 'promoter-types',

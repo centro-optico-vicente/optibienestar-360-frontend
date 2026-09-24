@@ -575,7 +575,7 @@
         "label": "Service categories",
         "description": "Categories of the offered services."
       },
-      "medicalSpecialties": {
+      "professions": {
         "label": "Professions",
         "description": "Professions and business activities of the partners."
       },
@@ -831,7 +831,7 @@
       "years": "Years in the sector",
       "satisfaction": "Member satisfaction",
       "careCount": "Visits per year",
-      "specialties": "Professions covered"
+      "professions": "Professions covered"
     },
     "about": {
       "eyebrow": "About us",
@@ -1029,7 +1029,7 @@
         "label": "Occupations",
         "labelSingular": "Occupation"
       },
-      "medical-specialties": {
+      "professions": {
         "label": "Professions",
         "labelSingular": "Profession"
       },
@@ -1134,7 +1134,7 @@
       "document_type": "Document type",
       "marital_status": "Marital status",
       "occupation": "Occupation",
-      "medical_specialty": "Profession",
+      "profession": "Profession",
       "service_category": "Service category",
       "promoter_type": "Promoter type"
     }
@@ -1294,7 +1294,7 @@
       "softDeletedHint": "This ally is deleted (inactive). Use Restore to reactivate it.",
       "fields": {
         "name": "Name",
-        "allyType": "Partner type",
+        "allyTypes": "Partner types",
         "taxDocumentType": "Tax document type",
         "taxDocumentNumber": "Number (Tax ID)",
         "email": "Email",
@@ -1308,7 +1308,7 @@
         "address": "Address",
         "googleMapsUrl": "Google Maps link",
         "description": "Description",
-        "specialties": "Professions",
+        "professions": "Professions",
         "joinedAt": "Partnership date",
         "published": "Published in directory",
         "status": "Status"
@@ -1339,7 +1339,8 @@
     },
     "tabs": {
       "services": "Services",
-      "specialties": "Professions",
+      "professions": "Professions",
+      "allyTypes": "Partner types",
       "agreements": "Agreements",
       "staff": "Staff"
     },
@@ -1386,12 +1387,19 @@
         "confirm": "Are you sure you want to delete the service {name}? (soft-delete)"
       }
     },
-    "specialties": {
+    "professions": {
       "title": "Professions",
       "hint": "Professions and business activities the partner offers.",
       "add": "Add profession",
       "addButton": "Add",
       "empty": "No professions assigned."
+    },
+    "allyTypes": {
+      "title": "Partner types",
+      "hint": "Business classification of the partner.",
+      "add": "Add type",
+      "addButton": "Add",
+      "empty": "No types assigned."
     },
     "agreements": {
       "title": "Agreements",
@@ -1497,7 +1505,7 @@
         "search": "Search by name…",
         "state": "State",
         "city": "City",
-        "specialty": "Profession",
+        "profession": "Profession",
         "clear": "Clear filters"
       },
       "detail": {

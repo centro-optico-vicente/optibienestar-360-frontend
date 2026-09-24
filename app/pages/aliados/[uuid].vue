@@ -82,7 +82,8 @@ function money(v?: string | null): string {
           <div class="min-w-0">
             <h1 class="text-2xl lg:text-3xl font-extrabold text-prohealth-900">{{ ally.name }}</h1>
             <p class="text-sm text-prohealth-500 mt-1">
-              {{ ally.allyType?.name || t('allies.fallbackName') }}
+              <template v-if="ally.allyTypes?.length">{{ ally.allyTypes.map(at => at.name).join(', ') }}</template>
+              <template v-else>{{ t('allies.fallbackName') }}</template>
               <template v-if="ally.city?.name"> · {{ ally.city.name }}</template>
             </p>
           </div>
@@ -92,9 +93,9 @@ function money(v?: string | null): string {
           {{ ally.description }}
         </p>
 
-        <div v-if="ally.specialties?.length" class="flex flex-wrap gap-2 mt-5">
+        <div v-if="ally.professions?.length" class="flex flex-wrap gap-2 mt-5">
           <UBadge
-            v-for="s in ally.specialties"
+            v-for="s in ally.professions"
             :key="s.uuid"
             color="primary"
             variant="subtle"
