@@ -983,7 +983,8 @@
       "mandatoryAccountCode": "Requires account code",
       "mandatoryPhone": "Requires phone",
       "mandatoryEmail": "Requires email",
-      "mandatoryReferenceNumber": "Requires reference number"
+      "mandatoryReferenceNumber": "Requires reference number",
+      "requiresApproval": "Requires approval"
     },
     "promoterRanksTree": {
       "title": "Rank tree",
