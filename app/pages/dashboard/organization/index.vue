@@ -18,6 +18,7 @@ const organizationApi = useOrganization()
 const currenciesApi = useCurrencies()
 const termsApi = useTerms()
 const { can } = usePermissions()
+const { formatDate } = useFormatters()
 const toast = useToast()
 
 const canUpdate = computed(() => can('ORGANIZATION_UPDATE'))
@@ -165,6 +166,8 @@ const TERM_TYPES: TermType[] = ['AFILIADO', 'PROMOTOR', 'ALIADO']
 const activeTermTab = ref<TermType>('AFILIADO')
 
 interface TermTabState {
+  loaded: boolean
+  loading: boolean
   currentTitle: string | null
   currentContent: string | null
   currentValidFrom: string | null
@@ -178,6 +181,8 @@ interface TermTabState {
 
 function emptyTabState(): TermTabState {
   return {
+    loaded: false,
+    loading: false,
     currentTitle: null,
     currentContent: null,
     currentValidFrom: null,
@@ -195,44 +200,45 @@ const termTabs = reactive<Record<TermType, TermTabState>>({
   ALIADO: emptyTabState(),
 })
 
+const activeTerm = computed(() => termTabs[activeTermTab.value])
 const savingTerm = ref(false)
 
-async function loadTermType(type: TermType) {
+/**
+ * One request per tab: the list is ordered `validFrom` DESC and each row carries
+ * `isVigent`, so both the live version and the scheduled one come from it —
+ * `/terms/current/{type}` would only add a 404 for types with no version yet.
+ */
+async function loadTermType(type: TermType, force = false) {
   const tab = termTabs[type]
+  if (tab.loading || (tab.loaded && !force)) return
+  tab.loading = true
   try {
-    const current = await termsApi.current(type)
-    tab.currentTitle = current.title
-    tab.currentContent = current.contentMarkdown
-    tab.currentValidFrom = current.validFrom
-  }
-  catch {
-    // No current version yet for this type — leave the "current" preview empty.
-    tab.currentTitle = null
-    tab.currentContent = null
-    tab.currentValidFrom = null
-  }
+    const versions = await termsApi.list(type)
+    const current = versions.find(v => v.isVigent)
+    const scheduled = versions.find(v => !v.isVigent)
 
-  try {
-    const list = await termsApi.list(type)
-    const scheduled = list.find(v => !v.isVigent)
-    if (scheduled) {
-      tab.editingUuid = scheduled.uuid
-      tab.title = scheduled.title
-      tab.contentMarkdown = scheduled.contentMarkdown
-      tab.isPublic = scheduled.isPublic
-      tab.validFrom = scheduled.validFrom.slice(0, 16)
-    }
-    else {
-      tab.editingUuid = null
-      tab.title = tab.currentTitle ?? ''
-      tab.contentMarkdown = tab.currentContent ?? ''
-      tab.isPublic = false
-      tab.validFrom = ''
-    }
+    tab.currentTitle = current?.title ?? null
+    tab.currentContent = current?.contentMarkdown ?? null
+    tab.currentValidFrom = current?.validFrom ?? null
+
+    tab.editingUuid = scheduled?.uuid ?? null
+    tab.title = scheduled?.title ?? current?.title ?? ''
+    tab.contentMarkdown = scheduled?.contentMarkdown ?? current?.contentMarkdown ?? ''
+    tab.isPublic = scheduled?.isPublic ?? current?.isPublic ?? false
+    tab.validFrom = scheduled ? scheduled.validFrom.slice(0, 16) : ''
+    tab.loaded = true
   }
   catch {
     // useApi already notified
   }
+  finally {
+    tab.loading = false
+  }
+}
+
+function selectTermTab(type: TermType) {
+  activeTermTab.value = type
+  loadTermType(type)
 }
 
 async function saveTermTab(type: TermType) {
@@ -263,7 +269,7 @@ async function saveTermTab(type: TermType) {
       })
     }
     toast.add({ title: t('organization.terms.savedToast'), color: 'success', icon: 'i-lucide-check-circle' })
-    await loadTermType(type)
+    await loadTermType(type, true)
   }
   catch {
     // useApi already notified (e.g. a version is already scheduled — 422)
@@ -276,7 +282,7 @@ async function saveTermTab(type: TermType) {
 onMounted(() => {
   load()
   loadCurrencyOptions()
-  TERM_TYPES.forEach(loadTermType)
+  loadTermType(activeTermTab.value)
 })
 </script>
 
@@ -458,37 +464,44 @@ onMounted(() => {
           :class="activeTermTab === type
             ? 'border-prohealth-600 text-prohealth-900'
             : 'border-transparent text-prohealth-400 hover:text-prohealth-700'"
-          @click="activeTermTab = type"
+          @click="selectTermTab(type)"
         >
           {{ t(`organization.terms.types.${type}`) }}
         </button>
       </div>
 
-      <div v-for="type in TERM_TYPES" v-show="activeTermTab === type" :key="type" class="space-y-4">
-        <div v-if="termTabs[type].currentContent" class="text-xs text-prohealth-600 bg-prohealth-50 rounded-lg p-3">
-          {{ t('organization.terms.currentSince', { date: termTabs[type].currentValidFrom }) }}
+      <div v-if="activeTerm.loading" class="py-12 flex flex-col items-center justify-center gap-2 text-prohealth-500">
+        <UIcon name="i-lucide-loader-circle" class="w-6 h-6 animate-spin" />
+        <span class="text-sm">{{ t('common.loading') }}</span>
+      </div>
+
+      <!-- Keyed on the active type so switching tabs remounts the editor with that
+           tab's own state instead of patching the previous tab's inputs. -->
+      <div v-else :key="activeTermTab" class="space-y-4">
+        <div v-if="activeTerm.currentContent" class="text-xs text-prohealth-600 bg-prohealth-50 rounded-lg p-3">
+          {{ t('organization.terms.currentSince', { date: formatDate(activeTerm.currentValidFrom, 'datetime') }) }}
         </div>
         <div v-else class="text-xs text-amber-600 bg-amber-50 rounded-lg p-3">
           {{ t('organization.terms.noCurrent') }}
         </div>
-        <div v-if="termTabs[type].editingUuid" class="text-xs text-prohealth-600 bg-cyan-50 rounded-lg p-3">
+        <div v-if="activeTerm.editingUuid" class="text-xs text-prohealth-600 bg-cyan-50 rounded-lg p-3">
           {{ t('organization.terms.editingScheduled') }}
         </div>
 
         <UFormField :label="t('organization.terms.fields.title')">
-          <UInput v-model="termTabs[type].title" class="w-full" :disabled="!canManageTerms" />
+          <UInput v-model="activeTerm.title" class="w-full" :disabled="!canManageTerms" />
         </UFormField>
 
         <UFormField :label="t('organization.terms.fields.content')">
-          <MarkdownEditor v-model="termTabs[type].contentMarkdown" :disabled="!canManageTerms" />
+          <MarkdownEditor v-model="activeTerm.contentMarkdown" :disabled="!canManageTerms" />
         </UFormField>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('organization.terms.fields.validFrom')">
-            <UInput v-model="termTabs[type].validFrom" type="datetime-local" class="w-full" :disabled="!canManageTerms" />
+            <UInput v-model="activeTerm.validFrom" type="datetime-local" class="w-full" :disabled="!canManageTerms" />
           </UFormField>
           <UFormField :label="t('organization.terms.fields.isPublic')" :help="t('organization.terms.isPublicHelp')">
-            <USwitch v-model="termTabs[type].isPublic" :disabled="!canManageTerms" />
+            <USwitch v-model="activeTerm.isPublic" :disabled="!canManageTerms" />
           </UFormField>
         </div>
 
@@ -498,9 +511,9 @@ onMounted(() => {
           icon="i-lucide-save"
           :loading="savingTerm"
           :disabled="!canManageTerms"
-          @click="saveTermTab(type)"
+          @click="saveTermTab(activeTermTab)"
         >
-          {{ termTabs[type].editingUuid ? t('organization.terms.saveScheduled') : t('organization.terms.publishNew') }}
+          {{ activeTerm.editingUuid ? t('organization.terms.saveScheduled') : t('organization.terms.publishNew') }}
         </UButton>
       </div>
     </div>
