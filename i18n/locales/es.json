@@ -1763,6 +1763,7 @@
       "rejectTooltip": "Rechazar pago",
       "sections": {
         "detail": "Detalle del pago",
+        "lines": "Líneas de pago",
         "membership": "Afiliación",
         "proof": "Comprobante",
         "review": "Revisión",
@@ -1793,6 +1794,18 @@
         "fileTypeFallback": "archivo",
         "view": "Ver comprobante",
         "none": "Sin comprobante adjunto."
+      },
+      "submit": "Enviar a revisión",
+      "submitTooltip": "Enviar el borrador a revisión",
+      "submittedToast": "Pago enviado a revisión",
+      "reactivate": "Regresar a borrador",
+      "reactivateTooltip": "Regresar el pago a borrador para editar sus líneas",
+      "reactivatedToast": "Pago regresado a borrador",
+      "linesColumns": {
+        "method": "Método",
+        "bank": "Banco",
+        "amount": "Monto",
+        "reference": "Referencia"
       }
     },
     "form": {
@@ -1826,7 +1839,15 @@
         "coverageThroughPeriodHelp": "Opcional — solo para un pago adelantado de varios meses. No puede ser anterior al mes cubierto.",
         "adminNotes": "Notas administrativas",
         "proof": "Comprobante",
-        "proofHelp": "Imagen o PDF del soporte de pago (opcional)."
+        "proofHelp": "Imagen o PDF del soporte de pago (opcional).",
+        "additionalLines": "Líneas adicionales",
+        "additionalLinesHelp": "Divide este pago entre varios métodos (ej. efectivo + transferencia).",
+        "addLine": "Agregar línea",
+        "removeLine": "Quitar línea",
+        "lineAmount": "Monto",
+        "lineMethod": "Método",
+        "linesTotal": "Suma de líneas",
+        "linesTotalExceedsAmount": "La suma de las líneas ({sum}) no puede superar el monto declarado ({amount})."
       },
       "placeholders": {
         "amount": "10.00",

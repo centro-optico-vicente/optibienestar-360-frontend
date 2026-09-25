@@ -141,6 +141,13 @@ export interface PaymentDto {
   reviewedAt?: string | null
   reviewedAt_Display?: string | null
   reviewReason?: string | null
+  /**
+   * Full lines collection (V117 lines feature) — every `payment_lines` row,
+   * in addition to the flattened first-line fields above (kept as-is). A
+   * single-line payment still populates both; a genuinely split payment
+   * only shows its first line in the flat fields, the full split here.
+   */
+  lines?: PaymentLineDto[]
   // Audit
   active?: boolean
   active_Display?: string | null
@@ -148,6 +155,71 @@ export interface PaymentDto {
   createdAt_Display?: string | null
   updatedAt?: string
   updatedAt_Display?: string | null
+}
+
+/** A single `payment_lines` row (V117 lines feature) — response shape. */
+export interface PaymentLineDto {
+  uuid: string
+  method_Uuid?: string | null
+  method_Display?: string | null
+  methodDescription?: string | null
+  methodMandatoryIdentification: boolean
+  methodMandatoryBank: boolean
+  methodMandatoryBankAccount: boolean
+  methodMandatoryAccountType: boolean
+  methodMandatoryAccountCode: boolean
+  methodMandatoryPhone: boolean
+  methodMandatoryEmail: boolean
+  methodMandatoryReferenceNumber: boolean
+  amount: number | string
+  amount_Display?: string | null
+  currency_Code?: string | null
+  currency_Uuid?: string | null
+  currency_Display?: string | null
+  referenceNumber?: string | null
+  bank_Uuid?: string | null
+  bank_Display?: string | null
+  identification?: string | null
+  bankAccountType?: string | null
+  bankAccountCode?: string | null
+  bankAccountIdentifier?: string | null
+  phone?: string | null
+  email?: string | null
+  status: PaymentStatus | string
+  status_Display?: string | null
+  reviewedBy_Uuid?: string | null
+  reviewedBy_Display?: string | null
+  reviewedAt?: string | null
+  reviewedAt_Display?: string | null
+  reviewReason?: string | null
+}
+
+/**
+ * Input shape for a single method/amount block within a multi-line payment
+ * (V117 lines feature) — embedded in the create requests' `lines` array and
+ * in {@link PaymentLinesUpdateRequest}. `amount` as string, same BigDecimal
+ * convention as the header.
+ */
+export interface PaymentLineRequest {
+  paymentMethodUuid: string
+  bankUuid?: string
+  amount: string
+  /** Optional — omit to fall back to the header's resolved currency. */
+  currencyUuid?: string
+  identification?: string
+  bankAccountType?: string
+  bankAccountCode?: string
+  bankAccountIdentifier?: string
+  phone?: string
+  email?: string
+  referenceNumber?: string
+}
+
+/** Body of `PUT /{uuid}/lines` — replaces the entire lines collection of a DRAFT payment. */
+export interface PaymentLinesUpdateRequest {
+  lines: PaymentLineRequest[]
+  /** Optional declared header total — `sum(lines.amount)` must not exceed it; omitted = auto-total from lines. */
+  amount?: string
 }
 
 /**
@@ -190,6 +262,12 @@ export interface PaymentCreateRequest {
   /** User account that paid; null = cash at counter. */
   payerUserUuid?: string
   adminNotes?: string
+  /**
+   * Multi-line split (V117 lines feature). `undefined`/empty falls back to
+   * the legacy single-line shape built from this record's own flat
+   * method/amount/reference fields above (ignored when this is populated).
+   */
+  lines?: PaymentLineRequest[]
 }
 
 export interface OutPaymentCreateRequest {
@@ -239,6 +317,8 @@ export interface MyPaymentCreateRequest {
   /** See {@link PaymentCreateRequest.coverageThroughPeriod} — same rules. */
   coverageThroughPeriod?: string
   adminNotes?: string
+  /** See {@link PaymentCreateRequest.lines}. */
+  lines?: PaymentLineRequest[]
 }
 
 /**

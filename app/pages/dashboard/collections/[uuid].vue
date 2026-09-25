@@ -19,6 +19,7 @@ const paymentUuid = route.params.uuid as string
 
 const payments = usePayments()
 const { can } = usePermissions()
+const toast = useToast()
 
 const canApprove = computed(() => can('PAYMENT_APPROVE'))
 const canReject = computed(() => can('PAYMENT_REJECT'))
@@ -79,6 +80,45 @@ async function refreshAll() {
 }
 
 const isPending = computed(() => payment.value?.status === 'PENDING')
+const isDraft = computed(() => payment.value?.status === 'DRAFT')
+
+// ---- Lines lifecycle (V117 lines feature): DRAFT -> PENDING -> (APPROVED|REJECTED),
+// with PENDING -> DRAFT as the only way back once submitted. Same permission
+// tier as approve/reject — both are "who can move this workflow forward".
+const canSubmit = computed(() => canApprove.value)
+const canReactivate = computed(() => canApprove.value || canReject.value)
+const submitting = ref(false)
+const reactivating = ref(false)
+
+async function doSubmit() {
+  if (!payment.value) return
+  submitting.value = true
+  try {
+    payment.value = await payments.submit(payment.value.uuid)
+    toast.add({ title: t('payments.detail.submittedToast'), color: 'success', icon: 'i-lucide-check-circle' })
+  }
+  catch {
+    // useApi already notified
+  }
+  finally {
+    submitting.value = false
+  }
+}
+
+async function doReactivate() {
+  if (!payment.value) return
+  reactivating.value = true
+  try {
+    payment.value = await payments.reactivateToDraft(payment.value.uuid)
+    toast.add({ title: t('payments.detail.reactivatedToast'), color: 'success', icon: 'i-lucide-undo-2' })
+  }
+  catch {
+    // useApi already notified
+  }
+  finally {
+    reactivating.value = false
+  }
+}
 
 // ---- Presentation helpers ----
 // Byte size with universal units (not localized).
@@ -191,7 +231,33 @@ function onReviewed(updated: PaymentDto) {
               @refresh="refreshAll"
             />
             <ReportPrintButton :record-uuid="paymentUuid" variant="ghost" />
+            <template v-if="isDraft">
+              <UTooltip :text="canSubmit ? t('payments.detail.submitTooltip') : t('payments.tooltips.noPermissionApprove')">
+                <UButton
+                  color="primary"
+                  variant="soft"
+                  icon="i-lucide-send"
+                  :loading="submitting"
+                  :disabled="!canSubmit"
+                  @click="doSubmit"
+                >
+                  {{ t('payments.detail.submit') }}
+                </UButton>
+              </UTooltip>
+            </template>
             <template v-if="isPending">
+              <UTooltip :text="canReactivate ? t('payments.detail.reactivateTooltip') : t('payments.tooltips.noPermissionApprove')">
+                <UButton
+                  color="neutral"
+                  variant="soft"
+                  icon="i-lucide-undo-2"
+                  :loading="reactivating"
+                  :disabled="!canReactivate"
+                  @click="doReactivate"
+                >
+                  {{ t('payments.detail.reactivate') }}
+                </UButton>
+              </UTooltip>
               <UTooltip :text="canReject ? t('payments.detail.rejectTooltip') : t('payments.tooltips.noPermissionReject')">
                 <UButton
                   color="error"
@@ -269,6 +335,31 @@ function onReviewed(updated: PaymentDto) {
             </dd>
           </div>
         </dl>
+      </div>
+
+      <!-- Lines (V117 lines feature) — shown when the payment is split across 2+ method/amount blocks -->
+      <div v-if="payment.lines && payment.lines.length > 1" class="bg-white rounded-2xl border border-prohealth-100 p-6">
+        <h2 class="font-bold text-prohealth-900 mb-4">{{ t('payments.detail.sections.lines') }}</h2>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
+                <th class="px-4 py-2 font-semibold">{{ t('payments.detail.linesColumns.method') }}</th>
+                <th class="px-4 py-2 font-semibold">{{ t('payments.detail.linesColumns.bank') }}</th>
+                <th class="px-4 py-2 font-semibold text-right">{{ t('payments.detail.linesColumns.amount') }}</th>
+                <th class="px-4 py-2 font-semibold">{{ t('payments.detail.linesColumns.reference') }}</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-prohealth-100">
+              <tr v-for="line in payment.lines" :key="line.uuid">
+                <td class="px-4 py-2 text-prohealth-800">{{ line.method_Display || t('common.empty') }}</td>
+                <td class="px-4 py-2 text-prohealth-800">{{ line.bank_Display || t('common.empty') }}</td>
+                <td class="px-4 py-2 text-prohealth-800 text-right">{{ line.amount_Display ?? line.amount }}</td>
+                <td class="px-4 py-2 text-prohealth-800 font-mono">{{ line.referenceNumber || t('common.empty') }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <!-- Membership -->
