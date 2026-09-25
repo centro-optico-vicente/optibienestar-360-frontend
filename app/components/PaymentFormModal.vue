@@ -132,6 +132,7 @@ interface FormState {
   paymentDate: string
   inscription: boolean
   appliedPeriod: string
+  coverageThroughPeriod: string
   adminNotes: string
 }
 
@@ -152,6 +153,7 @@ const state = reactive<FormState>({
   paymentDate: '',
   inscription: false,
   appliedPeriod: '',
+  coverageThroughPeriod: '',
   adminNotes: '',
 })
 
@@ -256,6 +258,9 @@ const schema = computed(() => z.object({
     : z.string().max(80, t('validation.maxChars', { n: 80 })).optional(),
   paymentDate: z.string().min(1, t('validation.required')).refine(notFuture, t('payments.form.validation.dateFuture')),
   appliedPeriod: z.string().optional(),
+  // yyyy-MM from the <input type="month">; lexicographic comparison is safe for that format.
+  coverageThroughPeriod: z.string().optional()
+    .refine(v => !v || !state.appliedPeriod || v >= state.appliedPeriod, t('payments.form.validation.coverageThroughPeriodBeforeApplied')),
   adminNotes: z.string().optional(),
 }))
 
@@ -276,6 +281,7 @@ function resetForm() {
   state.paymentDate = ''
   state.inscription = false
   state.appliedPeriod = ''
+  state.coverageThroughPeriod = ''
   state.adminNotes = ''
   selectedMethod.value = null
   membershipOptions.value = []
@@ -313,6 +319,10 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       appliedPeriod: state.inscription
         ? undefined
         : (state.appliedPeriod ? `${state.appliedPeriod}-01` : undefined),
+      // Optional multi-month advance range end (V154); same inscription rule as appliedPeriod.
+      coverageThroughPeriod: state.inscription
+        ? undefined
+        : (state.coverageThroughPeriod ? `${state.coverageThroughPeriod}-01` : undefined),
       adminNotes: state.adminNotes.trim() || undefined,
     }
     const result = await payments.register(payload, supportFile.value)
@@ -481,6 +491,14 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
             :help="t('payments.form.fields.coveredMonthHelp')"
           >
             <UInput v-model="state.appliedPeriod" type="month" class="w-full" />
+          </UFormField>
+          <UFormField
+            v-if="!state.inscription"
+            :label="t('payments.form.fields.coverageThroughPeriod')"
+            name="coverageThroughPeriod"
+            :help="t('payments.form.fields.coverageThroughPeriodHelp')"
+          >
+            <UInput v-model="state.coverageThroughPeriod" type="month" class="w-full" />
           </UFormField>
         </div>
 

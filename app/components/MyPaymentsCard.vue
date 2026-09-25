@@ -51,6 +51,12 @@ function statusLabel(s?: string | null): string {
 
 function allocationLabel(p: PaymentDto): string {
   if (p.inscription) return t('payments.allocation.inscription')
+  if (p.appliedPeriod && p.coverageThroughPeriod && p.coverageThroughPeriod !== p.appliedPeriod) {
+    return t('payments.allocation.monthlyRange', {
+      from: formatMonthYear(p.appliedPeriod),
+      to: formatMonthYear(p.coverageThroughPeriod),
+    })
+  }
   return p.appliedPeriod
     ? t('payments.allocation.monthlyPeriod', { period: formatMonthYear(p.appliedPeriod) })
     : t('payments.allocation.monthly')
