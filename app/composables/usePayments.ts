@@ -5,6 +5,7 @@ import type {
   PaymentApproveRequest,
   PaymentCreateRequest,
   PaymentDto,
+  PaymentLinesUpdateRequest,
   PaymentRejectRequest,
   PaymentSupportUrlDto,
   OutPaymentCreateRequest,
@@ -63,13 +64,30 @@ export const usePayments = () => {
    * Multipart registration: `payment` part (JSON) + `support` part (optional file).
    * ofetch detects the FormData and sets the multipart boundary automatically; no
    * Content-Type is forced (useApi only adds Accept + Authorization).
+   *
+   * `draft=true` starts the payment at `DRAFT` instead of the historical
+   * one-step `PENDING` (V117 lines feature) — lines then stay editable via
+   * `updateLines` until an explicit `submit`. Omitted/false keeps today's
+   * behavior unchanged.
    */
-  const register = (payload: PaymentCreateRequest, support?: File | null) => {
+  const register = (payload: PaymentCreateRequest, support?: File | null, draft?: boolean) => {
     const form = new FormData()
     form.append('payment', new Blob([JSON.stringify(payload)], { type: 'application/json' }))
     if (support) form.append('support', support)
-    return useApi<PaymentDto>('/v1/admin/payments', { method: 'POST', body: form })
+    return useApi<PaymentDto>('/v1/admin/payments', { method: 'POST', body: form, query: draft ? { draft: true } : {} })
   }
+
+  /** Replaces the entire lines collection of a DRAFT payment (V117 lines feature). COLLECTION_CREATE. */
+  const updateLines = (uuid: string, payload: PaymentLinesUpdateRequest) =>
+    useApi<PaymentDto>(`/v1/admin/payments/${uuid}/lines`, { method: 'PUT', body: payload })
+
+  /** DRAFT -> PENDING, moves a draft collection into the admin review queue. */
+  const submit = (uuid: string) =>
+    useApi<PaymentDto>(`/v1/admin/payments/${uuid}/submit`, { method: 'PUT' })
+
+  /** PENDING -> DRAFT, the only way to make a submitted payment's lines editable again. */
+  const reactivateToDraft = (uuid: string) =>
+    useApi<PaymentDto>(`/v1/admin/payments/${uuid}/reactivate`, { method: 'PUT' })
 
   const registerOut = (payload: OutPaymentCreateRequest, support?: File | null) => {
     const form = new FormData()
@@ -158,18 +176,42 @@ export const usePayments = () => {
       },
     })
 
-  /** Register a payment for the caller's own active membership (PAYMENT_CREATE_OWN). */
-  const registerOwn = (payload: MyPaymentCreateRequest, support?: File | null) =>
-    useApi<PaymentDto>('/v1/me/payments', { method: 'POST', body: toPaymentForm(payload, support) })
+  /** Register a payment for the caller's own active membership (PAYMENT_CREATE_OWN). `draft` — see {@link register}. */
+  const registerOwn = (payload: MyPaymentCreateRequest, support?: File | null, draft?: boolean) =>
+    useApi<PaymentDto>('/v1/me/payments', { method: 'POST', body: toPaymentForm(payload, support), query: draft ? { draft: true } : {} })
+
+  /** Replaces the lines of the caller's own DRAFT payment (V117 lines feature). */
+  const updateLinesOwn = (uuid: string, payload: PaymentLinesUpdateRequest) =>
+    useApi<PaymentDto>(`/v1/me/payments/${uuid}/lines`, { method: 'PUT', body: payload })
+
+  /** DRAFT -> PENDING for the caller's own payment. */
+  const submitOwn = (uuid: string) =>
+    useApi<PaymentDto>(`/v1/me/payments/${uuid}/submit`, { method: 'PUT' })
+
+  /** PENDING -> DRAFT for the caller's own payment. */
+  const reactivateToDraftOwn = (uuid: string) =>
+    useApi<PaymentDto>(`/v1/me/payments/${uuid}/reactivate`, { method: 'PUT' })
 
   /** Delete the caller's own still-PENDING payment (PAYMENT_DELETE_OWN). */
   const removeOwn = (uuid: string) =>
     useApi<void>(`/v1/me/payments/${uuid}`, { method: 'DELETE' })
 
   // ---- Promoter downline management (hub plan payments-unification, "Mis portales") ----
-  /** Register a collection for an affiliate in the caller's own downline (PAYMENT_CREATE_DOWNLINE). */
-  const registerForDownline = (payload: DownlinePaymentCreateRequest, support?: File | null) =>
-    useApi<PaymentDto>('/v1/promoter/me/payments', { method: 'POST', body: toPaymentForm(payload, support) })
+  /** Register a collection for an affiliate in the caller's own downline (PAYMENT_CREATE_DOWNLINE). `draft` — see {@link register}. */
+  const registerForDownline = (payload: DownlinePaymentCreateRequest, support?: File | null, draft?: boolean) =>
+    useApi<PaymentDto>('/v1/promoter/me/payments', { method: 'POST', body: toPaymentForm(payload, support), query: draft ? { draft: true } : {} })
+
+  /** Replaces the lines of a DRAFT collection from the caller's own downline (V117 lines feature). */
+  const updateLinesForDownline = (uuid: string, payload: PaymentLinesUpdateRequest) =>
+    useApi<PaymentDto>(`/v1/promoter/me/payments/${uuid}/lines`, { method: 'PUT', body: payload })
+
+  /** DRAFT -> PENDING for a downline collection. */
+  const submitForDownline = (uuid: string) =>
+    useApi<PaymentDto>(`/v1/promoter/me/payments/${uuid}/submit`, { method: 'PUT' })
+
+  /** PENDING -> DRAFT for a downline collection. */
+  const reactivateToDraftForDownline = (uuid: string) =>
+    useApi<PaymentDto>(`/v1/promoter/me/payments/${uuid}/reactivate`, { method: 'PUT' })
 
   /** Approve a PENDING downline collection (PAYMENT_APPROVE_DOWNLINE, not granted by default). */
   const approveForDownline = (uuid: string, reason?: string) =>
@@ -191,7 +233,9 @@ export const usePayments = () => {
 
   return {
     list, get, register, registerOut, updateOut, removeOut, processOut, approveOut, rejectOut, approve, reject, remove, supportUrl, mine, mineForPromoter,
-    registerOwn, removeOwn,
+    updateLines, submit, reactivateToDraft,
+    registerOwn, removeOwn, updateLinesOwn, submitOwn, reactivateToDraftOwn,
     registerForDownline, approveForDownline, rejectForDownline, removeForDownline,
+    updateLinesForDownline, submitForDownline, reactivateToDraftForDownline,
   }
 }

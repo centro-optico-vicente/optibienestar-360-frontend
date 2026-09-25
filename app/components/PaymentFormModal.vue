@@ -59,18 +59,48 @@ const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 const methodOptions = ref<{ label: string, value: string }[]>([])
 const bankOptions = ref<{ label: string, value: string }[]>([])
 const banksByUuid = ref<Record<string, CatalogItem>>({})
+// Full method catalog, kept alongside `methodOptions` so each ADDITIONAL
+// line (see `linesEditor` below) can resolve its own mandatory-field flags
+// locally, the same way MyPaymentFormModal/DownlinePaymentFormModal already
+// do for their single line — no per-row admin lookup needed.
+const methodsByUuid = ref<Record<string, CatalogItem>>({})
 const selectedMethod = ref<CatalogItem | null>(null)
 const loadingMethods = ref(false)
 const currencyOptions = ref<{ label: string, value: string }[]>([])
 const loadingCurrencies = ref(false)
 
+// ---- Additional payment lines (V117 lines feature) — see usePaymentLinesEditor.
+// The form's own fields above stay the flat "first line"; this editor only
+// manages the EXTRA lines stacked on top of it.
+const linesEditor = usePaymentLinesEditor()
+
+function methodForLine(uuid: string): CatalogItem | null {
+  return uuid ? (methodsByUuid.value[uuid] ?? null) : null
+}
+
+// When extra lines are added, "Monto" above stays the DECLARED HEADER TOTAL;
+// the primary method/amount block becomes the payment's first line and
+// automatically absorbs whatever the extra lines don't cover (so
+// first-line + extra-lines always sums exactly to the declared total —
+// trivially satisfies the backend's "sum(lines) <= amount" rule). The user
+// only has to type each extra line's own share; the "main" line's share is
+// computed, not typed twice.
+const firstLineAmount = computed(() => {
+  const declared = Number(state.amount) || 0
+  return Math.round((declared - linesEditor.totalFromLines.value) * 100) / 100
+})
+const linesExceedDeclaredAmount = computed(() =>
+  state.amount.trim() !== '' && linesEditor.lines.value.length > 0 && firstLineAmount.value < 0.01
+)
+
 async function loadMethodsAndBanks() {
   loadingMethods.value = true
   try {
     const [methods, banks] = await Promise.all([methodsApi.listAll(), banksApi.listAll()])
-    methodOptions.value = methods
-      .filter((method: CatalogItem) => method.active)
+    const activeMethods = methods.filter((method: CatalogItem) => method.active)
+    methodOptions.value = activeMethods
       .map((method: CatalogItem) => ({ label: method.name, value: method.uuid }))
+    methodsByUuid.value = Object.fromEntries(activeMethods.map((method: CatalogItem) => [method.uuid, method]))
     const activeBanks = banks.filter((bank: CatalogItem) => bank.active)
     bankOptions.value = activeBanks
       .map((bank: CatalogItem) => ({ label: bank.code ? `${bank.code} — ${bank.name}` : bank.name, value: bank.uuid }))
@@ -79,6 +109,7 @@ async function loadMethodsAndBanks() {
   catch {
     methodOptions.value = []
     bankOptions.value = []
+    methodsByUuid.value = {}
   }
   finally {
     loadingMethods.value = false
@@ -285,6 +316,7 @@ function resetForm() {
   state.adminNotes = ''
   selectedMethod.value = null
   membershipOptions.value = []
+  linesEditor.reset()
   clearFile()
 }
 
@@ -298,6 +330,17 @@ watch(() => props.open, (open) => {
 })
 
 async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
+  if (linesExceedDeclaredAmount.value) {
+    toast.add({
+      title: t('payments.form.fields.linesTotalExceedsAmount', {
+        sum: linesEditor.totalFromLines.value.toFixed(2),
+        amount: state.amount,
+      }),
+      color: 'error',
+      icon: 'i-lucide-circle-alert',
+    })
+    return
+  }
   isSubmitting.value = true
   try {
     const payload: PaymentCreateRequest = {
@@ -324,6 +367,26 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         ? undefined
         : (state.coverageThroughPeriod ? `${state.coverageThroughPeriod}-01` : undefined),
       adminNotes: state.adminNotes.trim() || undefined,
+    }
+    // V117 lines feature: only send `lines` when the user actually added an
+    // extra one — the first line stays the flat fields above (backend falls
+    // back to the legacy single-line shape when `lines` is absent).
+    if (linesEditor.lines.value.length > 0) {
+      payload.lines = [
+        {
+          paymentMethodUuid: payload.paymentMethodUuid,
+          bankUuid: payload.bankUuid,
+          amount: firstLineAmount.value.toFixed(2),
+          identification: payload.identification,
+          bankAccountType: payload.bankAccountType,
+          bankAccountCode: payload.bankAccountCode,
+          bankAccountIdentifier: payload.bankAccountIdentifier,
+          phone: payload.phone,
+          email: payload.email,
+          referenceNumber: payload.referenceNumber,
+        },
+        ...linesEditor.toRequests(),
+      ]
     }
     const result = await payments.register(payload, supportFile.value)
     toast.add({ title: t('payments.form.registeredToast'), description: t('payments.form.registeredToastDescription'), color: 'success', icon: 'i-lucide-check-circle' })
@@ -453,6 +516,56 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           <UFormField v-if="selectedMethod?.mandatoryAccountCode" :label="t('payments.payouts.fields.accountCode')" name="bankAccountCode" required><UInput class="w-full" v-model="state.bankAccountCode" /></UFormField>
           <UFormField v-if="selectedMethod?.mandatoryPhone" :label="t('payments.payouts.fields.phone')" name="phone" required><UInput class="w-full" v-model="state.phone" /></UFormField>
           <UFormField v-if="selectedMethod?.mandatoryEmail" :label="t('payments.payouts.fields.email')" name="email" required><UInput class="w-full" v-model="state.email" type="email" /></UFormField>
+        </div>
+
+        <!-- Additional payment lines (V117 lines feature) — split this payment across
+             several methods. The block above stays the first line; each row here is
+             one more method/amount split, sharing the same mandatory-field logic. -->
+        <div class="rounded-xl border border-prohealth-100 p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm font-semibold text-prohealth-800">{{ t('payments.form.fields.additionalLines') }}</p>
+              <p class="text-xs text-prohealth-500">{{ t('payments.form.fields.additionalLinesHelp') }}</p>
+            </div>
+            <UButton color="neutral" variant="soft" size="xs" icon="i-lucide-plus" @click="linesEditor.addLine()">
+              {{ t('payments.form.fields.addLine') }}
+            </UButton>
+          </div>
+
+          <div v-for="(line, index) in linesEditor.lines.value" :key="index" class="rounded-lg bg-prohealth-50/60 p-3 space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+              <UFormField class="sm:col-span-1" :label="t('payments.form.fields.lineMethod')">
+                <USelectMenu clear v-model="line.paymentMethodUuid" :items="methodOptions" label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" />
+              </UFormField>
+              <UFormField class="sm:col-span-1" :label="t('payments.form.fields.lineAmount')">
+                <UInput v-model="line.amount" placeholder="10.00" class="w-full text-right" />
+              </UFormField>
+              <div class="sm:col-span-1 flex justify-end">
+                <UButton color="error" variant="ghost" icon="i-lucide-trash-2" size="xs" @click="linesEditor.removeLine(index)">
+                  {{ t('payments.form.fields.removeLine') }}
+                </UButton>
+              </div>
+            </div>
+            <div v-if="methodForLine(line.paymentMethodUuid)?.mandatoryIdentification || methodForLine(line.paymentMethodUuid)?.mandatoryBank || methodForLine(line.paymentMethodUuid)?.mandatoryBankAccount || methodForLine(line.paymentMethodUuid)?.mandatoryAccountType || methodForLine(line.paymentMethodUuid)?.mandatoryAccountCode || methodForLine(line.paymentMethodUuid)?.mandatoryPhone || methodForLine(line.paymentMethodUuid)?.mandatoryEmail || methodForLine(line.paymentMethodUuid)?.mandatoryReferenceNumber" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <UFormField v-if="methodForLine(line.paymentMethodUuid)?.mandatoryReferenceNumber" :label="t('payments.form.fields.reference')"><UInput class="w-full" v-model="line.referenceNumber" /></UFormField>
+              <UFormField v-if="methodForLine(line.paymentMethodUuid)?.mandatoryIdentification" :label="t('payments.payouts.fields.identification')"><UInput class="w-full" v-model="line.identification" /></UFormField>
+              <UFormField v-if="methodForLine(line.paymentMethodUuid)?.mandatoryBank" :label="t('payments.payouts.fields.bank')">
+                <USelectMenu class="w-full" v-model="line.bankUuid" :items="bankOptions" label-key="label" value-key="value" :placeholder="t('common.select')" />
+              </UFormField>
+              <UFormField v-if="methodForLine(line.paymentMethodUuid)?.mandatoryBankAccount" :label="t('payments.payouts.fields.accountIdentifier')"><UInput class="w-full" v-model="line.bankAccountIdentifier" /></UFormField>
+              <UFormField v-if="methodForLine(line.paymentMethodUuid)?.mandatoryAccountType" :label="t('payments.payouts.fields.accountType')"><USelectMenu class="w-full" v-model="line.bankAccountType" :items="BANK_ACCOUNT_TYPE_OPTIONS" label-key="label" value-key="value" :placeholder="t('common.select')" /></UFormField>
+              <UFormField v-if="methodForLine(line.paymentMethodUuid)?.mandatoryAccountCode" :label="t('payments.payouts.fields.accountCode')"><UInput class="w-full" v-model="line.bankAccountCode" /></UFormField>
+              <UFormField v-if="methodForLine(line.paymentMethodUuid)?.mandatoryPhone" :label="t('payments.payouts.fields.phone')"><UInput class="w-full" v-model="line.phone" /></UFormField>
+              <UFormField v-if="methodForLine(line.paymentMethodUuid)?.mandatoryEmail" :label="t('payments.payouts.fields.email')"><UInput class="w-full" v-model="line.email" type="email" /></UFormField>
+            </div>
+          </div>
+
+          <p v-if="linesEditor.lines.value.length > 0" class="text-xs" :class="linesExceedDeclaredAmount ? 'text-red-600 font-medium' : 'text-prohealth-500'">
+            {{ t('payments.form.fields.linesTotal') }}: {{ linesEditor.totalFromLines.value.toFixed(2) }}
+            <template v-if="linesExceedDeclaredAmount">
+              — {{ t('payments.form.fields.linesTotalExceedsAmount', { sum: linesEditor.totalFromLines.value.toFixed(2), amount: state.amount }) }}
+            </template>
+          </p>
         </div>
 
         <UFormField :label="t('payments.form.fields.adminNotes')" name="adminNotes">
