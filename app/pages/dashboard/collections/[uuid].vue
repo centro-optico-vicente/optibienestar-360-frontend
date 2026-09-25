@@ -29,6 +29,19 @@ const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
 const auditOpen = ref(false)
 
+// Multi-month advance (V154): show the full covered range when it spans more
+// than one month, else the single-month label unchanged.
+function allocationLabel(p: PaymentDto): string {
+  if (p.inscription) return t('payments.allocation.inscriptionFull')
+  if (p.appliedPeriod && p.coverageThroughPeriod && p.coverageThroughPeriod !== p.appliedPeriod) {
+    return t('payments.allocation.monthlyRange', {
+      from: formatMonthYear(p.appliedPeriod),
+      to: formatMonthYear(p.coverageThroughPeriod),
+    })
+  }
+  return t('payments.allocation.monthlyPeriod', { period: formatMonthYear(p.appliedPeriod) })
+}
+
 // ---- Payment load ----
 const payment = ref<PaymentDto | null>(null)
 const loading = ref(true)
@@ -252,7 +265,7 @@ function onReviewed(updated: PaymentDto) {
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.allocation') }}</dt>
             <dd class="text-prohealth-800 mt-0.5">
-              {{ payment.inscription ? t('payments.allocation.inscriptionFull') : t('payments.allocation.monthlyPeriod', { period: formatMonthYear(payment.appliedPeriod) }) }}
+              {{ allocationLabel(payment) }}
             </dd>
           </div>
         </dl>

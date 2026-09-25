@@ -1750,7 +1750,8 @@
       "inscription": "Enrollment",
       "inscriptionFull": "Enrollment (one-time charge)",
       "monthly": "Monthly",
-      "monthlyPeriod": "Monthly · {period}"
+      "monthlyPeriod": "Monthly · {period}",
+      "monthlyRange": "Monthly · {from} → {to}"
     },
     "detail": {
       "seoPage": "Payment detail",
@@ -1821,6 +1822,8 @@
         "inscriptionHelp": "One-time enrollment charge (doesn't apply to a month).",
         "coveredMonth": "Covered month",
         "coveredMonthHelp": "Recurring monthly fee. Empty = current month.",
+        "coverageThroughPeriod": "Advance covers through",
+        "coverageThroughPeriodHelp": "Optional — set only for a multi-month advance payment. Must not be before the covered month.",
         "adminNotes": "Admin notes",
         "proof": "Proof",
         "proofHelp": "Image or PDF of the payment proof (optional)."
@@ -1837,7 +1840,8 @@
         "membership": "Select a membership",
         "amountInvalid": "Invalid amount (up to 2 decimals)",
         "amountMin": "Must be greater than 0",
-        "dateFuture": "The date can't be in the future"
+        "dateFuture": "The date can't be in the future",
+        "coverageThroughPeriodBeforeApplied": "Cannot be before the covered month"
       }
     },
     "review": {

@@ -125,6 +125,8 @@ export interface PaymentDto {
   inscription_Display?: string | null
   /** First day of the covered month (recurring only); null when it is an inscription. */
   appliedPeriod?: string | null
+  /** First day of the LAST month covered by a multi-month advance (V154); null = single-month. */
+  coverageThroughPeriod?: string | null
   // Proof (metadata only; the URL is requested via /support)
   supportFileAvailable: boolean
   supportFileName?: string | null
@@ -180,6 +182,11 @@ export interface PaymentCreateRequest {
   inscription?: boolean
   /** First day of the covered month (yyyy-MM-01). Only when inscription=false. */
   appliedPeriod?: string
+  /**
+   * First day of the LAST month covered by a multi-month advance (V154).
+   * Only when inscription=false; must not be before `appliedPeriod`.
+   */
+  coverageThroughPeriod?: string
   /** User account that paid; null = cash at counter. */
   payerUserUuid?: string
   adminNotes?: string
@@ -229,6 +236,8 @@ export interface MyPaymentCreateRequest {
   paymentDate: string
   inscription?: boolean
   appliedPeriod?: string
+  /** See {@link PaymentCreateRequest.coverageThroughPeriod} — same rules. */
+  coverageThroughPeriod?: string
   adminNotes?: string
 }
 

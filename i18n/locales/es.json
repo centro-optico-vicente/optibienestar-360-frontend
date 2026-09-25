@@ -1750,7 +1750,8 @@
       "inscription": "Inscripción",
       "inscriptionFull": "Inscripción (cargo único)",
       "monthly": "Mensualidad",
-      "monthlyPeriod": "Mensualidad · {period}"
+      "monthlyPeriod": "Mensualidad · {period}",
+      "monthlyRange": "Mensualidad · {from} → {to}"
     },
     "detail": {
       "seoPage": "Detalle de pago",
@@ -1821,6 +1822,8 @@
         "inscriptionHelp": "Cargo único de afiliación (no aplica a un mes).",
         "coveredMonth": "Mes cubierto",
         "coveredMonthHelp": "Mensualidad recurrente. Vacío = mes actual.",
+        "coverageThroughPeriod": "Adelanto cubre hasta",
+        "coverageThroughPeriodHelp": "Opcional — solo para un pago adelantado de varios meses. No puede ser anterior al mes cubierto.",
         "adminNotes": "Notas administrativas",
         "proof": "Comprobante",
         "proofHelp": "Imagen o PDF del soporte de pago (opcional)."
@@ -1837,7 +1840,8 @@
         "membership": "Selecciona una membresía",
         "amountInvalid": "Monto no válido (hasta 2 decimales)",
         "amountMin": "Debe ser mayor que 0",
-        "dateFuture": "La fecha no puede ser futura"
+        "dateFuture": "La fecha no puede ser futura",
+        "coverageThroughPeriodBeforeApplied": "No puede ser anterior al mes cubierto"
       }
     },
     "review": {

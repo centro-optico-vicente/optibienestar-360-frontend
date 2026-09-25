@@ -127,6 +127,7 @@ interface FormState {
   paymentDate: string
   inscription: boolean
   appliedPeriod: string
+  coverageThroughPeriod: string
   adminNotes: string
 }
 
@@ -146,6 +147,7 @@ const state = reactive<FormState>({
   paymentDate: '',
   inscription: false,
   appliedPeriod: '',
+  coverageThroughPeriod: '',
   adminNotes: '',
 })
 
@@ -211,6 +213,8 @@ const schema = computed(() => z.object({
     : z.string().max(80, t('validation.maxChars', { n: 80 })).optional(),
   paymentDate: z.string().min(1, t('validation.required')).refine(notFuture, t('payments.form.validation.dateFuture')),
   appliedPeriod: z.string().optional(),
+  coverageThroughPeriod: z.string().optional()
+    .refine(v => !v || !state.appliedPeriod || v >= state.appliedPeriod, t('payments.form.validation.coverageThroughPeriodBeforeApplied')),
   adminNotes: z.string().optional(),
 }))
 
@@ -230,6 +234,7 @@ function resetForm() {
   state.paymentDate = ''
   state.inscription = false
   state.appliedPeriod = ''
+  state.coverageThroughPeriod = ''
   state.adminNotes = ''
   clearFile()
 }
@@ -264,6 +269,9 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       appliedPeriod: state.inscription
         ? undefined
         : (state.appliedPeriod ? `${state.appliedPeriod}-01` : undefined),
+      coverageThroughPeriod: state.inscription
+        ? undefined
+        : (state.coverageThroughPeriod ? `${state.coverageThroughPeriod}-01` : undefined),
       adminNotes: state.adminNotes.trim() || undefined,
     }
     const result = await payments.registerForDownline(payload, supportFile.value)
@@ -399,6 +407,14 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
             :help="t('payments.form.fields.coveredMonthHelp')"
           >
             <UInput v-model="state.appliedPeriod" type="month" class="w-full" />
+          </UFormField>
+          <UFormField
+            v-if="!state.inscription"
+            :label="t('payments.form.fields.coverageThroughPeriod')"
+            name="coverageThroughPeriod"
+            :help="t('payments.form.fields.coverageThroughPeriodHelp')"
+          >
+            <UInput v-model="state.coverageThroughPeriod" type="month" class="w-full" />
           </UFormField>
         </div>
       </UForm>
