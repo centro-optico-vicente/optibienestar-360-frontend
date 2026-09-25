@@ -392,6 +392,7 @@ export const CATALOGS: CatalogDef[] = [
       { name: 'mandatoryPhone', label: 'Exige teléfono', labelKey: 'catalogs.fields.mandatoryPhone', type: 'checkbox' },
       { name: 'mandatoryEmail', label: 'Exige correo', labelKey: 'catalogs.fields.mandatoryEmail', type: 'checkbox' },
       { name: 'mandatoryReferenceNumber', label: 'Exige número de referencia', labelKey: 'catalogs.fields.mandatoryReferenceNumber', type: 'checkbox' },
+      { name: 'requiresApproval', label: 'Requiere aprobación', labelKey: 'catalogs.fields.requiresApproval', type: 'checkbox', defaultChecked: true },
     ],
   },
 ]
