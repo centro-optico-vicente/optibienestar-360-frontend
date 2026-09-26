@@ -12,11 +12,17 @@ set -eu
 
 CONFIG_PATH="/usr/share/nginx/html/config.js"
 API_BASE_URL="${NUXT_PUBLIC_API_BASE_URL:-}"
+# Hub plan competitive-commission-rules, Fase A — same TZ env var
+# deployment/docker-compose.yaml already sets on every container (from
+# TIME_ZONE, ADR 0010), read here so the SPA follows the deployed timezone
+# instead of a hardcoded America/Caracas literal (see ~/utils/timezone.ts).
+TIME_ZONE="${TZ:-America/Caracas}"
 
 cat > "$CONFIG_PATH" <<EOF
 window.__APP_CONFIG__ = {
-  API_BASE_URL: "${API_BASE_URL}"
+  API_BASE_URL: "${API_BASE_URL}",
+  TIME_ZONE: "${TIME_ZONE}"
 };
 EOF
 
-echo "[runtime-config] wrote ${CONFIG_PATH} (API_BASE_URL='${API_BASE_URL}')"
+echo "[runtime-config] wrote ${CONFIG_PATH} (API_BASE_URL='${API_BASE_URL}', TIME_ZONE='${TIME_ZONE}')"

@@ -7,6 +7,7 @@ import type {
   ScheduledJobUpdateRequest,
 } from '~/types/scheduling'
 import type { JsonKeyValueMode } from '~/composables/useJsonKeyValueEditor'
+import { appTimeZone } from '~/utils/timezone'
 
 // Scheduled-job create/edit form, shared by the list (/dashboard/scheduled-jobs)
 // and the detail (/dashboard/scheduled-jobs/[uuid]) so the fields + validation
@@ -61,7 +62,7 @@ const state = reactive<FormState>({
   displayName: '',
   description: '',
   cronExpression: '',
-  timezone: 'America/Caracas',
+  timezone: appTimeZone(),
   enabled: true,
   allowConcurrent: false,
   maxSyncSeconds: '30',
@@ -116,7 +117,7 @@ function populateFrom(j: ScheduledJobDto | null) {
     state.displayName = ''
     state.description = ''
     state.cronExpression = ''
-    state.timezone = 'America/Caracas'
+    state.timezone = appTimeZone()
     state.enabled = true
     state.allowConcurrent = false
     state.maxSyncSeconds = '30'
@@ -130,7 +131,7 @@ function populateFrom(j: ScheduledJobDto | null) {
   state.displayName = j.displayName ?? ''
   state.description = j.description ?? ''
   state.cronExpression = j.cronExpression ?? ''
-  state.timezone = j.timezone ?? 'America/Caracas'
+  state.timezone = j.timezone ?? appTimeZone()
   state.enabled = j.enabled ?? true
   state.allowConcurrent = j.allowConcurrent ?? false
   state.maxSyncSeconds = j.maxSyncSeconds != null ? String(j.maxSyncSeconds) : '30'
@@ -293,7 +294,7 @@ async function restoreJob() {
             />
           </UFormField>
           <UFormField :label="t('scheduledJobs.form.fields.timezone')" name="timezone" required>
-            <UInput v-model="state.timezone" placeholder="America/Caracas" class="w-full font-mono" />
+            <UInput v-model="state.timezone" :placeholder="appTimeZone()" class="w-full font-mono" />
           </UFormField>
         </div>
 

@@ -215,6 +215,17 @@ const state = reactive<FormState>({
   endsAt: '',
 })
 
+// D15 (hub plan competitive-commission-rules, Fase A): the retroactive axis
+// only makes sense — and is only enabled — when partial is strictly finer
+// than accrual. Instant client-side feedback for the same rule the backend
+// enforces (SettlementAxes), instead of a round-trip 422.
+const { retroactiveEnabled, retroactiveOptions } = useSettlementAxes(
+  toRef(state, 'accrualPeriodStrategy'),
+  toRef(state, 'partialSettlementPeriodStrategy'),
+  toRef(state, 'retroactiveSettlementPeriodStrategy'),
+  periodOptions,
+)
+
 // Selecting a campaign defaults startsAt/endsAt from it (still overridable);
 // clearing the campaign does NOT clear already-set dates (ADR: rules snapshot
 // their own window).
@@ -528,8 +539,9 @@ async function restoreTier() {
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField :label="t('commissionRules.tiers.form.retroactiveSettlementPeriodStrategy')" name="retroactiveSettlementPeriodStrategy" required>
-              <USelectMenu clear v-model="state.retroactiveSettlementPeriodStrategy" :items="periodOptions" label-key="label" value-key="value" class="w-full" />
+            <UFormField :label="t('commissionRules.tiers.form.retroactiveSettlementPeriodStrategy')" name="retroactiveSettlementPeriodStrategy"
+                        :required="retroactiveEnabled" :help="!retroactiveEnabled ? t('commissionRules.tiers.form.retroactiveDisabledHelp') : undefined">
+              <USelectMenu clear v-model="state.retroactiveSettlementPeriodStrategy" :items="retroactiveOptions" :disabled="!retroactiveEnabled" label-key="label" value-key="value" class="w-full" />
             </UFormField>
             <UFormField v-if="anchorKindFor(state.retroactiveSettlementPeriodStrategy) === 'weekday'" :label="t('commissionRules.tiers.form.anchorWeekday')" name="retroactiveSettlementPeriodAnchor">
               <USelectMenu clear v-model="state.retroactiveSettlementPeriodAnchor" :items="weekdayOptions" label-key="label" value-key="value" class="w-full" />

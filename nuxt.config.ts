@@ -60,6 +60,9 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiBaseUrl: '',
+      // Hub plan competitive-commission-rules, Fase A — overridden at runtime
+      // from window.__APP_CONFIG__.TIME_ZONE (see 00.runtime-config.client.ts).
+      timeZone: 'America/Caracas',
     },
   },
 
