@@ -173,6 +173,17 @@ const state = reactive<FormState>({
 // Kept outside `state` (a string-only form-state map) so the boolean isn't coerced.
 const isActive = ref(true)
 
+// D15 (hub plan competitive-commission-rules, Fase A): the retroactive axis
+// only makes sense — and is only enabled — when partial is strictly finer
+// than accrual. Instant client-side feedback for the same rule the backend
+// enforces (SettlementAxes), instead of a round-trip 422.
+const { retroactiveEnabled, retroactiveOptions } = useSettlementAxes(
+  toRef(state, 'accrualPeriodStrategy'),
+  toRef(state, 'partialSettlementPeriodStrategy'),
+  toRef(state, 'retroactiveSettlementPeriodStrategy'),
+  periodOptions,
+)
+
 const schema = computed(() => {
   const anchor = z.string().optional().refine(v => !v || /^\d{1,2}$/.test(v), t('commissionRules.form.integersOnly'))
   return z.object({
@@ -474,8 +485,9 @@ async function restoreTier() {
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField :label="t('commissionRules.collectionTiers.form.retroactiveSettlementPeriodStrategy')" name="retroactiveSettlementPeriodStrategy" required>
-              <USelectMenu clear v-model="state.retroactiveSettlementPeriodStrategy" :items="periodOptions" label-key="label" value-key="value" class="w-full" />
+            <UFormField :label="t('commissionRules.collectionTiers.form.retroactiveSettlementPeriodStrategy')" name="retroactiveSettlementPeriodStrategy"
+                        :required="retroactiveEnabled" :help="!retroactiveEnabled ? t('commissionRules.collectionTiers.form.retroactiveDisabledHelp') : undefined">
+              <USelectMenu clear v-model="state.retroactiveSettlementPeriodStrategy" :items="retroactiveOptions" :disabled="!retroactiveEnabled" label-key="label" value-key="value" class="w-full" />
             </UFormField>
             <UFormField v-if="anchorKindFor(state.retroactiveSettlementPeriodStrategy) === 'weekday'" :label="t('commissionRules.collectionTiers.form.anchorWeekday')" name="retroactiveSettlementPeriodAnchor">
               <USelectMenu clear v-model="state.retroactiveSettlementPeriodAnchor" :items="weekdayOptions" label-key="label" value-key="value" class="w-full" />

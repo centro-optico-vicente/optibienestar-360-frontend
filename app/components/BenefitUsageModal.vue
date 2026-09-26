@@ -2,6 +2,7 @@
 import type { MyAllyDto } from '~/types/allies'
 import type { BenefitUsageDto } from '~/types/benefits'
 import type { ValidationResultDto } from '~/types/validator'
+import { appTimeZone } from '~/utils/timezone'
 
 // Registers a consumed benefit at the counter. Opened from the validator page only
 // after an ACTIVE result, so `membershipUuid` is always the one the backend just
@@ -44,7 +45,7 @@ const touched = ref(false)
  */
 function todayInCaracas(): string {
   return new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'America/Caracas',
+    timeZone: appTimeZone(),
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',

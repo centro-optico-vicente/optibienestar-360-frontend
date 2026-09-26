@@ -1,13 +1,19 @@
+import { appTimeZone } from '~/utils/timezone'
+
 /**
  * Date, number and currency formatting anchored to the Venezuelan convention
- * (`es-VE` / `America/Caracas`, UTC-4 with no DST — ADR 0010). Formatting is NOT
- * tied to the UI locale: figures and dates keep the VE convention even when the
- * user has the interface in English. UI strings are translated via `$t`; numeric
- * and temporal data is formatted here.
+ * (`es-VE` / `America/Caracas` by default, ADR 0010). Formatting is NOT tied
+ * to the UI locale: figures and dates keep the VE convention even when the
+ * user has the interface in English. UI strings are translated via `$t`;
+ * numeric and temporal data is formatted here.
+ *
+ * The timezone follows the app's own zone (`TIME_ZONE()`, hub plan
+ * competitive-commission-rules, Fase A) instead of a hardcoded
+ * `America/Caracas` literal, so a different deployed `TZ` is honored too.
  */
 
 const LOCALE = 'es-VE'
-const TIME_ZONE = 'America/Caracas'
+const TIME_ZONE = () => appTimeZone()
 const EMPTY = '—'
 
 type DateInput = string | number | Date | null | undefined
@@ -65,10 +71,10 @@ export const useFormatters = () => {
     if (!d) return EMPTY
     const options: Intl.DateTimeFormatOptions
       = format === 'long'
-        ? { day: 'numeric', month: 'long', year: 'numeric', timeZone: TIME_ZONE }
+        ? { day: 'numeric', month: 'long', year: 'numeric', timeZone: TIME_ZONE() }
         : format === 'datetime'
-          ? { dateStyle: 'medium', timeStyle: 'short', timeZone: TIME_ZONE }
-          : { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: TIME_ZONE }
+          ? { dateStyle: 'medium', timeStyle: 'short', timeZone: TIME_ZONE() }
+          : { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: TIME_ZONE() }
     return new Intl.DateTimeFormat(LOCALE, options).format(d)
   }
 
@@ -76,14 +82,14 @@ export const useFormatters = () => {
   const formatMonthYear = (date: DateInput): string => {
     const d = toDate(date)
     if (!d) return EMPTY
-    return new Intl.DateTimeFormat(LOCALE, { month: 'long', year: 'numeric', timeZone: TIME_ZONE }).format(d)
+    return new Intl.DateTimeFormat(LOCALE, { month: 'long', year: 'numeric', timeZone: TIME_ZONE() }).format(d)
   }
 
   /** Time of day (HH:mm) in the VE convention. Returns '—' when empty. */
   const formatTime = (date: DateInput): string => {
     const d = toDate(date)
     if (!d) return EMPTY
-    return new Intl.DateTimeFormat(LOCALE, { hour: '2-digit', minute: '2-digit', timeZone: TIME_ZONE }).format(d)
+    return new Intl.DateTimeFormat(LOCALE, { hour: '2-digit', minute: '2-digit', timeZone: TIME_ZONE() }).format(d)
   }
 
   /** Relative distance ("hace 3 días", "en 2 semanas"). Returns '—' when empty. */

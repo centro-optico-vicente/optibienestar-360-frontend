@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { CalendarDate, startOfMonth, endOfMonth } from '@internationalized/date'
 import { todayInCaracas, withCaracasOffset } from '~/utils/date'
+import { appTimeZone } from '~/utils/timezone'
 
 type LooseDateValue = { toString(): string } | undefined
 
@@ -50,7 +51,7 @@ interface Shortcut { key: string, date: () => CalendarDate }
  * `toDate().getDay()` is plain Gregorian (0=Sun…6=Sat), locale-independent.
  */
 function mondayOfWeek(d: CalendarDate): CalendarDate {
-  const jsDay = d.toDate('America/Caracas').getDay()
+  const jsDay = d.toDate(appTimeZone()).getDay()
   const offsetFromMonday = (jsDay + 6) % 7
   return d.subtract({ days: offsetFromMonday })
 }
