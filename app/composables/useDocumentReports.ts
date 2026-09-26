@@ -68,7 +68,7 @@ export const useDocumentReports = () => {
     const start = startDate.trim()
     const end = endDate.trim()
     if (start && end && end < start) {
-      const message = t('reports.invalidDateRange', 'La fecha hacia debe ser mayor o igual a la fecha desde')
+      const message = t('reports.invalidDateRange')
       toast.add({
         title: message,
         color: 'error',
@@ -104,7 +104,7 @@ export const useDocumentReports = () => {
     }
 
     if (response.status === 404) {
-      const toastMsg = message || t('reports.noData', 'No hay datos para mostrar')
+      const toastMsg = message || t('reports.noData')
       toast.add({
         title: toastMsg,
         color: 'warning',
@@ -117,7 +117,7 @@ export const useDocumentReports = () => {
     }
 
     if (response.status === 422) {
-      const toastMsg = message || t('reports.invalidDateRange', 'La fecha hacia debe ser mayor o igual a la fecha desde')
+      const toastMsg = message || t('reports.invalidDateRange')
       toast.add({
         title: toastMsg,
         color: 'error',
@@ -130,7 +130,7 @@ export const useDocumentReports = () => {
     }
 
     if (response.status === 403) {
-      const toastMsg = message || t('errors.byStatus.403', 'No tienes permisos para generar este reporte')
+      const toastMsg = message || t('errors.byStatus.403')
       toast.add({
         title: toastMsg,
         color: 'error',
@@ -261,7 +261,7 @@ export const useDocumentReports = () => {
     filterParams: JasperReportParams = {}
   ) {
     if (!validateDateRange(filterParams.startDate, filterParams.endDate)) {
-      const err: any = new Error(t('reports.invalidDateRange', 'La fecha hacia debe ser mayor o igual a la fecha desde'))
+      const err: any = new Error(t('reports.invalidDateRange'))
       err._reported = true
       err.status = 422
       throw err
@@ -288,15 +288,15 @@ export const useDocumentReports = () => {
       const blob = await executeReportFetch(endpoint, 'reports.tableError')
       const ext = format === 'XLSX' ? 'xlsx' : 'pdf'
       const timestamp = getTimestampString()
-      let baseName = 'reporte'
+      let baseName = t('reports.listFilePrefix')
       if (reportName.includes('comision') && reportName.includes('pago')) {
-        baseName = 'reporte_pagos_comisiones'
+        baseName = t('reports.jasperFiles.commissionPayouts')
       } else if (reportName.startsWith('pago') || reportName.startsWith('payment')) {
-        baseName = 'reporte_pagos_afiliados'
+        baseName = t('reports.jasperFiles.affiliatePayments')
       } else if (reportName.includes('movimiento') || reportName.includes('movement')) {
-        baseName = 'reporte_movimientos_pagos'
+        baseName = t('reports.jasperFiles.paymentMovements')
       } else {
-        baseName = 'reporte_comisiones'
+        baseName = t('reports.jasperFiles.commissions')
       }
       triggerBlobDownload(blob, `${baseName}_${timestamp}.${ext}`)
       toast.add({

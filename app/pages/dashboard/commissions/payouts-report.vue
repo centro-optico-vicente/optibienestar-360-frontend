@@ -27,12 +27,13 @@ const generatingXlsx = ref(false)
 const promoters = ref<PromoterDto[]>([])
 const loadingCatalogs = ref(false)
 
-const defaultCurrencyOptions = [
-  { label: 'USD — Dólar Estadounidense ($)', value: 'USD' },
-  { label: 'VES — Bolívar Venezolano (Bs.)', value: 'VES' },
-  { label: 'EUR — Euro (€)', value: 'EUR' },
-]
-const currencyOptions = ref(defaultCurrencyOptions)
+const defaultCurrencyOptions = computed(() => [
+  { label: t('common.currencies.usd'), value: 'USD' },
+  { label: t('common.currencies.ves'), value: 'VES' },
+  { label: t('common.currencies.eur'), value: 'EUR' },
+])
+const dynamicCurrencyOptions = ref<Array<{ label: string; value: string }>>([])
+const currencyOptions = computed(() => (dynamicCurrencyOptions.value.length > 0 ? dynamicCurrencyOptions.value : defaultCurrencyOptions.value))
 
 function currencyLink(code: string | null | undefined): string | null {
   return code ? `/dashboard/catalogs/currencies?code=${encodeURIComponent(code)}` : null
@@ -44,13 +45,13 @@ async function loadCatalogs() {
     const res = await promotersApi.list({ size: 100, sort: ['displayName,asc'] })
     promoters.value = res.content ?? []
   } catch (err: any) {
-    console.error('Error cargando promotores:', err)
+    console.error('Failed to load promoters:', err)
   }
 
   try {
     const curRes = await useApi<Array<{ uuid?: string; code: string; label: string; active?: boolean }>>('/v1/admin/currencies/options')
     if (curRes && curRes.length > 0) {
-      currencyOptions.value = curRes
+      dynamicCurrencyOptions.value = curRes
         .filter(c => c.active !== false)
         .map(c => ({
           label: c.label || `${c.code}`,
@@ -71,7 +72,7 @@ const ALL_VALUE = 'ALL'
 const promoterOptions = computed(() => [
   { label: t('commissions.payoutsReport.promoterAll'), value: ALL_VALUE },
   ...promoters.value.map(p => ({
-    label: `${p.displayName} (${p.referralCode || 'Sin código'})`,
+    label: `${p.displayName} (${p.referralCode || t('common.noCode')})`,
     value: p.uuid,
   })),
 ])
@@ -162,7 +163,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
       targetCurrency: payoutFilters.targetCurrency || 'USD',
     })
   } catch (error: any) {
-    console.error('Error al generar el reporte Jasper de pagos de comisiones:', error)
+    console.error('Failed to generate commission payouts Jasper report:', error)
   } finally {
     if (format === 'PDF') generatingPdf.value = false
     else generatingXlsx.value = false
@@ -273,7 +274,6 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             </label>
             <AppDatePicker
               v-model="payoutFilters.startDate"
-              placeholder="DD/MM/AAAA"
             />
           </div>
           <div>
@@ -282,7 +282,6 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             </label>
             <AppDatePicker
               v-model="payoutFilters.endDate"
-              placeholder="DD/MM/AAAA"
             />
           </div>
         </div>

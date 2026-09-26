@@ -81,7 +81,15 @@
       "rateDate": "Fecha de Tasa de Cambio"
     },
     "close": "Cerrar",
-    "clearFilters": "Limpiar filtros"
+    "clearFilters": "Limpiar filtros",
+    "openCalendar": "Abrir calendario",
+    "today": "Hoy",
+    "noCode": "Sin código",
+    "currencies": {
+      "usd": "USD — Dólar Estadounidense ($)",
+      "ves": "VES — Bolívar Venezolano (Bs.)",
+      "eur": "EUR — Euro (€)"
+    }
   },
   "locale": {
     "change": "Cambiar idioma"
@@ -3495,7 +3503,13 @@
     "recordFilePrefix": "ficha",
     "noData": "No hay datos para mostrar",
     "invalidDateRange": "La fecha hacia debe ser mayor o igual a la fecha desde",
-    "invalidDateFormat": "Formato de fecha inválido. Se espera YYYY-MM-DD"
+    "invalidDateFormat": "Formato de fecha inválido. Se espera YYYY-MM-DD",
+    "jasperFiles": {
+      "commissionPayouts": "reporte_pagos_comisiones",
+      "affiliatePayments": "reporte_pagos_afiliados",
+      "paymentMovements": "reporte_movimientos_pagos",
+      "commissions": "reporte_comisiones"
+    }
   },
   "organization": {
     "title": "Organización",

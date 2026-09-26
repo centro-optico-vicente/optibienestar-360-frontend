@@ -13,7 +13,7 @@ const props = withDefaults(
   }>(),
   {
     modelValue: '',
-    placeholder: 'DD/MM/AAAA',
+    placeholder: '',
     disabled: false,
     clearable: true,
     icon: 'i-lucide-calendar',
@@ -128,14 +128,16 @@ const calendarValue = computed<any>({
   },
 })
 
+const defaultDateFormatPlaceholder = computed(() => (locale.value === 'en' ? 'DD/MM/YYYY' : 'DD/MM/AAAA'))
+
 const displayPlaceholder = computed(() => {
-  if (!props.placeholder || props.placeholder === 'Seleccionar fecha') {
-    return 'DD/MM/AAAA'
+  if (!props.placeholder || props.placeholder === 'Seleccionar fecha' || props.placeholder === 'Select date') {
+    return defaultDateFormatPlaceholder.value
   }
   if (props.placeholder.includes('AAAA') || props.placeholder.includes('YYYY') || props.placeholder.includes('/')) {
     return props.placeholder
   }
-  return `${props.placeholder} (DD/MM/AAAA)`
+  return `${props.placeholder} (${defaultDateFormatPlaceholder.value})`
 })
 
 function onInput(e: Event) {
@@ -224,7 +226,7 @@ function clear() {
             type="button"
             tabindex="-1"
             class="text-prohealth-400 hover:text-prohealth-700 p-0.5 rounded cursor-pointer transition-colors"
-            :title="t('common.clear', 'Limpiar')"
+            :title="t('common.clear')"
             @click.stop="clear"
           >
             <UIcon name="i-lucide-x" class="w-3.5 h-3.5" />
@@ -240,7 +242,7 @@ function clear() {
               tabindex="-1"
               :disabled="disabled"
               class="text-prohealth-500 hover:text-prohealth-800 p-1 rounded hover:bg-prohealth-100/60 transition-colors cursor-pointer flex items-center justify-center disabled:cursor-not-allowed disabled:opacity-50"
-              :title="t('common.openCalendar', 'Abrir calendario')"
+              :title="t('common.openCalendar')"
             >
               <UIcon :name="icon" class="w-4 h-4" />
             </button>
@@ -259,7 +261,7 @@ function clear() {
                     icon="i-lucide-calendar-days"
                     @click="selectToday"
                   >
-                    {{ t('common.today', 'Hoy') }}
+                    {{ t('common.today') }}
                   </UButton>
                   <UButton
                     v-if="modelValue"
@@ -269,7 +271,7 @@ function clear() {
                     icon="i-lucide-x"
                     @click="clear"
                   >
-                    {{ t('common.clear', 'Limpiar') }}
+                    {{ t('common.clear') }}
                   </UButton>
                 </div>
               </div>
