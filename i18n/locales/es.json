@@ -714,6 +714,10 @@
       "myCommissionPayouts": {
         "label": "Mis pagos de comisiones",
         "description": "Pagos de comisión que te han sido liquidados."
+      },
+      "competitiveWinners": {
+        "label": "Ganadores de reglas competitivas",
+        "description": "Empates abiertos y decisiones sobre ganadores de reglas competitivas."
       }
     },
     "other": {
@@ -3147,7 +3151,8 @@
       "bonusRules": "Bonos por escala",
       "collectionTiers": "Comisión de cobranza",
       "overrideTiers": "Comisión jerárquica adicional",
-      "campaignRules": "Reglas de campaña"
+      "campaignRules": "Reglas de campaña",
+      "competitiveRules": "Reglas competitivas"
     },
     "campaignRules": {
       "subtitle": "Filtra y crea reglas de comisión ancladas a una campaña específica.",
@@ -3210,7 +3215,9 @@
       "allPromoterTypes": "Todos los tipos de promotor",
       "allPlanTypes": "Todos los planes",
       "allAppliesTo": "Todos",
-      "campaignOnly": "Solo reglas de campaña"
+      "campaignOnly": "Solo reglas de campaña",
+      "allMetrics": "Todas las métricas",
+      "allCompetitionTypes": "Todos los tipos"
     },
     "tiers": {
       "new": "Nueva banda",
@@ -3416,6 +3423,98 @@
         "endsAt": "Finaliza",
         "submitCreate": "Crear tramo",
         "active": "Activo"
+      }
+    },
+    "competitiveRules": {
+      "searchPlaceholder": "Buscar por nombre...",
+      "empty": "No hay reglas competitivas configuradas.",
+      "paginationSummary": "Mostrando {shown} de {total}",
+      "createdToast": "Regla competitiva creada",
+      "updatedToast": "Regla competitiva actualizada",
+      "deletedToast": "Regla competitiva eliminada",
+      "deleteTitle": "Eliminar regla competitiva",
+      "deleteConfirm": "¿Eliminar la regla \"{name}\"? Esta acción no se puede deshacer.",
+      "columns": {
+        "name": "Nombre",
+        "metric": "Métrica",
+        "competitionType": "Tipo",
+        "threshold": "Umbral",
+        "positions": "Posiciones"
+      },
+      "metrics": {
+        "NEW_SUBSCRIBERS": "Nuevos suscriptores",
+        "ACTIVE_SUBSCRIBERS": "Suscriptores activos",
+        "SALES_COUNT": "Cantidad de ventas",
+        "SALES_AMOUNT": "Monto de ventas",
+        "COLLECTION_COUNT": "Cantidad de cobros",
+        "COLLECTION_AMOUNT": "Monto cobrado",
+        "ADVANCE_COUNT": "Cantidad de anticipos",
+        "ADVANCE_AMOUNT": "Monto de anticipos",
+        "COMMISSION_EARNED": "Comisión ganada"
+      },
+      "competitionTypes": {
+        "FIRST_TO_REACH": "Primero en llegar",
+        "RANKING": "Ranking por posición"
+      },
+      "dateBases": {
+        "PAYMENT_DATE": "Fecha del pago",
+        "REGISTERED_AT": "Fecha de registro",
+        "APPROVED_AT": "Fecha de aprobación"
+      },
+      "tiePolicies": {
+        "STRICT": "Estricto (arbitrario, estable)",
+        "SHARED_FULL": "Comparten el premio completo",
+        "SHARED_SPLIT": "Reparten el premio",
+        "MANUAL": "Decisión manual"
+      },
+      "periodAxis": {
+        "END_DATE": "Al final de la fecha"
+      },
+      "form": {
+        "createTitle": "Nueva regla competitiva",
+        "editTitle": "Editar regla competitiva",
+        "name": "Nombre",
+        "description": "Descripción",
+        "metric": "Métrica",
+        "competitionType": "Tipo de competencia",
+        "thresholdCount": "Umbral (cantidad)",
+        "thresholdAmount": "Umbral (monto)",
+        "thresholdCurrency": "Moneda del umbral",
+        "thresholdOptionalRanking": "Opcional en RANKING — solo se ordena por la métrica, sin meta.",
+        "achievementDateBasis": "Fecha que decide el logro",
+        "tiePolicy": "Política de empate",
+        "positions": "Posiciones y premios",
+        "positionsHelp": "Rangos de posición no solapados, cada uno con su propio premio.",
+        "addPosition": "Agregar posición",
+        "overlapError": "Hay rangos de posición solapados — corrígelos antes de guardar.",
+        "positionFrom": "Desde",
+        "positionTo": "Hasta",
+        "positionLabel": "Etiqueta",
+        "rewardType": "Tipo de premio",
+        "flatAmount": "Monto fijo",
+        "rewardPct": "Porcentaje",
+        "rewardMin": "Mínimo",
+        "rewardMax": "Máximo",
+        "rewardCurrency": "Moneda del premio",
+        "minThreshold": "Mínimo para calificar",
+        "minThresholdHelp": "Si el ocupante no alcanza este mínimo, la posición queda desierta (D12).",
+        "maxWinners": "Máximo de ganadores: {n}",
+        "advancedSection": "Configuración avanzada de liquidación",
+        "competitionGroup": "Grupo de competencia",
+        "competitionGroupHelp": "Reglas del mismo grupo comparten métrica, tipo y ventana — un promotor gana a lo sumo un premio del grupo por periodo.",
+        "groupPriority": "Prioridad en el grupo",
+        "accrualPeriodStrategy": "Frecuencia de evaluación",
+        "partialSettlementPeriodStrategy": "Pago parcial",
+        "finalSettlementPeriodStrategy": "Pago total",
+        "retroactiveSettlementPeriodStrategy": "Corte retroactivo",
+        "confirmationDelayDays": "Días de espera antes de confirmar",
+        "confirmationDelayDaysHelp": "Días tras el cierre del periodo antes de congelar el premio (PROVISIONAL → PENDING).",
+        "includeSystemPromoters": "Incluir promotores de sistema",
+        "ranks": "Cargos",
+        "atAccrualClose": "Al cierre de la evaluación",
+        "rankingCloseOnlyHelp": "Los premios por posición se pagan al cerrar la evaluación: pagar antes premiaría a quien después puede bajar de posición.",
+        "frozenTitle": "Regla congelada",
+        "frozenHelp": "Ya existen premios pendientes o pagados — solo se pueden editar nombre, descripción y estado. Use Clonar para un cambio mayor."
       }
     }
   },
@@ -3757,6 +3856,15 @@
       "title": "Detalle de la tasa de cambio",
       "fetchedAt": "Ingerida el",
       "active": "Activa"
+    }
+  },
+  "competitiveWinners": {
+    "reasonCategories": {
+      "TIE_BREAK": "Empate",
+      "UNSPORTSMANLIKE_CONDUCT": "Conducta antideportiva",
+      "DATA_ERROR": "Error de datos",
+      "POLICY": "Política",
+      "OTHER": "Otro"
     }
   }
 }

@@ -714,6 +714,10 @@
       "myCommissionPayouts": {
         "label": "My commission payouts",
         "description": "Commission payouts disbursed to you."
+      },
+      "competitiveWinners": {
+        "label": "Competitive rule winners",
+        "description": "Open ties and winner decisions for competitive commission rules."
       }
     },
     "other": {
@@ -3147,7 +3151,8 @@
       "bonusRules": "Scale Bonuses",
       "collectionTiers": "Collection Commission",
       "overrideTiers": "Additional hierarchy commission",
-      "campaignRules": "Campaign Rules"
+      "campaignRules": "Campaign Rules",
+      "competitiveRules": "Competitive rules"
     },
     "campaignRules": {
       "subtitle": "Filter and create commission rules anchored to a specific campaign.",
@@ -3210,7 +3215,9 @@
       "allPromoterTypes": "All promoter types",
       "allPlanTypes": "All plans",
       "allAppliesTo": "All",
-      "campaignOnly": "Campaign rules only"
+      "campaignOnly": "Campaign rules only",
+      "allMetrics": "All metrics",
+      "allCompetitionTypes": "All types"
     },
     "tiers": {
       "new": "New band",
@@ -3416,6 +3423,98 @@
         "endsAt": "Ends",
         "submitCreate": "Create bucket",
         "active": "Active"
+      }
+    },
+    "competitiveRules": {
+      "searchPlaceholder": "Search by name...",
+      "empty": "No competitive rules configured.",
+      "paginationSummary": "Showing {shown} of {total}",
+      "createdToast": "Competitive rule created",
+      "updatedToast": "Competitive rule updated",
+      "deletedToast": "Competitive rule deleted",
+      "deleteTitle": "Delete competitive rule",
+      "deleteConfirm": "Delete rule \"{name}\"? This action cannot be undone.",
+      "columns": {
+        "name": "Name",
+        "metric": "Metric",
+        "competitionType": "Type",
+        "threshold": "Threshold",
+        "positions": "Positions"
+      },
+      "metrics": {
+        "NEW_SUBSCRIBERS": "New subscribers",
+        "ACTIVE_SUBSCRIBERS": "Active subscribers",
+        "SALES_COUNT": "Sales count",
+        "SALES_AMOUNT": "Sales amount",
+        "COLLECTION_COUNT": "Collection count",
+        "COLLECTION_AMOUNT": "Collection amount",
+        "ADVANCE_COUNT": "Advance count",
+        "ADVANCE_AMOUNT": "Advance amount",
+        "COMMISSION_EARNED": "Commission earned"
+      },
+      "competitionTypes": {
+        "FIRST_TO_REACH": "First to reach",
+        "RANKING": "Ranking by position"
+      },
+      "dateBases": {
+        "PAYMENT_DATE": "Payment date",
+        "REGISTERED_AT": "Registered date",
+        "APPROVED_AT": "Approved date"
+      },
+      "tiePolicies": {
+        "STRICT": "Strict (arbitrary, stable)",
+        "SHARED_FULL": "Share the full prize",
+        "SHARED_SPLIT": "Split the prize",
+        "MANUAL": "Manual decision"
+      },
+      "periodAxis": {
+        "END_DATE": "At the end date"
+      },
+      "form": {
+        "createTitle": "New competitive rule",
+        "editTitle": "Edit competitive rule",
+        "name": "Name",
+        "description": "Description",
+        "metric": "Metric",
+        "competitionType": "Competition type",
+        "thresholdCount": "Threshold (count)",
+        "thresholdAmount": "Threshold (amount)",
+        "thresholdCurrency": "Threshold currency",
+        "thresholdOptionalRanking": "Optional for RANKING — just ranks by the metric, no target.",
+        "achievementDateBasis": "Date basis for achievement",
+        "tiePolicy": "Tie policy",
+        "positions": "Positions and prizes",
+        "positionsHelp": "Non-overlapping position ranges, each with its own prize.",
+        "addPosition": "Add position",
+        "overlapError": "There are overlapping position ranges — fix them before saving.",
+        "positionFrom": "From",
+        "positionTo": "To",
+        "positionLabel": "Label",
+        "rewardType": "Reward type",
+        "flatAmount": "Flat amount",
+        "rewardPct": "Percentage",
+        "rewardMin": "Minimum",
+        "rewardMax": "Maximum",
+        "rewardCurrency": "Reward currency",
+        "minThreshold": "Minimum to qualify",
+        "minThresholdHelp": "If the occupant doesn't clear this, the position stays vacant (D12).",
+        "maxWinners": "Maximum winners: {n}",
+        "advancedSection": "Advanced settlement settings",
+        "competitionGroup": "Competition group",
+        "competitionGroupHelp": "Rules in the same group share metric, type and window — a promoter wins at most one prize per group per period.",
+        "groupPriority": "Priority in group",
+        "accrualPeriodStrategy": "Evaluation frequency",
+        "partialSettlementPeriodStrategy": "Partial payout",
+        "finalSettlementPeriodStrategy": "Full payout",
+        "retroactiveSettlementPeriodStrategy": "Retroactive cut",
+        "confirmationDelayDays": "Days before confirming",
+        "confirmationDelayDaysHelp": "Days after the period closes before freezing the prize (PROVISIONAL → PENDING).",
+        "includeSystemPromoters": "Include system promoters",
+        "ranks": "Ranks",
+        "atAccrualClose": "At the evaluation close",
+        "rankingCloseOnlyHelp": "Position prizes are paid at the evaluation's close: paying earlier would reward someone who could still be overtaken.",
+        "frozenTitle": "Frozen rule",
+        "frozenHelp": "There are already pending or paid prizes — only name, description and active can be edited. Use Clone for a bigger change."
       }
     }
   },
@@ -3757,6 +3856,15 @@
       "title": "Exchange rate detail",
       "fetchedAt": "Ingested at",
       "active": "Active"
+    }
+  },
+  "competitiveWinners": {
+    "reasonCategories": {
+      "TIE_BREAK": "Tie break",
+      "UNSPORTSMANLIKE_CONDUCT": "Unsportsmanlike conduct",
+      "DATA_ERROR": "Data error",
+      "POLICY": "Policy",
+      "OTHER": "Other"
     }
   }
 }

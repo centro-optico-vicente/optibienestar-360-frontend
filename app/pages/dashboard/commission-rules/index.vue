@@ -18,7 +18,7 @@ import { OVERRIDE_CATEGORY_OPTIONS } from '~/types/hierarchyOverrideTiers'
 definePageMeta({
   layout: 'dashboard',
   middleware: 'can',
-  permission: ['COMMISSION_TIER_VIEW_ALL', 'BONUS_RULE_VIEW_ALL', 'COLLECTION_COMMISSION_TIER_VIEW_ALL', 'HIERARCHY_OVERRIDE_TIER_VIEW_ALL'],
+  permission: ['COMMISSION_TIER_VIEW_ALL', 'BONUS_RULE_VIEW_ALL', 'COLLECTION_COMMISSION_TIER_VIEW_ALL', 'HIERARCHY_OVERRIDE_TIER_VIEW_ALL', 'COMPETITIVE_COMMISSION_RULE_VIEW_ALL'],
 })
 
 const { t } = useI18n()
@@ -52,6 +52,7 @@ const tabs = computed(() => [
   { label: t('commissionRules.tabs.collectionTiers'), value: 'collectionTiers', icon: 'i-lucide-calendar-clock' },
   { label: t('commissionRules.tabs.overrideTiers'), value: 'overrideTiers', icon: 'i-lucide-network' },
   { label: t('commissionRules.tabs.campaignRules'), value: 'campaignRules', icon: 'i-lucide-rocket' },
+  { label: t('commissionRules.tabs.competitiveRules'), value: 'competitiveRules', icon: 'i-lucide-trophy' },
 ])
 const activeTab = ref('tiers')
 const pageSizeItems = buildPageSizeItems(t)
@@ -1821,6 +1822,10 @@ onMounted(() => {
         </div>
       </template>
     </UModal>
+
+    <div v-show="activeTab === 'competitiveRules'" class="space-y-4">
+      <CompetitiveRulesTab v-if="activeTab === 'competitiveRules'" />
+    </div>
 
     <!-- Audit modal -->
     <AuditModal
