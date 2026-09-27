@@ -19,6 +19,7 @@ import {
   isCountMetric,
   TIE_POLICY_OPTIONS,
 } from '~/types/competitiveCommissions'
+import { POSITION_RANGE_PRESETS } from '~/composables/usePositionRangesEditor'
 import type { SelectItem } from '~/types/options'
 import { READONLY_FIELD_UI } from '~/utils/formFieldStyles'
 
@@ -27,6 +28,8 @@ import { READONLY_FIELD_UI } from '~/utils/formFieldStyles'
 const props = defineProps<{
   open: boolean
   rule?: CompetitiveRuleDto | null
+  /** Prefills a new (create-mode) rule from an existing one — "Clonar". */
+  cloneFrom?: CompetitiveRuleDto | null
   campaignUuid?: string | null
   campaignDisplay?: string | null
 }>()
@@ -182,6 +185,13 @@ const state = reactive<FormState>({
 
 const positionsEditor = usePositionRangesEditor()
 
+const positionPresetItems = computed(() => [
+  POSITION_RANGE_PRESETS.map(preset => ({
+    label: t(preset.labelKey),
+    onSelect: () => positionsEditor.applyPreset(preset),
+  })),
+])
+
 const isCountMetricSelected = computed(() => isCountMetric(state.metric))
 const isRanking = computed(() => state.competitionType === 'RANKING')
 /** D8/D14/D15: END_DATE is only legal on an axis when the rule actually has an end date. */
@@ -275,7 +285,7 @@ const isEditDirty = computed(() => editSnapshot.value !== '' && snapEditState() 
 const discardConfirmOpen = ref(false)
 const reloading = ref(false)
 
-function populateFrom(rule: CompetitiveRuleDto | null) {
+function populateFrom(rule: CompetitiveRuleDto | null, opts: { isClone?: boolean } = {}) {
   suppressCampaignAutofill.value = true
   if (!rule) {
     editSnapshot.value = ''
@@ -310,7 +320,7 @@ function populateFrom(rule: CompetitiveRuleDto | null) {
     nextTick(() => { suppressCampaignAutofill.value = false })
     return
   }
-  state.name = rule.name
+  state.name = opts.isClone ? t('commissionRules.competitiveRules.form.cloneNameSuffix', { name: rule.name }) : rule.name
   state.description = rule.description ?? ''
   state.metric = rule.metric
   state.competitionType = rule.competitionType
@@ -348,13 +358,15 @@ function populateFrom(rule: CompetitiveRuleDto | null) {
     max: p.rewardMaxAmount != null ? String(p.rewardMaxAmount) : '',
     minThreshold: p.minThresholdCount != null ? String(p.minThresholdCount) : (p.minThresholdAmount != null ? String(p.minThresholdAmount) : ''),
   })))
-  editSnapshot.value = snapEditState()
+  editSnapshot.value = opts.isClone ? '' : snapEditState()
   nextTick(() => { suppressCampaignAutofill.value = false })
 }
 
 watch(() => props.open, async (open) => {
   if (!open) return
-  populateFrom(props.rule ?? null)
+  if (props.rule) populateFrom(props.rule)
+  else if (props.cloneFrom) populateFrom(props.cloneFrom, { isClone: true })
+  else populateFrom(null)
   if (currencyItems.value.length === 0) await loadCurrencyOptions()
   if (promoterTypeItems.value.length === 0) await loadPromoterTypeOptions()
   if (rankItems.value.length === 0) await loadRankOptions()
@@ -497,9 +509,16 @@ function openDeleteFromEdit() {
               <p class="text-sm font-semibold text-prohealth-800">{{ t('commissionRules.competitiveRules.form.positions') }}</p>
               <p class="text-xs text-prohealth-500">{{ t('commissionRules.competitiveRules.form.positionsHelp') }}</p>
             </div>
-            <UButton color="neutral" variant="soft" size="xs" icon="i-lucide-plus" @click="positionsEditor.addRange()">
-              {{ t('commissionRules.competitiveRules.form.addPosition') }}
-            </UButton>
+            <div class="flex items-center gap-2">
+              <UDropdownMenu :items="positionPresetItems" :content="{ align: 'end' }">
+                <UButton color="neutral" variant="ghost" size="xs" icon="i-lucide-layout-template">
+                  {{ t('commissionRules.competitiveRules.form.presetsButton') }}
+                </UButton>
+              </UDropdownMenu>
+              <UButton color="neutral" variant="soft" size="xs" icon="i-lucide-plus" @click="positionsEditor.addRange()">
+                {{ t('commissionRules.competitiveRules.form.addPosition') }}
+              </UButton>
+            </div>
           </div>
 
           <UAlert v-if="positionsEditor.hasOverlaps.value" color="error" variant="soft" icon="i-lucide-alert-triangle"

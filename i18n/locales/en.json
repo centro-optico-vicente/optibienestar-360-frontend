@@ -3175,7 +3175,8 @@
         "tiers": "Inscription Bands",
         "bonusRules": "Scale Bonuses",
         "collectionTiers": "Collection Commission",
-        "overrideTiers": "Additional hierarchy commission"
+        "overrideTiers": "Additional hierarchy commission",
+        "competitiveRules": "Competitive rules"
       }
     },
     "appliesTo": {
@@ -3447,6 +3448,7 @@
       "deletedToast": "Competitive rule deleted",
       "deleteTitle": "Delete competitive rule",
       "deleteConfirm": "Delete rule \"{name}\"? This action cannot be undone.",
+      "cloneTrigger": "Clone rule",
       "columns": {
         "name": "Name",
         "metric": "Metric",
@@ -3486,6 +3488,7 @@
       "form": {
         "createTitle": "New competitive rule",
         "editTitle": "Edit competitive rule",
+        "cloneNameSuffix": "{name} (copy)",
         "name": "Name",
         "description": "Description",
         "metric": "Metric",
@@ -3499,6 +3502,13 @@
         "positions": "Positions and prizes",
         "positionsHelp": "Non-overlapping position ranges, each with its own prize.",
         "addPosition": "Add position",
+        "presetsButton": "Templates",
+        "presets": {
+          "singleWinner": "1st place only",
+          "top3": "Top 3 (1st, 2nd, 3rd)",
+          "winnerPlusRunnersUp": "1st and 2nd-5th",
+          "top10Tiered": "1st, 2nd-3rd, 4th-10th"
+        },
         "overlapError": "There are overlapping position ranges — fix them before saving.",
         "positionFrom": "From",
         "positionTo": "To",
