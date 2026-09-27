@@ -2704,7 +2704,12 @@
         "amountFrom": "Monto desde",
         "amountTo": "Monto hasta",
         "campaign": "Campaña",
-        "rank": "Cargo"
+        "rank": "Cargo",
+        "ruleSource": "Origen de la regla"
+      },
+      "ruleSource": {
+        "tier": "Tier por volumen",
+        "collectionTier": "Tier por cobranza"
       },
       "clearAll": "Limpiar filtros",
       "loadButton": "Cargar período",
@@ -2722,6 +2727,7 @@
       "columns": {
         "promoter": "Promotor",
         "appliesTo": "Concepto",
+        "ruleSource": "Origen",
         "amount": "Monto",
         "earnedAt": "Ganada",
         "status": "Estado"
@@ -2747,7 +2753,12 @@
         "amountFrom": "Monto desde",
         "amountTo": "Monto hasta",
         "campaign": "Campaña",
-        "rank": "Cargo"
+        "rank": "Cargo",
+        "ruleSource": "Origen de la regla"
+      },
+      "ruleSource": {
+        "tier": "Tier por volumen",
+        "collectionTier": "Tier por cobranza"
       },
       "clearAll": "Limpiar filtros",
       "refreshButton": "Refrescar",
@@ -2760,6 +2771,7 @@
       "columns": {
         "promoter": "Promotor",
         "appliesTo": "Concepto",
+        "ruleSource": "Origen",
         "amount": "Monto",
         "earnedAt": "Ganada",
         "status": "Estado"

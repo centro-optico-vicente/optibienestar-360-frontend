@@ -8,6 +8,7 @@ import type {
   CommissionReRatingResponse,
   CommissionRetroactiveTopUpRequest,
   CommissionRetroactiveTopUpResponse,
+  CommissionRuleSource,
   HierarchyOverrideReRatingRequest,
   HierarchyOverrideReRatingResponse,
 } from '~/types/promoters'
@@ -24,6 +25,7 @@ interface ListParams {
   promoterTypeUuid?: string
   promoterRankUuid?: string
   campaignUuid?: string
+  ruleSource?: CommissionRuleSource
 }
 
 /**
@@ -51,6 +53,7 @@ export const useCommissions = () => {
         ...(params.promoterTypeUuid ? { promoterTypeUuid: params.promoterTypeUuid } : {}),
         ...(params.promoterRankUuid ? { promoterRankUuid: params.promoterRankUuid } : {}),
         ...(params.campaignUuid ? { campaignUuid: params.campaignUuid } : {}),
+        ...(params.ruleSource ? { ruleSource: params.ruleSource } : {}),
       },
     })
 

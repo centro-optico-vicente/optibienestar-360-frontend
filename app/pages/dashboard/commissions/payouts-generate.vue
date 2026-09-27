@@ -5,6 +5,7 @@ import type { CommissionDto, CommissionStatus } from '~/types/promoters'
 import { COMMISSION_STATUS_OPTIONS, commissionStatusColor, isPayableCommissionRow } from '~/types/promoters'
 import type { AppliesTo } from '~/types/commissionTiers'
 import { APPLIES_TO_OPTIONS } from '~/types/commissionTiers'
+import type { CommissionRuleSource } from '~/types/promoters'
 import { emptyDateRange, type DateTimeRange } from '~/utils/date'
 import type { SortDirection } from '~/composables/useTableSort'
 
@@ -50,9 +51,16 @@ const amountFrom = ref<string>('')
 const amountTo = ref<string>('')
 const campaignUuid = ref<string | undefined>(undefined)
 const rankUuid = ref<string | undefined>(undefined)
+// Orthogonal to `appliesTo` (Concepto): which tier engine priced the row —
+// only meaningful within MONTHLY rows (INSCRIPTION is always TIER).
+const ruleSource = ref<CommissionRuleSource | undefined>(undefined)
 
 const appliesToOptions = computed(() => APPLIES_TO_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
 const statusOptions = computed(() => COMMISSION_STATUS_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
+const ruleSourceOptions = computed(() => [
+  { label: t('commissions.payoutGenerate.ruleSource.tier'), value: 'TIER' },
+  { label: t('commissions.payoutGenerate.ruleSource.collectionTier'), value: 'COLLECTION_TIER' },
+])
 
 // Same resolution order as CommissionApprovalGroup's `appliesToLabel`:
 // server-resolved `_Display` first, then the local i18n catalog, then the raw value.
@@ -62,6 +70,18 @@ function appliesToLabel(row: CommissionDto): string {
   }
   const option = APPLIES_TO_OPTIONS.find(o => o.value === row.appliesTo)
   return option ? t(option.labelKey) : (row.appliesTo ?? '')
+}
+
+function ruleSourceLabel(row: CommissionDto): string {
+  if (row.ruleSource_Display) {
+    return row.ruleSource_Display
+  }
+  if (!row.ruleSource) {
+    return ''
+  }
+  return row.ruleSource === 'COLLECTION_TIER'
+    ? t('commissions.payoutGenerate.ruleSource.collectionTier')
+    : t('commissions.payoutGenerate.ruleSource.tier')
 }
 
 // Shared `ui` override for `type="number"` inputs: hides the native
@@ -127,6 +147,7 @@ function clearFilters() {
   amountTo.value = ''
   campaignUuid.value = undefined
   rankUuid.value = undefined
+  ruleSource.value = undefined
   page.value = 1
   nextTick(() => {
     resetting.value = false
@@ -192,6 +213,7 @@ async function load() {
       promoterTypeUuid: promoterTypeUuid.value,
       promoterRankUuid: rankUuid.value,
       campaignUuid: campaignUuid.value,
+      ruleSource: ruleSource.value,
     })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
@@ -232,7 +254,7 @@ watch(size, (s) => {
 
 let filterTimer: ReturnType<typeof setTimeout> | undefined
 watch(
-  [periodRange, promoterTypeUuid, promoterUuid, appliesTo, status, amountFrom, amountTo, campaignUuid, rankUuid],
+  [periodRange, promoterTypeUuid, promoterUuid, appliesTo, status, amountFrom, amountTo, campaignUuid, rankUuid, ruleSource],
   () => {
     if (resetting.value) return
     clearTimeout(filterTimer)
@@ -500,6 +522,19 @@ async function onPayoutDone() {
               @navigate="goToLinkedRecord"
             />
           </UFormField>
+
+          <UFormField :label="t('commissions.payoutGenerate.fields.ruleSource')">
+            <USelectMenu
+              clear
+              v-model="ruleSource"
+              :items="ruleSourceOptions"
+              label-key="label"
+              value-key="value"
+              icon="i-lucide-git-branch"
+              :placeholder="t('common.select')"
+              class="w-full"
+            />
+          </UFormField>
         </div>
 
         <div class="flex items-center justify-end gap-2 pt-1">
@@ -546,6 +581,9 @@ async function onPayoutDone() {
                   />
                 </span>
               </th>
+              <th class="px-4 py-2.5 font-semibold text-center">
+                {{ t('commissions.payoutGenerate.columns.ruleSource') }}
+              </th>
               <th class="px-4 py-2.5 font-semibold cursor-pointer select-none text-center" @click="sort.toggle('amount')">
                 <span class="flex items-center justify-center gap-1">
                   {{ t('commissions.payoutGenerate.columns.amount') }}
@@ -571,9 +609,9 @@ async function onPayoutDone() {
             </tr>
           </thead>
           <tbody class="divide-y divide-prohealth-100">
-            <TableSkeleton v-if="loading" :rows="8" :cols="6" />
+            <TableSkeleton v-if="loading" :rows="8" :cols="7" />
             <tr v-else-if="data.length === 0">
-              <td colspan="6" class="px-4 py-12 text-center text-prohealth-500">
+              <td colspan="7" class="px-4 py-12 text-center text-prohealth-500">
                 <UIcon name="i-lucide-inbox" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
                 {{ t('commissions.payoutGenerate.empty') }}
               </td>
@@ -588,7 +626,7 @@ async function onPayoutDone() {
                       @update:model-value="(v: boolean | 'indeterminate') => toggleGroupAll(group, v === true)"
                     />
                   </td>
-                  <td colspan="5" class="px-4 py-2.5 font-semibold text-prohealth-800">
+                  <td colspan="6" class="px-4 py-2.5 font-semibold text-prohealth-800">
                     <span class="inline-flex items-center gap-1.5">
                       <UIcon :name="isGroupExpanded(group.key) ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'" class="w-4 h-4 text-prohealth-400" />
                       {{ group.label }}
@@ -622,6 +660,7 @@ async function onPayoutDone() {
                       <div class="text-xs text-prohealth-500 font-mono">{{ row.promoter_Code || t('common.empty') }}</div>
                     </td>
                     <td class="px-4 py-2.5 text-prohealth-700">{{ appliesToLabel(row) }}</td>
+                    <td class="px-4 py-2.5 text-prohealth-700">{{ ruleSourceLabel(row) || '—' }}</td>
                     <td class="px-4 py-2.5 text-right font-medium text-prohealth-900">
                       <CurrencyConverterDisplay :amount="row.amount" :currency="row.currency_Code" :date="row.earnedAt" v-slot="{ result }">
                         <span class="inline-flex items-center gap-1">
@@ -665,6 +704,7 @@ async function onPayoutDone() {
                   <div class="text-xs text-prohealth-500 font-mono">{{ row.promoter_Code || t('common.empty') }}</div>
                 </td>
                 <td class="px-4 py-2.5 text-prohealth-700">{{ appliesToLabel(row) }}</td>
+                <td class="px-4 py-2.5 text-prohealth-700">{{ ruleSourceLabel(row) || '—' }}</td>
                 <td class="px-4 py-2.5 text-right font-medium text-prohealth-900">
                   <CurrencyConverterDisplay :amount="row.amount" :currency="row.currency_Code" :date="row.earnedAt" v-slot="{ result }">
                         <span class="inline-flex items-center gap-1">
