@@ -241,7 +241,7 @@ async function confirmRevert() {
               </tr>
             </thead>
             <tbody class="divide-y divide-prohealth-100">
-              <tr v-for="candidate in tie.candidates" :key="candidate.promoter_Uuid">
+              <tr v-for="candidate in tie.candidates" :key="candidate.promoter_Uuid ?? undefined">
                 <td class="px-4 py-2 font-medium text-prohealth-900">
                   {{ candidate.promoter_Display }}
                   <UBadge v-if="candidate.selected" color="success" variant="subtle" size="xs" class="ml-1">

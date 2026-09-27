@@ -102,7 +102,7 @@ async function onConfirm() {
                 </tr>
               </thead>
               <tbody class="divide-y divide-prohealth-100">
-                <tr v-for="candidate in tie.candidates" :key="candidate.promoter_Uuid"
+                <tr v-for="candidate in tie.candidates" :key="candidate.promoter_Uuid ?? undefined"
                     class="cursor-pointer hover:bg-prohealth-50/50" @click="toggle(candidate.promoter_Uuid)">
                   <td class="px-4 py-2">
                     <UCheckbox :model-value="selected.includes(candidate.promoter_Uuid ?? '')"
