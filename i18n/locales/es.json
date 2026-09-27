@@ -3217,7 +3217,8 @@
       "allAppliesTo": "Todos",
       "campaignOnly": "Solo reglas de campaña",
       "allMetrics": "Todas las métricas",
-      "allCompetitionTypes": "Todos los tipos"
+      "allCompetitionTypes": "Todos los tipos",
+      "allStatuses": "Todos los estados"
     },
     "tiers": {
       "new": "Nueva banda",
@@ -3515,6 +3516,69 @@
         "rankingCloseOnlyHelp": "Los premios por posición se pagan al cerrar la evaluación: pagar antes premiaría a quien después puede bajar de posición.",
         "frozenTitle": "Regla congelada",
         "frozenHelp": "Ya existen premios pendientes o pagados — solo se pueden editar nombre, descripción y estado. Use Clonar para un cambio mayor."
+      },
+      "subTabs": {
+        "rules": "Reglas",
+        "awards": "Premios otorgados"
+      },
+      "filters": {
+        "rule": "Regla",
+        "promoter": "Promotor"
+      },
+      "awardColumns": {
+        "rule": "Regla",
+        "promoter": "Promotor",
+        "period": "Periodo",
+        "position": "Posición",
+        "amount": "Monto"
+      },
+      "awardsEmpty": "No hay premios otorgados con estos filtros.",
+      "awardStatuses": {
+        "PROVISIONAL": "Provisional",
+        "PENDING": "Pendiente",
+        "PAID": "Pagado",
+        "VOIDED": "Anulado"
+      },
+      "tieGroup": "empate x{n}",
+      "settlementColumns": {
+        "cutKind": "Corte",
+        "window": "Ventana",
+        "entitlement": "Acumulado",
+        "amount": "Monto"
+      },
+      "settlementsEmpty": "Sin cortes registrados todavía.",
+      "cutKinds": {
+        "PARTIAL": "Parcial",
+        "RETROACTIVE": "Retroactivo",
+        "FINAL": "Final"
+      },
+      "payTitle": "Pagar premio",
+      "payoutReference": "Referencia de pago",
+      "payToast": "Pago registrado",
+      "voidTitle": "Anular premio",
+      "voidReason": "Motivo",
+      "voidReasonHelp": "Mínimo 10 caracteres — queda en el historial de auditoría.",
+      "voidToast": "Premio anulado",
+      "leaderboard": {
+        "trigger": "Recalcular ahora",
+        "title": "Recalcular \"{name}\"",
+        "description": "Evalúa la regla para el periodo indicado — igual que la corrida automática cada 15 minutos.",
+        "dryRunNote": "Esta previsualización no guarda cambios.",
+        "period": "Periodo (opcional)",
+        "periodHelp": "Cualquier fecha dentro de la ventana de evaluación a recalcular. Vacío = hoy.",
+        "previewTitle": "Previsualización",
+        "totals": {
+          "created": "Creados",
+          "updated": "Actualizados",
+          "displaced": "Desplazados",
+          "period": "Periodo"
+        },
+        "openTieNote": "Se abrió un empate: {candidates} candidatos por {slots} cupo(s). Resuélvelo desde el tablero de ganadores.",
+        "confirmDescription": "Confirmar aplica los cambios de verdad — awards y empates quedan persistidos.",
+        "preview": "Previsualizar",
+        "back": "Volver",
+        "confirm": "Confirmar",
+        "successToast": "Recalculado: {created} creados, {updated} actualizados, {displaced} desplazados"
       }
     }
   },
