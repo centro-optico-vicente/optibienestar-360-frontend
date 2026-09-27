@@ -3217,7 +3217,8 @@
       "allAppliesTo": "All",
       "campaignOnly": "Campaign rules only",
       "allMetrics": "All metrics",
-      "allCompetitionTypes": "All types"
+      "allCompetitionTypes": "All types",
+      "allStatuses": "All statuses"
     },
     "tiers": {
       "new": "New band",
@@ -3515,6 +3516,69 @@
         "rankingCloseOnlyHelp": "Position prizes are paid at the evaluation's close: paying earlier would reward someone who could still be overtaken.",
         "frozenTitle": "Frozen rule",
         "frozenHelp": "There are already pending or paid prizes — only name, description and active can be edited. Use Clone for a bigger change."
+      },
+      "subTabs": {
+        "rules": "Rules",
+        "awards": "Awards"
+      },
+      "filters": {
+        "rule": "Rule",
+        "promoter": "Promoter"
+      },
+      "awardColumns": {
+        "rule": "Rule",
+        "promoter": "Promoter",
+        "period": "Period",
+        "position": "Position",
+        "amount": "Amount"
+      },
+      "awardsEmpty": "No awards match these filters.",
+      "awardStatuses": {
+        "PROVISIONAL": "Provisional",
+        "PENDING": "Pending",
+        "PAID": "Paid",
+        "VOIDED": "Voided"
+      },
+      "tieGroup": "tie x{n}",
+      "settlementColumns": {
+        "cutKind": "Cut",
+        "window": "Window",
+        "entitlement": "Entitlement",
+        "amount": "Amount"
+      },
+      "settlementsEmpty": "No settlements recorded yet.",
+      "cutKinds": {
+        "PARTIAL": "Partial",
+        "RETROACTIVE": "Retroactive",
+        "FINAL": "Final"
+      },
+      "payTitle": "Pay award",
+      "payoutReference": "Payout reference",
+      "payToast": "Payment recorded",
+      "voidTitle": "Void award",
+      "voidReason": "Reason",
+      "voidReasonHelp": "At least 10 characters — kept in the audit trail.",
+      "voidToast": "Award voided",
+      "leaderboard": {
+        "trigger": "Recalculate now",
+        "title": "Recalculate \"{name}\"",
+        "description": "Evaluates the rule for the given period — same as the automatic run every 15 minutes.",
+        "dryRunNote": "This preview does not save any changes.",
+        "period": "Period (optional)",
+        "periodHelp": "Any date inside the accrual window to recalculate. Empty = today.",
+        "previewTitle": "Preview",
+        "totals": {
+          "created": "Created",
+          "updated": "Updated",
+          "displaced": "Displaced",
+          "period": "Period"
+        },
+        "openTieNote": "A tie opened: {candidates} candidates for {slots} slot(s). Resolve it from the winners board.",
+        "confirmDescription": "Confirming applies the changes for real — awards and ties are persisted.",
+        "preview": "Preview",
+        "back": "Back",
+        "confirm": "Confirm",
+        "successToast": "Recalculated: {created} created, {updated} updated, {displaced} displaced"
       }
     }
   },
