@@ -135,17 +135,30 @@ const formOpen = ref(false)
 const editingRule = ref<CompetitiveRuleDto | null>(null)
 function openCreate() {
   editingRule.value = null
+  cloneSource.value = null
   formOpen.value = true
 }
 async function openEdit(item: CompetitiveRuleListItemDto) {
   if (!canUpdate.value) return
   try {
     editingRule.value = await rulesApi.get(item.uuid)
+    cloneSource.value = null
     formOpen.value = true
   }
   catch { /* useApi already notified */ }
 }
 async function onSaved() { await loadRules() }
+
+const cloneSource = ref<CompetitiveRuleDto | null>(null)
+async function openClone(item: CompetitiveRuleListItemDto) {
+  if (!canCreate.value) return
+  try {
+    cloneSource.value = await rulesApi.get(item.uuid)
+    editingRule.value = null
+    formOpen.value = true
+  }
+  catch { /* useApi already notified */ }
+}
 
 const deleteOpen = ref(false)
 const deleting = ref(false)
@@ -413,6 +426,9 @@ function statusColor(status: string): 'success' | 'warning' | 'neutral' | 'error
                     <UButton color="warning" variant="ghost" icon="i-lucide-calculator" size="sm" @click="openLeaderboard(rule)" />
                   </UTooltip>
                   <UButton v-if="canUpdate" color="info" variant="ghost" icon="i-lucide-pencil" size="sm" @click="openEdit(rule)" />
+                  <UTooltip v-if="canCreate" :text="t('commissionRules.competitiveRules.cloneTrigger')">
+                    <UButton color="neutral" variant="ghost" icon="i-lucide-copy" size="sm" @click="openClone(rule)" />
+                  </UTooltip>
                   <UTooltip v-if="canViewAudit || canViewAuditReports" :text="t('audit.trigger')">
                     <UButton color="neutral" variant="ghost" icon="i-lucide-history" size="sm" @click="openAudit(rule)" />
                   </UTooltip>
@@ -540,7 +556,7 @@ function statusColor(status: string): 'success' | 'warning' | 'neutral' | 'error
       </div>
     </div>
 
-    <CompetitiveRuleFormModal v-model:open="formOpen" :rule="editingRule" @saved="onSaved" @delete="openDelete" />
+    <CompetitiveRuleFormModal v-model:open="formOpen" :rule="editingRule" :clone-from="cloneSource" @saved="onSaved" @delete="openDelete" />
     <CompetitiveRuleLeaderboardModal v-model:open="leaderboardOpen" :rule="leaderboardTarget" @done="loadRules" />
 
     <UModal v-model:open="deleteOpen" :title="t('commissionRules.competitiveRules.deleteTitle')">

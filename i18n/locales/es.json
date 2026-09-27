@@ -3175,7 +3175,8 @@
         "tiers": "Bandas de inscripción",
         "bonusRules": "Bonos por escala",
         "collectionTiers": "Comisión de cobranza",
-        "overrideTiers": "Comisión jerárquica adicional"
+        "overrideTiers": "Comisión jerárquica adicional",
+        "competitiveRules": "Reglas competitivas"
       }
     },
     "appliesTo": {
@@ -3447,6 +3448,7 @@
       "deletedToast": "Regla competitiva eliminada",
       "deleteTitle": "Eliminar regla competitiva",
       "deleteConfirm": "¿Eliminar la regla \"{name}\"? Esta acción no se puede deshacer.",
+      "cloneTrigger": "Clonar regla",
       "columns": {
         "name": "Nombre",
         "metric": "Métrica",
@@ -3486,6 +3488,7 @@
       "form": {
         "createTitle": "Nueva regla competitiva",
         "editTitle": "Editar regla competitiva",
+        "cloneNameSuffix": "{name} (copia)",
         "name": "Nombre",
         "description": "Descripción",
         "metric": "Métrica",
@@ -3499,6 +3502,13 @@
         "positions": "Posiciones y premios",
         "positionsHelp": "Rangos de posición no solapados, cada uno con su propio premio.",
         "addPosition": "Agregar posición",
+        "presetsButton": "Plantillas",
+        "presets": {
+          "singleWinner": "Solo 1er lugar",
+          "top3": "Top 3 (1°, 2°, 3°)",
+          "winnerPlusRunnersUp": "1° y 2°-5°",
+          "top10Tiered": "1°, 2°-3°, 4°-10°"
+        },
         "overlapError": "Hay rangos de posición solapados — corrígelos antes de guardar.",
         "positionFrom": "Desde",
         "positionTo": "Hasta",

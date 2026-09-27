@@ -10,6 +10,7 @@ import { PLAN_TYPE_OPTIONS } from '~/types/plans'
 import type { SortDirection } from '~/composables/useTableSort'
 import type { HierarchyOverrideTierDto, OverrideCategory } from '~/types/hierarchyOverrideTiers'
 import { OVERRIDE_CATEGORY_OPTIONS } from '~/types/hierarchyOverrideTiers'
+import type { CompetitiveRuleDto, CompetitiveRuleListItemDto } from '~/types/competitiveCommissions'
 
 // Admin editor for the three commission-engine rule surfaces (ADR 0013):
 // inscription bands (commission_tiers, V42), scale bonuses (commission_bonus_rules,
@@ -689,6 +690,12 @@ watch(crCampaignUuid, async (uuid) => {
   await loadCrAll()
 })
 
+const competitiveRulesApi = useCompetitiveCommissionRules()
+const canViewCompetitive = computed(() => can('COMPETITIVE_COMMISSION_RULE_VIEW_ALL'))
+const canCreateCompetitive = computed(() => can('COMPETITIVE_COMMISSION_RULE_CREATE'))
+const canUpdateCompetitive = computed(() => can('COMPETITIVE_COMMISSION_RULE_UPDATE'))
+const canDeleteCompetitive = computed(() => can('COMPETITIVE_COMMISSION_RULE_DELETE'))
+
 // Lazy-load the campaign-rules tab's tables the first time it's opened
 // (avoids 4 extra requests on every page load for a tab most sessions won't visit).
 let crLoaded = false
@@ -787,8 +794,27 @@ async function loadCrOverride() {
 }
 watch(crOverridePage, () => loadCrOverride())
 
+// Mini-card (no pagination): a campaign is expected to have only a handful of
+// active competitive rules, so a single generous page suffices.
+const crCompetitiveData = ref<CompetitiveRuleListItemDto[]>([])
+const crCompetitiveLoading = ref(false)
+async function loadCrCompetitive() {
+  if (!canViewCompetitive.value) return
+  crCompetitiveLoading.value = true
+  try {
+    const res = await competitiveRulesApi.list({ size: 50, includeInactive: true, campaignUuid: crCampaignUuid.value })
+    crCompetitiveData.value = res.content ?? []
+  }
+  catch {
+    crCompetitiveData.value = []
+  }
+  finally {
+    crCompetitiveLoading.value = false
+  }
+}
+
 async function loadCrAll() {
-  await Promise.all([loadCrTiers(), loadCrBonus(), loadCrCollection(), loadCrOverride()])
+  await Promise.all([loadCrTiers(), loadCrBonus(), loadCrCollection(), loadCrOverride(), loadCrCompetitive()])
 }
 
 // "Nueva regla" from this tab: preset campaignUuid/campaignDisplay + lock the
@@ -825,6 +851,53 @@ function openCreateOverrideTierForCampaign() {
   overrideModalCampaignDisplay.value = crCampaignDisplay.value ?? null
   overrideFormOpen.value = true
 }
+
+// ---- Competitive rules mini-card ----
+const competitiveFormOpen = ref(false)
+const editingCompetitiveRule = ref<CompetitiveRuleDto | null>(null)
+const competitiveModalCampaignUuid = ref<string | null>(null)
+const competitiveModalCampaignDisplay = ref<string | null>(null)
+function openCreateCompetitiveForCampaign() {
+  editingCompetitiveRule.value = null
+  competitiveModalCampaignUuid.value = crCampaignUuid.value ?? null
+  competitiveModalCampaignDisplay.value = crCampaignDisplay.value ?? null
+  competitiveFormOpen.value = true
+}
+async function openEditCompetitiveForCampaign(item: CompetitiveRuleListItemDto) {
+  if (!canUpdateCompetitive.value) return
+  try {
+    editingCompetitiveRule.value = await competitiveRulesApi.get(item.uuid)
+    competitiveModalCampaignUuid.value = crCampaignUuid.value ?? null
+    competitiveModalCampaignDisplay.value = crCampaignDisplay.value ?? null
+    competitiveFormOpen.value = true
+  }
+  catch { /* useApi already notified */ }
+}
+async function onCompetitiveSaved() { await loadCrCompetitive() }
+function onDeleteCompetitiveFromEdit(rule: CompetitiveRuleDto) {
+  openDeleteCompetitiveForCampaign({ uuid: rule.uuid, name: rule.name })
+}
+
+const competitiveDeleteOpen = ref(false)
+const competitiveDeleting = ref(false)
+const competitiveTarget = ref<{ uuid: string, name: string } | null>(null)
+function openDeleteCompetitiveForCampaign(rule: { uuid: string, name: string }) {
+  competitiveTarget.value = rule
+  competitiveDeleteOpen.value = true
+}
+async function confirmDeleteCompetitive() {
+  if (!competitiveTarget.value) return
+  competitiveDeleting.value = true
+  try {
+    await competitiveRulesApi.remove(competitiveTarget.value.uuid)
+    toast.add({ title: t('commissionRules.competitiveRules.deletedToast'), color: 'success', icon: 'i-lucide-check-circle' })
+    competitiveDeleteOpen.value = false
+    await loadCrCompetitive()
+  }
+  catch { /* useApi already notified */ }
+  finally { competitiveDeleting.value = false }
+}
+
 onMounted(() => {
   if (canViewTiers.value) loadTiers()
   if (canViewBonus.value) loadBonusRules()
@@ -1715,6 +1788,46 @@ onMounted(() => {
             <UPagination v-model:page="crOverridePage" :total="crOverrideTotal" :items-per-page="DEFAULT_PAGE_SIZE" />
           </div>
         </div>
+
+        <!-- Reglas competitivas (mini-card — la gestión completa vive en el tab "Reglas competitivas") -->
+        <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
+          <div class="flex items-center justify-between px-5 py-3 border-b border-prohealth-100">
+            <h3 class="font-semibold text-prohealth-900">{{ t('commissionRules.campaignRules.sections.competitiveRules') }}</h3>
+            <UButton v-if="canCreateCompetitive" color="primary" variant="outline" size="sm" icon="i-lucide-plus" @click="openCreateCompetitiveForCampaign">
+              {{ t('common.new') }}
+            </UButton>
+          </div>
+          <div class="p-4">
+            <p v-if="crCompetitiveLoading" class="text-sm text-prohealth-500">{{ t('common.loading') }}</p>
+            <p v-else-if="crCompetitiveData.length === 0" class="text-sm text-prohealth-500 text-center py-4">
+              {{ t('commissionRules.competitiveRules.empty') }}
+            </p>
+            <div v-else class="grid gap-2">
+              <div
+                v-for="rule in crCompetitiveData"
+                :key="rule.uuid"
+                class="flex items-center justify-between gap-3 rounded-lg bg-prohealth-50/60 px-3 py-2"
+                :class="{ 'opacity-60': !rule.active, 'cursor-pointer': canUpdateCompetitive }"
+                @click="canUpdateCompetitive && openEditCompetitiveForCampaign(rule)"
+              >
+                <div class="min-w-0">
+                  <p class="text-sm font-medium text-prohealth-900 truncate">{{ rule.name }}</p>
+                  <p class="text-xs text-prohealth-500">
+                    {{ t(`commissionRules.competitiveRules.competitionTypes.${rule.competitionType}`) }}
+                    · {{ rule.positionsSummary }}
+                  </p>
+                </div>
+                <div class="flex items-center gap-1 shrink-0" @click.stop>
+                  <UBadge :color="rule.active ? 'success' : 'neutral'" variant="subtle" size="xs">
+                    {{ rule.active ? t('catalogs.status.active') : t('catalogs.status.inactive') }}
+                  </UBadge>
+                  <UButton v-if="canUpdateCompetitive" color="info" variant="ghost" icon="i-lucide-pencil" size="xs" @click="openEditCompetitiveForCampaign(rule)" />
+                  <UButton v-if="canDeleteCompetitive" color="error" variant="ghost" icon="i-lucide-trash-2" size="xs" @click="openDeleteCompetitiveForCampaign(rule)" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </template>
     </div>
 
@@ -1750,6 +1863,14 @@ onMounted(() => {
       :campaign-display="overrideModalCampaignDisplay"
       @saved="onOverrideTierSaved"
       @delete="onDeleteOverrideTierFromEdit"
+    />
+    <CompetitiveRuleFormModal
+      v-model:open="competitiveFormOpen"
+      :rule="editingCompetitiveRule"
+      :campaign-uuid="competitiveModalCampaignUuid"
+      :campaign-display="competitiveModalCampaignDisplay"
+      @saved="onCompetitiveSaved"
+      @delete="onDeleteCompetitiveFromEdit"
     />
 
     <!-- Delete confirmations -->
@@ -1819,6 +1940,16 @@ onMounted(() => {
         <div class="flex items-center justify-end gap-3 pt-5">
           <UButton color="neutral" variant="ghost" :disabled="overrideDeleting" @click="overrideDeleteOpen = false">{{ t('common.cancel') }}</UButton>
           <UButton color="error" :loading="overrideDeleting" :disabled="overrideUsageChecking" icon="i-lucide-trash-2" @click="confirmDeleteOverrideTier">{{ t('common.delete') }}</UButton>
+        </div>
+      </template>
+    </UModal>
+
+    <UModal v-model:open="competitiveDeleteOpen" :title="t('commissionRules.competitiveRules.deleteTitle')">
+      <template #body>
+        <p class="text-sm text-prohealth-700">{{ t('commissionRules.competitiveRules.deleteConfirm', { name: competitiveTarget?.name ?? '' }) }}</p>
+        <div class="flex items-center justify-end gap-3 pt-5">
+          <UButton color="neutral" variant="ghost" :disabled="competitiveDeleting" @click="competitiveDeleteOpen = false">{{ t('common.cancel') }}</UButton>
+          <UButton color="error" :loading="competitiveDeleting" icon="i-lucide-trash-2" @click="confirmDeleteCompetitive">{{ t('common.delete') }}</UButton>
         </div>
       </template>
     </UModal>

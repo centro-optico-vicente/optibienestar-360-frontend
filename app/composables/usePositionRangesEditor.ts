@@ -14,6 +14,20 @@ export interface EditablePositionRange {
   minThreshold: string
 }
 
+/** Quick-start templates for the position ranges (structure only — reward amounts/currency are always left for the user to fill in). */
+export interface PositionRangePreset {
+  key: string
+  labelKey: string
+  ranges: { from: number, to: number }[]
+}
+
+export const POSITION_RANGE_PRESETS: PositionRangePreset[] = [
+  { key: 'single-winner', labelKey: 'commissionRules.competitiveRules.form.presets.singleWinner', ranges: [{ from: 1, to: 1 }] },
+  { key: 'top-3', labelKey: 'commissionRules.competitiveRules.form.presets.top3', ranges: [{ from: 1, to: 1 }, { from: 2, to: 2 }, { from: 3, to: 3 }] },
+  { key: 'winner-plus-runners-up', labelKey: 'commissionRules.competitiveRules.form.presets.winnerPlusRunnersUp', ranges: [{ from: 1, to: 1 }, { from: 2, to: 5 }] },
+  { key: 'top-10-tiered', labelKey: 'commissionRules.competitiveRules.form.presets.top10Tiered', ranges: [{ from: 1, to: 1 }, { from: 2, to: 3 }, { from: 4, to: 10 }] },
+]
+
 function emptyRange(): EditablePositionRange {
   return {
     from: '',
@@ -49,6 +63,11 @@ export function usePositionRangesEditor() {
 
   function reset(initial: EditablePositionRange[] = []) {
     ranges.value = initial
+  }
+
+  /** Replaces all rows with a preset's position structure — rewards/currency are left empty for the user to fill in. */
+  function applyPreset(preset: PositionRangePreset) {
+    ranges.value = preset.ranges.map(r => ({ ...emptyRange(), from: String(r.from), to: String(r.to) }))
   }
 
   /** Highest `to` across all rows — the live "maxWinners" indicator (D3). */
@@ -93,5 +112,5 @@ export function usePositionRangesEditor() {
       }))
   }
 
-  return { ranges, addRange, removeRange, reset, maxWinners, overlaps, hasOverlaps, toRequests }
+  return { ranges, addRange, removeRange, reset, applyPreset, maxWinners, overlaps, hasOverlaps, toRequests }
 }
