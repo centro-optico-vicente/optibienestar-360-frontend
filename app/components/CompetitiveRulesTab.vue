@@ -2,6 +2,7 @@
 import type { CompetitionType, CompetitiveMetric, CompetitiveRuleDto, CompetitiveRuleListItemDto } from '~/types/competitiveCommissions'
 import { COMPETITION_TYPE_OPTIONS, COMPETITIVE_METRIC_OPTIONS } from '~/types/competitiveCommissions'
 import type { SortDirection } from '~/composables/useTableSort'
+import { buildPageSizeItems, DEFAULT_PAGE_SIZE } from '~/utils/pagination'
 
 // "Reglas competitivas" tab body (hub plan competitive-commission-rules, Fase 4)
 // — kept out of commission-rules/index.vue (already 1800+ lines across 5
