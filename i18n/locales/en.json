@@ -3923,6 +3923,76 @@
     }
   },
   "competitiveWinners": {
+    "pageSubtitle": "Open ties and manual decisions on competitive-rule winners (D16).",
+    "newDecision": "New manual decision",
+    "empty": "No ties match the applied filters.",
+    "resolve": "Resolve tie",
+    "history": "Decision history",
+    "selected": "Winner",
+    "positionFrom": "From position {n}",
+    "slots": "{n} slots",
+    "candidatesCount": "{n} candidates / {slots} slots",
+    "reason": "Reason",
+    "reasonHelp": "Required, at least 10 characters — recorded in the decision history.",
+    "filters": {
+      "status": "Status",
+      "rule": "Rule",
+      "openOrStale": "Open and stale"
+    },
+    "tieStatuses": {
+      "OPEN": "Open tie",
+      "RESOLVED": "Resolved",
+      "STALE": "Needs review"
+    },
+    "candidateColumns": {
+      "promoter": "Promoter",
+      "metricValue": "Metric",
+      "achievedAt": "Achieved",
+      "transactions": "Transactions"
+    },
+    "decisionKinds": {
+      "TIE_RESOLUTION": "Tie resolution",
+      "REDIRECT": "Redirect",
+      "DISQUALIFY": "Disqualify"
+    },
+    "decisionStatuses": {
+      "ACTIVE": "Active",
+      "STALE": "Needs review",
+      "REVERTED": "Reverted"
+    },
+    "decisionHistory": {
+      "empty": "No manual decisions for this period.",
+      "revert": "Revert",
+      "revertTitle": "Revert decision",
+      "revertReason": "Reason for reverting"
+    },
+    "resolveModal": {
+      "title": "Resolve tie",
+      "description": "Pick exactly {slots} winner(s) among the {from} candidates tied at position {from}.",
+      "selectedCount": "{selected} of {slots} selected",
+      "previewTitle": "Cascade preview",
+      "confirmDescription": "This pins the selected winners and recalculates the positions below in cascade. It can only be undone by reverting the decision.",
+      "successToast": "Tie resolved successfully."
+    },
+    "decisionModal": {
+      "title": "New manual decision",
+      "description": "Redirect an award to another promoter or disqualify a winner — the reason is recorded in the history.",
+      "kinds": {
+        "REDIRECT": "Redirect",
+        "DISQUALIFY": "Disqualify"
+      },
+      "fields": {
+        "rule": "Rule",
+        "periodStart": "Period (start)",
+        "position": "Position",
+        "kind": "Action",
+        "promoter": "Affected promoter",
+        "replacement": "Replacement promoter",
+        "reasonCategory": "Reason category",
+        "excludeFromGroup": "Also exclude from the competition group"
+      },
+      "successToast": "Decision recorded successfully."
+    },
     "reasonCategories": {
       "TIE_BREAK": "Tie break",
       "UNSPORTSMANLIKE_CONDUCT": "Unsportsmanlike conduct",

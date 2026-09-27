@@ -3923,6 +3923,76 @@
     }
   },
   "competitiveWinners": {
+    "pageSubtitle": "Empates abiertos y decisiones manuales sobre ganadores de reglas competitivas (D16).",
+    "newDecision": "Nueva decisión manual",
+    "empty": "No hay empates con los filtros aplicados.",
+    "resolve": "Resolver empate",
+    "history": "Historial de decisiones",
+    "selected": "Ganador",
+    "positionFrom": "Desde posición {n}",
+    "slots": "{n} cupos",
+    "candidatesCount": "{n} candidatos / {slots} cupos",
+    "reason": "Motivo",
+    "reasonHelp": "Obligatorio, mínimo 10 caracteres — queda registrado en el historial de decisiones.",
+    "filters": {
+      "status": "Estado",
+      "rule": "Regla",
+      "openOrStale": "Abiertos y a revisar"
+    },
+    "tieStatuses": {
+      "OPEN": "Empate abierto",
+      "RESOLVED": "Resuelto",
+      "STALE": "A revisar"
+    },
+    "candidateColumns": {
+      "promoter": "Promotor",
+      "metricValue": "Métrica",
+      "achievedAt": "Logrado",
+      "transactions": "Transacciones"
+    },
+    "decisionKinds": {
+      "TIE_RESOLUTION": "Resolución de empate",
+      "REDIRECT": "Redirección",
+      "DISQUALIFY": "Descalificación"
+    },
+    "decisionStatuses": {
+      "ACTIVE": "Activa",
+      "STALE": "A revisar",
+      "REVERTED": "Revertida"
+    },
+    "decisionHistory": {
+      "empty": "Sin decisiones manuales para este periodo.",
+      "revert": "Revertir",
+      "revertTitle": "Revertir decisión",
+      "revertReason": "Motivo de la reversión"
+    },
+    "resolveModal": {
+      "title": "Resolver empate",
+      "description": "Selecciona exactamente {slots} ganador(es) entre los {from} candidatos empatados en la posición {from}.",
+      "selectedCount": "{selected} de {slots} seleccionados",
+      "previewTitle": "Previsualización de la cascada",
+      "confirmDescription": "Esta acción fija a los ganadores seleccionados y recalcula en cascada las posiciones inferiores. No se puede deshacer sin revertir la decisión.",
+      "successToast": "Empate resuelto correctamente."
+    },
+    "decisionModal": {
+      "title": "Nueva decisión manual",
+      "description": "Redirige un premio a otro promotor o descalifica a un ganador — el motivo queda registrado en el historial.",
+      "kinds": {
+        "REDIRECT": "Redirigir",
+        "DISQUALIFY": "Descalificar"
+      },
+      "fields": {
+        "rule": "Regla",
+        "periodStart": "Periodo (inicio)",
+        "position": "Posición",
+        "kind": "Acción",
+        "promoter": "Promotor afectado",
+        "replacement": "Promotor de reemplazo",
+        "reasonCategory": "Categoría del motivo",
+        "excludeFromGroup": "Excluir también del grupo de competencia"
+      },
+      "successToast": "Decisión registrada correctamente."
+    },
     "reasonCategories": {
       "TIE_BREAK": "Empate",
       "UNSPORTSMANLIKE_CONDUCT": "Conducta antideportiva",
