@@ -2704,7 +2704,12 @@
         "amountFrom": "Amount from",
         "amountTo": "Amount to",
         "campaign": "Campaign",
-        "rank": "Rank"
+        "rank": "Rank",
+        "ruleSource": "Rule source"
+      },
+      "ruleSource": {
+        "tier": "Volume tier",
+        "collectionTier": "Collection tier"
       },
       "clearAll": "Clear filters",
       "loadButton": "Load period",
@@ -2722,6 +2727,7 @@
       "columns": {
         "promoter": "Promoter",
         "appliesTo": "Applies to",
+        "ruleSource": "Source",
         "amount": "Amount",
         "earnedAt": "Earned",
         "status": "Status"
@@ -2747,7 +2753,12 @@
         "amountFrom": "Amount from",
         "amountTo": "Amount to",
         "campaign": "Campaign",
-        "rank": "Rank"
+        "rank": "Rank",
+        "ruleSource": "Rule source"
+      },
+      "ruleSource": {
+        "tier": "Volume tier",
+        "collectionTier": "Collection tier"
       },
       "clearAll": "Clear filters",
       "refreshButton": "Refresh",
@@ -2760,6 +2771,7 @@
       "columns": {
         "promoter": "Promoter",
         "appliesTo": "Applies to",
+        "ruleSource": "Source",
         "amount": "Amount",
         "earnedAt": "Earned",
         "status": "Status"

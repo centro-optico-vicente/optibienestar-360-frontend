@@ -48,6 +48,14 @@ export function commissionStatusColor(status?: CommissionStatus | string | null)
 /** A qué se aplica la comisión. */
 export type CommissionAppliesTo = 'INSCRIPTION' | 'MONTHLY'
 
+/**
+ * Qué motor de tiers calculó la fila — eje ortogonal a `appliesTo`: las filas
+ * INSCRIPTION siempre son TIER; las MONTHLY pueden ser TIER (volumen/plan,
+ * fallback) o COLLECTION_TIER (motor de cobranza por días de mora, V47).
+ * `undefined`/`null` en filas viejas sin ninguno de los dos tiers poblado.
+ */
+export type CommissionRuleSource = 'TIER' | 'COLLECTION_TIER'
+
 /** Estrategia de período de liquidación. */
 export type CommissionPeriodStrategy =
   | 'DAILY' | 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'SEMIANNUAL' | 'ANNUAL'
@@ -244,6 +252,8 @@ export interface CommissionDto {
   /** XOR con commissionPct */
   flatAmount?: number
   tierNameSnapshot?: string
+  ruleSource?: CommissionRuleSource | null
+  ruleSource_Display?: string | null
   appliesTo?: CommissionAppliesTo
   appliesTo_Display?: string | null
   periodStrategy?: CommissionPeriodStrategy
