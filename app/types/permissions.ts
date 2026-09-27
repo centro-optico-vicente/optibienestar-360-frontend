@@ -194,6 +194,12 @@ export const PERMISSIONS = [
   // Mark-as-paid workflow (V92) — separate from creation/awarding.
   'BONUS_AWARD_PAY',
   'LEADERBOARD_PRIZE_PAY',
+  // Competitive commission rules (hub plan competitive-commission-rules) — replaces the leaderboard (D9, Fase 3).
+  'COMPETITIVE_COMMISSION_RULE_VIEW_ALL', 'COMPETITIVE_COMMISSION_RULE_CREATE',
+  'COMPETITIVE_COMMISSION_RULE_UPDATE', 'COMPETITIVE_COMMISSION_RULE_DELETE',
+  'COMPETITIVE_COMMISSION_AWARD_VIEW_ALL', 'COMPETITIVE_COMMISSION_AWARD_PAY', 'COMPETITIVE_COMMISSION_AWARD_VOID',
+  // D16 — resolve ties, redirect/disqualify winners, revert a decision.
+  'COMPETITIVE_COMMISSION_WINNER_DECIDE',
 
   // REFERRALS
   'REFERRAL_CODE_CREATE',
