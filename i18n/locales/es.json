@@ -3465,7 +3465,9 @@
         "COLLECTION_AMOUNT": "Monto cobrado",
         "ADVANCE_COUNT": "Cantidad de anticipos",
         "ADVANCE_AMOUNT": "Monto de anticipos",
-        "COMMISSION_EARNED": "Comisión ganada"
+        "COMMISSION_EARNED": "Comisión ganada",
+        "OVERDUE_SETTLED_COUNT": "Cantidad de vencidas saldadas",
+        "OVERDUE_SETTLED_AMOUNT": "Monto de vencidas saldadas"
       },
       "competitionTypes": {
         "FIRST_TO_REACH": "Primero en llegar",
