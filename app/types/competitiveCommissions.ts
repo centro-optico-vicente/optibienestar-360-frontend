@@ -17,6 +17,7 @@ export type CompetitiveMetric =
   | 'COLLECTION_COUNT' | 'COLLECTION_AMOUNT'
   | 'ADVANCE_COUNT' | 'ADVANCE_AMOUNT'
   | 'COMMISSION_EARNED'
+  | 'OVERDUE_SETTLED_COUNT' | 'OVERDUE_SETTLED_AMOUNT'
 
 export type CompetitionType = 'FIRST_TO_REACH' | 'RANKING'
 export type AchievementDateBasis = 'PAYMENT_DATE' | 'REGISTERED_AT' | 'APPROVED_AT'
@@ -48,12 +49,15 @@ export const COMPETITIVE_METRIC_OPTIONS: { label: string, value: CompetitiveMetr
   { label: 'Cantidad de anticipos', value: 'ADVANCE_COUNT', labelKey: 'commissionRules.competitiveRules.metrics.ADVANCE_COUNT' },
   { label: 'Monto de anticipos', value: 'ADVANCE_AMOUNT', labelKey: 'commissionRules.competitiveRules.metrics.ADVANCE_AMOUNT' },
   { label: 'Comisión ganada', value: 'COMMISSION_EARNED', labelKey: 'commissionRules.competitiveRules.metrics.COMMISSION_EARNED' },
+  { label: 'Cantidad de vencidas saldadas', value: 'OVERDUE_SETTLED_COUNT', labelKey: 'commissionRules.competitiveRules.metrics.OVERDUE_SETTLED_COUNT' },
+  { label: 'Monto de vencidas saldadas', value: 'OVERDUE_SETTLED_AMOUNT', labelKey: 'commissionRules.competitiveRules.metrics.OVERDUE_SETTLED_AMOUNT' },
 ]
 
 /** Metrics measured by count (`thresholdCount`) vs. by amount (`thresholdAmount`+currency) — mutually exclusive per rule. */
 export function isCountMetric(metric: CompetitiveMetric | undefined): boolean {
   return metric === 'NEW_SUBSCRIBERS' || metric === 'ACTIVE_SUBSCRIBERS'
     || metric === 'SALES_COUNT' || metric === 'COLLECTION_COUNT' || metric === 'ADVANCE_COUNT'
+    || metric === 'OVERDUE_SETTLED_COUNT'
 }
 
 export const COMPETITION_TYPE_OPTIONS: { label: string, value: CompetitionType, labelKey: string }[] = [

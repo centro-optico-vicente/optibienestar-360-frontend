@@ -3465,7 +3465,9 @@
         "COLLECTION_AMOUNT": "Collection amount",
         "ADVANCE_COUNT": "Advance count",
         "ADVANCE_AMOUNT": "Advance amount",
-        "COMMISSION_EARNED": "Commission earned"
+        "COMMISSION_EARNED": "Commission earned",
+        "OVERDUE_SETTLED_COUNT": "Overdue-settled count",
+        "OVERDUE_SETTLED_AMOUNT": "Overdue-settled amount"
       },
       "competitionTypes": {
         "FIRST_TO_REACH": "First to reach",
