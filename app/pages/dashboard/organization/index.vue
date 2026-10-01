@@ -39,6 +39,7 @@ const state = reactive({
   facebook: '',
   officialCurrencyUuid: undefined as string | undefined,
   referenceCurrencyUuid: undefined as string | undefined,
+  autoApproveCommissions: false,
 })
 
 const schema = computed(() =>
@@ -101,6 +102,7 @@ async function load() {
       state.facebook = org.facebook ?? ''
       state.officialCurrencyUuid = org.officialCurrency_Uuid ?? undefined
       state.referenceCurrencyUuid = org.referenceCurrency_Uuid ?? undefined
+      state.autoApproveCommissions = org.autoApproveCommissions
     }
     else {
       toast.add({ title: t('organization.loadError'), color: 'error', icon: 'i-lucide-alert-triangle' })
@@ -136,6 +138,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       facebook: state.facebook || undefined,
       officialCurrencyUuid: state.officialCurrencyUuid,
       referenceCurrencyUuid: state.referenceCurrencyUuid,
+      autoApproveCommissions: state.autoApproveCommissions,
     })
     state.name = updated.name
     state.legalName = updated.legalName ?? ''
@@ -146,6 +149,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     state.facebook = updated.facebook ?? ''
     state.officialCurrencyUuid = updated.officialCurrency_Uuid ?? undefined
     state.referenceCurrencyUuid = updated.referenceCurrency_Uuid ?? undefined
+    state.autoApproveCommissions = updated.autoApproveCommissions
     snapshot.value = snapshotState()
     toast.add({
       title: t('organization.updatedToast'),
@@ -410,6 +414,18 @@ onMounted(() => {
               class="w-full"
               :disabled="!canUpdate || isSubmitting"
             />
+          </UFormField>
+        </div>
+
+        <!-- Comisiones -->
+        <div class="bg-white rounded-2xl border border-prohealth-100 p-6 shadow-sm space-y-4">
+          <h2 class="text-base font-bold text-prohealth-900">{{ t('organization.sections.commissions') }}</h2>
+
+          <UFormField :label="t('organization.fields.autoApproveCommissions')" name="autoApproveCommissions">
+            <div class="flex items-start gap-3">
+              <USwitch v-model="state.autoApproveCommissions" :disabled="!canUpdate || isSubmitting" />
+              <p class="text-xs text-prohealth-700/70">{{ t('organization.fields.autoApproveCommissionsHelp') }}</p>
+            </div>
           </UFormField>
         </div>
 

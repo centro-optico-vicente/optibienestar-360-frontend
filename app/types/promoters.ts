@@ -283,6 +283,9 @@ export interface CommissionDto {
   active_Display?: string | null
   status: CommissionStatus
   status_Display?: string | null
+  /** Set when the organization's auto-approve-commissions setting approved this row at calculation time (no human actor). */
+  autoApproved: boolean
+  autoApproved_Display?: string | null
   createdAt?: string
   createdAt_Display?: string | null
   updatedAt?: string
@@ -485,6 +488,9 @@ export interface CommissionApprovalRowDto {
   locked_Display?: string | null
   checked: boolean
   checked_Display?: string | null
+  /** Set when the organization's auto-approve-commissions setting approved this row at calculation time (no human actor). */
+  autoApproved: boolean
+  autoApproved_Display?: string | null
 }
 
 /**

@@ -20,6 +20,13 @@ export interface OrganizationDto {
   referenceCurrency_Display?: string | null
   /** Pricing/quoting currency (USD per ADR 0008) — what plans/commissions/prizes are denominated in. */
   referenceCurrency_Code?: string | null
+  /**
+   * Auto-approves "regular" commissions (no campaign attribution) straight
+   * to APPROVED at calculation time, skipping the gerencia comercial queue
+   * — a campaign-linked commission always stays manual regardless of this
+   * setting (hub plan competitive-commission-rules, V171).
+   */
+  autoApproveCommissions: boolean
 }
 
 /** A currency stripped to what an unprivileged caller needs — no uuid, no active flag. */
@@ -51,4 +58,5 @@ export interface OrganizationUpdateRequest {
   facebook?: string
   officialCurrencyUuid?: string
   referenceCurrencyUuid?: string
+  autoApproveCommissions: boolean
 }
