@@ -2711,6 +2711,8 @@
         "tier": "Volume tier",
         "collectionTier": "Collection tier"
       },
+      "autoApproved": "Auto",
+      "autoApprovedHint": "Automatically approved by the organization's setting — no manual review.",
       "clearAll": "Clear filters",
       "loadButton": "Load period",
       "refreshButton": "Refresh",
@@ -3724,11 +3726,14 @@
       "instagram": "Instagram",
       "instagramPlaceholder": "https://instagram.com/your_handle",
       "facebook": "Facebook",
-      "facebookPlaceholder": "https://facebook.com/your_page"
+      "facebookPlaceholder": "https://facebook.com/your_page",
+      "autoApproveCommissions": "Auto-approve regular commissions",
+      "autoApproveCommissionsHelp": "Commissions calculated with no campaign attribution are approved automatically, skipping the gerencia comercial queue. Campaign-linked commissions, or ones produced by a re-rating/retroactive adjustment, always require manual approval regardless of this setting."
     },
     "sections": {
       "general": "General information",
       "currencies": "Currencies",
+      "commissions": "Commissions",
       "socialLinks": "Social links",
       "socialLinksHelp": "Global links shown across the public site (footer, contact).",
       "terms": "Terms and conditions"

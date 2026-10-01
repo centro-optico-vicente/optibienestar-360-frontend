@@ -2711,6 +2711,8 @@
         "tier": "Tier por volumen",
         "collectionTier": "Tier por cobranza"
       },
+      "autoApproved": "Auto",
+      "autoApprovedHint": "Aprobada automáticamente por la configuración de la organización — sin revisión manual.",
       "clearAll": "Limpiar filtros",
       "loadButton": "Cargar período",
       "refreshButton": "Refrescar",
@@ -3724,11 +3726,14 @@
       "instagram": "Instagram",
       "instagramPlaceholder": "https://instagram.com/tu_usuario",
       "facebook": "Facebook",
-      "facebookPlaceholder": "https://facebook.com/tu_pagina"
+      "facebookPlaceholder": "https://facebook.com/tu_pagina",
+      "autoApproveCommissions": "Auto-aprobar comisiones regulares",
+      "autoApproveCommissionsHelp": "Las comisiones calculadas sin ligar a una campaña se aprueban automáticamente, sin pasar por gerencia comercial. Las comisiones ligadas a una campaña, o generadas por un re-rating/retroactivo, siempre requieren aprobación manual sin importar este ajuste."
     },
     "sections": {
       "general": "Datos generales",
       "currencies": "Monedas",
+      "commissions": "Comisiones",
       "socialLinks": "Redes sociales",
       "socialLinksHelp": "Enlaces globales mostrados en el sitio público (pie de página, contacto).",
       "terms": "Términos y condiciones"

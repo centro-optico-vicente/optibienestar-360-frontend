@@ -714,9 +714,14 @@ async function onReject(reason: string) {
                     </td>
                     <td class="px-4 py-2.5 text-prohealth-600 text-xs">{{ row.earnedAt_Display || formatDate(row.earnedAt, 'datetime') }}</td>
                     <td class="px-4 py-2.5">
-                      <UBadge :color="commissionStatusColor(row.status)" variant="subtle" size="sm">
-                        {{ row.status_Display || row.status }}
-                      </UBadge>
+                      <div class="flex items-center gap-1">
+                        <UBadge :color="commissionStatusColor(row.status)" variant="subtle" size="sm">
+                          {{ row.status_Display || row.status }}
+                        </UBadge>
+                        <UBadge v-if="row.autoApproved" color="info" variant="subtle" size="sm" :title="t('commissions.approval.autoApprovedHint')">
+                          {{ t('commissions.approval.autoApproved') }}
+                        </UBadge>
+                      </div>
                     </td>
                   </tr>
                 </template>
@@ -758,9 +763,14 @@ async function onReject(reason: string) {
                 </td>
                 <td class="px-4 py-2.5 text-prohealth-600 text-xs">{{ row.earnedAt_Display || formatDate(row.earnedAt, 'datetime') }}</td>
                 <td class="px-4 py-2.5">
-                  <UBadge :color="commissionStatusColor(row.status)" variant="subtle" size="sm">
-                    {{ row.status_Display || row.status }}
-                  </UBadge>
+                  <div class="flex items-center gap-1">
+                    <UBadge :color="commissionStatusColor(row.status)" variant="subtle" size="sm">
+                      {{ row.status_Display || row.status }}
+                    </UBadge>
+                    <UBadge v-if="row.autoApproved" color="info" variant="subtle" size="sm" :title="t('commissions.approval.autoApprovedHint')">
+                      {{ t('commissions.approval.autoApproved') }}
+                    </UBadge>
+                  </div>
                 </td>
               </tr>
             </template>
