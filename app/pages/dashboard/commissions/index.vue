@@ -48,7 +48,9 @@ const page = ref(1) // UPagination is 1-based; the API is 0-based
 const size = ref(DEFAULT_PAGE_SIZE)
 const pageSizeItems = buildPageSizeItems(t)
 const search = ref('')
-const filter = ref('') // raw RSQL, e.g. `promoter.uuid==…;status==PENDING`
+const route = useRoute()
+// raw RSQL, e.g. `promoter.uuid==…;status==PENDING`; seeded from `?filter=` so other screens can deep-link here.
+const filter = ref(typeof route.query.filter === 'string' ? route.query.filter : '')
 const includeInactive = ref(false)
 // Empty by default: no `sort=` is sent until the user clicks a column, so
 // the backend's own default-sort fallback (entity_config → system_configs
@@ -215,27 +217,62 @@ async function onTopUpDone() {
   await load()
 }
 
-// ---- Void a single PENDING commission (excludes it from the next payout) ----
+// ---- Void PENDING commissions (excluded from the next payout), one or a selection ----
 const voidOpen = ref(false)
 const voidTarget = ref<CommissionDto | null>(null)
 const voidReason = ref('')
 const voidSubmitting = ref(false)
+const selectedForVoid = ref<Set<string>>(new Set())
+const voidingSelection = ref(false)
+
+const pendingRows = computed(() => data.value.filter(c => c.status === 'PENDING'))
+const allPendingSelected = computed(() =>
+  pendingRows.value.length > 0 && pendingRows.value.every(c => selectedForVoid.value.has(c.uuid)))
+
+function toggleVoidSelection(uuid: string, checked: boolean) {
+  const next = new Set(selectedForVoid.value)
+  if (checked) next.add(uuid)
+  else next.delete(uuid)
+  selectedForVoid.value = next
+}
+
+function toggleAllPending(checked: boolean) {
+  selectedForVoid.value = checked ? new Set(pendingRows.value.map(c => c.uuid)) : new Set()
+}
+
+// A page or filter change drops rows from view, so the selection never spans what isn't visible.
+watch(data, () => { selectedForVoid.value = new Set() })
 
 function openVoid(row: CommissionDto) {
+  voidingSelection.value = false
   voidTarget.value = row
   voidReason.value = ''
   voidOpen.value = true
 }
 
+function openVoidSelection() {
+  voidingSelection.value = true
+  voidTarget.value = null
+  voidReason.value = ''
+  voidOpen.value = true
+}
+
 async function confirmVoid() {
-  if (!voidTarget.value || !voidReason.value.trim()) return
+  const reason = voidReason.value.trim()
+  if (!reason || (!voidingSelection.value && !voidTarget.value)) return
   voidSubmitting.value = true
   try {
-    const updated = await commissions.voidCommission(voidTarget.value.uuid, voidReason.value.trim())
-    toast.add({ title: t('commissions.voidAction.successToast'), color: 'success', icon: 'i-lucide-ban' })
+    if (voidingSelection.value) {
+      const voided = await commissions.voidBulk([...selectedForVoid.value], reason)
+      toast.add({ title: t('commissions.voidAction.bulkSuccessToast', { count: voided.length }), color: 'success', icon: 'i-lucide-ban' })
+    }
+    else {
+      const updated = await commissions.voidCommission(voidTarget.value!.uuid, reason)
+      toast.add({ title: t('commissions.voidAction.successToast'), color: 'success', icon: 'i-lucide-ban' })
+      // Keep the detail modal's own copy in sync when voiding from there.
+      if (detail.value?.uuid === updated.uuid) detail.value = updated
+    }
     voidOpen.value = false
-    // Keep the detail modal's own copy in sync when voiding from there.
-    if (detail.value?.uuid === updated.uuid) detail.value = updated
     await load()
   }
   catch { /* toast handled by useApi */ }
@@ -293,6 +330,15 @@ async function confirmVoid() {
           {{ t('commissions.retroactiveTopUps.button') }}
         </UButton>
         <UButton
+          v-if="canVoid && selectedForVoid.size > 0"
+          color="error"
+          variant="soft"
+          icon="i-lucide-ban"
+          @click="openVoidSelection"
+        >
+          {{ t('commissions.voidAction.bulkTrigger', { count: selectedForVoid.size }) }}
+        </UButton>
+        <UButton
           v-if="canPayout"
           color="primary"
           icon="i-lucide-wallet"
@@ -339,6 +385,14 @@ async function confirmVoid() {
         <table class="w-full text-sm">
           <thead class="sticky top-0 bg-white z-10">
             <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
+              <th v-if="canVoid" class="pl-5 py-3 w-8">
+                <UCheckbox
+                  :model-value="allPendingSelected"
+                  :disabled="pendingRows.length === 0"
+                  :aria-label="t('commissions.voidAction.selectAllPending')"
+                  @update:model-value="toggleAllPending(!!$event)"
+                />
+              </th>
               <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('promoter_Display')">
                 {{ t('commissions.columns.promoter') }}
                 <SortIndicator :state="sort.stateOf('promoter_Display')" :multi-active="isMultiSort" @clear="sort.remove('promoter_Display')" />
@@ -371,9 +425,9 @@ async function confirmVoid() {
             </tr>
           </thead>
           <tbody class="divide-y divide-prohealth-100">
-            <TableSkeleton v-if="loading" :rows="8" :cols="8" />
+            <TableSkeleton v-if="loading" :rows="8" :cols="canVoid ? 9 : 8" />
             <tr v-else-if="data.length === 0">
-              <td colspan="8" class="px-5 py-12 text-center text-prohealth-500">
+              <td :colspan="canVoid ? 9 : 8" class="px-5 py-12 text-center text-prohealth-500">
                 <UIcon name="i-lucide-percent" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
                 {{ t('commissions.empty') }}
               </td>
@@ -385,6 +439,14 @@ async function confirmVoid() {
               class="hover:bg-prohealth-50/50 cursor-pointer"
               @click="openDetail(c)"
             >
+              <td v-if="canVoid" class="pl-5 py-3 w-8" @click.stop>
+                <UCheckbox
+                  v-if="c.status === 'PENDING'"
+                  :model-value="selectedForVoid.has(c.uuid)"
+                  :aria-label="c.promoter_Display ?? c.uuid"
+                  @update:model-value="toggleVoidSelection(c.uuid, !!$event)"
+                />
+              </td>
               <td class="px-5 py-3" @click.stop>
                 <div class="font-semibold">
                   <CommonEntityLinkCell
@@ -717,10 +779,12 @@ async function confirmVoid() {
     />
 
     <!-- Void confirmation (excludes this one commission from the next payout) -->
-    <UModal v-model:open="voidOpen" :title="t('commissions.voidAction.title')">
+    <UModal v-model:open="voidOpen" :title="voidingSelection ? t('commissions.voidAction.bulkTitle') : t('commissions.voidAction.title')">
       <template #body>
         <p class="text-sm text-prohealth-700">
-          {{ t('commissions.voidAction.confirm', { promoter: voidTarget?.promoter_Display || '' }) }}
+          {{ voidingSelection
+            ? t('commissions.voidAction.bulkConfirm', { count: selectedForVoid.size })
+            : t('commissions.voidAction.confirm', { promoter: voidTarget?.promoter_Display || '' }) }}
         </p>
         <UFormField :label="t('commissions.voidAction.reasonLabel')" required class="mt-4">
           <UTextarea v-model="voidReason" :rows="3" class="w-full" :placeholder="t('commissions.voidAction.reasonPlaceholder')" />

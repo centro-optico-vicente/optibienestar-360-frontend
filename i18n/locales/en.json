@@ -2496,7 +2496,8 @@
       "confirm": "Reassign",
       "doneToast": "{count} member(s) reassigned",
       "beforeDeactivate": "They have {count} member(s) in their portfolio. You can reassign them before deactivating.",
-      "goReassign": "Reassign portfolio"
+      "goReassign": "Reassign portfolio",
+      "pendingCommissions": "View pending commissions"
     }
   },
   "commissions": {
@@ -2865,7 +2866,12 @@
       "reasonLabel": "Reason for voiding",
       "reasonPlaceholder": "e.g. Promoter didn't meet the quota",
       "confirmButton": "Void",
-      "successToast": "Commission voided successfully."
+      "successToast": "Commission voided successfully.",
+      "bulkTrigger": "Void selected ({count})",
+      "bulkTitle": "Void selected commissions",
+      "bulkConfirm": "The {count} selected commissions will be excluded from the next payout. This cannot be undone.",
+      "bulkSuccessToast": "{count} commissions voided.",
+      "selectAllPending": "Select all pending"
     }
   },
   "scheduledJobs": {

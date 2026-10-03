@@ -284,6 +284,10 @@ async function onReassigned() {
   await loadPortfolio()
 }
 
+// Pending commissions of this promoter, pre-filtered, to pay them by selection or void them in bulk.
+const pendingCommissionsLink = computed(() =>
+  `/dashboard/commissions?filter=${encodeURIComponent(`promoter.uuid==${promoterUuid};status==PENDING`)}`)
+
 // From the deactivate dialog: jump to the portfolio so it can be handed over first.
 function goToPortfolioFromDelete() {
   deleteOpen.value = false
@@ -758,9 +762,21 @@ async function loadCommissionsSummary() {
           class="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 flex flex-wrap items-center justify-between gap-2"
         >
           <span>{{ t('promoters.portfolio.beforeDeactivate', { count: dashboard?.portfolio.length ?? 0 }) }}</span>
-          <UButton size="xs" color="warning" variant="soft" icon="i-lucide-arrow-right-left" @click="goToPortfolioFromDelete">
-            {{ t('promoters.portfolio.goReassign') }}
-          </UButton>
+          <div class="flex flex-wrap gap-2">
+            <UButton size="xs" color="warning" variant="soft" icon="i-lucide-arrow-right-left" @click="goToPortfolioFromDelete">
+              {{ t('promoters.portfolio.goReassign') }}
+            </UButton>
+            <UButton
+              v-if="can('COMMISSION_VIEW_ALL')"
+              size="xs"
+              color="neutral"
+              variant="soft"
+              icon="i-lucide-hand-coins"
+              :to="pendingCommissionsLink"
+            >
+              {{ t('promoters.portfolio.pendingCommissions') }}
+            </UButton>
+          </div>
         </div>
         <div class="flex items-center justify-end gap-3 pt-5">
           <UButton color="neutral" variant="ghost" :disabled="deleting" @click="deleteOpen = false">
