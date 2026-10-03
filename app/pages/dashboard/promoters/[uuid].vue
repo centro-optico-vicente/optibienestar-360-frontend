@@ -249,6 +249,51 @@ function membershipStatusColor(status: PromoterMemberRow['membershipStatus']): '
   return 'neutral'
 }
 
+// ---- Portfolio reassignment (MEMBER_ASSIGN_PROMOTER) ----
+const canReassign = computed(() => can('MEMBER_ASSIGN_PROMOTER'))
+const selectedMembers = ref<Set<string>>(new Set())
+const reassignOpen = ref(false)
+const reassignMode = ref<'selected' | 'supervisor'>('selected')
+
+const allVisibleSelected = computed(() =>
+  filteredPortfolio.value.length > 0 && filteredPortfolio.value.every(r => selectedMembers.value.has(r.memberUuid)))
+
+function toggleMember(uuid: string, checked: boolean) {
+  const next = new Set(selectedMembers.value)
+  if (checked) next.add(uuid)
+  else next.delete(uuid)
+  selectedMembers.value = next
+}
+
+function toggleAllVisible(checked: boolean) {
+  const next = new Set(selectedMembers.value)
+  for (const r of filteredPortfolio.value) {
+    if (checked) next.add(r.memberUuid)
+    else next.delete(r.memberUuid)
+  }
+  selectedMembers.value = next
+}
+
+function openReassign(mode: 'selected' | 'supervisor') {
+  reassignMode.value = mode
+  reassignOpen.value = true
+}
+
+async function onReassigned() {
+  selectedMembers.value = new Set()
+  await loadPortfolio()
+}
+
+// Pending commissions of this promoter, pre-filtered, to pay them by selection or void them in bulk.
+const pendingCommissionsLink = computed(() =>
+  `/dashboard/commissions?filter=${encodeURIComponent(`promoter.uuid==${promoterUuid};status==PENDING`)}`)
+
+// From the deactivate dialog: jump to the portfolio so it can be handed over first.
+function goToPortfolioFromDelete() {
+  deleteOpen.value = false
+  activeTab.value = 'referrals'
+}
+
 // Date in the VE convention (useFormatters). Empty → '—'.
 function date(iso?: string | null): string {
   return formatDate(iso, 'short')
@@ -500,6 +545,27 @@ async function loadCommissionsSummary() {
           </div>
           <div class="flex flex-wrap items-center gap-2">
             <RefreshButton :loading="portfolioLoading" :title="t('common.refreshSection')" @refresh="loadPortfolio" />
+            <template v-if="canReassign">
+              <UButton
+                size="xs"
+                color="primary"
+                icon="i-lucide-arrow-right-left"
+                :disabled="selectedMembers.size === 0"
+                @click="openReassign('selected')"
+              >
+                {{ t('promoters.portfolio.reassignSelected', { count: selectedMembers.size }) }}
+              </UButton>
+              <UButton
+                size="xs"
+                color="neutral"
+                variant="soft"
+                icon="i-lucide-arrow-up-to-line"
+                :disabled="(dashboard?.portfolio.length ?? 0) === 0"
+                @click="openReassign('supervisor')"
+              >
+                {{ t('promoters.portfolio.toSupervisor') }}
+              </UButton>
+            </template>
             <UButton
               size="xs"
               variant="soft"
@@ -550,6 +616,13 @@ async function loadCommissionsSummary() {
           <table class="w-full text-sm">
             <thead>
               <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
+                <th v-if="canReassign" class="pl-6 py-3 w-8">
+                  <UCheckbox
+                    :model-value="allVisibleSelected"
+                    :aria-label="t('promoters.portfolio.selectAll')"
+                    @update:model-value="toggleAllVisible(!!$event)"
+                  />
+                </th>
                 <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="portfolioSort.toggle('memberName')">
                   {{ t('promoters.detail.referrals.columns.member') }}
                   <SortIndicator :state="portfolioSort.stateOf('memberName')" :multi-active="portfolioIsMultiSort" @clear="portfolioSort.remove('memberName')" />
@@ -569,14 +642,21 @@ async function loadCommissionsSummary() {
               </tr>
             </thead>
             <tbody class="divide-y divide-prohealth-100">
-              <TableSkeleton v-if="portfolioLoading" :rows="3" :cols="4" />
+              <TableSkeleton v-if="portfolioLoading" :rows="3" :cols="canReassign ? 5 : 4" />
               <tr v-else-if="filteredPortfolio.length === 0">
-                <td colspan="4" class="px-6 py-10 text-center text-prohealth-500">
+                <td :colspan="canReassign ? 5 : 4" class="px-6 py-10 text-center text-prohealth-500">
                   <UIcon name="i-lucide-users" class="w-7 h-7 mx-auto mb-2 text-prohealth-300" />
                   {{ t('promoters.detail.referrals.empty') }}
                 </td>
               </tr>
               <tr v-for="m in filteredPortfolio" v-else :key="m.memberUuid" class="hover:bg-prohealth-50/50">
+                <td v-if="canReassign" class="pl-6 py-3 w-8">
+                  <UCheckbox
+                    :model-value="selectedMembers.has(m.memberUuid)"
+                    :aria-label="m.memberName"
+                    @update:model-value="toggleMember(m.memberUuid, !!$event)"
+                  />
+                </td>
                 <td class="px-6 py-3 font-semibold">
                   <CommonEntityLinkCell
                     :to="`/dashboard/members/${m.memberUuid}`"
@@ -677,6 +757,27 @@ async function loadCommissionsSummary() {
               : t('promoters.deleteConfirmDeactivate', { count: usageInfo?.count ?? 0 })
           }}
         </p>
+        <div
+          v-if="!usageChecking && usageInfo?.inUse && canReassign && (dashboard?.portfolio.length ?? 0) > 0"
+          class="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 flex flex-wrap items-center justify-between gap-2"
+        >
+          <span>{{ t('promoters.portfolio.beforeDeactivate', { count: dashboard?.portfolio.length ?? 0 }) }}</span>
+          <div class="flex flex-wrap gap-2">
+            <UButton size="xs" color="warning" variant="soft" icon="i-lucide-arrow-right-left" @click="goToPortfolioFromDelete">
+              {{ t('promoters.portfolio.goReassign') }}
+            </UButton>
+            <UButton
+              v-if="can('COMMISSION_VIEW_ALL')"
+              size="xs"
+              color="neutral"
+              variant="soft"
+              icon="i-lucide-hand-coins"
+              :to="pendingCommissionsLink"
+            >
+              {{ t('promoters.portfolio.pendingCommissions') }}
+            </UButton>
+          </div>
+        </div>
         <div class="flex items-center justify-end gap-3 pt-5">
           <UButton color="neutral" variant="ghost" :disabled="deleting" @click="deleteOpen = false">
             {{ t('common.cancel') }}
@@ -687,6 +788,17 @@ async function loadCommissionsSummary() {
         </div>
       </template>
     </UModal>
+
+    <!-- Portfolio reassignment -->
+    <PortfolioReassignModal
+      v-if="promoter"
+      v-model:open="reassignOpen"
+      :mode="reassignMode"
+      :source-promoter-uuid="promoter.uuid"
+      :source-promoter-name="promoter.displayName"
+      :member-uuids="[...selectedMembers]"
+      @done="onReassigned"
+    />
 
     <!-- Audit modal -->
     <AuditModal

@@ -110,5 +110,9 @@ export const useCommissions = () => {
   const voidCommission = (uuid: string, reason: string) =>
     useApi<CommissionDto>(`/v1/admin/commissions/${uuid}/void`, { method: 'POST', body: { reason } })
 
-  return { list, get, payout, payoutBySelection, reRate, overrideReRate, retroactiveTopUps, voidCommission }
+  /** Anula varias comisiones PENDING con un mismo motivo; el backend rechaza todo si alguna no está PENDING. */
+  const voidBulk = (commissionUuids: string[], reason: string) =>
+    useApi<CommissionDto[]>('/v1/admin/commissions/void-bulk', { method: 'POST', body: { commissionUuids, reason } })
+
+  return { list, get, payout, payoutBySelection, reRate, overrideReRate, retroactiveTopUps, voidCommission, voidBulk }
 }

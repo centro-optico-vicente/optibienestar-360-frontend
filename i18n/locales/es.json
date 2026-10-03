@@ -996,7 +996,8 @@
       "mandatoryPhone": "Exige teléfono",
       "mandatoryEmail": "Exige correo",
       "mandatoryReferenceNumber": "Exige número de referencia",
-      "requiresApproval": "Requiere aprobación"
+      "requiresApproval": "Requiere aprobación",
+      "maxDiscountPct": "Descuento máximo (%)"
     },
     "promoterRanksTree": {
       "title": "Árbol de cargos",
@@ -1800,7 +1801,10 @@
         "reason": "Motivo / nota",
         "created": "Creado",
         "updated": "Última actualización",
-        "uuid": "UUID"
+        "uuid": "UUID",
+        "discount": "Descuento",
+        "netAmount": "Neto a pagar",
+        "discountReason": "Motivo del descuento"
       },
       "proof": {
         "fileNameFallback": "Comprobante",
@@ -1894,6 +1898,22 @@
       "rejectButton": "Rechazar pago",
       "approvedToast": "Pago aprobado",
       "rejectedToast": "Pago rechazado"
+    },
+    "discount": {
+      "trigger": "Descuento",
+      "gross": "Monto del pago",
+      "percent": "% de descuento",
+      "total": "Total a pagar",
+      "discountLine": "Descuento: {amount}",
+      "maxAllowed": "Máximo autorizado: {max}%",
+      "uncapped": "Sin tope de descuento",
+      "exceedsCap": "Supera tu máximo autorizado ({max}%)",
+      "invalid": "Indica un descuento mayor a 0 y no superior al monto",
+      "reason": "Motivo",
+      "reasonPlaceholder": "Ej. cierre de cobranza acordado con el afiliado",
+      "reasonRequired": "El motivo es obligatorio",
+      "apply": "Aplicar descuento",
+      "appliedToast": "Descuento aplicado"
     }
   },
   "members": {
@@ -2459,6 +2479,25 @@
         "rank": "Cargo"
       },
       "rankNone": "Sin cargo asignado"
+    },
+    "portfolio": {
+      "reassignSelected": "Reasignar seleccionados ({count})",
+      "toSupervisor": "Pasar todos a su supervisor",
+      "selectAll": "Seleccionar todos",
+      "selectedTitle": "Reasignar afiliados",
+      "supervisorTitle": "Pasar cartera al supervisor",
+      "selectedNotice": "Vas a mover {count} afiliado(s) de {name} a otro promotor.",
+      "supervisorNotice": "Vas a mover toda la cartera de {name} a su supervisor activo más cercano (o a INSTITUCION si no tiene).",
+      "historyNotice": "Los cobros y comisiones ya registrados se quedan con el promotor original; solo cambia la atribución de ahora en adelante. Cada afiliado recibe un aviso con su nuevo asesor.",
+      "target": "Promotor destino",
+      "targetPlaceholder": "Selecciona el promotor",
+      "reason": "Motivo",
+      "reasonPlaceholder": "Ej. baja del promotor, rebalanceo de cartera",
+      "confirm": "Reasignar",
+      "doneToast": "Se reasignaron {count} afiliado(s)",
+      "beforeDeactivate": "Tiene {count} afiliado(s) en cartera. Puedes reasignarlos antes de desactivarlo.",
+      "goReassign": "Reasignar cartera",
+      "pendingCommissions": "Ver comisiones pendientes"
     }
   },
   "commissions": {
@@ -2827,7 +2866,12 @@
       "reasonLabel": "Motivo de la anulación",
       "reasonPlaceholder": "p. ej. Incumplimiento de meta del promotor",
       "confirmButton": "Anular",
-      "successToast": "Comisión anulada correctamente."
+      "successToast": "Comisión anulada correctamente.",
+      "bulkTrigger": "Anular seleccionadas ({count})",
+      "bulkTitle": "Anular comisiones seleccionadas",
+      "bulkConfirm": "Las {count} comisiones seleccionadas quedarán excluidas de la próxima liquidación. Esta acción no se puede deshacer.",
+      "bulkSuccessToast": "Se anularon {count} comisiones.",
+      "selectAllPending": "Seleccionar todas las pendientes"
     }
   },
   "scheduledJobs": {

@@ -255,6 +255,8 @@ export const CATALOGS: CatalogDef[] = [
       // V103 — still-unconfirmed business question (hub notes pregunta 7): default
       // true keeps today's behavior for every existing type.
       { name: 'generatesHierarchyOverride', label: 'Genera override jerárquico', labelKey: 'catalogs.fields.generatesHierarchyOverride', type: 'checkbox', defaultChecked: true },
+      // V173 discount authority: the effective cap is the most restrictive of rank and type; empty on both = 0%.
+      { name: 'maxDiscountPct', label: 'Descuento máximo (%)', labelKey: 'catalogs.fields.maxDiscountPct', type: 'number', min: 0, placeholder: '10' },
     ],
   },
   {
@@ -280,6 +282,7 @@ export const CATALOGS: CatalogDef[] = [
       // hub plan §1. onlyCreate so it can never drift under an existing chain.
       { name: 'hierarchyLevel', label: 'Nivel jerárquico', labelKey: 'catalogs.fields.hierarchyLevel', type: 'number', required: true, onlyCreate: true, min: 1, placeholder: '2' },
       { name: 'maxSubordinates', label: 'Máximo de subordinados', labelKey: 'catalogs.fields.maxSubordinates', type: 'number', min: 1, placeholder: 'Sin límite' },
+      { name: 'maxDiscountPct', label: 'Descuento máximo (%)', labelKey: 'catalogs.fields.maxDiscountPct', type: 'number', min: 0, placeholder: '15' },
       // Real parent/superior FK — self-referencing (`parentKey` points at this
       // same catalog). Freely editable (unlike code/hierarchyLevel): reordering
       // within a level goes through the dedicated reorder endpoint, not this

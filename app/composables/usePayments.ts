@@ -1,6 +1,8 @@
 import type { Page } from '~/types/admin'
 import type {
+  DiscountAuthorityDto,
   DownlinePaymentCreateRequest,
+  PaymentDiscountRequest,
   MyPaymentCreateRequest,
   PaymentApproveRequest,
   PaymentCreateRequest,
@@ -126,6 +128,13 @@ export const usePayments = () => {
       body: { reason },
     })
 
+  /** One-off discount on a PENDING payment (ALLOWS_DISCOUNT); capped by the caller's discount authority. */
+  const applyDiscount = (uuid: string, body: PaymentDiscountRequest) =>
+    useApi<PaymentDto>(`/v1/admin/payments/${uuid}/discount`, { method: 'POST', body })
+
+  const discountAuthority = () =>
+    useApi<DiscountAuthorityDto>('/v1/admin/payments/discount-authority')
+
   /**
    * Delete a still-PENDING payment registered by mistake. PAYMENT_DELETE.
    * The backend rejects (422) deleting a payment that is already APPROVED/REJECTED.
@@ -232,7 +241,7 @@ export const usePayments = () => {
     useApi<void>(`/v1/promoter/me/payments/${uuid}`, { method: 'DELETE' })
 
   return {
-    list, get, register, registerOut, updateOut, removeOut, processOut, approveOut, rejectOut, approve, reject, remove, supportUrl, mine, mineForPromoter,
+    list, get, register, registerOut, updateOut, removeOut, processOut, approveOut, rejectOut, approve, reject, applyDiscount, discountAuthority, remove, supportUrl, mine, mineForPromoter,
     updateLines, submit, reactivateToDraft,
     registerOwn, removeOwn, updateLinesOwn, submitOwn, reactivateToDraftOwn,
     registerForDownline, approveForDownline, rejectForDownline, removeForDownline,
