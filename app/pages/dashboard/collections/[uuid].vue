@@ -10,7 +10,12 @@ definePageMeta({
 })
 
 const { t } = useI18n()
-const { formatDate, formatMonthYear } = useFormatters()
+const { formatDate, formatMonthYear, formatCurrency } = useFormatters()
+
+// What the affiliate actually pays (and what commissions are computed on).
+function netAmount(p: PaymentDto): number {
+  return Number(p.amount) - Number(p.discountAmount ?? 0)
+}
 
 useSeoMeta({ title: () => t('common.seoTitle', { page: t('payments.detail.seoPage') }) })
 
@@ -23,6 +28,7 @@ const toast = useToast()
 
 const canApprove = computed(() => can('PAYMENT_APPROVE'))
 const canReject = computed(() => can('PAYMENT_REJECT'))
+const canDiscount = computed(() => can('ALLOWS_DISCOUNT'))
 const canViewMember = computed(() => can('MEMBER_VIEW_ALL'))
 const canViewCurrency = computed(() => can('CURRENCY_VIEW_ALL'))
 const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('PAYMENT_RECORD_AUDIT_VIEW'))
@@ -246,6 +252,7 @@ function onReviewed(updated: PaymentDto) {
               </UTooltip>
             </template>
             <template v-if="isPending">
+              <PaymentDiscountPopover v-if="canDiscount" :payment="payment" @applied="onReviewed" />
               <UTooltip :text="canReactivate ? t('payments.detail.reactivateTooltip') : t('payments.tooltips.noPermissionApprove')">
                 <UButton
                   color="neutral"
@@ -334,6 +341,20 @@ function onReviewed(updated: PaymentDto) {
               {{ allocationLabel(payment) }}
             </dd>
           </div>
+          <template v-if="payment.discountAmount">
+            <div>
+              <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.discount') }}</dt>
+              <dd class="text-prohealth-800 mt-0.5">{{ payment.discountAmount_Display ?? payment.discountAmount }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.netAmount') }}</dt>
+              <dd class="text-prohealth-900 font-semibold mt-0.5">{{ formatCurrency(netAmount(payment), payment.currency_Code || payment.currency) }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.discountReason') }}</dt>
+              <dd class="text-prohealth-800 mt-0.5">{{ payment.discountReason || t('common.empty') }}</dd>
+            </div>
+          </template>
         </dl>
       </div>
 

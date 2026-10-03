@@ -44,6 +44,9 @@ export interface CatalogItem {
   // `promoter-types` (V103) — whether a sale by this type cascades a
   // hierarchy override up the supervisor chain (default true).
   generatesHierarchyOverride?: boolean
+  // `promoter-ranks` / `promoter-types` (V173) — discount-authority cap in %;
+  // effective cap = most restrictive of rank and type, none on both = 0%.
+  maxDiscountPct?: number | null
   // `banks` (V116) — commercial short name (UI pickers/receipts) + RIF split
   // the same way persons/allies do (tax_document_type/number).
   shortName?: string

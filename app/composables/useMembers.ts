@@ -3,6 +3,7 @@ import type { Option } from '~/types/options'
 import type {
   AssignPromoterRequest,
   BeneficiaryDto,
+  BulkAssignPromoterRequest,
   CreateBeneficiaryRequest,
   CreateMemberRequest,
   MedicalRecordDto,
@@ -10,6 +11,7 @@ import type {
   MemberDto,
   MemberListItemDto,
   MemberPromoterAssignmentDto,
+  PortfolioToSupervisorRequest,
   UpdateBeneficiaryRequest,
   UpdateMemberRequest,
   UpsertMedicalRecordRequest,
@@ -122,6 +124,14 @@ export const useMembers = () => {
   const promoterHistory = (memberUuid: string) =>
     useApi<MemberPromoterAssignmentDto[]>(`/v1/admin/members/${memberUuid}/promoter-history`)
 
+  /** Reasigna en lote los afiliados seleccionados a un promotor; omite los que ya son suyos. */
+  const bulkAssignPromoter = (body: BulkAssignPromoterRequest) =>
+    useApi<MemberPromoterAssignmentDto[]>('/v1/admin/members/promoter/bulk-assign', { method: 'POST', body })
+
+  /** Pasa toda la cartera de un promotor a su supervisor activo más cercano (o a INSTITUCION si no tiene). */
+  const portfolioToSupervisor = (body: PortfolioToSupervisorRequest) =>
+    useApi<MemberPromoterAssignmentDto[]>('/v1/admin/members/promoter/portfolio-to-supervisor', { method: 'POST', body })
+
   // ---- Confirmación manual del afiliado (MEMBER_CONFIRM) ----
   /** Para afiliados cubiertos por subsidio que nunca generan pago (la confirmación normal ocurre al aprobar el primer pago). */
   const confirm = (memberUuid: string) =>
@@ -144,6 +154,8 @@ export const useMembers = () => {
     removeMedicalRecord,
     me,
     assignPromoter,
+    bulkAssignPromoter,
+    portfolioToSupervisor,
     promoterHistory,
     confirm,
   }
