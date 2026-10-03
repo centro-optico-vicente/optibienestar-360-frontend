@@ -996,7 +996,8 @@
       "mandatoryPhone": "Requires phone",
       "mandatoryEmail": "Requires email",
       "mandatoryReferenceNumber": "Requires reference number",
-      "requiresApproval": "Requires approval"
+      "requiresApproval": "Requires approval",
+      "maxDiscountPct": "Maximum discount (%)"
     },
     "promoterRanksTree": {
       "title": "Rank tree",
@@ -1800,7 +1801,10 @@
         "reason": "Reason / note",
         "created": "Created",
         "updated": "Last update",
-        "uuid": "UUID"
+        "uuid": "UUID",
+        "discount": "Discount",
+        "netAmount": "Net to pay",
+        "discountReason": "Discount reason"
       },
       "proof": {
         "fileNameFallback": "Proof",
@@ -1894,6 +1898,22 @@
       "rejectButton": "Reject payment",
       "approvedToast": "Payment approved",
       "rejectedToast": "Payment rejected"
+    },
+    "discount": {
+      "trigger": "Discount",
+      "gross": "Payment amount",
+      "percent": "Discount %",
+      "total": "Total to pay",
+      "discountLine": "Discount: {amount}",
+      "maxAllowed": "Maximum authorized: {max}%",
+      "uncapped": "No discount cap",
+      "exceedsCap": "Exceeds your authorized maximum ({max}%)",
+      "invalid": "Enter a discount greater than 0 and not above the amount",
+      "reason": "Reason",
+      "reasonPlaceholder": "E.g. collection settlement agreed with the member",
+      "reasonRequired": "The reason is required",
+      "apply": "Apply discount",
+      "appliedToast": "Discount applied"
     }
   },
   "members": {
@@ -2459,6 +2479,24 @@
         "rank": "Rank"
       },
       "rankNone": "No rank assigned"
+    },
+    "portfolio": {
+      "reassignSelected": "Reassign selected ({count})",
+      "toSupervisor": "Move all to their supervisor",
+      "selectAll": "Select all",
+      "selectedTitle": "Reassign members",
+      "supervisorTitle": "Move portfolio to supervisor",
+      "selectedNotice": "You are about to move {count} member(s) from {name} to another promoter.",
+      "supervisorNotice": "You are about to move {name}'s whole portfolio to their nearest active supervisor (or INSTITUCION if none).",
+      "historyNotice": "Collections and commissions already recorded stay with the original promoter; only future attribution changes. Each member is notified of their new advisor.",
+      "target": "Target promoter",
+      "targetPlaceholder": "Select the promoter",
+      "reason": "Reason",
+      "reasonPlaceholder": "E.g. promoter leaving, portfolio rebalancing",
+      "confirm": "Reassign",
+      "doneToast": "{count} member(s) reassigned",
+      "beforeDeactivate": "They have {count} member(s) in their portfolio. You can reassign them before deactivating.",
+      "goReassign": "Reassign portfolio"
     }
   },
   "commissions": {

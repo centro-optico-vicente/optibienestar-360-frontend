@@ -141,6 +141,14 @@ export interface PaymentDto {
   reviewedAt?: string | null
   reviewedAt_Display?: string | null
   reviewReason?: string | null
+  // One-off discount (V41; all null when none applied). The affiliate pays
+  // `amount - discountAmount`; commissions are computed on that net.
+  discountAmount?: number | string | null
+  discountAmount_Display?: string | null
+  discountReason?: string | null
+  discountedByUserUuid?: string | null
+  discountedAt?: string | null
+  discountedAt_Display?: string | null
   /**
    * Full lines collection (V117 lines feature) — every `payment_lines` row,
    * in addition to the flattened first-line fields above (kept as-is). A
@@ -155,6 +163,17 @@ export interface PaymentDto {
   createdAt_Display?: string | null
   updatedAt?: string
   updatedAt_Display?: string | null
+}
+
+/** Body of POST /v1/admin/payments/{uuid}/discount — `amount` is the discount itself, not the new total. */
+export interface PaymentDiscountRequest {
+  amount: number
+  reason: string
+}
+
+/** GET /v1/admin/payments/discount-authority — the caller's cap in %; null = uncapped (back-office staff). */
+export interface DiscountAuthorityDto {
+  maxDiscountPct: number | string | null
 }
 
 /** A single `payment_lines` row (V117 lines feature) — response shape. */

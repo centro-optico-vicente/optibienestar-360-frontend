@@ -158,6 +158,19 @@ export interface AssignPromoterRequest {
   reason: string
 }
 
+/** Body de POST /v1/admin/members/promoter/bulk-assign — reasignación de cartera a un promotor (todo o nada). */
+export interface BulkAssignPromoterRequest {
+  memberUuids: string[]
+  promoterUuid: string
+  reason: string
+}
+
+/** Body de POST /v1/admin/members/promoter/portfolio-to-supervisor — sube toda la cartera al supervisor activo más cercano (o INSTITUCION). */
+export interface PortfolioToSupervisorRequest {
+  sourcePromoterUuid: string
+  reason: string
+}
+
 /** Respuesta de POST /v1/admin/members/{uuid}/confirm. */
 export interface MemberConfirmationDto {
   memberUuid: string
