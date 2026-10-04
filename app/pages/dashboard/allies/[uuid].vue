@@ -1022,6 +1022,10 @@ onMounted(async () => {
             <dd class="text-prohealth-800 mt-0.5">{{ ally.address || t('common.empty') }}</dd>
           </div>
           <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.form.fields.referralCode') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5 font-mono">{{ ally.referralCode || t('common.empty') }}</dd>
+          </div>
+          <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.detail.fields.googleMapsUrl') }}</dt>
             <dd class="text-prohealth-800 mt-0.5">
               <a v-if="ally.googleMapsUrl" :href="ally.googleMapsUrl" target="_blank" rel="noopener" class="text-cyan-700 hover:underline">

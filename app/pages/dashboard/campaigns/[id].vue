@@ -74,6 +74,7 @@ const detailTabs = computed(() => [
   { label: t('campaigns.detail.tabs.rules'), value: 'rules', icon: 'i-lucide-list-checks' },
   { label: t('campaigns.detail.tabs.transactions'), value: 'transactions', icon: 'i-lucide-receipt' },
   { label: t('campaigns.detail.tabs.exceptions'), value: 'exceptions', icon: 'i-lucide-triangle-alert' },
+  ...(can('PROMOTION_VIEW_ALL') ? [{ label: t('campaigns.detail.tabs.promotions'), value: 'promotions', icon: 'i-lucide-badge-percent' }] : []),
 ])
 const activeDetailTab = ref('rules')
 const auditOpen = ref(false)
@@ -879,6 +880,13 @@ async function confirmRemoveException() {
           </div>
         </div>
       </div>
+
+      <!-- 6. Promociones (hub ADR 0018) -->
+      <CampaignPromotionsPanel
+        v-if="can('PROMOTION_VIEW_ALL')"
+        v-show="activeDetailTab === 'promotions'"
+        :campaign-uuid="campaignUuid"
+      />
     </template>
 
     <!-- Edit modal (shared) -->

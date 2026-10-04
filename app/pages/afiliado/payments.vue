@@ -149,6 +149,9 @@ async function confirmDelete() {
                     <CurrencyConverterTrigger :result="result" />
                   </span>
                 </CurrencyConverterDisplay>
+                <p v-if="p.discountAmount" class="text-xs text-green-700 font-normal">
+                  {{ t('promotions.portal.paymentSaving', { amount: p.discountAmount_Display ?? p.discountAmount, reason: p.discountReason ?? '' }) }}
+                </p>
               </td>
               <td class="px-5 py-3 text-prohealth-600">{{ methodLabel(p.paymentMethod) }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ p.paymentDate_Display ?? formatDate(p.paymentDate, 'datetime') }}</td>

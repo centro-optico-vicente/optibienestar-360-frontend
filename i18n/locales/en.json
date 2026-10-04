@@ -1325,8 +1325,11 @@
         "professions": "Professions",
         "joinedAt": "Partnership date",
         "published": "Published in directory",
-        "status": "Status"
-      }
+        "status": "Status",
+        "referralCode": "Referral code"
+      },
+      "referralCodeFormat": "The code must be 4-20 letters, digits or hyphens",
+      "referralCodeHelp": "Code the ally hands to its customers to use a promotion. Attribution only, no commission."
     },
     "delete": {
       "title": "Delete partner",
@@ -3128,7 +3131,8 @@
         "audience": "Audience",
         "rules": "Commission rules",
         "transactions": "Transactions",
-        "exceptions": "Exceptions"
+        "exceptions": "Exceptions",
+        "promotions": "Promotions"
       },
       "seoPage": "Campaign detail",
       "notFoundTitle": "Campaign not found",
@@ -4072,6 +4076,97 @@
       "DATA_ERROR": "Data error",
       "POLICY": "Policy",
       "OTHER": "Other"
+    }
+  },
+  "promotions": {
+    "title": "Promotions",
+    "hint": "Member discounts offered by this campaign. Applied at enrollment or to an existing membership.",
+    "add": "New promotion",
+    "empty": "This campaign has no promotions yet.",
+    "deletedToast": "Promotion deleted",
+    "deleteTitle": "Delete promotion",
+    "deleteConfirm": "The promotion {name} will be deleted. Memberships that already have it keep it until it runs out.",
+    "cyclesCount": "{n} monthly fee(s)",
+    "noCode": "No code",
+    "codeRequired": "Requires a code: {owners}",
+    "codeOptional": "Optional code: {owners}",
+    "columns": {
+      "discount": "Discount",
+      "code": "Code",
+      "redemptions": "Redemptions"
+    },
+    "kind": {
+      "ACQUISITION": "Acquisition",
+      "RECOVERY": "Recovery"
+    },
+    "kindHelp": {
+      "ACQUISITION": "For new or up-to-date memberships. Lost if a payment is late.",
+      "RECOVERY": "Only for delayed memberships: discounts the pending fees and is not lost by the delay."
+    },
+    "appliesTo": {
+      "INSCRIPTION": "Enrollment fee",
+      "MONTHLY": "Monthly fee",
+      "BOTH": "Enrollment and monthly fee"
+    },
+    "codeOwner": {
+      "PROMOTER": "Promoter",
+      "MEMBER": "Referring member",
+      "ALLY": "Ally"
+    },
+    "fields": {
+      "name": "Name",
+      "description": "Description",
+      "kind": "Kind",
+      "appliesTo": "Applies to",
+      "discountPct": "Discount (%)",
+      "cycles": "Discounted monthly fees",
+      "maxRedemptions": "Maximum redemptions",
+      "plans": "Plans",
+      "coversExtraBeneficiaries": "Includes extra beneficiaries' enrollment fee",
+      "requiresCode": "Requires a code",
+      "referrerRewardPct": "Referrer reward (%)",
+      "referrerRewardCycles": "Reward months"
+    },
+    "form": {
+      "createTitle": "New promotion",
+      "editTitle": "Edit promotion",
+      "savedToast": "Promotion saved",
+      "pctRange": "Enter a percentage greater than 0 and up to 100",
+      "codeOwnerRequired": "Choose which codes the promotion accepts",
+      "rewardIncomplete": "Enter both the reward percentage and months",
+      "cyclesHelp": "Empty = while the campaign runs",
+      "maxRedemptionsHelp": "Empty = no cap",
+      "plansHelp": "Empty = every plan",
+      "codeOwnersHelp": "Which codes are accepted in the \"Code\" field when applying the promotion. The benefit goes to whoever uses the code.",
+      "rewardHelp": "Optional: a separate benefit for the referring member, as a discount on their own monthly fee, when the referred member makes their first payment."
+    },
+    "membership": {
+      "promotion": "Promotion",
+      "promotionHelp": "Optional. Only promotions running for this plan are listed.",
+      "noPromotion": "No promotion",
+      "code": "Code",
+      "codeHelp": "Code from a promoter, a referring member or an ally.",
+      "codeRequired": "This promotion requires a code",
+      "cyclesLeft": "{n} left",
+      "viaCode": "With code {code} ({owner})",
+      "assignTooltip": "Apply promotion",
+      "assignTitle": "Apply promotion",
+      "assign": "Apply",
+      "noOptions": "There are no running promotions for this membership.",
+      "assignedToast": "Promotion applied",
+      "cancelTooltip": "Cancel promotion",
+      "cancelTitle": "Cancel promotion",
+      "cancelNotice": "The membership will stop getting the discount from the next charge.",
+      "reason": "Reason",
+      "cancelButton": "Cancel promotion",
+      "canceledToast": "Promotion canceled"
+    },
+    "portal": {
+      "title": "Your promotion: {name}",
+      "discount": "{pct} off your {what}.",
+      "cyclesLeft": "{n} discounted monthly fee(s) left.",
+      "keepOnTime": "Pay on time: a late payment cancels the promotion.",
+      "paymentSaving": "You saved {amount} · {reason}"
     }
   }
 }

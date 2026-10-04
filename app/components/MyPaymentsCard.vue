@@ -93,6 +93,9 @@ function allocationLabel(p: PaymentDto): string {
           <p class="font-semibold text-prohealth-900">
             <MoneyWithTooltip :display="p.amount_Display" :converted-display="p.amountConverted_Display" :rate-date="p.exchangeRateDate" />
           </p>
+          <p v-if="p.discountAmount" class="text-xs text-green-700">
+            {{ t('promotions.portal.paymentSaving', { amount: p.discountAmount_Display ?? p.discountAmount, reason: p.discountReason ?? '' }) }}
+          </p>
           <p class="text-xs text-prohealth-500">
             {{ methodLabel(p.paymentMethod) }} · {{ formatDate(p.paymentDate, 'datetime') }} · {{ allocationLabel(p) }}
           </p>

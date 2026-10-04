@@ -126,6 +126,7 @@ interface FormState {
   address: string
   cityUuid: string | undefined
   googleMapsUrl: string
+  referralCode: string
   description: string
   joinedAt: string
   published: boolean
@@ -147,6 +148,7 @@ const state = reactive<FormState>({
   address: '',
   cityUuid: undefined,
   googleMapsUrl: '',
+  referralCode: '',
   description: '',
   joinedAt: '',
   published: false,
@@ -169,6 +171,7 @@ const schema = computed(() => {
     facebook: z.string().optional(),
     address: z.string().optional(),
     googleMapsUrl: z.string().url(t('validation.invalidUrl')).optional().or(z.literal('')),
+    referralCode: z.string().regex(/^[A-Za-z0-9-]{4,20}$/, t('allies.form.referralCodeFormat')).optional().or(z.literal('')),
     description: z.string().optional(),
     joinedAt: z.string().optional(),
   }
@@ -189,6 +192,7 @@ function resetForm() {
   state.address = ''
   state.cityUuid = undefined
   state.googleMapsUrl = ''
+  state.referralCode = ''
   state.description = ''
   state.joinedAt = ''
   state.published = false
@@ -223,6 +227,7 @@ function populateEditForm(full: AllyDto) {
   pendingCityUuid.value = full.city?.uuid
   selectedStateUuid.value = full.city?.state_Uuid ?? undefined
   state.googleMapsUrl = full.googleMapsUrl ?? ''
+  state.referralCode = full.referralCode ?? ''
   state.description = full.description ?? ''
   state.joinedAt = full.joinedAt ?? ''
   state.published = full.published ?? false
@@ -293,6 +298,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         address: state.address || undefined,
         cityUuid: state.cityUuid,
         googleMapsUrl: state.googleMapsUrl || undefined,
+        referralCode: state.referralCode.trim().toUpperCase() || undefined,
         description: state.description || undefined,
         joinedAt: state.joinedAt || undefined,
         published: state.published,
@@ -317,6 +323,8 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         address: state.address || undefined,
         cityUuid: state.cityUuid,
         googleMapsUrl: state.googleMapsUrl || undefined,
+        // Empty string clears the code.
+        referralCode: state.referralCode.trim().toUpperCase(),
         description: state.description || undefined,
         joinedAt: state.joinedAt || undefined,
         published: state.published,
@@ -470,6 +478,10 @@ function requestDelete() {
 
         <UFormField :label="t('allies.form.fields.googleMapsUrl')" name="googleMapsUrl">
           <UInput v-model="state.googleMapsUrl" icon="i-lucide-map-pin" placeholder="https://maps.app.goo.gl/…" class="w-full" />
+        </UFormField>
+
+        <UFormField :label="t('allies.form.fields.referralCode')" name="referralCode" :help="t('allies.form.referralCodeHelp')">
+          <UInput v-model="state.referralCode" icon="i-lucide-ticket" placeholder="ALIADO-01" class="w-full font-mono uppercase" />
         </UFormField>
 
         <UFormField :label="t('allies.form.fields.description')" name="description">
