@@ -26,6 +26,8 @@ export interface AllyDto {
   address?: string
   city?: CityRef
   googleMapsUrl?: string
+  /** Promotion code the ally hands out (hub ADR 0018); attribution only. */
+  referralCode?: string | null
   description?: string
   joinedAt?: string
   published?: boolean
@@ -96,6 +98,7 @@ export interface CreateAllyRequest {
   address?: string
   cityUuid?: string
   googleMapsUrl?: string
+  referralCode?: string
   description?: string
   joinedAt?: string
   published?: boolean

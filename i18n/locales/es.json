@@ -1325,8 +1325,11 @@
         "professions": "Profesiones",
         "joinedAt": "Fecha de alianza",
         "published": "Publicado en directorio",
-        "status": "Estado"
-      }
+        "status": "Estado",
+        "referralCode": "Código de referido"
+      },
+      "referralCodeFormat": "El código debe tener entre 4 y 20 letras, números o guiones",
+      "referralCodeHelp": "Código que el aliado entrega a sus clientes para usar una promoción. Solo atribuye, no genera comisión."
     },
     "delete": {
       "title": "Eliminar aliado",
@@ -3128,7 +3131,8 @@
         "audience": "Audiencia",
         "rules": "Reglas de comisión",
         "transactions": "Transacciones",
-        "exceptions": "Excepciones"
+        "exceptions": "Excepciones",
+        "promotions": "Promociones"
       },
       "seoPage": "Detalle de campaña",
       "notFoundTitle": "Campaña no encontrada",
@@ -4072,6 +4076,69 @@
       "DATA_ERROR": "Error de datos",
       "POLICY": "Política",
       "OTHER": "Otro"
+    }
+  },
+  "promotions": {
+    "title": "Promociones",
+    "hint": "Descuentos para afiliados que ofrece esta campaña. Se aplican al inscribir o a una membresía existente.",
+    "add": "Nueva promoción",
+    "empty": "Esta campaña aún no tiene promociones.",
+    "deletedToast": "Promoción eliminada",
+    "deleteTitle": "Eliminar promoción",
+    "deleteConfirm": "Se eliminará la promoción {name}. Las membresías que ya la tienen la conservan hasta que se agote.",
+    "cyclesCount": "{n} mensualidad(es)",
+    "noCode": "Sin código",
+    "codeRequired": "Exige código: {owners}",
+    "codeOptional": "Código opcional: {owners}",
+    "columns": {
+      "discount": "Descuento",
+      "code": "Código",
+      "redemptions": "Canjes"
+    },
+    "kind": {
+      "ACQUISITION": "Captación",
+      "RECOVERY": "Recuperación"
+    },
+    "kindHelp": {
+      "ACQUISITION": "Para membresías nuevas o al día. Se pierde si el pago se atrasa.",
+      "RECOVERY": "Solo para membresías atrasadas: descuenta las cuotas pendientes y no se pierde por atraso."
+    },
+    "appliesTo": {
+      "INSCRIPTION": "Inscripción",
+      "MONTHLY": "Mensualidad",
+      "BOTH": "Inscripción y mensualidad"
+    },
+    "codeOwner": {
+      "PROMOTER": "Promotor",
+      "MEMBER": "Afiliado que recomienda",
+      "ALLY": "Aliado"
+    },
+    "fields": {
+      "name": "Nombre",
+      "description": "Descripción",
+      "kind": "Tipo",
+      "appliesTo": "Aplica a",
+      "discountPct": "Descuento (%)",
+      "cycles": "Mensualidades con descuento",
+      "maxRedemptions": "Cupo máximo",
+      "plans": "Planes",
+      "coversExtraBeneficiaries": "Incluye la inscripción de beneficiarios adicionales",
+      "requiresCode": "Exige código",
+      "referrerRewardPct": "Recompensa para quien recomienda (%)",
+      "referrerRewardCycles": "Meses de recompensa"
+    },
+    "form": {
+      "createTitle": "Nueva promoción",
+      "editTitle": "Editar promoción",
+      "savedToast": "Promoción guardada",
+      "pctRange": "Indica un porcentaje mayor a 0 y hasta 100",
+      "codeOwnerRequired": "Elige qué códigos acepta la promoción",
+      "rewardIncomplete": "Indica el porcentaje y los meses de la recompensa",
+      "cyclesHelp": "Vacío = mientras dure la campaña",
+      "maxRedemptionsHelp": "Vacío = sin tope",
+      "plansHelp": "Vacío = todos los planes",
+      "codeOwnersHelp": "Qué códigos se aceptan en el campo \"Código\" al aplicar la promoción. El beneficio es para quien usa el código.",
+      "rewardHelp": "Opcional: beneficio aparte para el afiliado que recomendó, como descuento en su propia mensualidad, cuando el recomendado hace su primer pago."
     }
   }
 }
