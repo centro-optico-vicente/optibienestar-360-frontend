@@ -169,6 +169,9 @@ function relationshipLabel(r?: string | null): string {
         </ul>
       </div>
 
+      <!-- My active promotion (self-gated by MEMBER_VIEW_OWN; hidden when none) -->
+      <MyPromotionCard />
+
       <!-- My payments (self-gated by PAYMENT_VIEW_OWN) -->
       <MyPaymentsCard />
 

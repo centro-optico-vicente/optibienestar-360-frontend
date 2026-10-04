@@ -2,6 +2,7 @@
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { MembershipCreateRequest, MembershipDto } from '~/types/memberships'
+import type { MembershipPromotionDto, PromotionDto } from '~/types/promotions'
 import { toSelectItems } from '~/types/options'
 import {
   isMembershipCancelable,
@@ -21,6 +22,7 @@ const { t } = useI18n()
 const { formatCurrency, formatDate } = useFormatters()
 const memberships = useMemberships()
 const plans = usePlans()
+const promotionsApi = usePromotions()
 const { can } = usePermissions()
 const toast = useToast()
 
@@ -30,6 +32,7 @@ const canEnroll = computed(() => can('MEMBERSHIP_CREATE'))
 const canCancel = computed(() => can('MEMBERSHIP_CANCEL'))
 const canReactivate = computed(() => can('MEMBERSHIP_REACTIVATE'))
 const canExceptionCreate = computed(() => can('CAMPAIGN_EXCEPTION_CREATE'))
+const canAssignPromotion = computed(() => can('PROMOTION_ASSIGN'))
 
 // ---- Campaign exception (Part G): row action to include/exclude a membership ----
 const exceptionOpen = ref(false)
@@ -48,6 +51,7 @@ async function load() {
   loading.value = true
   try {
     data.value = await memberships.listForMember(props.memberUuid)
+    await loadPromotions()
   }
   catch {
     // useApi already shows the error toast
@@ -56,6 +60,104 @@ async function load() {
   finally {
     loading.value = false
   }
+}
+
+// ---- Promotion of each live membership (hub ADR 0018) ----
+const promotionByMembership = ref<Record<string, MembershipPromotionDto>>({})
+
+async function loadPromotions() {
+  const live = data.value.filter(m => m.status !== 'CANCELED')
+  const entries = await Promise.all(live.map(async (m) => {
+    try {
+      const res = await promotionsApi.currentForMembership(m.uuid)
+      return res.exists && res.promotion ? [m.uuid, res.promotion] as const : null
+    }
+    catch {
+      return null
+    }
+  }))
+  promotionByMembership.value = Object.fromEntries(entries.filter((e): e is readonly [string, MembershipPromotionDto] => e !== null))
+}
+
+function promotionSummary(p: MembershipPromotionDto): string {
+  const pct = p.discountPct_Display ?? `${Number(p.discountPct)}%`
+  const left = p.cyclesRemaining != null ? ` · ${t('promotions.membership.cyclesLeft', { n: p.cyclesRemaining })}` : ''
+  return `${p.promotion_Display ?? ''} · ${pct}${left}`
+}
+
+// Apply a promotion to an existing membership, or cancel the current one.
+const assignOpen = ref(false)
+const assignTarget = ref<MembershipDto | null>(null)
+const assignOptions = ref<PromotionDto[]>([])
+const assignPromotionUuid = ref<string | undefined>(undefined)
+const assignCode = ref('')
+const assignSubmitting = ref(false)
+const assignSelected = computed(() => assignOptions.value.find(p => p.uuid === assignPromotionUuid.value) ?? null)
+
+async function openAssign(m: MembershipDto) {
+  assignTarget.value = m
+  assignPromotionUuid.value = undefined
+  assignCode.value = ''
+  assignOptions.value = []
+  assignOpen.value = true
+  try {
+    assignOptions.value = await promotionsApi.optionsForMembership(m.uuid)
+  }
+  catch {
+    assignOptions.value = []
+  }
+}
+
+async function confirmAssign() {
+  if (!assignTarget.value || !assignPromotionUuid.value) return
+  assignSubmitting.value = true
+  try {
+    await promotionsApi.assign(assignTarget.value.uuid, {
+      promotionUuid: assignPromotionUuid.value,
+      code: assignCode.value.trim() || undefined,
+    })
+    toast.add({ title: t('promotions.membership.assignedToast'), color: 'success', icon: 'i-lucide-badge-percent' })
+    assignOpen.value = false
+    await load()
+  }
+  catch {
+    // useApi already notified (not eligible, code invalid, cap reached…)
+  }
+  finally {
+    assignSubmitting.value = false
+  }
+}
+
+const cancelPromoOpen = ref(false)
+const cancelPromoTarget = ref<MembershipDto | null>(null)
+const cancelPromoReason = ref('')
+const cancelPromoSubmitting = ref(false)
+
+function openCancelPromotion(m: MembershipDto) {
+  cancelPromoTarget.value = m
+  cancelPromoReason.value = ''
+  cancelPromoOpen.value = true
+}
+
+async function confirmCancelPromotion() {
+  if (!cancelPromoTarget.value || !cancelPromoReason.value.trim()) return
+  cancelPromoSubmitting.value = true
+  try {
+    await promotionsApi.cancel(cancelPromoTarget.value.uuid, cancelPromoReason.value.trim())
+    toast.add({ title: t('promotions.membership.canceledToast'), color: 'warning', icon: 'i-lucide-circle-x' })
+    cancelPromoOpen.value = false
+    await load()
+  }
+  catch {
+    // useApi already notified
+  }
+  finally {
+    cancelPromoSubmitting.value = false
+  }
+}
+
+function acceptsCode(p: PromotionDto | null): boolean {
+  return !!p && (p.requiresCode || p.acceptsPromoterCode || p.acceptsMemberCode || p.acceptsAllyCode)
 }
 
 watch(() => props.memberUuid, load)
@@ -98,24 +200,50 @@ interface EnrollState {
   planUuid: string | undefined
   enrolledAt: string
   expiresAt: string
+  promotionUuid: string | undefined
+  promotionCode: string
 }
 
 const enrollState = reactive<EnrollState>({
   planUuid: undefined,
   enrolledAt: '',
   expiresAt: '',
+  promotionUuid: undefined,
+  promotionCode: '',
+})
+
+// Promotions offered for the chosen plan (ACQUISITION, campaign running, cap available).
+const enrollPromotions = ref<PromotionDto[]>([])
+const enrollPromotion = computed(() => enrollPromotions.value.find(p => p.uuid === enrollState.promotionUuid) ?? null)
+watch(() => enrollState.planUuid, async (planUuid) => {
+  enrollState.promotionUuid = undefined
+  enrollState.promotionCode = ''
+  enrollPromotions.value = []
+  if (!planUuid) return
+  try {
+    enrollPromotions.value = await promotionsApi.offeredForEnrollment(planUuid)
+  }
+  catch {
+    enrollPromotions.value = []
+  }
 })
 
 const enrollSchema = computed(() => z.object({
   planUuid: z.string({ message: t('validation.required') }).min(1, t('memberships.enrollForm.selectPlan')),
   enrolledAt: z.string().optional(),
   expiresAt: z.string().optional(),
+  promotionUuid: z.string().optional(),
+  promotionCode: enrollPromotion.value?.requiresCode
+    ? z.string().trim().min(1, t('promotions.membership.codeRequired'))
+    : z.string().optional(),
 }))
 
 async function openEnroll() {
   enrollState.planUuid = undefined
   enrollState.enrolledAt = ''
   enrollState.expiresAt = ''
+  enrollState.promotionUuid = undefined
+  enrollState.promotionCode = ''
   enrollOpen.value = true
   await loadPlans()
 }
@@ -127,6 +255,8 @@ async function onEnrollSubmit(_event: FormSubmitEvent<Record<string, unknown>>) 
       planUuid: enrollState.planUuid!,
       enrolledAt: enrollState.enrolledAt || undefined,
       expiresAt: enrollState.expiresAt || undefined,
+      promotionUuid: enrollState.promotionUuid || undefined,
+      promotionCode: enrollState.promotionCode.trim() || undefined,
     }
     await memberships.enroll(props.memberUuid, body)
     toast.add({ title: t('memberships.enrolledToast'), color: 'success', icon: 'i-lucide-check-circle' })
@@ -241,6 +371,17 @@ async function confirmLifecycle() {
                 />
               </div>
               <div class="text-xs text-prohealth-500 font-mono">{{ m.planCode }}</div>
+              <UBadge
+                v-if="promotionByMembership[m.uuid]"
+                color="primary"
+                variant="subtle"
+                size="sm"
+                icon="i-lucide-badge-percent"
+                class="mt-1"
+                :title="promotionByMembership[m.uuid]!.codeUsed ? t('promotions.membership.viaCode', { code: promotionByMembership[m.uuid]!.codeUsed, owner: promotionByMembership[m.uuid]!.codeOwner_Display ?? '' }) : undefined"
+              >
+                {{ promotionSummary(promotionByMembership[m.uuid]!) }}
+              </UBadge>
             </td>
             <td class="px-6 py-3 text-prohealth-700">{{ money(m.monthlyFee) }}</td>
             <td class="px-6 py-3">
@@ -278,6 +419,14 @@ async function confirmLifecycle() {
                     @click="openLifecycle(m, 'reactivate')"
                   />
                 </UTooltip>
+                <template v-if="canAssignPromotion && m.status !== 'CANCELED'">
+                  <UTooltip v-if="promotionByMembership[m.uuid]" :text="t('promotions.membership.cancelTooltip')">
+                    <UButton color="warning" variant="ghost" icon="i-lucide-badge-x" size="sm" @click="openCancelPromotion(m)" />
+                  </UTooltip>
+                  <UTooltip v-else :text="t('promotions.membership.assignTooltip')">
+                    <UButton color="primary" variant="ghost" icon="i-lucide-badge-percent" size="sm" @click="openAssign(m)" />
+                  </UTooltip>
+                </template>
                 <UTooltip v-if="canExceptionCreate" :text="t('campaigns.exceptions.addRowTooltip')">
                   <UButton color="neutral" variant="ghost" icon="i-lucide-rocket" size="sm" @click="openExceptionModal(m)" />
                 </UTooltip>
@@ -322,6 +471,32 @@ async function confirmLifecycle() {
               <UInput v-model="enrollState.expiresAt" type="date" class="w-full" />
             </UFormField>
           </div>
+
+          <UFormField
+            v-if="enrollPromotions.length"
+            :label="t('promotions.membership.promotion')"
+            name="promotionUuid"
+            :help="enrollPromotion?.description || t('promotions.membership.promotionHelp')"
+          >
+            <USelectMenu
+              clear
+              v-model="enrollState.promotionUuid"
+              :items="enrollPromotions"
+              label-key="name"
+              value-key="uuid"
+              :placeholder="t('promotions.membership.noPromotion')"
+              class="w-full"
+            />
+          </UFormField>
+          <UFormField
+            v-if="acceptsCode(enrollPromotion)"
+            :label="t('promotions.membership.code')"
+            name="promotionCode"
+            :required="enrollPromotion?.requiresCode"
+            :help="t('promotions.membership.codeHelp')"
+          >
+            <UInput v-model="enrollState.promotionCode" icon="i-lucide-ticket" class="w-full font-mono uppercase" />
+          </UFormField>
         </UForm>
       </template>
 
@@ -391,6 +566,64 @@ async function confirmLifecycle() {
               @click="confirmLifecycle"
             >
               {{ isCancel ? t('memberships.lifecycle.cancelButton') : t('memberships.lifecycle.reactivateButton') }}
+            </UButton>
+          </div>
+        </div>
+      </template>
+    </UModal>
+
+    <!-- Apply promotion to an existing membership -->
+    <UModal v-model:open="assignOpen" :title="t('promotions.membership.assignTitle')">
+      <template #body>
+        <div class="space-y-4">
+          <p v-if="!assignOptions.length" class="text-sm text-prohealth-500">{{ t('promotions.membership.noOptions') }}</p>
+          <template v-else>
+            <UFormField :label="t('promotions.membership.promotion')" required :help="assignSelected?.description || undefined">
+              <USelectMenu
+                v-model="assignPromotionUuid"
+                :items="assignOptions"
+                label-key="name"
+                value-key="uuid"
+                class="w-full"
+              />
+            </UFormField>
+            <UFormField
+              v-if="acceptsCode(assignSelected)"
+              :label="t('promotions.membership.code')"
+              :required="assignSelected?.requiresCode"
+              :help="t('promotions.membership.codeHelp')"
+            >
+              <UInput v-model="assignCode" icon="i-lucide-ticket" class="w-full font-mono uppercase" />
+            </UFormField>
+          </template>
+          <div class="flex items-center justify-end gap-3 pt-1">
+            <UButton color="neutral" variant="ghost" :disabled="assignSubmitting" @click="assignOpen = false">{{ t('common.cancel') }}</UButton>
+            <UButton
+              color="primary"
+              icon="i-lucide-badge-percent"
+              :loading="assignSubmitting"
+              :disabled="!assignPromotionUuid || (assignSelected?.requiresCode && !assignCode.trim())"
+              @click="confirmAssign"
+            >
+              {{ t('promotions.membership.assign') }}
+            </UButton>
+          </div>
+        </div>
+      </template>
+    </UModal>
+
+    <!-- Cancel the current promotion -->
+    <UModal v-model:open="cancelPromoOpen" :title="t('promotions.membership.cancelTitle')">
+      <template #body>
+        <div class="space-y-4">
+          <p class="text-sm text-prohealth-700">{{ t('promotions.membership.cancelNotice') }}</p>
+          <UFormField :label="t('promotions.membership.reason')" required>
+            <UTextarea v-model="cancelPromoReason" :rows="2" :maxlength="500" class="w-full" />
+          </UFormField>
+          <div class="flex items-center justify-end gap-3 pt-1">
+            <UButton color="neutral" variant="ghost" :disabled="cancelPromoSubmitting" @click="cancelPromoOpen = false">{{ t('common.cancel') }}</UButton>
+            <UButton color="warning" icon="i-lucide-badge-x" :loading="cancelPromoSubmitting" :disabled="!cancelPromoReason.trim()" @click="confirmCancelPromotion">
+              {{ t('promotions.membership.cancelButton') }}
             </UButton>
           </div>
         </div>

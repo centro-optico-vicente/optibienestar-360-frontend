@@ -114,6 +114,10 @@ export interface MembershipCreateRequest {
   enrolledAt?: string
   /** ISO date (yyyy-MM-dd). Optional hard expiry. */
   expiresAt?: string
+  /** Promotion applied in the same transaction (hub ADR 0018); invalid → the enrollment fails. */
+  promotionUuid?: string
+  /** Promoter / referring member / ally code, when the promotion takes one. */
+  promotionCode?: string
 }
 
 /** Optional body of the cancel/reactivate lifecycle transitions. */

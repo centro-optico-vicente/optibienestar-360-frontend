@@ -4139,6 +4139,34 @@
       "plansHelp": "Vacío = todos los planes",
       "codeOwnersHelp": "Qué códigos se aceptan en el campo \"Código\" al aplicar la promoción. El beneficio es para quien usa el código.",
       "rewardHelp": "Opcional: beneficio aparte para el afiliado que recomendó, como descuento en su propia mensualidad, cuando el recomendado hace su primer pago."
+    },
+    "membership": {
+      "promotion": "Promoción",
+      "promotionHelp": "Opcional. Solo aparecen las promociones vigentes para este plan.",
+      "noPromotion": "Sin promoción",
+      "code": "Código",
+      "codeHelp": "Código de un promotor, de un afiliado que recomienda o de un aliado.",
+      "codeRequired": "Esta promoción exige un código",
+      "cyclesLeft": "quedan {n}",
+      "viaCode": "Con el código {code} ({owner})",
+      "assignTooltip": "Aplicar promoción",
+      "assignTitle": "Aplicar promoción",
+      "assign": "Aplicar",
+      "noOptions": "No hay promociones vigentes que apliquen a esta membresía.",
+      "assignedToast": "Promoción aplicada",
+      "cancelTooltip": "Cancelar promoción",
+      "cancelTitle": "Cancelar promoción",
+      "cancelNotice": "La membresía dejará de recibir el descuento desde el próximo cargo.",
+      "reason": "Motivo",
+      "cancelButton": "Cancelar promoción",
+      "canceledToast": "Promoción cancelada"
+    },
+    "portal": {
+      "title": "Tu promoción: {name}",
+      "discount": "{pct} de descuento en {what}.",
+      "cyclesLeft": "Te quedan {n} mensualidad(es) con descuento.",
+      "keepOnTime": "Paga a tiempo: si un pago se atrasa, la promoción se pierde.",
+      "paymentSaving": "Ahorraste {amount} · {reason}"
     }
   }
 }

@@ -4139,6 +4139,34 @@
       "plansHelp": "Empty = every plan",
       "codeOwnersHelp": "Which codes are accepted in the \"Code\" field when applying the promotion. The benefit goes to whoever uses the code.",
       "rewardHelp": "Optional: a separate benefit for the referring member, as a discount on their own monthly fee, when the referred member makes their first payment."
+    },
+    "membership": {
+      "promotion": "Promotion",
+      "promotionHelp": "Optional. Only promotions running for this plan are listed.",
+      "noPromotion": "No promotion",
+      "code": "Code",
+      "codeHelp": "Code from a promoter, a referring member or an ally.",
+      "codeRequired": "This promotion requires a code",
+      "cyclesLeft": "{n} left",
+      "viaCode": "With code {code} ({owner})",
+      "assignTooltip": "Apply promotion",
+      "assignTitle": "Apply promotion",
+      "assign": "Apply",
+      "noOptions": "There are no running promotions for this membership.",
+      "assignedToast": "Promotion applied",
+      "cancelTooltip": "Cancel promotion",
+      "cancelTitle": "Cancel promotion",
+      "cancelNotice": "The membership will stop getting the discount from the next charge.",
+      "reason": "Reason",
+      "cancelButton": "Cancel promotion",
+      "canceledToast": "Promotion canceled"
+    },
+    "portal": {
+      "title": "Your promotion: {name}",
+      "discount": "{pct} off your {what}.",
+      "cyclesLeft": "{n} discounted monthly fee(s) left.",
+      "keepOnTime": "Pay on time: a late payment cancels the promotion.",
+      "paymentSaving": "You saved {amount} · {reason}"
     }
   }
 }
