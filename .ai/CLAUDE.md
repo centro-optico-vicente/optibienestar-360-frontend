@@ -4,12 +4,12 @@
 
 ## Qué es este repo
 
-Frontend multi-rol (Vue 3 + Nuxt 3) que sirve a admin, operador, aliados, afiliados y promotores del programa OptiBienestar 360.
+Frontend multi-rol (Vue 3 + Nuxt 4) que sirve a admin, operador, aliados, afiliados y promotores del programa OptiBienestar 360.
 
 ## Stack confirmado
 
-- Vue 3 + Nuxt 3 (decidir SPA vs universal en ADR 0003)
-- Nuxt UI (componentes accesibles con Tailwind)
+- Vue 3 + Nuxt 4 — real: SPA (`ssr: false`, ver [ADR 0003 local](decisions/0003-spa-mode.md))
+- Nuxt UI v3 (componentes accesibles con Tailwind v4)
 - Pinia state
 - VueUse, i18n, image, icon
 - vee-validate + zod (forms)

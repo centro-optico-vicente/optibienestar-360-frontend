@@ -2,7 +2,7 @@
 
 **Estado:** Aceptado
 **Fecha:** 2026-06-01
-**Equivalente backend:** [ADR 0004 — PR & branch conventions](https://github.com/fenix-core/optibienestar-360-backend/blob/main/.ai/decisions/0004-pr-and-branch-conventions.md) (misma convención, ejemplos del stack Nuxt)
+**Fuente canónica:** [hub ADR 0011 — PR & branch conventions](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0011-pr-and-branch-conventions.md). Espejo equivalente en backend: [ADR 0004](https://github.com/fenix-core/optibienestar-360-backend/blob/main/.ai/decisions/0004-pr-and-branch-conventions.md) (misma convención, ejemplos del stack Nuxt acá)
 
 ## Contexto
 
