@@ -4,11 +4,11 @@
 
 ```bash
 # Para una página simple:
-touch pages/admin/foo/index.vue
+touch pages/dashboard/foo/index.vue
 
 # Para detalle con [id]:
-mkdir -p pages/admin/foo
-touch pages/admin/foo/[id].vue
+mkdir -p pages/dashboard/foo
+touch pages/dashboard/foo/[id].vue
 ```
 
 Naming: `kebab-case.vue`. Ver [02-routing-layouts.md](../specs/02-routing-layouts.md).
@@ -26,7 +26,6 @@ definePageMeta({
 useHead({ title: 'Foos — OptiBienestar 360' });
 
 const route = useRoute();
-const api = useApi();
 
 const data = ref(null);
 const loading = ref(true);
@@ -34,7 +33,7 @@ const loading = ref(true);
 async function load() {
   loading.value = true;
   try {
-    data.value = await api.apiFetch('/v1/admin/foos');
+    data.value = await useApi('/v1/admin/foos') // corregido 2026-10-09: useApi() se llama directo, no api.apiFetch();
   } finally {
     loading.value = false;
   }
@@ -49,7 +48,7 @@ onMounted(load);
 
     <USkeleton v-if="loading" class="h-64" />
 
-    <EmptyState v-else-if="!data?.length" title="Sin foos" cta-to="/admin/foos/new" cta-label="Crear primer foo" />
+    <EmptyState v-else-if="!data?.length" title="Sin foos" cta-to="/dashboard/foos/new" cta-label="Crear primer foo" />
 
     <UCard v-else>
       <!-- contenido -->
@@ -63,7 +62,7 @@ onMounted(load);
 Editar `components/Sidebar.vue` agregando al array `items`:
 
 ```typescript
-{ label: 'Foos', to: '/admin/foos', icon: 'i-heroicons-cube', permission: 'FOO_VIEW_ALL' },
+{ label: 'Foos', to: '/dashboard/foos', icon: 'i-heroicons-cube', permission: 'FOO_VIEW_ALL' },
 ```
 
 ## Paso 4 — Tipos TypeScript
@@ -78,16 +77,15 @@ export interface FooDetailDTO { /* ... */ }
 
 Si la página hace múltiples requests al mismo dominio, crear composable:
 
-`composables/useFoos.ts`:
+`composables/useFoos.ts` (corregido 2026-10-09 — `useApi` se llama directo, no se destructura `apiFetch` de él; ver `useCatalog.ts` real):
 ```typescript
 export const useFoos = () => {
-  const { apiFetch } = useApi();
   return {
-    list: (query: any) => apiFetch('/v1/admin/foos', { query }),
-    findById: (id: string) => apiFetch(`/v1/admin/foos/${id}`),
-    create: (data: any) => apiFetch('/v1/admin/foos', { method: 'POST', body: data }),
-    update: (id: string, data: any) => apiFetch(`/v1/admin/foos/${id}`, { method: 'PUT', body: data }),
-    softDelete: (id: string) => apiFetch(`/v1/admin/foos/${id}`, { method: 'DELETE' }),
+    list: (query?: Record<string, unknown>) => useApi<Page<FooDto>>('/v1/admin/foos', { query }),
+    findById: (id: string) => useApi<FooDto>(`/v1/admin/foos/${id}`),
+    create: (data: unknown) => useApi('/v1/admin/foos', { method: 'POST', body: data }),
+    update: (id: string, data: unknown) => useApi(`/v1/admin/foos/${id}`, { method: 'PUT', body: data }),
+    softDelete: (id: string) => useApi(`/v1/admin/foos/${id}`, { method: 'DELETE' }),
   };
 };
 ```
@@ -113,13 +111,13 @@ Usar en componente: `{{ $t('foos.title') }}`.
 ```typescript
 test('lists foos for admin', async ({ page }) => {
   await loginAs(page, 'admin@x.com');
-  await page.goto('/admin/foos');
+  await page.goto('/dashboard/foos');
   await expect(page.getByText('Foos')).toBeVisible();
 });
 
 test('denies access without permission', async ({ page }) => {
   await loginAs(page, 'aliado@x.com');
-  await page.goto('/admin/foos');
+  await page.goto('/dashboard/foos');
   await expect(page.getByText('Sin permiso')).toBeVisible();
 });
 ```

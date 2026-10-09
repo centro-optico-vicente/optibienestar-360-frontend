@@ -1,6 +1,8 @@
 # 03 — State management (Pinia)
 
 > Implementa [ADR 0002 local](../decisions/0002-pinia-state.md).
+>
+> **Corrección 2026-10-09:** el `useAuthStore` real (`app/stores/auth.ts`) no tiene `roles: []` + `primaryRole` (lista de prioridad); tiene **`activeRole`** (singular, derivado del claim `role_name` del JWT activo — un usuario puede tener varios roles asignados pero solo uno activo por sesión). El login real destructura `accessToken`/`refreshToken` en **camelCase** (no `access_token`/`refresh_token` — ver [ADR 0019 del hub](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0019-api-json-casing-contract.md)). El accessToken/user viven en `sessionStorage` y el refreshToken en `localStorage` (no cookies httpOnly) — decisión ya tomada en el código (ver su comentario "Política de almacenamiento"), pero sin ADR formal que la congele; ver `current-state.md` hallazgo H-D-2. El bloque de abajo queda como referencia histórica del diseño original, no como la implementación real.
 
 ## Stores
 
@@ -19,7 +21,7 @@ export const useAuthStore = defineStore('auth', {
   getters: {
     isAuthenticated: (state) => !!state.accessToken && !!state.user,
     primaryRole: (state) => {
-      const priority = ['ADMIN', 'OPERADOR', 'ALIADO_USER', 'AFILIADO_USER', 'PROMOTOR'];
+      const priority = ['SYSTEM', 'ADMINISTRADOR', 'OPERADOR', 'OPERADOR_MEDICO', 'ALIADO', 'AFILIADO', 'PROMOTOR'];
       return priority.find(r => state.roles.includes(r));
     },
     fullName: (state) => state.user?.fullName ?? '',

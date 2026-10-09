@@ -11,7 +11,7 @@
 
 | Decisión | Ejemplo |
 |---|---|
-| ¿Tendrá su propio prefijo? | `/operador-medico/*` o reusar `/admin/*` |
+| ¿Tendrá su propio prefijo? | `/operador-medico/*` o reusar `/dashboard/*` (corregido 2026-10-09, antes decía `/admin/*`) |
 | ¿Layout dedicado? | Reusar `dashboard.vue` (default) o crear nuevo |
 | ¿Páginas específicas? | Las que sólo ese rol puede ver |
 
@@ -58,15 +58,17 @@ const items = computed(() => {
 
 ## Paso 4 — Actualizar redirección inicial
 
+> **Nota 2026-10-09:** el `pages/index.vue` y `useAuthStore` reales ya no usan un mapa `role → path` ni `primaryRole`/`roles[]` — ver [`03-state-management.md`](../specs/03-state-management.md) para la forma real (`activeRole` singular + redirect simple a `/dashboard`). El patrón de abajo sigue siendo válido *si* el rol nuevo necesita un home distinto a `/dashboard` (como `ALIADO`/`AFILIADO`/`PROMOTOR`, que si tienen prefijo propio) — adaptarlo a la implementación real, no copiarlo literal.
+
 Si el rol nuevo tiene su propio "home page", actualizar `pages/index.vue`:
 
 ```typescript
 const path = {
-  ADMIN: '/admin',
-  OPERADOR: '/admin',
-  OPERADOR_MEDICO: '/admin',  // o '/operador-medico' si tiene flow propio
-  ALIADO_USER: '/aliado',
-  AFILIADO_USER: '/afiliado',
+  ADMINISTRADOR: '/dashboard',
+  OPERADOR: '/dashboard',
+  OPERADOR_MEDICO: '/dashboard',  // o '/operador-medico' si tiene flow propio
+  ALIADO: '/aliado',
+  AFILIADO: '/afiliado',
   PROMOTOR: '/promotor',
 }[role] || '/login';
 ```
@@ -75,7 +77,7 @@ Y actualizar el computed `primaryRole` en `useAuthStore`:
 
 ```typescript
 primaryRole: (state) => {
-  const priority = ['ADMIN', 'OPERADOR_MEDICO', 'OPERADOR', 'ALIADO_USER', 'AFILIADO_USER', 'PROMOTOR'];
+  const priority = ['SYSTEM', 'ADMINISTRADOR', 'OPERADOR_MEDICO', 'OPERADOR', 'ALIADO', 'AFILIADO', 'PROMOTOR'];
   return priority.find(r => state.roles.includes(r));
 },
 ```
@@ -111,13 +113,13 @@ Si el rol introduce strings nuevos:
 ```typescript
 test('OPERADOR_MEDICO can access medical records', async ({ page }) => {
   await loginAs(page, 'operador.medico@x.com');
-  await page.goto('/admin/members/some-id/medical-record');
+  await page.goto('/dashboard/members/some-id/medical-record');
   await expect(page.getByText('Antecedentes médicos')).toBeVisible();
 });
 
 test('OPERADOR cannot access medical records', async ({ page }) => {
   await loginAs(page, 'operador@x.com');
-  await page.goto('/admin/members/some-id/medical-record');
+  await page.goto('/dashboard/members/some-id/medical-record');
   await expect(page.getByText('Sin permiso')).toBeVisible();
 });
 ```

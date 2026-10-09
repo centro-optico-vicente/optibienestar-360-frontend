@@ -47,9 +47,11 @@ optibienestar-360-frontend/
 │   ├── dashboard.vue               # Dashboard multi-rol con sidebar adaptable
 │   └── error.vue                   # Páginas error
 │
-├── middleware/
+├── middleware/                     # corregido 2026-10-09 — nombres reales, no `permission.ts`
 │   ├── auth.global.ts              # Redirige a /login si no auth + refresh silencioso
-│   └── permission.ts               # Verifica permission específico
+│   ├── can.ts                      # Verifica permission específico (antes documentado como permission.ts)
+│   ├── role.ts                     # Bloquea página completa por rol (`roles: UserRole[]` en definePageMeta)
+│   └── catalog-access.ts
 │
 ├── pages/                          # File-based routing
 │   ├── index.vue                   # Redirige a dashboard según rol
@@ -57,7 +59,7 @@ optibienestar-360-frontend/
 │   ├── recover-password.vue
 │   ├── reset-password.vue
 │   │
-│   ├── admin/                      # Rol ADMIN + OPERADOR
+│   ├── dashboard/                  # Rol SYSTEM/ADMINISTRADOR/OPERADOR/OPERADOR_MEDICO — corregido 2026-10-09, NO es `admin/` (ese árbol nunca existió)
 │   │   ├── index.vue               # Dashboard con KPIs
 │   │   ├── users/
 │   │   │   ├── index.vue
@@ -70,14 +72,17 @@ optibienestar-360-frontend/
 │   │   ├── promoters/...
 │   │   ├── commissions/...
 │   │   └── reports/...
+│   │   (árbol real 2026-10-09 bastante más amplio — también incluye campaigns/, collections/,
+│   │    commission-rules/, entity-config/, roles/, scheduled-jobs/, security/, system-config/,
+│   │    settings/, modulo/; no re-verificado subcarpeta por subcarpeta, usar `find app/pages/dashboard` para el inventario exacto)
 │   │
-│   ├── aliado/                     # Rol ALIADO_USER
+│   ├── aliado/                     # Rol ALIADO (antes documentado como ALIADO_USER)
 │   │   ├── index.vue
 │   │   ├── validator.vue           # CRÍTICO — validador en tiempo real
 │   │   ├── history.vue
 │   │   └── dashboard.vue
 │   │
-│   ├── afiliado/                   # Rol AFILIADO_USER
+│   ├── afiliado/                   # Rol AFILIADO (antes documentado como AFILIADO_USER)
 │   │   ├── index.vue               # Carnet digital + dashboard
 │   │   ├── family.vue
 │   │   ├── payments.vue
@@ -101,15 +106,12 @@ optibienestar-360-frontend/
 ├── server/                          # Si en algún momento se usa server-side
 │   └── (vacío al inicio)
 │
-├── stores/                          # Pinia (auto-imports)
-│   ├── auth.ts
-│   ├── catalogs.ts                  # Catálogos cacheados
-│   ├── notifications.ts
-│   └── ui.ts                        # Sidebar collapse, theme, etc.
+├── stores/                          # Pinia (auto-imports) — corregido 2026-10-09: en la práctica solo `auth.ts` usa Pinia
+│   └── auth.ts
+│   (el resto del estado — catálogos, comisiones, campañas, etc. — vive en 20+ composables
+│    `use*.ts` en `composables/`, no en stores Pinia adicionales; `catalogs.ts`/`notifications.ts`/`ui.ts` nunca se crearon)
 │
-├── tests/
-│   ├── e2e/                         # Playwright
-│   └── unit/                        # Vitest (futuro)
+├── tests/                           # corregido 2026-10-09: este directorio NO existe hoy — sin Playwright ni Vitest configurados
 │
 ├── types/
 │   ├── api.ts                       # Tipos DTOs del backend

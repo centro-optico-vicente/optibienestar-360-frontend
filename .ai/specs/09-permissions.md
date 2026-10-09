@@ -1,5 +1,7 @@
 # 09 — Permissions (RBAC en UI)
 
+> **Corrección 2026-10-09:** `usePermissions()` sí existe (`app/composables/usePermissions.ts`), pero su API real es `can(permission)` / `canAny(...permissions)` / `canAll(...permissions)` / `hasRole(role)` / `hasAnyRole(...roles)` (args variádicos, compara contra `auth.activeRole`) — **no** `has()`/`hasAny(array)` como documenta el bloque de abajo. Los roles reales son `SYSTEM`/`ADMINISTRADOR`/`OPERADOR`/`OPERADOR_MEDICO`/`ALIADO`/`AFILIADO`/`PROMOTOR` (corregidos abajo donde se nombran explícitamente), no `ADMINISTRADOR`/`ALIADO`/`AFILIADO`. El bloque de código de abajo queda como referencia histórica del diseño original, no como la firma real — ver el archivo fuente para la verdad.
+
 ## Composable `usePermissions()`
 
 ```typescript
@@ -127,9 +129,9 @@ const items = computed(() => {
     { label: 'Historial', to: '/aliado/history', icon: 'i-heroicons-clock', permission: 'ALLY_VALIDATE_MEMBER' },
 
     // Afiliado
-    { label: 'Mi carnet', to: '/afiliado', icon: 'i-heroicons-credit-card', role: 'AFILIADO_USER' },
-    { label: 'Mi familia', to: '/afiliado/family', icon: 'i-heroicons-users', role: 'AFILIADO_USER' },
-    { label: 'Mis pagos', to: '/afiliado/payments', icon: 'i-heroicons-banknotes', role: 'AFILIADO_USER' },
+    { label: 'Mi carnet', to: '/afiliado', icon: 'i-heroicons-credit-card', role: 'AFILIADO' },
+    { label: 'Mi familia', to: '/afiliado/family', icon: 'i-heroicons-users', role: 'AFILIADO' },
+    { label: 'Mis pagos', to: '/afiliado/payments', icon: 'i-heroicons-banknotes', role: 'AFILIADO' },
 
     // Promotor
     { label: 'Dashboard', to: '/promotor', icon: 'i-heroicons-home', role: 'PROMOTOR' },
@@ -171,11 +173,11 @@ Ver detalle completo en [backend `05-roles-permissions.md`](https://github.com/f
 
 | Rol | Permisos clave |
 |---|---|
-| ADMIN | Todos |
+| ADMINISTRADOR | Todos |
 | OPERADOR | Casi todos excepto USER_CHANGE_ROLE, MEDICAL_RECORD_* |
 | OPERADOR_MEDICO | OPERADOR + MEDICAL_RECORD_* |
-| ALIADO_USER | ALLY_VIEW_OWN + ALLY_VALIDATE_MEMBER + ALLY_REGISTER_USAGE |
-| AFILIADO_USER | MEMBER_VIEW_OWN + MEMBERSHIP_VIEW_OWN + PAYMENT_VIEW_OWN |
+| ALIADO | ALLY_VIEW_OWN + ALLY_VALIDATE_MEMBER + ALLY_REGISTER_USAGE |
+| AFILIADO | MEMBER_VIEW_OWN + MEMBERSHIP_VIEW_OWN + PAYMENT_VIEW_OWN |
 | PROMOTOR | MEMBER_CREATE + COMMISSION_VIEW_OWN + REFERRAL_CODE_VIEW_OWN |
 
 ## Cambios de permisos en vivo
