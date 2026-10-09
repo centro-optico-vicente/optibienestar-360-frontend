@@ -5,7 +5,7 @@
 > **Dashboard de progreso (conteos, %):** [`checklist.md`](checklist.md)
 > **Fuente de verdad de checkboxes:** archivos `checklists/vertical-N-*.md`
 >
-> Numeración **alineada con el backend** ([backend `checklist-vertical.md`](https://github.com/fenix-core/optibienestar-360-backend/blob/main/.ai/checklist-vertical.md)): vertical-3 = Aliados en ambos repos, etc. Cada vista consume los endpoints del vertical homónimo del backend.
+> Numeración **alineada con el backend** ([backend `checklist.md`](https://github.com/fenix-core/optibienestar-360-backend/blob/main/.ai/checklist.md) + [`checklists/`](https://github.com/fenix-core/optibienestar-360-backend/tree/main/.ai/checklists) — el backend no tiene un `checklist-vertical.md` propio, ese archivo solo existe en este repo): vertical-3 = Aliados en ambos repos, etc. Cada vista consume los endpoints del vertical homónimo del backend.
 
 ## Dependencias
 
