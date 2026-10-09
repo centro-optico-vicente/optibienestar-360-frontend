@@ -25,12 +25,12 @@ Todo código TypeScript/Vue en este repositorio sigue las convenciones del ADR 0
 | Composables | `useXxx` | `useApi()`, `useAuth()`, `usePermissions()` |
 | Stores (Pinia) | `useXxxStore` | `useAuthStore()`, `useCatalogStore()` |
 | Componentes Vue | `PascalCase` (multi-word) | `DigitalCard.vue`, `PaymentForm.vue` |
-| Pages | `kebab-case.vue` | `pages/admin/members.vue`, `pages/afiliado/usage-history.vue` |
+| Pages | `kebab-case.vue` | `pages/dashboard/members.vue`, `pages/afiliado/usage-history.vue` |
 | Plugins | `kebab-case[.client/.server].ts` | `00.runtime-config.client.ts`, `can.ts` |
 | Constantes de módulo | `UPPER_SNAKE_CASE` | `DEFAULT_LOCALE`, `MAX_RETRIES` |
 | Clases CSS / Tailwind | `kebab-case` | `card-container`, `text-primary` |
 | Claves i18n | `snake_case` o `dot.notation` | `auth.invalid_credentials`, `members.title` |
-| JSON keys (hacia la API) | `snake_case` | `{ "member_id": "uuid", "next_due_date": "..." }` |
+| JSON keys (hacia la API) | ~~`snake_case`~~ → **`camelCase`** (ver [ADR 0019 del hub](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0019-api-json-casing-contract.md)) | `{ "memberId": "uuid", "nextDueDate": "..." }` |
 
 ### Naming descriptivo
 

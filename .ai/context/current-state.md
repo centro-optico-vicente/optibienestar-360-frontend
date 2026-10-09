@@ -1,6 +1,10 @@
 # Estado actual del frontend (snapshot)
 
-> **Actualizado:** 2026-06-01
+> **Actualizado:** 2026-06-01 (ver nota de refresh parcial 2026-10-08 abajo)
+
+> **Refresh parcial 2026-10-08** (ver [auditoría hub 2026-09-23](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/notes/2026-09-23_audit.md) hallazgos H-E-1 y H-D-2): la fila "Portales aliado/afiliado/promotor ❌ Pendientes" de abajo ya no es cierta — `app/pages/` tiene **61 archivos `.vue`** incluyendo `aliado/`, `afiliado/`, `aliados/`, `promotor/` ya en construcción/mergeados. No se reescribió la tabla completa (requiere inventariar verticales uno por uno, fuera de alcance de esta corrección) — usar `checklists/vertical-*.md` para el estado real por vertical.
+>
+> **Drift de seguridad confirmado, sin resolver (H-D-2):** `app/stores/auth.ts` guarda `refreshToken` en `localStorage` y `accessToken`/`user` en `sessionStorage` (línea 5: "accessToken en sessionStorage... refreshToken en localStorage"). Esto contradice ADR 0002 local ("NO persistir accessToken en localStorage") y el hub `specs/03-security.md` (cookie httpOnly + access en memoria). **No se modifica el código acá**: cambiar el mecanismo de almacenamiento de tokens es una decisión de seguridad/producto con impacto en todo el flujo de auth, no un fix documental — requiere que el dueño del producto decida entre (a) migrar a cookie httpOnly, o (b) aceptar `localStorage` con mitigación XSS explícita (CSP, sanitización) y escribir el ADR que lo congele. Queda pendiente.
 
 ## Resumen
 
