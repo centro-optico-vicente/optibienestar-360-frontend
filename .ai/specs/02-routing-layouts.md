@@ -1,5 +1,12 @@
 # 02 — Routing y layouts
 
+> **Corrección 2026-10-09** (ver [auditoría 2026-09-23](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/notes/2026-09-23_audit.md) hallazgo F-SPEC-01/02): este documento describe un diseño que **no se construyó así**. Hechos verificados contra el código real:
+> - El árbol admin vive en **`pages/dashboard/`**, no `pages/admin/` — ese árbol nunca existió. El árbol real (2026-10-09) incluye además `campaigns/`, `collections/`, `commission-rules/`, `entity-config/`, `roles/`, `scheduled-jobs/`, `security/`, `system-config/`, `settings/`, `modulo/` — más amplio que lo documentado abajo; usar `find app/pages/dashboard` para el inventario exacto.
+> - No hay login en `/login.vue` — el login vive en `index.vue` (`/`) y el middleware `auth.global.ts` redirige cualquier sesión autenticada en `/` directo a `/dashboard`, **sin** un mapa de rutas por rol (`admin`/`aliado`/`afiliado`/`promotor` como "home" por rol no existe así).
+> - Los roles reales son `SYSTEM`/`ADMINISTRADOR`/`OPERADOR`/`OPERADOR_MEDICO`/`ALIADO`/`AFILIADO`/`PROMOTOR`, no `ADMIN`/`ALIADO_USER`/`AFILIADO_USER`.
+> - El middleware por permiso real se llama **`can.ts`** (no `permission.ts`), usa `definePageMeta({ middleware: 'can', permission: 'CODE' })` (clave singular `permission`, no `permissions` array-only) y redirige a `/403` (no `showError`). También existe **`role.ts`** (bloqueo por rol completo) y **`catalog-access.ts`**, no documentados abajo.
+> - El cuerpo de este archivo (rutas `admin/*`, `Sidebar :role=`, `uiStore`, el middleware `permission.ts`) queda como **referencia histórica del diseño original**, no como verdad actual — no se reescribió código por código para no introducir afirmaciones nuevas sin verificar (p. ej. no se confirmó la implementación real de `Sidebar.vue` ni si existe un `uiStore`). Para los valores reales de rutas/middleware, confiar en los puntos de arriba y en el código, no en los bloques de abajo.
+
 ## File-based routing (Nuxt 3)
 
 ```
