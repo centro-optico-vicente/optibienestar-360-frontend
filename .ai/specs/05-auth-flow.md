@@ -161,7 +161,7 @@ Backend mueve el refresh token a blacklist Redis. **No hay cookie httpOnly que l
 
 ## Reglas
 
-> **Corrección 2026-10-09:** las dos reglas de storage de abajo describían el diseño original (cookie httpOnly) y **contradicen directamente el código real** — no se tocó el código, se corrige la documentación para que deje de mentir. El storage real es una decisión ya tomada (ver comentario en `stores/auth.ts`), pero **sin ADR formal** que la congele con su mitigación de riesgo XSS — ver `optibienestar-360-frontend/.ai/context/current-state.md` hallazgo H-D-2 para el seguimiento pendiente.
+> **Corrección 2026-10-09:** las dos reglas de storage de abajo describían el diseño original (cookie httpOnly) y **contradicen directamente el código real** — no se tocó el código, se corrige la documentación para que deje de mentir. El storage real está formalizado en [ADR 0024 del hub](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0024-jwt-token-storage.md): decisión intencional (continuidad de sesión multi-pestaña) + CSP como mitigación XSS (ver `docker/default.conf`).
 
 - **Access token en `sessionStorage`** (tab-scoped, no sobrevive a una pestaña nueva) — **no** "nunca en localStorage"; si vive en `sessionStorage` es igual de expuesto a XSS que `localStorage`.
 - **Refresh token en `localStorage`** (compartido entre pestañas, "recordar sesión") — **no** cookie httpOnly. El backend no emite cookies de auth.
