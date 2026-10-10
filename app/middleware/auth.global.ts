@@ -1,4 +1,4 @@
-const PUBLIC_ROUTES = new Set<string>(['/', '/recover-password', '/reset-password'])
+const PUBLIC_ROUTES = new Set<string>(['/', '/recover-password', '/reset-password', '/afiliarse'])
 // Prefijos públicos (rutas dinámicas): directorio de aliados (/aliados, /aliados/{uuid}).
 // Ojo: NO confundir con /aliado (panel autenticado del aliado).
 const PUBLIC_PREFIXES = ['/aliados']
