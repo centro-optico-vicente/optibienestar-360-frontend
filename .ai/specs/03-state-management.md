@@ -1,6 +1,6 @@
 # 03 — State management (Pinia)
 
-> Implementa [ADR 0002 local](../decisions/0002-pinia-state.md).
+> Implementa [ADR 0002 local](../decisions/loc-0002-pinia-state.md).
 >
 > **Corrección 2026-10-09:** el `useAuthStore` real (`app/stores/auth.ts`) no tiene `roles: []` + `primaryRole` (lista de prioridad); tiene **`activeRole`** (singular, derivado del claim `role_name` del JWT activo — un usuario puede tener varios roles asignados pero solo uno activo por sesión). El login real destructura `accessToken`/`refreshToken` en **camelCase** (no `access_token`/`refresh_token` — ver [ADR 0019 del hub](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0019-api-json-casing-contract.md)). El accessToken/user viven en `sessionStorage` y el refreshToken en `localStorage` (no cookies httpOnly) — formalizado en [ADR 0024 del hub](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0024-jwt-token-storage.md): decisión intencional (continuidad multi-pestaña) + CSP como mitigación XSS. El bloque de abajo queda como referencia histórica del diseño original, no como la implementación real.
 
@@ -194,6 +194,6 @@ test('auth login sets user and tokens', async () => {
 
 ## Referencias
 
-- [ADR 0002 Pinia](../decisions/0002-pinia-state.md)
+- [ADR 0002 Pinia](../decisions/loc-0002-pinia-state.md)
 - [05-auth-flow.md](05-auth-flow.md)
 - [Pinia docs](https://pinia.vuejs.org/)

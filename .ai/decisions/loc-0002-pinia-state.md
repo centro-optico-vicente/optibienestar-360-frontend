@@ -1,4 +1,4 @@
-# ADR 0002 (local frontend) — Pinia para state management
+# ADR LOC-0002 (frontend) — Pinia para state management
 
 **Estado:** Aceptado
 **Fecha:** 2026-05-18

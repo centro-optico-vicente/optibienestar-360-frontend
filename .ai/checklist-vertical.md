@@ -23,7 +23,7 @@ FASE 1 (bootstrap Nuxt) ──────────────────�
 12 (Subsidios) ─► [v2] depende de 4 (Afiliados) + 5 (Membresías) + 6 (Pagos)
 ```
 
-> Catálogos (vertical-2) tiene **gestión propia** (`pages/dashboard/catalogs/`) y además se consume como selects alimentados por catálogo en los formularios de otras vistas (ver [ADR 0005](decisions/0005-catalog-backed-selects.md)).
+> Catálogos (vertical-2) tiene **gestión propia** (`pages/dashboard/catalogs/`) y además se consume como selects alimentados por catálogo en los formularios de otras vistas (ver [ADR 0005](decisions/loc-0005-catalog-backed-selects.md)).
 
 ## Vistas
 

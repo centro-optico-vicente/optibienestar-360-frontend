@@ -1,4 +1,4 @@
-# ADR 0007 (local frontend) — Convenciones de Pull Request y ramas (Gitflow)
+# ADR LOC-0007 (frontend) — Convenciones de Pull Request y ramas (Gitflow)
 
 **Estado:** Aceptado
 **Fecha:** 2026-06-01
@@ -102,7 +102,7 @@ feat: Add members list page with role-based columns
 ## Por qué
 
 - **Conventional Commits** permite generar CHANGELOG automático y determinar semver de forma mecánica.
-- **Gitflow simplificado** (sin `develop`) se adapta al equipo pequeño y al ciclo de releases con GitHub Releases (que dispara `publish.yaml` — ver [ADR 0006](0006-ci-cd-docker-runtime-config.md)).
+- **Gitflow simplificado** (sin `develop`) se adapta al equipo pequeño y al ciclo de releases con GitHub Releases (que dispara `publish.yaml` — ver [ADR 0006](loc-0006-ci-cd-docker-runtime-config.md)).
 - **Título repetido** en el cuerpo garantiza que el squash-merge message incluye el contexto completo.
 
 ## Alternativas

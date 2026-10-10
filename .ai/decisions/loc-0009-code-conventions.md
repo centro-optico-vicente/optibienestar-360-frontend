@@ -1,9 +1,9 @@
-# ADR 0009 — Convenciones de código (idioma, naming, comentarios)
+# ADR LOC-0009 (frontend, espejo local) — Convenciones de código (idioma, naming, comentarios)
 
 > **Espejo local** del [ADR 0009 del hub](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0009-code-conventions.md).
 > Se mantiene esta copia dentro del repo frontend para que cualquier sesión IA que solo tenga el frontend cargado (sin el hub disponible) tenga acceso directo a la convención.
 > Si hay divergencia, el hub es la fuente canónica — actualizar este espejo desde allí.
-> Referencia rápida solo-TS/Vue: [ADR 0008 — Naming TypeScript/Vue](0008-typescript-vue-naming-conventions.md).
+> Referencia rápida solo-TS/Vue: [ADR 0008 — Naming TypeScript/Vue](loc-0008-typescript-vue-naming-conventions.md).
 
 **Estado:** Aceptado
 **Fecha:** 2026-05-18

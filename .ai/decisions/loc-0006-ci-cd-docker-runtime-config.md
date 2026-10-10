@@ -1,11 +1,11 @@
-# ADR 0006 (local frontend) — CI/CD GitHub Actions + imagen Docker (nginx) + config en runtime
+# ADR LOC-0006 (frontend) — CI/CD GitHub Actions + imagen Docker (nginx) + config en runtime
 
 **Estado:** Aceptado
 **Fecha:** 2026-06-01
 
 ## Contexto
 
-El frontend admin/portales es un **SPA estático** (`ssr: false` — ver [ADR 0003 SPA mode](0003-spa-mode.md)), construido con pnpm y Nuxt 4. Falta el soporte de integración y publicación que el resto del ecosistema ya tiene:
+El frontend admin/portales es un **SPA estático** (`ssr: false` — ver [ADR 0003 SPA mode](loc-0003-spa-mode.md)), construido con pnpm y Nuxt 4. Falta el soporte de integración y publicación que el resto del ecosistema ya tiene:
 
 - El backend publica imágenes Docker (alpine + debian) vía GitHub Actions en `release: published` → Docker Hub.
 - El landing `centro-optico-vicente-web` sigue el mismo patrón (nginx sirviendo estáticos).
@@ -47,7 +47,7 @@ Resultado: **una sola imagen sirve cualquier entorno**; la URL se define con `-e
 ## Alternativas descartadas
 
 - **Hornear la URL en build-time** (`ARG` durante `pnpm generate`): obliga a una imagen por entorno y rebuild para cambiar la API. Contradice el requisito de configurar por env var.
-- **SSR para leer env en runtime:** reabre [ADR 0003 SPA mode](0003-spa-mode.md); complejidad innecesaria para un panel detrás de login.
+- **SSR para leer env en runtime:** reabre [ADR 0003 SPA mode](loc-0003-spa-mode.md); complejidad innecesaria para un panel detrás de login.
 - **Servir con `nuxt preview` (Node):** mayor superficie y consumo que nginx estático; innecesario sin SSR.
 - **GHCR como registry primario:** Docker Hub queda primario por accesibilidad (ver [ADR 0003 infra](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0003-infrastructure.md)); GHCR como mirror futuro.
 
