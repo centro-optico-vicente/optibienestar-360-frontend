@@ -26,12 +26,9 @@ Usar **Pinia** vía `@pinia/nuxt` para state global.
 
 ## Persistencia
 
-Para `auth` store: cookies httpOnly (manejadas por el backend al login).
-Para `ui` preferences (sidebar collapsed, etc.): `useStorage()` de VueUse → localStorage.
+> **Corrección 2026-10-09:** esta sección describía cookies httpOnly y prohibía `localStorage` para el accessToken — el real es justo lo contrario, formalizado en [ADR 0024 del hub](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0024-jwt-token-storage.md).
 
-NO persistir:
-- accessToken en localStorage (riesgo XSS)
-- datos sensibles
+Para `auth` store (real, `app/stores/auth.ts`): `accessToken`+`user` en `sessionStorage` (por pestaña), `refreshToken` en `localStorage` (compartido, permite que una pestaña nueva recupere sesión sin re-login) — decisión intencional, no cookies httpOnly (el backend no las emite). CSP (`docker/default.conf`) como mitigación XSS compensatoria.
 
 ## Alternativas descartadas
 
