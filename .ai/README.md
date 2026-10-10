@@ -31,10 +31,10 @@ Esta carpeta contiene la documentación específica del frontend admin Nuxt 3. P
 │   └── 11-mcp-servers.md
 │
 ├── decisions/
-│   ├── 0001-nuxt-ui-tailwind.md
-│   ├── 0002-pinia-state.md
-│   ├── 0003-spa-mode.md
-│   └── 0004-mobile-first.md
+│   ├── loc-0001-nuxt-ui-tailwind.md
+│   ├── loc-0002-pinia-state.md
+│   ├── loc-0003-spa-mode.md
+│   └── loc-0004-mobile-first.md
 │
 └── playbooks/
     ├── new-page.md

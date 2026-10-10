@@ -8,7 +8,7 @@ Frontend multi-rol (Vue 3 + Nuxt 4) que sirve a admin, operador, aliados, afilia
 
 ## Stack confirmado
 
-- Vue 3 + Nuxt 4 — real: SPA (`ssr: false`, ver [ADR 0003 local](decisions/0003-spa-mode.md))
+- Vue 3 + Nuxt 4 — real: SPA (`ssr: false`, ver [ADR 0003 local](decisions/loc-0003-spa-mode.md))
 - Nuxt UI v3 (componentes accesibles con Tailwind v4)
 - Pinia state
 - VueUse, i18n, image, icon
@@ -53,13 +53,13 @@ Frontend multi-rol (Vue 3 + Nuxt 4) que sirve a admin, operador, aliados, afilia
 - [ADR 0010 Localización Venezuela](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0010-localization-venezuela.md)
 
 **Locales:**
-- [ADR 0001 Nuxt UI + Tailwind](decisions/0001-nuxt-ui-tailwind.md)
-- [ADR 0002 Pinia state](decisions/0002-pinia-state.md)
-- [ADR 0003 SPA mode](decisions/0003-spa-mode.md)
-- [ADR 0004 Mobile-first](decisions/0004-mobile-first.md)
-- [ADR 0005 Selects alimentados por catálogo](decisions/0005-catalog-backed-selects.md)
-- [ADR 0006 CI/CD + Docker (nginx) + config en runtime](decisions/0006-ci-cd-docker-runtime-config.md)
-- [ADR 0007 Convenciones de PR y ramas (Gitflow)](decisions/0007-pr-and-branch-conventions.md)
-- [ADR 0008 Naming TypeScript/Vue](decisions/0008-typescript-vue-naming-conventions.md)
-- [ADR 0009 Convenciones de código (espejo)](decisions/0009-code-conventions.md)
-- [ADR 0010 Localización Venezuela (espejo)](decisions/0010-localization-venezuela.md)
+- [ADR 0001 Nuxt UI + Tailwind](decisions/loc-0001-nuxt-ui-tailwind.md)
+- [ADR 0002 Pinia state](decisions/loc-0002-pinia-state.md)
+- [ADR 0003 SPA mode](decisions/loc-0003-spa-mode.md)
+- [ADR 0004 Mobile-first](decisions/loc-0004-mobile-first.md)
+- [ADR 0005 Selects alimentados por catálogo](decisions/loc-0005-catalog-backed-selects.md)
+- [ADR 0006 CI/CD + Docker (nginx) + config en runtime](decisions/loc-0006-ci-cd-docker-runtime-config.md)
+- [ADR 0007 Convenciones de PR y ramas (Gitflow)](decisions/loc-0007-pr-and-branch-conventions.md)
+- [ADR 0008 Naming TypeScript/Vue](decisions/loc-0008-typescript-vue-naming-conventions.md)
+- [ADR 0009 Convenciones de código (espejo)](decisions/loc-0009-code-conventions.md)
+- [ADR 0010 Localización Venezuela (espejo)](decisions/loc-0010-localization-venezuela.md)

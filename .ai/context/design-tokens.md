@@ -123,7 +123,7 @@ decidirse aparte, con el asset final en mano.
 
 ## Responsive
 
-Mobile-first ([ADR 0004 local](../decisions/0004-mobile-first.md)):
+Mobile-first ([ADR 0004 local](../decisions/loc-0004-mobile-first.md)):
 - Default: mobile (sm)
 - Breakpoints Tailwind: `sm` 640px, `md` 768px, `lg` 1024px, `xl` 1280px
 

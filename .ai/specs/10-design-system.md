@@ -175,7 +175,7 @@ Grids comunes:
 
 - **Coherencia primero:** mejor reusar un componente shared aunque no encaje 100% que duplicar HTML
 - **Accesibilidad:** todo focusable con teclado, contraste WCAG AA mínimo, aria-labels en iconos
-- **Mobile-first:** ([ADR 0004](../decisions/0004-mobile-first.md))
+- **Mobile-first:** ([ADR 0004](../decisions/loc-0004-mobile-first.md))
 - **Dark mode:** futuro (no en FASE 5)
 
 ## Documentación visual

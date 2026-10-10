@@ -1,6 +1,6 @@
 # Vista 2 — Catálogos
 
-> Gestión de datos maestros (países, estados, ciudades, géneros, tipos de documento, especialidades…). Los catálogos también se consumen como selects en formularios de otras vistas ([ADR 0005](../decisions/0005-catalog-backed-selects.md)).
+> Gestión de datos maestros (países, estados, ciudades, géneros, tipos de documento, especialidades…). Los catálogos también se consumen como selects en formularios de otras vistas ([ADR 0005](../decisions/loc-0005-catalog-backed-selects.md)).
 > Índice: [../checklist.md](../checklist.md) · Orden: [../checklist-vertical.md](../checklist-vertical.md)
 
 ## Admin

@@ -5,14 +5,14 @@
 >
 > Cross-cutting: paraleliza con cualquier vista; idealmente arranca tras vista-1 (Auth) porque la preferencia de locale viaja en el JWT y se cambia desde el portal.
 >
-> Specs: [`../specs/06-i18n.md`](../specs/06-i18n.md) · [ADR 0010](../decisions/0010-localization-venezuela.md) (espejo del hub) · Índice: [../checklist.md](../checklist.md) · Orden: [../checklist-vertical.md](../checklist-vertical.md)
+> Specs: [`../specs/06-i18n.md`](../specs/06-i18n.md) · [ADR 0010](../decisions/loc-0010-localization-venezuela.md) (espejo del hub) · Índice: [../checklist.md](../checklist.md) · Orden: [../checklist-vertical.md](../checklist-vertical.md)
 
 ## Fase 1 — Bootstrap @nuxtjs/i18n (foundation)
 
 - [x] [P1/C1] `@nuxtjs/i18n` instalado y registrado en `nuxt.config.ts` (ya listado en [fase-1](fase-1-bootstrap-frontend-nuxt.md)). Config: `defaultLocale: 'es'`, `strategy: 'no_prefix'` (no prefijar URLs — app SPA tras login), `lazy: true`, `langDir: 'locales/'`. — 2026-07-13
 - [x] [P1/C2] **Bilingüe desde el día 1** (el backend ya soporta `en`): `locales: [{code:'es',name:'Español',file:'es.json'}, {code:'en',name:'English',file:'en.json'}]`. Actualizada [`specs/06-i18n.md`](../specs/06-i18n.md): el inglés deja de ser futuro (config bilingüe, reglas y sección "estado actual"). — 2026-07-13
 - [ ] [P1/C1] `i18n/locales/es.json` poblado (fuente de verdad de UI) + `en.json` con las **mismas keys**. Estructura por dominio (`common`, `auth`, `members`, `memberships`, `payments`, `validator`, `errors`, …) — ya esbozada en el spec. **Parcial 2026-07-13:** poblados `common`, `validation`, `auth`, `security`, `nav`, `layout`, `landing`, `errors` (270 keys, paridad es/en verificada); el resto de dominios (members, memberships, payments, catalogs, allies, plans…) se puebla al retrofit de cada vertical.
-- [x] [P1/C1] `composables/useFormatters.ts` — `formatCurrency` (`VES`/`USD` vía `Intl.NumberFormat('es-VE')`), `formatDate`, `formatRelative` ancladas a `es-VE` / `America/Caracas` ([ADR 0010](../decisions/0010-localization-venezuela.md)). Formato NO se ata al locale de UI (las cifras siguen en convención VE aunque la UI esté en inglés). — 2026-07-13
+- [x] [P1/C1] `composables/useFormatters.ts` — `formatCurrency` (`VES`/`USD` vía `Intl.NumberFormat('es-VE')`), `formatDate`, `formatRelative` ancladas a `es-VE` / `America/Caracas` ([ADR 0010](../decisions/loc-0010-localization-venezuela.md)). Formato NO se ata al locale de UI (las cifras siguen en convención VE aunque la UI esté en inglés). — 2026-07-13
 
 ## Fase 1b — Retrofit de verticales ya construidos (español-only → `$t`)
 

@@ -64,6 +64,6 @@ las vistas 1 (Auth/RBAC) y 2 (Catálogos) están completas; siguen 3 (Aliados),
 
 ## Cambios recientes
 
-- **2026-06-01** — Imagen Docker + CI/CD + config en runtime ([ADR 0006](../decisions/0006-ci-cd-docker-runtime-config.md)); `.githooks/`; ADRs locales 0006–0010; checklist separado por fase/vertical.
+- **2026-06-01** — Imagen Docker + CI/CD + config en runtime ([ADR 0006](../decisions/loc-0006-ci-cd-docker-runtime-config.md)); `.githooks/`; ADRs locales 0006–0010; checklist separado por fase/vertical.
 - **2026-05-31** — RBAC editable: gestión de usuarios, roles y permisos por dominio.
 - **2026-05-18** — Bootstrap del `.ai/` local del frontend.

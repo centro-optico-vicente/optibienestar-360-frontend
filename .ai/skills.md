@@ -33,7 +33,7 @@ Inventario de skills, plugins de Claude Code y servidores MCP que asisten la con
 
 | Skill | Encaje | Para qué |
 |---|---|---|
-| `docker-expert` | 🟢 | Dockerfiles multi-stage, optimización/hardening de la imagen ([ADR 0006](decisions/0006-ci-cd-docker-runtime-config.md)). |
+| `docker-expert` | 🟢 | Dockerfiles multi-stage, optimización/hardening de la imagen ([ADR 0006](decisions/loc-0006-ci-cd-docker-runtime-config.md)). |
 | `docker-compose-orchestration` | 🟢 | Wiring del servicio frontend en el compose del hub. |
 | `github-actions-docs` | 🟢 | Mantener `.github/workflows/ci.yaml` y `publish.yaml`. |
 | `traefik` | 🟢 | Reverse proxy v3 del hub (labels, routers, TLS). |

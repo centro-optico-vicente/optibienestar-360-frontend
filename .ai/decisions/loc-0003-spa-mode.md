@@ -1,4 +1,4 @@
-# ADR 0003 (local frontend) — SPA mode (no SSR)
+# ADR LOC-0003 (frontend) — SPA mode (no SSR)
 
 **Estado:** Aceptado
 **Fecha:** 2026-05-18

@@ -1,4 +1,4 @@
-# ADR 0004 (local frontend) — Diseño Mobile-first
+# ADR LOC-0004 (frontend) — Diseño Mobile-first
 
 **Estado:** Aceptado
 **Fecha:** 2026-05-18

@@ -1,4 +1,4 @@
-# ADR 0001 (local frontend) — Nuxt UI + Tailwind CSS
+# ADR LOC-0001 (frontend) — Nuxt UI + Tailwind CSS
 
 **Estado:** Aceptado
 **Fecha:** 2026-05-18

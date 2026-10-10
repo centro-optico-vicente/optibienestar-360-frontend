@@ -1,4 +1,4 @@
-# ADR 0005 (local frontend) — Selects alimentados por catálogo (no hardcodear)
+# ADR LOC-0005 (frontend) — Selects alimentados por catálogo (no hardcodear)
 
 **Estado:** Aceptado
 **Fecha:** 2026-06-01
