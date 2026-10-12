@@ -30,7 +30,11 @@ Este `.env` **solo aplica en dev** (`pnpm dev`/`pnpm generate` locales) — es u
 
 ## Paso 2 — Correr en modo desarrollo
 
+**Atajo:** `./start.sh` hace `nvm use 22` + limpia la terminal (`pnpm clear`, cae al `clear` del sistema — no es un script propio) + `pnpm dev`. Requiere tener `nvm` instalado; si no lo usás, confirmar `node -v` → `v22.x` a mano y correr `pnpm dev` directo.
+
 ```bash
+./start.sh
+# equivalente manual (sin nvm):
 pnpm dev          # http://localhost:3000, hot-reload
 ```
 
