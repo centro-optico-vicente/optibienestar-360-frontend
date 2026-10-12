@@ -223,6 +223,8 @@ export const MAIN_NAV: NavEntry[] = [
     descriptionKey: 'nav.groups.misPortales.description',
     children: [
       { label: 'Mi carnet', labelKey: 'nav.items.myCard.label', to: '/afiliado', icon: 'i-lucide-id-card', description: 'Tu carnet de afiliado.', descriptionKey: 'nav.items.myCard.description', requires: 'MEMBER_VIEW_OWN' },
+      { label: 'Mis consumos', labelKey: 'nav.items.myUsage.label', to: '/afiliado/usage', icon: 'i-lucide-clipboard-list', description: 'Tus usos del beneficio en aliados.', descriptionKey: 'nav.items.myUsage.description', requires: 'MEMBER_VIEW_OWN' },
+      { label: 'Mi perfil de promotor', labelKey: 'nav.items.promoterProfile.label', to: '/promotor', icon: 'i-lucide-qr-code', description: 'Tu foto y tu QR de afiliación.', descriptionKey: 'nav.items.promoterProfile.description', requires: 'PROMOTER_VIEW_OWN' },
       { label: 'Mi empresa aliada', labelKey: 'nav.items.myAllyCompany.label', to: '/aliado', icon: 'i-lucide-building-2', description: 'Panel de tu empresa aliada.', descriptionKey: 'nav.items.myAllyCompany.description', roles: ['ALIADO'] },
       { label: 'Validador', labelKey: 'nav.items.validator.label', to: '/aliado/validator', icon: 'i-lucide-scan-line', description: 'Valida la solvencia de un afiliado.', descriptionKey: 'nav.items.validator.description', requires: 'ALLY_VALIDATE_MEMBER' },
       { label: 'Consumos', labelKey: 'nav.items.usageHistory.label', to: '/aliado/history', icon: 'i-lucide-clipboard-list', description: 'Beneficios registrados en tu aliado.', descriptionKey: 'nav.items.usageHistory.description', requires: 'ALLY_VIEW_OWN' },

@@ -718,6 +718,14 @@
       "competitiveWinners": {
         "label": "Competitive rule winners",
         "description": "Open ties and winner decisions for competitive commission rules."
+      },
+      "myUsage": {
+        "label": "My usage",
+        "description": "Your benefit usage at allies."
+      },
+      "promoterProfile": {
+        "label": "My profile",
+        "description": "Your photo and affiliation QR."
       }
     },
     "other": {
@@ -1588,6 +1596,19 @@
       "title": "My commission payouts",
       "subtitle": "Commission payouts disbursed to you.",
       "empty": "No commission payouts"
+    },
+    "profile": {
+      "title": "My profile",
+      "subtitle": "Your photo and your QR code for new affiliations.",
+      "qrTitle": "My affiliation QR",
+      "qrBody": "Share it with prospects: scanning it opens the affiliation form with your referral code.",
+      "code": "Referral code",
+      "download": "Download QR",
+      "copy": "Copy link",
+      "copied": "Link copied",
+      "copyFailed": "Could not copy the link",
+      "qrUnavailable": "We could not find your promoter profile.",
+      "qrAlt": "Affiliation QR"
     }
   },
   "payments": {
@@ -2174,7 +2195,20 @@
         "text": "Explore the {network} and its preferential prices.",
         "network": "partner network",
         "button": "View directory"
+      },
+      "qr": {
+        "title": "My QR code",
+        "body": "Show it at any ally in the network: scanning it validates your membership instantly.",
+        "download": "Download QR",
+        "alt": "Membership card QR code"
       }
+    },
+    "usage": {
+      "title": "My usage",
+      "subtitle": "History of the benefits you used at network allies.",
+      "empty": "You have no recorded usage yet.",
+      "consumption": "consumption",
+      "copay": "Co-pay"
     }
   },
   "memberships": {
@@ -4168,5 +4202,44 @@
       "keepOnTime": "Pay on time: a late payment cancels the promotion.",
       "paymentSaving": "You saved {amount} · {reason}"
     }
+  },
+  "profilePhoto": {
+    "title": "Profile photo",
+    "hint": "JPG, PNG or WEBP up to 5 MB.",
+    "upload": "Upload photo",
+    "change": "Change photo",
+    "remove": "Remove",
+    "uploaded": "Photo updated",
+    "removed": "Photo removed",
+    "notImage": "The file must be an image",
+    "tooLarge": "The image exceeds 5 MB",
+    "alt": "Profile photo"
+  },
+  "affiliationRequest": {
+    "seoTitle": "Join · OptiBienestar 360",
+    "title": "Join OptiBienestar 360",
+    "subtitle": "Create your account and pick your plan. Your membership is registered instantly.",
+    "referredBy": "Referred by the promoter with code",
+    "email": "Email",
+    "phone": "Phone",
+    "submit": "Create my membership",
+    "required": "Fill in the required fields",
+    "sentTitle": "Your membership was created!",
+    "sentBody": "You can now sign in to your portal with {email} to see your card and report your first payment.",
+    "firstName": "First names",
+    "lastName": "Last names",
+    "document": "ID document",
+    "birthDate": "Date of birth",
+    "password": "Password",
+    "passwordConfirm": "Confirm password",
+    "plan": "Plan",
+    "planPlaceholder": "Choose a plan",
+    "month": "month",
+    "activationNote": "Your membership becomes active once the team approves your first payment. You can report it from your portal.",
+    "badDocument": "The ID must be digits only (up to 9)",
+    "shortPassword": "The password must be at least 8 characters",
+    "passwordMismatch": "Passwords do not match",
+    "sentPromoter": "Enrolled by: {name}",
+    "goLogin": "Sign in"
   }
 }

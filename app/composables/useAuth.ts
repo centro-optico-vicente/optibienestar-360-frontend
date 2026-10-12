@@ -28,6 +28,9 @@ export const useAuth = () => {
   }
 
   const logout = async (): Promise<void> => {
+    // Forget the cached avatar so the next user in this tab doesn't inherit it.
+    useState('profile-photo-url').value = null
+    useState('profile-photo-loaded').value = false
     try {
       if (store.accessToken) {
         await useApi('/v1/auth/logout', {

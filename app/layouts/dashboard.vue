@@ -3,6 +3,8 @@ import logoUrl from '~/assets/centro-optico-vicente-logo.png'
 import { OTHER_NAV, isNavGroup } from '~/utils/nav'
 
 const auth = useAuthStore()
+const profilePhoto = useProfilePhoto()
+onMounted(() => { if (auth.isAuthenticated) profilePhoto.ensure() })
 const { logout } = useAuth()
 const route = useRoute()
 const router = useRouter()
@@ -173,8 +175,9 @@ defineShortcuts({
           </div>
         </div>
         <div v-else class="flex items-center gap-3 mb-3">
-          <span class="w-9 h-9 rounded-full bg-prohealth-600 grid place-items-center text-white text-sm font-bold">
-            {{ auth.initials }}
+          <span class="w-9 h-9 rounded-full overflow-hidden bg-prohealth-600 grid place-items-center text-white text-sm font-bold shrink-0">
+            <img v-if="profilePhoto.photoUrl.value" :src="profilePhoto.photoUrl.value" alt="" class="w-full h-full object-cover">
+            <template v-else>{{ auth.initials }}</template>
           </span>
           <div class="min-w-0 flex-1">
             <p class="text-sm font-semibold text-prohealth-900 truncate">{{ auth.fullName }}</p>

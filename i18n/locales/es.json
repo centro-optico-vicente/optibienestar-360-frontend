@@ -718,6 +718,14 @@
       "competitiveWinners": {
         "label": "Ganadores de reglas competitivas",
         "description": "Empates abiertos y decisiones sobre ganadores de reglas competitivas."
+      },
+      "myUsage": {
+        "label": "Mis consumos",
+        "description": "Tus usos del beneficio en aliados."
+      },
+      "promoterProfile": {
+        "label": "Mi perfil",
+        "description": "Tu foto y tu QR de afiliación."
       }
     },
     "other": {
@@ -1588,6 +1596,19 @@
       "title": "Mis pagos de comisiones",
       "subtitle": "Pagos de comisión que te han sido liquidados.",
       "empty": "Sin pagos de comisión"
+    },
+    "profile": {
+      "title": "Mi perfil",
+      "subtitle": "Tu foto y tu código QR para nuevas afiliaciones.",
+      "qrTitle": "Mi QR de afiliación",
+      "qrBody": "Compártelo con tus prospectos: al escanearlo llegan al formulario de afiliación con tu código de referido.",
+      "code": "Código de referido",
+      "download": "Descargar QR",
+      "copy": "Copiar enlace",
+      "copied": "Enlace copiado",
+      "copyFailed": "No se pudo copiar el enlace",
+      "qrUnavailable": "No encontramos tu perfil de promotor.",
+      "qrAlt": "QR de afiliación"
     }
   },
   "payments": {
@@ -2174,7 +2195,20 @@
         "text": "Explora la {network} y sus precios preferenciales.",
         "network": "red de aliados",
         "button": "Ver directorio"
+      },
+      "qr": {
+        "title": "Mi código QR",
+        "body": "Muéstralo en cualquier aliado de la red: al escanearlo validan tu afiliación al instante.",
+        "download": "Descargar QR",
+        "alt": "Código QR del carnet"
       }
+    },
+    "usage": {
+      "title": "Mis consumos",
+      "subtitle": "Historial de los beneficios que usaste en los aliados de la red.",
+      "empty": "Todavía no tienes consumos registrados.",
+      "consumption": "consumo",
+      "copay": "Copago"
     }
   },
   "memberships": {
@@ -4168,5 +4202,44 @@
       "keepOnTime": "Paga a tiempo: si un pago se atrasa, la promoción se pierde.",
       "paymentSaving": "Ahorraste {amount} · {reason}"
     }
+  },
+  "profilePhoto": {
+    "title": "Foto de perfil",
+    "hint": "JPG, PNG o WEBP de hasta 5 MB.",
+    "upload": "Subir foto",
+    "change": "Cambiar foto",
+    "remove": "Quitar",
+    "uploaded": "Foto actualizada",
+    "removed": "Foto eliminada",
+    "notImage": "El archivo debe ser una imagen",
+    "tooLarge": "La imagen supera los 5 MB",
+    "alt": "Foto de perfil"
+  },
+  "affiliationRequest": {
+    "seoTitle": "Afíliate · OptiBienestar 360",
+    "title": "Afíliate a OptiBienestar 360",
+    "subtitle": "Crea tu cuenta y elige tu plan. Tu afiliación queda registrada al instante.",
+    "referredBy": "Te refiere el promotor con código",
+    "email": "Correo electrónico",
+    "phone": "Teléfono",
+    "submit": "Crear mi afiliación",
+    "required": "Completa los campos obligatorios",
+    "sentTitle": "¡Tu afiliación fue creada!",
+    "sentBody": "Ya puedes entrar a tu portal con {email} para ver tu carnet y reportar tu primer pago.",
+    "firstName": "Nombres",
+    "lastName": "Apellidos",
+    "document": "Cédula",
+    "birthDate": "Fecha de nacimiento",
+    "password": "Contraseña",
+    "passwordConfirm": "Confirmar contraseña",
+    "plan": "Plan",
+    "planPlaceholder": "Elige un plan",
+    "month": "mes",
+    "activationNote": "Tu membresía se activa cuando el equipo apruebe tu primer pago. Podrás reportarlo desde tu portal.",
+    "badDocument": "La cédula debe tener solo números (hasta 9 dígitos)",
+    "shortPassword": "La contraseña debe tener al menos 8 caracteres",
+    "passwordMismatch": "Las contraseñas no coinciden",
+    "sentPromoter": "Te afilió: {name}",
+    "goLogin": "Iniciar sesión"
   }
 }
