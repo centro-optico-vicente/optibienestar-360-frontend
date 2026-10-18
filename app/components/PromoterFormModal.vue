@@ -87,6 +87,9 @@ interface FormState {
   active: boolean
   /** Edit-only, unlike `rank` — directly editable here (see the Supervisor field). */
   supervisorUuid: string
+  /** Dossier (V180): "Fecha de ingreso" (yyyy-MM-dd); empty on create → backend defaults to today. */
+  joinedAt: string
+  assignedZone: string
 }
 
 const state = reactive<FormState>({
@@ -100,6 +103,8 @@ const state = reactive<FormState>({
   status: 'ACTIVE',
   active: true,
   supervisorUuid: '',
+  joinedAt: '',
+  assignedZone: '',
 })
 
 // Eligible-supervisor options for the immediate rank above the promoter's own
@@ -181,6 +186,7 @@ const schema = computed(() => {
     description: z.string().optional(),
     email: z.string().email(t('validation.emailInvalid')).optional().or(z.literal('')),
     phone: z.string().optional(),
+    assignedZone: z.string().max(120, t('validation.maxChars', { n: 120 })).optional(),
   }
   if (mode.value === 'create') {
     return z.object({
@@ -216,6 +222,8 @@ function populateFrom(p: PromoterDto | null) {
     state.status = 'ACTIVE'
     state.active = true
     state.supervisorUuid = ''
+    state.joinedAt = ''
+    state.assignedZone = ''
     originalSupervisorUuid.value = null
     return
   }
@@ -229,6 +237,8 @@ function populateFrom(p: PromoterDto | null) {
   state.status = (p.status as PromoterStatus) ?? 'ACTIVE'
   state.active = p.active ?? true
   state.supervisorUuid = p.supervisor_Uuid ?? ''
+  state.joinedAt = p.joinedAt ?? ''
+  state.assignedZone = p.assignedZone ?? ''
   originalSupervisorUuid.value = p.supervisor_Uuid ?? null
   editSnapshot.value = snapEditState()
 }
@@ -290,6 +300,8 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         email: state.email.trim() || undefined,
         phone: state.phone.trim() || undefined,
         promoterTypeUuid: state.promoterTypeUuid || undefined,
+        joinedAt: state.joinedAt || undefined,
+        assignedZone: state.assignedZone.trim() || undefined,
       }
       result = await promoters.create(body)
       toast.add({ title: t('promoters.createdToast'), color: 'success', icon: 'i-lucide-check-circle' })
@@ -303,6 +315,9 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         promoterTypeUuid: state.promoterTypeUuid || undefined,
         status: state.status,
         active: state.active,
+        joinedAt: state.joinedAt || undefined,
+        // PATCH: send '' (not undefined) so clearing the zone actually clears it.
+        assignedZone: state.assignedZone.trim(),
       }
       result = await promoters.update(props.promoter!.uuid, body)
 
@@ -528,6 +543,19 @@ async function restorePromoter() {
           </UFormField>
           <UFormField :label="t('promoters.form.fields.phone')" name="phone">
             <UInput v-model="state.phone" class="w-full" />
+          </UFormField>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <UFormField
+            :label="t('promoters.dossier.fields.joinedAt')"
+            name="joinedAt"
+            :help="mode === 'create' ? t('promoters.dossier.joinedAtCreateHelp') : undefined"
+          >
+            <AppDatePicker v-model="state.joinedAt" />
+          </UFormField>
+          <UFormField :label="t('promoters.dossier.fields.assignedZone')" name="assignedZone">
+            <UInput v-model="state.assignedZone" class="w-full" :placeholder="t('promoters.dossier.placeholders.assignedZone')" />
           </UFormField>
         </div>
 

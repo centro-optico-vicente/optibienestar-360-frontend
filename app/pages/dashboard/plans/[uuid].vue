@@ -308,6 +308,10 @@ async function confirmDelete() {
             <dd class="text-prohealth-800 mt-0.5">{{ plan.maxBeneficiaries ?? t('plans.beneficiaries.noLimit') }}</dd>
           </div>
           <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('plans.beneficiaries.minMembers') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ plan.minMembers ?? t('plans.beneficiaries.noMinimum') }}</dd>
+          </div>
+          <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('plans.beneficiaries.graceDays') }}</dt>
             <dd class="text-prohealth-800 mt-0.5">{{ plan.gracePeriodDays }}</dd>
           </div>

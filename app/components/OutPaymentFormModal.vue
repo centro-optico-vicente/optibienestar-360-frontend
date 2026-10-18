@@ -3,7 +3,7 @@ import { z } from 'zod'
 import type { PaymentDto, OutPaymentCreateRequest, OutPaymentUpdateRequest } from '~/types/payments'
 import { BANK_ACCOUNT_TYPE_OPTIONS } from '~/types/payments'
 import type { CatalogItem } from '~/types/catalogs'
-import type { PromoterDto } from '~/types/promoters'
+import type { PromoterDto, PromoterPayoutProfileDto } from '~/types/promoters'
 
 const props = defineProps<{ open: boolean, payment?: PaymentDto | null }>()
 const emit = defineEmits<{
@@ -210,7 +210,73 @@ watch(() => state.paymentMethodUuid, async (uuid) => {
 watch(() => state.promoterUuid, (uuid) => {
   const promoter = promoterOptions.value.find(option => option.value === uuid)
   if (promoter?.personUuid) state.personUuid = promoter.personUuid
+  loadPayoutProfile(uuid)
 })
+
+// ---- Prefill from the advisor's payout profile (dossier, backend V180) ----
+// Only fills fields that are still empty — never overwrites what the operator
+// typed. Which profile data applies depends on the selected method's code:
+// PAGO_MOVIL → phone + Pago Móvil bank; UBII → Ubii account as the account
+// identifier; anything else → national bank + 20-digit account. The holder
+// cédula/RIF goes to `identification` for every method.
+const payoutProfile = ref<PromoterPayoutProfileDto | null>(null)
+const prefilledFromDossier = ref(false)
+
+async function loadPayoutProfile(promoterUuid: string) {
+  payoutProfile.value = null
+  prefilledFromDossier.value = false
+  if (!promoterUuid) return
+  try {
+    const profile = await promoters.getPayoutProfile(promoterUuid, { silent: true })
+    // Ignore a late answer for a promoter that is no longer selected.
+    if (state.promoterUuid !== promoterUuid || !profile.exists) return
+    payoutProfile.value = profile
+    applyPayoutProfile()
+  }
+  catch {
+    // Silent: prefill is a convenience, the form works without it.
+  }
+}
+
+type PrefillField = 'identification' | 'bankUuid' | 'bankAccountCode' | 'bankAccountIdentifier' | 'phone'
+
+function applyPayoutProfile() {
+  const profile = payoutProfile.value
+  if (!profile) return
+  let filled = false
+  const fill = (field: PrefillField, value?: string | null, isPlaceholder?: (current: string) => boolean) => {
+    if (!value) return
+    const current = state[field] ?? ''
+    if (current.trim() === '' || isPlaceholder?.(current)) {
+      state[field] = value
+      filled = true
+    }
+  }
+  if (profile.accountHolderDocumentType && profile.accountHolderDocumentNumber) {
+    fill('identification', `${profile.accountHolderDocumentType}-${profile.accountHolderDocumentNumber}`)
+  }
+  const code = selectedMethod.value?.code
+  if (code === 'PAGO_MOVIL') {
+    fill('phone', profile.mobilePaymentPhone)
+    fill('bankUuid', profile.mobilePaymentBank_Uuid)
+  }
+  else if (code === 'UBII') {
+    fill('bankAccountIdentifier', profile.ubiiAccount)
+  }
+  else {
+    fill('bankUuid', profile.bank_Uuid)
+    // Same "<bank code>-<rest>" shape the bank watcher below seeds, so it is not
+    // overwritten by it; the bare "0102-" seed counts as empty.
+    if (profile.accountNumber) {
+      fill('bankAccountCode', `${profile.accountNumber.slice(0, 4)}-${profile.accountNumber.slice(4)}`,
+        current => /^\d{4}-$/.test(current))
+    }
+  }
+  if (filled) prefilledFromDossier.value = true
+}
+
+// The method decides which profile data applies — re-apply when it changes.
+watch(selectedMethod, () => applyPayoutProfile())
 
 // When a bank is picked and the method requires an account code, prefix
 // bankAccountCode with the bank's SUDEBAN code so the user only fills in
@@ -327,6 +393,10 @@ function submitForm() {
         <UFormField v-if="selectedMethod?.mandatoryPhone" :label="t('payments.payouts.fields.phone')" name="phone" required><UInput class="w-full" v-model="state.phone" /></UFormField>
         <UFormField v-if="selectedMethod?.mandatoryEmail" :label="t('payments.payouts.fields.email')" name="email" required><UInput class="w-full" v-model="state.email" type="email" /></UFormField>
         </div>
+        <p v-if="prefilledFromDossier" class="flex items-center gap-1.5 text-xs text-prohealth-500 -mt-2">
+          <UIcon name="i-lucide-id-card" class="w-3.5 h-3.5" />
+          {{ t('payments.payouts.prefilledFromDossier') }}
+        </p>
         <UFormField class="sm:col-span-2" :label="t('payments.payouts.fields.notes')" name="adminNotes">
           <UTextarea class="w-full" v-model="state.adminNotes" :rows="2" :placeholder="t('payments.form.placeholders.adminNotes')" />
         </UFormField>

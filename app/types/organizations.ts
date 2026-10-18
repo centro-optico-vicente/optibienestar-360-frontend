@@ -27,6 +27,12 @@ export interface OrganizationDto {
    * setting (hub plan competitive-commission-rules, V171).
    */
   autoApproveCommissions: boolean
+  /** State of the Registro Mercantil — `{{org.registryState}}` in the contracts (V181). */
+  registryState: string | null
+  /** City where contracts are signed — `{{org.city}}`. */
+  signingCity: string | null
+  /** Coverage area of the allies network — `{{org.serviceArea}}`. */
+  serviceArea: string | null
 }
 
 /** A currency stripped to what an unprivileged caller needs — no uuid, no active flag. */
@@ -59,4 +65,7 @@ export interface OrganizationUpdateRequest {
   officialCurrencyUuid?: string
   referenceCurrencyUuid?: string
   autoApproveCommissions: boolean
+  registryState?: string
+  signingCity?: string
+  serviceArea?: string
 }

@@ -52,6 +52,12 @@ export interface CatalogItem {
   shortName?: string
   taxDocumentType?: string
   taxDocumentNumber?: string
+  // `ally-types` (V179) — B2B "Aliado Comercial" / B2P "Aliado Profesional";
+  // `professionalArea` (MEDICAL / WELLNESS) only for B2P. `_Display` = localized label.
+  segment?: 'B2B' | 'B2P'
+  segment_Display?: string | null
+  professionalArea?: 'MEDICAL' | 'WELLNESS' | null
+  professionalArea_Display?: string | null
   // `payment-categories` (V115) — real IN/OUT fact of the category (motivo).
   direction?: 'IN' | 'OUT'
   // `payment-methods` (V115) — which extra fields a line using this method demands.

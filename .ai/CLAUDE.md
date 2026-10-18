@@ -38,6 +38,7 @@ Frontend multi-rol (Vue 3 + Nuxt 4) que sirve a admin, operador, aliados, afilia
 
 | Tarea | Playbook |
 |---|---|
+| Correr el frontend en local (primera vez) | [`playbooks/local-dev.md`](playbooks/local-dev.md) |
 | Nueva página | [`playbooks/new-page.md`](playbooks/new-page.md) |
 | Nuevo formulario | [`playbooks/new-form.md`](playbooks/new-form.md) |
 | Nueva tabla con filtros | [`playbooks/new-table.md`](playbooks/new-table.md) |

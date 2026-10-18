@@ -3,7 +3,12 @@ import type {
   CommissionPeriodSummaryDto,
   PromoterCreateRequest,
   PromoterDashboardDto,
+  PromoterDossierUpdateRequest,
   PromoterDto,
+  PromoterPayoutProfileDto,
+  PromoterPayoutProfileRequest,
+  PromoterReferenceDto,
+  PromoterReferenceRequest,
   PromoterUpdateRequest,
 } from '~/types/promoters'
 
@@ -45,7 +50,7 @@ export const usePromoters = () => {
   const create = (body: PromoterCreateRequest) =>
     useApi<PromoterDto>('/v1/admin/promoters', { method: 'POST', body })
 
-  const update = (uuid: string, body: PromoterUpdateRequest) =>
+  const update = (uuid: string, body: PromoterUpdateRequest | PromoterDossierUpdateRequest) =>
     useApi<PromoterDto>(`/v1/admin/promoters/${uuid}`, { method: 'PUT', body })
 
   const remove = (uuid: string, physical = false) =>
@@ -72,5 +77,38 @@ export const usePromoters = () => {
    */
   const me = () => useApi<PromoterDashboardDto>('/v1/promoter/me')
 
-  return { list, get, create, update, remove, usage, portfolio, commissionsSummary, me }
+  // ---- Advisor dossier (backend V180) — same PROMOTER_VIEW_ALL / PROMOTER_UPDATE permissions ----
+
+  /** Personal references (1..n). */
+  const listReferences = (uuid: string) =>
+    useApi<PromoterReferenceDto[]>(`/v1/admin/promoters/${uuid}/references`)
+
+  const createReference = (uuid: string, body: PromoterReferenceRequest) =>
+    useApi<PromoterReferenceDto>(`/v1/admin/promoters/${uuid}/references`, { method: 'POST', body })
+
+  const updateReference = (uuid: string, referenceUuid: string, body: PromoterReferenceRequest) =>
+    useApi<PromoterReferenceDto>(`/v1/admin/promoters/${uuid}/references/${referenceUuid}`, { method: 'PUT', body })
+
+  const removeReference = (uuid: string, referenceUuid: string) =>
+    useApi<null>(`/v1/admin/promoters/${uuid}/references/${referenceUuid}`, { method: 'DELETE' })
+
+  /** 1:1 payout profile — always 200 when the promoter exists; branch on `exists`. */
+  const getPayoutProfile = (uuid: string, opts: { silent?: boolean } = {}) =>
+    useApi<PromoterPayoutProfileDto>(`/v1/admin/promoters/${uuid}/payout-profile`, { silent: opts.silent })
+
+  /** Upsert with full-replace semantics (omitted/blank fields are cleared). */
+  const savePayoutProfile = (uuid: string, body: PromoterPayoutProfileRequest) =>
+    useApi<PromoterPayoutProfileDto>(`/v1/admin/promoters/${uuid}/payout-profile`, { method: 'PUT', body })
+
+  const removePayoutProfile = (uuid: string) =>
+    useApi<null>(`/v1/admin/promoters/${uuid}/payout-profile`, { method: 'DELETE' })
+
+  /** Read-only own payout profile of the logged-in advisor (PROMOTER_VIEW_OWN). */
+  const myPayoutProfile = () => useApi<PromoterPayoutProfileDto>('/v1/promoter/me/payout-profile')
+
+  return {
+    list, get, create, update, remove, usage, portfolio, commissionsSummary, me,
+    listReferences, createReference, updateReference, removeReference,
+    getPayoutProfile, savePayoutProfile, removePayoutProfile, myPayoutProfile,
+  }
 }

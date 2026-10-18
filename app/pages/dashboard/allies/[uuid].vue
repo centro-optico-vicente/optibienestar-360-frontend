@@ -213,6 +213,7 @@ interface SvcFormState {
   description: string
   priceUsd: string
   discountPct: string
+  exclusions: string
   requiresAppointment: boolean
   published: boolean
 }
@@ -223,6 +224,7 @@ const svcState = reactive<SvcFormState>({
   description: '',
   priceUsd: '',
   discountPct: '',
+  exclusions: '',
   requiresAppointment: false,
   published: false,
 })
@@ -241,6 +243,7 @@ function resetSvcForm() {
   svcState.description = ''
   svcState.priceUsd = ''
   svcState.discountPct = ''
+  svcState.exclusions = ''
   svcState.requiresAppointment = false
   svcState.published = false
 }
@@ -262,6 +265,7 @@ function openSvcEdit(s: AllyServiceDto) {
   svcState.description = s.description ?? ''
   svcState.priceUsd = s.priceUsd ?? ''
   svcState.discountPct = s.discountPct ?? ''
+  svcState.exclusions = s.exclusions ?? ''
   svcState.requiresAppointment = s.requiresAppointment ?? false
   svcState.published = s.published ?? false
   svcFormOpen.value = true
@@ -277,6 +281,7 @@ async function onSvcSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         description: svcState.description || undefined,
         priceUsd: svcState.priceUsd || undefined,
         discountPct: svcState.discountPct || undefined,
+        exclusions: svcState.exclusions.trim() || undefined,
         requiresAppointment: svcState.requiresAppointment,
       }
       await allies.createService(allyUuid, body)
@@ -289,6 +294,8 @@ async function onSvcSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         description: svcState.description || undefined,
         priceUsd: svcState.priceUsd || undefined,
         discountPct: svcState.discountPct || undefined,
+        // Empty string clears the exclusions.
+        exclusions: svcState.exclusions.trim(),
         requiresAppointment: svcState.requiresAppointment,
         published: svcState.published,
       }
@@ -525,6 +532,9 @@ interface AgrFormState {
   terms: string
   signedPdfUrl: string
   status: string
+  termsVersionUuid: string | undefined
+  autoRenew: boolean
+  noticeDays: number
 }
 
 const agrState = reactive<AgrFormState>({
@@ -534,7 +544,32 @@ const agrState = reactive<AgrFormState>({
   terms: '',
   signedPdfUrl: '',
   status: 'ACTIVE',
+  termsVersionUuid: undefined,
+  autoRenew: true,
+  noticeDays: 30,
 })
+
+// Standard "Convenio de Alianza Estratégica" versions (ALIADO terms), loaded
+// lazily the first time the agreement form opens. Needs TERMS_VIEW_ALL; without
+// it the select stays empty and the agreement is saved without a version.
+const termsApi = useTerms()
+const canViewTerms = computed(() => can('TERMS_VIEW_ALL'))
+const termsVersionOptions = ref<{ label: string, value: string }[]>([])
+const termsVersionsLoaded = ref(false)
+async function loadTermsVersions() {
+  if (termsVersionsLoaded.value || !canViewTerms.value) return
+  try {
+    const versions = await termsApi.list('ALIADO')
+    termsVersionOptions.value = versions.map(v => ({
+      label: `${v.title} (${formatDate(v.validFrom)})`,
+      value: v.uuid,
+    }))
+    termsVersionsLoaded.value = true
+  }
+  catch {
+    termsVersionOptions.value = []
+  }
+}
 
 const agrSchema = computed(() => z.object({
   agreementType: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
@@ -542,6 +577,7 @@ const agrSchema = computed(() => z.object({
   endDate: z.string().optional(),
   terms: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
   signedPdfUrl: z.string().url(t('validation.invalidUrl')).optional().or(z.literal('')),
+  noticeDays: z.number({ message: t('validation.required') }).int().min(0, t('validation.required')),
 }))
 
 function resetAgrForm() {
@@ -551,12 +587,16 @@ function resetAgrForm() {
   agrState.terms = ''
   agrState.signedPdfUrl = ''
   agrState.status = 'ACTIVE'
+  agrState.termsVersionUuid = undefined
+  agrState.autoRenew = true
+  agrState.noticeDays = 30
 }
 
 function openAgrCreate() {
   agrMode.value = 'create'
   agrEditingUuid.value = null
   resetAgrForm()
+  loadTermsVersions()
   agrFormOpen.value = true
 }
 
@@ -571,6 +611,17 @@ function openAgrEdit(a: AllyAgreementDto) {
   agrState.terms = a.terms ?? ''
   agrState.signedPdfUrl = a.signedPdfUrl ?? ''
   agrState.status = a.status || 'ACTIVE'
+  agrState.termsVersionUuid = a.termsVersion_Uuid ?? undefined
+  agrState.autoRenew = a.autoRenew ?? true
+  agrState.noticeDays = a.noticeDays ?? 30
+  // Keep the current version selectable even when the caller can't list terms.
+  if (a.termsVersion_Uuid && !termsVersionOptions.value.some(o => o.value === a.termsVersion_Uuid)) {
+    termsVersionOptions.value = [
+      ...termsVersionOptions.value,
+      { label: a.termsVersion_Display ?? a.termsVersion_Uuid, value: a.termsVersion_Uuid },
+    ]
+  }
+  loadTermsVersions()
   agrFormOpen.value = true
 }
 
@@ -584,6 +635,9 @@ async function onAgrSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         endDate: agrState.endDate || undefined,
         terms: agrState.terms || undefined,
         signedPdfUrl: agrState.signedPdfUrl || undefined,
+        termsVersionUuid: agrState.termsVersionUuid,
+        autoRenew: agrState.autoRenew,
+        noticeDays: agrState.noticeDays,
       }
       await allies.createAgreement(allyUuid, body)
       toast.add({ title: t('allies.agreements.createdToast'), color: 'success', icon: 'i-lucide-check-circle' })
@@ -596,6 +650,9 @@ async function onAgrSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         terms: agrState.terms || undefined,
         signedPdfUrl: agrState.signedPdfUrl || undefined,
         status: agrState.status,
+        termsVersionUuid: agrState.termsVersionUuid,
+        autoRenew: agrState.autoRenew,
+        noticeDays: agrState.noticeDays,
       }
       await allies.updateAgreement(allyUuid, agrEditingUuid.value, body)
       toast.add({ title: t('allies.agreements.updatedToast'), color: 'success', icon: 'i-lucide-check-circle' })
@@ -901,6 +958,11 @@ onMounted(async () => {
               <UBadge :color="ally.published ? 'success' : 'neutral'" variant="subtle">
                 {{ ally.published ? t('allies.published') : t('allies.draft') }}
               </UBadge>
+              <UTooltip v-if="ally.fileNumber" :text="t('allies.detail.fileNumberHint')">
+                <UBadge color="info" variant="outline" icon="i-lucide-folder-open" class="font-mono">
+                  {{ t('allies.detail.fileNumber', { number: ally.fileNumber }) }}
+                </UBadge>
+              </UTooltip>
             </div>
             <p class="text-sm text-prohealth-500 mt-1 flex flex-wrap items-center gap-1">
               <template v-if="ally.allyTypes?.length">
@@ -1020,6 +1082,17 @@ onMounted(async () => {
           <div class="sm:col-span-2">
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.detail.fields.address') }}</dt>
             <dd class="text-prohealth-800 mt-0.5">{{ ally.address || t('common.empty') }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.form.fields.capturedByPromoter') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ ally.capturedByPromoter_Display || t('common.empty') }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.form.fields.representativeName') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">
+              {{ ally.representativeName || t('common.empty') }}
+              <template v-if="ally.representativeDocumentNumber"> · {{ ally.representativeDocumentType }}-{{ ally.representativeDocumentNumber }}</template>
+            </dd>
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.form.fields.referralCode') }}</dt>
@@ -1626,6 +1699,19 @@ onMounted(async () => {
             </UFormField>
           </div>
 
+          <UFormField
+            :label="t('allies.services.form.fields.exclusions')"
+            name="exclusions"
+            :help="t('allies.services.form.exclusionsHelp')"
+          >
+            <UTextarea
+              v-model="svcState.exclusions"
+              :rows="2"
+              :placeholder="t('allies.services.form.exclusionsPlaceholder')"
+              class="w-full"
+            />
+          </UFormField>
+
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <UFormField :label="t('allies.services.form.fields.requiresAppointment')" name="requiresAppointment">
               <USwitch v-model="svcState.requiresAppointment" />
@@ -1732,6 +1818,36 @@ onMounted(async () => {
           <UFormField :label="t('allies.agreements.form.fields.signedPdfUrl')" name="signedPdfUrl">
             <UInput v-model="agrState.signedPdfUrl" placeholder="https://…" class="w-full" />
           </UFormField>
+
+          <UFormField
+            :label="t('allies.agreements.form.fields.termsVersion')"
+            name="termsVersionUuid"
+            :help="canViewTerms ? t('allies.agreements.form.termsVersionHelp') : t('allies.agreements.form.termsVersionNoPermission')"
+          >
+            <USelectMenu
+              clear
+              v-model="agrState.termsVersionUuid"
+              :items="termsVersionOptions"
+              label-key="label"
+              value-key="value"
+              icon="i-lucide-file-signature"
+              :placeholder="t('common.select')"
+              class="w-full"
+            />
+          </UFormField>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <UFormField :label="t('allies.agreements.form.fields.autoRenew')" name="autoRenew">
+              <USwitch v-model="agrState.autoRenew" />
+            </UFormField>
+            <UFormField
+              :label="t('allies.agreements.form.fields.noticeDays')"
+              name="noticeDays"
+              :help="t('allies.agreements.form.noticeDaysHelp')"
+            >
+              <UInputNumber v-model="agrState.noticeDays" :min="0" class="w-full" />
+            </UFormField>
+          </div>
 
           <UFormField v-if="agrMode === 'edit'" :label="t('allies.agreements.form.fields.status')" name="status">
             <USelectMenu

@@ -2,7 +2,9 @@
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import { toSelectItems, type SelectItem } from '~/types/options'
-import type { TermType } from '~/types/terms'
+import MarkdownIt from 'markdown-it'
+import DOMPurify from 'dompurify'
+import { TERMS_TEMPLATE_VARIABLES, type TermType } from '~/types/terms'
 
 definePageMeta({
   layout: 'dashboard',
@@ -40,6 +42,9 @@ const state = reactive({
   officialCurrencyUuid: undefined as string | undefined,
   referenceCurrencyUuid: undefined as string | undefined,
   autoApproveCommissions: false,
+  registryState: '',
+  signingCity: '',
+  serviceArea: '',
 })
 
 const schema = computed(() =>
@@ -65,6 +70,21 @@ const schema = computed(() =>
       .or(z.literal('')),
     officialCurrencyUuid: z.string().optional(),
     referenceCurrencyUuid: z.string().optional(),
+    registryState: z
+      .string()
+      .max(80, t('validation.maxChars', { n: 80 }))
+      .optional()
+      .or(z.literal('')),
+    signingCity: z
+      .string()
+      .max(80, t('validation.maxChars', { n: 80 }))
+      .optional()
+      .or(z.literal('')),
+    serviceArea: z
+      .string()
+      .max(150, t('validation.maxChars', { n: 150 }))
+      .optional()
+      .or(z.literal('')),
   })
 )
 
@@ -103,6 +123,9 @@ async function load() {
       state.officialCurrencyUuid = org.officialCurrency_Uuid ?? undefined
       state.referenceCurrencyUuid = org.referenceCurrency_Uuid ?? undefined
       state.autoApproveCommissions = org.autoApproveCommissions
+      state.registryState = org.registryState ?? ''
+      state.signingCity = org.signingCity ?? ''
+      state.serviceArea = org.serviceArea ?? ''
     }
     else {
       toast.add({ title: t('organization.loadError'), color: 'error', icon: 'i-lucide-alert-triangle' })
@@ -139,6 +162,9 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       officialCurrencyUuid: state.officialCurrencyUuid,
       referenceCurrencyUuid: state.referenceCurrencyUuid,
       autoApproveCommissions: state.autoApproveCommissions,
+      registryState: state.registryState || undefined,
+      signingCity: state.signingCity || undefined,
+      serviceArea: state.serviceArea || undefined,
     })
     state.name = updated.name
     state.legalName = updated.legalName ?? ''
@@ -150,7 +176,13 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     state.officialCurrencyUuid = updated.officialCurrency_Uuid ?? undefined
     state.referenceCurrencyUuid = updated.referenceCurrency_Uuid ?? undefined
     state.autoApproveCommissions = updated.autoApproveCommissions
+    state.registryState = updated.registryState ?? ''
+    state.signingCity = updated.signingCity ?? ''
+    state.serviceArea = updated.serviceArea ?? ''
     snapshot.value = snapshotState()
+    // Served T&C resolve {{org.*}} from these fields, so the previews are now stale.
+    for (const type of TERM_TYPES) termTabs[type].loaded = false
+    loadTermType(activeTermTab.value)
     toast.add({
       title: t('organization.updatedToast'),
       color: 'success',
@@ -181,6 +213,8 @@ interface TermTabState {
   contentMarkdown: string
   isPublic: boolean
   validFrom: string
+  /** Server-rendered text (placeholders resolved) of the version shown in the editor, as last saved. */
+  previewRendered: string | null
 }
 
 function emptyTabState(): TermTabState {
@@ -195,6 +229,7 @@ function emptyTabState(): TermTabState {
     contentMarkdown: '',
     isPublic: false,
     validFrom: '',
+    previewRendered: null,
   }
 }
 
@@ -230,6 +265,7 @@ async function loadTermType(type: TermType, force = false) {
     tab.contentMarkdown = scheduled?.contentMarkdown ?? current?.contentMarkdown ?? ''
     tab.isPublic = scheduled?.isPublic ?? current?.isPublic ?? false
     tab.validFrom = scheduled ? scheduled.validFrom.slice(0, 16) : ''
+    tab.previewRendered = scheduled?.contentRendered ?? current?.contentRendered ?? null
     tab.loaded = true
   }
   catch {
@@ -282,6 +318,11 @@ async function saveTermTab(type: TermType) {
     savingTerm.value = false
   }
 }
+
+// ---- Template variables help + rendered preview ----
+const showTermPreview = ref(false)
+const md = new MarkdownIt({ html: false, linkify: true, breaks: true })
+const termPreviewHtml = computed(() => DOMPurify.sanitize(md.render(activeTerm.value.previewRendered || '')))
 
 onMounted(() => {
   load()
@@ -360,6 +401,42 @@ onMounted(() => {
           <UFormField :label="t('organization.fields.taxIdentifier')" name="taxIdentifier">
             <UInput
               v-model="state.taxIdentifier"
+              class="w-full"
+              :disabled="!canUpdate || isSubmitting"
+            />
+          </UFormField>
+
+          <UFormField
+            :label="t('organization.fields.registryState')"
+            :help="t('organization.fields.registryStateHelp')"
+            name="registryState"
+          >
+            <UInput
+              v-model="state.registryState"
+              class="w-full"
+              :disabled="!canUpdate || isSubmitting"
+            />
+          </UFormField>
+
+          <UFormField
+            :label="t('organization.fields.signingCity')"
+            :help="t('organization.fields.signingCityHelp')"
+            name="signingCity"
+          >
+            <UInput
+              v-model="state.signingCity"
+              class="w-full"
+              :disabled="!canUpdate || isSubmitting"
+            />
+          </UFormField>
+
+          <UFormField
+            :label="t('organization.fields.serviceArea')"
+            :help="t('organization.fields.serviceAreaHelp')"
+            name="serviceArea"
+          >
+            <UInput
+              v-model="state.serviceArea"
               class="w-full"
               :disabled="!canUpdate || isSubmitting"
             />
@@ -508,9 +585,44 @@ onMounted(() => {
           <UInput v-model="activeTerm.title" class="w-full" :disabled="!canManageTerms" />
         </UFormField>
 
+        <!-- Supported placeholders. Tokens come from a JS constant, not i18n:
+             `{` `}` are vue-i18n interpolation syntax. -->
+        <div class="text-xs text-prohealth-700 bg-prohealth-50 rounded-lg p-3 space-y-2">
+          <p>{{ t('organization.terms.variables.help') }}</p>
+          <ul class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
+            <li v-for="variable in TERMS_TEMPLATE_VARIABLES" :key="variable.token">
+              <code class="font-mono text-prohealth-900">{{ variable.token }}</code>
+              — {{ t(`organization.terms.variables.${variable.key}`) }}
+            </li>
+          </ul>
+        </div>
+
         <UFormField :label="t('organization.terms.fields.content')">
           <MarkdownEditor v-model="activeTerm.contentMarkdown" :disabled="!canManageTerms" />
         </UFormField>
+
+        <div class="space-y-2">
+          <UButton
+            color="neutral"
+            variant="ghost"
+            size="sm"
+            :icon="showTermPreview ? 'i-lucide-eye-off' : 'i-lucide-eye'"
+            :disabled="!activeTerm.previewRendered"
+            @click="showTermPreview = !showTermPreview"
+          >
+            {{ showTermPreview ? t('organization.terms.preview.hide') : t('organization.terms.preview.show') }}
+          </UButton>
+          <p v-if="!activeTerm.previewRendered" class="text-xs text-prohealth-700/70">
+            {{ t('organization.terms.preview.empty') }}
+          </p>
+          <template v-else-if="showTermPreview">
+            <p class="text-xs text-prohealth-700/70">{{ t('organization.terms.preview.help') }}</p>
+            <div
+              class="terms-content max-h-96 overflow-y-auto rounded-lg border border-prohealth-100 bg-prohealth-50/40 p-4 text-sm text-prohealth-800"
+              v-html="termPreviewHtml"
+            />
+          </template>
+        </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('organization.terms.fields.validFrom')">
@@ -550,3 +662,12 @@ onMounted(() => {
     </UModal>
   </div>
 </template>
+
+<style scoped>
+.terms-content :deep(h1) { font-size: 1.2rem; font-weight: 800; margin: 0.6em 0 0.4em; }
+.terms-content :deep(h2) { font-size: 1.05rem; font-weight: 700; margin: 0.6em 0 0.4em; }
+.terms-content :deep(p) { margin: 0.5em 0; line-height: 1.6; }
+.terms-content :deep(ul), .terms-content :deep(ol) { margin: 0.4em 0 0.4em 1.3em; }
+.terms-content :deep(li) { margin: 0.2em 0; }
+.terms-content :deep(strong) { font-weight: 700; }
+</style>

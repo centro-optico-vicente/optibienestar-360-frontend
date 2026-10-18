@@ -8,13 +8,13 @@
 // PUT uses PATCH semantics (only the fields present are applied).
 
 // ---- Plan type (family) ----
-// The backend only models the `type` dimension (Individual/Familiar/Corporativo,
+// The backend only models the `type` dimension (Individual [shown as "Único"]/Familiar/Corporativo,
 // the flyer taxonomy). The "Premium/1+/2+/3+" axis is a TBD, not yet implemented.
 // `label` is the Spanish fallback; `labelKey` resolves to i18n at the usage point.
 export type PlanType = 'INDIVIDUAL' | 'FAMILIAR' | 'CORPORATIVO'
 
 export const PLAN_TYPE_OPTIONS: { label: string, value: PlanType, labelKey: string }[] = [
-  { label: 'Individual', value: 'INDIVIDUAL', labelKey: 'plans.types.INDIVIDUAL' },
+  { label: 'Único', value: 'INDIVIDUAL', labelKey: 'plans.types.INDIVIDUAL' },
   { label: 'Familiar', value: 'FAMILIAR', labelKey: 'plans.types.FAMILIAR' },
   { label: 'Corporativo', value: 'CORPORATIVO', labelKey: 'plans.types.CORPORATIVO' },
 ]
@@ -55,6 +55,8 @@ export interface PlanDto {
   maxBeneficiaries?: number | null
   /** null = the plan doesn't allow additional beneficiaries. */
   extraBeneficiaryInscriptionFee?: number | string | null
+  /** Minimum number of people the plan requires (V177); null = no minimum. */
+  minMembers?: number | null
   gracePeriodDays: number
   published: boolean
   publishedAt?: string | null
@@ -81,6 +83,8 @@ export interface CreatePlanRequest {
   maxBeneficiaries?: number | null
   /** null = no additional beneficiaries. */
   extraBeneficiaryInscriptionFee?: string | null
+  /** Minimum number of people (≥ 1); only meaningful for corporate plans. */
+  minMembers?: number | null
   gracePeriodDays?: number
   published?: boolean
 }

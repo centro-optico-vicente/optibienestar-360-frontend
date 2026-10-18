@@ -1005,7 +1005,9 @@
       "mandatoryEmail": "Exige correo",
       "mandatoryReferenceNumber": "Exige número de referencia",
       "requiresApproval": "Requiere aprobación",
-      "maxDiscountPct": "Descuento máximo (%)"
+      "maxDiscountPct": "Descuento máximo (%)",
+      "segment": "Segmento",
+      "professionalArea": "Área profesional (solo B2P)"
     },
     "promoterRanksTree": {
       "title": "Árbol de cargos",
@@ -1200,7 +1202,7 @@
       "published": "Publicado"
     },
     "types": {
-      "INDIVIDUAL": "Individual",
+      "INDIVIDUAL": "Único",
       "FAMILIAR": "Familiar",
       "CORPORATIVO": "Corporativo"
     },
@@ -1232,6 +1234,8 @@
       "included": "Beneficiarios incluidos",
       "max": "Beneficiarios máximos",
       "noLimit": "Sin tope",
+      "minMembers": "Mínimo de personas",
+      "noMinimum": "Sin mínimo",
       "graceDays": "Días de gracia",
       "publishedAt": "Publicado el"
     },
@@ -1250,10 +1254,12 @@
       "integersOnly": "Solo números enteros",
       "codeFormat": "UPPER_SNAKE_CASE (A-Z, 0-9, _)",
       "codeHelp": "UPPER_SNAKE_CASE. Llave única del plan.",
-      "namePlaceholder": "Plan Individual",
+      "namePlaceholder": "Plan Único",
       "extraBeneficiaryHelp": "Déjalo vacío si el plan no admite beneficiarios adicionales.",
       "includedHelp": "Por defecto 0.",
       "maxHelp": "Vacío = sin tope.",
+      "minMembersHelp": "Solo para planes corporativos (p. ej. 20). Vacío = sin mínimo.",
+      "minMembersInvalid": "Debe ser un entero mayor o igual a 1",
       "graceHelp": "Por defecto 7.",
       "publishedHelp": "Visible en el directorio público de planes.",
       "activeHelp": "Desactiva el plan (borrado lógico) sin eliminarlo.",
@@ -1334,10 +1340,19 @@
         "joinedAt": "Fecha de alianza",
         "published": "Publicado en directorio",
         "status": "Estado",
-        "referralCode": "Código de referido"
+        "referralCode": "Código de referido",
+        "allyNumber": "Nº de Aliado",
+        "fileNumber": "Nº de expediente",
+        "capturedByPromoter": "Asesor que lo captó",
+        "representativeName": "Representante / médico firmante",
+        "representativeDocumentType": "Tipo de documento del representante",
+        "representativeDocumentNumber": "C.I. / RIF del representante"
       },
       "referralCodeFormat": "El código debe tener entre 4 y 20 letras, números o guiones",
-      "referralCodeHelp": "Código que el aliado entrega a sus clientes para usar una promoción. Solo atribuye, no genera comisión."
+      "referralCodeHelp": "Código que el aliado entrega a sus clientes para usar una promoción. Solo atribuye, no genera comisión.",
+      "fileNumberHelp": "Formato [CÓDIGO DE ASESOR]-[Nº DE ALIADO]; lo asigna el sistema.",
+      "representativeHelp": "Persona que firma el Convenio de Alianza Estratégica en nombre del aliado.",
+      "capturedByPromoterHelp": "Su código de asesor encabeza el número de expediente del convenio."
     },
     "delete": {
       "title": "Eliminar aliado",
@@ -1360,7 +1375,9 @@
         "address": "Dirección",
         "googleMapsUrl": "Enlace de Google Maps",
         "description": "Descripción"
-      }
+      },
+      "fileNumber": "Expediente {number}",
+      "fileNumberHint": "Nº de expediente del Convenio de Alianza Estratégica: [CÓDIGO DE ASESOR]-[Nº DE ALIADO]"
     },
     "tabs": {
       "services": "Servicios",
@@ -1404,8 +1421,11 @@
           "price": "Precio (USD)",
           "discount": "Descuento (%)",
           "requiresAppointment": "Requiere cita",
-          "published": "Publicado"
-        }
+          "published": "Publicado",
+          "exclusions": "Exclusiones (no aplica en)"
+        },
+        "exclusionsHelp": "Casos en los que la Tarifa Preferencial no aplica. Se muestra a los afiliados en el directorio.",
+        "exclusionsPlaceholder": "Ej.: ofertas existentes, licores, cigarrillos"
       },
       "delete": {
         "title": "Eliminar servicio",
@@ -1463,8 +1483,14 @@
           "endDate": "Fecha de fin",
           "terms": "Términos",
           "signedPdfUrl": "URL del PDF firmado",
-          "status": "Estado"
-        }
+          "status": "Estado",
+          "termsVersion": "Versión del convenio estándar",
+          "autoRenew": "Renovación automática",
+          "noticeDays": "Días de aviso"
+        },
+        "termsVersionHelp": "Versión del Convenio de Alianza Estratégica (términos de tipo Aliado) bajo la que se firmó.",
+        "termsVersionNoPermission": "No tienes permiso para listar las versiones del convenio.",
+        "noticeDaysHelp": "Días de preaviso para rescindir el convenio (por defecto 30)."
       },
       "delete": {
         "title": "Eliminar acuerdo",
@@ -1545,7 +1571,8 @@
         "requiresAppointment": "Requiere cita previa",
         "ctaTitle": "¿Aún no eres afiliado?",
         "ctaBody": "Únete a OptiBienestar 360 y accede a precios preferenciales en toda la red.",
-        "ctaButton": "Quiero afiliarme"
+        "ctaButton": "Quiero afiliarme",
+        "exclusions": "No aplica en: {exclusions}"
       }
     },
     "portal": {
@@ -1580,6 +1607,10 @@
       },
       "noAllyTitle": "No estás asociado a ninguna empresa aliada",
       "noAllyDescription": "Pide al equipo de OptiBienestar 360 que te vincule a tu empresa aliada para poder proponer servicios."
+    },
+    "segments": {
+      "B2B": "Comercial (B2B)",
+      "B2P": "Profesional (B2P)"
     }
   },
   "promoterSelf": {
@@ -1737,7 +1768,8 @@
         "method": "Método",
         "reference": "Referencia",
         "reviewedBy": "Revisado por"
-      }
+      },
+      "prefilledFromDossier": "Datos tomados del expediente del asesor"
     },
     "movements": {
       "title": "Movimientos",
@@ -2053,6 +2085,10 @@
       "add": "Añadir",
       "empty": "Sin beneficiarios registrados",
       "extraPaid": "Pagada",
+      "slotBase": "Base",
+      "slotExtra": "Adicional",
+      "slotSummary": "Cupos base {baseUsed}/{baseTotal} · adicionales {extraUsed}/{extraTotal}",
+      "slotSummaryUnlimited": "Cupos base {baseUsed}/{baseTotal} · adicionales {extraUsed} (sin límite)",
       "createdToast": "Beneficiario añadido",
       "updatedToast": "Beneficiario actualizado",
       "deletedToast": "Beneficiario eliminado",
@@ -2061,6 +2097,7 @@
         "document": "Documento",
         "birthDate": "Nacimiento",
         "relationship": "Parentesco",
+        "slot": "Cupo",
         "extraInscription": "Inscripción extra",
         "status": "Estado"
       },
@@ -2426,7 +2463,10 @@
     },
     "tabs": {
       "referrals": "Referidos",
-      "commissions": "Comisiones"
+      "commissions": "Comisiones",
+      "dossier": "Expediente",
+      "references": "Referencias",
+      "payoutProfile": "Datos de cobro"
     },
     "detail": {
       "seoPage": "Detalle de promotor",
@@ -2535,6 +2575,112 @@
       "beforeDeactivate": "Tiene {count} afiliado(s) en cartera. Puedes reasignarlos antes de desactivarlo.",
       "goReassign": "Reasignar cartera",
       "pendingCommissions": "Ver comisiones pendientes"
+    },
+    "dossier": {
+      "title": "Expediente del asesor",
+      "hint": "Registro, identidad y perfil ejecutivo del Asesor Comercial.",
+      "identityHint": "Estos datos se guardan en la ficha de la persona vinculada al usuario del asesor.",
+      "savedToast": "Expediente actualizado",
+      "joinedAtCreateHelp": "Si lo dejas vacío se usa la fecha de hoy.",
+      "sections": {
+        "registration": "I. Registro",
+        "identity": "II. Identidad",
+        "profile": "III. Perfil ejecutivo"
+      },
+      "fields": {
+        "joinedAt": "Fecha de ingreso",
+        "assignedZone": "Región / zona asignada",
+        "rank": "Rango de ingreso",
+        "firstName": "Nombres",
+        "lastName": "Apellidos",
+        "documentType": "Tipo de cédula",
+        "documentNumber": "Número de cédula",
+        "birthDate": "Fecha de nacimiento",
+        "maritalStatus": "Estado civil",
+        "mobilePhone": "Celular",
+        "landlinePhone": "Teléfono alternativo",
+        "email": "Correo electrónico",
+        "address": "Dirección",
+        "city": "Ciudad",
+        "educationLevel": "Nivel académico",
+        "profession": "Profesión / oficio",
+        "yearsOfExperience": "Años de experiencia",
+        "lastCompany": "Última empresa",
+        "lastPosition": "Cargo ejercido",
+        "vehicle": "Vehículo"
+      },
+      "placeholders": {
+        "assignedZone": "Ej.: Caracas — Zona Este",
+        "vehicle": "Marca, modelo y año (si aplica)"
+      },
+      "educationLevel": {
+        "PRIMARY": "Primaria",
+        "SECONDARY": "Secundaria",
+        "TECHNICAL": "Técnico",
+        "UNIVERSITY": "Universitario",
+        "POSTGRADUATE": "Postgrado"
+      },
+      "documentTypes": {
+        "V": "V — Venezolano",
+        "E": "E — Extranjero"
+      },
+      "validation": {
+        "documentNumber": "La cédula debe tener entre 1 y 9 dígitos"
+      }
+    },
+    "references": {
+      "title": "Referencias personales",
+      "hint": "Personas que pueden dar referencia del asesor.",
+      "add": "Agregar referencia",
+      "empty": "Este asesor no tiene referencias registradas.",
+      "createTitle": "Nueva referencia",
+      "editTitle": "Editar referencia",
+      "createdToast": "Referencia agregada",
+      "updatedToast": "Referencia actualizada",
+      "deletedToast": "Referencia eliminada",
+      "deleteTitle": "Eliminar referencia",
+      "deleteConfirm": "¿Eliminar la referencia de {name}?",
+      "documentPair": "Indica tipo y número de cédula, o deja ambos vacíos",
+      "columns": {
+        "name": "Nombre",
+        "document": "Cédula",
+        "phone": "Teléfono"
+      }
+    },
+    "payoutProfile": {
+      "title": "Datos de cobro",
+      "hint": "Cuentas donde el asesor recibe sus liquidaciones. Se usan para precargar los pagos de comisiones.",
+      "add": "Registrar datos de cobro",
+      "emptyTitle": "Sin datos de cobro",
+      "emptyBody": "Este asesor todavía no tiene datos de cobro registrados.",
+      "savedToast": "Datos de cobro guardados",
+      "deletedToast": "Datos de cobro eliminados",
+      "deleteTitle": "Eliminar datos de cobro",
+      "deleteConfirm": "¿Eliminar los datos de cobro de este asesor? Los pagos ya registrados no cambian.",
+      "accountNumberHelp": "Los 20 dígitos de la cuenta, sin guiones.",
+      "sections": {
+        "bankAccount": "Cuenta bancaria nacional",
+        "mobilePayment": "Pago Móvil",
+        "ubii": "Ubii"
+      },
+      "fields": {
+        "bank": "Banco receptor",
+        "accountNumber": "Número de cuenta",
+        "holderDocumentType": "Tipo de cédula/RIF del titular",
+        "holderDocumentNumber": "Cédula/RIF del titular",
+        "holderDocument": "Cédula/RIF asociado",
+        "mobilePaymentPhone": "Teléfono Pago Móvil",
+        "mobilePaymentBank": "Banco Pago Móvil",
+        "ubiiAccount": "Cuenta Ubii",
+        "ubiiHolderName": "Titular cuenta Ubii"
+      },
+      "placeholders": {
+        "phone": "Ej.: 0414-5550101"
+      },
+      "validation": {
+        "accountNumber": "El número de cuenta debe tener exactamente 20 dígitos",
+        "holderPair": "Indica tipo y número del titular, o deja ambos vacíos"
+      }
     }
   },
   "commissions": {
@@ -3810,7 +3956,13 @@
       "facebook": "Facebook",
       "facebookPlaceholder": "https://facebook.com/tu_pagina",
       "autoApproveCommissions": "Auto-aprobar comisiones regulares",
-      "autoApproveCommissionsHelp": "Las comisiones calculadas sin ligar a una campaña se aprueban automáticamente, sin pasar por gerencia comercial. Las comisiones ligadas a una campaña, o generadas por un re-rating/retroactivo, siempre requieren aprobación manual sin importar este ajuste."
+      "autoApproveCommissionsHelp": "Las comisiones calculadas sin ligar a una campaña se aprueban automáticamente, sin pasar por gerencia comercial. Las comisiones ligadas a una campaña, o generadas por un re-rating/retroactivo, siempre requieren aprobación manual sin importar este ajuste.",
+      "registryState": "Estado del Registro Mercantil",
+      "registryStateHelp": "Estado donde está inscrita la empresa. Se usa en los contratos y términos.",
+      "signingCity": "Ciudad de firma",
+      "signingCityHelp": "Ciudad en la que se firman los contratos.",
+      "serviceArea": "Zona de cobertura",
+      "serviceAreaHelp": "Zona donde opera la red de aliados (ej.: eje Acarigua-Araure)."
     },
     "sections": {
       "general": "Datos generales",
@@ -3840,7 +3992,22 @@
       "missingFields": "Completa título, contenido y fecha de vigencia",
       "savedToast": "Versión guardada correctamente",
       "publishNew": "Publicar nueva versión",
-      "saveScheduled": "Guardar versión programada"
+      "saveScheduled": "Guardar versión programada",
+      "variables": {
+        "help": "Puedes usar estas variables en el texto. Se reemplazan con los datos de la organización al mostrar el documento; si un dato falta se muestra como pendiente.",
+        "brandName": "nombre de la marca",
+        "legalName": "razón social",
+        "taxId": "RIF",
+        "registryState": "estado del Registro Mercantil",
+        "city": "ciudad de firma",
+        "serviceArea": "zona de cobertura"
+      },
+      "preview": {
+        "show": "Vista previa",
+        "hide": "Ocultar vista previa",
+        "help": "Así lo verán afiliados, promotores y aliados: versión guardada, con las variables reemplazadas. Los cambios sin guardar no se reflejan.",
+        "empty": "Guarda una versión para ver la vista previa."
+      }
     }
   },
   "systemConfig": {

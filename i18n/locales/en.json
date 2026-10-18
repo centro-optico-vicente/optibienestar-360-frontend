@@ -1005,7 +1005,9 @@
       "mandatoryEmail": "Requires email",
       "mandatoryReferenceNumber": "Requires reference number",
       "requiresApproval": "Requires approval",
-      "maxDiscountPct": "Maximum discount (%)"
+      "maxDiscountPct": "Maximum discount (%)",
+      "segment": "Segment",
+      "professionalArea": "Professional area (B2P only)"
     },
     "promoterRanksTree": {
       "title": "Rank tree",
@@ -1200,7 +1202,7 @@
       "published": "Published"
     },
     "types": {
-      "INDIVIDUAL": "Individual",
+      "INDIVIDUAL": "Single",
       "FAMILIAR": "Family",
       "CORPORATIVO": "Corporate"
     },
@@ -1232,6 +1234,8 @@
       "included": "Included beneficiaries",
       "max": "Maximum beneficiaries",
       "noLimit": "No limit",
+      "minMembers": "Minimum people",
+      "noMinimum": "No minimum",
       "graceDays": "Grace days",
       "publishedAt": "Published on"
     },
@@ -1250,10 +1254,12 @@
       "integersOnly": "Whole numbers only",
       "codeFormat": "UPPER_SNAKE_CASE (A-Z, 0-9, _)",
       "codeHelp": "UPPER_SNAKE_CASE. Unique key of the plan.",
-      "namePlaceholder": "Individual Plan",
+      "namePlaceholder": "Single Plan",
       "extraBeneficiaryHelp": "Leave empty if the plan doesn't allow additional beneficiaries.",
       "includedHelp": "Defaults to 0.",
       "maxHelp": "Empty = no limit.",
+      "minMembersHelp": "Only for corporate plans (e.g. 20). Empty = no minimum.",
+      "minMembersInvalid": "Must be a whole number greater than or equal to 1",
       "graceHelp": "Defaults to 7.",
       "publishedHelp": "Visible in the public plans directory.",
       "activeHelp": "Deactivates the plan (soft delete) without removing it.",
@@ -1334,10 +1340,19 @@
         "joinedAt": "Partnership date",
         "published": "Published in directory",
         "status": "Status",
-        "referralCode": "Referral code"
+        "referralCode": "Referral code",
+        "allyNumber": "Ally number",
+        "fileNumber": "File number",
+        "capturedByPromoter": "Captured by advisor",
+        "representativeName": "Representative / signing physician",
+        "representativeDocumentType": "Representative document type",
+        "representativeDocumentNumber": "Representative ID / RIF"
       },
       "referralCodeFormat": "The code must be 4-20 letters, digits or hyphens",
-      "referralCodeHelp": "Code the ally hands to its customers to use a promotion. Attribution only, no commission."
+      "referralCodeHelp": "Code the ally hands to its customers to use a promotion. Attribution only, no commission.",
+      "fileNumberHelp": "Format [ADVISOR CODE]-[ALLY NUMBER]; assigned by the system.",
+      "representativeHelp": "Person who signs the Strategic Alliance Agreement on behalf of the ally.",
+      "capturedByPromoterHelp": "Their advisor code prefixes the agreement file number."
     },
     "delete": {
       "title": "Delete partner",
@@ -1360,7 +1375,9 @@
         "address": "Address",
         "googleMapsUrl": "Google Maps link",
         "description": "Description"
-      }
+      },
+      "fileNumber": "File {number}",
+      "fileNumberHint": "Strategic Alliance Agreement file number: [ADVISOR CODE]-[ALLY NUMBER]"
     },
     "tabs": {
       "services": "Services",
@@ -1404,8 +1421,11 @@
           "price": "Price (USD)",
           "discount": "Discount (%)",
           "requiresAppointment": "Requires appointment",
-          "published": "Published"
-        }
+          "published": "Published",
+          "exclusions": "Exclusions (does not apply to)"
+        },
+        "exclusionsHelp": "Cases where the Preferential Rate does not apply. Shown to members in the directory.",
+        "exclusionsPlaceholder": "E.g.: existing offers, liquor, cigarettes"
       },
       "delete": {
         "title": "Delete service",
@@ -1463,8 +1483,14 @@
           "endDate": "End date",
           "terms": "Terms",
           "signedPdfUrl": "Signed PDF URL",
-          "status": "Status"
-        }
+          "status": "Status",
+          "termsVersion": "Standard agreement version",
+          "autoRenew": "Automatic renewal",
+          "noticeDays": "Notice days"
+        },
+        "termsVersionHelp": "Strategic Alliance Agreement version (Ally terms) it was signed under.",
+        "termsVersionNoPermission": "You do not have permission to list agreement versions.",
+        "noticeDaysHelp": "Days of notice required to rescind the agreement (default 30)."
       },
       "delete": {
         "title": "Delete agreement",
@@ -1545,7 +1571,8 @@
         "requiresAppointment": "Requires an appointment",
         "ctaTitle": "Not a member yet?",
         "ctaBody": "Join OptiBienestar 360 and access preferential prices across the network.",
-        "ctaButton": "I want to join"
+        "ctaButton": "I want to join",
+        "exclusions": "Does not apply to: {exclusions}"
       }
     },
     "portal": {
@@ -1580,6 +1607,10 @@
       },
       "noAllyTitle": "You are not linked to any partner company",
       "noAllyDescription": "Ask the OptiBienestar 360 team to link you to your partner company so you can propose services."
+    },
+    "segments": {
+      "B2B": "Commercial (B2B)",
+      "B2P": "Professional (B2P)"
     }
   },
   "promoterSelf": {
@@ -1737,7 +1768,8 @@
         "method": "Method",
         "reference": "Reference",
         "reviewedBy": "Reviewed by"
-      }
+      },
+      "prefilledFromDossier": "Details taken from the advisor's dossier"
     },
     "movements": {
       "title": "Movements",
@@ -2053,6 +2085,10 @@
       "add": "Add",
       "empty": "No beneficiaries registered",
       "extraPaid": "Paid",
+      "slotBase": "Base",
+      "slotExtra": "Extra",
+      "slotSummary": "Base slots {baseUsed}/{baseTotal} · extra {extraUsed}/{extraTotal}",
+      "slotSummaryUnlimited": "Base slots {baseUsed}/{baseTotal} · extra {extraUsed} (unlimited)",
       "createdToast": "Beneficiary added",
       "updatedToast": "Beneficiary updated",
       "deletedToast": "Beneficiary deleted",
@@ -2061,6 +2097,7 @@
         "document": "Document",
         "birthDate": "Birth",
         "relationship": "Relationship",
+        "slot": "Slot",
         "extraInscription": "Extra enrollment",
         "status": "Status"
       },
@@ -2426,7 +2463,10 @@
     },
     "tabs": {
       "referrals": "Referrals",
-      "commissions": "Commissions"
+      "commissions": "Commissions",
+      "dossier": "Dossier",
+      "references": "References",
+      "payoutProfile": "Payout details"
     },
     "detail": {
       "seoPage": "Promoter detail",
@@ -2535,6 +2575,112 @@
       "beforeDeactivate": "They have {count} member(s) in their portfolio. You can reassign them before deactivating.",
       "goReassign": "Reassign portfolio",
       "pendingCommissions": "View pending commissions"
+    },
+    "dossier": {
+      "title": "Advisor dossier",
+      "hint": "Registration, identity and executive profile of the Sales Advisor.",
+      "identityHint": "These fields are saved on the person record linked to the advisor's user.",
+      "savedToast": "Dossier updated",
+      "joinedAtCreateHelp": "Leave it empty to use today's date.",
+      "sections": {
+        "registration": "I. Registration",
+        "identity": "II. Identity",
+        "profile": "III. Executive profile"
+      },
+      "fields": {
+        "joinedAt": "Joining date",
+        "assignedZone": "Assigned region / zone",
+        "rank": "Starting rank",
+        "firstName": "First names",
+        "lastName": "Last names",
+        "documentType": "ID type",
+        "documentNumber": "ID number",
+        "birthDate": "Date of birth",
+        "maritalStatus": "Marital status",
+        "mobilePhone": "Mobile phone",
+        "landlinePhone": "Alternate phone",
+        "email": "Email",
+        "address": "Address",
+        "city": "City",
+        "educationLevel": "Education level",
+        "profession": "Profession / trade",
+        "yearsOfExperience": "Years of experience",
+        "lastCompany": "Last company",
+        "lastPosition": "Position held",
+        "vehicle": "Vehicle"
+      },
+      "placeholders": {
+        "assignedZone": "E.g.: Caracas — East zone",
+        "vehicle": "Make, model and year (if any)"
+      },
+      "educationLevel": {
+        "PRIMARY": "Primary school",
+        "SECONDARY": "High school",
+        "TECHNICAL": "Technical",
+        "UNIVERSITY": "University",
+        "POSTGRADUATE": "Postgraduate"
+      },
+      "documentTypes": {
+        "V": "V — Venezuelan",
+        "E": "E — Foreigner"
+      },
+      "validation": {
+        "documentNumber": "The ID number must have 1 to 9 digits"
+      }
+    },
+    "references": {
+      "title": "Personal references",
+      "hint": "People who can vouch for the advisor.",
+      "add": "Add reference",
+      "empty": "This advisor has no references yet.",
+      "createTitle": "New reference",
+      "editTitle": "Edit reference",
+      "createdToast": "Reference added",
+      "updatedToast": "Reference updated",
+      "deletedToast": "Reference deleted",
+      "deleteTitle": "Delete reference",
+      "deleteConfirm": "Delete the reference of {name}?",
+      "documentPair": "Enter both ID type and number, or leave both empty",
+      "columns": {
+        "name": "Name",
+        "document": "ID",
+        "phone": "Phone"
+      }
+    },
+    "payoutProfile": {
+      "title": "Payout details",
+      "hint": "Accounts where the advisor receives payouts. Used to prefill commission payments.",
+      "add": "Add payout details",
+      "emptyTitle": "No payout details",
+      "emptyBody": "This advisor has no payout details yet.",
+      "savedToast": "Payout details saved",
+      "deletedToast": "Payout details deleted",
+      "deleteTitle": "Delete payout details",
+      "deleteConfirm": "Delete this advisor's payout details? Payments already registered are not affected.",
+      "accountNumberHelp": "The 20 account digits, no dashes.",
+      "sections": {
+        "bankAccount": "National bank account",
+        "mobilePayment": "Pago Móvil",
+        "ubii": "Ubii"
+      },
+      "fields": {
+        "bank": "Receiving bank",
+        "accountNumber": "Account number",
+        "holderDocumentType": "Holder ID/RIF type",
+        "holderDocumentNumber": "Holder ID/RIF",
+        "holderDocument": "Associated ID/RIF",
+        "mobilePaymentPhone": "Pago Móvil phone",
+        "mobilePaymentBank": "Pago Móvil bank",
+        "ubiiAccount": "Ubii account",
+        "ubiiHolderName": "Ubii account holder"
+      },
+      "placeholders": {
+        "phone": "E.g.: 0414-5550101"
+      },
+      "validation": {
+        "accountNumber": "The account number must be exactly 20 digits",
+        "holderPair": "Enter both holder ID type and number, or leave both empty"
+      }
     }
   },
   "commissions": {
@@ -3810,7 +3956,13 @@
       "facebook": "Facebook",
       "facebookPlaceholder": "https://facebook.com/your_page",
       "autoApproveCommissions": "Auto-approve regular commissions",
-      "autoApproveCommissionsHelp": "Commissions calculated with no campaign attribution are approved automatically, skipping the gerencia comercial queue. Campaign-linked commissions, or ones produced by a re-rating/retroactive adjustment, always require manual approval regardless of this setting."
+      "autoApproveCommissionsHelp": "Commissions calculated with no campaign attribution are approved automatically, skipping the gerencia comercial queue. Campaign-linked commissions, or ones produced by a re-rating/retroactive adjustment, always require manual approval regardless of this setting.",
+      "registryState": "Commercial Registry state",
+      "registryStateHelp": "State where the company is registered. Used in contracts and terms.",
+      "signingCity": "Signing city",
+      "signingCityHelp": "City where contracts are signed.",
+      "serviceArea": "Coverage area",
+      "serviceAreaHelp": "Area where the allies network operates (e.g. eje Acarigua-Araure)."
     },
     "sections": {
       "general": "General information",
@@ -3840,7 +3992,22 @@
       "missingFields": "Fill in the title, content and effective date",
       "savedToast": "Version saved successfully",
       "publishNew": "Publish new version",
-      "saveScheduled": "Save scheduled version"
+      "saveScheduled": "Save scheduled version",
+      "variables": {
+        "help": "You can use these variables in the text. They are replaced with the organization data when the document is shown; a missing value is shown as pending.",
+        "brandName": "brand name",
+        "legalName": "legal name",
+        "taxId": "tax ID (RIF)",
+        "registryState": "Commercial Registry state",
+        "city": "signing city",
+        "serviceArea": "coverage area"
+      },
+      "preview": {
+        "show": "Preview",
+        "hide": "Hide preview",
+        "help": "This is how members, promoters and allies will see it: the saved version with the variables replaced. Unsaved changes are not reflected.",
+        "empty": "Save a version to see the preview."
+      }
     }
   },
   "systemConfig": {
