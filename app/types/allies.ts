@@ -15,6 +15,20 @@ export interface AllyDto {
   uuid: string
   name: string
   allyTypes?: CatalogRef[]
+  /** Sequential "Nº de Aliado", assigned by the backend (V179) — read-only. */
+  allyNumber?: number | null
+  /**
+   * Agreement file number "[CÓDIGO DE ASESOR]-[Nº DE ALIADO]" (e.g. `ABC123-0007`);
+   * just the zero-padded number (`0007`) when no promoter captured the ally. Read-only.
+   */
+  fileNumber?: string | null
+  /** Promoter (advisor) who captured the ally — ADR 0014 FK pair. */
+  capturedByPromoter_Uuid?: string | null
+  capturedByPromoter_Display?: string | null
+  /** Legal representative / physician who signs the agreement. */
+  representativeName?: string | null
+  representativeDocumentType?: string | null
+  representativeDocumentNumber?: string | null
   taxDocumentType?: string
   taxDocumentNumber?: string
   email?: string
@@ -58,6 +72,8 @@ export interface AllyDto {
 export interface AllyListItemDto {
   uuid: string
   name: string
+  /** Sequential "Nº de Aliado" (V179). */
+  allyNumber?: number | null
 
   /** Backend-formatted names of every ally type this partner belongs to (M:N). */
   allyTypeNames?: string[]
@@ -103,6 +119,11 @@ export interface CreateAllyRequest {
   joinedAt?: string
   published?: boolean
   professionUuids?: string[]
+  /** Promoter (advisor) who captured the ally. `allyNumber` is never sent — the backend assigns it. */
+  capturedByPromoterUuid?: string
+  representativeName?: string
+  representativeDocumentType?: string
+  representativeDocumentNumber?: string
 }
 
 /** PUT with PATCH semantics; `professionUuids`/`allyTypeUuids` REPLACE the set when sent. */
@@ -124,6 +145,8 @@ export interface AllyServiceDto {
   serviceCategory?: CatalogRef
   priceUsd?: string
   discountPct?: string
+  /** Where the preferential rate does not apply (V179), free text. */
+  exclusions?: string | null
   requiresAppointment?: boolean
   reviewStatus?: ServiceReviewStatus | string
   reviewStatus_Display?: string | null
@@ -143,6 +166,8 @@ export interface CreateAllyServiceRequest {
   description?: string
   priceUsd?: string
   discountPct?: string
+  /** Free text; an empty string clears it on update. */
+  exclusions?: string
   requiresAppointment?: boolean
 }
 
@@ -180,6 +205,15 @@ export interface AllyAgreementDto {
   endDate_Display?: string | null
   terms?: string
   signedPdfUrl?: string
+  /** Standard ALIADO terms version ("Convenio de Alianza Estratégica") — ADR 0014 FK pair. */
+  termsVersion_Uuid?: string | null
+  termsVersion_Display?: string | null
+  /** Renews automatically at the end of its validity (default true). */
+  autoRenew?: boolean
+  autoRenew_Display?: string | null
+  /** Days of notice required to rescind (default 30). */
+  noticeDays?: number
+  noticeDays_Display?: string | null
   active?: boolean
   active_Display?: string | null
   status?: string
@@ -194,6 +228,10 @@ export interface CreateAllyAgreementRequest {
   endDate?: string
   terms?: string
   signedPdfUrl?: string
+  /** Must be an ALIADO terms version (422 otherwise). */
+  termsVersionUuid?: string
+  autoRenew?: boolean
+  noticeDays?: number
 }
 
 export interface UpdateAllyAgreementRequest extends Partial<CreateAllyAgreementRequest> {
@@ -319,4 +357,6 @@ export interface PublicAllyDto {
   description?: string
   professions?: CatalogRef[]
   services?: AllyServiceDto[]
+  /** Distinct segments (`B2B` / `B2P`) of the partner's active types (V179). */
+  allySegments?: string[]
 }

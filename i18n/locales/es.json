@@ -997,7 +997,9 @@
       "mandatoryEmail": "Exige correo",
       "mandatoryReferenceNumber": "Exige número de referencia",
       "requiresApproval": "Requiere aprobación",
-      "maxDiscountPct": "Descuento máximo (%)"
+      "maxDiscountPct": "Descuento máximo (%)",
+      "segment": "Segmento",
+      "professionalArea": "Área profesional (solo B2P)"
     },
     "promoterRanksTree": {
       "title": "Árbol de cargos",
@@ -1326,10 +1328,19 @@
         "joinedAt": "Fecha de alianza",
         "published": "Publicado en directorio",
         "status": "Estado",
-        "referralCode": "Código de referido"
+        "referralCode": "Código de referido",
+        "allyNumber": "Nº de Aliado",
+        "fileNumber": "Nº de expediente",
+        "capturedByPromoter": "Asesor que lo captó",
+        "representativeName": "Representante / médico firmante",
+        "representativeDocumentType": "Tipo de documento del representante",
+        "representativeDocumentNumber": "C.I. / RIF del representante"
       },
       "referralCodeFormat": "El código debe tener entre 4 y 20 letras, números o guiones",
-      "referralCodeHelp": "Código que el aliado entrega a sus clientes para usar una promoción. Solo atribuye, no genera comisión."
+      "referralCodeHelp": "Código que el aliado entrega a sus clientes para usar una promoción. Solo atribuye, no genera comisión.",
+      "fileNumberHelp": "Formato [CÓDIGO DE ASESOR]-[Nº DE ALIADO]; lo asigna el sistema.",
+      "representativeHelp": "Persona que firma el Convenio de Alianza Estratégica en nombre del aliado.",
+      "capturedByPromoterHelp": "Su código de asesor encabeza el número de expediente del convenio."
     },
     "delete": {
       "title": "Eliminar aliado",
@@ -1352,7 +1363,9 @@
         "address": "Dirección",
         "googleMapsUrl": "Enlace de Google Maps",
         "description": "Descripción"
-      }
+      },
+      "fileNumber": "Expediente {number}",
+      "fileNumberHint": "Nº de expediente del Convenio de Alianza Estratégica: [CÓDIGO DE ASESOR]-[Nº DE ALIADO]"
     },
     "tabs": {
       "services": "Servicios",
@@ -1396,8 +1409,11 @@
           "price": "Precio (USD)",
           "discount": "Descuento (%)",
           "requiresAppointment": "Requiere cita",
-          "published": "Publicado"
-        }
+          "published": "Publicado",
+          "exclusions": "Exclusiones (no aplica en)"
+        },
+        "exclusionsHelp": "Casos en los que la Tarifa Preferencial no aplica. Se muestra a los afiliados en el directorio.",
+        "exclusionsPlaceholder": "Ej.: ofertas existentes, licores, cigarrillos"
       },
       "delete": {
         "title": "Eliminar servicio",
@@ -1455,8 +1471,14 @@
           "endDate": "Fecha de fin",
           "terms": "Términos",
           "signedPdfUrl": "URL del PDF firmado",
-          "status": "Estado"
-        }
+          "status": "Estado",
+          "termsVersion": "Versión del convenio estándar",
+          "autoRenew": "Renovación automática",
+          "noticeDays": "Días de aviso"
+        },
+        "termsVersionHelp": "Versión del Convenio de Alianza Estratégica (términos de tipo Aliado) bajo la que se firmó.",
+        "termsVersionNoPermission": "No tienes permiso para listar las versiones del convenio.",
+        "noticeDaysHelp": "Días de preaviso para rescindir el convenio (por defecto 30)."
       },
       "delete": {
         "title": "Eliminar acuerdo",
@@ -1537,7 +1559,8 @@
         "requiresAppointment": "Requiere cita previa",
         "ctaTitle": "¿Aún no eres afiliado?",
         "ctaBody": "Únete a OptiBienestar 360 y accede a precios preferenciales en toda la red.",
-        "ctaButton": "Quiero afiliarme"
+        "ctaButton": "Quiero afiliarme",
+        "exclusions": "No aplica en: {exclusions}"
       }
     },
     "portal": {
@@ -1572,6 +1595,10 @@
       },
       "noAllyTitle": "No estás asociado a ninguna empresa aliada",
       "noAllyDescription": "Pide al equipo de OptiBienestar 360 que te vincule a tu empresa aliada para poder proponer servicios."
+    },
+    "segments": {
+      "B2B": "Comercial (B2B)",
+      "B2P": "Profesional (B2P)"
     }
   },
   "promoterSelf": {

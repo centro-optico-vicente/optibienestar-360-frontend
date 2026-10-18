@@ -89,6 +89,7 @@ const hasDescription = computed(() => def.value?.fields.some(f => f.name === 'de
 const hasCurrencyDetails = computed(() => def.value?.key === 'currencies')
 const hasBankDetails = computed(() => def.value?.key === 'banks')
 const hasPaymentMethodDetails = computed(() => def.value?.key === 'payment-methods')
+const hasAllySegment = computed(() => def.value?.key === 'ally-types')
 
 // The "parent" column header uses the FK field's own label (e.g. "Estado / Departamento",
 // "País") instead of the generic "Padre", which reads clearer per catalog.
@@ -105,6 +106,7 @@ const columnCount = computed(() => {
   if (def.value?.parentDisplayField) n++
   if (hasDescription.value) n++
   if (hasCurrencyDetails.value) n += 2
+  if (hasAllySegment.value) n++ // segment (+ professional area)
   n++ // status
   return n
 })
@@ -400,6 +402,9 @@ function formFieldClass(field: CatalogField): string {
   }
   if (hasPaymentMethodDetails.value) {
     return field.type === 'checkbox' ? 'col-span-1 p-1' : 'col-span-2'
+  }
+  if (hasAllySegment.value) {
+    return field.name === 'segment' || field.name === 'professionalArea' ? 'col-span-1' : 'col-span-2'
   }
   return ''
 }
@@ -722,6 +727,14 @@ async function confirmDelete() {
                 {{ $t('catalogs.columns.description') }}
                 <SortIndicator :state="sort.stateOf('description')" :multi-active="isMultiSort" @clear="sort.remove('description')" />
               </th>
+              <th
+                v-if="hasAllySegment"
+                class="px-5 py-3 font-semibold cursor-pointer select-none"
+                @click="sort.toggle('segment')"
+              >
+                {{ $t('catalogs.fields.segment') }}
+                <SortIndicator :state="sort.stateOf('segment')" :multi-active="isMultiSort" @clear="sort.remove('segment')" />
+              </th>
               <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('active')">
                 {{ $t('catalogs.columns.active') }}
                 <SortIndicator :state="sort.stateOf('active')" :multi-active="isMultiSort" @clear="sort.remove('active')" />
@@ -770,6 +783,14 @@ async function confirmDelete() {
               </td>
               <td v-if="hasDescription" class="px-5 py-3 text-prohealth-600">
                 {{ item.description || $t('common.empty') }}
+              </td>
+              <td v-if="hasAllySegment" class="px-5 py-3 text-prohealth-700">
+                <UBadge :color="item.segment === 'B2P' ? 'info' : 'neutral'" variant="subtle" size="sm">
+                  {{ item.segment_Display ?? item.segment ?? $t('common.empty') }}
+                </UBadge>
+                <span v-if="item.professionalArea" class="block text-xs text-prohealth-500 mt-1">
+                  {{ item.professionalArea_Display ?? item.professionalArea }}
+                </span>
               </td>
               <td class="px-5 py-3">
                 <UBadge :color="item.active ? 'success' : 'neutral'" variant="subtle" size="sm">
@@ -863,7 +884,7 @@ async function confirmDelete() {
           ref="formRef"
           :schema="schema"
           :state="state"
-          :class="hasCurrencyDetails || hasBankDetails || hasPaymentMethodDetails ? 'grid grid-cols-2 gap-x-4 gap-y-4' : 'space-y-4'"
+          :class="hasCurrencyDetails || hasBankDetails || hasPaymentMethodDetails || hasAllySegment ? 'grid grid-cols-2 gap-x-4 gap-y-4' : 'space-y-4'"
           @submit="onSubmit"
         >
           <UFormField
@@ -901,6 +922,7 @@ async function confirmDelete() {
             <USelectMenu
               v-else-if="f.type === 'select'"
               v-model="state[f.name]"
+              :clear="!f.required"
               :items="f.options ?? []"
               label-key="label"
               value-key="value"

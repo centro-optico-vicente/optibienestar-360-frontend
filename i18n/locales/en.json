@@ -997,7 +997,9 @@
       "mandatoryEmail": "Requires email",
       "mandatoryReferenceNumber": "Requires reference number",
       "requiresApproval": "Requires approval",
-      "maxDiscountPct": "Maximum discount (%)"
+      "maxDiscountPct": "Maximum discount (%)",
+      "segment": "Segment",
+      "professionalArea": "Professional area (B2P only)"
     },
     "promoterRanksTree": {
       "title": "Rank tree",
@@ -1326,10 +1328,19 @@
         "joinedAt": "Partnership date",
         "published": "Published in directory",
         "status": "Status",
-        "referralCode": "Referral code"
+        "referralCode": "Referral code",
+        "allyNumber": "Ally number",
+        "fileNumber": "File number",
+        "capturedByPromoter": "Captured by advisor",
+        "representativeName": "Representative / signing physician",
+        "representativeDocumentType": "Representative document type",
+        "representativeDocumentNumber": "Representative ID / RIF"
       },
       "referralCodeFormat": "The code must be 4-20 letters, digits or hyphens",
-      "referralCodeHelp": "Code the ally hands to its customers to use a promotion. Attribution only, no commission."
+      "referralCodeHelp": "Code the ally hands to its customers to use a promotion. Attribution only, no commission.",
+      "fileNumberHelp": "Format [ADVISOR CODE]-[ALLY NUMBER]; assigned by the system.",
+      "representativeHelp": "Person who signs the Strategic Alliance Agreement on behalf of the ally.",
+      "capturedByPromoterHelp": "Their advisor code prefixes the agreement file number."
     },
     "delete": {
       "title": "Delete partner",
@@ -1352,7 +1363,9 @@
         "address": "Address",
         "googleMapsUrl": "Google Maps link",
         "description": "Description"
-      }
+      },
+      "fileNumber": "File {number}",
+      "fileNumberHint": "Strategic Alliance Agreement file number: [ADVISOR CODE]-[ALLY NUMBER]"
     },
     "tabs": {
       "services": "Services",
@@ -1396,8 +1409,11 @@
           "price": "Price (USD)",
           "discount": "Discount (%)",
           "requiresAppointment": "Requires appointment",
-          "published": "Published"
-        }
+          "published": "Published",
+          "exclusions": "Exclusions (does not apply to)"
+        },
+        "exclusionsHelp": "Cases where the Preferential Rate does not apply. Shown to members in the directory.",
+        "exclusionsPlaceholder": "E.g.: existing offers, liquor, cigarettes"
       },
       "delete": {
         "title": "Delete service",
@@ -1455,8 +1471,14 @@
           "endDate": "End date",
           "terms": "Terms",
           "signedPdfUrl": "Signed PDF URL",
-          "status": "Status"
-        }
+          "status": "Status",
+          "termsVersion": "Standard agreement version",
+          "autoRenew": "Automatic renewal",
+          "noticeDays": "Notice days"
+        },
+        "termsVersionHelp": "Strategic Alliance Agreement version (Ally terms) it was signed under.",
+        "termsVersionNoPermission": "You do not have permission to list agreement versions.",
+        "noticeDaysHelp": "Days of notice required to rescind the agreement (default 30)."
       },
       "delete": {
         "title": "Delete agreement",
@@ -1537,7 +1559,8 @@
         "requiresAppointment": "Requires an appointment",
         "ctaTitle": "Not a member yet?",
         "ctaBody": "Join OptiBienestar 360 and access preferential prices across the network.",
-        "ctaButton": "I want to join"
+        "ctaButton": "I want to join",
+        "exclusions": "Does not apply to: {exclusions}"
       }
     },
     "portal": {
@@ -1572,6 +1595,10 @@
       },
       "noAllyTitle": "You are not linked to any partner company",
       "noAllyDescription": "Ask the OptiBienestar 360 team to link you to your partner company so you can propose services."
+    },
+    "segments": {
+      "B2B": "Commercial (B2B)",
+      "B2P": "Professional (B2P)"
     }
   },
   "promoterSelf": {

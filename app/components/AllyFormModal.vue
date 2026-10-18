@@ -38,6 +38,8 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const allies = useAllies()
 const toast = useToast()
+const promotersApi = usePromoters()
+const { can } = usePermissions()
 
 const isOpen = computed({
   get: () => props.open,
@@ -61,7 +63,24 @@ const professionOptions = ref<SelectItem[]>([])
 const stateOptions = ref<SelectItem[]>([])
 const cityOptions = ref<SelectItem[]>([])
 const { options: documentTypeOptions, load: loadDocumentTypes } = useDocumentTypes()
+// "Asesor que lo captó": the promoter list needs PROMOTER_VIEW_ALL; without it
+// the select only shows the currently assigned promoter (from the detail).
+const canListPromoters = computed(() => can('PROMOTER_VIEW_ALL'))
+const promoterOptions = ref<SelectItem[]>([])
 const catalogsLoaded = ref(false)
+
+async function loadPromoterOptions() {
+  if (!canListPromoters.value) return
+  try {
+    const res = await promotersApi.list({ size: 200, sort: ['displayName,asc'] })
+    promoterOptions.value = (res.content ?? [])
+      .filter(p => !p.system)
+      .map(p => ({ label: `${p.displayName} (${p.referralCode || t('common.noCode')})`, value: p.uuid }))
+  }
+  catch {
+    promoterOptions.value = []
+  }
+}
 
 async function loadCatalogs() {
   if (catalogsLoaded.value) return
@@ -81,7 +100,7 @@ async function loadCatalogs() {
   allyTypeOptions.value = toSelectItems(types)
   professionOptions.value = toSelectItems(professions)
   stateOptions.value = toSelectItems(states)
-  await loadDocumentTypes()
+  await Promise.all([loadDocumentTypes(), loadPromoterOptions()])
   catalogsLoaded.value = true
 }
 
@@ -132,6 +151,10 @@ interface FormState {
   published: boolean
   status: string
   professionUuids: string[]
+  capturedByPromoterUuid: string | undefined
+  representativeName: string
+  representativeDocumentType: string | undefined
+  representativeDocumentNumber: string
 }
 
 const state = reactive<FormState>({
@@ -154,7 +177,15 @@ const state = reactive<FormState>({
   published: false,
   status: 'ACTIVE',
   professionUuids: [],
+  capturedByPromoterUuid: undefined,
+  representativeName: '',
+  representativeDocumentType: undefined,
+  representativeDocumentNumber: '',
 })
+
+// Read-only agreement file data shown on edit (assigned by the backend).
+const allyNumber = ref<number | null>(null)
+const fileNumber = ref<string | null>(null)
 
 // Locale-reactive schema so validation messages follow the UI locale.
 const schema = computed(() => {
@@ -174,6 +205,8 @@ const schema = computed(() => {
     referralCode: z.string().regex(/^[A-Za-z0-9-]{4,20}$/, t('allies.form.referralCodeFormat')).optional().or(z.literal('')),
     description: z.string().optional(),
     joinedAt: z.string().optional(),
+    representativeName: z.string().max(210).optional(),
+    representativeDocumentNumber: z.string().regex(/^\d*$/, t('validation.digitsOnly')).optional(),
   }
   return props.mode === 'create' ? z.object(base) : z.object({ ...base, status: z.string() })
 })
@@ -198,6 +231,12 @@ function resetForm() {
   state.published = false
   state.status = 'ACTIVE'
   state.professionUuids = []
+  state.capturedByPromoterUuid = undefined
+  state.representativeName = ''
+  state.representativeDocumentType = undefined
+  state.representativeDocumentNumber = ''
+  allyNumber.value = null
+  fileNumber.value = null
   selectedStateUuid.value = undefined
   pendingCityUuid.value = undefined
 }
@@ -233,6 +272,19 @@ function populateEditForm(full: AllyDto) {
   state.published = full.published ?? false
   state.status = full.status || 'ACTIVE'
   state.professionUuids = (full.professions ?? []).map(s => s.uuid)
+  state.capturedByPromoterUuid = full.capturedByPromoter_Uuid ?? undefined
+  // Keep the assigned promoter selectable even if the list is unavailable/filtered.
+  if (full.capturedByPromoter_Uuid && !promoterOptions.value.some(o => o.value === full.capturedByPromoter_Uuid)) {
+    promoterOptions.value = [
+      ...promoterOptions.value,
+      { label: full.capturedByPromoter_Display ?? full.capturedByPromoter_Uuid, value: full.capturedByPromoter_Uuid },
+    ]
+  }
+  state.representativeName = full.representativeName ?? ''
+  state.representativeDocumentType = full.representativeDocumentType || undefined
+  state.representativeDocumentNumber = full.representativeDocumentNumber ?? ''
+  allyNumber.value = full.allyNumber ?? null
+  fileNumber.value = full.fileNumber ?? null
   editSnapshot.value = snapshotEditState()
 }
 
@@ -303,6 +355,10 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         joinedAt: state.joinedAt || undefined,
         published: state.published,
         professionUuids: state.professionUuids.length ? state.professionUuids : undefined,
+        capturedByPromoterUuid: state.capturedByPromoterUuid,
+        representativeName: state.representativeName.trim() || undefined,
+        representativeDocumentType: state.representativeDocumentType || undefined,
+        representativeDocumentNumber: state.representativeDocumentNumber || undefined,
       }
       saved = await allies.create(body)
       toast.add({ title: t('allies.createdToast'), color: 'success', icon: 'i-lucide-check-circle' })
@@ -331,6 +387,11 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         status: state.status,
         // Replaces the full professions set.
         professionUuids: state.professionUuids,
+        // PATCH semantics: an omitted promoter keeps the current one (it can be changed, not cleared).
+        capturedByPromoterUuid: state.capturedByPromoterUuid,
+        representativeName: state.representativeName.trim() || undefined,
+        representativeDocumentType: state.representativeDocumentType || undefined,
+        representativeDocumentNumber: state.representativeDocumentNumber || undefined,
       }
       saved = await allies.update(props.ally.uuid, body)
       toast.add({ title: t('allies.updatedToast'), color: 'success', icon: 'i-lucide-check-circle' })
@@ -391,6 +452,16 @@ function requestDelete() {
         class="space-y-4"
         @submit="onSubmit"
       >
+        <!-- Agreement file "[CÓDIGO DE ASESOR]-[Nº DE ALIADO]" — assigned by the backend, read-only. -->
+        <div v-if="mode === 'edit' && (allyNumber || fileNumber)" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <UFormField :label="t('allies.form.fields.allyNumber')" name="allyNumber">
+            <UInput :model-value="allyNumber ?? ''" disabled class="w-full font-mono" />
+          </UFormField>
+          <UFormField :label="t('allies.form.fields.fileNumber')" name="fileNumber" :help="t('allies.form.fileNumberHelp')">
+            <UInput :model-value="fileNumber ?? ''" disabled class="w-full font-mono" />
+          </UFormField>
+        </div>
+
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('allies.form.fields.name')" name="name" required>
             <UInput v-model="state.name" class="w-full" />
@@ -424,6 +495,39 @@ function requestDelete() {
             <UInput v-model="state.taxDocumentNumber" class="w-full" />
           </UFormField>
         </div>
+
+        <UFormField :label="t('allies.form.fields.representativeName')" name="representativeName" :help="t('allies.form.representativeHelp')">
+          <UInput v-model="state.representativeName" icon="i-lucide-user-pen" class="w-full" />
+        </UFormField>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <UFormField :label="t('allies.form.fields.representativeDocumentType')" name="representativeDocumentType">
+            <CommonEntityReferenceSelect
+              v-model="state.representativeDocumentType"
+              :items="documentTypeOptions"
+              entity="document_type"
+              :placeholder="t('common.select')"
+              @navigate="goToCatalogRecord"
+            />
+          </UFormField>
+          <UFormField :label="t('allies.form.fields.representativeDocumentNumber')" name="representativeDocumentNumber">
+            <UInput v-model="state.representativeDocumentNumber" class="w-full" />
+          </UFormField>
+        </div>
+
+        <UFormField :label="t('allies.form.fields.capturedByPromoter')" name="capturedByPromoterUuid" :help="t('allies.form.capturedByPromoterHelp')">
+          <!-- Clearable only on create: the update is PATCH, so an omitted promoter keeps the current one. -->
+          <USelectMenu
+            v-model="state.capturedByPromoterUuid"
+            :clear="mode === 'create'"
+            :items="promoterOptions"
+            label-key="label"
+            value-key="value"
+            icon="i-lucide-user-check"
+            :placeholder="t('common.select')"
+            class="w-full"
+          />
+        </UFormField>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('allies.form.fields.email')" name="email">
