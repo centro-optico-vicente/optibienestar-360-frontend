@@ -6,6 +6,12 @@
 > [`app/assets/css/main.css`](../../app/assets/css/main.css) (`@theme static`) y
 > [`app.config.ts`](../../app.config.ts). Handoff:
 > `centro-optico-vicente/.ai/notes/2026-10-17-brand-typography-portals-handoff.md`.
+>
+> **Spec cross-stack de identidad visual (fuente de verdad):**
+> [hub spec 11](https://github.com/centro-optico-vicente/centro-optico-vicente/blob/main/.ai/specs/11-brand-visual-identity.md).
+> Cubre esencia, voz, paleta completa con CMYK, jerarquía, contraste WCAG,
+> tipografía, versiones y reglas del logo, aplicaciones y checklist para pantallas
+> nuevas. Este archivo documenta solo cómo se implementa en este repo.
 
 ## Paleta
 
