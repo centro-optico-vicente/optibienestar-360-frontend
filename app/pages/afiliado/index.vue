@@ -3,7 +3,7 @@ import type { ApiError } from '~/types/auth'
 import type { MemberDto } from '~/types/members'
 import logoUrl from '~/assets/centro-optico-vicente-logo.png'
 
-// Member portal: digital card + covered beneficiaries.
+// Member portal: Digital Credential + covered beneficiaries.
 // GET /v1/me/member requires MEMBER_VIEW_OWN; it returns 404 if the user isn't enrolled.
 definePageMeta({
   layout: 'dashboard',
@@ -19,10 +19,22 @@ useSeoMeta({ title: () => t('members.portal.seoTitle') })
 const members = useMembers()
 const auth = useAuthStore()
 
+// Digital Credential read model (GET /v1/me/digital-card): plan and status of the
+// active membership plus the QR (it encodes the member UUID, which the ally
+// validator accepts as-is). Plan/status/next due are null without an active membership.
+interface DigitalCard {
+  planName?: string | null
+  membershipStatus?: string | null
+  membershipStatus_Display?: string | null
+  nextDueDate?: string | null
+  nextDueDate_Display?: string | null
+  qrCodeDataUri?: string | null
+}
+
 const member = ref<MemberDto | null>(null)
-// QR of the digital card (GET /v1/me/digital-card): encodes the member UUID,
-// which the ally validator accepts as-is (ValidatorService QR path).
-const qrDataUri = ref<string | null>(null)
+const card = ref<DigitalCard | null>(null)
+const qrDataUri = computed(() => card.value?.qrCodeDataUri ?? null)
+const { photoUrl, ensure: ensurePhoto } = useProfilePhoto()
 const loading = ref(true)
 const notAffiliated = ref(false)
 const loadError = ref(false)
@@ -30,9 +42,10 @@ const loadError = ref(false)
 onMounted(async () => {
   try {
     member.value = await members.me()
-    useApi<{ qrCodeDataUri?: string }>('/v1/me/digital-card', { silent: true })
-      .then((card) => { qrDataUri.value = card.qrCodeDataUri ?? null })
-      .catch(() => { qrDataUri.value = null })
+    useApi<DigitalCard>('/v1/me/digital-card', { silent: true })
+      .then((res) => { card.value = res })
+      .catch(() => { card.value = null })
+    ensurePhoto()
   }
   catch (err) {
     if ((err as ApiError).status === 404) notAffiliated.value = true
@@ -49,8 +62,15 @@ const displayName = computed(() => {
   return m.fullName || [m.firstName, m.middleName, m.lastName, m.secondLastName].filter(Boolean).join(' ')
 })
 
-/** Short card code (first 8 characters of the UUID). */
-const cardCode = computed(() => member.value?.uuid?.slice(0, 8).toUpperCase() ?? '')
+/** Coverage is active only when the membership (not the member record) is ACTIVE. */
+const coverageActive = computed(() => card.value?.membershipStatus === 'ACTIVE')
+const coverageLabel = computed(() => {
+  if (coverageActive.value) return t('members.portal.card.statusActive')
+  return card.value?.membershipStatus_Display || card.value?.membershipStatus || t('members.portal.card.noMembership')
+})
+
+/** Initials for the photo placeholder. */
+const initials = computed(() => (displayName.value || '').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]!.toUpperCase()).join(''))
 
 // Beneficiary relationship label; falls back to the raw value.
 function relationshipLabel(r?: string | null): string {
@@ -80,7 +100,7 @@ function relationshipLabel(r?: string | null): string {
       <p class="text-sm text-prohealth-500 mt-1">
         {{ t('members.portal.notAffiliatedBody') }}
       </p>
-      <UButton to="/#contact" color="primary" variant="soft" size="sm" class="mt-4">
+      <UButton to="/afiliarse" color="primary" variant="soft" size="sm" class="mt-4">
         {{ t('members.portal.joinCta') }}
       </UButton>
     </div>
@@ -93,7 +113,7 @@ function relationshipLabel(r?: string | null): string {
     </div>
 
     <template v-else>
-      <!-- Digital card -->
+      <!-- Digital Credential: shown with the cédula at the ally counter -->
       <div class="relative max-w-md rounded-3xl bg-hero-prohealth text-white p-6 overflow-hidden shadow-lg">
         <div class="absolute inset-0 opacity-25 pointer-events-none">
           <div class="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-cyan-400/50 blur-3xl" />
@@ -101,7 +121,7 @@ function relationshipLabel(r?: string | null): string {
         </div>
 
         <div class="relative">
-          <!-- Brand + status -->
+          <!-- Brand + coverage status -->
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
               <img :src="logoUrl" alt="OptiBienestar 360" class="w-8 h-8 rounded-full object-contain bg-white/90">
@@ -109,48 +129,78 @@ function relationshipLabel(r?: string | null): string {
                 OptiBienestar<span class="text-lime-300"> 360</span>
               </span>
             </div>
-            <UBadge
-              :color="member.status === 'ACTIVE' ? 'success' : 'warning'"
-              variant="solid"
-              size="sm"
-            >
-              {{ member.status === 'ACTIVE' ? t('members.portal.card.statusActive') : member.status }}
+            <UBadge :color="coverageActive ? 'success' : 'warning'" variant="solid" size="sm">
+              {{ coverageLabel }}
             </UBadge>
           </div>
 
-          <!-- Holder -->
-          <div class="mt-8">
-            <p class="text-[11px] uppercase tracking-widest text-prohealth-100/70">{{ t('members.portal.card.holder') }}</p>
-            <p class="text-xl font-bold leading-tight mt-0.5">{{ displayName }}</p>
-            <p class="text-sm text-prohealth-100/80 mt-0.5">
-              {{ member.documentType }}-{{ member.documentNumber }}
-            </p>
+          <!-- Holder with photo (visual anti-fraud check at the counter) -->
+          <div class="mt-6 flex items-center gap-4">
+            <img
+              v-if="photoUrl"
+              :src="photoUrl"
+              :alt="t('members.portal.card.photoAlt')"
+              class="w-16 h-16 rounded-2xl object-cover border-2 border-white/80 shrink-0"
+            >
+            <span v-else class="w-16 h-16 rounded-2xl bg-white/15 border-2 border-white/40 grid place-items-center text-lg font-bold shrink-0">
+              {{ initials }}
+            </span>
+            <div class="min-w-0">
+              <p class="text-[11px] uppercase tracking-widest text-prohealth-100/70">{{ t('members.portal.card.holder') }}</p>
+              <p class="text-xl font-bold leading-tight mt-0.5 truncate">{{ displayName }}</p>
+              <p class="text-sm text-prohealth-100/80 mt-0.5">
+                {{ member.documentType }}-{{ member.documentNumber }}
+              </p>
+            </div>
           </div>
 
-          <!-- Card footer -->
-          <div class="flex items-end justify-between mt-7">
-            <div>
-              <p class="text-[11px] uppercase tracking-widest text-prohealth-100/70">{{ t('members.portal.card.memberSince') }}</p>
-              <p class="text-sm font-semibold mt-0.5">{{ formatDate(member.enrolledAt, 'short') }}</p>
+          <!-- Plan, dates and QR -->
+          <div class="flex items-end justify-between gap-4 mt-6">
+            <div class="space-y-3 min-w-0">
+              <div>
+                <p class="text-[11px] uppercase tracking-widest text-prohealth-100/70">{{ t('members.portal.card.plan') }}</p>
+                <p class="text-sm font-semibold mt-0.5 truncate">{{ card?.planName || t('common.empty') }}</p>
+              </div>
+              <div>
+                <p class="text-[11px] uppercase tracking-widest text-prohealth-100/70">{{ t('members.portal.card.memberSince') }}</p>
+                <p class="text-sm font-semibold mt-0.5">{{ formatDate(member.enrolledAt, 'short') }}</p>
+              </div>
+              <div v-if="card?.nextDueDate">
+                <p class="text-[11px] uppercase tracking-widest text-prohealth-100/70">{{ t('members.portal.card.nextDue') }}</p>
+                <p class="text-sm font-semibold mt-0.5">{{ card.nextDueDate_Display || formatDate(card.nextDueDate, 'short') }}</p>
+              </div>
             </div>
-            <div class="text-right">
-              <p class="text-[11px] uppercase tracking-widest text-prohealth-100/70">{{ t('members.portal.card.cardNumber') }}</p>
-              <p class="text-sm font-mono font-semibold tracking-wider mt-0.5">{{ cardCode }}</p>
-            </div>
+            <img
+              v-if="qrDataUri"
+              :src="qrDataUri"
+              :alt="t('members.portal.qr.alt')"
+              class="w-28 h-28 rounded-xl bg-white p-1.5 shrink-0"
+            >
           </div>
         </div>
       </div>
 
-      <!-- Card QR, shown at the ally counter -->
-      <div v-if="qrDataUri" class="bg-white rounded-2xl border border-prohealth-100 p-6 flex flex-wrap items-center gap-6">
-        <img :src="qrDataUri" :alt="t('members.portal.qr.alt')" class="w-40 h-40 rounded-xl border border-prohealth-100">
-        <div class="min-w-0 flex-1 space-y-2">
-          <h2 class="font-bold text-prohealth-900">{{ t('members.portal.qr.title') }}</h2>
-          <p class="text-sm text-prohealth-600">{{ t('members.portal.qr.body') }}</p>
-          <UButton :href="qrDataUri" :download="`carnet-${cardCode}.png`" color="primary" variant="soft" size="sm" icon="i-lucide-download">
-            {{ t('members.portal.qr.download') }}
-          </UButton>
+      <!-- How to use the credential -->
+      <div class="max-w-md bg-white rounded-2xl border border-prohealth-100 p-5 space-y-3">
+        <div class="flex items-start gap-3">
+          <UIcon name="i-lucide-shield-check" class="w-5 h-5 text-prohealth-600 shrink-0 mt-0.5" />
+          <p class="text-sm text-prohealth-700">{{ t('members.portal.qr.body') }}</p>
         </div>
+        <div class="flex items-start gap-3">
+          <UIcon name="i-lucide-triangle-alert" class="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+          <p class="text-sm text-prohealth-700">{{ t('members.portal.qr.personal') }}</p>
+        </div>
+        <UButton
+          v-if="qrDataUri"
+          :href="qrDataUri"
+          download="credencial-digital-optibienestar360.png"
+          color="primary"
+          variant="soft"
+          size="sm"
+          icon="i-lucide-download"
+        >
+          {{ t('members.portal.qr.download') }}
+        </UButton>
       </div>
 
       <!-- Profile photo -->
@@ -221,7 +271,7 @@ function relationshipLabel(r?: string | null): string {
           </div>
         </dl>
         <p class="text-xs text-prohealth-500 mt-5">
-          {{ t('members.portal.myData.outdatedPre') }}<NuxtLink to="/#contact" class="text-cyan-700 hover:underline">{{ t('members.portal.myData.outdatedLink') }}</NuxtLink>{{ t('members.portal.myData.outdatedPost') }}
+          {{ t('members.portal.myData.outdated') }}
         </p>
       </div>
 

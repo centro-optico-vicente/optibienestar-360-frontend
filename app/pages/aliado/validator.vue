@@ -98,6 +98,16 @@ async function validate() {
 const failed = ref(false)
 watch(document, () => { failed.value = false })
 
+// ---- QR scan ----
+// The Digital Credential QR carries the member UUID; the same validate endpoint
+// accepts it as-is, so a scan just fills the field and validates.
+const scannerOpen = ref(false)
+
+function onScanned(value: string) {
+  document.value = value
+  validate()
+}
+
 function reset() {
   document.value = ''
   result.value = null
@@ -203,6 +213,16 @@ function onRegistered(usage: BenefitUsageDto) {
             >
               {{ t('validator.validateButton') }}
             </UButton>
+            <UButton
+              size="xl"
+              color="neutral"
+              variant="outline"
+              icon="i-lucide-scan-qr-code"
+              :aria-label="t('validator.scanner.button')"
+              @click="scannerOpen = true"
+            >
+              <span class="hidden sm:inline">{{ t('validator.scanner.button') }}</span>
+            </UButton>
           </div>
         </UFormField>
 
@@ -307,5 +327,6 @@ function onRegistered(usage: BenefitUsageDto) {
       :validation="result"
       @registered="onRegistered"
     />
+    <QrScannerModal v-model:open="scannerOpen" @scanned="onScanned" />
   </div>
 </template>

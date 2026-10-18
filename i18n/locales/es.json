@@ -636,8 +636,8 @@
         "description": "Historial global de ejecuciones de tareas programadas."
       },
       "myCard": {
-        "label": "Mi carnet",
-        "description": "Tu carnet de afiliado."
+        "label": "Mi Credencial Digital",
+        "description": "Tu Credencial Digital de afiliado."
       },
       "myAllyCompany": {
         "label": "Mi empresa aliada",
@@ -737,7 +737,7 @@
     "copyrightFull": "© {year} OptiBienestar 360. Todos los derechos reservados.",
     "auth": {
       "tagline": "Cuidamos lo que más amas.",
-      "lead": "Accede a tu carnet digital, gestiona tus afiliados y descubre la red de aliados del programa OptiBienestar 360.",
+      "lead": "Accede a tu Credencial Digital, gestiona tus afiliados y descubre la red de aliados del programa OptiBienestar 360.",
       "affiliatesCount": "+150 mil afiliados",
       "affiliatesTrust": "confían en nosotros"
     },
@@ -758,7 +758,7 @@
       "product": {
         "plans": "Planes",
         "allies": "Aliados",
-        "digitalCard": "Carnet digital"
+        "digitalCard": "Credencial Digital"
       },
       "contactHeading": "Contacto"
     }
@@ -835,7 +835,7 @@
   },
   "landing": {
     "seoTitle": "OptiBienestar 360 — Cuidamos lo que más amas",
-    "seoDescription": "Plan integral de salud con red de aliados, atención preferencial, carnet digital y cobertura familiar.",
+    "seoDescription": "Plan integral de salud con red de aliados, atención preferencial, Credencial Digital y cobertura familiar.",
     "hero": {
       "badge": "Programa de salud confiable",
       "titleLine1": "Cuidado integral,",
@@ -912,7 +912,7 @@
     },
     "cta": {
       "title": "¿Listo para gestionar tu plan en línea?",
-      "body": "Ingresa al portal para ver tu carnet, agregar afiliados familiares y consultar tu historial.",
+      "body": "Ingresa al portal para ver tu Credencial Digital, agregar afiliados familiares y consultar tu historial.",
       "button": "Ingresar ahora"
     }
   },
@@ -2198,19 +2198,22 @@
       }
     },
     "portal": {
-      "seoTitle": "Mi carnet — OptiBienestar 360",
-      "title": "Mi carnet",
-      "subtitle": "Presenta tu carnet digital en cualquier aliado de la red.",
+      "seoTitle": "Mi Credencial Digital — OptiBienestar 360",
+      "title": "Mi Credencial Digital",
+      "subtitle": "Preséntala con tu cédula en cualquier aliado de la red.",
       "notAffiliatedTitle": "Aún no tienes una afiliación activa",
       "notAffiliatedBody": "Contáctanos para activar tu plan y disfrutar de la red de aliados.",
       "joinCta": "Quiero afiliarme",
-      "errorTitle": "No se pudo cargar tu carnet",
+      "errorTitle": "No se pudo cargar tu Credencial Digital",
       "errorBody": "Intenta de nuevo en unos minutos.",
       "card": {
         "holder": "Titular",
         "memberSince": "Afiliado desde",
-        "cardNumber": "Carnet N°",
-        "statusActive": "Activo"
+        "statusActive": "Activo",
+        "plan": "Plan",
+        "nextDue": "Próxima cuota",
+        "noMembership": "Sin membresía activa",
+        "photoAlt": "Foto del titular"
       },
       "beneficiaries": {
         "title": "Beneficiarios cubiertos",
@@ -2224,9 +2227,7 @@
         "email": "Email",
         "city": "Ciudad",
         "address": "Dirección",
-        "outdatedPre": "¿Datos desactualizados? Escríbenos desde el ",
-        "outdatedLink": "formulario de contacto",
-        "outdatedPost": "."
+        "outdated": "¿Datos desactualizados? Comunícate con tu asesor comercial para corregirlos."
       },
       "directory": {
         "text": "Explora la {network} y sus precios preferenciales.",
@@ -2234,10 +2235,10 @@
         "button": "Ver directorio"
       },
       "qr": {
-        "title": "Mi código QR",
-        "body": "Muéstralo en cualquier aliado de la red: al escanearlo validan tu afiliación al instante.",
+        "body": "Presenta tu Credencial Digital junto con tu cédula antes de pagar en cualquier aliado: al escanear el QR validan tu cobertura al instante.",
         "download": "Descargar QR",
-        "alt": "Código QR del carnet"
+        "alt": "Código QR de la Credencial Digital",
+        "personal": "Tu credencial es personal e intransferible. Prestarla o compartir capturas de pantalla con terceros anula tu afiliación sin reembolso."
       }
     },
     "usage": {
@@ -2329,7 +2330,7 @@
       "ally": "Empresa aliada",
       "allyHelp": "Trabajas en más de una; elige dónde se está atendiendo al afiliado.",
       "document": "Cédula o documento del afiliado",
-      "documentHelp": "Escribe o escanea el documento y presiona Enter."
+      "documentHelp": "Escribe la cédula y presiona Enter, o escanea el QR de la Credencial Digital."
     },
     "status": {
       "ACTIVE": "Afiliado solvente",
@@ -2387,6 +2388,16 @@
       "searchPlaceholder": "Buscar por cédula o nombre del afiliado...",
       "copayLabel": "Copago",
       "validateCta": "Validar afiliado"
+    },
+    "scanner": {
+      "button": "Escanear",
+      "title": "Escanear Credencial Digital",
+      "description": "Apunta la cámara al código QR de la credencial del afiliado.",
+      "unsupported": "Este navegador no permite usar la cámara.",
+      "denied": "No hay permiso para usar la cámara.",
+      "noCamera": "No se encontró una cámara disponible.",
+      "failed": "No se pudo iniciar la cámara.",
+      "fallback": "Escribe la cédula del afiliado en el campo de búsqueda."
     }
   },
   "promoters": {
