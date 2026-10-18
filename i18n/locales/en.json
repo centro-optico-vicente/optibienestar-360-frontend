@@ -134,7 +134,7 @@
       "forgotPassword": "Forgot your password?",
       "submit": "Sign in",
       "noAccount": "Don't have an account?",
-      "contactPromoter": "Contact a promoter.",
+      "contactPromoter": "Contact an advisor.",
       "welcomeTitle": "Welcome!",
       "welcomeDescription": "Hi {name}",
       "errorFallback": "Unable to sign in"
@@ -501,7 +501,7 @@
       },
       "comercial": {
         "label": "Sales",
-        "description": "Program promoters and their commissions."
+        "description": "Program advisors and their commissions."
       },
       "finanzas": {
         "label": "Finance",
@@ -564,15 +564,15 @@
         "description": "Partner classification."
       },
       "promoterTypes": {
-        "label": "Promoter types",
-        "description": "Promoter classification."
+        "label": "Advisor types",
+        "description": "Advisor classification."
       },
       "promoterRanks": {
         "label": "Hierarchy ranks",
-        "description": "Promoter hierarchy ranks."
+        "description": "Advisor hierarchy ranks."
       },
       "promoterHierarchy": {
-        "label": "Promoter org chart",
+        "label": "Advisor org chart",
         "description": "Supervision hierarchy and ranks."
       },
       "allies": {
@@ -588,8 +588,8 @@
         "description": "Professions and business activities of the partners."
       },
       "promoters": {
-        "label": "Promoters",
-        "description": "Sales team and promoters."
+        "label": "Sales Advisors",
+        "description": "Sales team and advisors."
       },
       "commissions": {
         "label": "Commissions",
@@ -609,7 +609,7 @@
       },
       "commissionPayoutsReport": {
         "label": "Commission payouts report",
-        "description": "Report of payouts and disbursements made to promoters."
+        "description": "Report of payouts and disbursements made to advisors."
       },
       "roles": {
         "label": "Roles",
@@ -693,7 +693,7 @@
       },
       "paymentsPayouts": {
         "label": "Payouts",
-        "description": "Commission payments disbursed to promoters."
+        "description": "Commission payments disbursed to advisors."
       },
       "paymentsMovements": {
         "label": "Movements",
@@ -708,12 +708,12 @@
         "description": "Your membership payment history."
       },
       "myNetworkCollections": {
-        "label": "Collections from my affiliates",
+        "label": "Portfolio Management",
         "description": "Membership payments from the affiliates in your network."
       },
       "myCommissionPayouts": {
-        "label": "My commission payouts",
-        "description": "Commission payouts disbursed to you."
+        "label": "My Ecosystem Participation",
+        "description": "Ecosystem participation payouts disbursed to you."
       },
       "competitiveWinners": {
         "label": "Competitive rule winners",
@@ -856,7 +856,7 @@
     "about": {
       "eyebrow": "About us",
       "title": "OptiBienestar 360 is a team of committed health professionals.",
-      "body": "We work with a holistic approach focused on the whole person, not just the symptom. Our partners, plans and promoters form a network designed to make self-care simple.",
+      "body": "We work with a holistic approach focused on the whole person, not just the symptom. Our partners, plans and advisors form a network designed to make self-care simple.",
       "imageAlt": "OptiBienestar 360 team of professionals"
     },
     "departments": {
@@ -885,7 +885,7 @@
         },
         "ophthalmology": {
           "title": "Ophthalmology",
-          "description": "Consultations, lenses and optical discounts."
+          "description": "Consultations, lenses and preferential optical rates."
         }
       }
     },
@@ -1066,8 +1066,8 @@
         "labelSingular": "Partner type"
       },
       "promoter-types": {
-        "label": "Promoter types",
-        "labelSingular": "Promoter type"
+        "label": "Advisor types",
+        "labelSingular": "Advisor type"
       },
       "promoter-ranks": {
         "label": "Hierarchy ranks",
@@ -1147,7 +1147,7 @@
       "ally_type": "Ally type",
       "member": "Member",
       "payment": "Payment",
-      "promoter": "Promoter",
+      "promoter": "Advisor",
       "scheduled_job": "Scheduled job",
       "commission_tier": "Commission tier",
       "bonus_rule": "Bonus rule",
@@ -1160,7 +1160,7 @@
       "occupation": "Occupation",
       "profession": "Profession",
       "service_category": "Service category",
-      "promoter_type": "Promoter type"
+      "promoter_type": "Advisor type"
     }
   },
   "plans": {
@@ -1399,7 +1399,7 @@
         "service": "Service",
         "category": "Category",
         "price": "Price",
-        "discount": "Disc.",
+        "discount": "Pref. Rate",
         "appointment": "Appt.",
         "review": "Review",
         "published": "Published"
@@ -1419,7 +1419,7 @@
           "name": "Name",
           "description": "Description",
           "price": "Price (USD)",
-          "discount": "Discount (%)",
+          "discount": "Preferential Rate (%)",
           "requiresAppointment": "Requires appointment",
           "published": "Published",
           "exclusions": "Exclusions (does not apply to)"
@@ -1567,10 +1567,10 @@
         "backToDirectory": "Back to directory",
         "servicesTitle": "Available services",
         "servicesEmpty": "This partner doesn't have published services yet.",
-        "discountAffiliates": "-{pct}% members",
+        "discountAffiliates": "Preferential Rate -{pct}%",
         "requiresAppointment": "Requires an appointment",
         "ctaTitle": "Not a member yet?",
-        "ctaBody": "Join OptiBienestar 360 and access preferential prices across the network.",
+        "ctaBody": "Join OptiBienestar 360 and access the Preferential Rate across the network.",
         "ctaButton": "I want to join",
         "exclusions": "Does not apply to: {exclusions}"
       }
@@ -1592,14 +1592,14 @@
         "name": "Service name",
         "description": "Description",
         "price": "Price (USD)",
-        "discount": "Member discount (%)",
+        "discount": "Member Preferential Rate (%)",
         "requiresAppointment": "Requires appointment",
         "ally": "Partner company",
         "allyHelp": "You work at more than one; pick which one you are proposing for."
       },
       "help": {
         "title": "How does it work?",
-        "step1": "You submit the service proposal with its price and member discount.",
+        "step1": "You submit the service proposal with its price and the member Preferential Rate.",
         "step2": "The OptiBienestar 360 team reviews and approves it.",
         "step3pre": "Once published, it appears in the ",
         "step3link": "public directory",
@@ -1615,18 +1615,18 @@
   },
   "promoterSelf": {
     "collections": {
-      "title": "Collections from my affiliates",
+      "title": "Portfolio Management",
       "subtitle": "Membership payments from the affiliates in your network.",
-      "empty": "No collections",
+      "empty": "No payments in your portfolio yet",
       "form": {
-        "title": "Register a collection",
+        "title": "Register an affiliate payment",
         "description": "Register a membership payment for an affiliate in your portfolio for review."
       }
     },
     "payouts": {
-      "title": "My commission payouts",
-      "subtitle": "Commission payouts disbursed to you.",
-      "empty": "No commission payouts"
+      "title": "My Ecosystem Participation",
+      "subtitle": "Ecosystem participation payouts disbursed to you.",
+      "empty": "No participation payouts yet"
     },
     "profile": {
       "title": "My profile",
@@ -1638,7 +1638,7 @@
       "copy": "Copy link",
       "copied": "Link copied",
       "copyFailed": "Could not copy the link",
-      "qrUnavailable": "We could not find your promoter profile.",
+      "qrUnavailable": "We could not find your advisor profile.",
       "qrAlt": "Affiliation QR"
     }
   },
@@ -1667,8 +1667,8 @@
       "methodAll": "All payment methods",
       "plan": "Coverage Plan",
       "planAll": "All coverage plans",
-      "promoter": "Associated Promoter",
-      "promoterAll": "All promoters",
+      "promoter": "Associated Advisor",
+      "promoterAll": "All advisors",
       "targetCurrency": "Output Currency (Conversion)",
       "currencyHelp": "Converts the amount of each collection at the exchange rate in effect on its date.",
       "clearFilters": "Clear filters",
@@ -1683,7 +1683,7 @@
       "subtitle": "Consolidated financial audit of all collections (affiliate revenues) and payouts (commission disbursements) in PDF and Excel.",
       "historyButton": "Download history",
       "paramsTitle": "Payments and Collections Report Parameters",
-      "paramsSubtitle": "Filter by flow direction (Collections IN / Payouts OUT), dates, method, status and promoter.",
+      "paramsSubtitle": "Filter by flow direction (Collections IN / Payouts OUT), dates, method, status and advisor.",
       "direction": "Movement Direction (Flow)",
       "directionAll": "All directions (Collections and Payouts)",
       "directionIn": "Affiliate Collections (Inflow — IN)",
@@ -1701,8 +1701,8 @@
       "methodAll": "All payment methods",
       "plan": "Coverage Plan (Collections Only)",
       "planAll": "All coverage plans",
-      "promoter": "Associated Promoter",
-      "promoterAll": "All promoters",
+      "promoter": "Associated Advisor",
+      "promoterAll": "All advisors",
       "targetCurrency": "Output Currency (Conversion)",
       "currencyHelp": "Converts the amount of each movement at the exchange rate in effect on its date.",
       "clearFilters": "Clear filters",
@@ -1733,17 +1733,17 @@
     },
     "payouts": {
       "title": "Payouts",
-      "subtitle": "Commission payments disbursed to promoters (period close).",
-      "description": "Register a manual promoter payment. It remains a draft until submitted for review.",
+      "subtitle": "Commission payments disbursed to advisors (period close).",
+      "description": "Register a manual advisor payment. It remains a draft until submitted for review.",
       "createTitle": "Register payment",
       "editTitle": "Edit payment",
       "createdToast": "Payment created",
       "updatedToast": "Payment updated",
-      "promoterPlaceholder": "Select a promoter",
+      "promoterPlaceholder": "Select an advisor",
       "categoryPlaceholder": "Select a reason",
-      "personPlaceholder": "Resolved from promoter",
+      "personPlaceholder": "Resolved from advisor",
       "fields": {
-        "promoter": "Promoter",
+        "promoter": "Advisor",
         "person": "Associated person",
         "category": "Reason",
         "currency": "Currency",
@@ -1763,7 +1763,7 @@
       "empty": "No commission payouts",
       "detailTitle": "Payment detail",
       "columns": {
-        "promoter": "Promoter",
+        "promoter": "Advisor",
         "category": "Reason",
         "method": "Method",
         "reference": "Reference",
@@ -1781,7 +1781,7 @@
       "directionOut": "Payout",
       "columns": {
         "direction": "Type",
-        "subject": "Member / Promoter"
+        "subject": "Member / Advisor"
       }
     },
     "mine": {
@@ -1994,7 +1994,7 @@
       "document": "Document",
       "phone": "Phone",
       "enrolledAt": "Enrollment",
-      "promoter": "Promoter",
+      "promoter": "Advisor",
       "status": "Status"
     },
     "relationships": {
@@ -2153,14 +2153,14 @@
       }
     },
     "promoter": {
-      "title": "Promoter",
-      "subtitle": "Permanent link with the promoter and its reassignment history.",
-      "current": "Current promoter",
-      "none": "No promoter assigned",
-      "changeButton": "Change promoter",
+      "title": "Advisor",
+      "subtitle": "Permanent link with the advisor and its reassignment history.",
+      "current": "Current advisor",
+      "none": "No advisor assigned",
+      "changeButton": "Change advisor",
       "linkButton": "Link by code",
-      "changedToast": "Promoter updated",
-      "linkedToast": "Member linked to promoter",
+      "changedToast": "Advisor updated",
+      "linkedToast": "Member linked to advisor",
       "permanentNotice": "The link is permanent and not retroactive: it only affects future commission attribution, it does not recompute commissions already generated.",
       "history": {
         "title": "Reassignment history",
@@ -2174,11 +2174,11 @@
         }
       },
       "form": {
-        "changeTitle": "Change promoter",
-        "changeDescription": "Select the new target promoter. This action is recorded in the history.",
+        "changeTitle": "Change advisor",
+        "changeDescription": "Select the new target advisor. This action is recorded in the history.",
         "linkTitle": "Link by code",
-        "linkDescription": "Enter the promoter's referral code to link this member.",
-        "promoter": "Target promoter",
+        "linkDescription": "Enter the advisor's referral code to link this member.",
+        "promoter": "Target advisor",
         "referralCode": "Referral code",
         "reason": "Reason",
         "reasonPlaceholder": "E.g. portfolio transfer, referral correction…",
@@ -2211,7 +2211,7 @@
         "memberSince": "Member since",
         "statusActive": "Active",
         "plan": "Plan",
-        "nextDue": "Next installment",
+        "nextDue": "Next maintenance fee",
         "noMembership": "No active membership",
         "photoAlt": "Holder photo"
       },
@@ -2230,7 +2230,7 @@
         "outdated": "Outdated data? Contact your sales advisor to fix it."
       },
       "directory": {
-        "text": "Explore the {network} and its preferential prices.",
+        "text": "Explore the {network} and its preferential rates.",
         "network": "partner network",
         "button": "View directory"
       },
@@ -2401,30 +2401,30 @@
     }
   },
   "promoters": {
-    "title": "Promoters",
+    "title": "Sales Advisors",
     "subtitle": "Sales team that refers members and earns commissions.",
-    "new": "New promoter",
-    "createTooltip": "Register a new promoter",
-    "editTooltip": "Edit promoter",
-    "deleteTooltip": "Delete promoter",
+    "new": "New advisor",
+    "createTooltip": "Register a new advisor",
+    "editTooltip": "Edit advisor",
+    "deleteTooltip": "Delete advisor",
     "viewDetailTooltip": "View detail",
     "searchPlaceholder": "Search by name or referral code…",
-    "empty": "No promoters registered yet.",
+    "empty": "No advisors registered yet.",
     "hierarchy": {
       "pageSubtitle": "Ranks and supervision relationships of the sales team.",
-      "empty": "No promoters in the hierarchy yet.",
+      "empty": "No advisors in the hierarchy yet.",
       "reasonLabel": "Reason",
       "supervisorLabel": "Supervisor",
       "supervisorPlaceholder": "Select a supervisor…",
-      "noEligibleSupervisors": "No promoter currently qualifies as a supervisor.",
+      "noEligibleSupervisors": "No advisor currently qualifies as a supervisor.",
       "detachSupervisorLabel": "Remove supervisor (becomes top of its own chain)",
-      "autoReasonFormEdit": "Updated from the promoter edit form",
+      "autoReasonFormEdit": "Updated from the advisor edit form",
       "tabs": {
         "tree": "Visual tree",
         "list": "List"
       },
       "dragDrop": {
-        "hint": "Drag a promoter onto another to reassign its supervisor.",
+        "hint": "Drag an advisor onto another to reassign its supervisor.",
         "cycleError": "Can't reassign: this would turn a supervisor into their own subordinate."
       },
       "assignSupervisor": {
@@ -2446,19 +2446,19 @@
       }
     },
     "systemBadge": "System",
-    "systemLocked": "The system promoter cannot be edited or deleted.",
-    "createdToast": "Promoter created successfully.",
-    "updatedToast": "Promoter updated successfully.",
-    "deletedToast": "Promoter deleted successfully.",
-    "restoredToast": "Promoter restored.",
-    "deleteTitle": "Delete promoter",
-    "deleteConfirm": "Are you sure you want to delete the promoter {name}? This action cannot be undone.",
-    "noPermissionCreate": "You don't have permission to create promoters.",
-    "noPermissionEdit": "You don't have permission to edit promoters.",
-    "noPermissionDelete": "You don't have permission to delete promoters.",
-    "paginationSummary": "Showing {shown} of {total} promoters",
+    "systemLocked": "The system advisor cannot be edited or deleted.",
+    "createdToast": "Advisor created successfully.",
+    "updatedToast": "Advisor updated successfully.",
+    "deletedToast": "Advisor deleted successfully.",
+    "restoredToast": "Advisor restored.",
+    "deleteTitle": "Delete advisor",
+    "deleteConfirm": "Are you sure you want to delete the advisor {name}? This action cannot be undone.",
+    "noPermissionCreate": "You don't have permission to create advisors.",
+    "noPermissionEdit": "You don't have permission to edit advisors.",
+    "noPermissionDelete": "You don't have permission to delete advisors.",
+    "paginationSummary": "Showing {shown} of {total} advisors",
     "columns": {
-      "promoter": "Promoter",
+      "promoter": "Advisor",
       "type": "Type",
       "rank": "Rank",
       "status": "Status",
@@ -2480,9 +2480,9 @@
       "payoutProfile": "Payout details"
     },
     "detail": {
-      "seoPage": "Promoter detail",
-      "notFoundTitle": "Promoter not found",
-      "notFoundBody": "The promoter you are looking for does not exist or was deleted.",
+      "seoPage": "Advisor detail",
+      "notFoundTitle": "Advisor not found",
+      "notFoundBody": "The advisor you are looking for does not exist or was deleted.",
       "sections": {
         "contact": "Contact and identity",
         "metrics": "Metrics",
@@ -2499,7 +2499,7 @@
         "personFullName": "Name",
         "personRif": "Tax ID",
         "userEmail": "User",
-        "promoterTypeUuid": "Promoter type",
+        "promoterTypeUuid": "Advisor type",
         "rankUuid": "Rank",
         "supervisorUuid": "Supervisor",
         "totalReferrals": "Total referrals",
@@ -2510,8 +2510,8 @@
       },
       "referrals": {
         "title": "Referrals",
-        "hint": "Affiliates brought in by this promoter and their collection status.",
-        "empty": "This promoter has no referrals.",
+        "hint": "Affiliates brought in by this advisor and their collection status.",
+        "empty": "This advisor has no referrals.",
         "filters": {
           "all": "All",
           "active": "Active",
@@ -2533,7 +2533,7 @@
       "commissions": {
         "title": "Commissions by period",
         "hint": "History of settled and pending commissions, grouped by period.",
-        "empty": "This promoter has no commissions on record.",
+        "empty": "This advisor has no commissions on record.",
         "columns": {
           "period": "Period",
           "count": "Count",
@@ -2542,13 +2542,13 @@
       }
     },
     "form": {
-      "createTitle": "New promoter",
-      "editTitle": "Edit promoter",
-      "createDescription": "Register a promoter and their referral code.",
-      "editDescription": "Update the promoter's details.",
-      "loadingDetail": "Loading promoter…",
-      "submitCreate": "Create promoter",
-      "referralCodeHelp": "Unique code the promoter will share. It cannot be changed later.",
+      "createTitle": "New advisor",
+      "editTitle": "Edit advisor",
+      "createDescription": "Register an advisor and their referral code.",
+      "editDescription": "Update the advisor's details.",
+      "loadingDetail": "Loading advisor…",
+      "submitCreate": "Create advisor",
+      "referralCodeHelp": "Unique code the advisor will share. It cannot be changed later.",
       "referralCodeFormat": "Between 4 and 20 uppercase letters, numbers or hyphens (A-Z, 0-9, -).",
       "userSearchLabel": "Search user",
       "userSearchHelp": "Type a name or email (min. 2 characters).",
@@ -2561,7 +2561,7 @@
         "description": "Description",
         "email": "Email",
         "phone": "Phone",
-        "promoterTypeUuid": "Promoter type",
+        "promoterTypeUuid": "Advisor type",
         "status": "Status",
         "active": "Active",
         "rank": "Rank"
@@ -2574,13 +2574,13 @@
       "selectAll": "Select all",
       "selectedTitle": "Reassign members",
       "supervisorTitle": "Move portfolio to supervisor",
-      "selectedNotice": "You are about to move {count} member(s) from {name} to another promoter.",
+      "selectedNotice": "You are about to move {count} member(s) from {name} to another advisor.",
       "supervisorNotice": "You are about to move {name}'s whole portfolio to their nearest active supervisor (or INSTITUCION if none).",
-      "historyNotice": "Collections and commissions already recorded stay with the original promoter; only future attribution changes. Each member is notified of their new advisor.",
-      "target": "Target promoter",
-      "targetPlaceholder": "Select the promoter",
+      "historyNotice": "Collections and commissions already recorded stay with the original advisor; only future attribution changes. Each member is notified of their new advisor.",
+      "target": "Target advisor",
+      "targetPlaceholder": "Select the advisor",
       "reason": "Reason",
-      "reasonPlaceholder": "E.g. promoter leaving, portfolio rebalancing",
+      "reasonPlaceholder": "E.g. advisor leaving, portfolio rebalancing",
       "confirm": "Reassign",
       "doneToast": "{count} member(s) reassigned",
       "beforeDeactivate": "They have {count} member(s) in their portfolio. You can reassign them before deactivating.",
@@ -2700,7 +2700,7 @@
       "breadcrumbRoot": "Commercial",
       "breadcrumbCurrent": "Commissions Report",
       "title": "Commissions Report",
-      "subtitle": "Official consolidation of commissions earned by promoter, with grouped subtotals, calculation base, and settlement status.",
+      "subtitle": "Official consolidation of commissions earned by advisor, with grouped subtotals, calculation base, and settlement status.",
       "historyButton": "Download history",
       "paramsTitle": "Report Parameters",
       "paramsSubtitle": "Customize the date range and filters. Leave fields empty to include all records.",
@@ -2711,8 +2711,8 @@
       "presetCurrentMonth": "Current month",
       "startDate": "Period Date From",
       "endDate": "Period Date To",
-      "promoter": "Commercial Promoter",
-      "promoterAll": "All promoters",
+      "promoter": "Sales Advisor",
+      "promoterAll": "All advisors",
       "status": "Commission Status",
       "statusAll": "All statuses",
       "appliesTo": "Commission Concept",
@@ -2731,10 +2731,10 @@
       "breadcrumbRoot": "Commercial",
       "breadcrumbCurrent": "Commission Payouts Report",
       "title": "Commission Payouts Report",
-      "subtitle": "Settlements and disbursements effectively paid to promoters (status PAID), with payment date and banking reference.",
+      "subtitle": "Settlements and disbursements effectively paid to advisors (status PAID), with payment date and banking reference.",
       "historyButton": "Download history",
       "paramsTitle": "Executed Payouts Report Parameters",
-      "paramsSubtitle": "Filter by disbursement date, promoter or payment reference. Only includes commissions in PAID status.",
+      "paramsSubtitle": "Filter by disbursement date, advisor or payment reference. Only includes commissions in PAID status.",
       "quickPresets": "Quick disbursement date presets:",
       "presetAll": "All history",
       "presetCurrentYear": "Current year",
@@ -2742,8 +2742,8 @@
       "presetCurrentMonth": "Current month",
       "startDate": "Disbursement Date From",
       "endDate": "Disbursement Date To",
-      "promoter": "Commercial Promoter",
-      "promoterAll": "All promoters",
+      "promoter": "Sales Advisor",
+      "promoterAll": "All advisors",
       "payoutReference": "Payment / Disbursement Reference",
       "payoutReferencePlaceholder": "Ex: PAG-202609-001 or Transfer No.",
       "targetCurrency": "Target Currency (Conversion)",
@@ -2753,13 +2753,13 @@
       "downloadPdf": "Download PDF"
     },
     "title": "Commissions",
-    "subtitle": "Promoter commission ledger and period payouts.",
-    "searchPlaceholder": "Search by promoter, code or reference…",
+    "subtitle": "Advisor commission ledger and period payouts.",
+    "searchPlaceholder": "Search by advisor, code or reference…",
     "filterPlaceholder": "RSQL filter, e.g. promoter.uuid==…;status==PENDING",
     "empty": "No commissions recorded yet.",
     "paginationSummary": "Showing {shown} of {total}",
     "columns": {
-      "promoter": "Promoter",
+      "promoter": "Advisor",
       "amount": "Amount",
       "calc": "Calculation",
       "appliesTo": "Applies to",
@@ -2791,7 +2791,7 @@
         "metadata": "Metadata"
       },
       "fields": {
-        "promoter": "Promoter",
+        "promoter": "Advisor",
         "code": "Code",
         "amount": "Amount",
         "currency": "Currency",
@@ -2817,7 +2817,7 @@
         "voidedAt": "Voided",
         "voidReason": "Void reason",
         "adminNotes": "Internal notes",
-        "promoterUuid": "Promoter UUID",
+        "promoterUuid": "Advisor UUID",
         "paymentUuid": "Payment UUID",
         "memberUuid": "Member UUID",
         "uuid": "UUID",
@@ -2828,7 +2828,7 @@
     "payout": {
       "button": "Settle period",
       "title": "Settle commission period",
-      "description": "Close a date range and settle each promoter's pending commissions.",
+      "description": "Close a date range and settle each advisor's pending commissions.",
       "dryRunNote": "The preview only computes totals: it does not mark commissions as paid or send emails.",
       "fields": {
         "periodStart": "Period start",
@@ -2839,13 +2839,13 @@
       "preview": "Preview",
       "previewTitle": "Period summary",
       "totals": {
-        "promoters": "Promoters",
+        "promoters": "Advisors",
         "commissions": "Commissions",
         "amount": "Total",
         "executedAt": "Executed"
       },
       "perPromoter": {
-        "name": "Promoter",
+        "name": "Advisor",
         "code": "Code",
         "count": "Commissions",
         "amount": "Total",
@@ -2854,8 +2854,8 @@
       "emptyPreview": "There are no pending commissions in this period.",
       "back": "Back",
       "confirm": "Confirm payout",
-      "confirmDescription": "Confirming marks the commissions as PAID and emails a breakdown to each promoter. This action cannot be undone.",
-      "successToast": "Period settled: {promoters} promoters, {commissions} commissions, {amount}.",
+      "confirmDescription": "Confirming marks the commissions as PAID and emails a breakdown to each advisor. This action cannot be undone.",
+      "successToast": "Period settled: {promoters} advisors, {commissions} commissions, {amount}.",
       "invalidRange": "The period end must be on or after the start."
     },
     "payoutBySelection": {
@@ -2872,13 +2872,13 @@
       "preview": "Preview",
       "previewTitle": "Selection summary",
       "totals": {
-        "promoters": "Promoters",
+        "promoters": "Advisors",
         "commissions": "Commissions",
         "amount": "Total",
         "executedAt": "Executed"
       },
       "perPromoter": {
-        "name": "Promoter",
+        "name": "Advisor",
         "code": "Code",
         "count": "Commissions",
         "amount": "Total",
@@ -2887,13 +2887,13 @@
       "emptyPreview": "There are no commissions in the selection.",
       "back": "Back",
       "confirm": "Confirm payout",
-      "confirmDescription": "Confirming marks the selected commissions as PAID and emails a breakdown to each promoter. This action cannot be undone.",
-      "successToast": "Payouts generated: {promoters} promoters, {commissions} commissions, {amount}."
+      "confirmDescription": "Confirming marks the selected commissions as PAID and emails a breakdown to each advisor. This action cannot be undone.",
+      "successToast": "Payouts generated: {promoters} advisors, {commissions} commissions, {amount}."
     },
     "reRating": {
       "button": "Re-rate month close",
       "title": "Retroactive commission re-rating",
-      "description": "Recomputes pending inscription commissions in the period to the highest band each promoter reached that month.",
+      "description": "Recomputes pending inscription commissions in the period to the highest band each advisor reached that month.",
       "dryRunNote": "The preview only computes the deltas: it does not modify any commission.",
       "fields": {
         "periodStart": "Period start",
@@ -2902,13 +2902,13 @@
       "preview": "Preview",
       "previewTitle": "Re-rating summary",
       "totals": {
-        "promoters": "Promoters",
+        "promoters": "Advisors",
         "commissionsUpdated": "Commissions to update",
         "delta": "Total delta",
         "executedAt": "Executed"
       },
       "perPromoter": {
-        "name": "Promoter",
+        "name": "Advisor",
         "code": "Code",
         "count": "Inscriptions",
         "tier": "Band reached",
@@ -2919,7 +2919,7 @@
       "back": "Back",
       "confirm": "Confirm re-rating",
       "confirmDescription": "Confirming rewrites the percentage, amount and band of every PENDING INSCRIPTION commission in the period. Only affects PENDING commissions, never PAID ones. This action cannot be undone.",
-      "successToast": "Re-rating applied: {promoters} promoters, {commissions} commissions updated.",
+      "successToast": "Re-rating applied: {promoters} advisors, {commissions} commissions updated.",
       "invalidRange": "The period end must be on or after the start."
     },
     "approval": {
@@ -2930,8 +2930,8 @@
       "fields": {
         "period": "Period",
         "clearPeriod": "Clear period",
-        "promoterType": "Promoter type",
-        "promoter": "Promoter",
+        "promoterType": "Advisor type",
+        "promoter": "Advisor",
         "appliesTo": "Applies to",
         "status": "Status",
         "amountFrom": "Amount from",
@@ -2951,7 +2951,7 @@
       "refreshButton": "Refresh",
       "empty": "No commissions match the applied filters.",
       "paginationSummary": "Showing {shown} of {total}",
-      "groupByPromoter": "Group by promoter",
+      "groupByPromoter": "Group by advisor",
       "selectAll": "Select all",
       "selectedCount": "{count} commissions selected",
       "approveButton": "Approve selected",
@@ -2960,7 +2960,7 @@
       "approvedToast": "{count} commissions approved successfully.",
       "rejectedToast": "{count} commissions rejected ({overrides} hierarchy overrides voided in cascade).",
       "columns": {
-        "promoter": "Promoter",
+        "promoter": "Advisor",
         "appliesTo": "Applies to",
         "ruleSource": "Source",
         "amount": "Amount",
@@ -2981,8 +2981,8 @@
       "fields": {
         "period": "Period",
         "clearPeriod": "Clear period",
-        "promoterType": "Promoter type",
-        "promoter": "Promoter",
+        "promoterType": "Advisor type",
+        "promoter": "Advisor",
         "appliesTo": "Applies to",
         "status": "Status",
         "amountFrom": "Amount from",
@@ -3004,14 +3004,14 @@
       "generatePayoutButton": "Generate payouts",
       "paginationSummary": "Showing {shown} of {total}",
       "columns": {
-        "promoter": "Promoter",
+        "promoter": "Advisor",
         "appliesTo": "Applies to",
         "ruleSource": "Source",
         "amount": "Amount",
         "earnedAt": "Earned",
         "status": "Status"
       },
-      "groupByPromoter": "Group by promoter"
+      "groupByPromoter": "Group by advisor"
     },
     "overrideReRating": {
       "button": "Re-rate hierarchy override",
@@ -3058,7 +3058,7 @@
       "title": "Void commission",
       "confirm": "{promoter}'s commission will be excluded from the next payout. This action cannot be undone.",
       "reasonLabel": "Reason for voiding",
-      "reasonPlaceholder": "e.g. Promoter didn't meet the quota",
+      "reasonPlaceholder": "e.g. Advisor didn't meet the quota",
       "confirmButton": "Void",
       "successToast": "Commission voided successfully.",
       "bulkTrigger": "Void selected ({count})",
@@ -3264,7 +3264,7 @@
       "campaign": "Campaign"
     },
     "scope": {
-      "ALL": "All promoters",
+      "ALL": "All advisors",
       "INCLUDE": "Includes",
       "EXCLUDE": "Excludes"
     },
@@ -3303,7 +3303,7 @@
       "generalData": "General data",
       "audience": "Audience",
       "audienceEmpty": "No audience members added",
-      "addAudienceMember": "Add promoter",
+      "addAudienceMember": "Add advisor",
       "rules": "Associated commission rules",
       "rulesEmpty": "No rules linked to this campaign",
       "addRule": "Add rule to this campaign",
@@ -3347,8 +3347,8 @@
         "updatedAt": "Updated at",
         "uuid": "UUID"
       },
-      "audiencePlaceholder": "Search promoter by name...",
-      "audienceRemoveConfirm": "Remove this promoter from the campaign audience?",
+      "audiencePlaceholder": "Search advisor by name...",
+      "audienceRemoveConfirm": "Remove this advisor from the campaign audience?",
       "ruleTypes": {
         "tier": "Inscription band",
         "bonus": "Scale bonus",
@@ -3461,12 +3461,12 @@
     "form": {
       "invalidAmount": "Invalid amount",
       "integersOnly": "Integers only",
-      "promoterTypes": "Promoter types",
-      "promoterTypesHelp": "Empty = applies to every promoter type.",
+      "promoterTypes": "Advisor types",
+      "promoterTypesHelp": "Empty = applies to every advisor type.",
       "promoterTypesPlaceholder": "All types"
     },
     "filters": {
-      "allPromoterTypes": "All promoter types",
+      "allPromoterTypes": "All advisor types",
       "allPlanTypes": "All plans",
       "allAppliesTo": "All",
       "campaignOnly": "Campaign rules only",
@@ -3606,7 +3606,7 @@
         "rewardPct": "Percentage",
         "rewardCurrency": "Reward currency",
         "rewardCurrencyHelp": "Reference currency only — the actual payout may combine several currencies or be converted at the applicable exchange rate.",
-        "includeSystemPromoters": "Include system promoters",
+        "includeSystemPromoters": "Include system advisors",
         "submitCreate": "Create rule",
         "startsAt": "Starts",
         "endsAt": "Ends"
@@ -3767,7 +3767,7 @@
         "maxWinners": "Maximum winners: {n}",
         "advancedSection": "Advanced settlement settings",
         "competitionGroup": "Competition group",
-        "competitionGroupHelp": "Rules in the same group share metric, type and window — a promoter wins at most one prize per group per period.",
+        "competitionGroupHelp": "Rules in the same group share metric, type and window — an advisor wins at most one prize per group per period.",
         "groupPriority": "Priority in group",
         "accrualPeriodStrategy": "Evaluation frequency",
         "partialSettlementPeriodStrategy": "Partial payout",
@@ -3775,7 +3775,7 @@
         "retroactiveSettlementPeriodStrategy": "Retroactive cut",
         "confirmationDelayDays": "Days before confirming",
         "confirmationDelayDaysHelp": "Days after the period closes before freezing the prize (PROVISIONAL → PENDING).",
-        "includeSystemPromoters": "Include system promoters",
+        "includeSystemPromoters": "Include system advisors",
         "ranks": "Ranks",
         "atAccrualClose": "At the evaluation close",
         "rankingCloseOnlyHelp": "Position prizes are paid at the evaluation's close: paying earlier would reward someone who could still be overtaken.",
@@ -3788,11 +3788,11 @@
       },
       "filters": {
         "rule": "Rule",
-        "promoter": "Promoter"
+        "promoter": "Advisor"
       },
       "awardColumns": {
         "rule": "Rule",
-        "promoter": "Promoter",
+        "promoter": "Advisor",
         "period": "Period",
         "position": "Position",
         "amount": "Amount"
@@ -3984,10 +3984,10 @@
       "terms": "Terms and conditions"
     },
     "terms": {
-      "help": "One document per role. Each affiliate, promoter or ally must accept the one that applies to them on first login.",
+      "help": "One document per role. Each affiliate, advisor or ally must accept the one that applies to them on first login.",
       "types": {
         "AFILIADO": "Members",
-        "PROMOTOR": "Promoters",
+        "PROMOTOR": "Sales Advisors",
         "ALIADO": "Allies"
       },
       "currentSince": "Current version since {date}",
@@ -4016,7 +4016,7 @@
       "preview": {
         "show": "Preview",
         "hide": "Hide preview",
-        "help": "This is how members, promoters and allies will see it: the saved version with the variables replaced. Unsaved changes are not reflected.",
+        "help": "This is how members, advisors and allies will see it: the saved version with the variables replaced. Unsaved changes are not reflected.",
         "empty": "Save a version to see the preview."
       }
     }
@@ -4234,7 +4234,7 @@
       "STALE": "Needs review"
     },
     "candidateColumns": {
-      "promoter": "Promoter",
+      "promoter": "Advisor",
       "metricValue": "Metric",
       "achievedAt": "Achieved",
       "transactions": "Transactions"
@@ -4265,7 +4265,7 @@
     },
     "decisionModal": {
       "title": "New manual decision",
-      "description": "Redirect an award to another promoter or disqualify a winner — the reason is recorded in the history.",
+      "description": "Redirect an award to another advisor or disqualify a winner — the reason is recorded in the history.",
       "kinds": {
         "REDIRECT": "Redirect",
         "DISQUALIFY": "Disqualify"
@@ -4275,8 +4275,8 @@
         "periodStart": "Period (start)",
         "position": "Position",
         "kind": "Action",
-        "promoter": "Affected promoter",
-        "replacement": "Replacement promoter",
+        "promoter": "Affected advisor",
+        "replacement": "Replacement advisor",
         "reasonCategory": "Reason category",
         "excludeFromGroup": "Also exclude from the competition group"
       },
@@ -4321,7 +4321,7 @@
       "BOTH": "Enrollment and monthly fee"
     },
     "codeOwner": {
-      "PROMOTER": "Promoter",
+      "PROMOTER": "Advisor",
       "MEMBER": "Referring member",
       "ALLY": "Ally"
     },
@@ -4357,7 +4357,7 @@
       "promotionHelp": "Optional. Only promotions running for this plan are listed.",
       "noPromotion": "No promotion",
       "code": "Code",
-      "codeHelp": "Code from a promoter, a referring member or an ally.",
+      "codeHelp": "Code from an advisor, a referring member or an ally.",
       "codeRequired": "This promotion requires a code",
       "cyclesLeft": "{n} left",
       "viaCode": "With code {code} ({owner})",
