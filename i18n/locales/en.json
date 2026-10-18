@@ -1192,7 +1192,7 @@
       "published": "Published"
     },
     "types": {
-      "INDIVIDUAL": "Individual",
+      "INDIVIDUAL": "Single",
       "FAMILIAR": "Family",
       "CORPORATIVO": "Corporate"
     },
@@ -1224,6 +1224,8 @@
       "included": "Included beneficiaries",
       "max": "Maximum beneficiaries",
       "noLimit": "No limit",
+      "minMembers": "Minimum people",
+      "noMinimum": "No minimum",
       "graceDays": "Grace days",
       "publishedAt": "Published on"
     },
@@ -1242,10 +1244,12 @@
       "integersOnly": "Whole numbers only",
       "codeFormat": "UPPER_SNAKE_CASE (A-Z, 0-9, _)",
       "codeHelp": "UPPER_SNAKE_CASE. Unique key of the plan.",
-      "namePlaceholder": "Individual Plan",
+      "namePlaceholder": "Single Plan",
       "extraBeneficiaryHelp": "Leave empty if the plan doesn't allow additional beneficiaries.",
       "includedHelp": "Defaults to 0.",
       "maxHelp": "Empty = no limit.",
+      "minMembersHelp": "Only for corporate plans (e.g. 20). Empty = no minimum.",
+      "minMembersInvalid": "Must be a whole number greater than or equal to 1",
       "graceHelp": "Defaults to 7.",
       "publishedHelp": "Visible in the public plans directory.",
       "activeHelp": "Deactivates the plan (soft delete) without removing it.",

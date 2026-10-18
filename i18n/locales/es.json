@@ -1192,7 +1192,7 @@
       "published": "Publicado"
     },
     "types": {
-      "INDIVIDUAL": "Individual",
+      "INDIVIDUAL": "Único",
       "FAMILIAR": "Familiar",
       "CORPORATIVO": "Corporativo"
     },
@@ -1224,6 +1224,8 @@
       "included": "Beneficiarios incluidos",
       "max": "Beneficiarios máximos",
       "noLimit": "Sin tope",
+      "minMembers": "Mínimo de personas",
+      "noMinimum": "Sin mínimo",
       "graceDays": "Días de gracia",
       "publishedAt": "Publicado el"
     },
@@ -1242,10 +1244,12 @@
       "integersOnly": "Solo números enteros",
       "codeFormat": "UPPER_SNAKE_CASE (A-Z, 0-9, _)",
       "codeHelp": "UPPER_SNAKE_CASE. Llave única del plan.",
-      "namePlaceholder": "Plan Individual",
+      "namePlaceholder": "Plan Único",
       "extraBeneficiaryHelp": "Déjalo vacío si el plan no admite beneficiarios adicionales.",
       "includedHelp": "Por defecto 0.",
       "maxHelp": "Vacío = sin tope.",
+      "minMembersHelp": "Solo para planes corporativos (p. ej. 20). Vacío = sin mínimo.",
+      "minMembersInvalid": "Debe ser un entero mayor o igual a 1",
       "graceHelp": "Por defecto 7.",
       "publishedHelp": "Visible en el directorio público de planes.",
       "activeHelp": "Desactiva el plan (borrado lógico) sin eliminarlo.",
