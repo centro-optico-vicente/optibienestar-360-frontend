@@ -1713,6 +1713,11 @@
           "NOTE": "Nota"
         }
       }
+    },
+    "payoutAccounts": {
+      "title": "Mis datos de cobro",
+      "contactAdmin": "Si tus datos cambiaron, comunícate con administración.",
+      "empty": "Todavía no tienes datos de cobro registrados. Comunícate con administración para registrarlos."
     }
   },
   "payments": {
@@ -1842,7 +1847,7 @@
         "reference": "Referencia",
         "reviewedBy": "Revisado por"
       },
-      "prefilledFromDossier": "Datos tomados del expediente del asesor"
+      "prefilledFromDossier": "Datos tomados de la cuenta de cobro del asesor"
     },
     "movements": {
       "title": "Movimientos",
@@ -2550,7 +2555,7 @@
       "commissions": "Comisiones",
       "dossier": "Expediente",
       "references": "Referencias",
-      "payoutProfile": "Datos de cobro"
+      "payoutAccounts": "Cuentas de cobro"
     },
     "detail": {
       "seoPage": "Detalle de asesor",
@@ -2731,32 +2736,45 @@
         "phone": "Teléfono"
       }
     },
-    "payoutProfile": {
-      "title": "Datos de cobro",
-      "hint": "Cuentas donde el asesor recibe sus liquidaciones. Se usan para precargar los pagos de comisiones.",
-      "add": "Registrar datos de cobro",
-      "emptyTitle": "Sin datos de cobro",
-      "emptyBody": "Este asesor todavía no tiene datos de cobro registrados.",
-      "savedToast": "Datos de cobro guardados",
-      "deletedToast": "Datos de cobro eliminados",
-      "deleteTitle": "Eliminar datos de cobro",
-      "deleteConfirm": "¿Eliminar los datos de cobro de este asesor? Los pagos ya registrados no cambian.",
+    "payoutAccounts": {
+      "title": "Cuentas de cobro",
+      "hint": "Cuentas donde el asesor recibe sus liquidaciones. La predeterminada se usa para precargar los pagos de comisiones.",
+      "add": "Agregar cuenta",
+      "empty": "Este asesor todavía no tiene cuentas de cobro registradas.",
+      "createTitle": "Nueva cuenta de cobro",
+      "editTitle": "Editar cuenta de cobro",
+      "createdToast": "Cuenta de cobro registrada",
+      "updatedToast": "Cuenta de cobro actualizada",
+      "deletedToast": "Cuenta de cobro eliminada",
+      "defaultToast": "Cuenta marcada como predeterminada",
+      "defaultBadge": "Predeterminada",
+      "makeDefault": "Marcar como predeterminada",
+      "deleteTitle": "Eliminar cuenta de cobro",
+      "deleteConfirm": "¿Eliminar la cuenta de cobro «{method}» de este asesor? Los pagos ya registrados no cambian.",
+      "deleteDefaultWarning": "Es la cuenta predeterminada: el asesor quedará sin cuenta predeterminada hasta que marques otra.",
+      "pickMethodHint": "Selecciona el método de pago para ver los datos que requiere.",
       "accountNumberHelp": "Los 20 dígitos de la cuenta, sin guiones.",
-      "sections": {
-        "bankAccount": "Cuenta bancaria nacional",
-        "mobilePayment": "Pago Móvil",
-        "ubii": "Ubii"
+      "labelHelp": "Opcional. Ej.: Cuenta nómina, Zelle personal.",
+      "isDefaultHelp": "La primera cuenta del asesor siempre queda como predeterminada.",
+      "columns": {
+        "method": "Método",
+        "bank": "Banco",
+        "destination": "Cuenta / destino",
+        "holder": "Titular"
       },
       "fields": {
-        "bank": "Banco receptor",
+        "method": "Método de pago",
+        "label": "Alias",
+        "bank": "Banco",
+        "accountType": "Tipo de cuenta",
         "accountNumber": "Número de cuenta",
-        "holderDocumentType": "Tipo de cédula/RIF del titular",
+        "accountIdentifier": "Identificador de la cuenta",
+        "phone": "Teléfono",
+        "email": "Correo electrónico",
+        "holderName": "Nombre del titular",
+        "holderDocumentType": "Tipo",
         "holderDocumentNumber": "Cédula/RIF del titular",
-        "holderDocument": "Cédula/RIF asociado",
-        "mobilePaymentPhone": "Teléfono Pago Móvil",
-        "mobilePaymentBank": "Banco Pago Móvil",
-        "ubiiAccount": "Cuenta Ubii",
-        "ubiiHolderName": "Titular cuenta Ubii"
+        "isDefault": "Marcar como predeterminada"
       },
       "placeholders": {
         "phone": "Ej.: 0414-5550101"

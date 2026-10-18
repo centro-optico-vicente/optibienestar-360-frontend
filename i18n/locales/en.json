@@ -1713,6 +1713,11 @@
           "NOTE": "Note"
         }
       }
+    },
+    "payoutAccounts": {
+      "title": "My payout details",
+      "contactAdmin": "If your details changed, contact the administration.",
+      "empty": "You have no payout details registered yet. Contact the administration to register them."
     }
   },
   "payments": {
@@ -1842,7 +1847,7 @@
         "reference": "Reference",
         "reviewedBy": "Reviewed by"
       },
-      "prefilledFromDossier": "Details taken from the advisor's dossier"
+      "prefilledFromDossier": "Details taken from the advisor's payout account"
     },
     "movements": {
       "title": "Movements",
@@ -2550,7 +2555,7 @@
       "commissions": "Commissions",
       "dossier": "Dossier",
       "references": "References",
-      "payoutProfile": "Payout details"
+      "payoutAccounts": "Payout accounts"
     },
     "detail": {
       "seoPage": "Advisor detail",
@@ -2731,39 +2736,52 @@
         "phone": "Phone"
       }
     },
-    "payoutProfile": {
-      "title": "Payout details",
-      "hint": "Accounts where the advisor receives payouts. Used to prefill commission payments.",
-      "add": "Add payout details",
-      "emptyTitle": "No payout details",
-      "emptyBody": "This advisor has no payout details yet.",
-      "savedToast": "Payout details saved",
-      "deletedToast": "Payout details deleted",
-      "deleteTitle": "Delete payout details",
-      "deleteConfirm": "Delete this advisor's payout details? Payments already registered are not affected.",
-      "accountNumberHelp": "The 20 account digits, no dashes.",
-      "sections": {
-        "bankAccount": "National bank account",
-        "mobilePayment": "Pago Móvil",
-        "ubii": "Ubii"
+    "payoutAccounts": {
+      "title": "Payout accounts",
+      "hint": "Accounts where the advisor receives payouts. The default one is used to prefill commission payments.",
+      "add": "Add account",
+      "empty": "This advisor has no payout accounts yet.",
+      "createTitle": "New payout account",
+      "editTitle": "Edit payout account",
+      "createdToast": "Payout account added",
+      "updatedToast": "Payout account updated",
+      "deletedToast": "Payout account deleted",
+      "defaultToast": "Account set as default",
+      "defaultBadge": "Default",
+      "makeDefault": "Set as default",
+      "deleteTitle": "Delete payout account",
+      "deleteConfirm": "Delete this advisor's “{method}” payout account? Payments already registered do not change.",
+      "deleteDefaultWarning": "This is the default account: the advisor will have no default until you set another one.",
+      "pickMethodHint": "Select the payment method to see the details it requires.",
+      "accountNumberHelp": "The 20 account digits, without dashes.",
+      "labelHelp": "Optional. E.g.: Payroll account, personal Zelle.",
+      "isDefaultHelp": "The advisor's first account is always the default.",
+      "columns": {
+        "method": "Method",
+        "bank": "Bank",
+        "destination": "Account / destination",
+        "holder": "Holder"
       },
       "fields": {
-        "bank": "Receiving bank",
+        "method": "Payment method",
+        "label": "Alias",
+        "bank": "Bank",
+        "accountType": "Account type",
         "accountNumber": "Account number",
-        "holderDocumentType": "Holder ID/RIF type",
+        "accountIdentifier": "Account identifier",
+        "phone": "Phone",
+        "email": "Email",
+        "holderName": "Holder name",
+        "holderDocumentType": "Type",
         "holderDocumentNumber": "Holder ID/RIF",
-        "holderDocument": "Associated ID/RIF",
-        "mobilePaymentPhone": "Pago Móvil phone",
-        "mobilePaymentBank": "Pago Móvil bank",
-        "ubiiAccount": "Ubii account",
-        "ubiiHolderName": "Ubii account holder"
+        "isDefault": "Set as default"
       },
       "placeholders": {
         "phone": "E.g.: 0414-5550101"
       },
       "validation": {
         "accountNumber": "The account number must be exactly 20 digits",
-        "holderPair": "Enter both holder ID type and number, or leave both empty"
+        "holderPair": "Enter both holder type and number, or leave both empty"
       }
     }
   },

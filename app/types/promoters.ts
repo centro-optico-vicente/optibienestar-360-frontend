@@ -210,40 +210,52 @@ export interface PromoterReferenceRequest {
 }
 
 /**
- * 1:1 payout profile (GET /v1/admin/promoters/{uuid}/payout-profile).
- * Always 200 when the promoter exists: `exists=false` = not filled yet.
+ * One advisor payout account (backend V184) — N per advisor, at most one default.
+ * GET /v1/admin/promoters/{uuid}/payout-accounts and GET /v1/promoter/me/payout-accounts
+ * return them default first, then oldest first. Which fields apply depends on the
+ * payment method's `mandatory*` flags.
  */
-export interface PromoterPayoutProfileDto {
-  uuid: string | null
+export interface PromoterPayoutAccountDto {
+  uuid: string
   promoterUuid: string
+  paymentMethod_Uuid?: string | null
+  paymentMethod_Display?: string | null
+  /** Catalog code (BANK_TRANSFER, PAGO_MOVIL, UBII, ZELLE…). */
+  paymentMethodCode: string
+  label?: string | null
   bank_Uuid?: string | null
   bank_Display?: string | null
-  /** 20 dígitos. */
+  accountType?: 'CORRIENTE' | 'AHORRO' | null
+  /** 20 digits for national accounts. */
   accountNumber?: string | null
-  accountHolderDocumentType?: 'J' | 'V' | 'E' | 'G' | 'P' | null
-  accountHolderDocumentNumber?: string | null
-  mobilePaymentPhone?: string | null
-  mobilePaymentBank_Uuid?: string | null
-  mobilePaymentBank_Display?: string | null
-  ubiiAccount?: string | null
-  ubiiHolderName?: string | null
+  accountIdentifier?: string | null
+  holderName?: string | null
+  holderDocumentType?: 'J' | 'V' | 'E' | 'G' | 'P' | null
+  holderDocumentNumber?: string | null
+  phone?: string | null
+  email?: string | null
+  isDefault: boolean
   active: boolean
   status?: string | null
   createdAt?: string | null
   updatedAt?: string | null
-  exists: boolean
 }
 
-/** Body of PUT .../payout-profile — full replace: omitted/blank fields are cleared. */
-export interface PromoterPayoutProfileRequest {
+/** Body of POST / PUT .../payout-accounts[/{uuid}] — full replace: blank fields are cleared. */
+export interface PromoterPayoutAccountRequest {
+  paymentMethodUuid: string
+  label?: string | null
   bankUuid?: string | null
+  accountType?: string | null
   accountNumber?: string | null
-  accountHolderDocumentType?: string | null
-  accountHolderDocumentNumber?: string | null
-  mobilePaymentPhone?: string | null
-  mobilePaymentBankUuid?: string | null
-  ubiiAccount?: string | null
-  ubiiHolderName?: string | null
+  accountIdentifier?: string | null
+  holderName?: string | null
+  holderDocumentType?: string | null
+  holderDocumentNumber?: string | null
+  phone?: string | null
+  email?: string | null
+  /** Only honored on create (the first account is always the default). */
+  isDefault?: boolean | null
 }
 
 /**

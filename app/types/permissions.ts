@@ -150,6 +150,12 @@ export const PERMISSIONS = [
   'PROMOTER_DELETE',
   'PROMOTER_VIEW_ALL',
   'PROMOTER_VIEW_OWN',
+  // Advisor payout accounts (backend V184) — granular, separate from PROMOTER_*.
+  'PROMOTER_PAYOUT_ACCOUNT_VIEW_ALL',
+  'PROMOTER_PAYOUT_ACCOUNT_VIEW_OWN',
+  'PROMOTER_PAYOUT_ACCOUNT_CREATE',
+  'PROMOTER_PAYOUT_ACCOUNT_UPDATE',
+  'PROMOTER_PAYOUT_ACCOUNT_DELETE',
   // Portfolio management writes (reminder / payment promise) on /v1/promoter/me/contacts (V36).
   'PROMOTER_CONTACT_OWN',
 

@@ -14,6 +14,9 @@ definePageMeta({
 
 const { t } = useI18n()
 const { formatDate } = useFormatters()
+const { can } = usePermissions()
+// "Mis datos de cobro" (backend V184) — its own permission, independent of PROMOTER_VIEW_OWN.
+const canViewOwnPayoutAccounts = computed(() => can('PROMOTER_PAYOUT_ACCOUNT_VIEW_OWN'))
 
 useSeoMeta({ title: () => t('common.seoTitle', { page: t('promoterSelf.payouts.title') }) })
 
@@ -56,6 +59,8 @@ function statusLabel(s?: string | null): string {
       <h1 class="text-2xl font-extrabold text-prohealth-900">{{ t('promoterSelf.payouts.title') }}</h1>
       <p class="text-sm text-prohealth-700/70 mt-1">{{ t('promoterSelf.payouts.subtitle') }}</p>
     </div>
+
+    <MyPayoutAccountsCard v-if="canViewOwnPayoutAccounts" />
 
     <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-16rem)] min-h-[24rem]">
       <div class="overflow-auto flex-1">
