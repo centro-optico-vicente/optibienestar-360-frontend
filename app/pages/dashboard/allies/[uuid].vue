@@ -21,6 +21,7 @@ import {
   AGREEMENT_TYPE_OPTIONS,
   ALLY_ROLE_OPTIONS,
 } from '~/types/allies'
+import type { TermsVersionDto } from '~/types/terms'
 
 definePageMeta({
   layout: 'dashboard',
@@ -549,21 +550,36 @@ const agrState = reactive<AgrFormState>({
   noticeDays: 30,
 })
 
-// Standard "Convenio de Alianza Estratégica" versions (ALIADO terms), loaded
-// lazily the first time the agreement form opens. Needs TERMS_VIEW_ALL; without
-// it the select stays empty and the agreement is saved without a version.
-const termsApi = useTerms()
-const canViewTerms = computed(() => can('TERMS_VIEW_ALL'))
+// Standard agreement templates (ALIADO terms) this ally may sign — general ones
+// plus those scoped to this ally, one of its types or their segment (backend
+// V183), most specific first. Loaded lazily the first time the agreement form
+// opens; the endpoint is gated by the agreement write permissions themselves.
+const canPickTerms = computed(() => can('ALLY_AGREEMENT_CREATE') || can('ALLY_AGREEMENT_UPDATE'))
 const termsVersionOptions = ref<{ label: string, value: string }[]>([])
 const termsVersionsLoaded = ref(false)
-async function loadTermsVersions() {
-  if (termsVersionsLoaded.value || !canViewTerms.value) return
+
+/** "General" or "Aliado X · Tipo Y · Segmento Z" — which allies the template targets. */
+function termsScopeLabel(v: TermsVersionDto) {
+  const parts = [v.ally_Display, v.allyType_Display, v.segment_Display].filter(Boolean)
+  return parts.length ? parts.join(' · ') : t('allies.agreements.form.termsScopeGeneral')
+}
+
+async function loadTermsVersions(force = false) {
+  if ((termsVersionsLoaded.value && !force) || !canPickTerms.value) return
   try {
-    const versions = await termsApi.list('ALIADO')
-    termsVersionOptions.value = versions.map(v => ({
-      label: `${v.title} (${formatDate(v.validFrom)})`,
+    const versions = await allies.listApplicableTerms(allyUuid)
+    const options = versions.map(v => ({
+      label: `${v.title} (${formatDate(v.validFrom)}) — ${termsScopeLabel(v)}`,
       value: v.uuid,
     }))
+    // Keep the version the edited agreement already links selectable, even when
+    // it is no longer the current template of its stream.
+    const linked = agrEditingItem.value
+    if (agrMode.value === 'edit' && linked?.termsVersion_Uuid
+      && !options.some(o => o.value === linked.termsVersion_Uuid)) {
+      options.push({ label: linked.termsVersion_Display ?? linked.termsVersion_Uuid, value: linked.termsVersion_Uuid })
+    }
+    termsVersionOptions.value = options
     termsVersionsLoaded.value = true
   }
   catch {
@@ -595,8 +611,9 @@ function resetAgrForm() {
 function openAgrCreate() {
   agrMode.value = 'create'
   agrEditingUuid.value = null
+  agrEditingItem.value = null
   resetAgrForm()
-  loadTermsVersions()
+  loadTermsVersions(true)
   agrFormOpen.value = true
 }
 
@@ -621,7 +638,8 @@ function openAgrEdit(a: AllyAgreementDto) {
       { label: a.termsVersion_Display ?? a.termsVersion_Uuid, value: a.termsVersion_Uuid },
     ]
   }
-  loadTermsVersions()
+  // Forced: the ally's types (and so the applicable templates) may have changed since the last load.
+  loadTermsVersions(true)
   agrFormOpen.value = true
 }
 
@@ -660,8 +678,10 @@ async function onAgrSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     agrFormOpen.value = false
     await loadAgreements()
   }
-  catch {
-    // toast handled by useApi
+  catch (err) {
+    // toast handled by useApi. A 422 may be `ally_agreement.terms_version.not_applicable`
+    // (the template no longer matches the ally's types/segment): refresh the choices.
+    if ((err as ApiError).status === 422) await loadTermsVersions(true)
   }
   finally {
     agrSubmitting.value = false
@@ -1822,7 +1842,7 @@ onMounted(async () => {
           <UFormField
             :label="t('allies.agreements.form.fields.termsVersion')"
             name="termsVersionUuid"
-            :help="canViewTerms ? t('allies.agreements.form.termsVersionHelp') : t('allies.agreements.form.termsVersionNoPermission')"
+            :help="canPickTerms ? t('allies.agreements.form.termsVersionHelp') : t('allies.agreements.form.termsVersionNoPermission')"
           >
             <USelectMenu
               clear

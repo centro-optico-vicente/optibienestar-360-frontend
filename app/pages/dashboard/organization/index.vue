@@ -4,7 +4,7 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 import { toSelectItems, type SelectItem } from '~/types/options'
 import MarkdownIt from 'markdown-it'
 import DOMPurify from 'dompurify'
-import { TERMS_TEMPLATE_VARIABLES, type TermType } from '~/types/terms'
+import { TERMS_TEMPLATE_VARIABLES, type AllySegment, type TermsVersionDto, type TermType } from '~/types/terms'
 
 definePageMeta({
   layout: 'dashboard',
@@ -19,6 +19,7 @@ useSeoMeta({ title: () => t('organization.seoTitle') })
 const organizationApi = useOrganization()
 const currenciesApi = useCurrencies()
 const termsApi = useTerms()
+const alliesApi = useAllies()
 const { can } = usePermissions()
 const { formatDate } = useFormatters()
 const toast = useToast()
@@ -215,6 +216,12 @@ interface TermTabState {
   validFrom: string
   /** Server-rendered text (placeholders resolved) of the version shown in the editor, as last saved. */
   previewRendered: string | null
+  /** Every version of the type, `validFrom` DESC — the editor works on the stream matching the scope below. */
+  versions: TermsVersionDto[]
+  /** ALIADO-only optional scope (V183): all empty = general template. Picks the stream being edited. */
+  allyTypeUuid: string | undefined
+  segment: AllySegment | undefined
+  allyUuid: string | undefined
 }
 
 function emptyTabState(): TermTabState {
@@ -230,6 +237,10 @@ function emptyTabState(): TermTabState {
     isPublic: false,
     validFrom: '',
     previewRendered: null,
+    versions: [],
+    allyTypeUuid: undefined,
+    segment: undefined,
+    allyUuid: undefined,
   }
 }
 
@@ -242,6 +253,41 @@ const termTabs = reactive<Record<TermType, TermTabState>>({
 const activeTerm = computed(() => termTabs[activeTermTab.value])
 const savingTerm = ref(false)
 
+/** Same stream = same scope combination (AFILIADO / PROMOTOR rows never carry one). */
+function inTabStream(v: TermsVersionDto, tab: TermTabState) {
+  // `?? undefined` on both sides: a cleared select may hand back `null`.
+  return (v.allyType_Uuid ?? undefined) === (tab.allyTypeUuid ?? undefined)
+    && (v.segment ?? undefined) === (tab.segment ?? undefined)
+    && (v.ally_Uuid ?? undefined) === (tab.allyUuid ?? undefined)
+}
+
+/**
+ * Loads the stream selected by the tab's scope into the editor: its live
+ * version and its scheduled one (rows are `validFrom` DESC with `isVigent`).
+ * A stream with no version yet keeps whatever is typed in the editor, so
+ * picking a scope for a brand-new template doesn't wipe the draft.
+ */
+function applyTermStream(tab: TermTabState) {
+  const stream = tab.versions.filter(v => inTabStream(v, tab))
+  const current = stream.find(v => v.isVigent)
+  const scheduled = stream.find(v => !v.isVigent)
+
+  tab.currentTitle = current?.title ?? null
+  tab.currentContent = current?.contentMarkdown ?? null
+  tab.currentValidFrom = current?.validFrom ?? null
+  tab.editingUuid = scheduled?.uuid ?? null
+
+  if (!current && !scheduled) {
+    tab.previewRendered = null
+    return
+  }
+  tab.title = scheduled?.title ?? current?.title ?? ''
+  tab.contentMarkdown = scheduled?.contentMarkdown ?? current?.contentMarkdown ?? ''
+  tab.isPublic = scheduled?.isPublic ?? current?.isPublic ?? false
+  tab.validFrom = scheduled ? scheduled.validFrom.slice(0, 16) : ''
+  tab.previewRendered = scheduled?.contentRendered ?? current?.contentRendered ?? null
+}
+
 /**
  * One request per tab: the list is ordered `validFrom` DESC and each row carries
  * `isVigent`, so both the live version and the scheduled one come from it —
@@ -252,20 +298,8 @@ async function loadTermType(type: TermType, force = false) {
   if (tab.loading || (tab.loaded && !force)) return
   tab.loading = true
   try {
-    const versions = await termsApi.list(type)
-    const current = versions.find(v => v.isVigent)
-    const scheduled = versions.find(v => !v.isVigent)
-
-    tab.currentTitle = current?.title ?? null
-    tab.currentContent = current?.contentMarkdown ?? null
-    tab.currentValidFrom = current?.validFrom ?? null
-
-    tab.editingUuid = scheduled?.uuid ?? null
-    tab.title = scheduled?.title ?? current?.title ?? ''
-    tab.contentMarkdown = scheduled?.contentMarkdown ?? current?.contentMarkdown ?? ''
-    tab.isPublic = scheduled?.isPublic ?? current?.isPublic ?? false
-    tab.validFrom = scheduled ? scheduled.validFrom.slice(0, 16) : ''
-    tab.previewRendered = scheduled?.contentRendered ?? current?.contentRendered ?? null
+    tab.versions = await termsApi.list(type)
+    applyTermStream(tab)
     tab.loaded = true
   }
   catch {
@@ -300,12 +334,21 @@ async function saveTermTab(type: TermType) {
       })
     }
     else {
+      // The scope only travels on create: an update edits the scheduled row of
+      // the stream already selected by that same scope.
       await termsApi.create({
         termType: type,
         title: tab.title,
         contentMarkdown: tab.contentMarkdown,
         isPublic: tab.isPublic,
         validFrom: validFromIso,
+        ...(type === 'ALIADO'
+          ? {
+              allyTypeUuid: tab.allyTypeUuid || undefined,
+              segment: tab.segment || undefined,
+              allyUuid: tab.allyUuid || undefined,
+            }
+          : {}),
       })
     }
     toast.add({ title: t('organization.terms.savedToast'), color: 'success', icon: 'i-lucide-check-circle' })
@@ -318,6 +361,69 @@ async function saveTermTab(type: TermType) {
     savingTerm.value = false
   }
 }
+
+// ---- ALIADO template scope (V183) ----
+// Picking a scope switches the editor to that scope's stream.
+watch(
+  () => [termTabs.ALIADO.allyTypeUuid, termTabs.ALIADO.segment, termTabs.ALIADO.allyUuid],
+  () => { if (termTabs.ALIADO.loaded) applyTermStream(termTabs.ALIADO) },
+)
+
+const segmentItems = computed(() => (['B2B', 'B2P'] as AllySegment[]).map(value => ({
+  label: t(`allies.segments.${value}`),
+  value,
+})))
+
+const allyTypeItems = ref<SelectItem[]>([])
+const allyTypeItemsLoaded = ref(false)
+async function loadAllyTypeItems() {
+  if (allyTypeItemsLoaded.value) return
+  try {
+    allyTypeItems.value = toSelectItems(await useCatalogOptions('ally-types').options({ limit: 200 }))
+    allyTypeItemsLoaded.value = true
+  }
+  catch {
+    allyTypeItems.value = []
+  }
+}
+
+// Server-side ally search. The selected ally is kept in the results so its
+// label still shows when it comes from a version row rather than a search.
+const selectedAllyItem = ref<SelectItem | null>(null)
+async function searchAllies(q: string): Promise<SelectItem[]> {
+  const page = await alliesApi.list({ q, size: 20 })
+  const items = (page.content ?? []).map(a => ({ label: a.name, value: a.uuid }))
+  const selected = selectedAllyItem.value
+  return selected && !items.some(i => i.value === selected.value) ? [selected, ...items] : items
+}
+
+/** "Aliado X · Tipo Y · Segmento Z", or "General" when the template has no scope. */
+function termScopeLabel(v: TermsVersionDto) {
+  const parts = [v.ally_Display, v.allyType_Display, v.segment_Display].filter(Boolean)
+  return parts.length ? parts.join(' · ') : t('organization.terms.scope.general')
+}
+
+/** A vigente row is the stream's live version unless a later vigente row of the same stream exists. */
+function termRowStatus(v: TermsVersionDto, versions: TermsVersionDto[]) {
+  if (!v.isVigent) return 'scheduled'
+  const sameStream = (o: TermsVersionDto) =>
+    (o.allyType_Uuid ?? null) === (v.allyType_Uuid ?? null)
+    && (o.segment ?? null) === (v.segment ?? null)
+    && (o.ally_Uuid ?? null) === (v.ally_Uuid ?? null)
+  const live = versions.find(o => o.isVigent && sameStream(o))
+  return live?.uuid === v.uuid ? 'current' : 'previous'
+}
+
+function editTermStream(v: TermsVersionDto) {
+  const tab = termTabs.ALIADO
+  selectedAllyItem.value = v.ally_Uuid ? { label: v.ally_Display ?? v.ally_Uuid, value: v.ally_Uuid } : null
+  tab.allyTypeUuid = v.allyType_Uuid ?? undefined
+  tab.segment = v.segment ?? undefined
+  tab.allyUuid = v.ally_Uuid ?? undefined
+  applyTermStream(tab)
+}
+
+watch(activeTermTab, (type) => { if (type === 'ALIADO') loadAllyTypeItems() })
 
 // ---- Template variables help + rendered preview ----
 const showTermPreview = ref(false)
@@ -571,6 +677,91 @@ onMounted(() => {
       <!-- Keyed on the active type so switching tabs remounts the editor with that
            tab's own state instead of patching the previous tab's inputs. -->
       <div v-else :key="activeTermTab" class="space-y-4">
+        <p class="text-xs text-prohealth-700 bg-prohealth-50 rounded-lg p-3">
+          {{ t(`organization.terms.audience.${activeTermTab}`) }}
+        </p>
+
+        <!-- ALIADO: every template (one stream per scope) with its scope; "Editar" loads that stream. -->
+        <div v-if="activeTermTab === 'ALIADO'" class="space-y-2">
+          <h3 class="text-sm font-bold text-prohealth-900">{{ t('organization.terms.versionsList.title') }}</h3>
+          <p v-if="!activeTerm.versions.length" class="text-xs text-prohealth-700/70">
+            {{ t('organization.terms.versionsList.empty') }}
+          </p>
+          <div v-else class="overflow-x-auto rounded-lg border border-prohealth-100">
+            <table class="w-full text-xs">
+              <thead class="bg-prohealth-50 text-prohealth-700">
+                <tr>
+                  <th class="text-left font-semibold px-3 py-2">{{ t('organization.terms.fields.title') }}</th>
+                  <th class="text-left font-semibold px-3 py-2">{{ t('organization.terms.versionsList.scope') }}</th>
+                  <th class="text-left font-semibold px-3 py-2">{{ t('organization.terms.fields.validFrom') }}</th>
+                  <th class="text-left font-semibold px-3 py-2">{{ t('organization.terms.versionsList.status') }}</th>
+                  <th class="text-left font-semibold px-3 py-2">{{ t('organization.terms.versionsList.public') }}</th>
+                  <th class="px-3 py-2" />
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="v in activeTerm.versions" :key="v.uuid" class="border-t border-prohealth-100">
+                  <td class="px-3 py-2 text-prohealth-900">{{ v.title }}</td>
+                  <td class="px-3 py-2 text-prohealth-700">{{ termScopeLabel(v) }}</td>
+                  <td class="px-3 py-2 text-prohealth-700 whitespace-nowrap">{{ formatDate(v.validFrom, 'datetime') }}</td>
+                  <td class="px-3 py-2 text-prohealth-700">
+                    {{ t(`organization.terms.versionsList.statuses.${termRowStatus(v, activeTerm.versions)}`) }}
+                  </td>
+                  <td class="px-3 py-2 text-prohealth-700">{{ v.isPublic ? t('common.yes') : t('common.no') }}</td>
+                  <td class="px-3 py-2 text-right">
+                    <UButton size="xs" color="neutral" variant="ghost" icon="i-lucide-pencil" @click="editTermStream(v)">
+                      {{ t('organization.terms.versionsList.edit') }}
+                    </UButton>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ALIADO: optional scope. Picks which template stream the editor below works on. -->
+        <div v-if="activeTermTab === 'ALIADO'" class="rounded-lg border border-prohealth-100 p-3 space-y-3">
+          <div>
+            <h3 class="text-sm font-bold text-prohealth-900">{{ t('organization.terms.scope.title') }}</h3>
+            <p class="text-xs text-prohealth-700/70 mt-0.5">{{ t('organization.terms.scope.help') }}</p>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <UFormField :label="t('organization.terms.scope.segment')">
+              <USelectMenu
+                v-model="activeTerm.segment"
+                clear
+                :items="segmentItems"
+                label-key="label"
+                value-key="value"
+                :search-input="false"
+                :placeholder="t('organization.terms.scope.any')"
+                :disabled="!canManageTerms"
+                class="w-full"
+              />
+            </UFormField>
+            <UFormField :label="t('organization.terms.scope.allyType')">
+              <CommonEntityReferenceSelect
+                v-model="activeTerm.allyTypeUuid"
+                :items="allyTypeItems"
+                entity="ally_type"
+                icon="i-lucide-tags"
+                :placeholder="t('organization.terms.scope.any')"
+                :disabled="!canManageTerms"
+              />
+            </UFormField>
+            <UFormField :label="t('organization.terms.scope.ally')">
+              <CommonEntityReferenceSelect
+                v-model="activeTerm.allyUuid"
+                :search="searchAllies"
+                entity="ally"
+                icon="i-lucide-handshake"
+                :placeholder="t('organization.terms.scope.any')"
+                :disabled="!canManageTerms"
+              />
+            </UFormField>
+          </div>
+        </div>
+
         <div v-if="activeTerm.currentContent" class="text-xs text-prohealth-600 bg-prohealth-50 rounded-lg p-3">
           {{ t('organization.terms.currentSince', { date: formatDate(activeTerm.currentValidFrom, 'datetime') }) }}
         </div>
