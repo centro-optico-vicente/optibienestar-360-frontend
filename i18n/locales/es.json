@@ -2032,6 +2032,10 @@
       "add": "Añadir",
       "empty": "Sin beneficiarios registrados",
       "extraPaid": "Pagada",
+      "slotBase": "Base",
+      "slotExtra": "Adicional",
+      "slotSummary": "Cupos base {baseUsed}/{baseTotal} · adicionales {extraUsed}/{extraTotal}",
+      "slotSummaryUnlimited": "Cupos base {baseUsed}/{baseTotal} · adicionales {extraUsed} (sin límite)",
       "createdToast": "Beneficiario añadido",
       "updatedToast": "Beneficiario actualizado",
       "deletedToast": "Beneficiario eliminado",
@@ -2040,6 +2044,7 @@
         "document": "Documento",
         "birthDate": "Nacimiento",
         "relationship": "Parentesco",
+        "slot": "Cupo",
         "extraInscription": "Inscripción extra",
         "status": "Estado"
       },
