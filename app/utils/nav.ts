@@ -232,6 +232,9 @@ export const MAIN_NAV: NavEntry[] = [
       // mismo endpoint/tabla que las pantallas de admin, filtrado por el
       // propio afiliado/promotor autenticado.
       { label: 'Mis pagos', labelKey: 'nav.items.myPayments.label', to: '/afiliado/payments', icon: 'i-lucide-receipt', description: 'Tu historial de pagos de membresía.', descriptionKey: 'nav.items.myPayments.description', requires: 'PAYMENT_VIEW_OWN' },
+      // Gestión de Cartera del asesor (v2 PDF 2.b): portfolio + collection score,
+      // with reminder / payment-promise actions gated by PROMOTER_CONTACT_OWN in-page.
+      { label: 'Mi cartera', labelKey: 'nav.items.myPortfolio.label', to: '/promotor/cartera', icon: 'i-lucide-briefcase', description: 'Gestión de Cartera: tus afiliados y su Cuota de Mantenimiento al día.', descriptionKey: 'nav.items.myPortfolio.description', requires: 'PROMOTER_VIEW_OWN' },
       { label: 'Cobros de mis afiliados', labelKey: 'nav.items.myNetworkCollections.label', to: '/promotor/collections', icon: 'i-lucide-users', description: 'Pagos de membresía de los afiliados de tu red.', descriptionKey: 'nav.items.myNetworkCollections.description', requires: 'PROMOTER_VIEW_OWN' },
       { label: 'Mis pagos de comisiones', labelKey: 'nav.items.myCommissionPayouts.label', to: '/promotor/payouts', icon: 'i-lucide-banknote', description: 'Pagos de comisión que te han sido liquidados.', descriptionKey: 'nav.items.myCommissionPayouts.description', requires: 'PROMOTER_VIEW_OWN' },
     ],
