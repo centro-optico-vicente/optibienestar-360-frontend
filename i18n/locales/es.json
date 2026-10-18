@@ -134,7 +134,7 @@
       "forgotPassword": "¿Olvidaste tu contraseña?",
       "submit": "Ingresar",
       "noAccount": "¿No tienes cuenta?",
-      "contactPromoter": "Contacta a un promotor.",
+      "contactPromoter": "Contacta a un asesor.",
       "welcomeTitle": "¡Bienvenido!",
       "welcomeDescription": "Hola {name}",
       "errorFallback": "No fue posible iniciar sesión"
@@ -501,7 +501,7 @@
       },
       "comercial": {
         "label": "Comercial",
-        "description": "Promotores del programa y sus comisiones."
+        "description": "Asesores del programa y sus comisiones."
       },
       "finanzas": {
         "label": "Finanzas",
@@ -564,15 +564,15 @@
         "description": "Clasificación de los aliados."
       },
       "promoterTypes": {
-        "label": "Tipos de promotor",
-        "description": "Clasificación de los promotores."
+        "label": "Tipos de asesor",
+        "description": "Clasificación de los asesores."
       },
       "promoterRanks": {
         "label": "Cargos jerárquicos",
-        "description": "Rangos de la jerarquía de promotores."
+        "description": "Rangos de la jerarquía de asesores."
       },
       "promoterHierarchy": {
-        "label": "Organigrama de promotores",
+        "label": "Organigrama de asesores",
         "description": "Jerarquía de supervisión y cargos."
       },
       "allies": {
@@ -588,8 +588,8 @@
         "description": "Profesiones y actividades de los aliados."
       },
       "promoters": {
-        "label": "Promotores",
-        "description": "Equipo comercial y promotores."
+        "label": "Asesores Comerciales",
+        "description": "Equipo comercial y asesores."
       },
       "commissions": {
         "label": "Comisiones",
@@ -609,7 +609,7 @@
       },
       "commissionPayoutsReport": {
         "label": "Reporte de pagos de comisiones",
-        "description": "Reporte de desembolsos y pagos realizados a promotores."
+        "description": "Reporte de desembolsos y pagos realizados a asesores."
       },
       "roles": {
         "label": "Roles",
@@ -693,7 +693,7 @@
       },
       "paymentsPayouts": {
         "label": "Pagos",
-        "description": "Pagos de comisión ejecutados a promotores."
+        "description": "Pagos de comisión ejecutados a asesores."
       },
       "paymentsMovements": {
         "label": "Movimientos",
@@ -712,12 +712,12 @@
         "description": "Gestión de Cartera: tus afiliados y su Cuota de Mantenimiento al día."
       },
       "myNetworkCollections": {
-        "label": "Cobros de mis afiliados",
+        "label": "Gestión de Cartera",
         "description": "Pagos de membresía de los afiliados de tu red."
       },
       "myCommissionPayouts": {
-        "label": "Mis pagos de comisiones",
-        "description": "Pagos de comisión que te han sido liquidados."
+        "label": "Mi Participación en Ecosistema",
+        "description": "Pagos de tu participación en el ecosistema que te han sido liquidados."
       },
       "competitiveWinners": {
         "label": "Ganadores de reglas competitivas",
@@ -860,7 +860,7 @@
     "about": {
       "eyebrow": "Sobre nosotros",
       "title": "OptiBienestar 360 es un equipo de profesionales de la salud comprometidos.",
-      "body": "Trabajamos bajo un enfoque integral que se concentra en la persona como un todo, no solo en el síntoma. Nuestros aliados, planes y promotores forman una red diseñada para que cuidarse sea simple.",
+      "body": "Trabajamos bajo un enfoque integral que se concentra en la persona como un todo, no solo en el síntoma. Nuestros aliados, planes y asesores forman una red diseñada para que cuidarse sea simple.",
       "imageAlt": "Equipo de profesionales de OptiBienestar 360"
     },
     "departments": {
@@ -889,7 +889,7 @@
         },
         "ophthalmology": {
           "title": "Oftalmología",
-          "description": "Consultas, lentes y descuentos en óptica."
+          "description": "Consultas, lentes y tarifas preferenciales en óptica."
         }
       }
     },
@@ -1070,8 +1070,8 @@
         "labelSingular": "Tipo de aliado"
       },
       "promoter-types": {
-        "label": "Tipos de promotor",
-        "labelSingular": "Tipo de promotor"
+        "label": "Tipos de asesor",
+        "labelSingular": "Tipo de asesor"
       },
       "promoter-ranks": {
         "label": "Cargos jerárquicos",
@@ -1151,7 +1151,7 @@
       "ally_type": "Tipo de aliado",
       "member": "Afiliado",
       "payment": "Pago",
-      "promoter": "Promotor",
+      "promoter": "Asesor",
       "scheduled_job": "Tarea programada",
       "commission_tier": "Escala de comisión",
       "bonus_rule": "Regla de bono",
@@ -1164,7 +1164,7 @@
       "occupation": "Ocupación",
       "profession": "Profesión",
       "service_category": "Categoría de servicio",
-      "promoter_type": "Tipo de promotor"
+      "promoter_type": "Tipo de asesor"
     }
   },
   "plans": {
@@ -1403,7 +1403,7 @@
         "service": "Servicio",
         "category": "Categoría",
         "price": "Precio",
-        "discount": "Desc.",
+        "discount": "Tarifa Pref.",
         "appointment": "Cita",
         "review": "Revisión",
         "published": "Publicado"
@@ -1423,7 +1423,7 @@
           "name": "Nombre",
           "description": "Descripción",
           "price": "Precio (USD)",
-          "discount": "Descuento (%)",
+          "discount": "Tarifa Preferencial (%)",
           "requiresAppointment": "Requiere cita",
           "published": "Publicado",
           "exclusions": "Exclusiones (no aplica en)"
@@ -1571,10 +1571,10 @@
         "backToDirectory": "Volver al directorio",
         "servicesTitle": "Servicios disponibles",
         "servicesEmpty": "Este aliado aún no tiene servicios publicados.",
-        "discountAffiliates": "-{pct}% afiliados",
+        "discountAffiliates": "Tarifa Preferencial -{pct}%",
         "requiresAppointment": "Requiere cita previa",
         "ctaTitle": "¿Aún no eres afiliado?",
-        "ctaBody": "Únete a OptiBienestar 360 y accede a precios preferenciales en toda la red.",
+        "ctaBody": "Únete a OptiBienestar 360 y accede a la Tarifa Preferencial en toda la red.",
         "ctaButton": "Quiero afiliarme",
         "exclusions": "No aplica en: {exclusions}"
       }
@@ -1596,14 +1596,14 @@
         "name": "Nombre del servicio",
         "description": "Descripción",
         "price": "Precio (USD)",
-        "discount": "Descuento afiliados (%)",
+        "discount": "Tarifa Preferencial para afiliados (%)",
         "requiresAppointment": "Requiere cita",
         "ally": "Empresa aliada",
         "allyHelp": "Trabajas en más de una; elige para cuál propones el servicio."
       },
       "help": {
         "title": "¿Cómo funciona?",
-        "step1": "Envías la propuesta del servicio con su precio y descuento para afiliados.",
+        "step1": "Envías la propuesta del servicio con su precio y la Tarifa Preferencial para afiliados.",
         "step2": "El equipo de OptiBienestar 360 la revisa y aprueba.",
         "step3pre": "Una vez publicado, aparece en el ",
         "step3link": "directorio público",
@@ -1619,18 +1619,18 @@
   },
   "promoterSelf": {
     "collections": {
-      "title": "Cobros de mis afiliados",
+      "title": "Gestión de Cartera",
       "subtitle": "Pagos de membresía de los afiliados de tu red.",
-      "empty": "Sin cobros",
+      "empty": "Sin pagos registrados en tu cartera",
       "form": {
-        "title": "Registrar cobro",
+        "title": "Registrar pago de afiliado",
         "description": "Registra el pago de membresía de un afiliado de tu cartera para revisión."
       }
     },
     "payouts": {
-      "title": "Mis pagos de comisiones",
-      "subtitle": "Pagos de comisión que te han sido liquidados.",
-      "empty": "Sin pagos de comisión"
+      "title": "Mi Participación en Ecosistema",
+      "subtitle": "Pagos de tu participación en el ecosistema que te han sido liquidados.",
+      "empty": "Aún no tienes pagos de participación liquidados"
     },
     "profile": {
       "title": "Mi perfil",
@@ -1642,7 +1642,7 @@
       "copy": "Copiar enlace",
       "copied": "Enlace copiado",
       "copyFailed": "No se pudo copiar el enlace",
-      "qrUnavailable": "No encontramos tu perfil de promotor.",
+      "qrUnavailable": "No encontramos tu perfil de asesor.",
       "qrAlt": "QR de afiliación"
     },
     "portfolio": {
@@ -1740,8 +1740,8 @@
       "methodAll": "Todos los métodos de pago",
       "plan": "Plan de Cobertura",
       "planAll": "Todos los planes de cobertura",
-      "promoter": "Promotor Asociado",
-      "promoterAll": "Todos los promotores",
+      "promoter": "Asesor Asociado",
+      "promoterAll": "Todos los asesores",
       "targetCurrency": "Moneda de Salida (Conversión)",
       "currencyHelp": "Convierte el monto de cada cobro a la tasa de cambio vigente a su fecha de cobro.",
       "clearFilters": "Limpiar filtros",
@@ -1756,7 +1756,7 @@
       "subtitle": "Auditoría financiera consolidada de todos los cobros (ingresos de afiliados) y pagos (egresos de comisiones) en PDF y Excel.",
       "historyButton": "Historial de descargas",
       "paramsTitle": "Parámetros del Reporte de Pagos y Cobros",
-      "paramsSubtitle": "Filtra por dirección de flujo (Cobros IN / Pagos OUT), fechas, método, estado y promotor.",
+      "paramsSubtitle": "Filtra por dirección de flujo (Cobros IN / Pagos OUT), fechas, método, estado y asesor.",
       "direction": "Dirección del Movimiento (Flujo)",
       "directionAll": "Todas las direcciones (Cobros y Pagos)",
       "directionIn": "Cobros de Afiliados (Entrada — IN)",
@@ -1774,8 +1774,8 @@
       "methodAll": "Todos los métodos de pago",
       "plan": "Plan de Cobertura (Solo Cobros)",
       "planAll": "Todos los planes de cobertura",
-      "promoter": "Promotor Asociado",
-      "promoterAll": "Todos los promotores",
+      "promoter": "Asesor Asociado",
+      "promoterAll": "Todos los asesores",
       "targetCurrency": "Moneda de Salida (Conversión)",
       "currencyHelp": "Convierte el monto de cada cobro o pago a la tasa de cambio vigente a su fecha de movimiento.",
       "clearFilters": "Limpiar filtros",
@@ -1806,17 +1806,17 @@
     },
     "payouts": {
       "title": "Pagos",
-      "subtitle": "Pagos de comisión ejecutados a promotores (liquidación de período).",
-      "description": "Registra un pago manual al promotor. Quedará como borrador hasta enviarlo a revisión.",
+      "subtitle": "Pagos de comisión ejecutados a asesores (liquidación de período).",
+      "description": "Registra un pago manual al asesor. Quedará como borrador hasta enviarlo a revisión.",
       "createTitle": "Registrar pago",
       "editTitle": "Editar pago",
       "createdToast": "Pago creado",
       "updatedToast": "Pago actualizado",
-      "promoterPlaceholder": "Selecciona un promotor",
+      "promoterPlaceholder": "Selecciona un asesor",
       "categoryPlaceholder": "Selecciona un motivo",
-      "personPlaceholder": "Se obtiene del promotor",
+      "personPlaceholder": "Se obtiene del asesor",
       "fields": {
-        "promoter": "Promotor",
+        "promoter": "Asesor",
         "person": "Persona asociada",
         "category": "Motivo",
         "currency": "Moneda",
@@ -1836,7 +1836,7 @@
       "empty": "Sin pagos de comisión",
       "detailTitle": "Detalle del pago",
       "columns": {
-        "promoter": "Promotor",
+        "promoter": "Asesor",
         "category": "Motivo",
         "method": "Método",
         "reference": "Referencia",
@@ -1854,7 +1854,7 @@
       "directionOut": "Pago",
       "columns": {
         "direction": "Tipo",
-        "subject": "Afiliado / Promotor"
+        "subject": "Afiliado / Asesor"
       }
     },
     "mine": {
@@ -2067,7 +2067,7 @@
       "document": "Documento",
       "phone": "Teléfono",
       "enrolledAt": "Afiliación",
-      "promoter": "Promotor",
+      "promoter": "Asesor",
       "status": "Estado"
     },
     "relationships": {
@@ -2226,14 +2226,14 @@
       }
     },
     "promoter": {
-      "title": "Promotor",
-      "subtitle": "Enlace permanente con el promotor y su histórico de reasignaciones.",
-      "current": "Promotor actual",
-      "none": "Sin promotor asignado",
-      "changeButton": "Cambiar promotor",
+      "title": "Asesor",
+      "subtitle": "Enlace permanente con el asesor y su histórico de reasignaciones.",
+      "current": "Asesor actual",
+      "none": "Sin asesor asignado",
+      "changeButton": "Cambiar asesor",
       "linkButton": "Vincular por código",
-      "changedToast": "Promotor actualizado",
-      "linkedToast": "Afiliado vinculado al promotor",
+      "changedToast": "Asesor actualizado",
+      "linkedToast": "Afiliado vinculado al asesor",
       "permanentNotice": "El enlace es permanente y no retroactivo: solo afecta la atribución de comisiones futuras, no recalcula comisiones ya generadas.",
       "history": {
         "title": "Histórico de reasignaciones",
@@ -2247,11 +2247,11 @@
         }
       },
       "form": {
-        "changeTitle": "Cambiar promotor",
-        "changeDescription": "Selecciona el nuevo promotor destino. Esta acción queda registrada en el histórico.",
+        "changeTitle": "Cambiar asesor",
+        "changeDescription": "Selecciona el nuevo asesor destino. Esta acción queda registrada en el histórico.",
         "linkTitle": "Vincular por código",
-        "linkDescription": "Ingresa el código de referido del promotor para vincular este afiliado.",
-        "promoter": "Promotor destino",
+        "linkDescription": "Ingresa el código de referido del asesor para vincular este afiliado.",
+        "promoter": "Asesor destino",
         "referralCode": "Código de referido",
         "reason": "Motivo",
         "reasonPlaceholder": "Ej. traslado de cartera, corrección de referido…",
@@ -2284,7 +2284,7 @@
         "memberSince": "Afiliado desde",
         "statusActive": "Activo",
         "plan": "Plan",
-        "nextDue": "Próxima cuota",
+        "nextDue": "Próxima cuota de mantenimiento",
         "noMembership": "Sin membresía activa",
         "photoAlt": "Foto del titular"
       },
@@ -2303,7 +2303,7 @@
         "outdated": "¿Datos desactualizados? Comunícate con tu asesor comercial para corregirlos."
       },
       "directory": {
-        "text": "Explora la {network} y sus precios preferenciales.",
+        "text": "Explora la {network} y sus tarifas preferenciales.",
         "network": "red de aliados",
         "button": "Ver directorio"
       },
@@ -2474,30 +2474,30 @@
     }
   },
   "promoters": {
-    "title": "Promotores",
+    "title": "Asesores Comerciales",
     "subtitle": "Equipo comercial que refiere afiliados y genera comisiones.",
-    "new": "Nuevo promotor",
-    "createTooltip": "Registrar un nuevo promotor",
-    "editTooltip": "Editar promotor",
-    "deleteTooltip": "Eliminar promotor",
+    "new": "Nuevo asesor",
+    "createTooltip": "Registrar un nuevo asesor",
+    "editTooltip": "Editar asesor",
+    "deleteTooltip": "Eliminar asesor",
     "viewDetailTooltip": "Ver detalle",
     "searchPlaceholder": "Buscar por nombre o código de referido…",
-    "empty": "No hay promotores registrados.",
+    "empty": "No hay asesores registrados.",
     "hierarchy": {
       "pageSubtitle": "Cargos y relación de supervisión del equipo comercial.",
-      "empty": "No hay promotores en la jerarquía todavía.",
+      "empty": "No hay asesores en la jerarquía todavía.",
       "reasonLabel": "Motivo",
       "supervisorLabel": "Supervisor",
       "supervisorPlaceholder": "Seleccionar supervisor…",
-      "noEligibleSupervisors": "No hay ningún promotor que califique como supervisor todavía.",
+      "noEligibleSupervisors": "No hay ningún asesor que califique como supervisor todavía.",
       "detachSupervisorLabel": "Quitar supervisor (queda como tope de su propia cadena)",
-      "autoReasonFormEdit": "Actualizado desde el formulario de edición del promotor",
+      "autoReasonFormEdit": "Actualizado desde el formulario de edición del asesor",
       "tabs": {
         "tree": "Árbol visual",
         "list": "Lista"
       },
       "dragDrop": {
-        "hint": "Arrastra un promotor sobre otro para reasignar su supervisor.",
+        "hint": "Arrastra un asesor sobre otro para reasignar su supervisor.",
         "cycleError": "No se puede reasignar: convertiría a un supervisor en subordinado de su propia cadena."
       },
       "assignSupervisor": {
@@ -2519,19 +2519,19 @@
       }
     },
     "systemBadge": "Sistema",
-    "systemLocked": "El promotor del sistema no se puede editar ni eliminar.",
-    "createdToast": "Promotor creado correctamente.",
-    "updatedToast": "Promotor actualizado correctamente.",
-    "deletedToast": "Promotor eliminado correctamente.",
-    "restoredToast": "Promotor reactivado.",
-    "deleteTitle": "Eliminar promotor",
-    "deleteConfirm": "¿Seguro que deseas eliminar al promotor {name}? Esta acción no se puede deshacer.",
-    "noPermissionCreate": "No tienes permiso para crear promotores.",
-    "noPermissionEdit": "No tienes permiso para editar promotores.",
-    "noPermissionDelete": "No tienes permiso para eliminar promotores.",
-    "paginationSummary": "Mostrando {shown} de {total} promotores",
+    "systemLocked": "El asesor del sistema no se puede editar ni eliminar.",
+    "createdToast": "Asesor creado correctamente.",
+    "updatedToast": "Asesor actualizado correctamente.",
+    "deletedToast": "Asesor eliminado correctamente.",
+    "restoredToast": "Asesor reactivado.",
+    "deleteTitle": "Eliminar asesor",
+    "deleteConfirm": "¿Seguro que deseas eliminar al asesor {name}? Esta acción no se puede deshacer.",
+    "noPermissionCreate": "No tienes permiso para crear asesores.",
+    "noPermissionEdit": "No tienes permiso para editar asesores.",
+    "noPermissionDelete": "No tienes permiso para eliminar asesores.",
+    "paginationSummary": "Mostrando {shown} de {total} asesores",
     "columns": {
-      "promoter": "Promotor",
+      "promoter": "Asesor",
       "type": "Tipo",
       "rank": "Cargo",
       "status": "Estado",
@@ -2553,9 +2553,9 @@
       "payoutProfile": "Datos de cobro"
     },
     "detail": {
-      "seoPage": "Detalle de promotor",
-      "notFoundTitle": "Promotor no encontrado",
-      "notFoundBody": "El promotor que buscas no existe o fue eliminado.",
+      "seoPage": "Detalle de asesor",
+      "notFoundTitle": "Asesor no encontrado",
+      "notFoundBody": "El asesor que buscas no existe o fue eliminado.",
       "sections": {
         "contact": "Contacto e identidad",
         "metrics": "Métricas",
@@ -2572,7 +2572,7 @@
         "personFullName": "Nombre",
         "personRif": "RIF",
         "userEmail": "Usuario",
-        "promoterTypeUuid": "Tipo de promotor",
+        "promoterTypeUuid": "Tipo de asesor",
         "rankUuid": "Cargo",
         "supervisorUuid": "Supervisor",
         "totalReferrals": "Total de referidos",
@@ -2583,8 +2583,8 @@
       },
       "referrals": {
         "title": "Referidos",
-        "hint": "Afiliados traídos por este promotor y su estado de cobranza.",
-        "empty": "Este promotor no tiene referidos.",
+        "hint": "Afiliados traídos por este asesor y su estado de cobranza.",
+        "empty": "Este asesor no tiene referidos.",
         "filters": {
           "all": "Todos",
           "active": "Activos",
@@ -2606,7 +2606,7 @@
       "commissions": {
         "title": "Comisiones por período",
         "hint": "Historial de comisiones liquidadas y pendientes, agrupadas por período.",
-        "empty": "Este promotor no tiene comisiones registradas.",
+        "empty": "Este asesor no tiene comisiones registradas.",
         "columns": {
           "period": "Período",
           "count": "Cantidad",
@@ -2615,13 +2615,13 @@
       }
     },
     "form": {
-      "createTitle": "Nuevo promotor",
-      "editTitle": "Editar promotor",
-      "createDescription": "Registra un promotor y su código de referido.",
-      "editDescription": "Actualiza los datos del promotor.",
-      "loadingDetail": "Cargando promotor…",
-      "submitCreate": "Crear promotor",
-      "referralCodeHelp": "Código único que compartirá el promotor. No podrá cambiarse luego.",
+      "createTitle": "Nuevo asesor",
+      "editTitle": "Editar asesor",
+      "createDescription": "Registra un asesor y su código de referido.",
+      "editDescription": "Actualiza los datos del asesor.",
+      "loadingDetail": "Cargando asesor…",
+      "submitCreate": "Crear asesor",
+      "referralCodeHelp": "Código único que compartirá el asesor. No podrá cambiarse luego.",
       "referralCodeFormat": "Entre 4 y 20 caracteres en mayúsculas, números o guiones (A-Z, 0-9, -).",
       "userSearchLabel": "Buscar usuario",
       "userSearchHelp": "Escribe nombre o correo (mín. 2 caracteres).",
@@ -2634,7 +2634,7 @@
         "description": "Descripción",
         "email": "Correo electrónico",
         "phone": "Teléfono",
-        "promoterTypeUuid": "Tipo de promotor",
+        "promoterTypeUuid": "Tipo de asesor",
         "status": "Estado",
         "active": "Activo",
         "rank": "Cargo"
@@ -2647,13 +2647,13 @@
       "selectAll": "Seleccionar todos",
       "selectedTitle": "Reasignar afiliados",
       "supervisorTitle": "Pasar cartera al supervisor",
-      "selectedNotice": "Vas a mover {count} afiliado(s) de {name} a otro promotor.",
+      "selectedNotice": "Vas a mover {count} afiliado(s) de {name} a otro asesor.",
       "supervisorNotice": "Vas a mover toda la cartera de {name} a su supervisor activo más cercano (o a INSTITUCION si no tiene).",
-      "historyNotice": "Los cobros y comisiones ya registrados se quedan con el promotor original; solo cambia la atribución de ahora en adelante. Cada afiliado recibe un aviso con su nuevo asesor.",
-      "target": "Promotor destino",
-      "targetPlaceholder": "Selecciona el promotor",
+      "historyNotice": "Los cobros y comisiones ya registrados se quedan con el asesor original; solo cambia la atribución de ahora en adelante. Cada afiliado recibe un aviso con su nuevo asesor.",
+      "target": "Asesor destino",
+      "targetPlaceholder": "Selecciona el asesor",
       "reason": "Motivo",
-      "reasonPlaceholder": "Ej. baja del promotor, rebalanceo de cartera",
+      "reasonPlaceholder": "Ej. baja del asesor, rebalanceo de cartera",
       "confirm": "Reasignar",
       "doneToast": "Se reasignaron {count} afiliado(s)",
       "beforeDeactivate": "Tiene {count} afiliado(s) en cartera. Puedes reasignarlos antes de desactivarlo.",
@@ -2773,7 +2773,7 @@
       "breadcrumbRoot": "Comercial",
       "breadcrumbCurrent": "Reporte de Comisiones",
       "title": "Reporte de Comisiones",
-      "subtitle": "Consolidado oficial de comisiones devengadas por promotor, con subtotales agrupados, base de cálculo y estado de liquidación.",
+      "subtitle": "Consolidado oficial de comisiones devengadas por asesor, con subtotales agrupados, base de cálculo y estado de liquidación.",
       "historyButton": "Historial de descargas",
       "paramsTitle": "Parámetros del Reporte",
       "paramsSubtitle": "Personaliza el rango de fechas y filtros. Deja los campos vacíos para abarcar todos los registros.",
@@ -2784,8 +2784,8 @@
       "presetCurrentMonth": "Mes actual",
       "startDate": "Fecha Período Desde",
       "endDate": "Fecha Período Hasta",
-      "promoter": "Promotor Comercial",
-      "promoterAll": "Todos los promotores",
+      "promoter": "Asesor Comercial",
+      "promoterAll": "Todos los asesores",
       "status": "Estado de la Comisión",
       "statusAll": "Todos los estados",
       "appliesTo": "Concepto de Comisión",
@@ -2804,10 +2804,10 @@
       "breadcrumbRoot": "Comercial",
       "breadcrumbCurrent": "Reporte de Pagos de Comisiones",
       "title": "Reporte de Pagos de Comisiones",
-      "subtitle": "Liquidaciones y desembolsos efectivamente pagados a promotores (estado Pagada / PAID), con fecha de pago y referencia bancaria.",
+      "subtitle": "Liquidaciones y desembolsos efectivamente pagados a asesores (estado Pagada / PAID), con fecha de pago y referencia bancaria.",
       "historyButton": "Historial de descargas",
       "paramsTitle": "Parámetros del Reporte de Pagos Realizados",
-      "paramsSubtitle": "Filtra por fecha de desembolso, promotor o referencia de pago. Solo incluye comisiones en estado PAGADA (PAID).",
+      "paramsSubtitle": "Filtra por fecha de desembolso, asesor o referencia de pago. Solo incluye comisiones en estado PAGADA (PAID).",
       "quickPresets": "Accesos rápidos de fecha de desembolso:",
       "presetAll": "Todo el historial",
       "presetCurrentYear": "Año actual",
@@ -2815,8 +2815,8 @@
       "presetCurrentMonth": "Mes actual",
       "startDate": "Fecha Desembolso Desde",
       "endDate": "Fecha Desembolso Hasta",
-      "promoter": "Promotor Comercial",
-      "promoterAll": "Todos los promotores",
+      "promoter": "Asesor Comercial",
+      "promoterAll": "Todos los asesores",
       "payoutReference": "Referencia de Pago / Desembolso",
       "payoutReferencePlaceholder": "Ej: PAG-202609-001 o N° Transferencia",
       "targetCurrency": "Moneda de Salida (Conversión)",
@@ -2826,13 +2826,13 @@
       "downloadPdf": "Descargar PDF"
     },
     "title": "Comisiones",
-    "subtitle": "Ledger de comisiones de los promotores y liquidación de períodos.",
-    "searchPlaceholder": "Buscar por promotor, código o referencia…",
+    "subtitle": "Ledger de comisiones de los asesores y liquidación de períodos.",
+    "searchPlaceholder": "Buscar por asesor, código o referencia…",
     "filterPlaceholder": "Filtro RSQL, p. ej. promoter.uuid==…;status==PENDING",
     "empty": "No hay comisiones registradas.",
     "paginationSummary": "Mostrando {shown} de {total}",
     "columns": {
-      "promoter": "Promotor",
+      "promoter": "Asesor",
       "amount": "Monto",
       "calc": "Cálculo",
       "appliesTo": "Aplica a",
@@ -2864,7 +2864,7 @@
         "metadata": "Metadatos"
       },
       "fields": {
-        "promoter": "Promotor",
+        "promoter": "Asesor",
         "code": "Código",
         "amount": "Monto",
         "currency": "Moneda",
@@ -2890,7 +2890,7 @@
         "voidedAt": "Anulada",
         "voidReason": "Motivo de anulación",
         "adminNotes": "Notas internas",
-        "promoterUuid": "UUID del promotor",
+        "promoterUuid": "UUID del asesor",
         "paymentUuid": "UUID del pago",
         "memberUuid": "UUID del afiliado",
         "uuid": "UUID",
@@ -2901,7 +2901,7 @@
     "payout": {
       "button": "Liquidar período",
       "title": "Liquidar período de comisiones",
-      "description": "Cierra un rango de fechas y liquida las comisiones pendientes de cada promotor.",
+      "description": "Cierra un rango de fechas y liquida las comisiones pendientes de cada asesor.",
       "dryRunNote": "La previsualización solo calcula totales: no marca comisiones como pagadas ni envía correos.",
       "fields": {
         "periodStart": "Inicio del período",
@@ -2912,13 +2912,13 @@
       "preview": "Previsualizar",
       "previewTitle": "Resumen del período",
       "totals": {
-        "promoters": "Promotores",
+        "promoters": "Asesores",
         "commissions": "Comisiones",
         "amount": "Total",
         "executedAt": "Ejecutado"
       },
       "perPromoter": {
-        "name": "Promotor",
+        "name": "Asesor",
         "code": "Código",
         "count": "Comisiones",
         "amount": "Total",
@@ -2927,8 +2927,8 @@
       "emptyPreview": "No hay comisiones pendientes en este período.",
       "back": "Volver",
       "confirm": "Confirmar liquidación",
-      "confirmDescription": "Al confirmar se marcarán las comisiones como PAGADAS y se enviará un correo con el desglose a cada promotor. Esta acción no se puede deshacer.",
-      "successToast": "Período liquidado: {promoters} promotores, {commissions} comisiones, {amount}.",
+      "confirmDescription": "Al confirmar se marcarán las comisiones como PAGADAS y se enviará un correo con el desglose a cada asesor. Esta acción no se puede deshacer.",
+      "successToast": "Período liquidado: {promoters} asesores, {commissions} comisiones, {amount}.",
       "invalidRange": "El fin del período debe ser posterior o igual al inicio."
     },
     "payoutBySelection": {
@@ -2945,13 +2945,13 @@
       "preview": "Previsualizar",
       "previewTitle": "Resumen de la selección",
       "totals": {
-        "promoters": "Promotores",
+        "promoters": "Asesores",
         "commissions": "Comisiones",
         "amount": "Total",
         "executedAt": "Ejecutado"
       },
       "perPromoter": {
-        "name": "Promotor",
+        "name": "Asesor",
         "code": "Código",
         "count": "Comisiones",
         "amount": "Total",
@@ -2960,13 +2960,13 @@
       "emptyPreview": "No hay comisiones en la selección.",
       "back": "Volver",
       "confirm": "Confirmar pago",
-      "confirmDescription": "Al confirmar se marcarán las comisiones seleccionadas como PAGADAS y se enviará un correo con el desglose a cada promotor. Esta acción no se puede deshacer.",
-      "successToast": "Pagos generados: {promoters} promotores, {commissions} comisiones, {amount}."
+      "confirmDescription": "Al confirmar se marcarán las comisiones seleccionadas como PAGADAS y se enviará un correo con el desglose a cada asesor. Esta acción no se puede deshacer.",
+      "successToast": "Pagos generados: {promoters} asesores, {commissions} comisiones, {amount}."
     },
     "reRating": {
       "button": "Re-ratear cierre de mes",
       "title": "Re-rating retroactivo de comisiones",
-      "description": "Recalcula las comisiones de inscripción pendientes del período a la banda más alta que alcanzó cada promotor en el mes.",
+      "description": "Recalcula las comisiones de inscripción pendientes del período a la banda más alta que alcanzó cada asesor en el mes.",
       "dryRunNote": "La previsualización solo calcula los deltas: no modifica ninguna comisión.",
       "fields": {
         "periodStart": "Inicio del período",
@@ -2975,13 +2975,13 @@
       "preview": "Previsualizar",
       "previewTitle": "Resumen del re-rating",
       "totals": {
-        "promoters": "Promotores",
+        "promoters": "Asesores",
         "commissionsUpdated": "Comisiones a actualizar",
         "delta": "Delta total",
         "executedAt": "Ejecutado"
       },
       "perPromoter": {
-        "name": "Promotor",
+        "name": "Asesor",
         "code": "Código",
         "count": "Inscripciones",
         "tier": "Banda alcanzada",
@@ -2992,7 +2992,7 @@
       "back": "Volver",
       "confirm": "Confirmar re-rating",
       "confirmDescription": "Al confirmar se reescribirá el porcentaje, monto y banda de cada comisión INSCRIPTION pendiente del período. Solo afecta comisiones PENDING, nunca PAGADAS. Esta acción no se puede deshacer.",
-      "successToast": "Re-rating aplicado: {promoters} promotores, {commissions} comisiones actualizadas.",
+      "successToast": "Re-rating aplicado: {promoters} asesores, {commissions} comisiones actualizadas.",
       "invalidRange": "El fin del período debe ser posterior o igual al inicio."
     },
     "approval": {
@@ -3003,8 +3003,8 @@
       "fields": {
         "period": "Período",
         "clearPeriod": "Limpiar período",
-        "promoterType": "Tipo de promotor",
-        "promoter": "Promotor",
+        "promoterType": "Tipo de asesor",
+        "promoter": "Asesor",
         "appliesTo": "Concepto",
         "status": "Estado",
         "amountFrom": "Monto desde",
@@ -3024,7 +3024,7 @@
       "refreshButton": "Refrescar",
       "empty": "No hay comisiones con los filtros aplicados.",
       "paginationSummary": "Mostrando {shown} de {total}",
-      "groupByPromoter": "Agrupar por promotor",
+      "groupByPromoter": "Agrupar por asesor",
       "selectAll": "Seleccionar todo",
       "selectedCount": "{count} comisiones seleccionadas",
       "approveButton": "Aprobar seleccionadas",
@@ -3033,7 +3033,7 @@
       "approvedToast": "{count} comisiones aprobadas correctamente.",
       "rejectedToast": "{count} comisiones rechazadas ({overrides} overrides jerárquicos anulados en cascada).",
       "columns": {
-        "promoter": "Promotor",
+        "promoter": "Asesor",
         "appliesTo": "Concepto",
         "ruleSource": "Origen",
         "amount": "Monto",
@@ -3054,8 +3054,8 @@
       "fields": {
         "period": "Período",
         "clearPeriod": "Limpiar período",
-        "promoterType": "Tipo de promotor",
-        "promoter": "Promotor",
+        "promoterType": "Tipo de asesor",
+        "promoter": "Asesor",
         "appliesTo": "Concepto",
         "status": "Estado",
         "amountFrom": "Monto desde",
@@ -3077,14 +3077,14 @@
       "generatePayoutButton": "Generar pagos",
       "paginationSummary": "Mostrando {shown} de {total}",
       "columns": {
-        "promoter": "Promotor",
+        "promoter": "Asesor",
         "appliesTo": "Concepto",
         "ruleSource": "Origen",
         "amount": "Monto",
         "earnedAt": "Ganada",
         "status": "Estado"
       },
-      "groupByPromoter": "Agrupar por promotor"
+      "groupByPromoter": "Agrupar por asesor"
     },
     "overrideReRating": {
       "button": "Re-ratear override jerárquico",
@@ -3131,7 +3131,7 @@
       "title": "Anular comisión",
       "confirm": "La comisión de {promoter} quedará excluida de la próxima liquidación. Esta acción no se puede deshacer.",
       "reasonLabel": "Motivo de la anulación",
-      "reasonPlaceholder": "p. ej. Incumplimiento de meta del promotor",
+      "reasonPlaceholder": "p. ej. Incumplimiento de meta del asesor",
       "confirmButton": "Anular",
       "successToast": "Comisión anulada correctamente.",
       "bulkTrigger": "Anular seleccionadas ({count})",
@@ -3337,7 +3337,7 @@
       "campaign": "Campaña"
     },
     "scope": {
-      "ALL": "Todos los promotores",
+      "ALL": "Todos los asesores",
       "INCLUDE": "Incluye",
       "EXCLUDE": "Excluye"
     },
@@ -3376,7 +3376,7 @@
       "generalData": "Datos generales",
       "audience": "Audiencia",
       "audienceEmpty": "Sin miembros de audiencia agregados",
-      "addAudienceMember": "Agregar promotor",
+      "addAudienceMember": "Agregar asesor",
       "rules": "Reglas de comisión asociadas",
       "rulesEmpty": "Sin reglas vinculadas a esta campaña",
       "addRule": "Agregar regla a esta campaña",
@@ -3420,8 +3420,8 @@
         "updatedAt": "Actualizada",
         "uuid": "UUID"
       },
-      "audiencePlaceholder": "Buscar promotor por nombre...",
-      "audienceRemoveConfirm": "¿Quitar a este promotor de la audiencia de la campaña?",
+      "audiencePlaceholder": "Buscar asesor por nombre...",
+      "audienceRemoveConfirm": "¿Quitar a este asesor de la audiencia de la campaña?",
       "ruleTypes": {
         "tier": "Banda de inscripción",
         "bonus": "Bono por escala",
@@ -3534,12 +3534,12 @@
     "form": {
       "invalidAmount": "Monto no válido",
       "integersOnly": "Solo números enteros",
-      "promoterTypes": "Tipos de promotor",
-      "promoterTypesHelp": "Vacío = aplica a todos los tipos de promotor.",
+      "promoterTypes": "Tipos de asesor",
+      "promoterTypesHelp": "Vacío = aplica a todos los tipos de asesor.",
       "promoterTypesPlaceholder": "Todos los tipos"
     },
     "filters": {
-      "allPromoterTypes": "Todos los tipos de promotor",
+      "allPromoterTypes": "Todos los tipos de asesor",
       "allPlanTypes": "Todos los planes",
       "allAppliesTo": "Todos",
       "campaignOnly": "Solo reglas de campaña",
@@ -3679,7 +3679,7 @@
         "rewardPct": "Porcentaje",
         "rewardCurrency": "Moneda de la recompensa",
         "rewardCurrencyHelp": "Es solo la moneda de referencia — el pago real puede combinar varias monedas o convertirse aplicando la tasa de cambio vigente.",
-        "includeSystemPromoters": "Incluir promotores del sistema",
+        "includeSystemPromoters": "Incluir asesores del sistema",
         "submitCreate": "Crear regla",
         "startsAt": "Inicia",
         "endsAt": "Finaliza"
@@ -3840,7 +3840,7 @@
         "maxWinners": "Máximo de ganadores: {n}",
         "advancedSection": "Configuración avanzada de liquidación",
         "competitionGroup": "Grupo de competencia",
-        "competitionGroupHelp": "Reglas del mismo grupo comparten métrica, tipo y ventana — un promotor gana a lo sumo un premio del grupo por periodo.",
+        "competitionGroupHelp": "Reglas del mismo grupo comparten métrica, tipo y ventana — un asesor gana a lo sumo un premio del grupo por periodo.",
         "groupPriority": "Prioridad en el grupo",
         "accrualPeriodStrategy": "Frecuencia de evaluación",
         "partialSettlementPeriodStrategy": "Pago parcial",
@@ -3848,7 +3848,7 @@
         "retroactiveSettlementPeriodStrategy": "Corte retroactivo",
         "confirmationDelayDays": "Días de espera antes de confirmar",
         "confirmationDelayDaysHelp": "Días tras el cierre del periodo antes de congelar el premio (PROVISIONAL → PENDING).",
-        "includeSystemPromoters": "Incluir promotores de sistema",
+        "includeSystemPromoters": "Incluir asesores de sistema",
         "ranks": "Cargos",
         "atAccrualClose": "Al cierre de la evaluación",
         "rankingCloseOnlyHelp": "Los premios por posición se pagan al cerrar la evaluación: pagar antes premiaría a quien después puede bajar de posición.",
@@ -3861,11 +3861,11 @@
       },
       "filters": {
         "rule": "Regla",
-        "promoter": "Promotor"
+        "promoter": "Asesor"
       },
       "awardColumns": {
         "rule": "Regla",
-        "promoter": "Promotor",
+        "promoter": "Asesor",
         "period": "Periodo",
         "position": "Posición",
         "amount": "Monto"
@@ -4057,10 +4057,10 @@
       "terms": "Términos y condiciones"
     },
     "terms": {
-      "help": "Un documento por rol. Cada afiliado, promotor o aliado debe aceptar el que le corresponde en su primer inicio de sesión.",
+      "help": "Un documento por rol. Cada afiliado, asesor o aliado debe aceptar el que le corresponde en su primer inicio de sesión.",
       "types": {
         "AFILIADO": "Afiliados",
-        "PROMOTOR": "Promotores",
+        "PROMOTOR": "Asesores Comerciales",
         "ALIADO": "Aliados"
       },
       "currentSince": "Versión vigente desde {date}",
@@ -4089,7 +4089,7 @@
       "preview": {
         "show": "Vista previa",
         "hide": "Ocultar vista previa",
-        "help": "Así lo verán afiliados, promotores y aliados: versión guardada, con las variables reemplazadas. Los cambios sin guardar no se reflejan.",
+        "help": "Así lo verán afiliados, asesores y aliados: versión guardada, con las variables reemplazadas. Los cambios sin guardar no se reflejan.",
         "empty": "Guarda una versión para ver la vista previa."
       }
     }
@@ -4307,7 +4307,7 @@
       "STALE": "A revisar"
     },
     "candidateColumns": {
-      "promoter": "Promotor",
+      "promoter": "Asesor",
       "metricValue": "Métrica",
       "achievedAt": "Logrado",
       "transactions": "Transacciones"
@@ -4338,7 +4338,7 @@
     },
     "decisionModal": {
       "title": "Nueva decisión manual",
-      "description": "Redirige un premio a otro promotor o descalifica a un ganador — el motivo queda registrado en el historial.",
+      "description": "Redirige un premio a otro asesor o descalifica a un ganador — el motivo queda registrado en el historial.",
       "kinds": {
         "REDIRECT": "Redirigir",
         "DISQUALIFY": "Descalificar"
@@ -4348,8 +4348,8 @@
         "periodStart": "Periodo (inicio)",
         "position": "Posición",
         "kind": "Acción",
-        "promoter": "Promotor afectado",
-        "replacement": "Promotor de reemplazo",
+        "promoter": "Asesor afectado",
+        "replacement": "Asesor de reemplazo",
         "reasonCategory": "Categoría del motivo",
         "excludeFromGroup": "Excluir también del grupo de competencia"
       },
@@ -4394,7 +4394,7 @@
       "BOTH": "Inscripción y mensualidad"
     },
     "codeOwner": {
-      "PROMOTER": "Promotor",
+      "PROMOTER": "Asesor",
       "MEMBER": "Afiliado que recomienda",
       "ALLY": "Aliado"
     },
@@ -4430,7 +4430,7 @@
       "promotionHelp": "Opcional. Solo aparecen las promociones vigentes para este plan.",
       "noPromotion": "Sin promoción",
       "code": "Código",
-      "codeHelp": "Código de un promotor, de un afiliado que recomienda o de un aliado.",
+      "codeHelp": "Código de un asesor, de un afiliado que recomienda o de un aliado.",
       "codeRequired": "Esta promoción exige un código",
       "cyclesLeft": "quedan {n}",
       "viaCode": "Con el código {code} ({owner})",
