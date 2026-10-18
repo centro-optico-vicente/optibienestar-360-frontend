@@ -707,6 +707,10 @@
         "label": "Mis pagos",
         "description": "Tu historial de pagos de membresía."
       },
+      "myPortfolio": {
+        "label": "Mi cartera",
+        "description": "Gestión de Cartera: tus afiliados y su Cuota de Mantenimiento al día."
+      },
       "myNetworkCollections": {
         "label": "Cobros de mis afiliados",
         "description": "Pagos de membresía de los afiliados de tu red."
@@ -1640,6 +1644,75 @@
       "copyFailed": "No se pudo copiar el enlace",
       "qrUnavailable": "No encontramos tu perfil de promotor.",
       "qrAlt": "QR de afiliación"
+    },
+    "portfolio": {
+      "title": "Mi cartera",
+      "subtitle": "Gestión de Cartera: mantén al día la Cuota de Mantenimiento de tus afiliados.",
+      "empty": "Aún no tienes afiliados en tu cartera",
+      "noMatches": "Ningún afiliado coincide con el filtro",
+      "loadError": "No pudimos cargar tu cartera.",
+      "searchPlaceholder": "Buscar afiliado…",
+      "noPermissionContact": "No tienes permiso para registrar gestiones",
+      "score": {
+        "scorePct": "Cartera al día",
+        "scoreHint": "Afiliados al día sobre el total de tu cartera",
+        "activeAffiliates": "Afiliados",
+        "upToDate": "Al día",
+        "overdue": "Vencidos",
+        "withoutMembership": "Sin membresía"
+      },
+      "filters": {
+        "all": "Todos",
+        "upToDate": "Al día",
+        "overdue": "Vencidos",
+        "withoutMembership": "Sin membresía"
+      },
+      "status": {
+        "upToDate": "Al día",
+        "overdue": "Vencida",
+        "withoutMembership": "Sin membresía"
+      },
+      "columns": {
+        "member": "Afiliado",
+        "status": "Estado",
+        "nextDueDate": "Próximo vencimiento",
+        "monthlyFee": "Cuota de Mantenimiento"
+      },
+      "fields": {
+        "note": "Nota",
+        "promisedAmount": "Monto prometido",
+        "promisedAtDate": "Fecha prometida"
+      },
+      "reminder": {
+        "action": "Recordar pago",
+        "title": "Recordar pago",
+        "description": "Registra que le recordaste a {name} el pago de su Cuota de Mantenimiento.",
+        "noteHelp": "Opcional: canal usado, respuesta del afiliado, etc.",
+        "submit": "Registrar recordatorio",
+        "savedToast": "Recordatorio registrado"
+      },
+      "promise": {
+        "action": "Registrar promesa de pago",
+        "title": "Registrar promesa de pago",
+        "description": "Registra el monto y la fecha en que {name} se comprometió a pagar.",
+        "submit": "Registrar promesa",
+        "savedToast": "Promesa de pago registrada",
+        "validation": {
+          "amountMin": "El monto debe ser mayor a 0",
+          "datePast": "La fecha no puede ser anterior a hoy"
+        }
+      },
+      "history": {
+        "action": "Historial de gestiones",
+        "title": "Historial de gestiones",
+        "empty": "Sin gestiones registradas",
+        "promiseLine": "Prometió {amount} para el {date}",
+        "types": {
+          "REMINDER": "Recordatorio de pago",
+          "PAYMENT_PROMISE": "Promesa de pago",
+          "NOTE": "Nota"
+        }
+      }
     }
   },
   "payments": {
