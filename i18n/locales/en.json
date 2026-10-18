@@ -2036,6 +2036,10 @@
       "add": "Add",
       "empty": "No beneficiaries registered",
       "extraPaid": "Paid",
+      "slotBase": "Base",
+      "slotExtra": "Extra",
+      "slotSummary": "Base slots {baseUsed}/{baseTotal} · extra {extraUsed}/{extraTotal}",
+      "slotSummaryUnlimited": "Base slots {baseUsed}/{baseTotal} · extra {extraUsed} (unlimited)",
       "createdToast": "Beneficiary added",
       "updatedToast": "Beneficiary updated",
       "deletedToast": "Beneficiary deleted",
@@ -2044,6 +2048,7 @@
         "document": "Document",
         "birthDate": "Birth",
         "relationship": "Relationship",
+        "slot": "Slot",
         "extraInscription": "Extra enrollment",
         "status": "Status"
       },

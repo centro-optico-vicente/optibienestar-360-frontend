@@ -49,6 +49,9 @@ const benStatusOptions = computed(() => ['ACTIVE', 'INACTIVE'].map(s => ({ label
 function relationshipLabel(r?: string | null): string {
   return r ? t(`members.relationships.${r}`, r) : t('common.empty')
 }
+function slotLabel(b: BeneficiaryDto): string {
+  return b.slotType === 'EXTRA' ? t('members.beneficiaries.slotExtra') : t('members.beneficiaries.slotBase')
+}
 function statusLabel(s?: string | null): string {
   return s ? t(`members.status.${s}`, s) : t('common.empty')
 }
@@ -178,6 +181,19 @@ const beneficiariesLoading = ref(false)
 const beneficiariesSort = useTableSort([])
 const beneficiariesHasActiveSort = computed(() => beneficiariesSort.hasActiveSort.value)
 const beneficiariesIsMultiSort = computed(() => beneficiariesSort.orders.value.length > 1)
+
+// Family-nucleus slot summary: totals from the member detail (plan), usage
+// counted from the live list so it stays fresh after add/delete.
+const slotSummary = computed(() => {
+  const baseTotal = member.value?.baseSlotsTotal
+  if (baseTotal == null) return null
+  const baseUsed = beneficiaries.value.filter(b => b.slotType !== 'EXTRA').length
+  const extraUsed = beneficiaries.value.filter(b => b.slotType === 'EXTRA').length
+  const extraTotal = member.value?.extraSlotsTotal
+  return extraTotal == null
+    ? t('members.beneficiaries.slotSummaryUnlimited', { baseUsed, baseTotal, extraUsed })
+    : t('members.beneficiaries.slotSummary', { baseUsed, baseTotal, extraUsed, extraTotal })
+})
 
 async function loadBeneficiaries() {
   beneficiariesLoading.value = true
@@ -731,6 +747,7 @@ async function refreshAll() {
           <div>
             <h2 class="font-bold text-prohealth-900">{{ t('members.beneficiaries.title') }}</h2>
             <p class="text-xs text-prohealth-500 mt-0.5">{{ t('members.beneficiaries.subtitle') }}</p>
+            <p v-if="slotSummary" class="text-xs font-semibold text-prohealth-700 mt-1">{{ slotSummary }}</p>
           </div>
           <div class="flex items-center gap-2">
             <UTooltip :text="canUpdate ? t('members.beneficiaries.addTooltip') : t('members.noPermission')">
@@ -780,6 +797,7 @@ async function refreshAll() {
                   {{ t('members.beneficiaries.columns.relationship') }}
                   <SortIndicator :state="beneficiariesSort.stateOf('relationship')" :multi-active="beneficiariesIsMultiSort" @clear="beneficiariesSort.remove('relationship')" />
                 </th>
+                <th class="px-6 py-3 font-semibold">{{ t('members.beneficiaries.columns.slot') }}</th>
                 <th class="px-6 py-3 font-semibold">{{ t('members.beneficiaries.columns.extraInscription') }}</th>
                 <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="beneficiariesSort.toggle('status')">
                   {{ t('members.beneficiaries.columns.status') }}
@@ -789,9 +807,9 @@ async function refreshAll() {
               </tr>
             </thead>
             <tbody class="divide-y divide-prohealth-100">
-              <TableSkeleton v-if="beneficiariesLoading" :rows="3" :cols="7" />
+              <TableSkeleton v-if="beneficiariesLoading" :rows="3" :cols="8" />
               <tr v-else-if="beneficiaries.length === 0">
-                <td colspan="7" class="px-6 py-10 text-center text-prohealth-500">
+                <td colspan="8" class="px-6 py-10 text-center text-prohealth-500">
                   <UIcon name="i-lucide-users" class="w-7 h-7 mx-auto mb-2 text-prohealth-300" />
                   {{ t('members.beneficiaries.empty') }}
                 </td>
@@ -806,6 +824,11 @@ async function refreshAll() {
                 <td class="px-6 py-3">
                   <UBadge color="primary" variant="subtle" size="sm">
                     {{ relationshipLabel(b.relationship) }}
+                  </UBadge>
+                </td>
+                <td class="px-6 py-3">
+                  <UBadge :color="b.slotType === 'EXTRA' ? 'warning' : 'neutral'" variant="subtle" size="sm">
+                    {{ slotLabel(b) }}
                   </UBadge>
                 </td>
                 <td class="px-6 py-3">

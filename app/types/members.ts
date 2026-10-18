@@ -40,6 +40,9 @@ export interface CityRef extends CatalogRef {
   state_Code?: string | null
 }
 
+/** Family-nucleus slot a beneficiary occupies (backend V178). */
+export type BeneficiarySlotType = 'BASE' | 'EXTRA'
+
 export interface BeneficiaryDto {
   uuid: string
   firstName: string
@@ -52,6 +55,9 @@ export interface BeneficiaryDto {
   birthDate?: string
   relationship: BeneficiaryRelationship
   extraInscriptionPaid?: boolean
+  /** Family-nucleus slot (V178): BASE = included in the plan, EXTRA = paid extension. */
+  slotType?: BeneficiarySlotType
+  slotType_Display?: string | null
   status?: string
   createdAt?: string
 }
@@ -129,6 +135,12 @@ export interface MemberDto {
   active?: boolean
   notes?: string
   beneficiaries?: BeneficiaryDto[]
+  // Family-nucleus slot summary (detail only). Totals come from the active
+  // membership's plan: null without one; extraSlotsTotal null = no cap.
+  baseSlotsUsed?: number
+  baseSlotsTotal?: number | null
+  extraSlotsUsed?: number
+  extraSlotsTotal?: number | null
   // Promoter attribution — null/undefined cuando el afiliado no está vinculado.
   currentPromoterUuid?: string
   currentPromoterName?: string
