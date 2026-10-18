@@ -27,6 +27,11 @@ const { can } = usePermissions()
 const toast = useToast()
 
 const canUpdate = computed(() => can('PROMOTER_UPDATE'))
+// Payout accounts (V184): granular PROMOTER_PAYOUT_ACCOUNT_* permissions, independent of PROMOTER_UPDATE.
+const canViewPayoutAccounts = computed(() => can('PROMOTER_PAYOUT_ACCOUNT_VIEW_ALL'))
+const canCreatePayoutAccount = computed(() => can('PROMOTER_PAYOUT_ACCOUNT_CREATE'))
+const canUpdatePayoutAccount = computed(() => can('PROMOTER_PAYOUT_ACCOUNT_UPDATE'))
+const canDeletePayoutAccount = computed(() => can('PROMOTER_PAYOUT_ACCOUNT_DELETE'))
 const canDelete = computed(() => can('PROMOTER_DELETE'))
 const canViewPromoterType = computed(() => can('PROMOTER_TYPE_VIEW_ALL'))
 const canViewRank = computed(() => can('PROMOTER_RANK_VIEW_ALL'))
@@ -71,7 +76,7 @@ async function refreshAll() {
       loadPortfolio(),
       loadCommissionsSummary(),
       referencesTab.value?.load(),
-      payoutProfileTab.value?.load(),
+      payoutAccountsTab.value?.load(),
     ])
   }
   finally {
@@ -187,7 +192,10 @@ const tabs = computed(() => [
     : [
         { label: t('promoters.tabs.dossier'), value: 'dossier', icon: 'i-lucide-id-card' },
         { label: t('promoters.tabs.references'), value: 'references', icon: 'i-lucide-contact' },
-        { label: t('promoters.tabs.payoutProfile'), value: 'payoutProfile', icon: 'i-lucide-wallet' },
+        // Payout accounts (backend V184) — own permission, sensitive financial data.
+        ...(canViewPayoutAccounts.value
+          ? [{ label: t('promoters.tabs.payoutAccounts'), value: 'payoutAccounts', icon: 'i-lucide-wallet' }]
+          : []),
       ]),
 ])
 const activeTab = ref('referrals')
@@ -195,7 +203,7 @@ const activeTab = ref('referrals')
 // Dossier tabs: editable only with PROMOTER_UPDATE and never on the system row.
 const canEditDossier = computed(() => canUpdate.value && !promoter.value?.system)
 const referencesTab = ref<{ load: () => Promise<void> } | null>(null)
-const payoutProfileTab = ref<{ load: () => Promise<void> } | null>(null)
+const payoutAccountsTab = ref<{ load: () => Promise<void> } | null>(null)
 
 // =========================================================
 // Referidos (cartera + salud de cobranza)
@@ -755,7 +763,7 @@ async function loadCommissionsSummary() {
         </div>
       </div>
 
-      <!-- ============ Expediente / Referencias / Datos de cobro (V180) ============ -->
+      <!-- ============ Expediente / Referencias / Cuentas de cobro (V180/V184) ============ -->
       <template v-if="!promoter.system">
         <PromoterDossierTab
           v-show="activeTab === 'dossier'"
@@ -769,11 +777,14 @@ async function loadCommissionsSummary() {
           :promoter-uuid="promoter.uuid"
           :can-edit="canEditDossier"
         />
-        <PromoterPayoutProfileTab
-          v-show="activeTab === 'payoutProfile'"
-          ref="payoutProfileTab"
+        <PromoterPayoutAccountsTab
+          v-if="canViewPayoutAccounts"
+          v-show="activeTab === 'payoutAccounts'"
+          ref="payoutAccountsTab"
           :promoter-uuid="promoter.uuid"
-          :can-edit="canEditDossier"
+          :can-create="canCreatePayoutAccount"
+          :can-update="canUpdatePayoutAccount"
+          :can-delete="canDeletePayoutAccount"
         />
       </template>
     </template>

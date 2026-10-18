@@ -8,8 +8,8 @@ import type {
   PromoterDto,
   PromoterMemberContactDto,
   PromoterPaymentPromiseRequest,
-  PromoterPayoutProfileDto,
-  PromoterPayoutProfileRequest,
+  PromoterPayoutAccountDto,
+  PromoterPayoutAccountRequest,
   PromoterReferenceDto,
   PromoterReferenceRequest,
   PromoterReminderRequest,
@@ -96,19 +96,28 @@ export const usePromoters = () => {
   const removeReference = (uuid: string, referenceUuid: string) =>
     useApi<null>(`/v1/admin/promoters/${uuid}/references/${referenceUuid}`, { method: 'DELETE' })
 
-  /** 1:1 payout profile — always 200 when the promoter exists; branch on `exists`. */
-  const getPayoutProfile = (uuid: string, opts: { silent?: boolean } = {}) =>
-    useApi<PromoterPayoutProfileDto>(`/v1/admin/promoters/${uuid}/payout-profile`, { silent: opts.silent })
+  /** Advisor payout accounts (V184), default first. PROMOTER_PAYOUT_ACCOUNT_VIEW_ALL. */
+  const listPayoutAccounts = (uuid: string, opts: { silent?: boolean } = {}) =>
+    useApi<PromoterPayoutAccountDto[]>(`/v1/admin/promoters/${uuid}/payout-accounts`, { silent: opts.silent })
 
-  /** Upsert with full-replace semantics (omitted/blank fields are cleared). */
-  const savePayoutProfile = (uuid: string, body: PromoterPayoutProfileRequest) =>
-    useApi<PromoterPayoutProfileDto>(`/v1/admin/promoters/${uuid}/payout-profile`, { method: 'PUT', body })
+  /** PROMOTER_PAYOUT_ACCOUNT_CREATE. The advisor's first account becomes the default. */
+  const createPayoutAccount = (uuid: string, body: PromoterPayoutAccountRequest) =>
+    useApi<PromoterPayoutAccountDto>(`/v1/admin/promoters/${uuid}/payout-accounts`, { method: 'POST', body })
 
-  const removePayoutProfile = (uuid: string) =>
-    useApi<null>(`/v1/admin/promoters/${uuid}/payout-profile`, { method: 'DELETE' })
+  /** PROMOTER_PAYOUT_ACCOUNT_UPDATE — full replace (blank fields are cleared). */
+  const updatePayoutAccount = (uuid: string, accountUuid: string, body: PromoterPayoutAccountRequest) =>
+    useApi<PromoterPayoutAccountDto>(`/v1/admin/promoters/${uuid}/payout-accounts/${accountUuid}`, { method: 'PUT', body })
 
-  /** Read-only own payout profile of the logged-in advisor (PROMOTER_VIEW_OWN). */
-  const myPayoutProfile = () => useApi<PromoterPayoutProfileDto>('/v1/promoter/me/payout-profile')
+  /** PROMOTER_PAYOUT_ACCOUNT_UPDATE — unsets the previous default in the same request. */
+  const setDefaultPayoutAccount = (uuid: string, accountUuid: string) =>
+    useApi<PromoterPayoutAccountDto>(`/v1/admin/promoters/${uuid}/payout-accounts/${accountUuid}/default`, { method: 'PUT' })
+
+  /** PROMOTER_PAYOUT_ACCOUNT_DELETE (soft delete). */
+  const removePayoutAccount = (uuid: string, accountUuid: string) =>
+    useApi<null>(`/v1/admin/promoters/${uuid}/payout-accounts/${accountUuid}`, { method: 'DELETE' })
+
+  /** Read-only own payout accounts of the logged-in advisor (PROMOTER_PAYOUT_ACCOUNT_VIEW_OWN). */
+  const myPayoutAccounts = () => useApi<PromoterPayoutAccountDto[]>('/v1/promoter/me/payout-accounts')
 
   // ---- Portfolio management of the logged-in advisor (PromoterContactsController) ----
   // Reads → PROMOTER_VIEW_OWN · writes → PROMOTER_CONTACT_OWN. The backend
@@ -133,7 +142,7 @@ export const usePromoters = () => {
   return {
     list, get, create, update, remove, usage, portfolio, commissionsSummary, me,
     listReferences, createReference, updateReference, removeReference,
-    getPayoutProfile, savePayoutProfile, removePayoutProfile, myPayoutProfile,
+    listPayoutAccounts, createPayoutAccount, updatePayoutAccount, setDefaultPayoutAccount, removePayoutAccount, myPayoutAccounts,
     myCollectionScore, myMemberContacts, registerReminder, registerPaymentPromise,
   }
 }

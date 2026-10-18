@@ -3,7 +3,7 @@ import { z } from 'zod'
 import type { PaymentDto, OutPaymentCreateRequest, OutPaymentUpdateRequest } from '~/types/payments'
 import { BANK_ACCOUNT_TYPE_OPTIONS } from '~/types/payments'
 import type { CatalogItem } from '~/types/catalogs'
-import type { PromoterDto, PromoterPayoutProfileDto } from '~/types/promoters'
+import type { PromoterDto, PromoterPayoutAccountDto } from '~/types/promoters'
 
 const props = defineProps<{ open: boolean, payment?: PaymentDto | null }>()
 const emit = defineEmits<{
@@ -23,6 +23,7 @@ const { can } = usePermissions()
 const canViewMethods = computed(() => can('PAYMENT_METHOD_VIEW_ALL'))
 const canViewBanks = computed(() => can('BANK_VIEW_ALL'))
 const canViewCurrencies = computed(() => can('CURRENCY_VIEW_ALL'))
+const canViewPayoutAccounts = computed(() => can('PROMOTER_PAYOUT_ACCOUNT_VIEW_ALL'))
 
 function openCatalog(to: string) {
   window.open(to, '_blank', 'noopener')
@@ -210,39 +211,47 @@ watch(() => state.paymentMethodUuid, async (uuid) => {
 watch(() => state.promoterUuid, (uuid) => {
   const promoter = promoterOptions.value.find(option => option.value === uuid)
   if (promoter?.personUuid) state.personUuid = promoter.personUuid
-  loadPayoutProfile(uuid)
+  loadPayoutAccounts(uuid)
 })
 
-// ---- Prefill from the advisor's payout profile (dossier, backend V180) ----
-// Only fills fields that are still empty — never overwrites what the operator
-// typed. Which profile data applies depends on the selected method's code:
-// PAGO_MOVIL → phone + Pago Móvil bank; UBII → Ubii account as the account
-// identifier; anything else → national bank + 20-digit account. The holder
-// cédula/RIF goes to `identification` for every method.
-const payoutProfile = ref<PromoterPayoutProfileDto | null>(null)
+// ---- Prefill from the advisor's payout accounts (dossier, backend V184) ----
+// Only with PROMOTER_PAYOUT_ACCOUNT_VIEW_ALL (otherwise skipped silently) and
+// only fills fields that are still empty — never overwrites what the operator
+// typed. The account used is the one whose payment method matches the
+// selected method, the default one first (the API already sorts default
+// first, re-sorted here so the rule does not depend on it).
+const payoutAccounts = ref<PromoterPayoutAccountDto[]>([])
 const prefilledFromDossier = ref(false)
 
-async function loadPayoutProfile(promoterUuid: string) {
-  payoutProfile.value = null
+async function loadPayoutAccounts(promoterUuid: string) {
+  payoutAccounts.value = []
   prefilledFromDossier.value = false
-  if (!promoterUuid) return
+  if (!promoterUuid || !canViewPayoutAccounts.value) return
   try {
-    const profile = await promoters.getPayoutProfile(promoterUuid, { silent: true })
+    const accounts = await promoters.listPayoutAccounts(promoterUuid, { silent: true })
     // Ignore a late answer for a promoter that is no longer selected.
-    if (state.promoterUuid !== promoterUuid || !profile.exists) return
-    payoutProfile.value = profile
-    applyPayoutProfile()
+    if (state.promoterUuid !== promoterUuid) return
+    payoutAccounts.value = accounts
+    applyPayoutAccount()
   }
   catch {
     // Silent: prefill is a convenience, the form works without it.
   }
 }
 
-type PrefillField = 'identification' | 'bankUuid' | 'bankAccountCode' | 'bankAccountIdentifier' | 'phone'
+type PrefillField = 'identification' | 'bankUuid' | 'bankAccountType' | 'bankAccountCode' | 'bankAccountIdentifier' | 'phone' | 'email'
 
-function applyPayoutProfile() {
-  const profile = payoutProfile.value
-  if (!profile) return
+function matchingPayoutAccount(): PromoterPayoutAccountDto | null {
+  const methodUuid = state.paymentMethodUuid
+  if (!methodUuid) return null
+  return payoutAccounts.value
+    .filter(account => account.paymentMethod_Uuid === methodUuid)
+    .sort((a, b) => Number(b.isDefault) - Number(a.isDefault))[0] ?? null
+}
+
+function applyPayoutAccount() {
+  const account = matchingPayoutAccount()
+  if (!account) return
   let filled = false
   const fill = (field: PrefillField, value?: string | null, isPlaceholder?: (current: string) => boolean) => {
     if (!value) return
@@ -252,31 +261,25 @@ function applyPayoutProfile() {
       filled = true
     }
   }
-  if (profile.accountHolderDocumentType && profile.accountHolderDocumentNumber) {
-    fill('identification', `${profile.accountHolderDocumentType}-${profile.accountHolderDocumentNumber}`)
+  if (account.holderDocumentType && account.holderDocumentNumber) {
+    fill('identification', `${account.holderDocumentType}-${account.holderDocumentNumber}`)
   }
-  const code = selectedMethod.value?.code
-  if (code === 'PAGO_MOVIL') {
-    fill('phone', profile.mobilePaymentPhone)
-    fill('bankUuid', profile.mobilePaymentBank_Uuid)
+  fill('bankUuid', account.bank_Uuid)
+  fill('bankAccountType', account.accountType)
+  // Same "<bank code>-<rest>" shape the bank watcher below seeds, so it is not
+  // overwritten by it; the bare "0102-" seed counts as empty.
+  if (account.accountNumber) {
+    fill('bankAccountCode', `${account.accountNumber.slice(0, 4)}-${account.accountNumber.slice(4)}`,
+      current => /^\d{4}-$/.test(current))
   }
-  else if (code === 'UBII') {
-    fill('bankAccountIdentifier', profile.ubiiAccount)
-  }
-  else {
-    fill('bankUuid', profile.bank_Uuid)
-    // Same "<bank code>-<rest>" shape the bank watcher below seeds, so it is not
-    // overwritten by it; the bare "0102-" seed counts as empty.
-    if (profile.accountNumber) {
-      fill('bankAccountCode', `${profile.accountNumber.slice(0, 4)}-${profile.accountNumber.slice(4)}`,
-        current => /^\d{4}-$/.test(current))
-    }
-  }
+  fill('bankAccountIdentifier', account.accountIdentifier)
+  fill('phone', account.phone)
+  fill('email', account.email)
   if (filled) prefilledFromDossier.value = true
 }
 
-// The method decides which profile data applies — re-apply when it changes.
-watch(selectedMethod, () => applyPayoutProfile())
+// The method decides which account applies — re-apply when it changes.
+watch(selectedMethod, () => applyPayoutAccount())
 
 // When a bank is picked and the method requires an account code, prefix
 // bankAccountCode with the bank's SUDEBAN code so the user only fills in
