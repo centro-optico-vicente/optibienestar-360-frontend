@@ -66,7 +66,13 @@ const refreshingAll = ref(false)
 async function refreshAll() {
   refreshingAll.value = true
   try {
-    await Promise.all([loadPromoter(), loadPortfolio(), loadCommissionsSummary()])
+    await Promise.all([
+      loadPromoter(),
+      loadPortfolio(),
+      loadCommissionsSummary(),
+      referencesTab.value?.load(),
+      payoutProfileTab.value?.load(),
+    ])
   }
   finally {
     refreshingAll.value = false
@@ -175,8 +181,21 @@ async function confirmDelete() {
 const tabs = computed(() => [
   { label: t('promoters.tabs.referrals'), value: 'referrals', icon: 'i-lucide-users' },
   { label: t('promoters.tabs.commissions'), value: 'commissions', icon: 'i-lucide-hand-coins' },
+  // Advisor dossier (backend V180) — hidden on the INSTITUCION system row, which has no person.
+  ...(promoter.value?.system
+    ? []
+    : [
+        { label: t('promoters.tabs.dossier'), value: 'dossier', icon: 'i-lucide-id-card' },
+        { label: t('promoters.tabs.references'), value: 'references', icon: 'i-lucide-contact' },
+        { label: t('promoters.tabs.payoutProfile'), value: 'payoutProfile', icon: 'i-lucide-wallet' },
+      ]),
 ])
 const activeTab = ref('referrals')
+
+// Dossier tabs: editable only with PROMOTER_UPDATE and never on the system row.
+const canEditDossier = computed(() => canUpdate.value && !promoter.value?.system)
+const referencesTab = ref<{ load: () => Promise<void> } | null>(null)
+const payoutProfileTab = ref<{ load: () => Promise<void> } | null>(null)
 
 // =========================================================
 // Referidos (cartera + salud de cobranza)
@@ -735,6 +754,28 @@ async function loadCommissionsSummary() {
           </table>
         </div>
       </div>
+
+      <!-- ============ Expediente / Referencias / Datos de cobro (V180) ============ -->
+      <template v-if="!promoter.system">
+        <PromoterDossierTab
+          v-show="activeTab === 'dossier'"
+          :promoter="promoter"
+          :can-edit="canEditDossier"
+          @saved="onSaved"
+        />
+        <PromoterReferencesTab
+          v-show="activeTab === 'references'"
+          ref="referencesTab"
+          :promoter-uuid="promoter.uuid"
+          :can-edit="canEditDossier"
+        />
+        <PromoterPayoutProfileTab
+          v-show="activeTab === 'payoutProfile'"
+          ref="payoutProfileTab"
+          :promoter-uuid="promoter.uuid"
+          :can-edit="canEditDossier"
+        />
+      </template>
     </template>
 
     <!-- Edit modal (shared with the list) -->

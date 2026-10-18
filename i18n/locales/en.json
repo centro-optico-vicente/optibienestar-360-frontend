@@ -1747,7 +1747,8 @@
         "method": "Method",
         "reference": "Reference",
         "reviewedBy": "Reviewed by"
-      }
+      },
+      "prefilledFromDossier": "Details taken from the advisor's dossier"
     },
     "movements": {
       "title": "Movements",
@@ -2428,7 +2429,10 @@
     },
     "tabs": {
       "referrals": "Referrals",
-      "commissions": "Commissions"
+      "commissions": "Commissions",
+      "dossier": "Dossier",
+      "references": "References",
+      "payoutProfile": "Payout details"
     },
     "detail": {
       "seoPage": "Promoter detail",
@@ -2537,6 +2541,112 @@
       "beforeDeactivate": "They have {count} member(s) in their portfolio. You can reassign them before deactivating.",
       "goReassign": "Reassign portfolio",
       "pendingCommissions": "View pending commissions"
+    },
+    "dossier": {
+      "title": "Advisor dossier",
+      "hint": "Registration, identity and executive profile of the Sales Advisor.",
+      "identityHint": "These fields are saved on the person record linked to the advisor's user.",
+      "savedToast": "Dossier updated",
+      "joinedAtCreateHelp": "Leave it empty to use today's date.",
+      "sections": {
+        "registration": "I. Registration",
+        "identity": "II. Identity",
+        "profile": "III. Executive profile"
+      },
+      "fields": {
+        "joinedAt": "Joining date",
+        "assignedZone": "Assigned region / zone",
+        "rank": "Starting rank",
+        "firstName": "First names",
+        "lastName": "Last names",
+        "documentType": "ID type",
+        "documentNumber": "ID number",
+        "birthDate": "Date of birth",
+        "maritalStatus": "Marital status",
+        "mobilePhone": "Mobile phone",
+        "landlinePhone": "Alternate phone",
+        "email": "Email",
+        "address": "Address",
+        "city": "City",
+        "educationLevel": "Education level",
+        "profession": "Profession / trade",
+        "yearsOfExperience": "Years of experience",
+        "lastCompany": "Last company",
+        "lastPosition": "Position held",
+        "vehicle": "Vehicle"
+      },
+      "placeholders": {
+        "assignedZone": "E.g.: Caracas — East zone",
+        "vehicle": "Make, model and year (if any)"
+      },
+      "educationLevel": {
+        "PRIMARY": "Primary school",
+        "SECONDARY": "High school",
+        "TECHNICAL": "Technical",
+        "UNIVERSITY": "University",
+        "POSTGRADUATE": "Postgraduate"
+      },
+      "documentTypes": {
+        "V": "V — Venezuelan",
+        "E": "E — Foreigner"
+      },
+      "validation": {
+        "documentNumber": "The ID number must have 1 to 9 digits"
+      }
+    },
+    "references": {
+      "title": "Personal references",
+      "hint": "People who can vouch for the advisor.",
+      "add": "Add reference",
+      "empty": "This advisor has no references yet.",
+      "createTitle": "New reference",
+      "editTitle": "Edit reference",
+      "createdToast": "Reference added",
+      "updatedToast": "Reference updated",
+      "deletedToast": "Reference deleted",
+      "deleteTitle": "Delete reference",
+      "deleteConfirm": "Delete the reference of {name}?",
+      "documentPair": "Enter both ID type and number, or leave both empty",
+      "columns": {
+        "name": "Name",
+        "document": "ID",
+        "phone": "Phone"
+      }
+    },
+    "payoutProfile": {
+      "title": "Payout details",
+      "hint": "Accounts where the advisor receives payouts. Used to prefill commission payments.",
+      "add": "Add payout details",
+      "emptyTitle": "No payout details",
+      "emptyBody": "This advisor has no payout details yet.",
+      "savedToast": "Payout details saved",
+      "deletedToast": "Payout details deleted",
+      "deleteTitle": "Delete payout details",
+      "deleteConfirm": "Delete this advisor's payout details? Payments already registered are not affected.",
+      "accountNumberHelp": "The 20 account digits, no dashes.",
+      "sections": {
+        "bankAccount": "National bank account",
+        "mobilePayment": "Pago Móvil",
+        "ubii": "Ubii"
+      },
+      "fields": {
+        "bank": "Receiving bank",
+        "accountNumber": "Account number",
+        "holderDocumentType": "Holder ID/RIF type",
+        "holderDocumentNumber": "Holder ID/RIF",
+        "holderDocument": "Associated ID/RIF",
+        "mobilePaymentPhone": "Pago Móvil phone",
+        "mobilePaymentBank": "Pago Móvil bank",
+        "ubiiAccount": "Ubii account",
+        "ubiiHolderName": "Ubii account holder"
+      },
+      "placeholders": {
+        "phone": "E.g.: 0414-5550101"
+      },
+      "validation": {
+        "accountNumber": "The account number must be exactly 20 digits",
+        "holderPair": "Enter both holder ID type and number, or leave both empty"
+      }
     }
   },
   "commissions": {
