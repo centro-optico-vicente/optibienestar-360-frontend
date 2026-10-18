@@ -3776,7 +3776,13 @@
       "facebook": "Facebook",
       "facebookPlaceholder": "https://facebook.com/tu_pagina",
       "autoApproveCommissions": "Auto-aprobar comisiones regulares",
-      "autoApproveCommissionsHelp": "Las comisiones calculadas sin ligar a una campaña se aprueban automáticamente, sin pasar por gerencia comercial. Las comisiones ligadas a una campaña, o generadas por un re-rating/retroactivo, siempre requieren aprobación manual sin importar este ajuste."
+      "autoApproveCommissionsHelp": "Las comisiones calculadas sin ligar a una campaña se aprueban automáticamente, sin pasar por gerencia comercial. Las comisiones ligadas a una campaña, o generadas por un re-rating/retroactivo, siempre requieren aprobación manual sin importar este ajuste.",
+      "registryState": "Estado del Registro Mercantil",
+      "registryStateHelp": "Estado donde está inscrita la empresa. Se usa en los contratos y términos.",
+      "signingCity": "Ciudad de firma",
+      "signingCityHelp": "Ciudad en la que se firman los contratos.",
+      "serviceArea": "Zona de cobertura",
+      "serviceAreaHelp": "Zona donde opera la red de aliados (ej.: eje Acarigua-Araure)."
     },
     "sections": {
       "general": "Datos generales",
@@ -3806,7 +3812,22 @@
       "missingFields": "Completa título, contenido y fecha de vigencia",
       "savedToast": "Versión guardada correctamente",
       "publishNew": "Publicar nueva versión",
-      "saveScheduled": "Guardar versión programada"
+      "saveScheduled": "Guardar versión programada",
+      "variables": {
+        "help": "Puedes usar estas variables en el texto. Se reemplazan con los datos de la organización al mostrar el documento; si un dato falta se muestra como pendiente.",
+        "brandName": "nombre de la marca",
+        "legalName": "razón social",
+        "taxId": "RIF",
+        "registryState": "estado del Registro Mercantil",
+        "city": "ciudad de firma",
+        "serviceArea": "zona de cobertura"
+      },
+      "preview": {
+        "show": "Vista previa",
+        "hide": "Ocultar vista previa",
+        "help": "Así lo verán afiliados, promotores y aliados: versión guardada, con las variables reemplazadas. Los cambios sin guardar no se reflejan.",
+        "empty": "Guarda una versión para ver la vista previa."
+      }
     }
   },
   "systemConfig": {

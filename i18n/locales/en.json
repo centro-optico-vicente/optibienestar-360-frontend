@@ -3776,7 +3776,13 @@
       "facebook": "Facebook",
       "facebookPlaceholder": "https://facebook.com/your_page",
       "autoApproveCommissions": "Auto-approve regular commissions",
-      "autoApproveCommissionsHelp": "Commissions calculated with no campaign attribution are approved automatically, skipping the gerencia comercial queue. Campaign-linked commissions, or ones produced by a re-rating/retroactive adjustment, always require manual approval regardless of this setting."
+      "autoApproveCommissionsHelp": "Commissions calculated with no campaign attribution are approved automatically, skipping the gerencia comercial queue. Campaign-linked commissions, or ones produced by a re-rating/retroactive adjustment, always require manual approval regardless of this setting.",
+      "registryState": "Commercial Registry state",
+      "registryStateHelp": "State where the company is registered. Used in contracts and terms.",
+      "signingCity": "Signing city",
+      "signingCityHelp": "City where contracts are signed.",
+      "serviceArea": "Coverage area",
+      "serviceAreaHelp": "Area where the allies network operates (e.g. eje Acarigua-Araure)."
     },
     "sections": {
       "general": "General information",
@@ -3806,7 +3812,22 @@
       "missingFields": "Fill in the title, content and effective date",
       "savedToast": "Version saved successfully",
       "publishNew": "Publish new version",
-      "saveScheduled": "Save scheduled version"
+      "saveScheduled": "Save scheduled version",
+      "variables": {
+        "help": "You can use these variables in the text. They are replaced with the organization data when the document is shown; a missing value is shown as pending.",
+        "brandName": "brand name",
+        "legalName": "legal name",
+        "taxId": "tax ID (RIF)",
+        "registryState": "Commercial Registry state",
+        "city": "signing city",
+        "serviceArea": "coverage area"
+      },
+      "preview": {
+        "show": "Preview",
+        "hide": "Hide preview",
+        "help": "This is how members, promoters and allies will see it: the saved version with the variables replaced. Unsaved changes are not reflected.",
+        "empty": "Save a version to see the preview."
+      }
     }
   },
   "systemConfig": {
