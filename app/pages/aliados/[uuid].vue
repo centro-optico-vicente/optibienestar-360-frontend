@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ApiError } from '~/types/auth'
-import type { PublicAllyDto } from '~/types/allies'
+import type { PublicAllyDetailDto } from '~/types/allies'
 
 // PUBLIC partner detail (no login). The backend only exposes PUBLISHED+ACTIVE
 // partners and APPROVED/PUBLISHED/ACTIVE services (/v1/public/allies/{uuid}).
@@ -14,7 +14,7 @@ const allyUuid = route.params.uuid as string
 
 const publicAllies = usePublicAllies()
 
-const ally = ref<PublicAllyDto | null>(null)
+const ally = ref<PublicAllyDetailDto | null>(null)
 const loading = ref(true)
 const notFound = ref(false)
 
@@ -35,8 +35,8 @@ onMounted(async () => {
 })
 
 // Amount in USD, formatted in the VE convention. Empty → '' (hidden by v-if).
-function money(v?: string | null): string {
-  if (!v) return ''
+function money(v?: number | string | null): string {
+  if (v == null || v === '') return ''
   return formatCurrency(Number(v), 'USD')
 }
 </script>
@@ -87,9 +87,9 @@ function money(v?: string | null): string {
               </UBadge>
             </div>
             <p class="text-sm text-prohealth-500 mt-1">
-              <template v-if="ally.allyTypes?.length">{{ ally.allyTypes.map(at => at.name).join(', ') }}</template>
+              <template v-if="ally.allyTypeNames?.length">{{ ally.allyTypeNames.join(', ') }}</template>
               <template v-else>{{ t('allies.fallbackName') }}</template>
-              <template v-if="ally.city?.name"> · {{ ally.city.name }}</template>
+              <template v-if="ally.cityName"> · {{ ally.cityName }}</template>
             </p>
           </div>
         </div>
@@ -98,14 +98,14 @@ function money(v?: string | null): string {
           {{ ally.description }}
         </p>
 
-        <div v-if="ally.professions?.length" class="flex flex-wrap gap-2 mt-5">
+        <div v-if="ally.professionNames?.length" class="flex flex-wrap gap-2 mt-5">
           <UBadge
-            v-for="s in ally.professions"
-            :key="s.uuid"
+            v-for="p in ally.professionNames"
+            :key="p"
             color="primary"
             variant="subtle"
           >
-            {{ s.name }}
+            {{ p }}
           </UBadge>
         </div>
 
@@ -119,9 +119,9 @@ function money(v?: string | null): string {
             <UIcon name="i-lucide-phone" class="w-4.5 h-4.5 text-cyan-600 shrink-0" />
             <a :href="`tel:${ally.phone}`" class="text-prohealth-700 hover:text-cyan-700">{{ ally.phone }}</a>
           </div>
-          <div v-if="ally.email" class="flex items-center gap-2.5">
-            <UIcon name="i-lucide-mail" class="w-4.5 h-4.5 text-cyan-600 shrink-0" />
-            <a :href="`mailto:${ally.email}`" class="text-prohealth-700 hover:text-cyan-700">{{ ally.email }}</a>
+          <div v-if="ally.whatsapp" class="flex items-center gap-2.5">
+            <UIcon name="i-lucide-message-circle" class="w-4.5 h-4.5 text-cyan-600 shrink-0" />
+            <a :href="`https://wa.me/${ally.whatsapp.replace(/\D/g, '')}`" target="_blank" rel="noopener" class="text-prohealth-700 hover:text-cyan-700">{{ ally.whatsapp }}</a>
           </div>
           <div v-if="ally.website" class="flex items-center gap-2.5">
             <UIcon name="i-lucide-globe" class="w-4.5 h-4.5 text-cyan-600 shrink-0" />
@@ -150,12 +150,12 @@ function money(v?: string | null): string {
             <div class="flex items-start justify-between gap-3">
               <div class="min-w-0">
                 <h3 class="font-semibold text-prohealth-900">{{ s.name }}</h3>
-                <p v-if="s.serviceCategory?.name" class="text-xs text-prohealth-500 mt-0.5">
-                  {{ s.serviceCategory.name }}
+                <p v-if="s.categoryName" class="text-xs text-prohealth-500 mt-0.5">
+                  {{ s.categoryName }}
                 </p>
               </div>
-              <div v-if="s.priceUsd" class="text-right shrink-0">
-                <p class="font-bold text-prohealth-900">{{ money(s.priceUsd) }}</p>
+              <div v-if="s.priceAmount" class="text-right shrink-0">
+                <p class="font-bold text-prohealth-900">{{ money(s.priceAmount) }}</p>
                 <p v-if="s.discountPct" class="text-xs font-semibold text-lime-600">
                   {{ t('allies.public.detail.discountAffiliates', { pct: s.discountPct }) }}
                 </p>

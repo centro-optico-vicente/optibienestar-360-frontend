@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { CatalogItem } from '~/types/catalogs'
-import type { PublicAllyDto } from '~/types/allies'
+import type { PublicAllyListItemDto } from '~/types/allies'
 
 // PUBLIC partner directory (no login). Only shows PUBLISHED+ACTIVE partners with
 // data sanitized by the backend (/v1/public/allies).
@@ -16,7 +16,7 @@ useSeoMeta({
 const publicAllies = usePublicAllies()
 
 // ---- List + filters ----
-const data = ref<PublicAllyDto[]>([])
+const data = ref<PublicAllyListItemDto[]>([])
 const total = ref(0)
 const loading = ref(false)
 const page = ref(1) // UPagination is 1-based; the API is 0-based
@@ -238,9 +238,9 @@ onMounted(async () => {
                 {{ a.allySegments.map(seg => t(`allies.segments.${seg}`, seg)).join(' · ') }}
               </p>
               <p class="text-xs text-prohealth-500 mt-0.5">
-                <template v-if="a.allyTypes?.length">{{ a.allyTypes.map(at => at.name).join(', ') }}</template>
+                <template v-if="a.allyTypeNames?.length">{{ a.allyTypeNames.join(', ') }}</template>
                 <template v-else>{{ t('allies.fallbackName') }}</template>
-                <template v-if="a.city?.name"> · {{ a.city.name }}</template>
+                <template v-if="a.cityName"> · {{ a.cityName }}</template>
               </p>
             </div>
             <span class="shrink-0 w-10 h-10 rounded-xl bg-cyan-50 grid place-items-center">
@@ -251,21 +251,6 @@ onMounted(async () => {
           <p v-if="a.description" class="text-sm text-prohealth-600 mt-3 line-clamp-2">
             {{ a.description }}
           </p>
-
-          <div v-if="a.professions?.length" class="flex flex-wrap gap-1.5 mt-4">
-            <UBadge
-              v-for="s in a.professions.slice(0, 3)"
-              :key="s.uuid"
-              color="primary"
-              variant="subtle"
-              size="sm"
-            >
-              {{ s.name }}
-            </UBadge>
-            <UBadge v-if="a.professions.length > 3" color="neutral" variant="subtle" size="sm">
-              +{{ a.professions.length - 3 }}
-            </UBadge>
-          </div>
 
           <div class="flex items-center gap-1 mt-4 text-sm font-medium text-cyan-700">
             {{ t('allies.public.viewDetail') }}

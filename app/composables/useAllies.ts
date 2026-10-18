@@ -12,7 +12,8 @@ import type {
   CreateAllyServiceRequest,
   MyAllyDto,
   ProposeAllyServiceRequest,
-  PublicAllyDto,
+  PublicAllyDetailDto,
+  PublicAllyListItemDto,
   UpdateAllyAgreementRequest,
   UpdateAllyRequest,
   UpdateAllyServiceRequest,
@@ -201,7 +202,7 @@ interface PublicDirectoryParams {
  */
 export const usePublicAllies = () => {
   const list = (params: PublicDirectoryParams = {}) =>
-    useApi<Page<PublicAllyDto>>('/v1/public/allies', {
+    useApi<Page<PublicAllyListItemDto>>('/v1/public/allies', {
       skipAuth: true,
       query: {
         page: params.page ?? 0,
@@ -214,7 +215,7 @@ export const usePublicAllies = () => {
 
   /** Detalle público (incluye professions + servicios APPROVED/PUBLISHED/ACTIVE). */
   const get = (uuid: string) =>
-    useApi<PublicAllyDto>(`/v1/public/allies/${uuid}`, { skipAuth: true })
+    useApi<PublicAllyDetailDto>(`/v1/public/allies/${uuid}`, { skipAuth: true })
 
   return { list, get }
 }
