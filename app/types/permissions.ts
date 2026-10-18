@@ -150,6 +150,8 @@ export const PERMISSIONS = [
   'PROMOTER_DELETE',
   'PROMOTER_VIEW_ALL',
   'PROMOTER_VIEW_OWN',
+  // Portfolio management writes (reminder / payment promise) on /v1/promoter/me/contacts (V36).
+  'PROMOTER_CONTACT_OWN',
 
   // Hierarchy (V101/V104, hub plan) — cargo catalog, supervisor reassignment, rank changes.
   'PROMOTER_RANK_VIEW_ALL',

@@ -791,3 +791,62 @@ export interface MyReferralDto {
   createdAt?: string
   createdAt_Display?: string | null
 }
+
+// ---- Portfolio management self-service (/v1/promoter/me, v2 PDF 2.b) ----
+
+/** Mirrors `PromoterMemberContact.ContactType` (V36). */
+export type PromoterContactType = 'REMINDER' | 'PAYMENT_PROMISE' | 'NOTE'
+
+/**
+ * A logged portfolio-management contact — item of
+ * GET /v1/promoter/me/contacts?memberUuid= (newest first) and the echo of
+ * POST .../reminder and .../payment-promise (@JsonInclude(NON_NULL)).
+ * `promised*` are present only for PAYMENT_PROMISE. Scalars carry a
+ * `_Display` sibling (hub ADR 0014); `promisedAmount_Display` is the backend
+ * MONEY formatting (see the MONEY→VES note on `PromoterDto`), so the UI
+ * formats `promisedAmount` itself.
+ */
+export interface PromoterMemberContactDto {
+  uuid: string
+  memberUuid: string
+  type: PromoterContactType
+  type_Display?: string | null
+  note?: string
+  promisedAmount?: number
+  promisedAmount_Display?: string | null
+  promisedAtDate?: string
+  promisedAtDate_Display?: string | null
+  createdAt: string
+  createdAt_Display?: string | null
+}
+
+/** Body of POST /v1/promoter/me/contacts/{memberUuid}/reminder — body itself is optional. */
+export interface PromoterReminderRequest {
+  /** max 2000 chars */
+  note?: string
+}
+
+/** Body of POST /v1/promoter/me/contacts/{memberUuid}/payment-promise. */
+export interface PromoterPaymentPromiseRequest {
+  /** >= 0.01, up to 8 integer + 2 fraction digits */
+  promisedAmount: number
+  /** ISO `yyyy-MM-dd`, today or later (@FutureOrPresent) */
+  promisedAtDate: string
+  /** max 2000 chars */
+  note?: string
+}
+
+/**
+ * Body of GET /v1/promoter/me/collection-score — share of the advisor's
+ * portfolio that is up to date. `scorePct` = upToDate / activeAffiliates × 100
+ * (0 when the portfolio is empty); carries a `NUMBER` `_Display` sibling.
+ */
+export interface CollectionScoreDto {
+  promoterUuid: string
+  activeAffiliates: number
+  upToDate: number
+  overdue: number
+  withoutMembership: number
+  scorePct: number
+  scorePct_Display?: string | null
+}

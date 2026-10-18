@@ -707,6 +707,10 @@
         "label": "My payments",
         "description": "Your membership payment history."
       },
+      "myPortfolio": {
+        "label": "My portfolio",
+        "description": "Portfolio management: your affiliates and their Maintenance Fee status."
+      },
       "myNetworkCollections": {
         "label": "Collections from my affiliates",
         "description": "Membership payments from the affiliates in your network."
@@ -1640,6 +1644,75 @@
       "copyFailed": "Could not copy the link",
       "qrUnavailable": "We could not find your promoter profile.",
       "qrAlt": "Affiliation QR"
+    },
+    "portfolio": {
+      "title": "My portfolio",
+      "subtitle": "Portfolio management: keep your affiliates' Maintenance Fee up to date.",
+      "empty": "You have no affiliates in your portfolio yet",
+      "noMatches": "No affiliate matches the filter",
+      "loadError": "We could not load your portfolio.",
+      "searchPlaceholder": "Search affiliate…",
+      "noPermissionContact": "You don't have permission to log follow-ups",
+      "score": {
+        "scorePct": "Portfolio up to date",
+        "scoreHint": "Up-to-date affiliates over your whole portfolio",
+        "activeAffiliates": "Affiliates",
+        "upToDate": "Up to date",
+        "overdue": "Overdue",
+        "withoutMembership": "No membership"
+      },
+      "filters": {
+        "all": "All",
+        "upToDate": "Up to date",
+        "overdue": "Overdue",
+        "withoutMembership": "No membership"
+      },
+      "status": {
+        "upToDate": "Up to date",
+        "overdue": "Overdue",
+        "withoutMembership": "No membership"
+      },
+      "columns": {
+        "member": "Affiliate",
+        "status": "Status",
+        "nextDueDate": "Next due date",
+        "monthlyFee": "Maintenance Fee"
+      },
+      "fields": {
+        "note": "Note",
+        "promisedAmount": "Promised amount",
+        "promisedAtDate": "Promised date"
+      },
+      "reminder": {
+        "action": "Send payment reminder",
+        "title": "Payment reminder",
+        "description": "Log that you reminded {name} to pay their Maintenance Fee.",
+        "noteHelp": "Optional: channel used, affiliate's answer, etc.",
+        "submit": "Log reminder",
+        "savedToast": "Reminder logged"
+      },
+      "promise": {
+        "action": "Log payment promise",
+        "title": "Log payment promise",
+        "description": "Log the amount and date {name} committed to pay.",
+        "submit": "Log promise",
+        "savedToast": "Payment promise logged",
+        "validation": {
+          "amountMin": "The amount must be greater than 0",
+          "datePast": "The date cannot be before today"
+        }
+      },
+      "history": {
+        "action": "Follow-up history",
+        "title": "Follow-up history",
+        "empty": "No follow-ups logged",
+        "promiseLine": "Promised {amount} by {date}",
+        "types": {
+          "REMINDER": "Payment reminder",
+          "PAYMENT_PROMISE": "Payment promise",
+          "NOTE": "Note"
+        }
+      }
     }
   },
   "payments": {

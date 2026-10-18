@@ -1,14 +1,18 @@
 import type { Page } from '~/types/admin'
 import type {
+  CollectionScoreDto,
   CommissionPeriodSummaryDto,
   PromoterCreateRequest,
   PromoterDashboardDto,
   PromoterDossierUpdateRequest,
   PromoterDto,
+  PromoterMemberContactDto,
+  PromoterPaymentPromiseRequest,
   PromoterPayoutProfileDto,
   PromoterPayoutProfileRequest,
   PromoterReferenceDto,
   PromoterReferenceRequest,
+  PromoterReminderRequest,
   PromoterUpdateRequest,
 } from '~/types/promoters'
 
@@ -106,9 +110,30 @@ export const usePromoters = () => {
   /** Read-only own payout profile of the logged-in advisor (PROMOTER_VIEW_OWN). */
   const myPayoutProfile = () => useApi<PromoterPayoutProfileDto>('/v1/promoter/me/payout-profile')
 
+  // ---- Portfolio management of the logged-in advisor (PromoterContactsController) ----
+  // Reads → PROMOTER_VIEW_OWN · writes → PROMOTER_CONTACT_OWN. The backend
+  // answers 404 (promoter.member.not_in_portfolio) for a member outside the
+  // caller's own portfolio.
+
+  /** Up-to-date share of the advisor's portfolio. */
+  const myCollectionScore = () => useApi<CollectionScoreDto>('/v1/promoter/me/collection-score')
+
+  /** Contact history with one affiliate of the advisor's portfolio, newest first. */
+  const myMemberContacts = (memberUuid: string) =>
+    useApi<PromoterMemberContactDto[]>('/v1/promoter/me/contacts', { query: { memberUuid } })
+
+  /** Logs a payment reminder sent to the affiliate (note optional). */
+  const registerReminder = (memberUuid: string, body: PromoterReminderRequest = {}) =>
+    useApi<PromoterMemberContactDto>(`/v1/promoter/me/contacts/${memberUuid}/reminder`, { method: 'POST', body })
+
+  /** Logs the affiliate's commitment to pay `promisedAmount` by `promisedAtDate`. */
+  const registerPaymentPromise = (memberUuid: string, body: PromoterPaymentPromiseRequest) =>
+    useApi<PromoterMemberContactDto>(`/v1/promoter/me/contacts/${memberUuid}/payment-promise`, { method: 'POST', body })
+
   return {
     list, get, create, update, remove, usage, portfolio, commissionsSummary, me,
     listReferences, createReference, updateReference, removeReference,
     getPayoutProfile, savePayoutProfile, removePayoutProfile, myPayoutProfile,
+    myCollectionScore, myMemberContacts, registerReminder, registerPaymentPromise,
   }
 }
