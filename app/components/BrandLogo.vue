@@ -1,8 +1,11 @@
 <script setup lang="ts">
 // OptiBienestar 360 logo (Manual de Marca OB360, 15-oct-2026, p. 03).
-// PROVISIONAL: raster PNGs cropped from the brand manual PDF. Replace them with
-// the designer's SVGs (horizontal / negativo / mono / isotipo) when delivered;
-// only the imports below need to change.
+// Assets come from the designer's files (2026-10-18): the horizontal logo is
+// rasterized from "LOGO NUEVO OPTIBIENESTAR 360.eps" at 1200 px (its SVG export
+// embeds hundreds of raster gradient tiles, ~1 MB, so a PNG is lighter); the
+// colour version drops the white sticker outline for light backgrounds, the
+// negativo is its white silhouette; the isotipo is "ISOTIPO NUEVO ... EDITABLE.png".
+// Sources live outside git in ~/workspace/fenix-core/optibienestar/logos/.
 //
 // Manual rules enforced here:
 // - Minimum digital width of 120 px for the horizontal versions.

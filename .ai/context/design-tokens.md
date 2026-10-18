@@ -49,9 +49,18 @@
   `variant` = `horizontal` (fondos claros) · `negativo` (Azul Profundo /
   degradado) · `isotipo`. Mínimo 120 px de ancho en las horizontales; zona de
   protección ≈ 12 % de la altura como padding.
-- Assets en `app/assets/brand/` — **raster provisional** recortado del PDF del
-  manual, hasta que el diseñador entregue los SVG.
-- Favicons (`public/`) generados desde el isotipo.
+- Assets en `app/assets/brand/`, generados desde los archivos del diseñador
+  (2026-10-18; originales `.eps`/`.cdr`/`.ai` fuera de git en
+  `~/workspace/fenix-core/optibienestar/logos/`):
+  - `ob360-logo-horizontal.png`: rasterizado del EPS a 1200 px, sin el contorno
+    blanco tipo sticker, para fondos claros.
+  - `ob360-logo-negativo.png`: silueta blanca del mismo, para fondos oscuros.
+  - `ob360-isotipo.png`: el PNG editable del diseñador, 512 px.
+  - Se usa PNG y no SVG porque el SVG exportado incrusta cientos de mosaicos
+    raster de los degradados de Corel (~1 MB). El `.ai` entregado no tiene
+    contenido compatible con PDF.
+- Favicons en `public/`, generados desde el isotipo del diseñador (16/32/48 en
+  `.ico`, 32, 180 y 512 px).
 
 ## Status colors (semantic)
 
