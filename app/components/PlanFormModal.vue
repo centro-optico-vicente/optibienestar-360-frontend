@@ -55,6 +55,7 @@ interface FormState {
   extraBeneficiaryInscriptionFee: string
   includedBeneficiaries: string
   maxBeneficiaries: string
+  minMembers: string
   gracePeriodDays: string
   published: boolean
 }
@@ -69,6 +70,7 @@ const state = reactive<FormState>({
   extraBeneficiaryInscriptionFee: '',
   includedBeneficiaries: '',
   maxBeneficiaries: '',
+  minMembers: '',
   gracePeriodDays: '',
   published: false,
 })
@@ -91,6 +93,8 @@ const schema = computed(() => {
     extraBeneficiaryInscriptionFee: optionalMoney,
     includedBeneficiaries: optionalInt,
     maxBeneficiaries: optionalInt,
+    // Optional; when present must be ≥ 1 (backend @Min(1)).
+    minMembers: z.string().regex(/^([1-9]\d*)?$/, t('plans.form.minMembersInvalid')).optional().or(z.literal('')),
     gracePeriodDays: optionalInt,
   })
 })
@@ -123,6 +127,7 @@ function populateFrom(p: PlanDto | null) {
     state.extraBeneficiaryInscriptionFee = ''
     state.includedBeneficiaries = ''
     state.maxBeneficiaries = ''
+    state.minMembers = ''
     state.gracePeriodDays = ''
     state.published = false
     isActive.value = true
@@ -137,6 +142,7 @@ function populateFrom(p: PlanDto | null) {
   state.extraBeneficiaryInscriptionFee = moneyToString(p.extraBeneficiaryInscriptionFee)
   state.includedBeneficiaries = p.includedBeneficiaries != null ? String(p.includedBeneficiaries) : ''
   state.maxBeneficiaries = p.maxBeneficiaries != null ? String(p.maxBeneficiaries) : ''
+  state.minMembers = p.minMembers != null ? String(p.minMembers) : ''
   state.gracePeriodDays = p.gracePeriodDays != null ? String(p.gracePeriodDays) : ''
   state.published = p.published ?? false
   isActive.value = p.active ?? true
@@ -205,6 +211,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         extraBeneficiaryInscriptionFee: toMoney(state.extraBeneficiaryInscriptionFee),
         includedBeneficiaries: toInt(state.includedBeneficiaries),
         maxBeneficiaries: toInt(state.maxBeneficiaries),
+        minMembers: toInt(state.minMembers),
         gracePeriodDays: toInt(state.gracePeriodDays),
         published: state.published,
       }
@@ -222,6 +229,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         extraBeneficiaryInscriptionFee: toMoney(state.extraBeneficiaryInscriptionFee),
         includedBeneficiaries: toInt(state.includedBeneficiaries),
         maxBeneficiaries: toInt(state.maxBeneficiaries),
+        minMembers: toInt(state.minMembers),
         gracePeriodDays: toInt(state.gracePeriodDays),
         published: state.published,
       }
@@ -304,6 +312,12 @@ function openDeleteFromEdit() {
           </UFormField>
           <UFormField :label="t('plans.beneficiaries.graceDays')" name="gracePeriodDays" :help="t('plans.form.graceHelp')">
             <UInput v-model="state.gracePeriodDays" inputmode="numeric" placeholder="7" class="w-full" />
+          </UFormField>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <UFormField :label="t('plans.beneficiaries.minMembers')" name="minMembers" :help="t('plans.form.minMembersHelp')">
+            <UInput v-model="state.minMembers" inputmode="numeric" :placeholder="t('plans.beneficiaries.noMinimum')" class="w-full" />
           </UFormField>
         </div>
 
