@@ -42,6 +42,12 @@ export interface BenefitUsageDto {
   copayAmount?: number | string | null
   copayCurrency?: string | null
 
+  // Consumption amount (V171) — same pairing rule as the co-pay.
+  consumptionAmount?: number | string | null
+  consumptionCurrency?: string | null
+  serviceCategoryUuid?: string | null
+  serviceCategoryName?: string | null
+
   // Detail
   metadata?: Record<string, unknown> | null
   notes?: string | null

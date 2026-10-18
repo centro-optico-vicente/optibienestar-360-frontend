@@ -20,6 +20,9 @@ const members = useMembers()
 const auth = useAuthStore()
 
 const member = ref<MemberDto | null>(null)
+// QR of the digital card (GET /v1/me/digital-card): encodes the member UUID,
+// which the ally validator accepts as-is (ValidatorService QR path).
+const qrDataUri = ref<string | null>(null)
 const loading = ref(true)
 const notAffiliated = ref(false)
 const loadError = ref(false)
@@ -27,6 +30,9 @@ const loadError = ref(false)
 onMounted(async () => {
   try {
     member.value = await members.me()
+    useApi<{ qrCodeDataUri?: string }>('/v1/me/digital-card', { silent: true })
+      .then((card) => { qrDataUri.value = card.qrCodeDataUri ?? null })
+      .catch(() => { qrDataUri.value = null })
   }
   catch (err) {
     if ((err as ApiError).status === 404) notAffiliated.value = true
@@ -134,6 +140,21 @@ function relationshipLabel(r?: string | null): string {
           </div>
         </div>
       </div>
+
+      <!-- Card QR, shown at the ally counter -->
+      <div v-if="qrDataUri" class="bg-white rounded-2xl border border-prohealth-100 p-6 flex flex-wrap items-center gap-6">
+        <img :src="qrDataUri" :alt="t('members.portal.qr.alt')" class="w-40 h-40 rounded-xl border border-prohealth-100">
+        <div class="min-w-0 flex-1 space-y-2">
+          <h2 class="font-bold text-prohealth-900">{{ t('members.portal.qr.title') }}</h2>
+          <p class="text-sm text-prohealth-600">{{ t('members.portal.qr.body') }}</p>
+          <UButton :href="qrDataUri" :download="`carnet-${cardCode}.png`" color="primary" variant="soft" size="sm" icon="i-lucide-download">
+            {{ t('members.portal.qr.download') }}
+          </UButton>
+        </div>
+      </div>
+
+      <!-- Profile photo -->
+      <ProfilePhotoCard />
 
       <!-- Covered beneficiaries -->
       <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
