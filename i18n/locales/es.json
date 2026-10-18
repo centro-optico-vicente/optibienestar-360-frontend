@@ -1492,9 +1492,10 @@
           "autoRenew": "Renovación automática",
           "noticeDays": "Días de aviso"
         },
-        "termsVersionHelp": "Versión del Convenio de Alianza Estratégica (términos de tipo Aliado) bajo la que se firmó.",
-        "termsVersionNoPermission": "No tienes permiso para listar las versiones del convenio.",
-        "noticeDaysHelp": "Días de preaviso para rescindir el convenio (por defecto 30)."
+        "termsVersionHelp": "Plantilla del convenio estándar bajo la que se firma. Solo se listan las vigentes que aplican a este aliado (generales o limitadas a su segmento, tipo o al propio aliado); las más específicas primero.",
+        "termsVersionNoPermission": "No tienes permiso para crear o editar convenios, por eso no se listan las plantillas.",
+        "noticeDaysHelp": "Días de preaviso para rescindir el convenio (por defecto 30).",
+        "termsScopeGeneral": "General"
       },
       "delete": {
         "title": "Eliminar acuerdo",
@@ -4057,7 +4058,7 @@
       "terms": "Términos y condiciones"
     },
     "terms": {
-      "help": "Un documento por rol. Cada afiliado, asesor o aliado debe aceptar el que le corresponde en su primer inicio de sesión.",
+      "help": "Tres tipos de contrato. Cada usuario debe aceptar en su próximo inicio de sesión las versiones vigentes que le correspondan, y de nuevo cuando entre en vigencia una versión nueva.",
       "types": {
         "AFILIADO": "Afiliados",
         "PROMOTOR": "Asesores Comerciales",
@@ -4070,9 +4071,9 @@
         "title": "Título",
         "content": "Contenido (markdown)",
         "validFrom": "Vigente desde",
-        "isPublic": "Es público"
+        "isPublic": "Visible en la web"
       },
-      "isPublicHelp": "Expone esta versión sin autenticación en /v1/public/terms.",
+      "isPublicHelp": "Solo decide si esta versión se muestra en la web pública. Se pide aceptarla igual, sea visible o no.",
       "missingFields": "Completa título, contenido y fecha de vigencia",
       "savedToast": "Versión guardada correctamente",
       "publishNew": "Publicar nueva versión",
@@ -4091,6 +4092,33 @@
         "hide": "Ocultar vista previa",
         "help": "Así lo verán afiliados, asesores y aliados: versión guardada, con las variables reemplazadas. Los cambios sin guardar no se reflejan.",
         "empty": "Guarda una versión para ver la vista previa."
+      },
+      "audience": {
+        "AFILIADO": "Lo acepta todo usuario del sistema (administradores, asesores, aliados y afiliados) al iniciar sesión, y de nuevo cada vez que entra en vigencia una versión nueva. Es el que se publica en la web.",
+        "PROMOTOR": "Solo lo aceptan los usuarios con rol de asesor comercial.",
+        "ALIADO": "Cada aliado acepta la plantilla vinculada a su convenio activo. Puedes tener varias plantillas: una general y otras limitadas a un segmento, un tipo de aliado o un aliado específico."
+      },
+      "scope": {
+        "title": "Alcance de la plantilla (opcional)",
+        "help": "Limita qué aliados pueden usar esta plantilla al crear su convenio. Déjalo vacío para una plantilla general. Cada combinación de alcance es una plantilla aparte con sus propias versiones: al elegir un alcance, el editor pasa a esa plantilla.",
+        "segment": "Segmento",
+        "allyType": "Tipo de aliado",
+        "ally": "Aliado específico",
+        "any": "Cualquiera",
+        "general": "General (todos los aliados)"
+      },
+      "versionsList": {
+        "title": "Plantillas y versiones",
+        "empty": "Aún no hay plantillas de convenio de aliado.",
+        "scope": "Alcance",
+        "status": "Estado",
+        "public": "En la web",
+        "edit": "Editar",
+        "statuses": {
+          "current": "Vigente",
+          "scheduled": "Programada",
+          "previous": "Anterior"
+        }
       }
     }
   },

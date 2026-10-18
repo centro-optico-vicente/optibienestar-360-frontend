@@ -1492,9 +1492,10 @@
           "autoRenew": "Automatic renewal",
           "noticeDays": "Notice days"
         },
-        "termsVersionHelp": "Strategic Alliance Agreement version (Ally terms) it was signed under.",
-        "termsVersionNoPermission": "You do not have permission to list agreement versions.",
-        "noticeDaysHelp": "Days of notice required to rescind the agreement (default 30)."
+        "termsVersionHelp": "Standard agreement template it is signed under. Only current templates that apply to this ally are listed (general ones or those limited to its segment, type or the ally itself), most specific first.",
+        "termsVersionNoPermission": "You do not have permission to create or edit agreements, so templates are not listed.",
+        "noticeDaysHelp": "Days of notice required to rescind the agreement (default 30).",
+        "termsScopeGeneral": "General"
       },
       "delete": {
         "title": "Delete agreement",
@@ -4057,7 +4058,7 @@
       "terms": "Terms and conditions"
     },
     "terms": {
-      "help": "One document per role. Each affiliate, advisor or ally must accept the one that applies to them on first login.",
+      "help": "Three contract kinds. Each user must accept the current versions that apply to them on their next login, and again when a new version takes effect.",
       "types": {
         "AFILIADO": "Members",
         "PROMOTOR": "Sales Advisors",
@@ -4070,9 +4071,9 @@
         "title": "Title",
         "content": "Content (markdown)",
         "validFrom": "Effective from",
-        "isPublic": "Is public"
+        "isPublic": "Visible on the website"
       },
-      "isPublicHelp": "Exposes this version without authentication at /v1/public/terms.",
+      "isPublicHelp": "Only decides whether this version is shown on the public website. Acceptance is requested either way.",
       "missingFields": "Fill in the title, content and effective date",
       "savedToast": "Version saved successfully",
       "publishNew": "Publish new version",
@@ -4091,6 +4092,33 @@
         "hide": "Hide preview",
         "help": "This is how members, advisors and allies will see it: the saved version with the variables replaced. Unsaved changes are not reflected.",
         "empty": "Save a version to see the preview."
+      },
+      "audience": {
+        "AFILIADO": "Accepted by every user of the system (admins, advisors, allies and members) on login, and again whenever a new version takes effect. This is the one published on the website.",
+        "PROMOTOR": "Accepted only by users with the sales advisor role.",
+        "ALIADO": "Each ally accepts the template linked to its active agreement. You can have several templates: a general one and others limited to a segment, an ally type or one specific ally."
+      },
+      "scope": {
+        "title": "Template scope (optional)",
+        "help": "Narrows which allies can use this template when their agreement is created. Leave it empty for a general template. Each scope combination is a separate template with its own versions: picking a scope switches the editor to that template.",
+        "segment": "Segment",
+        "allyType": "Ally type",
+        "ally": "Specific ally",
+        "any": "Any",
+        "general": "General (all allies)"
+      },
+      "versionsList": {
+        "title": "Templates and versions",
+        "empty": "There are no ally agreement templates yet.",
+        "scope": "Scope",
+        "status": "Status",
+        "public": "On website",
+        "edit": "Edit",
+        "statuses": {
+          "current": "Current",
+          "scheduled": "Scheduled",
+          "previous": "Previous"
+        }
       }
     }
   },

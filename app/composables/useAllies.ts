@@ -20,6 +20,7 @@ import type {
   UpdateAllyUserRequest,
   UserAllyDto,
 } from '~/types/allies'
+import type { TermsVersionDto } from '~/types/terms'
 
 interface ListParams {
   page?: number
@@ -131,6 +132,14 @@ export const useAllies = () => {
   const removeAgreement = (allyUuid: string, uuid: string) =>
     useApi<null>(`/v1/admin/allies/${allyUuid}/agreements/${uuid}`, { method: 'DELETE' })
 
+  /**
+   * Current ALIADO contract templates this ally may sign — general ones plus
+   * those scoped to the ally, one of its types or their segment — most specific
+   * first. Gated by ALLY_AGREEMENT_CREATE / _UPDATE. Always 200, `[]` if none.
+   */
+  const listApplicableTerms = (allyUuid: string) =>
+    useApi<TermsVersionDto[]>(`/v1/admin/allies/${allyUuid}/applicable-terms`)
+
   // ---- Staff (ALLY_USER_VIEW_ALL / _CREATE / _UPDATE / _DELETE) ----
   const listUsers = (allyUuid: string, sort?: string[]) =>
     useApi<AllyUserDto[]>(`/v1/admin/allies/${allyUuid}/users`, {
@@ -179,6 +188,7 @@ export const useAllies = () => {
     createAgreement,
     updateAgreement,
     removeAgreement,
+    listApplicableTerms,
     listUsers,
     assignUser,
     updateUser,
