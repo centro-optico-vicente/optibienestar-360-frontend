@@ -1,6 +1,7 @@
 # 10 — Design System
 
 > Componentes propios reusables + overrides de Nuxt UI + design tokens en [`context/design-tokens.md`](../context/design-tokens.md).
+> Marca (paleta, tipografía, logo, contraste): [`13-brand-visual-identity.md`](13-brand-visual-identity.md).
 
 ## Componentes propios
 
@@ -10,7 +11,7 @@ Crear en `components/shared/` cuando se repite un patrón en >= 3 lugares:
 
 | Componente | Cuándo usarlo |
 |---|---|
-| `<DigitalCard>` | Carnet digital del afiliado (tarjeta + QR + status) |
+| `<DigitalCard>` | Credencial Digital del afiliado (tarjeta + QR + foto + estado de cobertura) — hoy implementada inline en `pages/afiliado/index.vue` |
 | `<MembershipStatusBadge>` | Badge de estado de membresía con colores semánticos |
 | `<PaymentStatusBadge>` | Badge de estado de pago |
 | `<PaymentMethodIcon>` | Icono representativo Zelle/Transferencia/Efectivo |

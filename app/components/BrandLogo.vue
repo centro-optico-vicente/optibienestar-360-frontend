@@ -33,8 +33,8 @@ const MIN_HORIZONTAL_WIDTH = 120
 const PROTECTION_RATIO = 0.12
 
 const SOURCES: Record<BrandLogoVariant, { src: string, ratio: number, defaultWidth: number }> = {
-  horizontal: { src: horizontalUrl, ratio: 331 / 1476, defaultWidth: 160 },
-  negativo: { src: negativoUrl, ratio: 331 / 1476, defaultWidth: 160 },
+  horizontal: { src: horizontalUrl, ratio: 269 / 1200, defaultWidth: 160 },
+  negativo: { src: negativoUrl, ratio: 269 / 1200, defaultWidth: 160 },
   isotipo: { src: isotipoUrl, ratio: 1, defaultWidth: 32 },
 }
 
