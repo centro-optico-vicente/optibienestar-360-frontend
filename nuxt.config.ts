@@ -1,4 +1,13 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+
+// Brand typeface (Manual de Marca OB360, p. 05). Changing the family here (plus
+// --font-sans in app/assets/css/main.css) switches the whole UI; components only
+// use Tailwind's font-sans.
+const BRAND_FONT = {
+  family: 'Poppins',
+  weights: '300;400;500;600;700',
+}
+
 export default defineNuxtConfig({
   compatibilityDate: '2025-05-01',
   future: {
@@ -38,14 +47,16 @@ export default defineNuxtConfig({
         { name: 'description', content: 'Programa de salud y bienestar OptiBienestar 360' },
       ],
       link: [
-        { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
-        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
-        { rel: 'apple-touch-icon', href: '/favicon.ico' },
+        // Favicons generated from the OB360 isotype (provisional raster, see BrandLogo.vue)
+        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico', sizes: 'any' },
+        { rel: 'icon', type: 'image/png', href: '/favicon-32.png', sizes: '32x32' },
+        { rel: 'icon', type: 'image/png', href: '/icon-512.png', sizes: '512x512' },
+        { rel: 'apple-touch-icon', href: '/apple-touch-icon.png', sizes: '180x180' },
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         {
           rel: 'stylesheet',
-          href: 'https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap',
+          href: `https://fonts.googleapis.com/css2?family=${BRAND_FONT.family}:wght@${BRAND_FONT.weights}&display=swap`,
         },
       ],
       // Runtime config loaded before the app bundle. The container rewrites

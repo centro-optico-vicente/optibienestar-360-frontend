@@ -2,53 +2,70 @@
 @import '@nuxt/ui';
 
 @theme static {
-  --font-sans: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  /* Brand typeface (Manual de Marca OB360, p. 05). The Google Fonts stylesheet
+     is loaded in nuxt.config.ts (BRAND_FONT); keep both in sync. */
+  --font-sans: 'Poppins', ui-sans-serif, system-ui, Arial, sans-serif;
 
-  /* Paleta heredada del landing OptiBienestar 360
-     Azul principal (#245E9E) — escala generada conservando el tono */
-  --color-prohealth-50:  #f0f6fc;
-  --color-prohealth-100: #dbeafe;
-  --color-prohealth-200: #b8d3f2;
-  --color-prohealth-300: #8db8e6;
-  --color-prohealth-400: #5d97d6;
-  --color-prohealth-500: #3a7cc2;
-  --color-prohealth-600: #245E9E;
-  --color-prohealth-700: #1e4d82;
-  --color-prohealth-800: #1b4068;
-  --color-prohealth-900: #1a3656;
-  --color-prohealth-950: #11223a;
+  /* Palette: Manual de Marca OB360 (15-oct-2026), p. 04.
+     Scale NAMES are kept (prohealth/lime/cyan) so existing utility classes keep
+     working; only the VALUES follow the manual. Non-anchored steps are derived
+     in OKLCH keeping the hue of the anchors.
+     WCAG: green and orange (lime-400/500, energia-500) fail AA on white — never
+     use them as text color on white, nor white text on top of them. Use dark
+     text (#1B2733) or the 700+ step of the scale instead. */
 
-  /* Lime accent (#9FD537) */
-  --color-lime-50:  #f7fdec;
-  --color-lime-100: #ecfac8;
-  --color-lime-200: #d9f496;
-  --color-lime-300: #c1ea5d;
-  --color-lime-400: #aadc35;
-  --color-lime-500: #9FD537;
-  --color-lime-600: #74a01b;
-  --color-lime-700: #587a1a;
-  --color-lime-800: #47611c;
-  --color-lime-900: #3c521c;
-  --color-lime-950: #1f2d0a;
+  /* Primary blue — anchors: 500 Azul Vital #067DBC, 700 Azul Océano #0D498B,
+     800 Azul Profundo #003F84 */
+  --color-prohealth-50:  #F1F8FD;
+  --color-prohealth-100: #E1EFFA;
+  --color-prohealth-200: #C5DFF2;
+  --color-prohealth-300: #A3CAE8;
+  --color-prohealth-400: #76AFD9;
+  --color-prohealth-500: #067DBC;
+  --color-prohealth-600: #0A63A4;
+  --color-prohealth-700: #0D498B;
+  --color-prohealth-800: #003F84;
+  --color-prohealth-900: #082D5A;
+  --color-prohealth-950: #091B32;
 
-  /* Cyan secondary (#1094C5) */
-  --color-cyan-50:  #ecfbff;
-  --color-cyan-100: #d4f3ff;
-  --color-cyan-200: #b1ebff;
-  --color-cyan-300: #7be0ff;
-  --color-cyan-400: #3dccf7;
-  --color-cyan-500: #14b0e0;
-  --color-cyan-600: #1094C5;
-  --color-cyan-700: #11729c;
-  --color-cyan-800: #155f80;
-  --color-cyan-900: #164f6b;
-  --color-cyan-950: #093247;
+  /* Secondary green — anchors: 400 Verde Lima #8CDD12, 500 Verde Bienestar #7BC621 */
+  --color-lime-50:  #F3FDEC;
+  --color-lime-100: #E5FBD6;
+  --color-lime-200: #CEF5B1;
+  --color-lime-300: #AFEB7D;
+  --color-lime-400: #8CDD12;
+  --color-lime-500: #7BC621;
+  --color-lime-600: #5E9916;
+  --color-lime-700: #477904;
+  --color-lime-800: #365C05;
+  --color-lime-900: #2B4A05;
+  --color-lime-950: #162B00;
 
-  /* Acento de marca OptiBienestar 360 (brief LOGOTIPO.docx) — uso puntual en el
-     nuevo logotipo/isotipo. No reemplaza `prohealth` como color primary. */
-  --color-opti-blue: #0056B3;
-  --color-opti-green: #00B85C;
-  --color-opti-orange: #FF5E00;
+  /* Info — the manual has no cyan; re-anchored to Azul Vital (600 = #067DBC) */
+  --color-cyan-50:  #F1F8FD;
+  --color-cyan-100: #E1EFFA;
+  --color-cyan-200: #C5DFF2;
+  --color-cyan-300: #A3CAE8;
+  --color-cyan-400: #7BB2DB;
+  --color-cyan-500: #4C97CC;
+  --color-cyan-600: #067DBC;
+  --color-cyan-700: #0C6091;
+  --color-cyan-800: #014C75;
+  --color-cyan-900: #043C5C;
+  --color-cyan-950: #02273E;
+
+  /* Accent orange — anchor: 500 Naranja Energía #FF7605 (CTA / warning) */
+  --color-energia-50:  #FFF7F2;
+  --color-energia-100: #FFECE2;
+  --color-energia-200: #FED6C2;
+  --color-energia-300: #FDB994;
+  --color-energia-400: #FC9458;
+  --color-energia-500: #FF7605;
+  --color-energia-600: #D26008;
+  --color-energia-700: #AA4D07;
+  --color-energia-800: #873C05;
+  --color-energia-900: #6F3001;
+  --color-energia-950: #411901;
 }
 
 /* Portal light-only: forzamos TODO el set de tokens de Nuxt UI a tema claro en un
@@ -59,24 +76,24 @@
 :root {
   /* Fondos */
   --ui-bg: #ffffff;
-  --ui-bg-muted: #f8fafc;
+  --ui-bg-muted: #EEF2F6; /* Gris Perla */
   --ui-bg-elevated: #f1f5f9;
   --ui-bg-accented: #e2e8f0;
-  --ui-bg-inverted: #11223a;
+  --ui-bg-inverted: #003F84; /* Azul Profundo */
 
   /* Texto */
   --ui-text-dimmed: #94a3b8;
   --ui-text-muted: #64748b;
   --ui-text-toned: #475569;
-  --ui-text: #11223a;
-  --ui-text-highlighted: #0b1626;
+  --ui-text: #1B2733; /* Gris Carbón */
+  --ui-text-highlighted: #111B26;
   --ui-text-inverted: #ffffff;
 
   /* Bordes */
   --ui-border: #e2e8f0;
   --ui-border-muted: #e2e8f0;
   --ui-border-accented: #cbd5e1;
-  --ui-border-inverted: #11223a;
+  --ui-border-inverted: #003F84;
 }
 
 html, body, #__nuxt {
@@ -91,9 +108,9 @@ body {
   background: var(--ui-bg);
 }
 
-/* Utilidad: gradient hero ProHealth */
+/* Utility: brand gradient (Azul Profundo -> Azul Vital) */
 .bg-hero-prohealth {
   background:
-    radial-gradient(ellipse at top right, rgba(16, 148, 197, 0.35), transparent 60%),
-    linear-gradient(135deg, #245E9E 0%, #1094C5 100%);
+    radial-gradient(ellipse at top right, rgba(6, 125, 188, 0.35), transparent 60%),
+    linear-gradient(135deg, #003F84 0%, #067DBC 100%);
 }

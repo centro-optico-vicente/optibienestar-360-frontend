@@ -4,6 +4,7 @@ export default defineAppConfig({
       primary: 'prohealth',
       secondary: 'lime',
       info: 'cyan',
+      warning: 'energia',
       neutral: 'slate',
     },
     button: {

@@ -130,7 +130,7 @@ function onDrop(e: DragEvent) {
   position: absolute;
   top: 0;
   left: 50%;
-  border-left: 1px solid var(--org-line-color, #d4dce6);
+  border-left: 1px solid var(--org-line-color, var(--ui-border-accented));
   width: 0;
   height: 24px;
 }
@@ -140,14 +140,14 @@ function onDrop(e: DragEvent) {
   position: absolute;
   top: 0;
   right: 50%;
-  border-top: 1px solid var(--org-line-color, #d4dce6);
+  border-top: 1px solid var(--org-line-color, var(--ui-border-accented));
   width: 50%;
   height: 24px;
 }
 .org-node::after {
   right: auto;
   left: 50%;
-  border-left: 1px solid var(--org-line-color, #d4dce6);
+  border-left: 1px solid var(--org-line-color, var(--ui-border-accented));
 }
 .org-node:only-child {
   padding-top: 0;
@@ -161,7 +161,7 @@ function onDrop(e: DragEvent) {
   border: 0 none;
 }
 .org-node:last-child::before {
-  border-right: 1px solid var(--org-line-color, #d4dce6);
+  border-right: 1px solid var(--org-line-color, var(--ui-border-accented));
   border-radius: 0 6px 0 0;
 }
 .org-node:first-child::after {
@@ -185,8 +185,8 @@ function onDrop(e: DragEvent) {
   opacity: 0.5;
 }
 .node-box.is-drag-over {
-  border-color: var(--ui-primary, #3b82f6);
-  box-shadow: 0 0 0 2px var(--ui-primary, #3b82f6);
+  border-color: var(--ui-primary, var(--color-prohealth-500));
+  box-shadow: 0 0 0 2px var(--ui-primary, var(--color-prohealth-500));
   transform: scale(1.03);
 }
 </style>
