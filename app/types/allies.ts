@@ -340,23 +340,44 @@ export interface UserAllyDto {
 
 // ---- Public directory ----
 
-/** Sanitized DTO of the public directory (only PUBLISHED + ACTIVE partners). */
-export interface PublicAllyDto {
+/**
+ * Card of the public directory (GET /v1/public/allies — backend
+ * `PublicAllyListItemDto`). Only PUBLISHED + ACTIVE partners; labels travel as
+ * plain strings, there are no nested catalog refs and no email.
+ */
+export interface PublicAllyListItemDto {
   uuid: string
   name: string
-  allyTypes?: CatalogRef[]
-  email?: string
-  phone?: string
-  website?: string
-  whatsapp?: string
-  instagram?: string
-  facebook?: string
-  address?: string
-  city?: CatalogRef
-  googleMapsUrl?: string
-  description?: string
-  professions?: CatalogRef[]
-  services?: AllyServiceDto[]
+  allyTypeNames?: string[]
   /** Distinct segments (`B2B` / `B2P`) of the partner's active types (V179). */
   allySegments?: string[]
+  cityName?: string | null
+  logoUrl?: string | null
+  description?: string | null
+  website?: string | null
+  phone?: string | null
+  whatsapp?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  googleMapsUrl?: string | null
+}
+
+/** Approved, published service of a public partner (backend `PublicAllyServiceDto`). */
+export interface PublicAllyServiceDto {
+  uuid: string
+  categoryName?: string | null
+  name: string
+  description?: string | null
+  priceAmount?: number | string | null
+  discountPct?: number | string | null
+  /** Where the preferential rate does NOT apply (V179). */
+  exclusions?: string | null
+  requiresAppointment?: boolean
+}
+
+/** Public partner profile (GET /v1/public/allies/{uuid} — backend `PublicAllyDetailDto`). */
+export interface PublicAllyDetailDto extends PublicAllyListItemDto {
+  address?: string | null
+  professionNames?: string[]
+  services?: PublicAllyServiceDto[]
 }
