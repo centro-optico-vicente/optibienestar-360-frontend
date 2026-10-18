@@ -37,7 +37,7 @@ const nuxtUiLocale = computed(() => (locale.value === 'en' ? en : es))
 
 <template>
   <UApp :locale="nuxtUiLocale">
-    <NuxtLoadingIndicator color="#9FD537" />
+    <NuxtLoadingIndicator color="#7BC621" />
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>

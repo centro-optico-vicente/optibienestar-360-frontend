@@ -156,7 +156,7 @@ function money(v?: number | string | null): string {
               </div>
               <div v-if="s.priceAmount" class="text-right shrink-0">
                 <p class="font-bold text-prohealth-900">{{ money(s.priceAmount) }}</p>
-                <p v-if="s.discountPct" class="text-xs font-semibold text-lime-600">
+                <p v-if="s.discountPct" class="text-xs font-semibold text-lime-700">
                   {{ t('allies.public.detail.discountAffiliates', { pct: s.discountPct }) }}
                 </p>
               </div>
@@ -185,7 +185,7 @@ function money(v?: number | string | null): string {
             {{ t('allies.public.detail.ctaBody') }}
           </p>
         </div>
-        <UButton to="/#contact" color="secondary" variant="solid">
+        <UButton to="/#contact" color="secondary" variant="solid" class="text-prohealth-950">
           {{ t('allies.public.detail.ctaButton') }}
         </UButton>
       </div>

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { ApiError } from '~/types/auth'
 import type { MemberDto } from '~/types/members'
-import logoUrl from '~/assets/centro-optico-vicente-logo.png'
 
 // Member portal: Digital Credential + covered beneficiaries.
 // GET /v1/me/member requires MEMBER_VIEW_OWN; it returns 404 if the user isn't enrolled.
@@ -124,7 +123,10 @@ function relationshipLabel(r?: string | null): string {
           <!-- Brand + coverage status -->
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <img :src="logoUrl" alt="OptiBienestar 360" class="w-8 h-8 rounded-full object-contain bg-white/90">
+              <!-- The isotype is dark blue: a white disc keeps it legible on the brand gradient -->
+              <span class="grid place-items-center w-9 h-9 rounded-full bg-white">
+                <BrandLogo variant="isotipo" :width="28" />
+              </span>
               <span class="font-extrabold">
                 OptiBienestar<span class="text-lime-300"> 360</span>
               </span>

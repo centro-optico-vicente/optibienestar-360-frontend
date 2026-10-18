@@ -1,113 +1,82 @@
-# Design Tokens (paleta heredada del landing)
+# Design Tokens (Manual de Marca OB360, 15-oct-2026)
 
-> Compartidos con [`centro-optico-vicente-web`](https://github.com/fenix-core/centro-optico-vicente-web) para coherencia visual. Originalmente definidos en el HTML monolítico legacy.
+> Fuente: `MANUAL DE MARCA OPTIBIENESTAR 360.pdf` (págs. 03–05), fuera de git en
+> `~/workspace/fenix-core/optibienestar/`. Supera a `LOGOTIPO.docx` y a la paleta
+> heredada del landing (`#245E9E` / `#1094C5` / `#9FD537`). Implementación en
+> [`app/assets/css/main.css`](../../app/assets/css/main.css) (`@theme static`) y
+> [`app.config.ts`](../../app.config.ts). Handoff:
+> `centro-optico-vicente/.ai/notes/2026-10-17-brand-typography-portals-handoff.md`.
+>
+> **Spec cross-stack de identidad visual (fuente de verdad):**
+> [hub spec 11](https://github.com/centro-optico-vicente/centro-optico-vicente/blob/main/.ai/specs/11-brand-visual-identity.md).
+> Cubre esencia, voz, paleta completa con CMYK, jerarquía, contraste WCAG,
+> tipografía, versiones y reglas del logo, aplicaciones y checklist para pantallas
+> nuevas. Este archivo documenta solo cómo se implementa en este repo.
 
 ## Paleta
 
-| Token | Hex | Uso |
+| Nombre (manual) | Hex | Token en la app |
 |---|---|---|
-| `--blue` | `#245E9E` | Primary, brand, links, CTA |
-| `--blue-dark` | `#143458` | Headers, footer dark mode |
-| `--blue-deep` | `#0E2A45` | Backgrounds dark, contraste fuerte |
-| `--cyan` | `#1094C5` | Accents, info, hover states |
-| `--cyan-soft` | `#E5F4FA` | Backgrounds suaves info |
-| `--lime` | `#9FD537` | Secondary, success, highlights |
-| `--lime-dark` | `#7AB220` | Success hover, badges |
-| `--lime-soft` | `#F2F9DF` | Background success/positive |
-| `--white` | `#FFFFFF` | Background principal |
-| `--paper` | `#FBFAF7` | Background secundario (cálido) |
-| `--bone` | `#F4F1EA` | Card backgrounds, dividers |
-| `--stone` | `#E5E2D9` | Borders sutiles |
-| `--ink` | `#1A2329` | Texto principal |
-| `--slate` | `#4A5862` | Texto secundario |
-| `--muted` | `#818D96` | Placeholders, disabled |
+| Azul Profundo | `#003F84` | `prohealth-800` · `--ui-bg-inverted` · inicio del degradado |
+| Azul Vital | `#067DBC` | `prohealth-500` (= `primary`) · `cyan-600` (= `info`) |
+| Azul Océano | `#0D498B` | `prohealth-700` |
+| Verde Bienestar | `#7BC621` | `lime-500` (= `secondary`) |
+| Verde Lima | `#8CDD12` | `lime-400` |
+| Naranja Energía | `#FF7605` | `energia-500` (= `warning`, CTA) |
+| Gris Carbón | `#1B2733` | `--ui-text` |
+| Gris Perla | `#EEF2F6` | `--ui-bg-muted` |
+
+- Los **nombres** de escala (`prohealth`, `lime`, `cyan`) se conservan para no
+  renombrar ~2 300 clases; solo cambian los valores. Los pasos sin ancla se
+  derivan en OKLCH conservando el tono.
+- Degradado de marca: `.bg-hero-prohealth` = `#003F84 → #067DBC`.
+- Proporción: blanco 45 % · Azul Profundo 25 % · Azul Vital 13 % · Verde 11 % ·
+  Naranja 6 %. Verde y naranja son **acento**.
+
+### Contraste (WCAG AA)
+
+- Verde (`lime-400/500`) y naranja (`energia-500`) **nunca** como color de texto
+  sobre blanco ni con texto blanco encima (2.1 y 2.7:1).
+- Sobre verde o naranja, texto oscuro (`#1B2733` / `prohealth-950`), o usar el
+  paso 700+ de la escala con texto blanco.
+- Texto verde sobre blanco: `lime-700` o más oscuro (5.2:1).
 
 ## Tipografía
 
-| Token | Font family | Uso |
-|---|---|---|
-| Display/Headings | `Manrope` (sans) | H1, H2, H3 |
-| Body | `Manrope` | Texto general |
-| Serif decorativa | `Fraunces` (fallback Georgia) | Logo, citas, decorativos |
-| Script | `Caveat` (cursive) | Acentos especiales (raro) |
+- **Poppins** (Google Fonts, 300–700, `display=swap`). El manual también nombra
+  Satoshi en el espécimen; pendiente de confirmar con el diseñador.
+- La familia vive en un solo lugar: `BRAND_FONT` en `nuxt.config.ts` +
+  `--font-sans` en `main.css`. Los componentes solo usan `font-sans`.
+- Light (300) solo en textos grandes; en tablas y formularios, Regular (400).
 
-## Tailwind config
+## Logo
 
-```typescript
-// tailwind.config.ts
-export default {
-  theme: {
-    extend: {
-      colors: {
-        blue: {
-          DEFAULT: '#245E9E',
-          dark: '#143458',
-          deep: '#0E2A45',
-        },
-        cyan: {
-          DEFAULT: '#1094C5',
-          soft: '#E5F4FA',
-        },
-        lime: {
-          DEFAULT: '#9FD537',
-          dark: '#7AB220',
-          soft: '#F2F9DF',
-        },
-        paper: '#FBFAF7',
-        bone: '#F4F1EA',
-        stone: '#E5E2D9',
-        ink: '#1A2329',
-        slate: {
-          DEFAULT: '#4A5862',
-        },
-        muted: '#818D96',
-      },
-      fontFamily: {
-        sans: ['Manrope', 'system-ui', 'sans-serif'],
-        serif: ['Fraunces', 'Georgia', 'serif'],
-        script: ['Caveat', 'cursive'],
-      },
-    },
-  },
-};
-```
-
-## Nuxt UI overrides
-
-```typescript
-// app.config.ts
-export default defineAppConfig({
-  ui: {
-    primary: 'blue',       // mapea al token blue
-    gray: 'slate',
-    button: {
-      default: {
-        size: 'md',
-      },
-    },
-  },
-});
-```
-
-## Acento de marca OptiBienestar 360 (pendiente de asset final)
-
-Brief de rediseño de logotipo/isotipo (`LOGOTIPO.docx`, repo hub) propone paleta
-propia para el sub-brand: `opti-blue #0056B3`, `opti-green #00B85C`,
-`opti-orange #FF5E00`. Se agregaron como tokens CSS (`--color-opti-*` en
-`app/assets/css/main.css`) para usarlos en el nuevo logotipo/isotipo cuando el
-diseñador entregue el SVG. **No reemplazan** `prohealth` (color `primary` de Nuxt
-UI, usado en 70+ archivos) — eso sería un rebrand completo de la app y debe
-decidirse aparte, con el asset final en mano.
+- Componente único [`BrandLogo.vue`](../../app/components/BrandLogo.vue):
+  `variant` = `horizontal` (fondos claros) · `negativo` (Azul Profundo /
+  degradado) · `isotipo`. Mínimo 120 px de ancho en las horizontales; zona de
+  protección ≈ 12 % de la altura como padding.
+- Assets en `app/assets/brand/`, generados desde los archivos del diseñador
+  (2026-10-18; originales `.eps`/`.cdr`/`.ai` fuera de git en
+  `~/workspace/fenix-core/optibienestar/logos/`):
+  - `ob360-logo-horizontal.png`: rasterizado del EPS a 1200 px, sin el contorno
+    blanco tipo sticker, para fondos claros.
+  - `ob360-logo-negativo.png`: silueta blanca del mismo, para fondos oscuros.
+  - `ob360-isotipo.png`: el PNG editable del diseñador, 512 px.
+  - Se usa PNG y no SVG porque el SVG exportado incrusta cientos de mosaicos
+    raster de los degradados de Corel (~1 MB). El `.ai` entregado no tiene
+    contenido compatible con PDF.
+- Favicons en `public/`, generados desde el isotipo del diseñador (16/32/48 en
+  `.ico`, 32, 180 y 512 px).
 
 ## Status colors (semantic)
 
 | Status | Color | Token |
 |---|---|---|
-| Solvente / ACTIVE | Lime | `--lime` |
-| Pendiente revisión | Cyan | `--cyan` |
+| Solvente / ACTIVE | Lime | `lime-700` (texto) |
+| Pendiente revisión | Cyan | `cyan-600` |
 | Suspendido / SUSPENDED | Amber (no en paleta — usar `text-amber-600`) | — |
 | Expirado / EXPIRED | Red (no en paleta — usar `text-red-600`) | — |
-| Cancelado / CANCELLED | Slate | `--slate` |
+| Cancelado / CANCELLED | Slate | `slate-500` |
 
 ## Espaciado y radios
 

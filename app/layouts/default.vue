@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import logoUrl from '~/assets/centro-optico-vicente-logo.png'
-
 const auth = useAuthStore()
 
 const navLinks = [
@@ -34,11 +32,8 @@ onMounted(async () => {
       ]"
     >
       <div class="max-w-7xl mx-auto px-6 lg:px-10 h-16 flex items-center justify-between">
-        <NuxtLink to="/" class="flex items-center gap-2">
-          <img :src="logoUrl" alt="Centro Óptico Vicente" class="w-8 h-8 rounded-full object-contain">
-          <span class="font-extrabold text-lg text-prohealth-900">
-            OptiBienestar<span class="text-cyan-600"> 360</span>
-          </span>
+        <NuxtLink to="/" class="flex items-center">
+          <BrandLogo variant="horizontal" :width="160" />
         </NuxtLink>
 
         <nav class="hidden md:flex items-center gap-7">
@@ -84,9 +79,8 @@ onMounted(async () => {
     <footer class="bg-prohealth-950 text-prohealth-100">
       <div class="max-w-7xl mx-auto px-6 lg:px-10 py-12 grid md:grid-cols-4 gap-8">
         <div class="md:col-span-2">
-          <div class="flex items-center gap-2 mb-3">
-            <span class="w-8 h-8 rounded-full bg-lime-500 grid place-items-center text-prohealth-950 font-bold">+</span>
-            <span class="font-extrabold text-lg text-white">OptiBienestar 360</span>
+          <div class="mb-3 -ml-2">
+            <BrandLogo variant="negativo" :width="180" />
           </div>
           <p class="text-sm text-prohealth-200/80 max-w-md">
             {{ $t('layout.footer.description') }}

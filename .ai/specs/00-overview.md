@@ -17,9 +17,11 @@
 | 09 | [Permissions](09-permissions.md) | usePermissions + v-permission |
 | 10 | [Design system](10-design-system.md) | Nuxt UI overrides + componentes propios |
 | 12 | [Auditoría](12-audit.md) | Config de auditoría, bitácoras de login/reportes, timeline de cambios |
+| 13 | [Identidad visual de marca](13-brand-visual-identity.md) | Paleta, tipografía, logo (`BrandLogo`), contraste y patrones según el Manual de Marca OB360 |
 
 ## Specs cross-stack relevantes
 
 - [Hub `06-integration.md`](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/specs/06-integration.md) — REST contracts
 - [Hub `03-security.md`](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/specs/03-security.md) — CORS, JWT
+- [Hub `11-brand-visual-identity.md`](https://github.com/centro-optico-vicente/centro-optico-vicente/blob/main/.ai/specs/11-brand-visual-identity.md) — identidad visual cross-stack (copia canónica de la marca)
 - [Hub `05-domain-model.md`](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/specs/05-domain-model.md) — modelo conceptual

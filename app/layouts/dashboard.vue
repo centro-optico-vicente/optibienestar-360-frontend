@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import logoUrl from '~/assets/centro-optico-vicente-logo.png'
 import { OTHER_NAV, isNavGroup } from '~/utils/nav'
 
 const auth = useAuthStore()
@@ -119,10 +118,7 @@ defineShortcuts({
       ]"
     >
       <div class="h-16 px-5 flex items-center gap-2 border-b border-prohealth-100">
-        <img :src="logoUrl" alt="Centro Óptico Vicente" class="w-8 h-8 rounded-full object-contain">
-        <span class="font-extrabold text-prohealth-900">
-          OptiBienestar<span class="text-cyan-600"> 360</span>
-        </span>
+        <BrandLogo variant="horizontal" :width="150" />
       </div>
 
       <nav class="flex-1 px-3 py-5 overflow-y-auto">
