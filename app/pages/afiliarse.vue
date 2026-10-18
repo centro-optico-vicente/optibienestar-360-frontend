@@ -3,14 +3,27 @@
 // (/afiliarse?ref=<referral code>). POST /v1/public/affiliations creates the
 // AFILIADO login, the member attributed to the promoter and the chosen plan's
 // membership, which stays suspended until the first payment is approved.
+// The request must carry the uuid of the current public AFILIADO terms
+// (GET /v1/public/terms/AFILIADO); the backend records that acceptance.
+import MarkdownIt from 'markdown-it'
+import DOMPurify from 'dompurify'
+
 definePageMeta({ layout: 'default' })
 
 interface PublicPlan {
   uuid: string
   name: string
+  type?: string | null
   monthlyFee?: number | string | null
   inscriptionFee?: number | string | null
   currency_Code?: string | null
+  minMembers?: number | null
+}
+
+interface PublicTerms {
+  uuid: string
+  title: string
+  contentMarkdown: string
 }
 
 const { t } = useI18n()
@@ -22,11 +35,19 @@ useSeoMeta({ title: () => t('affiliationRequest.seoTitle') })
 
 const referralCode = computed(() => String(route.query.ref ?? '').trim().toUpperCase().slice(0, 20))
 
+// Group plans (corporate, or any plan with a minimum headcount) are sold through
+// a corporate contract, never to a single person on this page.
+function isSelfServicePlan(p: PublicPlan): boolean {
+  return p.type !== 'CORPORATIVO' && (p.minMembers == null || p.minMembers <= 1)
+}
+
 const plans = ref<PublicPlan[]>([])
 onMounted(async () => {
+  loadTerms()
   try {
     const res = await useApi<PublicPlan[] | { content: PublicPlan[] }>('/v1/public/plans', { skipAuth: true })
-    plans.value = Array.isArray(res) ? res : res.content ?? []
+    const all = Array.isArray(res) ? res : res.content ?? []
+    plans.value = all.filter(isSelfServicePlan)
     if (plans.value.length === 1) state.planUuid = plans.value[0]!.uuid
   }
   catch {
@@ -34,12 +55,41 @@ onMounted(async () => {
   }
 })
 
-const planItems = computed(() => plans.value.map(p => ({
-  value: p.uuid,
-  label: p.monthlyFee != null
-    ? `${p.name} · ${formatCurrency(Number(p.monthlyFee), p.currency_Code || 'USD')} / ${t('affiliationRequest.month')}`
-    : p.name,
-})))
+function money(value: number | string | null | undefined, currency?: string | null): string {
+  return formatCurrency(Number(value), currency || 'USD')
+}
+
+const planItems = computed(() => plans.value.map((p) => {
+  const parts = [p.name]
+  if (p.inscriptionFee != null) parts.push(`${t('affiliationRequest.inscription')} ${money(p.inscriptionFee, p.currency_Code)}`)
+  if (p.monthlyFee != null) parts.push(`${money(p.monthlyFee, p.currency_Code)} / ${t('affiliationRequest.month')}`)
+  return { value: p.uuid, label: parts.join(' · ') }
+}))
+
+// Current public AFILIADO terms — shown, accepted and sent as termsVersionUuid.
+const md = new MarkdownIt({ html: false, linkify: true, breaks: true })
+const terms = ref<PublicTerms | null>(null)
+const termsUnavailable = ref(false)
+const termsOpen = ref(false)
+const termsAccepted = ref(false)
+const termsHtml = computed(() => DOMPurify.sanitize(md.render(terms.value?.contentMarkdown || '')))
+
+async function loadTerms(): Promise<void> {
+  try {
+    const previous = terms.value?.uuid
+    terms.value = await useApi<PublicTerms>('/v1/public/terms/AFILIADO', { skipAuth: true })
+    termsUnavailable.value = false
+    if (previous && previous !== terms.value.uuid) {
+      termsAccepted.value = false
+      termsOpen.value = true
+      toast.add({ title: t('affiliationRequest.termsUpdated'), color: 'warning' })
+    }
+  }
+  catch {
+    terms.value = null
+    termsUnavailable.value = true
+  }
+}
 const docTypes = [{ value: 'V', label: 'V' }, { value: 'E', label: 'E' }]
 
 const state = reactive({
@@ -56,6 +106,8 @@ function invalid(): string | null {
   if (!/^\d{1,9}$/.test(state.documentNumber.trim())) return t('affiliationRequest.badDocument')
   if (state.password.length < 8) return t('affiliationRequest.shortPassword')
   if (state.password !== state.passwordConfirm) return t('affiliationRequest.passwordMismatch')
+  if (!terms.value) return t('affiliationRequest.termsUnavailable')
+  if (!termsAccepted.value) return t('affiliationRequest.termsRequired')
   return null
 }
 
@@ -81,12 +133,15 @@ async function submit() {
         password: state.password,
         planUuid: state.planUuid,
         referralCode: referralCode.value || undefined,
+        termsVersionUuid: terms.value!.uuid,
       },
     })
     done.value = res
   }
   catch {
-    // useApi already shows the backend's localized error toast
+    // useApi already shows the backend's localized error toast. A newer terms
+    // version published meanwhile is rejected: reload so the user re-accepts it.
+    await loadTerms()
   }
   finally {
     sending.value = false
@@ -146,8 +201,30 @@ async function submit() {
           <UFormField :label="t('affiliationRequest.plan')" required class="sm:col-span-2">
             <USelect v-model="state.planUuid" :items="planItems" :placeholder="t('affiliationRequest.planPlaceholder')" class="w-full" />
           </UFormField>
+          <div class="sm:col-span-2 rounded-xl border border-prohealth-100 p-4 space-y-3">
+            <p class="text-sm font-semibold text-prohealth-900">{{ t('affiliationRequest.termsTitle') }}</p>
+            <p v-if="termsUnavailable" class="text-sm text-red-600">{{ t('affiliationRequest.termsUnavailable') }}</p>
+            <template v-else-if="terms">
+              <UButton
+                variant="link"
+                color="primary"
+                size="xs"
+                :icon="termsOpen ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
+                class="px-0"
+                @click="termsOpen = !termsOpen"
+              >
+                {{ termsOpen ? t('affiliationRequest.termsHide') : t('affiliationRequest.termsShow') }}
+              </UButton>
+              <div
+                v-if="termsOpen"
+                class="terms-content max-h-72 overflow-y-auto rounded-lg border border-prohealth-100 bg-prohealth-50/40 p-4 text-sm text-prohealth-800"
+                v-html="termsHtml"
+              />
+              <UCheckbox v-model="termsAccepted" :label="t('affiliationRequest.termsAccept', { title: terms.title })" />
+            </template>
+          </div>
           <p class="sm:col-span-2 text-xs text-prohealth-500">{{ t('affiliationRequest.activationNote') }}</p>
-          <UButton type="submit" block color="primary" :loading="sending" icon="i-lucide-user-plus" class="sm:col-span-2">
+          <UButton type="submit" block color="primary" :loading="sending" :disabled="!terms || !termsAccepted" icon="i-lucide-user-plus" class="sm:col-span-2">
             {{ t('affiliationRequest.submit') }}
           </UButton>
         </form>
@@ -155,3 +232,12 @@ async function submit() {
     </div>
   </div>
 </template>
+
+<style scoped>
+.terms-content :deep(h1) { font-size: 1.2rem; font-weight: 800; margin: 0.6em 0 0.4em; }
+.terms-content :deep(h2) { font-size: 1.05rem; font-weight: 700; margin: 0.6em 0 0.4em; }
+.terms-content :deep(p) { margin: 0.5em 0; line-height: 1.6; }
+.terms-content :deep(ul), .terms-content :deep(ol) { margin: 0.4em 0 0.4em 1.3em; }
+.terms-content :deep(li) { margin: 0.2em 0; }
+.terms-content :deep(strong) { font-weight: 700; }
+</style>

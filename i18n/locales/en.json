@@ -4386,13 +4386,13 @@
     "seoTitle": "Join · OptiBienestar 360",
     "title": "Join OptiBienestar 360",
     "subtitle": "Create your account and pick your plan. Your membership is registered instantly.",
-    "referredBy": "Referred by the promoter with code",
+    "referredBy": "Referred by the advisor with code",
     "email": "Email",
     "phone": "Phone",
     "submit": "Create my membership",
     "required": "Fill in the required fields",
     "sentTitle": "Your membership was created!",
-    "sentBody": "You can now sign in to your portal with {email} to see your card and report your first payment.",
+    "sentBody": "You can now sign in to your portal with {email} to see your Digital Credential and report your first payment.",
     "firstName": "First names",
     "lastName": "Last names",
     "document": "ID document",
@@ -4407,6 +4407,14 @@
     "shortPassword": "The password must be at least 8 characters",
     "passwordMismatch": "Passwords do not match",
     "sentPromoter": "Enrolled by: {name}",
-    "goLogin": "Sign in"
+    "goLogin": "Sign in",
+    "inscription": "Enrollment",
+    "termsTitle": "Terms and conditions",
+    "termsShow": "Read the agreement",
+    "termsHide": "Hide the agreement",
+    "termsAccept": "I have read and accept the {title}",
+    "termsRequired": "You must accept the terms and conditions",
+    "termsUnavailable": "The terms and conditions are not available right now. Please try again later.",
+    "termsUpdated": "The terms and conditions were updated. Please review and accept them again."
   }
 }

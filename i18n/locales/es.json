@@ -4386,13 +4386,13 @@
     "seoTitle": "Afíliate · OptiBienestar 360",
     "title": "Afíliate a OptiBienestar 360",
     "subtitle": "Crea tu cuenta y elige tu plan. Tu afiliación queda registrada al instante.",
-    "referredBy": "Te refiere el promotor con código",
+    "referredBy": "Te refiere el asesor con código",
     "email": "Correo electrónico",
     "phone": "Teléfono",
     "submit": "Crear mi afiliación",
     "required": "Completa los campos obligatorios",
     "sentTitle": "¡Tu afiliación fue creada!",
-    "sentBody": "Ya puedes entrar a tu portal con {email} para ver tu carnet y reportar tu primer pago.",
+    "sentBody": "Ya puedes entrar a tu portal con {email} para ver tu Credencial Digital y reportar tu primer pago.",
     "firstName": "Nombres",
     "lastName": "Apellidos",
     "document": "Cédula",
@@ -4407,6 +4407,14 @@
     "shortPassword": "La contraseña debe tener al menos 8 caracteres",
     "passwordMismatch": "Las contraseñas no coinciden",
     "sentPromoter": "Te afilió: {name}",
-    "goLogin": "Iniciar sesión"
+    "goLogin": "Iniciar sesión",
+    "inscription": "Inscripción",
+    "termsTitle": "Términos y condiciones",
+    "termsShow": "Leer el acuerdo",
+    "termsHide": "Ocultar el acuerdo",
+    "termsAccept": "He leído y acepto el {title}",
+    "termsRequired": "Debes aceptar los términos y condiciones",
+    "termsUnavailable": "Los términos y condiciones no están disponibles en este momento. Intenta más tarde.",
+    "termsUpdated": "Los términos y condiciones se actualizaron. Revísalos y acéptalos de nuevo."
   }
 }
