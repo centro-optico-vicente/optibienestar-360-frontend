@@ -234,6 +234,9 @@ onMounted(async () => {
               <h3 class="font-bold text-prohealth-900 group-hover:text-cyan-700 transition-colors truncate">
                 {{ a.name }}
               </h3>
+              <p v-if="a.allySegments?.length" class="text-[11px] font-semibold uppercase tracking-wide text-cyan-700 mt-0.5">
+                {{ a.allySegments.map(seg => t(`allies.segments.${seg}`, seg)).join(' · ') }}
+              </p>
               <p class="text-xs text-prohealth-500 mt-0.5">
                 <template v-if="a.allyTypes?.length">{{ a.allyTypes.map(at => at.name).join(', ') }}</template>
                 <template v-else>{{ t('allies.fallbackName') }}</template>

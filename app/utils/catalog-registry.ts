@@ -230,6 +230,10 @@ export const CATALOGS: CatalogDef[] = [
       { name: 'code', label: 'Código', labelKey: 'catalogs.fields.code', type: 'text', required: true, onlyCreate: true, regex: CODE_40, regexMsg: codeMsg(40), regexMsgKey: 'catalogs.validation.codeMax', max: 40, placeholder: 'OPTICA' },
       { name: 'name', label: 'Nombre', labelKey: 'catalogs.fields.name', type: 'text', required: true, max: 100 },
       { name: 'description', label: 'Descripción', labelKey: 'catalogs.fields.description', type: 'textarea', max: 200 },
+      // V179: B2B "Aliado Comercial" (legal entity) / B2P "Aliado Profesional" (independent
+      // professional); the professional area only applies to B2P (backend rejects it for B2B).
+      { name: 'segment', label: 'Segmento', labelKey: 'catalogs.fields.segment', type: 'select', required: true, options: [{ label: 'Comercial (B2B)', value: 'B2B' }, { label: 'Profesional (B2P)', value: 'B2P' }] },
+      { name: 'professionalArea', label: 'Área profesional (solo B2P)', labelKey: 'catalogs.fields.professionalArea', type: 'select', options: [{ label: 'Área Médica', value: 'MEDICAL' }, { label: 'Bienestar Integral', value: 'WELLNESS' }] },
     ],
   },
   {

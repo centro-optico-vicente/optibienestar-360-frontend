@@ -81,6 +81,11 @@ function money(v?: string | null): string {
           </span>
           <div class="min-w-0">
             <h1 class="text-2xl lg:text-3xl font-extrabold text-prohealth-900">{{ ally.name }}</h1>
+            <div v-if="ally.allySegments?.length" class="flex flex-wrap gap-1.5 mt-1.5">
+              <UBadge v-for="seg in ally.allySegments" :key="seg" color="info" variant="subtle" size="sm">
+                {{ t(`allies.segments.${seg}`, seg) }}
+              </UBadge>
+            </div>
             <p class="text-sm text-prohealth-500 mt-1">
               <template v-if="ally.allyTypes?.length">{{ ally.allyTypes.map(at => at.name).join(', ') }}</template>
               <template v-else>{{ t('allies.fallbackName') }}</template>
@@ -159,6 +164,11 @@ function money(v?: string | null): string {
             <p v-if="s.description" class="text-sm text-prohealth-600 mt-2 line-clamp-2">
               {{ s.description }}
             </p>
+            <!-- Where the preferential rate does not apply — affiliates must see it before going. -->
+            <div v-if="s.exclusions" class="flex items-start gap-1.5 mt-3 text-xs text-amber-700">
+              <UIcon name="i-lucide-circle-alert" class="w-3.5 h-3.5 mt-0.5 shrink-0" />
+              <span>{{ t('allies.public.detail.exclusions', { exclusions: s.exclusions }) }}</span>
+            </div>
             <div v-if="s.requiresAppointment" class="flex items-center gap-1.5 mt-3 text-xs text-cyan-700">
               <UIcon name="i-lucide-calendar-check" class="w-3.5 h-3.5" />
               {{ t('allies.public.detail.requiresAppointment') }}
