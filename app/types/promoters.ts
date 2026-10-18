@@ -116,6 +116,134 @@ export interface PromoterDto {
   createdAt_Display?: string | null
   updatedAt: string
   updatedAt_Display?: string | null
+  // ---- Advisor dossier (backend V180) ----
+  /** "Fecha de ingreso" (yyyy-MM-dd). */
+  joinedAt?: string | null
+  joinedAt_Display?: string | null
+  assignedZone?: string | null
+  educationLevel?: EducationLevel | null
+  educationLevel_Display?: string | null
+  profession?: string | null
+  yearsOfExperience?: number | null
+  lastCompany?: string | null
+  lastPosition?: string | null
+  vehicle?: string | null
+  /** Linked person's identity — only on GET /{uuid} (detail); `null` on the list. */
+  identity?: PromoterIdentityDto | null
+}
+
+/** Nivel académico del expediente del asesor (V180 CHECK). */
+export type EducationLevel = 'PRIMARY' | 'SECONDARY' | 'TECHNICAL' | 'UNIVERSITY' | 'POSTGRADUATE'
+
+export const EDUCATION_LEVEL_OPTIONS: { value: EducationLevel, labelKey: string }[] = [
+  { value: 'PRIMARY', labelKey: 'promoters.dossier.educationLevel.PRIMARY' },
+  { value: 'SECONDARY', labelKey: 'promoters.dossier.educationLevel.SECONDARY' },
+  { value: 'TECHNICAL', labelKey: 'promoters.dossier.educationLevel.TECHNICAL' },
+  { value: 'UNIVERSITY', labelKey: 'promoters.dossier.educationLevel.UNIVERSITY' },
+  { value: 'POSTGRADUATE', labelKey: 'promoters.dossier.educationLevel.POSTGRADUATE' },
+]
+
+/** Identity block of the advisor dossier, read from the linked `persons` row. */
+export interface PromoterIdentityDto {
+  personUuid: string
+  firstName?: string | null
+  lastName?: string | null
+  fullName?: string | null
+  documentType?: 'V' | 'E' | null
+  documentNumber?: string | null
+  birthDate?: string | null
+  birthDate_Display?: string | null
+  maritalStatus_Uuid?: string | null
+  maritalStatus_Display?: string | null
+  phone?: string | null
+  landlinePhone?: string | null
+  email?: string | null
+  address?: string | null
+  city_Uuid?: string | null
+  city_Display?: string | null
+}
+
+/** Dossier fields shared by the create/update bodies (all optional). */
+export interface PromoterDossierFields {
+  joinedAt?: string
+  assignedZone?: string
+  educationLevel?: EducationLevel
+  profession?: string
+  yearsOfExperience?: number
+  lastCompany?: string
+  lastPosition?: string
+  vehicle?: string
+  // Identity — written onto the linked person.
+  firstName?: string
+  lastName?: string
+  documentType?: 'V' | 'E'
+  documentNumber?: string
+  birthDate?: string
+  maritalStatusUuid?: string
+  landlinePhone?: string
+  address?: string
+  cityUuid?: string
+}
+
+/** Personal reference of an advisor (GET /v1/admin/promoters/{uuid}/references). */
+export interface PromoterReferenceDto {
+  uuid: string
+  promoterUuid: string
+  firstName: string
+  lastName: string
+  documentType?: 'V' | 'E' | null
+  documentNumber?: string | null
+  phone?: string | null
+  active: boolean
+  status: string
+  createdAt: string
+  updatedAt: string
+}
+
+/** Body of POST/PUT .../references. Blank optional fields clear them on update. */
+export interface PromoterReferenceRequest {
+  firstName: string
+  lastName: string
+  documentType?: 'V' | 'E' | ''
+  documentNumber?: string
+  phone?: string
+}
+
+/**
+ * 1:1 payout profile (GET /v1/admin/promoters/{uuid}/payout-profile).
+ * Always 200 when the promoter exists: `exists=false` = not filled yet.
+ */
+export interface PromoterPayoutProfileDto {
+  uuid: string | null
+  promoterUuid: string
+  bank_Uuid?: string | null
+  bank_Display?: string | null
+  /** 20 dígitos. */
+  accountNumber?: string | null
+  accountHolderDocumentType?: 'J' | 'V' | 'E' | 'G' | 'P' | null
+  accountHolderDocumentNumber?: string | null
+  mobilePaymentPhone?: string | null
+  mobilePaymentBank_Uuid?: string | null
+  mobilePaymentBank_Display?: string | null
+  ubiiAccount?: string | null
+  ubiiHolderName?: string | null
+  active: boolean
+  status?: string | null
+  createdAt?: string | null
+  updatedAt?: string | null
+  exists: boolean
+}
+
+/** Body of PUT .../payout-profile — full replace: omitted/blank fields are cleared. */
+export interface PromoterPayoutProfileRequest {
+  bankUuid?: string | null
+  accountNumber?: string | null
+  accountHolderDocumentType?: string | null
+  accountHolderDocumentNumber?: string | null
+  mobilePaymentPhone?: string | null
+  mobilePaymentBankUuid?: string | null
+  ubiiAccount?: string | null
+  ubiiHolderName?: string | null
 }
 
 /**
@@ -185,6 +313,8 @@ export interface PromoterCreateRequest {
   email?: string
   phone?: string
   promoterTypeUuid?: string
+  joinedAt?: string
+  assignedZone?: string
 }
 
 /**
@@ -199,7 +329,12 @@ export interface PromoterUpdateRequest {
   promoterTypeUuid?: string
   active?: boolean
   status?: PromoterStatus
+  joinedAt?: string
+  assignedZone?: string
 }
+
+/** Update body including the dossier fields (Expediente tab). */
+export type PromoterDossierUpdateRequest = PromoterUpdateRequest & PromoterDossierFields
 
 // ---- Comisiones ----
 

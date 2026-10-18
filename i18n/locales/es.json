@@ -1716,7 +1716,8 @@
         "method": "Método",
         "reference": "Referencia",
         "reviewedBy": "Revisado por"
-      }
+      },
+      "prefilledFromDossier": "Datos tomados del expediente del asesor"
     },
     "movements": {
       "title": "Movimientos",
@@ -2392,7 +2393,10 @@
     },
     "tabs": {
       "referrals": "Referidos",
-      "commissions": "Comisiones"
+      "commissions": "Comisiones",
+      "dossier": "Expediente",
+      "references": "Referencias",
+      "payoutProfile": "Datos de cobro"
     },
     "detail": {
       "seoPage": "Detalle de promotor",
@@ -2501,6 +2505,112 @@
       "beforeDeactivate": "Tiene {count} afiliado(s) en cartera. Puedes reasignarlos antes de desactivarlo.",
       "goReassign": "Reasignar cartera",
       "pendingCommissions": "Ver comisiones pendientes"
+    },
+    "dossier": {
+      "title": "Expediente del asesor",
+      "hint": "Registro, identidad y perfil ejecutivo del Asesor Comercial.",
+      "identityHint": "Estos datos se guardan en la ficha de la persona vinculada al usuario del asesor.",
+      "savedToast": "Expediente actualizado",
+      "joinedAtCreateHelp": "Si lo dejas vacío se usa la fecha de hoy.",
+      "sections": {
+        "registration": "I. Registro",
+        "identity": "II. Identidad",
+        "profile": "III. Perfil ejecutivo"
+      },
+      "fields": {
+        "joinedAt": "Fecha de ingreso",
+        "assignedZone": "Región / zona asignada",
+        "rank": "Rango de ingreso",
+        "firstName": "Nombres",
+        "lastName": "Apellidos",
+        "documentType": "Tipo de cédula",
+        "documentNumber": "Número de cédula",
+        "birthDate": "Fecha de nacimiento",
+        "maritalStatus": "Estado civil",
+        "mobilePhone": "Celular",
+        "landlinePhone": "Teléfono alternativo",
+        "email": "Correo electrónico",
+        "address": "Dirección",
+        "city": "Ciudad",
+        "educationLevel": "Nivel académico",
+        "profession": "Profesión / oficio",
+        "yearsOfExperience": "Años de experiencia",
+        "lastCompany": "Última empresa",
+        "lastPosition": "Cargo ejercido",
+        "vehicle": "Vehículo"
+      },
+      "placeholders": {
+        "assignedZone": "Ej.: Caracas — Zona Este",
+        "vehicle": "Marca, modelo y año (si aplica)"
+      },
+      "educationLevel": {
+        "PRIMARY": "Primaria",
+        "SECONDARY": "Secundaria",
+        "TECHNICAL": "Técnico",
+        "UNIVERSITY": "Universitario",
+        "POSTGRADUATE": "Postgrado"
+      },
+      "documentTypes": {
+        "V": "V — Venezolano",
+        "E": "E — Extranjero"
+      },
+      "validation": {
+        "documentNumber": "La cédula debe tener entre 1 y 9 dígitos"
+      }
+    },
+    "references": {
+      "title": "Referencias personales",
+      "hint": "Personas que pueden dar referencia del asesor.",
+      "add": "Agregar referencia",
+      "empty": "Este asesor no tiene referencias registradas.",
+      "createTitle": "Nueva referencia",
+      "editTitle": "Editar referencia",
+      "createdToast": "Referencia agregada",
+      "updatedToast": "Referencia actualizada",
+      "deletedToast": "Referencia eliminada",
+      "deleteTitle": "Eliminar referencia",
+      "deleteConfirm": "¿Eliminar la referencia de {name}?",
+      "documentPair": "Indica tipo y número de cédula, o deja ambos vacíos",
+      "columns": {
+        "name": "Nombre",
+        "document": "Cédula",
+        "phone": "Teléfono"
+      }
+    },
+    "payoutProfile": {
+      "title": "Datos de cobro",
+      "hint": "Cuentas donde el asesor recibe sus liquidaciones. Se usan para precargar los pagos de comisiones.",
+      "add": "Registrar datos de cobro",
+      "emptyTitle": "Sin datos de cobro",
+      "emptyBody": "Este asesor todavía no tiene datos de cobro registrados.",
+      "savedToast": "Datos de cobro guardados",
+      "deletedToast": "Datos de cobro eliminados",
+      "deleteTitle": "Eliminar datos de cobro",
+      "deleteConfirm": "¿Eliminar los datos de cobro de este asesor? Los pagos ya registrados no cambian.",
+      "accountNumberHelp": "Los 20 dígitos de la cuenta, sin guiones.",
+      "sections": {
+        "bankAccount": "Cuenta bancaria nacional",
+        "mobilePayment": "Pago Móvil",
+        "ubii": "Ubii"
+      },
+      "fields": {
+        "bank": "Banco receptor",
+        "accountNumber": "Número de cuenta",
+        "holderDocumentType": "Tipo de cédula/RIF del titular",
+        "holderDocumentNumber": "Cédula/RIF del titular",
+        "holderDocument": "Cédula/RIF asociado",
+        "mobilePaymentPhone": "Teléfono Pago Móvil",
+        "mobilePaymentBank": "Banco Pago Móvil",
+        "ubiiAccount": "Cuenta Ubii",
+        "ubiiHolderName": "Titular cuenta Ubii"
+      },
+      "placeholders": {
+        "phone": "Ej.: 0414-5550101"
+      },
+      "validation": {
+        "accountNumber": "El número de cuenta debe tener exactamente 20 dígitos",
+        "holderPair": "Indica tipo y número del titular, o deja ambos vacíos"
+      }
     }
   },
   "commissions": {
