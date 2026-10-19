@@ -13,7 +13,7 @@
 
 ## Portal afiliado
 
-- [x] [P0/C2] "Mis pagos" del afiliado `components/MyPaymentsCard.vue`, incrustado en `pages/afiliado/index.vue` (auto-gateado por `PAYMENT_VIEW_OWN`, consume `GET /v1/me/payments`). _(Se entregó como card dentro del portal en vez de una página `pages/afiliado/payments.vue` aparte.)_
+- [x] [P0/C2] "Mis pagos" del afiliado `components/MyPaymentsCard.vue`, incrustado en `pages/members/index.vue` (auto-gateado por `PAYMENT_VIEW_OWN`, consume `GET /v1/me/payments`). _(Se entregó como card dentro del portal en vez de una página `pages/members/payments.vue` aparte.)_
 
 ## Base entregada (además de las vistas)
 

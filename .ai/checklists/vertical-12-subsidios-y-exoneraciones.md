@@ -18,7 +18,7 @@
 
 ## Portal afiliado — transparencia
 
-- [ ] [v2] [P0/C2] En `pages/afiliado/` mostrar los subsidios activos del titular (`GET /v1/me/subsidies`) — solo lectura, sin edición. Badge "Tu mensualidad está exonerada/subsidiada X%".
+- [ ] [v2] [P0/C2] En `pages/members/` mostrar los subsidios activos del titular (`GET /v1/me/subsidies`) — solo lectura, sin edición. Badge "Tu mensualidad está exonerada/subsidiada X%".
 
 ## Cambios asociados en otras vistas
 

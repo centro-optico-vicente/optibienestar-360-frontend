@@ -125,18 +125,18 @@ const items = computed(() => {
     { label: 'Reportes', to: '/admin/reports', icon: 'i-heroicons-chart-bar', permission: 'REPORT_VIEW_DASHBOARD' },
 
     // Aliado
-    { label: 'Validador', to: '/aliado/validator', icon: 'i-heroicons-identification', permission: 'ALLY_VALIDATE_MEMBER' },
-    { label: 'Historial', to: '/aliado/history', icon: 'i-heroicons-clock', permission: 'ALLY_VALIDATE_MEMBER' },
+    { label: 'Validador', to: '/allies/validator', icon: 'i-heroicons-identification', permission: 'ALLY_VALIDATE_MEMBER' },
+    { label: 'Historial', to: '/allies/history', icon: 'i-heroicons-clock', permission: 'ALLY_VALIDATE_MEMBER' },
 
     // Afiliado
-    { label: 'Mi carnet', to: '/afiliado', icon: 'i-heroicons-credit-card', role: 'AFILIADO' },
-    { label: 'Mi familia', to: '/afiliado/family', icon: 'i-heroicons-users', role: 'AFILIADO' },
-    { label: 'Mis pagos', to: '/afiliado/payments', icon: 'i-heroicons-banknotes', role: 'AFILIADO' },
+    { label: 'Mi carnet', to: '/members', icon: 'i-heroicons-credit-card', role: 'AFILIADO' },
+    { label: 'Mi familia', to: '/members/family', icon: 'i-heroicons-users', role: 'AFILIADO' },
+    { label: 'Mis pagos', to: '/members/payments', icon: 'i-heroicons-banknotes', role: 'AFILIADO' },
 
     // Promotor
-    { label: 'Dashboard', to: '/promotor', icon: 'i-heroicons-home', role: 'PROMOTOR' },
-    { label: 'Mis afiliados', to: '/promotor/members', icon: 'i-heroicons-users', role: 'PROMOTOR' },
-    { label: 'Mis comisiones', to: '/promotor/commissions', icon: 'i-heroicons-currency-dollar', role: 'PROMOTOR' },
+    { label: 'Dashboard', to: '/advisors', icon: 'i-heroicons-home', role: 'PROMOTOR' },
+    { label: 'Mis afiliados', to: '/advisors/members', icon: 'i-heroicons-users', role: 'PROMOTOR' },
+    { label: 'Mis comisiones', to: '/advisors/commissions', icon: 'i-heroicons-currency-dollar', role: 'PROMOTOR' },
   ];
 
   return all.filter(item => {

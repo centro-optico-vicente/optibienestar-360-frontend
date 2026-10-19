@@ -11,7 +11,7 @@ Crear en `components/shared/` cuando se repite un patrón en >= 3 lugares:
 
 | Componente | Cuándo usarlo |
 |---|---|
-| `<DigitalCard>` | Credencial Digital del afiliado (tarjeta + QR + foto + estado de cobertura) — hoy implementada inline en `pages/afiliado/index.vue` |
+| `<DigitalCard>` | Credencial Digital del afiliado (tarjeta + QR + foto + estado de cobertura) — hoy implementada inline en `pages/members/index.vue` |
 | `<MembershipStatusBadge>` | Badge de estado de membresía con colores semánticos |
 | `<PaymentStatusBadge>` | Badge de estado de pago |
 | `<PaymentMethodIcon>` | Icono representativo Zelle/Transferencia/Efectivo |

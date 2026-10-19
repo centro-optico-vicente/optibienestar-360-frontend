@@ -14,8 +14,8 @@
 
 ## Portal aliado
 
-- [x] [P0/C3] Página `pages/aliado/validator.vue` (input cédula + resultado visual)
+- [x] [P0/C3] Página `pages/allies/validator.vue` (input cédula + resultado visual)
 - [x] [P0/C2] Modal "Registrar Uso" (servicio + monto + notas) — `components/BenefitUsageModal.vue`
-- [x] [P0/C3] Página `pages/aliado/history.vue`
+- [x] [P0/C3] Página `pages/allies/history.vue`
 - [ ] [P1/C2] Soporte lector código de barras / QR — el input ya acepta escaneo (un lector teclea + Enter, que ya dispara la validación); falta cámara/QR
 - [ ] [P1/C2] Selector de servicio: hoy lee el detalle **público** del aliado (un `ALIADO` no tiene `ALLY_VIEW_ALL`, así que el sub-recurso admin le está cerrado). Solo devuelve servicios APPROVED+PUBLISHED y da 404 si el aliado no está publicado → degrada a "sin servicio". Si se necesita el catálogo completo, hace falta un `GET /v1/me/allies/{uuid}/services` en el backend

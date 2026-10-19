@@ -67,9 +67,9 @@ const path = {
   ADMINISTRADOR: '/dashboard',
   OPERADOR: '/dashboard',
   OPERADOR_MEDICO: '/dashboard',  // o '/operador-medico' si tiene flow propio
-  ALIADO: '/aliado',
-  AFILIADO: '/afiliado',
-  PROMOTOR: '/promotor',
+  ALIADO: '/allies',
+  AFILIADO: '/members',
+  PROMOTOR: '/advisors',
 }[role] || '/login';
 ```
 

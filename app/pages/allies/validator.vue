@@ -309,7 +309,7 @@ function onRegistered(usage: BenefitUsageDto) {
           </UButton>
           <UButton
             v-if="result.memberFullName"
-            to="/aliado/history"
+            to="/allies/history"
             color="neutral"
             variant="soft"
             size="lg"

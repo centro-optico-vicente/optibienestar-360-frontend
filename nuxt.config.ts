@@ -41,6 +41,18 @@ export default defineNuxtConfig({
         '/reestablecer-contrase%C3%B1a',
       ].map(path => [path, { redirect: { to: '/restablecer-clave', statusCode: 301 } }]),
     ),
+    // Authenticated portals are English + plural (only public routes are Spanish).
+    // Old singular Spanish paths 301 to the new ones, subpaths included. The more
+    // specific /promotor/cartera rule wins over /promotor/** (renamed subpath).
+    // '/aliado' and '/aliado/**' never match the public '/aliados' directory.
+    ...Object.fromEntries(
+      [['/aliado', '/allies'], ['/afiliado', '/members'], ['/promotor', '/advisors']]
+        .flatMap(([from, to]) => [
+          [from, { redirect: { to, statusCode: 301 } }],
+          [`${from}/**`, { redirect: { to: `${to}/**`, statusCode: 301 } }],
+        ]),
+    ),
+    '/promotor/cartera': { redirect: { to: '/advisors/portfolio', statusCode: 301 } },
   },
 
   modules: [

@@ -37,9 +37,11 @@ Para decisiones cross-stack (infraestructura, modelo de datos, contracts REST co
 El mismo app sirve a varios roles (`SYSTEM`, `ADMINISTRADOR`, `OPERADOR`, `ALIADO`, `AFILIADO`, `ASESOR`; constantes en inglés `ROLES` de `app/types/auth.ts`):
 
 - `SYSTEM`, `ADMINISTRADOR`, `OPERADOR` → panel administrativo (`/dashboard/*`: usuarios, roles, catálogos…)
-- `ALIADO` → validador y registro de uso (portal aliado — en construcción)
-- `AFILIADO` → portal propio + carnet digital (en construcción)
-- `ASESOR` (antes `PROMOTOR`, backend V185) → dashboard de ventas (`/promotor/*`)
+- `ALIADO` → validador y registro de uso (portal aliado `/allies/*`)
+- `AFILIADO` → portal propio + carnet digital (`/members/*`)
+- `ASESOR` (antes `PROMOTOR`, backend V185) → dashboard de ventas (`/advisors/*`)
+
+Convención de URLs: rutas autenticadas en **inglés y plural** (`/dashboard/*`, `/allies/*`, `/members/*`, `/advisors/*`); solo las públicas en español (`/aliados`, `/afiliarse`, `/recuperar-clave`, `/restablecer-clave`). Las viejas `/aliado/**`, `/afiliado/**`, `/promotor/**` hacen 301 a las nuevas (`nuxt.config.ts` `routeRules` + `docker/default.conf`).
 
 Navegación condicional por rol/permiso. Layout `dashboard.vue` adapta el sidebar; el control de acceso se hace con middleware (`auth.global`, `can`, `role`), el composable `usePermissions()` y la directiva `v-can`.
 

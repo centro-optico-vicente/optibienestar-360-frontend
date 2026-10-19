@@ -4,7 +4,7 @@ import { paymentStatusColor } from '~/types/payments'
 
 // Authenticated member's payment history (GET /v1/me/payments, PAYMENT_VIEW_OWN).
 // Self-gated: if the user lacks the permission, it renders nothing. Meant to be
-// embedded in the member portal (/afiliado) next to the card.
+// embedded in the member portal (/members) next to the card.
 const { t } = useI18n()
 const { formatDate, formatMonthYear } = useFormatters()
 const payments = usePayments()

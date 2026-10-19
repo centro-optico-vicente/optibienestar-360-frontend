@@ -5,8 +5,8 @@
 
 ## Portal afiliado
 
-- [ ] [P0/C3] Página `pages/afiliado/index.vue` (dashboard: carnet + estado + accesos)
+- [ ] [P0/C3] Página `pages/members/index.vue` (dashboard: carnet + estado + accesos)
 - [ ] [P0/C3] Componente `<DigitalCard>` (tarjeta crédito + QR + status visual)
-- [ ] [P0/C2] Página `pages/afiliado/family.vue`
-- [ ] [P0/C2] Página `pages/afiliado/usage-history.vue`
+- [ ] [P0/C2] Página `pages/members/family.vue`
+- [ ] [P0/C2] Página `pages/members/usage-history.vue`
 - [ ] [P1/C2] Botón "Compartir carnet" (download PDF/imagen)

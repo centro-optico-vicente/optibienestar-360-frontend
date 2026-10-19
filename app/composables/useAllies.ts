@@ -161,7 +161,7 @@ export const useAllies = () => {
       query: sort?.length ? { sort } : {},
     })
 
-  // ---- Como aliado (panel /aliado/*) ----
+  // ---- Como aliado (panel /allies/*) ----
   /** Propone un servicio para mi ally (queda en reviewStatus=PROPOSED). */
   const proposeService = (body: ProposeAllyServiceRequest) =>
     useApi<AllyServiceDto>('/v1/aliado/services', { method: 'POST', body })
