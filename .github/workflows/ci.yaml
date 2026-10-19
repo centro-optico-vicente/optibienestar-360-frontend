@@ -176,6 +176,23 @@ jobs:
               || { echo "::error::/$path must not redirect"; exit 1; }
           done
 
+      - name: Smoke test — old portal URLs 301 to the English plural ones
+        run: |
+          headers=$(curl -sI 'http://127.0.0.1:18080/aliado/validator?q=1')
+          echo "$headers"
+          echo "$headers" | head -1 | grep -q ' 301' \
+            || { echo "::error::/aliado/validator did not answer 301"; exit 1; }
+          echo "$headers" | grep -qi '^location: /allies/validator?q=1' \
+            || { echo "::error::/aliado/validator did not redirect to /allies/validator keeping the query"; exit 1; }
+          curl -sI http://127.0.0.1:18080/promotor/cartera | grep -qi '^location: /advisors/portfolio' \
+            || { echo "::error::/promotor/cartera did not redirect to /advisors/portfolio"; exit 1; }
+          curl -sI http://127.0.0.1:18080/afiliado | grep -qi '^location: /members' \
+            || { echo "::error::/afiliado did not redirect to /members"; exit 1; }
+          for path in aliados allies; do
+            curl -sI "http://127.0.0.1:18080/$path" | head -1 | grep -q ' 200' \
+              || { echo "::error::/$path must not redirect"; exit 1; }
+          done
+
       - name: Stop container
         if: always()
         run: docker rm -f spa || true

@@ -25,7 +25,7 @@ Todo código TypeScript/Vue en este repositorio sigue las convenciones del ADR 0
 | Composables | `useXxx` | `useApi()`, `useAuth()`, `usePermissions()` |
 | Stores (Pinia) | `useXxxStore` | `useAuthStore()`, `useCatalogStore()` |
 | Componentes Vue | `PascalCase` (multi-word) | `DigitalCard.vue`, `PaymentForm.vue` |
-| Pages | `kebab-case.vue` | `pages/dashboard/members.vue`, `pages/afiliado/usage-history.vue` |
+| Pages | `kebab-case.vue` | `pages/dashboard/members.vue`, `pages/members/usage-history.vue` |
 | Plugins | `kebab-case[.client/.server].ts` | `00.runtime-config.client.ts`, `can.ts` |
 | Constantes de módulo | `UPPER_SNAKE_CASE` | `DEFAULT_LOCALE`, `MAX_RETRIES` |
 | Clases CSS / Tailwind | `kebab-case` | `card-container`, `text-primary` |

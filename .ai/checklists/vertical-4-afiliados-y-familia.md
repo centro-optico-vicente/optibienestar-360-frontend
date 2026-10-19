@@ -9,7 +9,7 @@
 >
 > **`MemberDetailDto` no tiene un campo `beneficiaries`.** Trae `activeBeneficiariesCount` (un entero) y los beneficiarios viven en un sub-recurso dedicado (`GET /v1/admin/members/{uuid}/beneficiaries`). El tipo del frontend declara `beneficiaries?: BeneficiaryDto[]` (`types/members.ts:72`) — y el comentario de cabecera de ese archivo ("el detalle incluye beneficiaries[]") es justamente la mentira que propagó el error.
 
-- [ ] [P0/C1] **El portal del afiliado le dice a un titular familiar que su familia no está cubierta** — `pages/afiliado/index.vue:145,152` lee `member.beneficiaries`, que **nunca llega**, y la página **no tiene ningún fetch de respaldo** (verificado: cero llamadas a `listBeneficiaries`). El panel "Beneficiarios cubiertos" siempre muestra el estado vacío, incluso con beneficiarios cargados en BD. Fix: llamar al sub-recurso desde el portal.
+- [ ] [P0/C1] **El portal del afiliado le dice a un titular familiar que su familia no está cubierta** — `pages/members/index.vue:145,152` lee `member.beneficiaries`, que **nunca llega**, y la página **no tiene ningún fetch de respaldo** (verificado: cero llamadas a `listBeneficiaries`). El panel "Beneficiarios cubiertos" siempre muestra el estado vacío, incluso con beneficiarios cargados en BD. Fix: llamar al sub-recurso desde el portal.
 - [ ] [P1/C1] **Pestaña de beneficiarios vacía al cargar el detalle admin** — `pages/dashboard/members/[uuid].vue:57` siembra `beneficiaries.value = member.value.beneficiaries ?? []` → siempre `[]`. El fetch correcto (`loadBeneficiaries()`, línea ~78) **ya existe**, pero `onMounted` (línea ~355) no lo llama: solo se dispara tras crear/editar (líneas ~205 y ~231), así que la pestaña se auto-repara sola al primer cambio. Fix de una línea en `onMounted`.
 - [ ] [P1/C1] Corregir `types/members.ts:72` — quitar `beneficiaries?: BeneficiaryDto[]` de `MemberDetailDto` y el comentario de cabecera que lo afirma, para que el tipo deje de certificar un campo inexistente.
 
@@ -22,7 +22,7 @@
 
 ## Portal afiliado
 
-- [ ] [P0/C2] Página `pages/afiliado/dashboard.vue` (carnet + familia + pagos)
+- [ ] [P0/C2] Página `pages/members/dashboard.vue` (carnet + familia + pagos)
 
 ## Adicionales v2 — Inclusión y Modificación de Beneficiarios
 

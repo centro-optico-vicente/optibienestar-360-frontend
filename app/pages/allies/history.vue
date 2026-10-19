@@ -64,7 +64,7 @@ function money(v?: number | string | null, currency?: string | null): string {
         <h1 class="text-2xl font-extrabold text-prohealth-900">{{ t('validator.history.title') }}</h1>
         <p class="text-sm text-prohealth-700/70 mt-1">{{ t('validator.history.subtitle') }}</p>
       </div>
-      <UButton to="/aliado/validator" color="primary" variant="soft" icon="i-lucide-scan-line">
+      <UButton to="/allies/validator" color="primary" variant="soft" icon="i-lucide-scan-line">
         {{ t('validator.history.validateCta') }}
       </UButton>
     </div>

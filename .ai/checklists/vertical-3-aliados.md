@@ -24,7 +24,7 @@
 
 ## Portal aliado
 
-- [ ] [P0/C3] Página `pages/aliado/dashboard.vue` (vista del propio aliado)
+- [ ] [P0/C3] Página `pages/allies/dashboard.vue` (vista del propio aliado)
 
 ## Adicionales v2 — Flujo de Aprobación de Servicios
 
@@ -32,7 +32,7 @@
 
 ### Portal aliado
 
-- [ ] [v2] [P0/C2] Form "Proponer servicio" en `pages/aliado/` → `POST /v1/aliado/services` (categoría + nombre/desc/precio + `discount_pct` + requiere cita). El servicio entra en `PROPOSED`. Selector de aliado si el usuario pertenece a varios.
+- [ ] [v2] [P0/C2] Form "Proponer servicio" en `pages/allies/` → `POST /v1/aliado/services` (categoría + nombre/desc/precio + `discount_pct` + requiere cita). El servicio entra en `PROPOSED`. Selector de aliado si el usuario pertenece a varios.
 - [ ] [v2] [P0/C2] Listado de servicios propios del aliado con **badge de estado** (PROPOSED/IN_REVIEW/APPROVED/REJECTED/REMOVED) y, en REJECTED/REMOVED, el `review_reason`.
 - [ ] [v2] [P0/C2] Acción "Retirar servicio" sobre un APPROVED (`DELETE /v1/aliado/services/{uuid}` → transiciona a REMOVED). Solo OWNER/STAFF.
 - [ ] [v2] [P0/C2] Vista de historial de revisión del servicio (`GET /v1/aliado/services/{uuid}/log`) — log compartido admin↔aliado.
@@ -49,5 +49,5 @@
 > Equivalente UI del [backend vertical-3 §Adicionales v3](https://github.com/fenix-core/optibienestar-360-backend/blob/main/.ai/checklists/vertical-3-aliados.md) (ítems D1/D2). Mapa: [`../scope-additions-v3.md`](../scope-additions-v3.md) · [ADR 0013](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0013-incentives-engine-v3.md).
 
 - [ ] [v3] [P1/C2] Admin: CRUD de **programas de fidelidad** `pages/admin/loyalty-programs/` (`/v1/admin/loyalty-programs`, `ALLY_LOYALTY_MANAGE`) — métrica (consumo $ / nº compras), umbral ($100 / 50), premio parametrizable (servicio gratis / % descuento), aliado o global. _(El backend evalúa y emite vouchers.)_
-- [ ] [v3] [P1/C2] Portal aliado (`pages/aliado/`): otorgar **cortesía** a 1 persona de una membresía (`POST /v1/aliado/courtesy-grants`, `ALLY_COURTESY_GRANT`) — p. ej. 1ª consulta gratis; + listado de cortesías/vouchers emitidos y su estado de canje. _(El validador reconoce el canje.)_
+- [ ] [v3] [P1/C2] Portal aliado (`pages/allies/`): otorgar **cortesía** a 1 persona de una membresía (`POST /v1/aliado/courtesy-grants`, `ALLY_COURTESY_GRANT`) — p. ej. 1ª consulta gratis; + listado de cortesías/vouchers emitidos y su estado de canje. _(El validador reconoce el canje.)_
 - [ ] [v3] [P1/C2] Afiliado: **"Mis vouchers de fidelidad"** (`GET /v1/me/loyalty-vouchers`, `LOYALTY_VIEW_OWN`) — vouchers ganados por consumo/compras, con premio y estado (pendiente/canjeado/vencido). _(Solo muestra; el canje ocurre en el aliado vía validador.)_

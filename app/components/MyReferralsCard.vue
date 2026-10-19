@@ -4,7 +4,7 @@ import { referralStatusColor } from '~/types/promoters'
 
 // Authenticated affiliate's own referral history (GET /v1/me/referrals,
 // REFERRAL_CODE_VIEW_OWN). Self-gated: if the user lacks the permission it renders
-// nothing. Meant to be embedded in the member portal (/afiliado).
+// nothing. Meant to be embedded in the member portal (/members).
 const { t } = useI18n()
 const { formatCurrency, formatDate } = useFormatters()
 const referrals = useReferrals()

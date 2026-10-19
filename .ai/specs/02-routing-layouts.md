@@ -3,6 +3,7 @@
 > **Corrección 2026-10-09** (ver [auditoría 2026-09-23](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/notes/2026-09-23_audit.md) hallazgo F-SPEC-01/02): este documento describe un diseño que **no se construyó así**. Hechos verificados contra el código real:
 > - El árbol admin vive en **`pages/dashboard/`**, no `pages/admin/` — ese árbol nunca existió. El árbol real (2026-10-09) incluye además `campaigns/`, `collections/`, `commission-rules/`, `entity-config/`, `roles/`, `scheduled-jobs/`, `security/`, `system-config/`, `settings/`, `modulo/` — más amplio que lo documentado abajo; usar `find app/pages/dashboard` para el inventario exacto.
 > - No hay login en `/login.vue` — el login vive en `index.vue` (`/`) y el middleware `auth.global.ts` redirige cualquier sesión autenticada en `/` directo a `/dashboard`, **sin** un mapa de rutas por rol (`admin`/`aliado`/`afiliado`/`promotor` como "home" por rol no existe así).
+> - **Convención de URLs (2026-10-19):** las rutas autenticadas van en **inglés y plural** — portales `/allies/*` (aliado), `/members/*` (afiliado), `/advisors/*` (asesor, ej. `/advisors/portfolio`); solo las públicas van en español (`/aliados`, `/aliados/{uuid}`, `/afiliarse`, `/recuperar-contrasena`, `/restablecer-contrasena`). Las rutas viejas `/aliado/**`, `/afiliado/**`, `/promotor/**` (y `/promotor/cartera` → `/advisors/portfolio`) responden 301 conservando subruta y query (`routeRules` en `nuxt.config.ts` + `docker/default.conf`). El árbol de abajo ya usa los nombres nuevos.
 > - Los roles reales son `SYSTEM`/`ADMINISTRADOR`/`OPERADOR`/`OPERADOR_MEDICO`/`ALIADO`/`AFILIADO`/`PROMOTOR`, no `ADMIN`/`ALIADO_USER`/`AFILIADO_USER`.
 > - El middleware por permiso real se llama **`can.ts`** (no `permission.ts`), usa `definePageMeta({ middleware: 'can', permission: 'CODE' })` (clave singular `permission`, no `permissions` array-only) y redirige a `/403` (no `showError`). También existe **`role.ts`** (bloqueo por rol completo) y **`catalog-access.ts`**, no documentados abajo.
 > - El cuerpo de este archivo (rutas `admin/*`, `Sidebar :role=`, `uiStore`, el middleware `permission.ts`) queda como **referencia histórica del diseño original**, no como verdad actual — no se reescribió código por código para no introducir afirmaciones nuevas sin verificar (p. ej. no se confirmó la implementación real de `Sidebar.vue` ni si existe un `uiStore`). Para los valores reales de rutas/middleware, confiar en los puntos de arriba y en el código, no en los bloques de abajo.
@@ -11,7 +12,7 @@
 
 ```
 pages/
-├── index.vue                    # /  → redirige a /admin /aliado /afiliado /promotor según rol
+├── index.vue                    # /  → redirige a /admin /allies /members /advisors según rol
 ├── login.vue                    # /login
 ├── recuperar-clave.vue     # /recuperar-clave (301 desde /recover-password)
 ├── restablecer-clave.vue   # /restablecer-clave?token=... (301 desde /reset-password)
@@ -31,21 +32,21 @@ pages/
 │   ├── commissions/...
 │   └── reports/...
 │
-├── aliado/                      # /aliado/*  (rol ALIADO_USER)
-│   ├── index.vue                # /aliado → dashboard
-│   ├── validator.vue            # /aliado/validator
+├── allies/                      # /allies/*  (rol ALIADO_USER)
+│   ├── index.vue                # /allies → dashboard
+│   ├── validator.vue            # /allies/validator
 │   ├── history.vue
 │   └── dashboard.vue
 │
-├── afiliado/                    # /afiliado/*  (rol AFILIADO_USER)
-│   ├── index.vue                # /afiliado → carnet + dashboard
+├── members/                     # /members/*  (rol AFILIADO_USER)
+│   ├── index.vue                # /members → carnet + dashboard
 │   ├── family.vue
 │   ├── payments.vue
 │   ├── usage-history.vue
 │   └── referrals.vue
 │
-└── promotor/                    # /promotor/*  (rol PROMOTOR)
-    ├── index.vue                # /promotor → dashboard ventas
+└── advisors/                    # /advisors/*  (rol PROMOTOR)
+    ├── index.vue                # /advisors → dashboard ventas
     ├── members.vue
     └── commissions.vue
 ```
@@ -154,9 +155,9 @@ onMounted(() => {
   const path = {
     ADMIN: '/admin',
     OPERADOR: '/admin',
-    ALIADO_USER: '/aliado',
-    AFILIADO_USER: '/afiliado',
-    PROMOTOR: '/promotor',
+    ALIADO_USER: '/allies',
+    AFILIADO_USER: '/members',
+    PROMOTOR: '/advisors',
   }[role] || '/login';
   navigateTo(path, { replace: true });
 });
