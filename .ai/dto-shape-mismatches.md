@@ -72,7 +72,7 @@ a mano vuelve a mentir. Opciones, de menos a más ambiciosa:
 **Recomendación:** (1) ahora para parar el sangrado, (2) como tarea de hardening en
 [`checklists/vertical-10-optimizacion-reportes-hardening.md`](checklists/vertical-10-optimizacion-reportes-hardening.md).
 
-## Convención `_Display` para FK y escalares ([hub ADR 0014](../../centro-optico-vicente/.ai/decisions/0014-display-value-convention.md))
+## Convención `_Display` para FK y escalares ([hub ADR 0014](https://github.com/centro-optico-vicente/centro-optico-vicente/blob/main/.ai/decisions/0014-display-value-convention.md))
 
 Relacionado con "espejar el cable": el contrato objetivo para list/detail DTOs es que el **backend
 resuelva la etiqueta y el formato**, no el frontend.
