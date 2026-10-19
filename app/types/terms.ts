@@ -4,9 +4,10 @@
 // version is the latest `validFrom <= now` of its stream); one modal accept
 // covers all pending versions.
 //
-// Audience (backend `TermsAcceptanceService`): MEMBER → every user;
-// ADVISOR → users with the ASESOR role; ALLY → users of an ally whose
-// active agreement links the template. `isPublic` only means "served by the
+// Audience (backend `TermsAcceptanceService`), by linked entity, never by
+// role: MEMBER → every user; ADVISOR → users with an active, non-system
+// advisor record (any rank); ALLY → users of an ally whose active agreement
+// links the template. `isPublic` only means "served by the
 // public web endpoint", never "must be accepted".
 //
 // ALLY templates carry an optional scope (backend V183): ally type, segment,
@@ -33,9 +34,12 @@ export interface TermsVersionDto {
   uuid: string
   termType: TermType
   title: string
-  /** Raw stored template — `{{org.*}}` / `{{brand.name}}` placeholders unresolved (what the editor edits). */
+  /** Raw stored template — `{{...}}` placeholders unresolved (what the editor edits). */
   contentMarkdown: string
-  /** Same text with the placeholders resolved from the organization, for preview (admin endpoints only). */
+  /**
+   * Preview (admin endpoints only): placeholders resolved with the real
+   * organization and sample member/advisor/ally values.
+   */
   contentRendered?: string
   /** Only "visible on the public website" (`/v1/public/terms`); acceptance is requested either way. */
   isPublic: boolean
@@ -99,14 +103,16 @@ export interface PublicTermsDto {
 export type TermsAcceptanceChannel = 'PORTAL' | 'SELF_SERVICE' | 'ASSISTED' | 'ADMIN'
 
 /**
- * Placeholders the backend resolves when serving a T&C (`TermsTemplateRenderer`).
- * Kept here, not in i18n, because `{` `}` are interpolation syntax in vue-i18n.
+ * One variable a template of a given kind may use — GET
+ * /v1/admin/terms/variables?type=. `key` goes between double braces
+ * (`{{member.fullName}}`); `description` comes localized from the backend.
+ * Saving a template with any other placeholder is a 422 whose problem body
+ * carries `invalidVariables`.
  */
-export const TERMS_TEMPLATE_VARIABLES = [
-  { token: '{{brand.name}}', key: 'brandName' },
-  { token: '{{org.legalName}}', key: 'legalName' },
-  { token: '{{org.taxId}}', key: 'taxId' },
-  { token: '{{org.registryState}}', key: 'registryState' },
-  { token: '{{org.city}}', key: 'city' },
-  { token: '{{org.serviceArea}}', key: 'serviceArea' },
-] as const
+export interface TermsVariableDto {
+  key: string
+  description: string
+}
+
+/** `{{key}}` — the token inserted in the editor for a variable. */
+export const termsVariableToken = (key: string) => `{{${key}}}`

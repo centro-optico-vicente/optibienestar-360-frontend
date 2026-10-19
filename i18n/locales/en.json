@@ -4108,23 +4108,24 @@
       "publishNew": "Publish new version",
       "saveScheduled": "Save scheduled version",
       "variables": {
-        "help": "You can use these variables in the text. They are replaced with the organization data when the document is shown; a missing value is shown as pending.",
-        "brandName": "brand name",
-        "legalName": "legal name",
-        "taxId": "tax ID (RIF)",
-        "registryState": "Commercial Registry state",
-        "city": "signing city",
-        "serviceArea": "coverage area"
+        "help": "Variables available for this contract kind. They are replaced when the document is shown to each user with their own data (organization, member, advisor or ally); a missing value is shown as pending. Click one to insert it at the cursor.",
+        "loading": "Loading variables…",
+        "empty": "The variables could not be loaded.",
+        "insert": "Insert {variable}",
+        "copy": "Copy",
+        "copied": "Copied",
+        "invalidTitle": "The text uses variables that do not exist for this contract kind",
+        "invalidHelp": "Fix or remove them and save again:"
       },
       "preview": {
         "show": "Preview",
         "hide": "Hide preview",
-        "help": "This is how members, advisors and allies will see it: the saved version with the variables replaced. Unsaved changes are not reflected.",
+        "help": "This is how members, advisors and allies will see it: the saved version with the variables replaced by sample data (the organization with its real data). Unsaved changes are not reflected.",
         "empty": "Save a version to see the preview."
       },
       "audience": {
         "AFILIADO": "Accepted by every user of the system (admins, advisors, allies and members) on login, and again whenever a new version takes effect. This is the one published on the website.",
-        "ASESOR": "Accepted only by users with the sales advisor role.",
+        "ASESOR": "Accepted by users with an active advisor record, of any rank (advisor, supervisor, coordinator). Not the system advisor (INSTITUCION).",
         "ALIADO": "Each ally accepts the template linked to its active agreement. You can have several templates: a general one and others limited to a segment, an ally type or one specific ally."
       },
       "scope": {

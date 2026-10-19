@@ -4,7 +4,8 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 import { toSelectItems, type SelectItem } from '~/types/options'
 import MarkdownIt from 'markdown-it'
 import DOMPurify from 'dompurify'
-import { TERM_TYPES, TERMS_TEMPLATE_VARIABLES, type AllySegment, type TermsVersionDto, type TermType } from '~/types/terms'
+import { TERM_TYPES, termsVariableToken, type AllySegment, type TermsVariableDto, type TermsVersionDto, type TermType } from '~/types/terms'
+import type { ApiError } from '~/types/auth'
 
 definePageMeta({
   layout: 'dashboard',
@@ -222,6 +223,11 @@ interface TermTabState {
   allyTypeUuid: string | undefined
   segment: AllySegment | undefined
   allyUuid: string | undefined
+  /** Variables a template of this type may use (`GET /v1/admin/terms/variables`), loaded once per tab. */
+  variables: TermsVariableDto[]
+  variablesLoaded: boolean
+  /** Placeholders the backend rejected on the last save (422 `invalidVariables`); cleared on edit. */
+  invalidVariables: string[]
 }
 
 function emptyTabState(): TermTabState {
@@ -241,6 +247,9 @@ function emptyTabState(): TermTabState {
     allyTypeUuid: undefined,
     segment: undefined,
     allyUuid: undefined,
+    variables: [],
+    variablesLoaded: false,
+    invalidVariables: [],
   }
 }
 
@@ -298,7 +307,8 @@ async function loadTermType(type: TermType, force = false) {
   if (tab.loading || (tab.loaded && !force)) return
   tab.loading = true
   try {
-    tab.versions = await termsApi.list(type)
+    const [versions] = await Promise.all([termsApi.list(type), loadTermVariables(type)])
+    tab.versions = versions
     applyTermStream(tab)
     tab.loaded = true
   }
@@ -307,6 +317,19 @@ async function loadTermType(type: TermType, force = false) {
   }
   finally {
     tab.loading = false
+  }
+}
+
+/** The type's variables for the insert list; a failure only leaves the list empty. */
+async function loadTermVariables(type: TermType) {
+  const tab = termTabs[type]
+  if (tab.variablesLoaded) return
+  try {
+    tab.variables = await termsApi.variables(type)
+    tab.variablesLoaded = true
+  }
+  catch {
+    tab.variables = []
   }
 }
 
@@ -351,11 +374,15 @@ async function saveTermTab(type: TermType) {
           : {}),
       })
     }
+    tab.invalidVariables = []
     toast.add({ title: t('organization.terms.savedToast'), color: 'success', icon: 'i-lucide-check-circle' })
     await loadTermType(type, true)
   }
-  catch {
-    // useApi already notified (e.g. a version is already scheduled — 422)
+  catch (err) {
+    // useApi already notified (e.g. a version is already scheduled — 422). An
+    // unknown-variable 422 also lists the offending keys next to the editor.
+    const invalid = (err as ApiError)?.problem?.invalidVariables
+    tab.invalidVariables = (err as ApiError)?.status === 422 && Array.isArray(invalid) ? invalid.map(String) : []
   }
   finally {
     savingTerm.value = false
@@ -425,7 +452,25 @@ function editTermStream(v: TermsVersionDto) {
 
 watch(activeTermTab, (type) => { if (type === TERM_TYPES.ALLY) loadAllyTypeItems() })
 
-// ---- Template variables help + rendered preview ----
+// ---- Template variables (insert / copy) + rendered preview ----
+const termEditorRef = ref<{ insert: (text: string) => void } | null>(null)
+const { copy: copyToClipboard } = useClipboardCopy()
+const copiedVariable = ref<string | null>(null)
+
+function insertTermVariable(key: string) {
+  if (!canManageTerms.value) return
+  termEditorRef.value?.insert(termsVariableToken(key))
+}
+
+async function copyTermVariable(key: string) {
+  await copyToClipboard(termsVariableToken(key))
+  copiedVariable.value = key
+  setTimeout(() => { if (copiedVariable.value === key) copiedVariable.value = null }, 1500)
+}
+
+// Editing the text clears the last save's invalid-variable notice.
+watch(() => activeTerm.value.contentMarkdown, () => { activeTerm.value.invalidVariables = [] })
+
 const showTermPreview = ref(false)
 const md = new MarkdownIt({ html: false, linkify: true, breaks: true })
 const termPreviewHtml = computed(() => DOMPurify.sanitize(md.render(activeTerm.value.previewRendered || '')))
@@ -649,7 +694,7 @@ onMounted(() => {
       </div>
     </UForm>
 
-    <!-- Términos y condiciones por rol -->
+    <!-- Términos y condiciones por tipo de contrato -->
     <div v-if="!loading" class="bg-white rounded-2xl border border-prohealth-100 p-6 shadow-sm">
       <h2 class="text-base font-bold text-prohealth-900">{{ t('organization.sections.terms') }}</h2>
       <p class="text-xs text-prohealth-700/70 mt-0.5 mb-4">{{ t('organization.terms.help') }}</p>
@@ -776,21 +821,58 @@ onMounted(() => {
           <UInput v-model="activeTerm.title" class="w-full" :disabled="!canManageTerms" />
         </UFormField>
 
-        <!-- Supported placeholders. Tokens come from a JS constant, not i18n:
-             `{` `}` are vue-i18n interpolation syntax. -->
+        <!-- Variables of this contract type, from the backend. Tokens are built in
+             JS, not i18n: `{` `}` are vue-i18n interpolation syntax. -->
         <div class="text-xs text-prohealth-700 bg-prohealth-50 rounded-lg p-3 space-y-2">
           <p>{{ t('organization.terms.variables.help') }}</p>
-          <ul class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
-            <li v-for="variable in TERMS_TEMPLATE_VARIABLES" :key="variable.token">
-              <code class="font-mono text-prohealth-900">{{ variable.token }}</code>
-              — {{ t(`organization.terms.variables.${variable.key}`) }}
+          <p v-if="!activeTerm.variablesLoaded && !activeTerm.variables.length" class="text-prohealth-700/70">
+            {{ activeTerm.loading ? t('organization.terms.variables.loading') : t('organization.terms.variables.empty') }}
+          </p>
+          <ul v-else class="grid grid-cols-1 lg:grid-cols-2 gap-x-4 gap-y-1">
+            <li v-for="variable in activeTerm.variables" :key="variable.key" class="flex items-start gap-1 min-w-0">
+              <button
+                type="button"
+                class="font-mono text-prohealth-900 hover:text-prohealth-600 hover:underline disabled:no-underline disabled:cursor-default text-left break-all"
+                :title="t('organization.terms.variables.insert', { variable: termsVariableToken(variable.key) })"
+                :disabled="!canManageTerms"
+                @click="insertTermVariable(variable.key)"
+              >
+                {{ termsVariableToken(variable.key) }}
+              </button>
+              <UButton
+                size="xs"
+                color="neutral"
+                variant="link"
+                :icon="copiedVariable === variable.key ? 'i-lucide-check' : 'i-lucide-copy'"
+                :aria-label="copiedVariable === variable.key ? t('organization.terms.variables.copied') : t('organization.terms.variables.copy')"
+                class="shrink-0 -my-0.5"
+                @click="copyTermVariable(variable.key)"
+              />
+              <span class="text-prohealth-700/80">— {{ variable.description }}</span>
             </li>
           </ul>
         </div>
 
         <UFormField :label="t('organization.terms.fields.content')">
-          <MarkdownEditor v-model="activeTerm.contentMarkdown" :disabled="!canManageTerms" />
+          <MarkdownEditor ref="termEditorRef" v-model="activeTerm.contentMarkdown" :disabled="!canManageTerms" />
         </UFormField>
+
+        <UAlert
+          v-if="activeTerm.invalidVariables.length"
+          color="error"
+          variant="soft"
+          icon="i-lucide-circle-alert"
+          :title="t('organization.terms.variables.invalidTitle')"
+        >
+          <template #description>
+            <p>{{ t('organization.terms.variables.invalidHelp') }}</p>
+            <ul class="mt-1 flex flex-wrap gap-2">
+              <li v-for="key in activeTerm.invalidVariables" :key="key">
+                <code class="font-mono">{{ termsVariableToken(key) }}</code>
+              </li>
+            </ul>
+          </template>
+        </UAlert>
 
         <div class="space-y-2">
           <UButton
