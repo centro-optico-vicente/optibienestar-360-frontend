@@ -16,11 +16,38 @@ const md = new MarkdownIt({ html: false, linkify: true, breaks: true })
 // this component is reused wherever markdown → HTML happens, so it never
 // trusts its input.
 const renderedHtml = computed(() => DOMPurify.sanitize(md.render(model.value || '')))
+
+// Wrapper around UTextarea: the native <textarea> keeps its selection after blur,
+// so a click elsewhere (e.g. a variable list) can still insert at the cursor.
+const sourceRef = ref<HTMLElement | null>(null)
+
+/**
+ * Inserts `text` at the textarea cursor (replacing the selection), or appends
+ * it when the textarea was never focused. Puts the cursor right after it.
+ */
+function insert(text: string) {
+  const textarea = sourceRef.value?.querySelector('textarea')
+  const value = model.value || ''
+  if (!textarea) {
+    model.value = value + text
+    return
+  }
+  const start = textarea.selectionStart ?? value.length
+  const end = textarea.selectionEnd ?? start
+  model.value = value.slice(0, start) + text + value.slice(end)
+  nextTick(() => {
+    textarea.focus()
+    const cursor = start + text.length
+    textarea.setSelectionRange(cursor, cursor)
+  })
+}
+
+defineExpose({ insert })
 </script>
 
 <template>
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-    <div>
+    <div ref="sourceRef">
       <p class="text-xs font-semibold uppercase tracking-wider text-prohealth-400 mb-2">{{ t('markdownEditor.source') }}</p>
       <UTextarea
         v-model="model"

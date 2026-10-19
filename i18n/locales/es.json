@@ -4108,23 +4108,24 @@
       "publishNew": "Publicar nueva versión",
       "saveScheduled": "Guardar versión programada",
       "variables": {
-        "help": "Puedes usar estas variables en el texto. Se reemplazan con los datos de la organización al mostrar el documento; si un dato falta se muestra como pendiente.",
-        "brandName": "nombre de la marca",
-        "legalName": "razón social",
-        "taxId": "RIF",
-        "registryState": "estado del Registro Mercantil",
-        "city": "ciudad de firma",
-        "serviceArea": "zona de cobertura"
+        "help": "Variables disponibles para este tipo de contrato. Se reemplazan al mostrar el documento a cada usuario con sus propios datos (organización, afiliado, asesor o aliado); si un dato falta se muestra como pendiente. Haz clic en una para insertarla donde está el cursor.",
+        "loading": "Cargando variables…",
+        "empty": "No se pudieron cargar las variables.",
+        "insert": "Insertar {variable}",
+        "copy": "Copiar",
+        "copied": "Copiada",
+        "invalidTitle": "El texto usa variables que no existen para este tipo de contrato",
+        "invalidHelp": "Corrígelas o quítalas y vuelve a guardar:"
       },
       "preview": {
         "show": "Vista previa",
         "hide": "Ocultar vista previa",
-        "help": "Así lo verán afiliados, asesores y aliados: versión guardada, con las variables reemplazadas. Los cambios sin guardar no se reflejan.",
+        "help": "Así lo verán afiliados, asesores y aliados: versión guardada, con las variables reemplazadas por datos de ejemplo (la organización con sus datos reales). Los cambios sin guardar no se reflejan.",
         "empty": "Guarda una versión para ver la vista previa."
       },
       "audience": {
         "AFILIADO": "Lo acepta todo usuario del sistema (administradores, asesores, aliados y afiliados) al iniciar sesión, y de nuevo cada vez que entra en vigencia una versión nueva. Es el que se publica en la web.",
-        "ASESOR": "Solo lo aceptan los usuarios con rol de asesor comercial.",
+        "ASESOR": "Lo aceptan los usuarios con ficha de asesor activa, de cualquier rango (asesor, supervisor, coordinador). No aplica al asesor del sistema (INSTITUCION).",
         "ALIADO": "Cada aliado acepta la plantilla vinculada a su convenio activo. Puedes tener varias plantillas: una general y otras limitadas a un segmento, un tipo de aliado o un aliado específico."
       },
       "scope": {
