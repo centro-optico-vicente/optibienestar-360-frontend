@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import type { AccessTokenResponse, AuthUser, JwtPayload, LoginResponse, RefreshResponse, UserRole } from '~/types/auth'
+import { ROLES } from '~/types/auth'
 
 // Política de almacenamiento (Guía de integración §9):
 // accessToken en sessionStorage (corto, 15 min), refreshToken en localStorage
@@ -27,10 +28,23 @@ function permissionsFromToken(token: string | null): string[] {
   return decodeJwt(token)?.permissions ?? []
 }
 
+// TEMPORARY alias (remove once every pre-V185 token has expired — refresh
+// tokens live 30 days): backend V185 renamed the advisor role PROMOTOR → ASESOR,
+// but access/refresh tokens and the cached user minted before the deploy still
+// carry `PROMOTOR`. Treat it as ROLES.ADVISOR so advisors keep their portal.
+const LEGACY_ROLE_ALIASES: Record<string, UserRole> = {
+  PROMOTOR: ROLES.ADVISOR,
+}
+
+function normalizeRole(name: string | null | undefined): UserRole | null {
+  if (!name) return null
+  return LEGACY_ROLE_ALIASES[name] ?? (name as UserRole)
+}
+
 /** Reads the `role_name` claim (session's active role) from the accessToken. */
 function activeRoleFromToken(token: string | null): UserRole | null {
   if (!token) return null
-  return decodeJwt(token)?.role_name ?? null
+  return normalizeRole(decodeJwt(token)?.role_name)
 }
 
 /** Lee el claim `exp` (en ms) del accessToken; null si no se puede decodificar. */
@@ -69,9 +83,9 @@ export const useAuthStore = defineStore('auth', {
 
   getters: {
     isAuthenticated: (state): boolean => Boolean(state.accessToken && state.user),
-    roleNames: (state): UserRole[] => state.user?.roles?.map(r => r.name) ?? [],
+    roleNames: (state): UserRole[] => state.user?.roles?.map(r => normalizeRole(r.name) as UserRole) ?? [],
     /** The session's active role when known, falling back to the user's first assigned role (older tokens). */
-    primaryRole: (state): UserRole | null => state.activeRole ?? state.user?.roles?.[0]?.name ?? null,
+    primaryRole: (state): UserRole | null => state.activeRole ?? normalizeRole(state.user?.roles?.[0]?.name),
     fullName: (state): string => state.user?.fullName?.trim() || state.user?.email || '',
     initials: (state): string => {
       if (!state.user) return '?'

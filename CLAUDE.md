@@ -34,12 +34,12 @@ Para decisiones cross-stack (infraestructura, modelo de datos, contracts REST co
 
 ## Multi-rol
 
-El mismo app sirve a varios roles (`SYSTEM`, `ADMINISTRADOR`, `OPERADOR`, `ALIADO`, `AFILIADO`, `PROMOTOR`):
+El mismo app sirve a varios roles (`SYSTEM`, `ADMINISTRADOR`, `OPERADOR`, `ALIADO`, `AFILIADO`, `ASESOR`; constantes en inglés `ROLES` de `app/types/auth.ts`):
 
 - `SYSTEM`, `ADMINISTRADOR`, `OPERADOR` → panel administrativo (`/dashboard/*`: usuarios, roles, catálogos…)
 - `ALIADO` → validador y registro de uso (portal aliado — en construcción)
 - `AFILIADO` → portal propio + carnet digital (en construcción)
-- `PROMOTOR` → dashboard de ventas (en construcción)
+- `ASESOR` (antes `PROMOTOR`, backend V185) → dashboard de ventas (`/promotor/*`)
 
 Navegación condicional por rol/permiso. Layout `dashboard.vue` adapta el sidebar; el control de acceso se hace con middleware (`auth.global`, `can`, `role`), el composable `usePermissions()` y la directiva `v-can`.
 

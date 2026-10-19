@@ -4,7 +4,7 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 import { toSelectItems, type SelectItem } from '~/types/options'
 import MarkdownIt from 'markdown-it'
 import DOMPurify from 'dompurify'
-import { TERMS_TEMPLATE_VARIABLES, type AllySegment, type TermsVersionDto, type TermType } from '~/types/terms'
+import { TERM_TYPES, TERMS_TEMPLATE_VARIABLES, type AllySegment, type TermsVersionDto, type TermType } from '~/types/terms'
 
 definePageMeta({
   layout: 'dashboard',
@@ -182,7 +182,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     state.serviceArea = updated.serviceArea ?? ''
     snapshot.value = snapshotState()
     // Served T&C resolve {{org.*}} from these fields, so the previews are now stale.
-    for (const type of TERM_TYPES) termTabs[type].loaded = false
+    for (const type of TERM_TYPE_TABS) termTabs[type].loaded = false
     loadTermType(activeTermTab.value)
     toast.add({
       title: t('organization.updatedToast'),
@@ -199,8 +199,8 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
 }
 
 // ---- Términos y condiciones (uno por TermType) ----
-const TERM_TYPES: TermType[] = ['AFILIADO', 'PROMOTOR', 'ALIADO']
-const activeTermTab = ref<TermType>('AFILIADO')
+const TERM_TYPE_TABS: TermType[] = [TERM_TYPES.MEMBER, TERM_TYPES.ADVISOR, TERM_TYPES.ALLY]
+const activeTermTab = ref<TermType>(TERM_TYPES.MEMBER)
 
 interface TermTabState {
   loaded: boolean
@@ -218,7 +218,7 @@ interface TermTabState {
   previewRendered: string | null
   /** Every version of the type, `validFrom` DESC — the editor works on the stream matching the scope below. */
   versions: TermsVersionDto[]
-  /** ALIADO-only optional scope (V183): all empty = general template. Picks the stream being edited. */
+  /** ALLY-only optional scope (V183): all empty = general template. Picks the stream being edited. */
   allyTypeUuid: string | undefined
   segment: AllySegment | undefined
   allyUuid: string | undefined
@@ -245,15 +245,15 @@ function emptyTabState(): TermTabState {
 }
 
 const termTabs = reactive<Record<TermType, TermTabState>>({
-  AFILIADO: emptyTabState(),
-  PROMOTOR: emptyTabState(),
-  ALIADO: emptyTabState(),
+  [TERM_TYPES.MEMBER]: emptyTabState(),
+  [TERM_TYPES.ADVISOR]: emptyTabState(),
+  [TERM_TYPES.ALLY]: emptyTabState(),
 })
 
 const activeTerm = computed(() => termTabs[activeTermTab.value])
 const savingTerm = ref(false)
 
-/** Same stream = same scope combination (AFILIADO / PROMOTOR rows never carry one). */
+/** Same stream = same scope combination (MEMBER / ADVISOR rows never carry one). */
 function inTabStream(v: TermsVersionDto, tab: TermTabState) {
   // `?? undefined` on both sides: a cleared select may hand back `null`.
   return (v.allyType_Uuid ?? undefined) === (tab.allyTypeUuid ?? undefined)
@@ -342,7 +342,7 @@ async function saveTermTab(type: TermType) {
         contentMarkdown: tab.contentMarkdown,
         isPublic: tab.isPublic,
         validFrom: validFromIso,
-        ...(type === 'ALIADO'
+        ...(type === TERM_TYPES.ALLY
           ? {
               allyTypeUuid: tab.allyTypeUuid || undefined,
               segment: tab.segment || undefined,
@@ -362,11 +362,11 @@ async function saveTermTab(type: TermType) {
   }
 }
 
-// ---- ALIADO template scope (V183) ----
+// ---- ALLY template scope (V183) ----
 // Picking a scope switches the editor to that scope's stream.
 watch(
-  () => [termTabs.ALIADO.allyTypeUuid, termTabs.ALIADO.segment, termTabs.ALIADO.allyUuid],
-  () => { if (termTabs.ALIADO.loaded) applyTermStream(termTabs.ALIADO) },
+  () => [termTabs[TERM_TYPES.ALLY].allyTypeUuid, termTabs[TERM_TYPES.ALLY].segment, termTabs[TERM_TYPES.ALLY].allyUuid],
+  () => { if (termTabs[TERM_TYPES.ALLY].loaded) applyTermStream(termTabs[TERM_TYPES.ALLY]) },
 )
 
 const segmentItems = computed(() => (['B2B', 'B2P'] as AllySegment[]).map(value => ({
@@ -415,7 +415,7 @@ function termRowStatus(v: TermsVersionDto, versions: TermsVersionDto[]) {
 }
 
 function editTermStream(v: TermsVersionDto) {
-  const tab = termTabs.ALIADO
+  const tab = termTabs[TERM_TYPES.ALLY]
   selectedAllyItem.value = v.ally_Uuid ? { label: v.ally_Display ?? v.ally_Uuid, value: v.ally_Uuid } : null
   tab.allyTypeUuid = v.allyType_Uuid ?? undefined
   tab.segment = v.segment ?? undefined
@@ -423,7 +423,7 @@ function editTermStream(v: TermsVersionDto) {
   applyTermStream(tab)
 }
 
-watch(activeTermTab, (type) => { if (type === 'ALIADO') loadAllyTypeItems() })
+watch(activeTermTab, (type) => { if (type === TERM_TYPES.ALLY) loadAllyTypeItems() })
 
 // ---- Template variables help + rendered preview ----
 const showTermPreview = ref(false)
@@ -656,7 +656,7 @@ onMounted(() => {
 
       <div class="flex gap-2 border-b border-prohealth-100 mb-5">
         <button
-          v-for="type in TERM_TYPES"
+          v-for="type in TERM_TYPE_TABS"
           :key="type"
           type="button"
           class="px-4 py-2 text-sm font-semibold border-b-2 -mb-px transition-colors"
@@ -681,8 +681,8 @@ onMounted(() => {
           {{ t(`organization.terms.audience.${activeTermTab}`) }}
         </p>
 
-        <!-- ALIADO: every template (one stream per scope) with its scope; "Editar" loads that stream. -->
-        <div v-if="activeTermTab === 'ALIADO'" class="space-y-2">
+        <!-- ALLY: every template (one stream per scope) with its scope; "Editar" loads that stream. -->
+        <div v-if="activeTermTab === TERM_TYPES.ALLY" class="space-y-2">
           <h3 class="text-sm font-bold text-prohealth-900">{{ t('organization.terms.versionsList.title') }}</h3>
           <p v-if="!activeTerm.versions.length" class="text-xs text-prohealth-700/70">
             {{ t('organization.terms.versionsList.empty') }}
@@ -719,8 +719,8 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- ALIADO: optional scope. Picks which template stream the editor below works on. -->
-        <div v-if="activeTermTab === 'ALIADO'" class="rounded-lg border border-prohealth-100 p-3 space-y-3">
+        <!-- ALLY: optional scope. Picks which template stream the editor below works on. -->
+        <div v-if="activeTermTab === TERM_TYPES.ALLY" class="rounded-lg border border-prohealth-100 p-3 space-y-3">
           <div>
             <h3 class="text-sm font-bold text-prohealth-900">{{ t('organization.terms.scope.title') }}</h3>
             <p class="text-xs text-prohealth-700/70 mt-0.5">{{ t('organization.terms.scope.help') }}</p>

@@ -140,15 +140,15 @@ Backend mueve el refresh token a blacklist Redis. **No hay cookie httpOnly que l
 ## Recover password flow
 
 ```
-[Usuario en /recover-password]
+[Usuario en /recuperar-contrasena]
   ↓
 [Ingresa email (zod: email válido) — NO cédula, solo email]
   ↓
 [useAuth().recoverPassword(email) → POST /v1/auth/recover-password {email}]
   ↓
-[Backend envía email con link: .../reset-password?token=...]
+[Backend envía email con el token (hoy la plantilla no arma un link al frontend)]
   ↓
-[Usuario abre link → /reset-password (token leído de route.query.token)]
+[Usuario abre /restablecer-contrasena?token=... (token leído de route.query.token) — /reset-password redirige 301 conservando ?token=]
   ↓
 [Ingresa nuevo password]
   ↓

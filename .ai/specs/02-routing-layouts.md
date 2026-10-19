@@ -13,8 +13,8 @@
 pages/
 ├── index.vue                    # /  → redirige a /admin /aliado /afiliado /promotor según rol
 ├── login.vue                    # /login
-├── recover-password.vue         # /recover-password
-├── reset-password.vue           # /reset-password?token=...
+├── recuperar-contrasena.vue     # /recuperar-contrasena (301 desde /recover-password)
+├── restablecer-contrasena.vue   # /restablecer-contrasena?token=... (301 desde /reset-password)
 │
 ├── admin/                       # /admin/*  (rol ADMIN u OPERADOR)
 │   ├── index.vue                # /admin → dashboard KPIs
@@ -104,7 +104,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   const authStore = useAuthStore();
 
   // Rutas públicas
-  const publicPaths = ['/login', '/recover-password', '/reset-password'];
+  const publicPaths = ['/login', '/recuperar-contrasena', '/restablecer-contrasena'];
   if (publicPaths.includes(to.path)) return;
 
   // Si no hay session, redirigir a login

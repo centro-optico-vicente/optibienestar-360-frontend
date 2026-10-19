@@ -18,6 +18,15 @@ export default defineNuxtConfig({
 
   ssr: false,
 
+  // Public URLs are Spanish (hub URL convention). Permanent redirects from the
+  // old English paths; Nitro keeps the query string (`?token=` of the reset
+  // link). Effective on the Nitro server (pnpm dev / preview); the production
+  // image is static nginx, which carries the same 301s in docker/default.conf.
+  routeRules: {
+    '/recover-password': { redirect: { to: '/recuperar-contrasena', statusCode: 301 } },
+    '/reset-password': { redirect: { to: '/restablecer-contrasena', statusCode: 301 } },
+  },
+
   modules: [
     '@nuxt/ui',
     '@pinia/nuxt',

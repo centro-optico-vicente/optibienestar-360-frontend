@@ -7,6 +7,8 @@
 // (GET /v1/public/terms/AFILIADO); the backend records that acceptance.
 import MarkdownIt from 'markdown-it'
 import DOMPurify from 'dompurify'
+import { PLAN_TYPES } from '~/types/plans'
+import { TERM_TYPES } from '~/types/terms'
 
 definePageMeta({ layout: 'default' })
 
@@ -38,7 +40,7 @@ const referralCode = computed(() => String(route.query.ref ?? '').trim().toUpper
 // Group plans (corporate, or any plan with a minimum headcount) are sold through
 // a corporate contract, never to a single person on this page.
 function isSelfServicePlan(p: PublicPlan): boolean {
-  return p.type !== 'CORPORATIVO' && (p.minMembers == null || p.minMembers <= 1)
+  return p.type !== PLAN_TYPES.CORPORATE && (p.minMembers == null || p.minMembers <= 1)
 }
 
 const plans = ref<PublicPlan[]>([])
@@ -77,7 +79,7 @@ const termsHtml = computed(() => DOMPurify.sanitize(md.render(terms.value?.conte
 async function loadTerms(): Promise<void> {
   try {
     const previous = terms.value?.uuid
-    terms.value = await useApi<PublicTerms>('/v1/public/terms/AFILIADO', { skipAuth: true })
+    terms.value = await useApi<PublicTerms>(`/v1/public/terms/${TERM_TYPES.MEMBER}`, { skipAuth: true })
     termsUnavailable.value = false
     if (previous && previous !== terms.value.uuid) {
       termsAccepted.value = false

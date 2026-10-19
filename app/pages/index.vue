@@ -122,7 +122,7 @@ const onSubmit = async (event: FormSubmitEvent<LoginSchema>): Promise<void> => {
 
       <div class="flex items-center justify-between text-sm">
         <UCheckbox :label="$t('auth.login.rememberMe')" />
-        <NuxtLink to="/recover-password" class="text-prohealth-600 hover:text-prohealth-700 font-medium">
+        <NuxtLink to="/recuperar-contrasena" class="text-prohealth-600 hover:text-prohealth-700 font-medium">
           {{ $t('auth.login.forgotPassword') }}
         </NuxtLink>
       </div>

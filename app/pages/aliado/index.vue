@@ -3,6 +3,7 @@ import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { CatalogItem } from '~/types/catalogs'
 import type { AllyServiceDto, MyAllyDto } from '~/types/allies'
+import { ROLES } from '~/types/auth'
 
 // Partner panel: propose services (POST /v1/aliado/services, born in PROPOSED).
 // The backend requires the user to have OWNER/STAFF membership in the given ally.
@@ -12,7 +13,7 @@ import type { AllyServiceDto, MyAllyDto } from '~/types/allies'
 definePageMeta({
   layout: 'dashboard',
   middleware: 'role',
-  roles: ['ALIADO'],
+  roles: [ROLES.ALLY],
 })
 
 const { t } = useI18n()

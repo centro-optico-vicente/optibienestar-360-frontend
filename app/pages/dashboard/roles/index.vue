@@ -2,6 +2,7 @@
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { RoleDto } from '~/types/admin'
+import { ROLES } from '~/types/auth'
 import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
 
 definePageMeta({
@@ -38,10 +39,10 @@ function openAudit(r: RoleDto) {
   auditOpen.value = true
 }
 
-const isSystemUser = computed(() => hasRole('SYSTEM'))
+const isSystemUser = computed(() => hasRole(ROLES.SYSTEM))
 
 function isSystemRole(r: RoleDto): boolean {
-  return r.name === 'SYSTEM'
+  return r.name === ROLES.SYSTEM
 }
 
 /** The SYSTEM role is only touchable by a SYSTEM actor (403 `role.system.not_editable`). */

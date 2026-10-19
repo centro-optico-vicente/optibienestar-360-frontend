@@ -119,7 +119,7 @@ export const PERMISSIONS = [
   'PAYMENT_VIEW_ALL',
   'PAYMENT_VIEW_OWN',
   // Self-service (V121, hub plan payments-unification) — AFILIADO over
-  // their own payments, PROMOTOR over their downline's collections.
+  // their own payments, ASESOR over their downline's collections.
   'PAYMENT_CREATE_OWN',
   'PAYMENT_DELETE_OWN',
   'PAYMENT_CREATE_DOWNLINE',
@@ -292,7 +292,7 @@ export const PERMISSIONS = [
   'PAYMENT_METHOD_VIEW_ALL', 'PAYMENT_METHOD_CREATE', 'PAYMENT_METHOD_UPDATE', 'PAYMENT_METHOD_DELETE',
   'PAYMENT_METHOD_RECORD_AUDIT_VIEW', 'PAYMENT_METHOD_REPORT_AUDIT_VIEW',
 
-  // TERMS & CONDITIONS (V139) — versioned T&C per role (AFILIADO/PROMOTOR/ALIADO).
+  // TERMS & CONDITIONS (V139) — versioned T&C per role (AFILIADO/ASESOR/ALIADO).
   'TERMS_VIEW_ALL',
   'TERMS_CREATE',
   'TERMS_UPDATE',

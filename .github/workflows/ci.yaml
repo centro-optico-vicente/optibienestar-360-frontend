@@ -157,6 +157,18 @@ jobs:
           [ "$code" = "200" ] \
             || { echo "::error::Client route /login did not fall back to index.html (got $code)"; exit 1; }
 
+      - name: Smoke test — old public URLs 301 to the Spanish ones, keeping the query
+        run: |
+          headers=$(curl -sI 'http://127.0.0.1:18080/reset-password?token=abc123')
+          echo "$headers"
+          echo "$headers" | head -1 | grep -q ' 301' \
+            || { echo "::error::/reset-password did not answer 301"; exit 1; }
+          echo "$headers" | grep -qi '^location: /restablecer-contrasena?token=abc123' \
+            || { echo "::error::/reset-password did not redirect to /restablecer-contrasena keeping ?token="; exit 1; }
+          headers=$(curl -sI http://127.0.0.1:18080/recover-password)
+          echo "$headers" | grep -qi '^location: /recuperar-contrasena' \
+            || { echo "::error::/recover-password did not redirect to /recuperar-contrasena"; exit 1; }
+
       - name: Stop container
         if: always()
         run: docker rm -f spa || true

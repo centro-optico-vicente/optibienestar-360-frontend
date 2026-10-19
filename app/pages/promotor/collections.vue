@@ -8,7 +8,7 @@ import { paymentStatusColor } from '~/types/payments'
 // / PAYMENT_DELETE_DOWNLINE) let the promoter self-manage collections for
 // their own portfolio; approve/reject stay admin-only by default (granular
 // permissions exist — PAYMENT_APPROVE_DOWNLINE/PAYMENT_REJECT_DOWNLINE —
-// but aren't granted to PROMOTOR, see V121 header comment).
+// but aren't granted to ASESOR, see V121 header comment).
 definePageMeta({
   layout: 'dashboard',
   middleware: 'can',
