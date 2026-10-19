@@ -56,8 +56,8 @@ optibienestar-360-frontend/
 ├── pages/                          # File-based routing
 │   ├── index.vue                   # Redirige a dashboard según rol
 │   ├── login.vue
-│   ├── recuperar-contrasena.vue    # /recuperar-contrasena (301 desde /recover-password)
-│   ├── restablecer-contrasena.vue  # /restablecer-contrasena (301 desde /reset-password)
+│   ├── recuperar-clave.vue    # /recuperar-clave (301 desde /recover-password)
+│   ├── restablecer-clave.vue  # /restablecer-clave (301 desde /reset-password)
 │   │
 │   ├── dashboard/                  # Rol SYSTEM/ADMINISTRADOR/OPERADOR/OPERADOR_MEDICO — corregido 2026-10-09, NO es `admin/` (ese árbol nunca existió)
 │   │   ├── index.vue               # Dashboard con KPIs
