@@ -11,12 +11,19 @@
 // The backend only models the `type` dimension (Individual [shown as "Único"]/Familiar/Corporativo,
 // the flyer taxonomy). The "Premium/1+/2+/3+" axis is a TBD, not yet implemented.
 // `label` is the Spanish fallback; `labelKey` resolves to i18n at the usage point.
-export type PlanType = 'INDIVIDUAL' | 'FAMILIAR' | 'CORPORATIVO'
+// English keys, Spanish values: the value is the backend `type` code (JSON, RSQL `type==FAMILIAR`).
+export const PLAN_TYPES = {
+  INDIVIDUAL: 'INDIVIDUAL',
+  FAMILY: 'FAMILIAR',
+  CORPORATE: 'CORPORATIVO',
+} as const
+
+export type PlanType = typeof PLAN_TYPES[keyof typeof PLAN_TYPES]
 
 export const PLAN_TYPE_OPTIONS: { label: string, value: PlanType, labelKey: string }[] = [
-  { label: 'Único', value: 'INDIVIDUAL', labelKey: 'plans.types.INDIVIDUAL' },
-  { label: 'Familiar', value: 'FAMILIAR', labelKey: 'plans.types.FAMILIAR' },
-  { label: 'Corporativo', value: 'CORPORATIVO', labelKey: 'plans.types.CORPORATIVO' },
+  { label: 'Único', value: PLAN_TYPES.INDIVIDUAL, labelKey: `plans.types.${PLAN_TYPES.INDIVIDUAL}` },
+  { label: 'Familiar', value: PLAN_TYPES.FAMILY, labelKey: `plans.types.${PLAN_TYPES.FAMILY}` },
+  { label: 'Corporativo', value: PLAN_TYPES.CORPORATE, labelKey: `plans.types.${PLAN_TYPES.CORPORATE}` },
 ]
 
 // ---- Plan ----

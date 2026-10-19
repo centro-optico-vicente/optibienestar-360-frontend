@@ -2,14 +2,22 @@
 // Ver: "OptiBienestar 360 Backend — Guía de integración Frontend".
 // La API responde y espera camelCase; fechas en ISO-8601; IDs uuid.
 
-export type UserRole =
-  | 'SYSTEM'
-  | 'ADMINISTRADOR'
-  | 'OPERADOR'
-  | 'OPERADOR_MEDICO'
-  | 'ALIADO'
-  | 'AFILIADO'
-  | 'PROMOTOR'
+/**
+ * Seeded role names (`roles.name`). English keys, Spanish values: the value is
+ * what the backend stores and sends (JWT `role_name`, `/v1/me/roles`). The
+ * advisor role is `ASESOR` since backend V185 (glossary; it was `PROMOTOR`).
+ */
+export const ROLES = {
+  SYSTEM: 'SYSTEM',
+  ADMINISTRATOR: 'ADMINISTRADOR',
+  OPERATOR: 'OPERADOR',
+  ALLY_MEDICAL_OPERATOR: 'OPERADOR_MEDICO',
+  ALLY: 'ALIADO',
+  MEMBER: 'AFILIADO',
+  ADVISOR: 'ASESOR',
+} as const
+
+export type UserRole = typeof ROLES[keyof typeof ROLES]
 
 export type UserStatus = 'ACTIVE' | 'INACTIVE' | 'LOCKED' | 'PENDING' | (string & {})
 

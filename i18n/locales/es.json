@@ -483,6 +483,17 @@
       }
     }
   },
+  "roles": {
+    "names": {
+      "SYSTEM": "Sistema",
+      "ADMINISTRADOR": "Administrador",
+      "OPERADOR": "Operador",
+      "OPERADOR_MEDICO": "Operador médico",
+      "ALIADO": "Aliado",
+      "AFILIADO": "Afiliado",
+      "ASESOR": "Asesor"
+    }
+  },
   "nav": {
     "mainMenu": "Menú principal",
     "otherSection": "Otros",
@@ -4079,7 +4090,7 @@
       "help": "Tres tipos de contrato. Cada usuario debe aceptar en su próximo inicio de sesión las versiones vigentes que le correspondan, y de nuevo cuando entre en vigencia una versión nueva.",
       "types": {
         "AFILIADO": "Afiliados",
-        "PROMOTOR": "Asesores Comerciales",
+        "ASESOR": "Asesores Comerciales",
         "ALIADO": "Aliados"
       },
       "currentSince": "Versión vigente desde {date}",
@@ -4113,7 +4124,7 @@
       },
       "audience": {
         "AFILIADO": "Lo acepta todo usuario del sistema (administradores, asesores, aliados y afiliados) al iniciar sesión, y de nuevo cada vez que entra en vigencia una versión nueva. Es el que se publica en la web.",
-        "PROMOTOR": "Solo lo aceptan los usuarios con rol de asesor comercial.",
+        "ASESOR": "Solo lo aceptan los usuarios con rol de asesor comercial.",
         "ALIADO": "Cada aliado acepta la plantilla vinculada a su convenio activo. Puedes tener varias plantillas: una general y otras limitadas a un segmento, un tipo de aliado o un aliado específico."
       },
       "scope": {

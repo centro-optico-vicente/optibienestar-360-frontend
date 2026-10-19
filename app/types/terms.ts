@@ -4,16 +4,27 @@
 // version is the latest `validFrom <= now` of its stream); one modal accept
 // covers all pending versions.
 //
-// Audience (backend `TermsAcceptanceService`): AFILIADO → every user;
-// PROMOTOR → users with the PROMOTOR role; ALIADO → users of an ally whose
+// Audience (backend `TermsAcceptanceService`): MEMBER → every user;
+// ADVISOR → users with the ASESOR role; ALLY → users of an ally whose
 // active agreement links the template. `isPublic` only means "served by the
 // public web endpoint", never "must be accepted".
 //
-// ALIADO templates carry an optional scope (backend V183): ally type, segment,
+// ALLY templates carry an optional scope (backend V183): ally type, segment,
 // specific ally — all empty = general template. Each scope combination is its
 // own stream with its own current/scheduled version.
 
-export type TermType = 'AFILIADO' | 'PROMOTOR' | 'ALIADO'
+/**
+ * Contract kinds. English keys, Spanish values: the value is the backend
+ * `termType` code (`/v1/public/terms/{type}`, JSON). Advisor is `ASESOR`
+ * since backend V185 (it was `PROMOTOR`).
+ */
+export const TERM_TYPES = {
+  MEMBER: 'AFILIADO',
+  ADVISOR: 'ASESOR',
+  ALLY: 'ALIADO',
+} as const
+
+export type TermType = typeof TERM_TYPES[keyof typeof TERM_TYPES]
 
 /** Ally segment — mirrors backend `AllyType.Segment` (V179). */
 export type AllySegment = 'B2B' | 'B2P'

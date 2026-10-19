@@ -11,6 +11,7 @@ import type { MyRole } from '~/types/auth'
 const { t } = useI18n()
 const auth = useAuthStore()
 const { fetchMyRoles, switchActiveRole } = useAuth()
+const roleLabel = useRoleLabel()
 
 const roles = ref<MyRole[]>([])
 const loaded = ref(false)
@@ -35,7 +36,7 @@ async function select(role: MyRole): Promise<void> {
 
 const items = computed(() => [
   roles.value.map(role => ({
-    label: role.description || role.name,
+    label: roleLabel(role.name, role.description),
     icon: role.name === auth.activeRole ? 'i-lucide-check' : undefined,
     onSelect: () => select(role),
   })),
@@ -45,7 +46,7 @@ const items = computed(() => [
 <template>
   <!-- Before loading, or with a single effective role, there's nothing to pick: plain text as always. -->
   <p v-if="!loaded || roles.length <= 1" class="text-xs text-prohealth-500 truncate">
-    {{ auth.primaryRole }}
+    {{ roleLabel(auth.primaryRole) }}
   </p>
   <UDropdownMenu v-else :items="items" :content="{ align: 'start' }">
     <button
@@ -54,7 +55,7 @@ const items = computed(() => [
       :aria-label="t('auth.switchRole')"
       :title="t('auth.switchRole')"
     >
-      <span class="truncate">{{ auth.primaryRole }}</span>
+      <span class="truncate">{{ roleLabel(auth.primaryRole) }}</span>
       <UIcon name="i-lucide-chevron-down" class="w-3 h-3 shrink-0" />
     </button>
   </UDropdownMenu>

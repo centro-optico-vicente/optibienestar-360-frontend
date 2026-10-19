@@ -2,6 +2,7 @@
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { PermissionDomainDto, RoleDto, RoleUserDto } from '~/types/admin'
+import { ROLES } from '~/types/auth'
 
 definePageMeta({
   layout: 'dashboard',
@@ -10,6 +11,7 @@ definePageMeta({
 })
 
 const { t } = useI18n()
+const roleLabel = useRoleLabel()
 
 useSeoMeta({ title: () => t('common.seoTitle', { page: t('security.roles.detail.seoPage') }) })
 
@@ -31,10 +33,10 @@ const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('ROLE_RE
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('ROLE_REPORT_AUDIT_VIEW'))
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
 
-const isSystemUser = computed(() => hasRole('SYSTEM'))
+const isSystemUser = computed(() => hasRole(ROLES.SYSTEM))
 
 function isSystemRole(r: RoleDto | null): boolean {
-  return r?.name === 'SYSTEM'
+  return r?.name === ROLES.SYSTEM
 }
 
 /** The SYSTEM role is only touchable by a SYSTEM actor (403 `role.system.not_editable`). */
@@ -417,7 +419,7 @@ function discardAndRefreshRole() {
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div>
             <div class="flex items-center gap-3 flex-wrap">
-              <h1 class="text-2xl font-extrabold text-prohealth-900">{{ role.name }}</h1>
+              <h1 class="text-2xl font-extrabold text-prohealth-900">{{ roleLabel(role.name) }}</h1>
               <UBadge :color="role.active === false ? 'neutral' : 'success'" variant="subtle">
                 {{ role.active === false ? t('common.no') : t('common.yes') }}
               </UBadge>
@@ -785,7 +787,7 @@ function discardAndRefreshRole() {
       v-model:open="auditOpen"
       entity-key="role"
       :entity-uuid="role.uuid"
-      :entity-label="role.name"
+      :entity-label="roleLabel(role.name)"
       :can-view-changes="canViewAuditChanges"
       :can-view-reports="canViewAuditReports"
     />

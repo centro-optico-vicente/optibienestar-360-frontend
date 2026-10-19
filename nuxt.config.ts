@@ -18,6 +18,31 @@ export default defineNuxtConfig({
 
   ssr: false,
 
+  // Public URLs are Spanish (hub URL convention). Permanent redirects from the
+  // old English paths; Nitro keeps the query string (`?token=` of the reset
+  // link). Effective on the Nitro server (pnpm dev / preview); the production
+  // image is static nginx, which carries the same 301s in docker/default.conf.
+  routeRules: {
+    // Canonical paths use "clave" so they carry no ñ. Aliases: the old English
+    // paths, the "contraseña" spellings (with and without ñ) and the common
+    // "reestablecer" misspelling. Paths with ñ are listed percent-encoded, as
+    // they arrive on the wire.
+    ...Object.fromEntries(
+      ['/recover-password', '/recuperar-contrasena', '/recuperar-contrase%C3%B1a']
+        .map(path => [path, { redirect: { to: '/recuperar-clave', statusCode: 301 } }]),
+    ),
+    ...Object.fromEntries(
+      [
+        '/reset-password',
+        '/restablecer-contrasena',
+        '/restablecer-contrase%C3%B1a',
+        '/reestablecer-clave',
+        '/reestablecer-contrasena',
+        '/reestablecer-contrase%C3%B1a',
+      ].map(path => [path, { redirect: { to: '/restablecer-clave', statusCode: 301 } }]),
+    ),
+  },
+
   modules: [
     '@nuxt/ui',
     '@pinia/nuxt',

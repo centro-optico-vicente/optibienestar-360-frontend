@@ -483,6 +483,17 @@
       }
     }
   },
+  "roles": {
+    "names": {
+      "SYSTEM": "System",
+      "ADMINISTRADOR": "Administrator",
+      "OPERADOR": "Operator",
+      "OPERADOR_MEDICO": "Medical operator",
+      "ALIADO": "Ally",
+      "AFILIADO": "Member",
+      "ASESOR": "Advisor"
+    }
+  },
   "nav": {
     "mainMenu": "Main menu",
     "otherSection": "Other",
@@ -4079,7 +4090,7 @@
       "help": "Three contract kinds. Each user must accept the current versions that apply to them on their next login, and again when a new version takes effect.",
       "types": {
         "AFILIADO": "Members",
-        "PROMOTOR": "Sales Advisors",
+        "ASESOR": "Sales Advisors",
         "ALIADO": "Allies"
       },
       "currentSince": "Current version since {date}",
@@ -4113,7 +4124,7 @@
       },
       "audience": {
         "AFILIADO": "Accepted by every user of the system (admins, advisors, allies and members) on login, and again whenever a new version takes effect. This is the one published on the website.",
-        "PROMOTOR": "Accepted only by users with the sales advisor role.",
+        "ASESOR": "Accepted only by users with the sales advisor role.",
         "ALIADO": "Each ally accepts the template linked to its active agreement. You can have several templates: a general one and others limited to a segment, an ally type or one specific ally."
       },
       "scope": {

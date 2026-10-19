@@ -1,4 +1,6 @@
-const PUBLIC_ROUTES = new Set<string>(['/', '/recover-password', '/reset-password', '/afiliarse'])
+// Public URLs are Spanish (hub URL convention). The old /recover-password and
+// /reset-password 301 to these (nuxt.config.ts routeRules + docker/default.conf).
+const PUBLIC_ROUTES = new Set<string>(['/', '/recuperar-clave', '/restablecer-clave', '/afiliarse'])
 // Prefijos públicos (rutas dinámicas): directorio de aliados (/aliados, /aliados/{uuid}).
 // Ojo: NO confundir con /aliado (panel autenticado del aliado).
 const PUBLIC_PREFIXES = ['/aliados']

@@ -3,7 +3,8 @@ import type { UserRole } from '~/types/auth'
 // Bloquea el acceso a una página completa cuando el usuario no tiene ninguno de los
 // roles requeridos. Útil para áreas sin un permiso dedicado (p.ej. catálogos).
 // Uso en la página:
-//   definePageMeta({ layout: 'dashboard', middleware: 'role', roles: ['SYSTEM', 'ADMINISTRADOR'] })
+//   definePageMeta({ layout: 'dashboard', middleware: 'role', roles: [ROLES.SYSTEM, ROLES.ADMINISTRATOR] })
+// (`import { ROLES } from '~/types/auth'`)
 //
 // El backend es el muro real (403); esto es la capa de UX.
 export default defineNuxtRouteMiddleware((to) => {
