@@ -168,6 +168,14 @@ jobs:
           headers=$(curl -sI http://127.0.0.1:18080/recover-password)
           echo "$headers" | grep -qi '^location: /recuperar-contrasena' \
             || { echo "::error::/recover-password did not redirect to /recuperar-contrasena"; exit 1; }
+          for path in 'restablecer-contrase%C3%B1a?token=abc123' 'reestablecer-clave?token=abc123'; do
+            curl -sI "http://127.0.0.1:18080/$path" | grep -qi '^location: /restablecer-contrasena?token=abc123' \
+              || { echo "::error::/$path did not redirect to /restablecer-contrasena keeping ?token="; exit 1; }
+          done
+          curl -sI 'http://127.0.0.1:18080/recuperar-contrase%C3%B1a' | grep -qi '^location: /recuperar-contrasena' \
+            || { echo "::error::/recuperar-contraseña did not redirect to /recuperar-contrasena"; exit 1; }
+          curl -sI http://127.0.0.1:18080/restablecer-contrasena | head -1 | grep -q ' 200' \
+            || { echo "::error::/restablecer-contrasena must not redirect"; exit 1; }
 
       - name: Stop container
         if: always()

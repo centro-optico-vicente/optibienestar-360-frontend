@@ -23,8 +23,23 @@ export default defineNuxtConfig({
   // link). Effective on the Nitro server (pnpm dev / preview); the production
   // image is static nginx, which carries the same 301s in docker/default.conf.
   routeRules: {
-    '/recover-password': { redirect: { to: '/recuperar-contrasena', statusCode: 301 } },
-    '/reset-password': { redirect: { to: '/restablecer-contrasena', statusCode: 301 } },
+    // Old English paths plus the spellings users are likely to type by hand
+    // (ñ, "clave", the common "reestablecer" misspelling). Paths with ñ are
+    // listed percent-encoded, as they arrive on the wire.
+    ...Object.fromEntries(
+      ['/recover-password', '/recuperar-contrase%C3%B1a', '/recuperar-clave']
+        .map(path => [path, { redirect: { to: '/recuperar-contrasena', statusCode: 301 } }]),
+    ),
+    ...Object.fromEntries(
+      [
+        '/reset-password',
+        '/restablecer-contrase%C3%B1a',
+        '/restablecer-clave',
+        '/reestablecer-contrasena',
+        '/reestablecer-contrase%C3%B1a',
+        '/reestablecer-clave',
+      ].map(path => [path, { redirect: { to: '/restablecer-contrasena', statusCode: 301 } }]),
+    ),
   },
 
   modules: [
