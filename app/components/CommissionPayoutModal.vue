@@ -222,7 +222,7 @@ async function onConfirm() {
                 <tr v-for="p in preview.perPromoter" v-else :key="p.promoterUuid">
                   <td class="px-4 py-2.5 font-medium">
                     <CommonEntityLinkCell
-                      :to="`/dashboard/promoters/${p.promoterUuid}`"
+                      :to="`/dashboard/advisors/${p.promoterUuid}`"
                       :label="p.promoterDisplayName"
                       :can="canViewPromoter"
                     />

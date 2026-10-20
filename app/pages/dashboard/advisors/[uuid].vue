@@ -172,7 +172,7 @@ async function confirmDelete() {
       color: wasPhysical ? 'success' : 'info',
       icon: wasPhysical ? 'i-lucide-check-circle' : 'i-lucide-info',
     })
-    await navigateTo('/dashboard/promoters')
+    await navigateTo('/dashboard/advisors')
   }
   catch {
     // toast handled by useApi
@@ -374,7 +374,7 @@ async function loadCommissionsSummary() {
       color="neutral"
       variant="ghost"
       icon="i-lucide-arrow-left"
-      to="/dashboard/promoters"
+      to="/dashboard/advisors"
       size="sm"
     >
       {{ t('promoters.title') }}
@@ -423,7 +423,7 @@ async function loadCommissionsSummary() {
               :title="t('common.refreshRecord')"
               @refresh="refreshAll"
             />
-            <ReportPrintButton :record-uuid="promoterUuid" variant="ghost" />
+            <ReportPrintButton table-name="promoters" :record-uuid="promoterUuid" variant="ghost" />
             <UTooltip :text="promoter.system ? t('promoters.systemLocked') : (canUpdate ? t('promoters.editTooltip') : t('promoters.noPermissionEdit'))">
               <UButton
                 color="info"
@@ -497,7 +497,7 @@ async function loadCommissionsSummary() {
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.fields.promoterTypeUuid') }}</dt>
             <dd class="mt-0.5">
               <CommonEntityLinkCell
-                :to="promoter.promoterType_Uuid ? `/dashboard/catalogs/promoter-types?edit=${promoter.promoterType_Uuid}` : null"
+                :to="promoter.promoterType_Uuid ? `/dashboard/catalogs/advisor-types?edit=${promoter.promoterType_Uuid}` : null"
                 :label="promoter.promoterType_Display"
                 :can="canViewPromoterType"
               />
@@ -507,7 +507,7 @@ async function loadCommissionsSummary() {
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.fields.rankUuid') }}</dt>
             <dd class="mt-0.5">
               <CommonEntityLinkCell
-                :to="promoter.rank_Uuid ? `/dashboard/catalogs/promoter-ranks?edit=${promoter.rank_Uuid}` : null"
+                :to="promoter.rank_Uuid ? `/dashboard/catalogs/advisor-ranks?edit=${promoter.rank_Uuid}` : null"
                 :label="promoter.rank_Display"
                 :can="canViewRank"
               />
@@ -517,7 +517,7 @@ async function loadCommissionsSummary() {
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.fields.supervisorUuid') }}</dt>
             <dd class="mt-0.5">
               <CommonEntityLinkCell
-                :to="promoter.supervisor_Uuid ? `/dashboard/promoters/${promoter.supervisor_Uuid}` : null"
+                :to="promoter.supervisor_Uuid ? `/dashboard/advisors/${promoter.supervisor_Uuid}` : null"
                 :label="promoter.supervisor_Display"
                 :can="canViewPromoterAll"
               />

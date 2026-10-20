@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // Promoter profile: profile photo + the promoter's unique affiliation QR
-// (GET /v1/promoter/me/qr, PROMOTER_VIEW_OWN). The QR encodes the public
+// (GET /v1/advisors/me/qr, PROMOTER_VIEW_OWN). The QR encodes the public
 // /afiliarse link carrying the promoter's referral code.
 definePageMeta({
   layout: 'dashboard',
@@ -25,7 +25,7 @@ const loading = ref(true)
 
 onMounted(async () => {
   try {
-    qr.value = await useApi<PromoterQr>('/v1/promoter/me/qr')
+    qr.value = await useApi<PromoterQr>('/v1/advisors/me/qr')
   }
   catch {
     qr.value = null

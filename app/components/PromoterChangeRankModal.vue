@@ -97,7 +97,7 @@ async function load() {
       limit: 200,
     })
     rankOptions.value = toSelectItems(options)
-    allRanks.value = await useCatalog('/v1/admin/promoter-ranks').listAll()
+    allRanks.value = await useCatalog('/v1/admin/advisor-ranks').listAll()
   }
   catch {
     // useApi ya notificó el error

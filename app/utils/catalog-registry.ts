@@ -237,14 +237,15 @@ export const CATALOGS: CatalogDef[] = [
     ],
   },
   {
-    key: 'promoter-types',
-    basePath: '/v1/admin/catalogs/promoter-types',
+    key: 'advisor-types',
+    tableName: 'promoter_types',
+    basePath: '/v1/admin/catalogs/advisor-types',
     viewPermission: 'PROMOTER_TYPE_VIEW_ALL',
     createPermission: 'PROMOTER_TYPE_CREATE',
     updatePermission: 'PROMOTER_TYPE_UPDATE',
     deletePermission: 'PROMOTER_TYPE_DELETE',
-    label: 'Tipos de promotor',
-    labelSingular: 'Tipo de promotor',
+    label: 'Tipos de asesor',
+    labelSingular: 'Tipo de asesor',
     labelKey: 'catalogs.registry.promoter-types.label',
     labelSingularKey: 'catalogs.registry.promoter-types.labelSingular',
     icon: 'i-lucide-badge-percent',
@@ -264,8 +265,9 @@ export const CATALOGS: CatalogDef[] = [
     ],
   },
   {
-    key: 'promoter-ranks',
-    basePath: '/v1/admin/promoter-ranks',
+    key: 'advisor-ranks',
+    tableName: 'promoter_ranks',
+    basePath: '/v1/admin/advisor-ranks',
     viewPermission: 'PROMOTER_RANK_VIEW_ALL',
     createPermission: 'PROMOTER_RANK_CREATE',
     updatePermission: 'PROMOTER_RANK_UPDATE',
@@ -293,7 +295,7 @@ export const CATALOGS: CatalogDef[] = [
       // field, but re-parenting to a different superior is a plain edit.
       // `null` = top of the hierarchy. Gated by the same `updatePermission`
       // as the rest of the form — no separate field-level permission exists.
-      { name: 'parentRankUuid', label: 'Cargo superior', labelKey: 'catalogs.fields.superiorRank', type: 'parent', parentKey: 'promoter-ranks' },
+      { name: 'parentRankUuid', label: 'Cargo superior', labelKey: 'catalogs.fields.superiorRank', type: 'parent', parentKey: 'advisor-ranks' },
       { name: 'description', label: 'Descripción', labelKey: 'catalogs.fields.description', type: 'textarea', max: 200 },
     ],
   },

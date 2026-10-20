@@ -2,7 +2,7 @@
 import type { CatalogItem } from '~/types/catalogs'
 
 /**
- * One row of the vertical rank tree (`/dashboard/catalogs/promoter-ranks`,
+ * One row of the vertical rank tree (`/dashboard/catalogs/advisor-ranks`,
  * side panel next to the table) — classic file-explorer style: a
  * +/− expand toggle, a folder icon, and an indent guide per level. The tree
  * is built once in the page from each rank's real `parentRankUuid` FK (this

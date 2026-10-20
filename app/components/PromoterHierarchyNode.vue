@@ -2,7 +2,7 @@
 import type { PromoterHierarchyNodeDto } from '~/types/promoters'
 
 /**
- * Un nodo del organigrama (`/dashboard/promoters/hierarchy`), recursivo —
+ * Un nodo del organigrama (`/dashboard/advisors/hierarchy`), recursivo —
  * se renderiza a sí mismo por cada hijo. Mismo patrón visual colapsable que
  * `RolePermissionsModal` (borde redondeado, header con chevron).
  */
@@ -45,7 +45,7 @@ const canViewPromoter = computed(() => can('PROMOTER_VIEW_ALL'))
 
       <span class="font-semibold truncate">
         <CommonEntityLinkCell
-          :to="`/dashboard/promoters/${node.uuid}`"
+          :to="`/dashboard/advisors/${node.uuid}`"
           :label="node.displayName"
           :can="canViewPromoter"
         />

@@ -162,7 +162,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('members.promoter.current') }}</dt>
         <dd v-if="currentPromoterUuid" class="font-semibold">
           <CommonEntityLinkCell
-            :to="`/dashboard/promoters/${currentPromoterUuid}`"
+            :to="`/dashboard/advisors/${currentPromoterUuid}`"
             :label="currentPromoterName"
             :can="canViewPromoter"
           />

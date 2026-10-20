@@ -48,7 +48,7 @@ export const useCatalog = (basePath: string) => {
 
   /**
    * Moves a record to the position immediately after `afterRankUuid` (`null`
-   * = first). Only `promoter-ranks` exposes this today (`PROMOTER_RANK_REORDER`),
+   * = first). Only `advisor-ranks` exposes this today (`PROMOTER_RANK_REORDER`),
    * but it's defined generically here like the rest of this factory's methods.
    * Returns the full, freshly-ordered list — callers typically ignore it and
    * just re-`load()`, same as after create/update/delete.

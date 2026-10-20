@@ -31,7 +31,7 @@ const { t } = useI18n()
 const tiers = useCollectionCommissionTiers()
 const currencies = useCurrencies()
 const campaignsApi = useCampaigns()
-const promoterTypeOptions = useCatalogOptions('promoter-types')
+const promoterTypeOptions = useCatalogOptions('advisor-types')
 const toast = useToast()
 const { can } = usePermissions()
 

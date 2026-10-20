@@ -1,5 +1,5 @@
 // Tipos del vertical de Promotores, Comisiones y Referidos
-// (/v1/admin/promoters, /v1/admin/commissions, /v1/admin/referral-codes, /v1/me/referrals).
+// (/v1/admin/advisors, /v1/admin/commissions, /v1/admin/referral-codes, /v1/me/referrals).
 //
 // Los campos `status` llegan como String en el backend pero están fijados por CHECK
 // constraints a literales del enum de la entidad (PromoterStatus, CommissionStatus,
@@ -185,7 +185,7 @@ export interface PromoterDossierFields {
   cityUuid?: string
 }
 
-/** Personal reference of an advisor (GET /v1/admin/promoters/{uuid}/references). */
+/** Personal reference of an advisor (GET /v1/admin/advisors/{uuid}/references). */
 export interface PromoterReferenceDto {
   uuid: string
   promoterUuid: string
@@ -211,7 +211,7 @@ export interface PromoterReferenceRequest {
 
 /**
  * One advisor payout account (backend V184) — N per advisor, at most one default.
- * GET /v1/admin/promoters/{uuid}/payout-accounts and GET /v1/promoter/me/payout-accounts
+ * GET /v1/admin/advisors/{uuid}/payout-accounts and GET /v1/advisors/me/payout-accounts
  * return them default first, then oldest first. Which fields apply depends on the
  * payment method's `mandatory*` flags.
  */
@@ -276,7 +276,7 @@ export interface PromoterMemberRow {
 }
 
 /**
- * Body of GET /v1/admin/promoters/{uuid}/portfolio — a promoter's portfolio +
+ * Body of GET /v1/admin/advisors/{uuid}/portfolio — a promoter's portfolio +
  * collection health. `periodStart`/`periodEnd` carry a `_Display` sibling;
  * `periodCommissions` does NOT (same MONEY→VES case).
  */
@@ -299,7 +299,7 @@ export interface PromoterDashboardDto {
 }
 
 /**
- * One row of GET /v1/admin/promoters/{uuid}/commissions/summary — commissions
+ * One row of GET /v1/admin/advisors/{uuid}/commissions/summary — commissions
  * aggregated by period. `periodStrategy`/`periodStart`/`periodEnd` carry a
  * `_Display` sibling; `totalAmount` does NOT (same MONEY→VES case).
  */
@@ -315,7 +315,7 @@ export interface CommissionPeriodSummaryDto {
   currency: string
 }
 
-/** Body de POST /v1/admin/promoters (crea un promotor HUMANO; la fila INSTITUCION no se crea aquí). */
+/** Body de POST /v1/admin/advisors (crea un promotor HUMANO; la fila INSTITUCION no se crea aquí). */
 export interface PromoterCreateRequest {
   displayName: string
   description?: string
@@ -330,7 +330,7 @@ export interface PromoterCreateRequest {
 }
 
 /**
- * Body de PUT /v1/admin/promoters/{uuid} (PATCH semantics).
+ * Body de PUT /v1/admin/advisors/{uuid} (PATCH semantics).
  * `referralCode`, `userUuid`, `personUuid`, `system` y los contadores NO son editables.
  */
 export interface PromoterUpdateRequest {
@@ -726,7 +726,7 @@ export function referralStatusColor(status?: ReferralStatus | string | null) {
 // ---- Jerarquía de promotores (V101/V104, hub plan hierarchical-commissions) ----
 
 /**
- * One node of GET /v1/admin/promoters/hierarchy-tree — feeds the org-chart
+ * One node of GET /v1/admin/advisors/hierarchy-tree — feeds the org-chart
  * view directly. Editing (move under another rank, or detach to become a
  * root) goes through `assign-supervisor`/`change-rank`, never a separate
  * write endpoint; `supervisorUuid` is carried here precisely so the client
@@ -742,13 +742,13 @@ export interface PromoterHierarchyNodeDto {
   children: PromoterHierarchyNodeDto[]
 }
 
-/** Body de POST /v1/admin/promoters/{uuid}/assign-supervisor. `supervisorUuid: null` = desasignar (tope de su propia cadena). */
+/** Body de POST /v1/admin/advisors/{uuid}/assign-supervisor. `supervisorUuid: null` = desasignar (tope de su propia cadena). */
 export interface AssignSupervisorRequest {
   supervisorUuid: string | null
   reason: string
 }
 
-/** Body de POST /v1/admin/promoters/{uuid}/change-rank. `newSupervisorUuid` requerido salvo que `newRankUuid` sea el rango más alto. */
+/** Body de POST /v1/admin/advisors/{uuid}/change-rank. `newSupervisorUuid` requerido salvo que `newRankUuid` sea el rango más alto. */
 export interface ChangeRankRequest {
   newRankUuid: string
   newSupervisorUuid: string | null
@@ -804,14 +804,14 @@ export interface MyReferralDto {
   createdAt_Display?: string | null
 }
 
-// ---- Portfolio management self-service (/v1/promoter/me, v2 PDF 2.b) ----
+// ---- Portfolio management self-service (/v1/advisors/me, v2 PDF 2.b) ----
 
 /** Mirrors `PromoterMemberContact.ContactType` (V36). */
 export type PromoterContactType = 'REMINDER' | 'PAYMENT_PROMISE' | 'NOTE'
 
 /**
  * A logged portfolio-management contact — item of
- * GET /v1/promoter/me/contacts?memberUuid= (newest first) and the echo of
+ * GET /v1/advisors/me/contacts?memberUuid= (newest first) and the echo of
  * POST .../reminder and .../payment-promise (@JsonInclude(NON_NULL)).
  * `promised*` are present only for PAYMENT_PROMISE. Scalars carry a
  * `_Display` sibling (hub ADR 0014); `promisedAmount_Display` is the backend
@@ -832,13 +832,13 @@ export interface PromoterMemberContactDto {
   createdAt_Display?: string | null
 }
 
-/** Body of POST /v1/promoter/me/contacts/{memberUuid}/reminder — body itself is optional. */
+/** Body of POST /v1/advisors/me/contacts/{memberUuid}/reminder — body itself is optional. */
 export interface PromoterReminderRequest {
   /** max 2000 chars */
   note?: string
 }
 
-/** Body of POST /v1/promoter/me/contacts/{memberUuid}/payment-promise. */
+/** Body of POST /v1/advisors/me/contacts/{memberUuid}/payment-promise. */
 export interface PromoterPaymentPromiseRequest {
   /** >= 0.01, up to 8 integer + 2 fraction digits */
   promisedAmount: number
@@ -849,7 +849,7 @@ export interface PromoterPaymentPromiseRequest {
 }
 
 /**
- * Body of GET /v1/promoter/me/collection-score — share of the advisor's
+ * Body of GET /v1/advisors/me/collection-score — share of the advisor's
  * portfolio that is up to date. `scorePct` = upToDate / activeAffiliates × 100
  * (0 when the portfolio is empty); carries a `NUMBER` `_Display` sibling.
  */

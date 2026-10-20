@@ -118,19 +118,19 @@ export const useMembers = () => {
   // ---- Enlace permanente promotor (MEMBER_ASSIGN_PROMOTER) ----
   /** Reasigna o vincula (si el afiliado no tenía) el promotor. `body` trae promoterUuid XOR referralCode. */
   const assignPromoter = (memberUuid: string, body: AssignPromoterRequest) =>
-    useApi<MemberPromoterAssignmentDto>(`/v1/admin/members/${memberUuid}/assign-promoter`, { method: 'POST', body })
+    useApi<MemberPromoterAssignmentDto>(`/v1/admin/members/${memberUuid}/assign-advisor`, { method: 'POST', body })
 
   /** Histórico de reasignaciones del afiliado, más reciente primero. */
   const promoterHistory = (memberUuid: string) =>
-    useApi<MemberPromoterAssignmentDto[]>(`/v1/admin/members/${memberUuid}/promoter-history`)
+    useApi<MemberPromoterAssignmentDto[]>(`/v1/admin/members/${memberUuid}/advisor-history`)
 
   /** Reasigna en lote los afiliados seleccionados a un promotor; omite los que ya son suyos. */
   const bulkAssignPromoter = (body: BulkAssignPromoterRequest) =>
-    useApi<MemberPromoterAssignmentDto[]>('/v1/admin/members/promoter/bulk-assign', { method: 'POST', body })
+    useApi<MemberPromoterAssignmentDto[]>('/v1/admin/members/advisor/bulk-assign', { method: 'POST', body })
 
   /** Pasa toda la cartera de un promotor a su supervisor activo más cercano (o a INSTITUCION si no tiene). */
   const portfolioToSupervisor = (body: PortfolioToSupervisorRequest) =>
-    useApi<MemberPromoterAssignmentDto[]>('/v1/admin/members/promoter/portfolio-to-supervisor', { method: 'POST', body })
+    useApi<MemberPromoterAssignmentDto[]>('/v1/admin/members/advisor/portfolio-to-supervisor', { method: 'POST', body })
 
   // ---- Confirmación manual del afiliado (MEMBER_CONFIRM) ----
   /** Para afiliados cubiertos por subsidio que nunca generan pago (la confirmación normal ocurre al aprobar el primer pago). */

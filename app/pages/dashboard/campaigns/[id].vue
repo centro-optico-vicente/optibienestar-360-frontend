@@ -723,7 +723,7 @@ async function confirmRemoveException() {
               </tr>
               <tr v-for="m in audience" v-else :key="m.uuid" class="hover:bg-prohealth-50/50">
                 <td class="px-6 py-3 font-medium text-prohealth-900">
-                  <CommonEntityLinkCell :to="`/dashboard/promoters/${m.promoter_Uuid}`" :label="m.promoter_Display" :can="true" />
+                  <CommonEntityLinkCell :to="`/dashboard/advisors/${m.promoter_Uuid}`" :label="m.promoter_Display" :can="true" />
                 </td>
                 <td class="px-6 py-3 text-right">
                   <UButton v-if="canUpdate" color="error" variant="ghost" icon="i-lucide-trash-2" size="sm" @click="openRemoveAudience(m)" />

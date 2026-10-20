@@ -5,7 +5,7 @@
 
 ## Admin
 
-- [ ] [P0/C3] Página `pages/admin/promoters/index.vue` + wizard
+- [ ] [P0/C3] Página `pages/dashboard/advisors/index.vue` + wizard
 - [ ] [P0/C3] Página `pages/admin/commissions/index.vue` (cierre ciclo)
 
 ## Portales
@@ -24,14 +24,14 @@
 
 ### Promotores: dashboard + enlace permanente (PDF #4)
 
-- [ ] [v2] [P0/C3] `pages/advisors/dashboard.vue` contra `GET /v1/promoter/me`: afiliados activos, cobranza al-día/vencida (totales + drill-down al afiliado), comisiones del período, posición en leaderboard.
+- [ ] [v2] [P0/C3] `pages/advisors/dashboard.vue` contra `GET /v1/advisors/me`: afiliados activos, cobranza al-día/vencida (totales + drill-down al afiliado), comisiones del período, posición en leaderboard.
 - [ ] [v2] [P0/C2] Mostrar el `referral_code` único del promotor (para compartir; tracking de altas).
-- [x] [v2] [P0/C2] Admin: acción "Asignar/Trasladar promotor" (`POST /v1/admin/members/{uuid}/assign-promoter`, permiso `MEMBER_ASSIGN_PROMOTER`) con `reason`. Aclarar en UI que es **enlace permanente** y no retroactivo. _(Implementado 2026-08-07: columna "Promotor" (nombre + link) en `pages/dashboard/members/index.vue`; `components/MemberPromoterCard.vue` en el detalle del afiliado con promotor actual, botón "Cambiar promotor" (selección de promotor destino) o "Vincular por código" (cuando no hay promotor — `assign-promoter` acepta `promoterUuid` XOR `referralCode`), tabla de histórico (`GET .../promoter-history`) y aviso de enlace permanente/no retroactivo. Tipos nuevos en `types/members.ts` (`MemberPromoterAssignmentDto`, `AssignPromoterRequest`); métodos `assignPromoter`/`promoterHistory` en `useMembers.ts`. Junto con esto se agregó soporte de confirmación de afiliado — `components/MemberConfirmationCard.vue` (fecha de creación + confirmación + botón "Confirmar manualmente", `POST .../confirm`, permiso `MEMBER_CONFIRM`), no cubierto por ningún ítem previo de este checklist. `pnpm typecheck` verde.)_
+- [x] [v2] [P0/C2] Admin: acción "Asignar/Trasladar promotor" (`POST /v1/admin/members/{uuid}/assign-advisor`, permiso `MEMBER_ASSIGN_PROMOTER`) con `reason`. Aclarar en UI que es **enlace permanente** y no retroactivo. _(Implementado 2026-08-07: columna "Promotor" (nombre + link) en `pages/dashboard/members/index.vue`; `components/MemberPromoterCard.vue` en el detalle del afiliado con promotor actual, botón "Cambiar promotor" (selección de promotor destino) o "Vincular por código" (cuando no hay promotor — `assign-advisor` acepta `promoterUuid` XOR `referralCode`), tabla de histórico (`GET .../advisor-history`) y aviso de enlace permanente/no retroactivo. Tipos nuevos en `types/members.ts` (`MemberPromoterAssignmentDto`, `AssignPromoterRequest`); métodos `assignPromoter`/`promoterHistory` en `useMembers.ts`. Junto con esto se agregó soporte de confirmación de afiliado — `components/MemberConfirmationCard.vue` (fecha de creación + confirmación + botón "Confirmar manualmente", `POST .../confirm`, permiso `MEMBER_CONFIRM`), no cubierto por ningún ítem previo de este checklist. `pnpm typecheck` verde.)_
 
 ### Cobranza delegada (PDF #2.b)
 
-- [ ] [v2] [P0/C2] En el drill-down de un afiliado del promotor: registrar **recordatorio** (`POST /v1/promoter/me/contacts/{memberUuid}/reminder`) y **promesa de pago** (`.../payment-promise` con monto + fecha).
-- [ ] [v2] [P0/C2] Historial de gestiones (`GET /v1/promoter/me/contacts?memberUuid=...`) + **collection-score** (`GET /v1/promoter/me/collection-score`) como indicador % de cartera al día. El promotor solo ve/gestiona sus propios afiliados.
+- [ ] [v2] [P0/C2] En el drill-down de un afiliado del promotor: registrar **recordatorio** (`POST /v1/advisors/me/contacts/{memberUuid}/reminder`) y **promesa de pago** (`.../payment-promise` con monto + fecha).
+- [ ] [v2] [P0/C2] Historial de gestiones (`GET /v1/advisors/me/contacts?memberUuid=...`) + **collection-score** (`GET /v1/advisors/me/collection-score`) como indicador % de cartera al día. El promotor solo ve/gestiona sus propios afiliados.
 
 ### Comisiones escalonadas y leaderboard (PDF #5)
 

@@ -121,7 +121,7 @@ const items = computed(() => {
     { label: 'Afiliados', to: '/admin/members', icon: 'i-heroicons-users', permission: 'MEMBER_VIEW_ALL' },
     { label: 'Aliados', to: '/admin/allies', icon: 'i-heroicons-building-storefront', permission: 'ALLY_VIEW_ALL' },
     { label: 'Pagos', to: '/admin/payments', icon: 'i-heroicons-banknotes', permission: 'PAYMENT_VIEW_ALL' },
-    { label: 'Promotores', to: '/admin/promoters', icon: 'i-heroicons-megaphone', permission: 'PROMOTER_VIEW_ALL' },
+    { label: 'Asesores', to: '/dashboard/advisors', icon: 'i-heroicons-megaphone', permission: 'PROMOTER_VIEW_ALL' },
     { label: 'Reportes', to: '/admin/reports', icon: 'i-heroicons-chart-bar', permission: 'REPORT_VIEW_DASHBOARD' },
 
     // Aliado

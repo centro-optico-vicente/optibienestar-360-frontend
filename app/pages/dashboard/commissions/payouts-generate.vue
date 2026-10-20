@@ -28,8 +28,8 @@ useSeoMeta({ title: () => t('common.seoTitle', { page: t('commissions.payoutGene
 const commissions = useCommissions()
 const promotersApi = usePromoters()
 const campaignsApi = useCampaigns()
-const promoterTypeOptions = useCatalogOptions('promoter-types')
-const rankCatalog = useCatalog('/v1/admin/promoter-ranks')
+const promoterTypeOptions = useCatalogOptions('advisor-types')
+const rankCatalog = useCatalog('/v1/admin/advisor-ranks')
 const { can } = usePermissions()
 
 const canViewPromoter = computed(() => can('PROMOTER_VIEW_ALL'))
@@ -652,7 +652,7 @@ async function onPayoutDone() {
                     <td class="px-4 py-2.5">
                       <div class="font-semibold">
                         <CommonEntityLinkCell
-                          :to="row.promoter_Uuid ? `/dashboard/promoters/${row.promoter_Uuid}` : null"
+                          :to="row.promoter_Uuid ? `/dashboard/advisors/${row.promoter_Uuid}` : null"
                           :label="row.promoter_Display"
                           :can="canViewPromoter"
                         />
@@ -696,7 +696,7 @@ async function onPayoutDone() {
                 <td class="px-4 py-2.5">
                   <div class="font-semibold">
                     <CommonEntityLinkCell
-                      :to="row.promoter_Uuid ? `/dashboard/promoters/${row.promoter_Uuid}` : null"
+                      :to="row.promoter_Uuid ? `/dashboard/advisors/${row.promoter_Uuid}` : null"
                       :label="row.promoter_Display"
                       :can="canViewPromoter"
                     />

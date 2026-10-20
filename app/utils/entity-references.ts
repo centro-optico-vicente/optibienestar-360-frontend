@@ -55,8 +55,8 @@ const CATALOG_ENTITY_KEYS: Partial<Record<EntityReferenceKey, string>> = {
   profession: 'professions',
   service_category: 'service-categories',
   ally_type: 'ally-types',
-  promoter_type: 'promoter-types',
-  promoter_rank: 'promoter-ranks',
+  promoter_type: 'advisor-types',
+  promoter_rank: 'advisor-ranks',
   currency: 'currencies',
 }
 
@@ -70,7 +70,7 @@ const ENTITY_ROUTES: Partial<Record<EntityReferenceKey, EntityReferenceDef>> = {
   ally: { to: uuid => `/dashboard/allies/${uuid}`, permission: 'ALLY_VIEW_ALL' },
   member: { to: uuid => `/dashboard/members/${uuid}`, permission: 'MEMBER_VIEW_ALL' },
   payment: { to: uuid => `/dashboard/collections/${uuid}`, permission: 'PAYMENT_VIEW_ALL' },
-  promoter: { to: uuid => `/dashboard/promoters/${uuid}`, permission: 'PROMOTER_VIEW_ALL' },
+  promoter: { to: uuid => `/dashboard/advisors/${uuid}`, permission: 'PROMOTER_VIEW_ALL' },
   scheduled_job: { to: uuid => `/dashboard/scheduled-jobs/${uuid}`, permission: 'JOB_VIEW_ALL' },
   document_type: { to: () => '/dashboard/catalogs/document-types', permission: 'DOCUMENT_TYPE_VIEW_ALL' },
   campaign: { to: uuid => `/dashboard/campaigns/${uuid}`, permission: 'CAMPAIGN_VIEW_ALL' },
