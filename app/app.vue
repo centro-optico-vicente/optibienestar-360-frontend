@@ -18,6 +18,9 @@ watch(() => auth.isAuthenticated, (isAuthenticated) => {
 // Keep <html lang> in sync with the active UI locale (a11y/SEO).
 useHead({ htmlAttrs: { lang: () => locale.value } })
 
+// Public screens: hreflang alternates (es/en/x-default) + canonical per language.
+usePublicRouteHead()
+
 // Pre-login hint: honor the last chosen language before any session exists.
 applyHint()
 

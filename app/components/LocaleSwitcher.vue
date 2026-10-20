@@ -7,10 +7,14 @@ import { SUPPORTED_LOCALES, useAppLocale } from '~/composables/useAppLocale'
  * (ES / EN) and lists the available languages by their own name (autonyms — not
  * translated). When authenticated the choice is persisted to the backend via
  * `useAppLocale.changeLocale`; otherwise it only switches locally and stores the
- * pre-login hint.
+ * pre-login hint. On a public screen it also navigates to the same screen's URL
+ * in the chosen language (`/aliados/x` ↔ `/en/allies/x`), keeping query and hash
+ * (the reset link's `?token=`, the QR's `?ref=`), since there the URL decides the
+ * language.
  */
 const { t } = useI18n()
 const { current, changeLocale } = useAppLocale()
+const route = useRoute()
 const pending = ref(false)
 
 // Autonyms: each language shown in its own name regardless of the active UI locale.
@@ -21,6 +25,10 @@ async function select(code: LocaleCode): Promise<void> {
   pending.value = true
   try {
     await changeLocale(code)
+    const paired = localizePublicPath(route.path, code)
+    if (paired && paired !== route.path) {
+      await navigateTo({ path: paired, query: route.query, hash: route.hash })
+    }
   }
   finally {
     pending.value = false

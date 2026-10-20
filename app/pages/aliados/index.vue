@@ -4,9 +4,13 @@ import type { PublicAllyListItemDto } from '~/types/allies'
 
 // PUBLIC partner directory (no login). Only shows PUBLISHED+ACTIVE partners with
 // data sanitized by the backend (/v1/public/allies).
-definePageMeta({ layout: 'default' })
+// English pair of this public screen (hub URL convention): same page, rendered
+// in English by middleware/public-locale.global.ts. The fixed `key` keeps the
+// component (and any typed input) when the switcher jumps between the two URLs.
+definePageMeta({ layout: 'default', alias: ['/en/allies'], key: 'public-allies' })
 
 const { t } = useI18n()
+const publicPath = usePublicPath()
 
 useSeoMeta({
   title: () => t('allies.public.seoTitle'),
@@ -226,7 +230,7 @@ onMounted(async () => {
         <NuxtLink
           v-for="a in data"
           :key="a.uuid"
-          :to="`/aliados/${a.uuid}`"
+          :to="publicPath(`/aliados/${a.uuid}`)"
           class="group bg-white rounded-2xl border border-prohealth-100 p-5 hover:border-cyan-300 hover:shadow-md transition-all"
         >
           <div class="flex items-start justify-between gap-3">

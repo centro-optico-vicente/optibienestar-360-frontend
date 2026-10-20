@@ -17,6 +17,8 @@ definePageMeta({
 })
 
 const { t } = useI18n()
+// The public directory link follows the UI language (/aliados or /en/allies).
+const publicPath = usePublicPath()
 
 useSeoMeta({ title: () => t('allies.portal.seoTitle') })
 
@@ -243,7 +245,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       <ol class="list-decimal list-inside space-y-1 text-prohealth-700">
         <li>{{ t('allies.portal.help.step1') }}</li>
         <li>{{ t('allies.portal.help.step2') }}</li>
-        <li>{{ t('allies.portal.help.step3pre') }}<NuxtLink to="/aliados" class="text-cyan-700 hover:underline">{{ t('allies.portal.help.step3link') }}</NuxtLink>{{ t('allies.portal.help.step3post') }}</li>
+        <li>{{ t('allies.portal.help.step3pre') }}<NuxtLink :to="publicPath('/aliados')" class="text-cyan-700 hover:underline">{{ t('allies.portal.help.step3link') }}</NuxtLink>{{ t('allies.portal.help.step3post') }}</li>
       </ol>
     </div>
   </div>

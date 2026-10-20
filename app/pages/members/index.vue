@@ -11,6 +11,8 @@ definePageMeta({
 })
 
 const { t } = useI18n()
+// The public directory link follows the UI language (/aliados or /en/allies).
+const publicPath = usePublicPath()
 const { formatDate } = useFormatters()
 
 useSeoMeta({ title: () => t('members.portal.seoTitle') })
@@ -289,7 +291,7 @@ function relationshipLabel(r?: string | null): string {
             </i18n-t>
           </p>
         </div>
-        <UButton to="/aliados" color="primary" variant="soft" size="sm" trailing-icon="i-lucide-arrow-right">
+        <UButton :to="publicPath('/aliados')" color="primary" variant="soft" size="sm" trailing-icon="i-lucide-arrow-right">
           {{ t('members.portal.directory.button') }}
         </UButton>
       </div>

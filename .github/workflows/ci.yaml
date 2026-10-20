@@ -176,6 +176,21 @@ jobs:
               || { echo "::error::/$path must not redirect"; exit 1; }
           done
 
+      - name: Smoke test — English pairs of the public URLs serve the SPA (200, no redirect)
+        run: |
+          for path in en en/allies en/allies/00000000-0000-0000-0000-000000000000 'en/join?ref=ABC123' \
+            en/forgot-password 'en/reset-password?token=x' 'afiliarse?ref=ABC123'; do
+            headers=$(curl -sI "http://127.0.0.1:18080/$path")
+            echo "$headers" | head -1 | grep -q ' 200' \
+              || { echo "::error::/$path must answer 200"; echo "$headers"; exit 1; }
+            if echo "$headers" | grep -qi '^location:'; then
+              echo "::error::/$path must not redirect"; echo "$headers"; exit 1
+            fi
+          done
+          body=$(curl -sf 'http://127.0.0.1:18080/en/reset-password?token=x')
+          echo "$body" | grep -qE '<div id="__nuxt"|/_nuxt/' \
+            || { echo "::error::/en/reset-password did not return the Nuxt app shell"; exit 1; }
+
       - name: Smoke test — old portal URLs 301 to the English plural ones
         run: |
           headers=$(curl -sI 'http://127.0.0.1:18080/aliado/validator?q=1')

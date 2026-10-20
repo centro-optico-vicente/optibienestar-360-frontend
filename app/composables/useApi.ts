@@ -104,7 +104,7 @@ export const useApi = async <T = unknown>(
         return useApi<T>(url, { ...options, _retried: true })
       }
       auth.clearSession()
-      if (import.meta.client) await navigateTo('/')
+      if (import.meta.client) await navigateTo(currentLoginPath())
     }
 
     // Global notification (except silenced ones and errors the component handles).
