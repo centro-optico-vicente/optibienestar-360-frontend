@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { BenefitUsageDto } from '~/types/benefits'
 
-// Usage history for every ally the operator works at (GET /v1/ally/usage-history,
+// Usage history for every ally the operator works at (GET /v1/allies/me/usage-history,
 // ALLY_VIEW_OWN). Scope is implicit in the JWT — the backend resolves "my allies"
 // through the AllyUser pivot, so there is no ally filter to pass and no way to
 // read another partner's feed. Newest first.

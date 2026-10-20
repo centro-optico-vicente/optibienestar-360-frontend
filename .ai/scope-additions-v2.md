@@ -20,7 +20,7 @@
 | 3 | Planes Corporativos y Masivos | [vista-5](checklists/vertical-5-planes-y-membresias.md) | `/v1/admin/corporate-contracts*` |
 | 4 | Módulo de Promotores y Asesores | [vista-8](checklists/vertical-8-promotores-comisiones-referidos.md) | `/v1/advisors/me`, `/v1/admin/members/{uuid}/assign-advisor` |
 | 5 | Motor de Comisiones + Premiaciones | [vista-8](checklists/vertical-8-promotores-comisiones-referidos.md) | `/v1/admin/leaderboard`, config `commission_tiers` |
-| 6 | Flujo de Aprobación Aliados | [vista-3](checklists/vertical-3-aliados.md) | `/v1/aliado/services*`, `/v1/admin/ally-services/*` |
+| 6 | Flujo de Aprobación Aliados | [vista-3](checklists/vertical-3-aliados.md) | `/v1/allies/me/services*`, `/v1/admin/ally-services/*` |
 | 7 | Inclusión/Modificación de Beneficiarios | [vista-4](checklists/vertical-4-afiliados-y-familia.md) + [vista-5](checklists/vertical-5-planes-y-membresias.md) | `/v1/admin/members/{uuid}/beneficiaries*` |
 
 ## Adicional cross-cutting fuera del PDF: i18n bilingüe

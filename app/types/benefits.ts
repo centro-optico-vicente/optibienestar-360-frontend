@@ -1,4 +1,4 @@
-// Types for benefit usage (/v1/ally/benefit-usage + /v1/ally/usage-history),
+// Types for benefit usage (/v1/allies/me/benefit-usages + /v1/allies/me/usage-history),
 // aligned with the backend (V24__benefit_usages.sql, BenefitUsageDto /
 // BenefitUsageRegisterRequest).
 //
@@ -10,7 +10,7 @@
 // Money (BigDecimal) may serialize as number or string depending on the
 // ObjectMapper; typed as `number | string` and always formatted through Number().
 
-/** Response of POST /v1/ally/benefit-usage and items of GET /v1/ally/usage-history. */
+/** Response of POST /v1/allies/me/benefit-usages and items of GET /v1/allies/me/usage-history. */
 export interface BenefitUsageDto {
   uuid: string
 
@@ -62,7 +62,7 @@ export interface BenefitUsageDto {
 }
 
 /**
- * Body of POST /v1/ally/benefit-usage.
+ * Body of POST /v1/allies/me/benefit-usages.
  *
  * `membershipUuid` comes from the validator response, `allyUuid` from
  * GET /v1/me/allies — neither is ever typed by the operator.

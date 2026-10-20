@@ -10,7 +10,7 @@ interface HistoryParams {
 }
 
 /**
- * Benefit usage at the counter (/v1/ally/benefit-usage + /v1/ally/usage-history).
+ * Benefit usage at the counter (/v1/allies/me/benefit-usages + /v1/allies/me/usage-history).
  * Backend permissions per action:
  * - register -> ALLY_REGISTER_USAGE
  * - history  -> ALLY_VIEW_OWN
@@ -28,7 +28,7 @@ export const useBenefitUsage = () => {
    * recorded. The caller should re-validate when that happens.
    */
   const register = (payload: BenefitUsageRegisterRequest) =>
-    useApi<BenefitUsageDto>('/v1/ally/benefit-usage', { method: 'POST', body: payload })
+    useApi<BenefitUsageDto>('/v1/allies/me/benefit-usages', { method: 'POST', body: payload })
 
   /**
    * Usage history for every ally the caller operates on — scope is implicit in
@@ -37,7 +37,7 @@ export const useBenefitUsage = () => {
    * number or full name (backend `?search=`), no RSQL.
    */
   const history = (params: HistoryParams = {}) =>
-    useApi<Page<BenefitUsageDto>>('/v1/ally/usage-history', {
+    useApi<Page<BenefitUsageDto>>('/v1/allies/me/usage-history', {
       query: {
         page: params.page ?? 0,
         size: params.size ?? 20,

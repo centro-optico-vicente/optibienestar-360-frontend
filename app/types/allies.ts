@@ -1,4 +1,4 @@
-// Types for the Partners vertical (/v1/admin/allies, /v1/public/allies, /v1/aliado),
+// Types for the Partners vertical (/v1/admin/allies, /v1/public/allies, /v1/allies/me),
 // aligned with the backend integration guide (V11–V12, PRs #57–#67).
 //
 // The admin list is paged (Page<AllyDto>) with RSQL + `q`. The detail includes
@@ -177,7 +177,7 @@ export interface UpdateAllyServiceRequest extends Partial<CreateAllyServiceReque
   status?: string
 }
 
-/** Body of POST /v1/aliado/services (proposal made by the partner itself). */
+/** Body of POST /v1/allies/me/services (proposal made by the partner itself). */
 export interface ProposeAllyServiceRequest extends CreateAllyServiceRequest {
   allyUuid: string
 }
@@ -299,7 +299,7 @@ export interface UpdateAllyUserRequest {
  * Response item of GET /v1/me/allies — "which allies do I operate on?".
  *
  * `uuid` is the ALLY's uuid (not the staff-membership pivot's): it is what
- * POST /v1/ally/benefit-usage and POST /v1/aliado/services expect as
+ * POST /v1/allies/me/benefit-usages and POST /v1/allies/me/services expect as
  * `allyUuid`, and reading it straight off this record is the whole point of
  * the endpoint. `allyRole` is the caller's authority inside this ally, so the
  * portal can hide write actions from a VIEWER instead of letting them 403 at

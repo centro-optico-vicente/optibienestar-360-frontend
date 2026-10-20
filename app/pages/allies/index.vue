@@ -5,7 +5,7 @@ import type { CatalogItem } from '~/types/catalogs'
 import type { AllyServiceDto, MyAllyDto } from '~/types/allies'
 import { ROLES } from '~/types/auth'
 
-// Partner panel: propose services (POST /v1/aliado/services, born in PROPOSED).
+// Partner panel: propose services (POST /v1/allies/me/services, born in PROPOSED).
 // The backend requires the user to have OWNER/STAFF membership in the given ally.
 //
 // The ally is resolved from GET /v1/me/allies — never typed. One ally (the common

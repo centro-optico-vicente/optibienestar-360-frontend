@@ -2,7 +2,7 @@
 import type { IScannerControls } from '@zxing/browser'
 
 // Camera QR scanner for the ally counter. Reads the affiliate's Digital
-// Credential QR (it encodes the member UUID, which GET /v1/ally/validate/{value}
+// Credential QR (it encodes the member UUID, which GET /v1/allies/me/validations/{value}
 // accepts as-is) and emits the decoded text once.
 //
 // @zxing/browser is plain JavaScript: the nginx CSP (`script-src 'self'`) blocks
