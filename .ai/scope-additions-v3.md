@@ -20,7 +20,7 @@
 | B | Comisión de cobranza por días + día de corte | [vista-8](checklists/vertical-8-promotores-comisiones-referidos.md) | config `collection_commission_tiers`, `memberships.billing_start_day` |
 | C | Referido-prosumidor → salto de mensualidad | [vista-8](checklists/vertical-8-promotores-comisiones-referidos.md) (afiliado) + cross-ref [vista-12](checklists/vertical-12-subsidios-y-exoneraciones.md) | `/v1/me/referrals`, subsidios auto-otorgados (`/v1/me/subsidies`) |
 | D1 | Fidelidad aliado (voucher por consumo/compras) | [vista-3](checklists/vertical-3-aliados.md) | `/v1/admin/loyalty-programs`, `/v1/me/loyalty-vouchers` |
-| D2 | Cortesía de aliado (regalo validable) | [vista-3](checklists/vertical-3-aliados.md) (portal aliado) | `/v1/aliado/courtesy-grants` |
+| D2 | Cortesía de aliado (regalo validable) | [vista-3](checklists/vertical-3-aliados.md) (portal aliado) | `/v1/allies/me/courtesy-grants` |
 
 ## Notas de equivalencia (qué NO replica el frontend)
 

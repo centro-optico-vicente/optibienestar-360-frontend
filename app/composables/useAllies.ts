@@ -164,7 +164,7 @@ export const useAllies = () => {
   // ---- Como aliado (panel /allies/*) ----
   /** Propone un servicio para mi ally (queda en reviewStatus=PROPOSED). */
   const proposeService = (body: ProposeAllyServiceRequest) =>
-    useApi<AllyServiceDto>('/v1/aliado/services', { method: 'POST', body })
+    useApi<AllyServiceDto>('/v1/allies/me/services', { method: 'POST', body })
 
   return {
     list,
@@ -234,7 +234,7 @@ export const usePublicAllies = () => {
  * Partner self-identification (GET /v1/me/allies, ALLY_VIEW_OWN).
  *
  * This is what lets the partner portal know its own `allyUuid` — required by
- * POST /v1/ally/benefit-usage and POST /v1/aliado/services. Scoped by the JWT
+ * POST /v1/allies/me/benefit-usages and POST /v1/allies/me/services. Scoped by the JWT
  * subject: there is no way to ask for another user's allies.
  *
  * Always 200. A partner user not yet attached to an ally gets `[]`, which the

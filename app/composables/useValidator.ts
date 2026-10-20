@@ -1,7 +1,7 @@
 import type { ValidationResultDto } from '~/types/validator'
 
 /**
- * Realtime affiliate validator (GET /v1/ally/validate/{document},
+ * Realtime affiliate validator (GET /v1/allies/me/validations/{document},
  * ALLY_VALIDATE_MEMBER).
  *
  * The product's moment of truth: the operator types the affiliate's document at
@@ -27,7 +27,7 @@ export const useValidator = () => {
    * @param document the affiliate's document number or member UUID, as typed/scanned.
    */
   const validate = (document: string) =>
-    useApi<ValidationResultDto>(`/v1/ally/validate/${encodeURIComponent(document.trim())}`, {
+    useApi<ValidationResultDto>(`/v1/allies/me/validations/${encodeURIComponent(document.trim())}`, {
       silent: true,
     })
 

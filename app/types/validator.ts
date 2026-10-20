@@ -1,4 +1,4 @@
-// Types for the realtime validator (/v1/ally/validate/{document}), aligned with
+// Types for the realtime validator (/v1/allies/me/validations/{document}), aligned with
 // the backend ValidationResultDto.
 //
 // This is the product's moment of truth: the ally operator types the affiliate's
@@ -22,7 +22,7 @@ export type ValidationStatus =
   | 'CANCELED'
 
 /**
- * Response of GET /v1/ally/validate/{document}. Scalars carry a localized
+ * Response of GET /v1/allies/me/validations/{document}. Scalars carry a localized
  * `_Display` sibling (hub ADR 0014).
  */
 export interface ValidationResultDto {
