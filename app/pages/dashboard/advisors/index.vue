@@ -219,7 +219,7 @@ async function confirmDelete() {
       </div>
       <div class="flex items-center gap-2">
         <ListRefreshMenu :loading="loading" variant="ghost" @refresh="load" @reset="resetFilters" />
-        <ReportPrintButton variant="ghost" />
+        <ReportPrintButton table-name="promoters" variant="ghost" />
         <UTooltip :text="canCreate ? t('promoters.createTooltip') : t('promoters.noPermissionCreate')">
           <UButton
             color="primary"
@@ -308,7 +308,7 @@ async function confirmDelete() {
               :key="p.uuid"
               class="hover:bg-prohealth-50/50 cursor-pointer"
               :class="{ 'opacity-60': !p.active }"
-              @click="navigateTo(`/dashboard/promoters/${p.uuid}`)"
+              @click="navigateTo(`/dashboard/advisors/${p.uuid}`)"
             >
               <td class="px-5 py-3">
                 <div class="flex items-center gap-2">
@@ -321,14 +321,14 @@ async function confirmDelete() {
               </td>
               <td class="px-5 py-3" @click.stop>
                 <CommonEntityLinkCell
-                  :to="p.promoterType_Uuid ? `/dashboard/catalogs/promoter-types?edit=${p.promoterType_Uuid}` : null"
+                  :to="p.promoterType_Uuid ? `/dashboard/catalogs/advisor-types?edit=${p.promoterType_Uuid}` : null"
                   :label="p.promoterType_Display"
                   :can="canViewPromoterType"
                 />
               </td>
               <td class="px-5 py-3" @click.stop>
                 <CommonEntityLinkCell
-                  :to="p.rank_Uuid ? `/dashboard/catalogs/promoter-ranks?edit=${p.rank_Uuid}` : null"
+                  :to="p.rank_Uuid ? `/dashboard/catalogs/advisor-ranks?edit=${p.rank_Uuid}` : null"
                   :label="p.rank_Display"
                   :can="canViewRank"
                 />
@@ -353,7 +353,7 @@ async function confirmDelete() {
                       variant="ghost"
                       icon="i-lucide-eye"
                       size="sm"
-                      :to="`/dashboard/promoters/${p.uuid}`"
+                      :to="`/dashboard/advisors/${p.uuid}`"
                     />
                   </UTooltip>
                   <UTooltip :text="p.system ? t('promoters.systemLocked') : (canUpdate ? t('common.edit') : t('promoters.noPermissionEdit'))">

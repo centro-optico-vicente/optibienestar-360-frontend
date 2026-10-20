@@ -149,7 +149,7 @@ export interface MemberDto {
   confirmedAt?: string
 }
 
-/** Fila del histórico de reasignaciones de promotor de un afiliado (GET .../promoter-history). @JsonInclude(NON_NULL) en el backend. */
+/** Fila del histórico de reasignaciones de promotor de un afiliado (GET .../advisor-history). @JsonInclude(NON_NULL) en el backend. */
 export interface MemberPromoterAssignmentDto {
   uuid: string
   memberUuid: string
@@ -163,21 +163,21 @@ export interface MemberPromoterAssignmentDto {
   assignedAt: string
 }
 
-/** Body de POST /v1/admin/members/{uuid}/assign-promoter — exactamente uno de promoterUuid/referralCode. */
+/** Body de POST /v1/admin/members/{uuid}/assign-advisor — exactamente uno de promoterUuid/referralCode. */
 export interface AssignPromoterRequest {
   promoterUuid?: string
   referralCode?: string
   reason: string
 }
 
-/** Body de POST /v1/admin/members/promoter/bulk-assign — reasignación de cartera a un promotor (todo o nada). */
+/** Body de POST /v1/admin/members/advisor/bulk-assign — reasignación de cartera a un promotor (todo o nada). */
 export interface BulkAssignPromoterRequest {
   memberUuids: string[]
   promoterUuid: string
   reason: string
 }
 
-/** Body de POST /v1/admin/members/promoter/portfolio-to-supervisor — sube toda la cartera al supervisor activo más cercano (o INSTITUCION). */
+/** Body de POST /v1/admin/members/advisor/portfolio-to-supervisor — sube toda la cartera al supervisor activo más cercano (o INSTITUCION). */
 export interface PortfolioToSupervisorRequest {
   sourcePromoterUuid: string
   reason: string

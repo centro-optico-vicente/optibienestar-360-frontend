@@ -363,7 +363,7 @@ function displayName(m: MemberListItemDto): string {
               <td class="px-5 py-3 text-prohealth-600">{{ m.enrolledAt_Display || t('common.empty') }}</td>
               <td class="px-5 py-3" @click.stop>
                 <CommonEntityLinkCell
-                  :to="m.currentPromoter_Uuid ? `/dashboard/promoters/${m.currentPromoter_Uuid}` : null"
+                  :to="m.currentPromoter_Uuid ? `/dashboard/advisors/${m.currentPromoter_Uuid}` : null"
                   :label="m.currentPromoter_Display"
                   :can="canViewPromoter"
                 />

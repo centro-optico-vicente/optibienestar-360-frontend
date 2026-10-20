@@ -203,7 +203,7 @@ async function onConfirm() {
                 <tr v-for="(topUp, idx) in preview.topUps" v-else :key="`${topUp.promoterUuid}-${topUp.ledgerType}-${idx}`">
                   <td class="px-4 py-2.5 font-medium">
                     <CommonEntityLinkCell
-                      :to="`/dashboard/promoters/${topUp.promoterUuid}`"
+                      :to="`/dashboard/advisors/${topUp.promoterUuid}`"
                       :label="topUp.promoterDisplayName"
                       :can="canViewPromoter"
                     />

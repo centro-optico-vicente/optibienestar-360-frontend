@@ -176,7 +176,7 @@ export const usePayments = () => {
    * (commission payouts disbursed to the promoter). PROMOTER_VIEW_OWN.
    */
   const mineForPromoter = (direction: 'IN' | 'OUT', params: Pick<ListParams, 'page' | 'size' | 'sort'> = {}) =>
-    useApi<Page<PaymentDto>>('/v1/promoter/me/payments', {
+    useApi<Page<PaymentDto>>('/v1/advisors/me/payments', {
       query: {
         direction,
         page: params.page ?? 0,
@@ -208,37 +208,37 @@ export const usePayments = () => {
   // ---- Promoter downline management (hub plan payments-unification, "Mis portales") ----
   /** Register a collection for an affiliate in the caller's own downline (PAYMENT_CREATE_DOWNLINE). `draft` — see {@link register}. */
   const registerForDownline = (payload: DownlinePaymentCreateRequest, support?: File | null, draft?: boolean) =>
-    useApi<PaymentDto>('/v1/promoter/me/payments', { method: 'POST', body: toPaymentForm(payload, support), query: draft ? { draft: true } : {} })
+    useApi<PaymentDto>('/v1/advisors/me/payments', { method: 'POST', body: toPaymentForm(payload, support), query: draft ? { draft: true } : {} })
 
   /** Replaces the lines of a DRAFT collection from the caller's own downline (V117 lines feature). */
   const updateLinesForDownline = (uuid: string, payload: PaymentLinesUpdateRequest) =>
-    useApi<PaymentDto>(`/v1/promoter/me/payments/${uuid}/lines`, { method: 'PUT', body: payload })
+    useApi<PaymentDto>(`/v1/advisors/me/payments/${uuid}/lines`, { method: 'PUT', body: payload })
 
   /** DRAFT -> PENDING for a downline collection. */
   const submitForDownline = (uuid: string) =>
-    useApi<PaymentDto>(`/v1/promoter/me/payments/${uuid}/submit`, { method: 'PUT' })
+    useApi<PaymentDto>(`/v1/advisors/me/payments/${uuid}/submit`, { method: 'PUT' })
 
   /** PENDING -> DRAFT for a downline collection. */
   const reactivateToDraftForDownline = (uuid: string) =>
-    useApi<PaymentDto>(`/v1/promoter/me/payments/${uuid}/reactivate`, { method: 'PUT' })
+    useApi<PaymentDto>(`/v1/advisors/me/payments/${uuid}/reactivate`, { method: 'PUT' })
 
   /** Approve a PENDING downline collection (PAYMENT_APPROVE_DOWNLINE, not granted by default). */
   const approveForDownline = (uuid: string, reason?: string) =>
-    useApi<PaymentDto>(`/v1/promoter/me/payments/${uuid}/approve`, {
+    useApi<PaymentDto>(`/v1/advisors/me/payments/${uuid}/approve`, {
       method: 'PUT',
       body: (reason ? { reason } : {}) as PaymentApproveRequest,
     })
 
   /** Reject a PENDING downline collection (PAYMENT_REJECT_DOWNLINE, not granted by default). */
   const rejectForDownline = (uuid: string, reason: string) =>
-    useApi<PaymentDto>(`/v1/promoter/me/payments/${uuid}/reject`, {
+    useApi<PaymentDto>(`/v1/advisors/me/payments/${uuid}/reject`, {
       method: 'PUT',
       body: { reason } as PaymentRejectRequest,
     })
 
   /** Delete a PENDING downline collection registered by mistake (PAYMENT_DELETE_DOWNLINE). */
   const removeForDownline = (uuid: string) =>
-    useApi<void>(`/v1/promoter/me/payments/${uuid}`, { method: 'DELETE' })
+    useApi<void>(`/v1/advisors/me/payments/${uuid}`, { method: 'DELETE' })
 
   return {
     list, get, register, registerOut, updateOut, removeOut, processOut, approveOut, rejectOut, approve, reject, applyDiscount, discountAuthority, remove, supportUrl, mine, mineForPromoter,

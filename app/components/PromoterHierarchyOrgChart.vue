@@ -2,7 +2,7 @@
 import type { PromoterHierarchyNodeDto } from '~/types/promoters'
 
 /**
- * One box of the visual org-chart (`/dashboard/promoters/hierarchy`, "Árbol
+ * One box of the visual org-chart (`/dashboard/advisors/hierarchy`, "Árbol
  * visual" tab) — recursive, same re-emit pattern as `PromoterHierarchyNode`
  * (the accordion/list view). Renders as an `<li>` so a parent `<ul>` (this
  * component's own, for its children, or the page's for the root list) gets
@@ -79,7 +79,7 @@ function onDrop(e: DragEvent) {
         <UIcon v-if="canAssignSupervisor" name="i-lucide-grip-vertical" class="w-3.5 h-3.5 text-prohealth-300 shrink-0" />
         <UIcon name="i-lucide-user-round" class="w-4 h-4 text-prohealth-400 shrink-0" />
         <span class="font-semibold text-sm truncate max-w-[10rem]">
-          <CommonEntityLinkCell :to="`/dashboard/promoters/${node.uuid}`" :label="node.displayName" :can="canViewPromoter" />
+          <CommonEntityLinkCell :to="`/dashboard/advisors/${node.uuid}`" :label="node.displayName" :can="canViewPromoter" />
         </span>
       </div>
       <div class="flex items-center justify-center gap-1.5 mt-1">

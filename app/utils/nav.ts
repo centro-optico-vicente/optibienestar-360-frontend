@@ -56,7 +56,7 @@ export function isNavGroup(entry: NavEntry): entry is NavGroup {
 // NO se repiten en Datos maestros. `currencies` se muda a Finanzas junto con
 // Tasas de cambio (mismo dominio multi-moneda, ADR 0015) — hub plan
 // payments-unification §"Reorganización de menú".
-const CATALOGS_IN_VERTICALS = new Set<string>(['ally-types', 'service-categories', 'professions', 'promoter-types', 'promoter-ranks', 'banks', 'payment-categories', 'payment-methods', 'currencies'])
+const CATALOGS_IN_VERTICALS = new Set<string>(['ally-types', 'service-categories', 'professions', 'advisor-types', 'advisor-ranks', 'banks', 'payment-categories', 'payment-methods', 'currencies'])
 
 // El resto de catálogos alimenta "Datos maestros": derivados del registro, así el
 // grupo y su mosaico quedan siempre sincronizados con lo que existe en el sistema.
@@ -107,13 +107,13 @@ export const MAIN_NAV: NavEntry[] = [
     label: 'Comercial',
     labelKey: 'nav.groups.comercial.label',
     icon: 'i-lucide-megaphone',
-    description: 'Promotores del programa y sus comisiones.',
+    description: 'Asesores del programa y sus comisiones.',
     descriptionKey: 'nav.groups.comercial.description',
     children: [
-      { label: 'Tipos de promotor', labelKey: 'nav.items.promoterTypes.label', to: '/dashboard/catalogs/promoter-types', icon: 'i-lucide-badge-percent', description: 'Clasificación de los promotores.', descriptionKey: 'nav.items.promoterTypes.description', requires: 'PROMOTER_TYPE_VIEW_ALL' },
-      { label: 'Cargos jerárquicos', labelKey: 'nav.items.promoterRanks.label', to: '/dashboard/catalogs/promoter-ranks', icon: 'i-lucide-network', description: 'Rangos de la jerarquía de promotores.', descriptionKey: 'nav.items.promoterRanks.description', requires: 'PROMOTER_RANK_VIEW_ALL' },
-      { label: 'Promotores', labelKey: 'nav.items.promoters.label', to: '/dashboard/promoters', icon: 'i-lucide-megaphone', description: 'Equipo comercial y promotores.', descriptionKey: 'nav.items.promoters.description', requires: 'PROMOTER_VIEW_ALL' },
-      { label: 'Organigrama de promotores', labelKey: 'nav.items.promoterHierarchy.label', to: '/dashboard/promoters/hierarchy', icon: 'i-lucide-git-fork', description: 'Jerarquía de supervisión y cargos.', descriptionKey: 'nav.items.promoterHierarchy.description', requires: 'PROMOTER_VIEW_ALL' },
+      { label: 'Tipos de asesor', labelKey: 'nav.items.promoterTypes.label', to: '/dashboard/catalogs/advisor-types', icon: 'i-lucide-badge-percent', description: 'Clasificación de los asesores.', descriptionKey: 'nav.items.promoterTypes.description', requires: 'PROMOTER_TYPE_VIEW_ALL' },
+      { label: 'Cargos jerárquicos', labelKey: 'nav.items.promoterRanks.label', to: '/dashboard/catalogs/advisor-ranks', icon: 'i-lucide-network', description: 'Rangos de la jerarquía de asesores.', descriptionKey: 'nav.items.promoterRanks.description', requires: 'PROMOTER_RANK_VIEW_ALL' },
+      { label: 'Asesores Comerciales', labelKey: 'nav.items.promoters.label', to: '/dashboard/advisors', icon: 'i-lucide-megaphone', description: 'Equipo comercial y asesores.', descriptionKey: 'nav.items.promoters.description', requires: 'PROMOTER_VIEW_ALL' },
+      { label: 'Organigrama de asesores', labelKey: 'nav.items.promoterHierarchy.label', to: '/dashboard/advisors/hierarchy', icon: 'i-lucide-git-fork', description: 'Jerarquía de supervisión y cargos.', descriptionKey: 'nav.items.promoterHierarchy.description', requires: 'PROMOTER_VIEW_ALL' },
       { label: 'Campañas', labelKey: 'nav.items.campaigns.label', to: '/dashboard/campaigns', icon: 'i-lucide-rocket', description: 'Campañas comerciales dirigidas o generales con reglas de comisión asociadas.', descriptionKey: 'nav.items.campaigns.description', requires: 'CAMPAIGN_VIEW_ALL' },
       { label: 'Reglas de comisión', labelKey: 'nav.items.commissionRules.label', to: '/dashboard/commission-rules', icon: 'i-lucide-sliders-horizontal', description: 'Bandas de inscripción, bonos por escala y comisión de cobranza.', descriptionKey: 'nav.items.commissionRules.description', requires: ['COMMISSION_TIER_VIEW_ALL', 'BONUS_RULE_VIEW_ALL', 'COLLECTION_COMMISSION_TIER_VIEW_ALL', 'COMPETITIVE_COMMISSION_RULE_VIEW_ALL'] },
       { label: 'Ganadores de reglas competitivas', labelKey: 'nav.items.competitiveWinners.label', to: '/dashboard/commission-rules/competitive-winners', icon: 'i-lucide-trophy', description: 'Empates abiertos y decisiones sobre ganadores de reglas competitivas.', descriptionKey: 'nav.items.competitiveWinners.description', requires: 'COMPETITIVE_COMMISSION_AWARD_VIEW_ALL' },
@@ -121,7 +121,7 @@ export const MAIN_NAV: NavEntry[] = [
       { label: 'Aprobación de comisiones', labelKey: 'nav.items.commissionApproval.label', to: '/dashboard/commissions/approval', icon: 'i-lucide-badge-check', description: 'Aprobar o rechazar comisiones calculadas antes de su pago.', descriptionKey: 'nav.items.commissionApproval.description', requires: 'COMMISSION_APPROVE' },
       { label: 'Generar pagos de comisiones', labelKey: 'nav.items.commissionPayoutGenerate.label', to: '/dashboard/commissions/payouts-generate', icon: 'i-lucide-banknote', description: 'Seleccionar comisiones aprobadas y generar su pago.', descriptionKey: 'nav.items.commissionPayoutGenerate.description', requires: 'COMMISSION_PAYOUT' },
       { label: 'Reporte de comisiones', labelKey: 'nav.items.commissionsReport.label', to: '/dashboard/commissions/report', icon: 'i-lucide-file-text', description: 'Reporte general de comisiones devengadas.', descriptionKey: 'nav.items.commissionsReport.description', requires: ['COMMISSION_REPORT_GENERATE', 'REPORT_REPORT_GENERATE', 'COMMISSION_VIEW_ALL', 'COMMISSION_VIEW_OWN'] },
-      { label: 'Reporte de pagos de comisiones', labelKey: 'nav.items.commissionPayoutsReport.label', to: '/dashboard/commissions/payouts-report', icon: 'i-lucide-file-check-2', description: 'Reporte de desembolsos y pagos realizados a promotores.', descriptionKey: 'nav.items.commissionPayoutsReport.description', requires: ['COMMISSION_REPORT_GENERATE', 'REPORT_REPORT_GENERATE', 'COMMISSION_VIEW_ALL', 'COMMISSION_VIEW_OWN'] },
+      { label: 'Reporte de pagos de comisiones', labelKey: 'nav.items.commissionPayoutsReport.label', to: '/dashboard/commissions/payouts-report', icon: 'i-lucide-file-check-2', description: 'Reporte de desembolsos y pagos realizados a asesores.', descriptionKey: 'nav.items.commissionPayoutsReport.description', requires: ['COMMISSION_REPORT_GENERATE', 'REPORT_REPORT_GENERATE', 'COMMISSION_VIEW_ALL', 'COMMISSION_VIEW_OWN'] },
     ],
   },
   {
@@ -154,7 +154,7 @@ export const MAIN_NAV: NavEntry[] = [
       // direction=OUT — commission payouts (CommissionPayoutService). Read-only
       // ledger, no create/approve here (those happen via the commission
       // period-close action).
-      { label: 'Pagos', labelKey: 'nav.items.paymentsPayouts.label', to: '/dashboard/payments', icon: 'i-lucide-banknote', description: 'Pagos de comisión ejecutados a promotores.', descriptionKey: 'nav.items.paymentsPayouts.description', requires: 'PAYMENT_VIEW_ALL' },
+      { label: 'Pagos', labelKey: 'nav.items.paymentsPayouts.label', to: '/dashboard/payments', icon: 'i-lucide-banknote', description: 'Pagos de comisión ejecutados a asesores.', descriptionKey: 'nav.items.paymentsPayouts.description', requires: 'PAYMENT_VIEW_ALL' },
       { label: 'Reporte general de pagos y cobros', labelKey: 'nav.items.paymentsMovementsReport.label', to: '/dashboard/payments/movements-report', icon: 'i-lucide-arrow-left-right', description: 'Reporte Jasper consolidado de cobros y pagos en ambas direcciones.', descriptionKey: 'nav.items.paymentsMovementsReport.description', requires: ['PAYMENT_REPORT_GENERATE', 'REPORT_REPORT_GENERATE', 'PAYMENT_VIEW_ALL'] },
     ],
   },
@@ -208,7 +208,7 @@ export const MAIN_NAV: NavEntry[] = [
     mosaicTo: '/dashboard/reports',
     children: [
       { label: 'Reporte de comisiones', labelKey: 'nav.items.commissionsReport.label', to: '/dashboard/commissions/report', icon: 'i-lucide-file-text', description: 'Reporte general de comisiones devengadas.', descriptionKey: 'nav.items.commissionsReport.description', requires: ['COMMISSION_REPORT_GENERATE', 'REPORT_REPORT_GENERATE', 'COMMISSION_VIEW_ALL', 'COMMISSION_VIEW_OWN'] },
-      { label: 'Reporte de pagos de comisiones', labelKey: 'nav.items.commissionPayoutsReport.label', to: '/dashboard/commissions/payouts-report', icon: 'i-lucide-file-check-2', description: 'Reporte de desembolsos y pagos realizados a promotores.', descriptionKey: 'nav.items.commissionPayoutsReport.description', requires: ['COMMISSION_REPORT_GENERATE', 'REPORT_REPORT_GENERATE', 'COMMISSION_VIEW_ALL', 'COMMISSION_VIEW_OWN'] },
+      { label: 'Reporte de pagos de comisiones', labelKey: 'nav.items.commissionPayoutsReport.label', to: '/dashboard/commissions/payouts-report', icon: 'i-lucide-file-check-2', description: 'Reporte de desembolsos y pagos realizados a asesores.', descriptionKey: 'nav.items.commissionPayoutsReport.description', requires: ['COMMISSION_REPORT_GENERATE', 'REPORT_REPORT_GENERATE', 'COMMISSION_VIEW_ALL', 'COMMISSION_VIEW_OWN'] },
       { label: 'Reporte de cobros de afiliados', labelKey: 'nav.items.paymentsReport.label', to: '/dashboard/payments/report', icon: 'i-lucide-file-spreadsheet', description: 'Reporte de recaudación y cobros de afiliados.', descriptionKey: 'nav.items.paymentsReport.description', requires: ['PAYMENT_REPORT_GENERATE', 'REPORT_REPORT_GENERATE', 'PAYMENT_VIEW_ALL'] },
       { label: 'Reporte general de pagos y cobros', labelKey: 'nav.items.paymentsMovementsReport.label', to: '/dashboard/payments/movements-report', icon: 'i-lucide-arrow-left-right', description: 'Reporte Jasper consolidado de cobros y pagos en ambas direcciones.', descriptionKey: 'nav.items.paymentsMovementsReport.description', requires: ['PAYMENT_REPORT_GENERATE', 'REPORT_REPORT_GENERATE', 'PAYMENT_VIEW_ALL'] },
       { label: 'Reportes generados', labelKey: 'nav.items.auditReports.label', to: '/dashboard/security/reports', icon: 'i-lucide-shield-alert', description: 'Historial global de reportes generados.', descriptionKey: 'nav.items.auditReports.description', requires: 'REPORT_AUDIT_VIEW_ALL' },
@@ -224,7 +224,7 @@ export const MAIN_NAV: NavEntry[] = [
     children: [
       { label: 'Mi carnet', labelKey: 'nav.items.myCard.label', to: '/members', icon: 'i-lucide-id-card', description: 'Tu carnet de afiliado.', descriptionKey: 'nav.items.myCard.description', requires: 'MEMBER_VIEW_OWN' },
       { label: 'Mis consumos', labelKey: 'nav.items.myUsage.label', to: '/members/usage', icon: 'i-lucide-clipboard-list', description: 'Tus usos del beneficio en aliados.', descriptionKey: 'nav.items.myUsage.description', requires: 'MEMBER_VIEW_OWN' },
-      { label: 'Mi perfil de promotor', labelKey: 'nav.items.promoterProfile.label', to: '/advisors', icon: 'i-lucide-qr-code', description: 'Tu foto y tu QR de afiliación.', descriptionKey: 'nav.items.promoterProfile.description', requires: 'PROMOTER_VIEW_OWN' },
+      { label: 'Mi perfil', labelKey: 'nav.items.promoterProfile.label', to: '/advisors', icon: 'i-lucide-qr-code', description: 'Tu foto y tu QR de afiliación.', descriptionKey: 'nav.items.promoterProfile.description', requires: 'PROMOTER_VIEW_OWN' },
       { label: 'Mi empresa aliada', labelKey: 'nav.items.myAllyCompany.label', to: '/allies', icon: 'i-lucide-building-2', description: 'Panel de tu empresa aliada.', descriptionKey: 'nav.items.myAllyCompany.description', roles: [ROLES.ALLY] },
       { label: 'Validador', labelKey: 'nav.items.validator.label', to: '/allies/validator', icon: 'i-lucide-scan-line', description: 'Valida la solvencia de un afiliado.', descriptionKey: 'nav.items.validator.description', requires: 'ALLY_VALIDATE_MEMBER' },
       { label: 'Consumos', labelKey: 'nav.items.usageHistory.label', to: '/allies/history', icon: 'i-lucide-clipboard-list', description: 'Beneficios registrados en tu aliado.', descriptionKey: 'nav.items.usageHistory.description', requires: 'ALLY_VIEW_OWN' },

@@ -291,7 +291,7 @@ async function reviewPayment(p: PaymentDto, approve: boolean) {
             >
               <td class="px-5 py-3" @click.stop>
                 <CommonEntityLinkCell
-                  :to="p.promoter_Uuid ? `/dashboard/promoters/${p.promoter_Uuid}` : null"
+                  :to="p.promoter_Uuid ? `/dashboard/advisors/${p.promoter_Uuid}` : null"
                   :label="p.promoter_Display"
                   :can="canViewPromoter"
                 />
@@ -386,7 +386,7 @@ async function reviewPayment(p: PaymentDto, approve: boolean) {
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.payouts.columns.promoter') }}</dt>
             <dd class="mt-0.5">
               <CommonEntityLinkCell
-                :to="detail.promoter_Uuid ? `/dashboard/promoters/${detail.promoter_Uuid}` : null"
+                :to="detail.promoter_Uuid ? `/dashboard/advisors/${detail.promoter_Uuid}` : null"
                 :label="detail.promoter_Display"
                 :can="canViewPromoter"
               />

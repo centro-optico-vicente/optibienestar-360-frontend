@@ -114,7 +114,7 @@ const weekdayOptions = computed(() => [
 ])
 const showAdvanced = ref(false)
 
-// ---- Rank options (Supervisor/Coordinador catalog, promoter-ranks) ----
+// ---- Rank options (Supervisor/Coordinador catalog, advisor-ranks) ----
 const rankItems = ref<SelectItem[]>([])
 const loadingRanks = ref(false)
 async function loadRankOptions() {

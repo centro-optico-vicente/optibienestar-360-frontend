@@ -25,8 +25,8 @@ const CATALOG_ENTITY_KEYS: Partial<Record<AuditEntityKey, string>> = {
   profession: 'professions',
   service_category: 'service-categories',
   ally_type: 'ally-types',
-  promoter_type: 'promoter-types',
-  promoter_rank: 'promoter-ranks',
+  promoter_type: 'advisor-types',
+  promoter_rank: 'advisor-ranks',
 }
 
 // entityKey → { route builder, view permission } for non-catalog entities with their own [uuid] page.
@@ -37,7 +37,7 @@ const ENTITY_ROUTES: Partial<Record<AuditEntityKey, { path: (uuid: string) => st
   ally: { path: uuid => `/dashboard/allies/${uuid}`, permission: 'ALLY_VIEW_ALL' },
   member: { path: uuid => `/dashboard/members/${uuid}`, permission: 'MEMBER_VIEW_ALL' },
   payment: { path: uuid => `/dashboard/collections/${uuid}`, permission: 'PAYMENT_VIEW_ALL' },
-  promoter: { path: uuid => `/dashboard/promoters/${uuid}`, permission: 'PROMOTER_VIEW_ALL' },
+  promoter: { path: uuid => `/dashboard/advisors/${uuid}`, permission: 'PROMOTER_VIEW_ALL' },
   scheduled_job: { path: uuid => `/dashboard/scheduled-jobs/${uuid}`, permission: 'JOB_VIEW_ALL' },
 }
 

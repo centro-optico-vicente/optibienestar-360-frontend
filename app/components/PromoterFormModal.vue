@@ -12,8 +12,8 @@ import type {
 import { PROMOTER_STATUS_OPTIONS } from '~/types/promoters'
 import { resolveEntityReference } from '~/utils/entity-references'
 
-// Promoter create/edit form, shared by the list (/dashboard/promoters) and the detail
-// (/dashboard/promoters/[uuid]) so the fields + validation aren't duplicated.
+// Promoter create/edit form, shared by the list (/dashboard/advisors) and the detail
+// (/dashboard/advisors/[uuid]) so the fields + validation aren't duplicated.
 // The parent controls opening (v-model:open) and gates the permission of the button
 // that opens it (PROMOTER_CREATE / PROMOTER_UPDATE); on save it emits `saved` to reload.
 //
@@ -40,7 +40,7 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const promoters = usePromoters()
 const users = useUsers()
-const promoterTypeOptions = useCatalogOptions('promoter-types')
+const promoterTypeOptions = useCatalogOptions('advisor-types')
 const hierarchyApi = usePromoterHierarchy()
 const toast = useToast()
 const { can } = usePermissions()

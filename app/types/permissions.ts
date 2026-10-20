@@ -156,7 +156,7 @@ export const PERMISSIONS = [
   'PROMOTER_PAYOUT_ACCOUNT_CREATE',
   'PROMOTER_PAYOUT_ACCOUNT_UPDATE',
   'PROMOTER_PAYOUT_ACCOUNT_DELETE',
-  // Portfolio management writes (reminder / payment promise) on /v1/promoter/me/contacts (V36).
+  // Portfolio management writes (reminder / payment promise) on /v1/advisors/me/contacts (V36).
   'PROMOTER_CONTACT_OWN',
 
   // Hierarchy (V101/V104, hub plan) — cargo catalog, supervisor reassignment, rank changes.

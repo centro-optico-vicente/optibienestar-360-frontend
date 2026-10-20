@@ -60,7 +60,7 @@ const pageSizeItems = buildPageSizeItems(t)
 
 // ---- Promoter-type quick filter (shared catalog, loaded once for all 3 tabs) ----
 const promoterTypeItems = ref<SelectItem[]>([])
-const promoterTypeOptions = useCatalogOptions('promoter-types')
+const promoterTypeOptions = useCatalogOptions('advisor-types')
 onMounted(async () => {
   try {
     const res = await promoterTypeOptions.options({ limit: 100 })
@@ -1454,7 +1454,7 @@ onMounted(() => {
               <td class="px-5 py-3 font-medium text-prohealth-900">{{ tier.name }}</td>
               <td class="px-5 py-3 text-prohealth-600" @click.stop>
                 <CommonEntityLinkCell
-                  :to="tier.rank_Uuid ? `/dashboard/catalogs/promoter-ranks?edit=${tier.rank_Uuid}` : null"
+                  :to="tier.rank_Uuid ? `/dashboard/catalogs/advisor-ranks?edit=${tier.rank_Uuid}` : null"
                   :label="tier.rank_Display"
                   :can="canViewPromoterRank"
                 />
@@ -1763,7 +1763,7 @@ onMounted(() => {
                 <td class="px-5 py-3 font-medium text-prohealth-900">{{ tier.name }}</td>
                 <td class="px-5 py-3 text-prohealth-600" @click.stop>
                   <CommonEntityLinkCell
-                    :to="tier.rank_Uuid ? `/dashboard/catalogs/promoter-ranks?edit=${tier.rank_Uuid}` : null"
+                    :to="tier.rank_Uuid ? `/dashboard/catalogs/advisor-ranks?edit=${tier.rank_Uuid}` : null"
                     :label="tier.rank_Display"
                     :can="canViewPromoterRank"
                   />

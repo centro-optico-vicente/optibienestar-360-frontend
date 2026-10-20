@@ -450,7 +450,7 @@ async function confirmVoid() {
               <td class="px-5 py-3" @click.stop>
                 <div class="font-semibold">
                   <CommonEntityLinkCell
-                    :to="c.promoter_Uuid ? `/dashboard/promoters/${c.promoter_Uuid}` : null"
+                    :to="c.promoter_Uuid ? `/dashboard/advisors/${c.promoter_Uuid}` : null"
                     :label="c.promoter_Display"
                     :can="canViewPromoter"
                   />

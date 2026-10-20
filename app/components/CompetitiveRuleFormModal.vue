@@ -44,7 +44,7 @@ const { t } = useI18n()
 const rulesApi = useCompetitiveCommissionRules()
 const campaignsApi = useCampaigns()
 const currencies = useCurrencies()
-const promoterTypeOptions = useCatalogOptions('promoter-types')
+const promoterTypeOptions = useCatalogOptions('advisor-types')
 const hierarchyApi = usePromoterHierarchy()
 const toast = useToast()
 

@@ -42,7 +42,7 @@ const { t } = useI18n()
 const bonusRules = useBonusRules()
 const campaignsApi = useCampaigns()
 const currencies = useCurrencies()
-const promoterTypeOptions = useCatalogOptions('promoter-types')
+const promoterTypeOptions = useCatalogOptions('advisor-types')
 const toast = useToast()
 
 // ---- Promoter-type scope (M:N, hub plan Part F) — empty selection = applies to every type ----

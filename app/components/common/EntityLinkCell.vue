@@ -4,7 +4,7 @@
 // ad-hoc `<NuxtLink>` copied across members/index.vue, commissions/index.vue,
 // payments/[uuid].vue, memberships/index.vue and job-runs/index.vue.
 withDefaults(defineProps<{
-  /** Target route, e.g. `/dashboard/promoters/${uuid}`; `null`/empty when there's no FK. */
+  /** Target route, e.g. `/dashboard/advisors/${uuid}`; `null`/empty when there's no FK. */
   to?: string | null
   /** The resolved `_Display` label to show. */
   label?: string | null

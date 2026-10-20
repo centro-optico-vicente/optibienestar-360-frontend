@@ -51,7 +51,7 @@ function parentLabelOf(item: CatalogItem): string | null {
   return v == null ? null : String(v)
 }
 
-// ---- Rank reorder (promoter-ranks table/tree only) ----
+// ---- Rank reorder (advisor-ranks table/tree only) ----
 const canReorderRank = computed(() => can('PROMOTER_RANK_REORDER'))
 
 // ---- Audit ----
@@ -212,7 +212,7 @@ async function loadParents() {
   if (!def.value) return
   parentOptions.value = {}
   // Self-referencing FKs (parentKey === this catalog's own key, e.g.
-  // promoter-ranks.parentRankUuid) aren't under `/v1/admin/catalogs/*` like the
+  // advisor-ranks.parentRankUuid) aren't under `/v1/admin/catalogs/*` like the
   // rest — `useCatalogOptions` would 404. Those are populated separately from
   // `allRanks` (see the watcher below), excluding the record being edited.
   const parentFields = def.value.fields.filter(f => f.type === 'parent' && f.parentKey && f.parentKey !== def.value!.key)
@@ -241,17 +241,17 @@ const filterOptions = computed(() => {
 const allRanks = ref<CatalogItem[]>([])
 
 async function loadAllRanksIfNeeded() {
-  allRanks.value = def.value?.key === 'promoter-ranks' ? await api().listAll() : []
+  allRanks.value = def.value?.key === 'advisor-ranks' ? await api().listAll() : []
 }
 
-// ---- Vertical rank tree (side panel next to the table, promoter-ranks only) ----
+// ---- Vertical rank tree (side panel next to the table, advisor-ranks only) ----
 // Real tree built from `parentRankUuid` (this hub plan) — a root is a rank with
 // no parent (top of the hierarchy), and its children are the ranks whose
 // `parentRankUuid` points at it, recursively. `allRanks` arrives in the
 // backend's own display order (the same order the reorder endpoint edits),
 // so grouping by parent preserves sibling order without re-sorting.
 const rankTreeRoots = computed<RankTreeNode[]>(() => {
-  if (def.value?.key !== 'promoter-ranks') return []
+  if (def.value?.key !== 'advisor-ranks') return []
   function childrenOf(parentUuid: string | null): RankTreeNode[] {
     return allRanks.value
       .filter(r => (r.parentRankUuid ?? null) === parentUuid)
@@ -329,7 +329,7 @@ watch(includeInactive, () => { if (!resetting.value) { page.value = 1; load() } 
 // `?edit=<uuid>` lets the parent-catalog / superior-rank quick-link buttons open this
 // page's edit modal directly on the referenced record, mirroring members/index.vue.
 // Fires on both a cross-catalog navigation (route.params.resource changes too) and a
-// same-catalog one (query-only change, e.g. promoter-ranks → its own superior rank).
+// same-catalog one (query-only change, e.g. advisor-ranks → its own superior rank).
 watch(() => route.query.edit, async (editUuid) => {
   if (!editUuid || !def.value || !canUpdate.value) return
   await router.replace({ query: {} })
@@ -365,7 +365,7 @@ const state = reactive<Record<string, string>>({})
 // Kept outside `state` (a Record<string, string>) so the boolean isn't coerced.
 const isActive = ref(true)
 // Same reasoning as `isActive`, but per-field — `checkbox`-type fields
-// (e.g. promoter-types.generatesHierarchyOverride) live here instead of `state`.
+// (e.g. advisor-types.generatesHierarchyOverride) live here instead of `state`.
 const checkboxState = reactive<Record<string, boolean>>({})
 
 // Options for the self-referencing parentRankUuid FK select: every other
@@ -457,7 +457,7 @@ function populateEditForm(item: CatalogItem) {
     if (f.type === 'checkbox') checkboxState[f.name] = Boolean(raw[f.name])
     // Parent FKs usually arrive as `<name>_Uuid` (the "FK triple", hub ADR
     // 0014), not `<name>` — except self-referencing ones like
-    // promoter-ranks.parentRankUuid, which the backend returns flat (no
+    // advisor-ranks.parentRankUuid, which the backend returns flat (no
     // `_Display` pair needed since the tree/select resolve the name locally).
     else if (f.type === 'parent') state[f.name] = String((raw[f.name.replace(/Uuid$/, '_Uuid')] ?? raw[f.name]) ?? '')
     else state[f.name] = String(raw[f.name] ?? '')
@@ -616,7 +616,7 @@ async function confirmDelete() {
       </div>
       <div class="flex items-center gap-2">
         <ListRefreshMenu :loading="loading" variant="ghost" @refresh="load" @reset="resetFilters" />
-        <ReportPrintButton :table-name="def.key" variant="ghost" />
+        <ReportPrintButton :table-name="def.tableName ?? def.key" variant="ghost" />
         <UButton v-if="canCreate" color="primary" variant="outline" icon="i-lucide-plus" @click="openCreate">
           {{ $t('common.new') }}
         </UButton>
@@ -656,13 +656,13 @@ async function confirmDelete() {
       </UButton>
     </div>
 
-    <!-- Table (+ vertical rank tree side panel, promoter-ranks only) -->
-    <div :class="def.key === 'promoter-ranks' ? 'flex flex-col lg:flex-row gap-4 items-start' : ''">
+    <!-- Table (+ vertical rank tree side panel, advisor-ranks only) -->
+    <div :class="def.key === 'advisor-ranks' ? 'flex flex-col lg:flex-row gap-4 items-start' : ''">
       <!-- Vertical tree — same cargos as the table, just laid out as a chain
            by hierarchyLevel instead of rows. Clicking a node opens its edit
            form, same as clicking its table row. -->
       <div
-        v-if="def.key === 'promoter-ranks' && rankTreeRoots.length"
+        v-if="def.key === 'advisor-ranks' && rankTreeRoots.length"
         class="bg-white rounded-2xl border border-prohealth-100 p-3 w-full lg:w-64 shrink-0 h-[calc(100vh-19rem)] min-h-[24rem] overflow-auto"
       >
         <h2 class="text-xs font-semibold uppercase tracking-wide text-prohealth-400 mb-2 flex items-center gap-1.5 px-1">
@@ -799,7 +799,7 @@ async function confirmDelete() {
               </td>
               <td class="px-5 py-3" @click.stop>
                 <div class="flex items-center justify-end gap-1">
-                  <template v-if="def.key === 'promoter-ranks' && canReorderRank">
+                  <template v-if="def.key === 'advisor-ranks' && canReorderRank">
                     <UTooltip :text="$t('catalogs.promoterRanksTree.moveUp')">
                       <UButton
                         color="neutral"
@@ -827,7 +827,7 @@ async function confirmDelete() {
                     <UButton color="info" variant="ghost" icon="i-lucide-pencil" size="sm" @click="openEdit(item)" />
                   </UTooltip>
                   <ReportPrintButton
-                    :table-name="def.key"
+                    :table-name="def.tableName ?? def.key"
                     :record-uuid="item.uuid"
                     icon-only
                     variant="ghost"

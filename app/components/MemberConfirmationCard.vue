@@ -75,7 +75,7 @@ async function doConfirm() {
         <dd class="mt-0.5">
           <NuxtLink
             v-if="currentPromoterUuid"
-            :to="`/dashboard/promoters/${currentPromoterUuid}`"
+            :to="`/dashboard/advisors/${currentPromoterUuid}`"
             class="text-primary-600 hover:underline"
           >
             {{ currentPromoterName || t('common.empty') }}

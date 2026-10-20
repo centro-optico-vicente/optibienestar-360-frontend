@@ -2,7 +2,7 @@
 import type { PromoterPayoutAccountDto } from '~/types/promoters'
 
 // "Mis datos de cobro" — read-only card of the advisor portal (backend V184,
-// GET /v1/promoter/me/payout-accounts, PROMOTER_PAYOUT_ACCOUNT_VIEW_OWN). The
+// GET /v1/advisors/me/payout-accounts, PROMOTER_PAYOUT_ACCOUNT_VIEW_OWN). The
 // backend only ever returns the caller's own accounts; editing stays with the
 // administration, so the card just tells the advisor whom to contact.
 const { t } = useI18n()

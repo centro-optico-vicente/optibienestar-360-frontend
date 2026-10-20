@@ -10,8 +10,8 @@ import type {
 import { todayInCaracas } from '~/utils/date'
 
 // "Mi cartera" — portfolio management self-service of the logged-in advisor
-// (v2 PDF 2.b). Rows come from the dashboard aggregate (GET /v1/promoter/me,
-// `portfolio`), the summary from GET /v1/promoter/me/collection-score, and
+// (v2 PDF 2.b). Rows come from the dashboard aggregate (GET /v1/advisors/me,
+// `portfolio`), the summary from GET /v1/advisors/me/collection-score, and
 // the per-row actions from PromoterContactsController: reminder /
 // payment-promise (PROMOTER_CONTACT_OWN) and the contact history
 // (PROMOTER_VIEW_OWN). The backend has no "last contact" per portfolio row,
@@ -110,7 +110,7 @@ function statusColor(row: PromoterMemberRow): 'success' | 'warning' | 'neutral' 
 }
 
 // Monthly fees are priced in USD (same rationale as the admin portfolio tab
-// in pages/dashboard/promoters/[uuid].vue — the backend MONEY _Display
+// in pages/dashboard/advisors/[uuid].vue — the backend MONEY _Display
 // assumes VES).
 function money(v?: number | null): string {
   if (v === null || v === undefined) return t('common.empty')

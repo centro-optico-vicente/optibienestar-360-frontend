@@ -330,7 +330,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             class="w-full"
           />
           <CommonEntityQuickLinkButton
-            :to="commFilters.promoter && commFilters.promoter !== ALL_VALUE ? `/dashboard/promoters/${commFilters.promoter}` : null"
+            :to="commFilters.promoter && commFilters.promoter !== ALL_VALUE ? `/dashboard/advisors/${commFilters.promoter}` : null"
             :can="canViewPromoter"
             @navigate="(to: string) => navigateTo(to)"
           />

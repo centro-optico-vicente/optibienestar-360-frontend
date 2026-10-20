@@ -341,7 +341,7 @@ export interface MyPaymentCreateRequest {
 }
 
 /**
- * Body of POST /v1/promoter/me/payments (multipart `payment` part) — a
+ * Body of POST /v1/advisors/me/payments (multipart `payment` part) — a
  * promoter registering a collection on behalf of an affiliate in their own
  * downline (server verifies portfolio ownership).
  */

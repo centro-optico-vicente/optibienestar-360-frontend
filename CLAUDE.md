@@ -41,7 +41,7 @@ El mismo app sirve a varios roles (`SYSTEM`, `ADMINISTRADOR`, `OPERADOR`, `ALIAD
 - `AFILIADO` → portal propio + carnet digital (`/members/*`)
 - `ASESOR` (antes `PROMOTOR`, backend V185) → dashboard de ventas (`/advisors/*`)
 
-Convención de URLs: rutas autenticadas en **inglés y plural** (`/dashboard/*`, `/allies/*`, `/members/*`, `/advisors/*`); solo las públicas en español (`/aliados`, `/afiliarse`, `/recuperar-clave`, `/restablecer-clave`). Las viejas `/aliado/**`, `/afiliado/**`, `/promotor/**` hacen 301 a las nuevas (`nuxt.config.ts` `routeRules` + `docker/default.conf`).
+Convención de URLs: rutas autenticadas en **inglés y plural** (`/dashboard/*`, `/allies/*`, `/members/*`, `/advisors/*`); solo las públicas en español (`/aliados`, `/afiliarse`, `/recuperar-clave`, `/restablecer-clave`). Las viejas `/aliado/**`, `/afiliado/**`, `/promotor/**` hacen 301 a las nuevas (`nuxt.config.ts` `routeRules` + `docker/default.conf`). "promoter/promotor" no aparece en ninguna URL (término del glosario: **Asesor** / `advisor`): las pantallas admin viven en `/dashboard/advisors/**` y `/dashboard/catalogs/advisor-{types,ranks}`, con 301 desde `/dashboard/promoters/**` y `/dashboard/catalogs/promoter-{types,ranks}`; la API se consume en `/v1/admin/advisors`, `/v1/admin/advisor-ranks`, `/v1/admin/catalogs/advisor-types` y `/v1/advisors/me/*`.
 
 Navegación condicional por rol/permiso. Layout `dashboard.vue` adapta el sidebar; el control de acceso se hace con middleware (`auth.global`, `can`, `role`), el composable `usePermissions()` y la directiva `v-can`.
 

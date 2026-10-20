@@ -193,6 +193,25 @@ jobs:
               || { echo "::error::/$path must not redirect"; exit 1; }
           done
 
+      - name: Smoke test — old promoter admin URLs 301 to the advisor ones
+        run: |
+          headers=$(curl -sI 'http://127.0.0.1:18080/dashboard/promoters/x?y=1')
+          echo "$headers"
+          echo "$headers" | head -1 | grep -q ' 301' \
+            || { echo "::error::/dashboard/promoters/x did not answer 301"; exit 1; }
+          echo "$headers" | grep -qi '^location: /dashboard/advisors/x?y=1' \
+            || { echo "::error::/dashboard/promoters/x did not redirect to /dashboard/advisors/x keeping the query"; exit 1; }
+          curl -sI http://127.0.0.1:18080/dashboard/promoters | grep -qi '^location: /dashboard/advisors' \
+            || { echo "::error::/dashboard/promoters did not redirect to /dashboard/advisors"; exit 1; }
+          curl -sI 'http://127.0.0.1:18080/dashboard/catalogs/promoter-ranks?edit=1' | grep -qi '^location: /dashboard/catalogs/advisor-ranks?edit=1' \
+            || { echo "::error::/dashboard/catalogs/promoter-ranks did not redirect to /dashboard/catalogs/advisor-ranks keeping the query"; exit 1; }
+          curl -sI http://127.0.0.1:18080/dashboard/catalogs/promoter-types | grep -qi '^location: /dashboard/catalogs/advisor-types' \
+            || { echo "::error::/dashboard/catalogs/promoter-types did not redirect to /dashboard/catalogs/advisor-types"; exit 1; }
+          for path in dashboard/advisors dashboard/advisors/x dashboard/catalogs/advisor-types; do
+            curl -sI "http://127.0.0.1:18080/$path" | head -1 | grep -q ' 200' \
+              || { echo "::error::/$path must not redirect"; exit 1; }
+          done
+
       - name: Stop container
         if: always()
         run: docker rm -f spa || true

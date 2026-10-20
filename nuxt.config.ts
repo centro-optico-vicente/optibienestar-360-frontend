@@ -53,6 +53,19 @@ export default defineNuxtConfig({
         ]),
     ),
     '/promotor/cartera': { redirect: { to: '/advisors/portfolio', statusCode: 301 } },
+    // Admin screens use the glossary term "advisor", never "promoter": old
+    // /dashboard/promoters/** and the promoter catalogs 301 to the new paths
+    // (subpath and query kept). Targets are outside every source, so no loop.
+    ...Object.fromEntries(
+      [
+        ['/dashboard/promoters', '/dashboard/advisors'],
+        ['/dashboard/catalogs/promoter-types', '/dashboard/catalogs/advisor-types'],
+        ['/dashboard/catalogs/promoter-ranks', '/dashboard/catalogs/advisor-ranks'],
+      ].flatMap(([from, to]) => [
+        [from, { redirect: { to, statusCode: 301 } }],
+        [`${from}/**`, { redirect: { to: `${to}/**`, statusCode: 301 } }],
+      ]),
+    ),
   },
 
   modules: [

@@ -33,7 +33,7 @@ export interface CatalogItem {
   state_Uuid?: string | null
   state_Display?: string | null
   state_Code?: string | null
-  // `promoter-ranks` (V101) — hierarchy_level is the immutable ordering key,
+  // `advisor-ranks` (V101) — hierarchy_level is the immutable ordering key,
   // max_subordinates optional (no cap when absent). `parentRankUuid` (this
   // hub plan) is the real parent/superior FK — `null` means top of the
   // hierarchy. Unlike the FK-triple convention (`<rel>_Uuid`/`<rel>_Display`),
@@ -41,10 +41,10 @@ export interface CatalogItem {
   hierarchyLevel?: number
   maxSubordinates?: number | null
   parentRankUuid?: string | null
-  // `promoter-types` (V103) — whether a sale by this type cascades a
+  // `advisor-types` (V103) — whether a sale by this type cascades a
   // hierarchy override up the supervisor chain (default true).
   generatesHierarchyOverride?: boolean
-  // `promoter-ranks` / `promoter-types` (V173) — discount-authority cap in %;
+  // `advisor-ranks` / `advisor-types` (V173) — discount-authority cap in %;
   // effective cap = most restrictive of rank and type, none on both = 0%.
   maxDiscountPct?: number | null
   // `banks` (V116) — commercial short name (UI pickers/receipts) + RIF split
@@ -106,6 +106,12 @@ export interface CatalogDef {
   key: string
   /** Resource base path, e.g. '/v1/admin/catalogs/countries'. */
   basePath: string
+  /**
+   * Backend table name for the generic report endpoints (`/v1/documents/tables/{table}`,
+   * `/v1/documents/records/{table}/{uuid}`) when it differs from `key` — e.g. the
+   * `advisor-types` route is backed by the `promoter_types` table. Defaults to `key`.
+   */
+  tableName?: string
   /**
    * Granular per-action permissions (V78) — one per CRUD action, so a role
    * can have read-only access to one catalog and full CRUD on another.

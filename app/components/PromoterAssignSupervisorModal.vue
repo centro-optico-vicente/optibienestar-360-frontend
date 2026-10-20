@@ -5,7 +5,7 @@ import { toSelectItems } from '~/types/options'
 /**
  * Reasigna el supervisor de un promotor SIN cambiar su cargo — para
  * ascender/degradar (cambio de cargo) ver `PromoterChangeRankModal`.
- * Compartido por la vista de organigrama (`/dashboard/promoters/hierarchy`).
+ * Compartido por la vista de organigrama (`/dashboard/advisors/hierarchy`).
  */
 const props = defineProps<{
   open: boolean
