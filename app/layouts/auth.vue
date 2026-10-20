@@ -1,3 +1,8 @@
+<script setup lang="ts">
+// Links stay in the active language (`/` or `/en`, hub URL convention).
+const publicPath = usePublicPath()
+</script>
+
 <template>
   <div class="min-h-screen grid lg:grid-cols-2 bg-white">
     <aside class="hidden lg:flex relative bg-hero-prohealth overflow-hidden">
@@ -7,7 +12,7 @@
       </div>
 
       <div class="relative z-10 flex flex-col justify-between p-12 text-white w-full">
-        <NuxtLink to="/" class="self-start -ml-2">
+        <NuxtLink :to="publicPath('/')" class="self-start -ml-2">
           <BrandLogo variant="negativo" :width="220" />
         </NuxtLink>
 
@@ -42,7 +47,7 @@
       </div>
       <div class="w-full max-w-md">
         <!-- The brand panel is hidden below lg: show the logo above the form -->
-        <NuxtLink to="/" class="lg:hidden flex justify-center mb-6">
+        <NuxtLink :to="publicPath('/')" class="lg:hidden flex justify-center mb-6">
           <BrandLogo variant="horizontal" :width="180" />
         </NuxtLink>
         <slot />

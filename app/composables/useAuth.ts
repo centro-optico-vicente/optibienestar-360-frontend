@@ -42,7 +42,8 @@ export const useAuth = () => {
     }
     finally {
       store.clearSession()
-      await router.push('/')
+      // Login screen in the active language (`/` or `/en`).
+      await router.push(currentLoginPath())
     }
   }
 
@@ -54,7 +55,7 @@ export const useAuth = () => {
     })
     // El backend invalida las sesiones previas → forzar re-login.
     store.clearSession()
-    await router.push('/')
+    await router.push(currentLoginPath())
   }
 
   /**

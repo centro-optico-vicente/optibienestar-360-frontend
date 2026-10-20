@@ -3,9 +3,13 @@ import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { ApiError } from '~/types/auth'
 
-definePageMeta({ layout: 'auth' })
+// English pair of this public screen (hub URL convention): same page, rendered
+// in English by middleware/public-locale.global.ts. The fixed `key` keeps the
+// component (and any typed input) when the switcher jumps between the two URLs.
+definePageMeta({ layout: 'auth', alias: ['/en'], key: 'public-login' })
 
 const { t } = useI18n()
+const publicPath = usePublicPath()
 
 useSeoMeta({
   title: () => t('auth.login.seoTitle'),
@@ -122,7 +126,7 @@ const onSubmit = async (event: FormSubmitEvent<LoginSchema>): Promise<void> => {
 
       <div class="flex items-center justify-between text-sm">
         <UCheckbox :label="$t('auth.login.rememberMe')" />
-        <NuxtLink to="/recuperar-clave" class="text-prohealth-600 hover:text-prohealth-700 font-medium">
+        <NuxtLink :to="publicPath('/recuperar-clave')" class="text-prohealth-600 hover:text-prohealth-700 font-medium">
           {{ $t('auth.login.forgotPassword') }}
         </NuxtLink>
       </div>

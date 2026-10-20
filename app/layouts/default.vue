@@ -1,5 +1,7 @@
 <script setup lang="ts">
 const auth = useAuthStore()
+// Links between public screens stay in the active language (hub URL convention).
+const publicPath = usePublicPath()
 
 const navLinks = [
   { labelKey: 'layout.public.nav.allies', to: '/aliados' },
@@ -32,7 +34,7 @@ onMounted(async () => {
       ]"
     >
       <div class="max-w-7xl mx-auto px-6 lg:px-10 h-16 flex items-center justify-between">
-        <NuxtLink to="/" class="flex items-center">
+        <NuxtLink :to="publicPath('/')" class="flex items-center">
           <BrandLogo variant="horizontal" :width="160" />
         </NuxtLink>
 
@@ -40,7 +42,7 @@ onMounted(async () => {
           <NuxtLink
             v-for="link in navLinks"
             :key="link.to"
-            :to="link.to"
+            :to="publicPath(link.to)"
             class="text-sm font-medium text-prohealth-900/80 hover:text-prohealth-600 transition-colors"
           >
             {{ $t(link.labelKey) }}
@@ -48,9 +50,10 @@ onMounted(async () => {
         </nav>
 
         <div class="flex items-center gap-3">
+          <LocaleSwitcher />
           <UButton
             v-if="!auth.isAuthenticated"
-            to="/"
+            :to="publicPath('/')"
             color="primary"
             variant="solid"
             size="sm"

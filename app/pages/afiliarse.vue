@@ -10,7 +10,11 @@ import DOMPurify from 'dompurify'
 import { PLAN_TYPES } from '~/types/plans'
 import { TERM_TYPES } from '~/types/terms'
 
-definePageMeta({ layout: 'default' })
+// English pair of this public screen (hub URL convention): same page, rendered
+// in English by middleware/public-locale.global.ts. The printed QRs keep
+// /afiliarse?ref=CODE; /en/join?ref=CODE reads the same query. The fixed `key`
+// keeps the half-filled form when the switcher jumps between the two URLs.
+definePageMeta({ layout: 'default', alias: ['/en/join'], key: 'public-join' })
 
 interface PublicPlan {
   uuid: string
@@ -29,6 +33,7 @@ interface PublicTerms {
 }
 
 const { t } = useI18n()
+const publicPath = usePublicPath()
 const route = useRoute()
 const toast = useToast()
 const { formatCurrency } = useFormatters()
@@ -160,7 +165,7 @@ async function submit() {
           <h1 class="text-2xl font-extrabold text-prohealth-900">{{ t('affiliationRequest.sentTitle') }}</h1>
           <p class="text-sm text-prohealth-600">{{ t('affiliationRequest.sentBody', { email: done.email }) }}</p>
           <p v-if="done.promoterName" class="text-xs text-prohealth-500">{{ t('affiliationRequest.sentPromoter', { name: done.promoterName }) }}</p>
-          <UButton to="/" color="primary" icon="i-lucide-log-in" class="mt-2">{{ t('affiliationRequest.goLogin') }}</UButton>
+          <UButton :to="publicPath('/')" color="primary" icon="i-lucide-log-in" class="mt-2">{{ t('affiliationRequest.goLogin') }}</UButton>
         </div>
       </template>
 

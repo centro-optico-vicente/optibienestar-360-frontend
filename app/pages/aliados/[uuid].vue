@@ -4,9 +4,17 @@ import type { PublicAllyDetailDto } from '~/types/allies'
 
 // PUBLIC partner detail (no login). The backend only exposes PUBLISHED+ACTIVE
 // partners and APPROVED/PUBLISHED/ACTIVE services (/v1/public/allies/{uuid}).
-definePageMeta({ layout: 'default' })
+// English pair of this public screen (hub URL convention): same page, rendered
+// in English by middleware/public-locale.global.ts. The fixed `key` keeps the
+// component (and any typed input) when the switcher jumps between the two URLs.
+definePageMeta({
+  layout: 'default',
+  alias: ['/en/allies/:uuid'],
+  key: route => `public-ally-${String(route.params.uuid)}`,
+})
 
 const { t } = useI18n()
+const publicPath = usePublicPath()
 const { formatCurrency } = useFormatters()
 
 const route = useRoute()
@@ -48,7 +56,7 @@ function money(v?: number | string | null): string {
       color="neutral"
       variant="ghost"
       icon="i-lucide-arrow-left"
-      to="/aliados"
+      :to="publicPath('/aliados')"
       size="sm"
       class="mb-5"
     >
@@ -67,7 +75,7 @@ function money(v?: number | string | null): string {
       <UIcon name="i-lucide-search-x" class="w-10 h-10 mx-auto mb-3 text-prohealth-300" />
       <p class="text-prohealth-700 font-semibold">{{ t('allies.public.detail.notFoundTitle') }}</p>
       <p class="text-sm text-prohealth-500 mt-1">{{ t('allies.public.detail.notFoundBody') }}</p>
-      <UButton to="/aliados" color="primary" variant="soft" size="sm" class="mt-4">
+      <UButton :to="publicPath('/aliados')" color="primary" variant="soft" size="sm" class="mt-4">
         {{ t('allies.public.detail.backToDirectory') }}
       </UButton>
     </div>
@@ -185,7 +193,7 @@ function money(v?: number | string | null): string {
             {{ t('allies.public.detail.ctaBody') }}
           </p>
         </div>
-        <UButton to="/#contact" color="secondary" variant="solid" class="text-prohealth-950">
+        <UButton :to="publicPath('/#contact')" color="secondary" variant="solid" class="text-prohealth-950">
           {{ t('allies.public.detail.ctaButton') }}
         </UButton>
       </div>

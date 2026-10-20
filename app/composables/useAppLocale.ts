@@ -29,10 +29,17 @@ export function toLocaleCode(raw: string | null | undefined): LocaleCode {
  * - `changeLocale` is the user-driven switch (persists to the backend when signed in).
  * - `syncFromUser` mirrors the authenticated preference into the UI (wins over the hint).
  * - `applyHint` restores the pre-login choice before any session exists.
+ * On public screens the URL decides the language (`/en/...` → en, Spanish path →
+ * es; middleware/public-locale.global.ts), so neither the hint nor the stored
+ * preference overrides it there.
  */
 export const useAppLocale = () => {
   const { locale, setLocale } = useI18n()
   const { updateLocale, isAuthenticated } = useAuth()
+  const route = useRoute()
+
+  /** True while the current URL dictates the language (a public screen). */
+  const urlDecidesLocale = (): boolean => publicPathLocale(route.path) !== null
 
   const current = computed<LocaleCode>(() => toLocaleCode(locale.value))
 
@@ -53,7 +60,7 @@ export const useAppLocale = () => {
   /** Applies the persisted pre-login hint, if any (called once on app init). */
   async function applyHint(): Promise<void> {
     const hint = readHint()
-    if (hint) await apply(hint)
+    if (hint && !urlDecidesLocale()) await apply(hint)
   }
 
   /** Mirrors the signed-in user's stored preference into the UI locale. */
@@ -61,7 +68,7 @@ export const useAppLocale = () => {
     if (!user?.locale) return
     const code = toLocaleCode(user.locale)
     saveHint(code)
-    await apply(code)
+    if (!urlDecidesLocale()) await apply(code)
   }
 
   /**
