@@ -744,7 +744,8 @@
       }
     },
     "other": {
-      "changePassword": "Change password"
+      "changePassword": "Change password",
+      "myContracts": "My contracts"
     }
   },
   "layout": {
@@ -4126,7 +4127,7 @@
       "audience": {
         "AFILIADO": "Accepted by every user of the system (admins, advisors, allies and members) on login, and again whenever a new version takes effect. This is the one published on the website.",
         "ASESOR": "Accepted by users with an active advisor record, of any rank (advisor, supervisor, coordinator). Not the system advisor (INSTITUCION).",
-        "ALIADO": "Each ally accepts the template linked to its active agreement. You can have several templates: a general one and others limited to a segment, an ally type or one specific ally."
+        "ALIADO": "Each active agreement of an ally is accepted separately, with that ally's data: someone working at several allies accepts one agreement per ally. You can have several templates: a general one and others limited to a segment, an ally type or one specific ally."
       },
       "scope": {
         "title": "Template scope (optional)",
@@ -4219,7 +4220,15 @@
     "subtitle": "You must read and accept the following documents to continue.",
     "scrollHint": "Scroll to the end to accept",
     "acceptLabel": "I have read and accept this document",
-    "continue": "Continue"
+    "continue": "Continue",
+    "allyHeading": "Agreement with {ally}",
+    "version": "Version {version}",
+    "tabs": {
+      "contract": "Contract",
+      "changes": "Changes"
+    },
+    "changesSince": "Changes from version {version} you accepted on {date}",
+    "noChanges": "The text is the same as the one you accepted before."
   },
   "entityConfig": {
     "title": "Entity configuration",
@@ -4558,5 +4567,27 @@
     "termsRequired": "You must accept the terms and conditions",
     "termsUnavailable": "The terms and conditions are not available right now. Please try again later.",
     "termsUpdated": "The terms and conditions were updated. Please review and accept them again."
+  },
+  "myContracts": {
+    "title": "My contracts",
+    "subtitle": "The contracts you accepted, with the text exactly as you accepted it.",
+    "refresh": "Refresh",
+    "empty": "You have not accepted any contract yet.",
+    "types": {
+      "AFILIADO": "Membership agreement",
+      "ASESOR": "Sales advisor mandate",
+      "ALIADO": "Ally agreements"
+    },
+    "allyHeading": "Agreement with {ally}",
+    "allyUnlinked": "Ally agreements (accepted before per-agreement acceptance)",
+    "version": "Version {version}",
+    "acceptedAt": "Accepted on {date}",
+    "channels": {
+      "PORTAL": "In the app",
+      "SELF_SERVICE": "When you signed up",
+      "ASSISTED": "With your advisor",
+      "ADMIN": "By the administration"
+    },
+    "reconstructed": "This acceptance predates storing the accepted text: the accepted version is shown with your current data."
   }
 }

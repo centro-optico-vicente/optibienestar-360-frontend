@@ -2,7 +2,8 @@
 // /v1/me/terms) — see terms-and-conditions.md at the workspace root for the
 // full design. Versioned per contract kind, never overwritten (a "current"
 // version is the latest `validFrom <= now` of its stream); one modal accept
-// covers all pending versions.
+// covers all pending versions. ALIADO contracts are accepted once per ally
+// agreement (backend V189) and every acceptance keeps the text as accepted.
 //
 // Audience (backend `TermsAcceptanceService`), by linked entity, never by
 // role: MEMBER → every user; ADVISOR → users with an active, non-system
@@ -78,12 +79,67 @@ export interface TermsVersionCreateRequest {
  */
 export type TermsVersionUpdateRequest = Partial<TermsVersionCreateRequest>
 
-/** One T&C the caller has not yet accepted — GET /v1/me/terms/pending. `contentMarkdown` is served already rendered. */
+/**
+ * The acceptance a pending item replaces (backend V189): the text the user
+ * accepted last for the same agreement (else the same ally; for AFILIADO /
+ * ASESOR, the same type). Drives the "Cambios" diff tab.
+ */
+export interface PreviousTermsAcceptance {
+  termsVersionUuid: string
+  versionNumber: number
+  acceptedAt: string
+  acceptedAt_Display?: string | null
+  /** Text as accepted (pre-V189 rows: that version re-rendered with current data). */
+  renderedContent: string
+}
+
+/**
+ * One T&C the caller has not yet accepted — GET /v1/me/terms/pending.
+ * `contentMarkdown` is served already rendered. ALIADO items come one per
+ * ally agreement (V189): the same template shared by two allies is two items,
+ * each with its ally's data; `allyAgreementUuid` goes back in the accept call.
+ */
 export interface PendingTermDto {
   termsVersionUuid: string
   termType: TermType
   title: string
   contentMarkdown: string
+  /** 1-based position of the version in its stream. */
+  versionNumber: number
+  allyUuid: string | null
+  allyName: string | null
+  allyAgreementUuid: string | null
+  previousAcceptance: PreviousTermsAcceptance | null
+}
+
+/** One accepted pending item — POST /v1/me/terms/accept `items[]`. */
+export interface TermsAcceptItem {
+  termsVersionUuid: string
+  /** ALIADO only. */
+  allyAgreementUuid?: string | null
+}
+
+/** Stable key of a pending item: version + agreement (one version may be pending for several agreements). */
+export const pendingTermKey = (term: Pick<PendingTermDto, 'termsVersionUuid' | 'allyAgreementUuid'>) =>
+  `${term.termsVersionUuid}:${term.allyAgreementUuid ?? ''}`
+
+/** One contract the caller accepted — GET /v1/me/terms/acceptances ("Mis contratos"), newest first. */
+export interface TermsAcceptanceHistoryDto {
+  uuid: string
+  termType: TermType
+  termsVersionUuid: string
+  versionNumber: number
+  title: string
+  allyUuid: string | null
+  allyName: string | null
+  allyAgreementUuid: string | null
+  acceptedAt: string
+  acceptedAt_Display?: string | null
+  channel: TermsAcceptanceChannel
+  /** Text as accepted. */
+  renderedContent: string
+  /** `true` for pre-V189 acceptances: no stored text, re-rendered with current data. */
+  contentReconstructed: boolean
 }
 
 /**
@@ -112,6 +168,13 @@ export type TermsAcceptanceChannel = 'PORTAL' | 'SELF_SERVICE' | 'ASSISTED' | 'A
 export interface TermsVariableDto {
   key: string
   description: string
+  /**
+   * How the value is written in the contract (backend `TermsVariables.Kind`).
+   * MONEY = amount in its own currency plus "o su equivalente en bolívares a
+   * la tasa oficial del BCV vigente el día del pago" when it is not the
+   * official one — never a converted figure.
+   */
+  kind?: 'TEXT' | 'DATE' | 'NUMBER' | 'MONEY' | 'BOOLEAN'
 }
 
 /** `{{key}}` — the token inserted in the editor for a variable. */
