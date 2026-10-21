@@ -56,4 +56,4 @@ API backend vía `NUXT_PUBLIC_API_BASE_URL` (ver [`README.md`](README.md) → En
 
 ## Estado actual
 
-Bootstrap completo: auth (login/recuperación), RBAC editable (usuarios + roles + permisos), catálogos, layouts, middleware, i18n, imagen Docker y CI/CD ya construidos. Portales aliado/afiliado/promotor y módulos de negocio (afiliados, membresías, pagos, validador) **pendientes**. Ver [`.ai/context/current-state.md`](.ai/context/current-state.md) y [`.ai/checklist.md`](.ai/checklist.md).
+Bootstrap completo: auth (login/recuperación), RBAC editable (usuarios + roles + permisos), catálogos, layouts, middleware, i18n, imagen Docker y CI/CD ya construidos. También existen los portales autenticados (`/allies/*` aliado con validador, `/members/*` afiliado, `/advisors/*` asesor), las páginas públicas (`/aliados`, `/afiliarse`) y los módulos del panel admin (`/dashboard/*`: afiliados, membresías, planes, aliados, asesores, pagos, cobranzas, comisiones, campañas, reportes). Lo que falta está en el checklist. Ver [`.ai/context/current-state.md`](.ai/context/current-state.md) y [`.ai/checklist.md`](.ai/checklist.md).

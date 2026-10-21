@@ -65,7 +65,7 @@ export interface BenefitUsageDto {
  * Body of POST /v1/allies/me/benefit-usages.
  *
  * `membershipUuid` comes from the validator response, `allyUuid` from
- * GET /v1/me/allies — neither is ever typed by the operator.
+ * GET /v1/allies/me — neither is ever typed by the operator.
  *
  * Co-pay is optional, but if one side is set the other must be too (the backend
  * mirrors the V24 chk_benefit_usages_copay_paired CHECK and answers 422).

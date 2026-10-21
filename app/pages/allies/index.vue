@@ -8,7 +8,7 @@ import { ROLES } from '~/types/auth'
 // Partner panel: propose services (POST /v1/allies/me/services, born in PROPOSED).
 // The backend requires the user to have OWNER/STAFF membership in the given ally.
 //
-// The ally is resolved from GET /v1/me/allies — never typed. One ally (the common
+// The ally is resolved from GET /v1/allies/me — never typed. One ally (the common
 // case) needs no picker; a user spanning several gets one.
 definePageMeta({
   layout: 'dashboard',
