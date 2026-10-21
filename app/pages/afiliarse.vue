@@ -1,10 +1,14 @@
 <script setup lang="ts">
-// Public self-affiliation — the landing of every promoter QR
-// (/afiliarse?ref=<referral code>). POST /v1/public/affiliations creates the
-// AFILIADO login, the member attributed to the promoter and the chosen plan's
-// membership, which stays suspended until the first payment is approved.
+// Public self-affiliation — the landing of every advisor QR
+// (/afiliarse?ref=<referral code>). POST /v1/public/affiliation-requests stores
+// a request that staff review (backend V188): the login, the member and the
+// membership (suspended until the first payment) are created only when it is
+// approved, and the applicant is told by email. The password chosen here is
+// the one they will log in with.
 // The request must carry the uuid of the current public AFILIADO terms
-// (GET /v1/public/terms/AFILIADO); the backend records that acceptance.
+// (GET /v1/public/terms/AFILIADO). While the form is filled, the contract is
+// re-rendered with the typed data (POST /v1/public/terms/AFILIADO/preview,
+// debounced); if the preview fails the plain public text is shown instead.
 import MarkdownIt from 'markdown-it'
 import DOMPurify from 'dompurify'
 import { PLAN_TYPES } from '~/types/plans'
@@ -79,18 +83,24 @@ const terms = ref<PublicTerms | null>(null)
 const termsUnavailable = ref(false)
 const termsOpen = ref(false)
 const termsAccepted = ref(false)
-const termsHtml = computed(() => DOMPurify.sanitize(md.render(terms.value?.contentMarkdown || '')))
+// The same contract rendered with the form data; null = not available yet
+// (or the preview failed) → the plain public text is shown.
+const previewMarkdown = ref<string | null>(null)
+const termsHtml = computed(() =>
+  DOMPurify.sanitize(md.render(previewMarkdown.value ?? terms.value?.contentMarkdown ?? '')))
 
 async function loadTerms(): Promise<void> {
   try {
     const previous = terms.value?.uuid
     terms.value = await useApi<PublicTerms>(`/v1/public/terms/${TERM_TYPES.MEMBER}`, { skipAuth: true })
     termsUnavailable.value = false
+    previewMarkdown.value = null
     if (previous && previous !== terms.value.uuid) {
       termsAccepted.value = false
       termsOpen.value = true
       toast.add({ title: t('affiliationRequest.termsUpdated'), color: 'warning' })
     }
+    refreshPreview()
   }
   catch {
     terms.value = null
@@ -104,7 +114,45 @@ const state = reactive({
   email: '', phone: '', password: '', passwordConfirm: '', planUuid: '',
 })
 const sending = ref(false)
-const done = ref<{ email: string, promoterName: string | null } | null>(null)
+const done = ref<{ email: string, advisorName?: string | null } | null>(null)
+
+// ---- Live contract preview ----
+let previewSeq = 0
+async function refreshPreview(): Promise<void> {
+  if (!terms.value) return
+  const seq = ++previewSeq
+  try {
+    const res = await useApi<PublicTerms>(`/v1/public/terms/${TERM_TYPES.MEMBER}/preview`, {
+      method: 'POST',
+      skipAuth: true,
+      silent: true,
+      body: {
+        firstName: state.firstName.trim() || undefined,
+        lastName: state.lastName.trim() || undefined,
+        documentType: state.documentType || undefined,
+        documentNumber: state.documentNumber.trim() || undefined,
+        birthDate: state.birthDate || undefined,
+        planUuid: state.planUuid || undefined,
+      },
+    })
+    if (seq !== previewSeq) return
+    if (terms.value && res.uuid !== terms.value.uuid) {
+      // A new version went live while the form was open: reload it so the
+      // applicant reads and accepts the current one.
+      await loadTerms()
+      return
+    }
+    previewMarkdown.value = res.contentMarkdown
+  }
+  catch {
+    if (seq === previewSeq) previewMarkdown.value = null
+  }
+}
+const debouncedPreview = useSearchDebounce(refreshPreview)
+watch(
+  () => [state.firstName, state.lastName, state.documentType, state.documentNumber, state.birthDate, state.planUuid],
+  () => { debouncedPreview() },
+)
 
 function invalid(): string | null {
   if (!state.firstName.trim() || !state.lastName.trim() || !state.documentNumber.trim() || !state.birthDate || !state.email.trim() || !state.planUuid) {
@@ -126,7 +174,7 @@ async function submit() {
   }
   sending.value = true
   try {
-    const res = await useApi<{ email: string, promoterName: string | null }>('/v1/public/affiliations', {
+    const res = await useApi<{ uuid: string, status: string, email: string, advisorName?: string | null }>('/v1/public/affiliation-requests', {
       method: 'POST',
       skipAuth: true,
       body: {
@@ -161,11 +209,11 @@ async function submit() {
     <div class="w-full max-w-xl bg-white rounded-3xl border border-prohealth-100 shadow-sm p-8">
       <template v-if="done">
         <div class="text-center space-y-3">
-          <UIcon name="i-lucide-circle-check" class="w-12 h-12 mx-auto text-green-500" />
+          <UIcon name="i-lucide-mail-check" class="w-12 h-12 mx-auto text-green-500" />
           <h1 class="text-2xl font-extrabold text-prohealth-900">{{ t('affiliationRequest.sentTitle') }}</h1>
           <p class="text-sm text-prohealth-600">{{ t('affiliationRequest.sentBody', { email: done.email }) }}</p>
-          <p v-if="done.promoterName" class="text-xs text-prohealth-500">{{ t('affiliationRequest.sentPromoter', { name: done.promoterName }) }}</p>
-          <UButton :to="publicPath('/')" color="primary" icon="i-lucide-log-in" class="mt-2">{{ t('affiliationRequest.goLogin') }}</UButton>
+          <p v-if="done.advisorName" class="text-xs text-prohealth-500">{{ t('affiliationRequest.sentPromoter', { name: done.advisorName }) }}</p>
+          <UButton :to="publicPath('/')" color="primary" variant="outline" icon="i-lucide-house" class="mt-2">{{ t('affiliationRequest.backHome') }}</UButton>
         </div>
       </template>
 
@@ -222,6 +270,7 @@ async function submit() {
               >
                 {{ termsOpen ? t('affiliationRequest.termsHide') : t('affiliationRequest.termsShow') }}
               </UButton>
+              <p v-if="termsOpen" class="text-xs text-prohealth-500">{{ t('affiliationRequest.termsLiveNote') }}</p>
               <div
                 v-if="termsOpen"
                 class="terms-content max-h-72 overflow-y-auto rounded-lg border border-prohealth-100 bg-prohealth-50/40 p-4 text-sm text-prohealth-800"

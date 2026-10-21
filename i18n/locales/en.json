@@ -742,6 +742,14 @@
       "promoterProfile": {
         "label": "My profile",
         "description": "Your photo and affiliation QR."
+      },
+      "affiliationRequests": {
+        "label": "Affiliation requests",
+        "description": "Review, correct and approve the sign-ups from the public page."
+      },
+      "myAffiliationRequests": {
+        "label": "My affiliation requests",
+        "description": "The requests that came through your QR and their status."
       }
     },
     "other": {
@@ -4537,14 +4545,14 @@
   "affiliationRequest": {
     "seoTitle": "Join · OptiBienestar 360",
     "title": "Join OptiBienestar 360",
-    "subtitle": "Create your account and pick your plan. Your membership is registered instantly.",
+    "subtitle": "Send your request and pick your plan. We review your data and let you know by email.",
     "referredBy": "Referred by the advisor with code",
     "email": "Email",
     "phone": "Phone",
-    "submit": "Create my membership",
+    "submit": "Send request",
     "required": "Fill in the required fields",
-    "sentTitle": "Your membership was created!",
-    "sentBody": "You can now sign in to your portal with {email} to see your Digital Credential and report your first payment.",
+    "sentTitle": "Request received",
+    "sentBody": "We will email you at {email} once we review it. After approval you can log in with that email and the password you chose.",
     "firstName": "First names",
     "lastName": "Last names",
     "document": "ID document",
@@ -4554,12 +4562,11 @@
     "plan": "Plan",
     "planPlaceholder": "Choose a plan",
     "month": "month",
-    "activationNote": "Your membership becomes active once the team approves your first payment. You can report it from your portal.",
+    "activationNote": "Once we approve your request you can log in with your email and this password. Your membership becomes active when the team approves your first payment.",
     "badDocument": "The ID must be digits only (up to 9)",
     "shortPassword": "The password must be at least 8 characters",
     "passwordMismatch": "Passwords do not match",
-    "sentPromoter": "Enrolled by: {name}",
-    "goLogin": "Sign in",
+    "sentPromoter": "Your advisor: {name}",
     "inscription": "Enrollment",
     "termsTitle": "Terms and conditions",
     "termsShow": "Read the agreement",
@@ -4567,7 +4574,9 @@
     "termsAccept": "I have read and accept the {title}",
     "termsRequired": "You must accept the terms and conditions",
     "termsUnavailable": "The terms and conditions are not available right now. Please try again later.",
-    "termsUpdated": "The terms and conditions were updated. Please review and accept them again."
+    "termsUpdated": "The terms and conditions were updated. Please review and accept them again.",
+    "backHome": "Back to home",
+    "termsLiveNote": "The agreement is filled in with your data as you complete the form."
   },
   "myContracts": {
     "title": "My contracts",
@@ -4590,5 +4599,82 @@
       "ADMIN": "By the administration"
     },
     "reconstructed": "This acceptance predates storing the accepted text: the accepted version is shown with your current data."
+  },
+  "affiliationRequests": {
+    "title": "Affiliation requests",
+    "subtitle": "Sign-ups sent from the public page. Review the data, correct it if needed and approve or reject.",
+    "searchPlaceholder": "Search by name, ID, email or phone…",
+    "statusAll": "All statuses",
+    "empty": "No requests match these filters",
+    "viewDetail": "View request",
+    "status": {
+      "PENDING": "Pending",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected"
+    },
+    "columns": {
+      "applicant": "Applicant",
+      "document": "ID document",
+      "plan": "Plan",
+      "advisor": "Advisor",
+      "createdAt": "Received",
+      "status": "Status"
+    },
+    "fields": {
+      "firstName": "First names",
+      "lastName": "Last names",
+      "documentType": "ID type",
+      "documentNumber": "ID document",
+      "birthDate": "Date of birth",
+      "email": "Email",
+      "phone": "Phone",
+      "plan": "Plan",
+      "referralCode": "Referral code",
+      "advisor": "Advisor"
+    },
+    "detail": {
+      "seoPage": "Affiliation request",
+      "notFoundTitle": "Request not found",
+      "receivedAt": "Received on {date}",
+      "viaAdvisor": "through {name}'s QR",
+      "reviewedBy": "Reviewed by {name} on {date}",
+      "approve": "Approve",
+      "reject": "Reject",
+      "viewMember": "View member",
+      "dataTitle": "Applicant data",
+      "contractTitle": "Accepted contract",
+      "contractAccepted": "{title} · accepted on {date}",
+      "ipAddress": "IP",
+      "userAgent": "Browser",
+      "comment": "Note (optional)",
+      "required": "Fill in the required fields",
+      "savedToast": "Data corrected",
+      "saveBeforeApprove": "Save or discard your changes before approving.",
+      "termsChangedTitle": "The contract changed with the corrections",
+      "termsChangedBody": "The corrected data changes the contract text. After approval, the person will have to accept it again at first login.",
+      "approveTitle": "Approve request",
+      "approveNotice": "The user (with the password the person chose), the member and the membership will be created; the membership stays suspended until the first payment. We will email them the link to log in.",
+      "approvedToast": "Request approved",
+      "rejectTitle": "Reject request",
+      "rejectNotice": "The person will receive an email with this reason.",
+      "rejectionReason": "Rejection reason",
+      "rejectedToast": "Request rejected"
+    },
+    "log": {
+      "title": "Log",
+      "empty": "No activity",
+      "applicant": "The applicant",
+      "actions": {
+        "CREATED": "Request received",
+        "UPDATED": "Data corrected",
+        "APPROVED": "Approved",
+        "REJECTED": "Rejected"
+      }
+    },
+    "mine": {
+      "title": "My affiliation requests",
+      "subtitle": "The people who signed up with your QR and where their request stands.",
+      "empty": "No requests through your QR yet"
+    }
   }
 }

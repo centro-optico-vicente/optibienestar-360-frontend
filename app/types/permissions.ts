@@ -55,6 +55,13 @@ export const PERMISSIONS = [
   'MEMBER_VIEW_ALL',
   'MEMBER_VIEW_OWN',
   'MEMBER_UPLOAD_DOCUMENT',
+  // Affiliation requests (backend V188) — review of the public /afiliarse requests.
+  // _VIEW_OWN is the advisor's list of the requests from their own QR.
+  'AFFILIATION_REQUEST_VIEW_ALL',
+  'AFFILIATION_REQUEST_VIEW_OWN',
+  'AFFILIATION_REQUEST_UPDATE',
+  'AFFILIATION_REQUEST_APPROVE',
+  'AFFILIATION_REQUEST_REJECT',
   'MEDICAL_RECORD_VIEW',
   'MEDICAL_RECORD_UPDATE',
   // Corporate contracts (V38, granular per V79). Member enrollment is a
