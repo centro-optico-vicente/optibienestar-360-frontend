@@ -26,7 +26,7 @@ const validator = useValidator()
 useSeoMeta({ title: () => t('validator.seoTitle') })
 
 // ---- Which ally am I operating for? ----
-// Resolved from GET /v1/allies/me, never typed by the operator. One ally is the
+// Resolved from GET /v1/me/allies, never typed by the operator. One ally is the
 // common case and needs no picker; several (a doctor working at two clinics) get one.
 const allies = ref<MyAllyDto[]>([])
 const selectedAllyUuid = ref<string | undefined>(undefined)

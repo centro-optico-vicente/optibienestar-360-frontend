@@ -296,7 +296,7 @@ export interface UpdateAllyUserRequest {
 // ---- Partner self-service ----
 
 /**
- * Response item of GET /v1/allies/me — "which allies do I operate on?".
+ * Response item of GET /v1/me/allies — "which allies do I operate on?".
  *
  * `uuid` is the ALLY's uuid (not the staff-membership pivot's): it is what
  * POST /v1/allies/me/benefit-usages and POST /v1/allies/me/services expect as

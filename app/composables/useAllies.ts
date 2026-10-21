@@ -231,7 +231,7 @@ export const usePublicAllies = () => {
 }
 
 /**
- * Partner self-identification (GET /v1/allies/me, ALLY_VIEW_OWN).
+ * Partner self-identification (GET /v1/me/allies, ALLY_VIEW_OWN).
  *
  * This is what lets the partner portal know its own `allyUuid` — required by
  * POST /v1/allies/me/benefit-usages and POST /v1/allies/me/services. Scoped by the JWT
@@ -242,7 +242,7 @@ export const usePublicAllies = () => {
  */
 export const useMyAllies = () => {
   /** Allies I operate on, primary first then alphabetical (order set by the backend). */
-  const list = () => useApi<MyAllyDto[]>('/v1/allies/me')
+  const list = () => useApi<MyAllyDto[]>('/v1/me/allies')
 
   return { list }
 }

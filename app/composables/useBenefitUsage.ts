@@ -21,7 +21,7 @@ interface HistoryParams {
 export const useBenefitUsage = () => {
   /**
    * Register a consumed benefit. `membershipUuid` comes from the validator
-   * response and `allyUuid` from GET /v1/allies/me — the operator types neither.
+   * response and `allyUuid` from GET /v1/me/allies — the operator types neither.
    *
    * The backend re-checks the membership is still ACTIVE, so a stale validation
    * (or a race with an admin cancel) is rejected with a 422 rather than
