@@ -1,4 +1,4 @@
-import type { PendingTermDto } from '~/types/terms'
+import type { PendingTermDto, TermsAcceptItem } from '~/types/terms'
 
 /**
  * Self-service pending-acceptance state (/v1/me/terms/*), singleton across the
@@ -23,8 +23,13 @@ export const usePendingTerms = () => {
     }
   }
 
-  const acceptAll = async (termsVersionUuids: string[]) => {
-    await useApi<null>('/v1/me/terms/accept', { method: 'POST', body: { termsVersionUuids } })
+  /**
+   * Accepts the given items. ALIADO items carry their `allyAgreementUuid`:
+   * the same version may be pending for several agreements (backend V189),
+   * each accepted with its own ally's data.
+   */
+  const acceptAll = async (items: TermsAcceptItem[]) => {
+    await useApi<null>('/v1/me/terms/accept', { method: 'POST', body: { items } })
     pending.value = []
   }
 

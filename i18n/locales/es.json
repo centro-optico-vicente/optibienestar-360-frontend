@@ -745,7 +745,8 @@
       }
     },
     "other": {
-      "changePassword": "Cambiar contraseña"
+      "changePassword": "Cambiar contraseña",
+      "myContracts": "Mis contratos"
     }
   },
   "layout": {
@@ -4127,7 +4128,7 @@
       "audience": {
         "AFILIADO": "Lo acepta todo usuario del sistema (administradores, asesores, aliados y afiliados) al iniciar sesión, y de nuevo cada vez que entra en vigencia una versión nueva. Es el que se publica en la web.",
         "ASESOR": "Lo aceptan los usuarios con ficha de asesor activa, de cualquier rango (asesor, supervisor, coordinador). No aplica al asesor del sistema (INSTITUCION).",
-        "ALIADO": "Cada aliado acepta la plantilla vinculada a su convenio activo. Puedes tener varias plantillas: una general y otras limitadas a un segmento, un tipo de aliado o un aliado específico."
+        "ALIADO": "Cada convenio activo de un aliado se acepta por separado, con los datos de ese aliado: quien trabaja en varios aliados acepta un convenio por cada uno. Puedes tener varias plantillas: una general y otras limitadas a un segmento, un tipo de aliado o un aliado específico."
       },
       "scope": {
         "title": "Alcance de la plantilla (opcional)",
@@ -4220,7 +4221,15 @@
     "subtitle": "Debes leer y aceptar los siguientes documentos para continuar.",
     "scrollHint": "Desplázate hasta el final para poder aceptar",
     "acceptLabel": "He leído y acepto este documento",
-    "continue": "Continuar"
+    "continue": "Continuar",
+    "allyHeading": "Convenio con {ally}",
+    "version": "Versión {version}",
+    "tabs": {
+      "contract": "Contrato",
+      "changes": "Cambios"
+    },
+    "changesSince": "Cambios respecto a la versión {version} que aceptaste el {date}",
+    "noChanges": "El texto es igual al que aceptaste antes."
   },
   "entityConfig": {
     "title": "Configuración de entidades",
@@ -4559,5 +4568,27 @@
     "termsRequired": "Debes aceptar los términos y condiciones",
     "termsUnavailable": "Los términos y condiciones no están disponibles en este momento. Intenta más tarde.",
     "termsUpdated": "Los términos y condiciones se actualizaron. Revísalos y acéptalos de nuevo."
+  },
+  "myContracts": {
+    "title": "Mis contratos",
+    "subtitle": "Los contratos que aceptaste, con el texto tal como lo aceptaste.",
+    "refresh": "Actualizar",
+    "empty": "Todavía no has aceptado ningún contrato.",
+    "types": {
+      "AFILIADO": "Contrato de afiliación",
+      "ASESOR": "Mandato de asesor comercial",
+      "ALIADO": "Convenios de aliado"
+    },
+    "allyHeading": "Convenio con {ally}",
+    "allyUnlinked": "Convenios de aliado (aceptados antes de separar por convenio)",
+    "version": "Versión {version}",
+    "acceptedAt": "Aceptado el {date}",
+    "channels": {
+      "PORTAL": "En la aplicación",
+      "SELF_SERVICE": "Al afiliarte",
+      "ASSISTED": "Con tu asesor",
+      "ADMIN": "Por la administración"
+    },
+    "reconstructed": "Esta aceptación es anterior al guardado del texto: se muestra la versión aceptada con tus datos actuales."
   }
 }

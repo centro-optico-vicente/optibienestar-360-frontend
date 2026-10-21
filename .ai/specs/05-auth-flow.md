@@ -166,6 +166,17 @@ Backend mueve el refresh token a blacklist Redis. **No hay cookie httpOnly que l
 [Redirect a / (NO /login, ese archivo no existe) con toast de éxito]
 ```
 
+## Aceptación de contratos y «Mis contratos»
+
+Detalle del backend: [backend spec 18 — Contratos (T&C)](https://github.com/centro-optico-vicente/optibienestar-360-backend/blob/main/.ai/specs/18-terms-acceptance.md).
+
+- **Modal bloqueante** (`TermsAcceptanceModal` + `usePendingTerms`): `app.vue` llama `GET /v1/me/terms/pending` tras hidratar la sesión; mientras haya pendientes el modal no se puede cerrar.
+- Los convenios ALIADO llegan **uno por convenio** (backend V189): si la misma plantilla aplica a dos aliados del usuario, son dos ítems, cada uno con los datos de su aliado. El modal los agrupa por aliado («Convenio con {aliado}»). Clave de cada ítem: versión + convenio (`pendingTermKey`).
+- Si el ítem trae `previousAcceptance`, aparece la pestaña **«Cambios»**: diff por línea entre el texto aceptado antes y el nuevo (verde = agregado, rojo = quitado, gris = igual). El diff es propio (`app/utils/lineDiff.ts`, LCS por línea), sin dependencias nuevas.
+- Se acepta con `POST /v1/me/terms/accept { items: [{ termsVersionUuid, allyAgreementUuid }] }` (`termsVersionUuids` quedó deprecado en el backend).
+- **«Mis contratos»** (`/dashboard/contracts`, entrada en `OTHER_NAV` junto a «Cambiar contraseña», sin permiso: cualquier usuario autenticado): `GET /v1/me/terms/acceptances`, agrupado por tipo y, para ALIADO, por aliado; cada fila muestra versión, fecha y canal, y se expande para leer el texto tal como se aceptó. Las aceptaciones anteriores a V189 se marcan como texto reconstruido.
+- Las variables MONEY/NUMBER de las plantillas (`plan.monthlyFee`, etc.) salen del endpoint de variables del editor (`/dashboard/organization`); el monto se escribe en su moneda con la cláusula «o su equivalente en bolívares a la tasa oficial del BCV vigente el día del pago», nunca convertido.
+
 ## Reglas
 
 > **Corrección 2026-10-09:** las dos reglas de storage de abajo describían el diseño original (cookie httpOnly) y **contradicen directamente el código real** — no se tocó el código, se corrige la documentación para que deje de mentir. El storage real está formalizado en [ADR 0024 del hub](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0024-jwt-token-storage.md): decisión intencional (continuidad de sesión multi-pestaña) + CSP como mitigación XSS (ver `docker/default.conf`).
