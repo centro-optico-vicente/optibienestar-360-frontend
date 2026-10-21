@@ -120,7 +120,8 @@
       "newPassword": "New password",
       "confirmPassword": "Confirm password",
       "currentPassword": "Current password",
-      "confirmNewPassword": "Confirm new password"
+      "confirmNewPassword": "Confirm new password",
+      "resetToken": "Recovery code"
     },
     "backToLogin": "← Back to sign in",
     "logout": "Sign out",
@@ -142,10 +143,10 @@
     "recover": {
       "seoTitle": "Recover password — OptiBienestar 360",
       "heading": "Recover password",
-      "subheading": "We'll send you a link to reset your password.",
-      "submit": "Send link",
+      "subheading": "We'll email you a link and a code to reset your password.",
+      "submit": "Send email",
       "sentTitle": "Check your email",
-      "sentDescription": "If the email exists, you'll receive a link to reset your password.",
+      "sentDescription": "If the email exists, you'll receive a link and a code to reset your password. Both expire in 1 hour.",
       "errorFallback": "Unable to process the request"
     },
     "reset": {
@@ -155,9 +156,9 @@
       "submit": "Reset password",
       "successTitle": "Password reset",
       "successDescription": "You can now sign in with your new password.",
-      "invalidLinkTitle": "Invalid link",
-      "invalidLinkDescription": "The recovery token is missing. Request a new link from “Recover password”.",
-      "errorFallback": "The link is invalid or has expired"
+      "errorFallback": "The link or code is invalid or has expired",
+      "tokenPlaceholder": "Paste the code from the email here",
+      "tokenHelp": "If the button in the email didn't work, copy the code included in the message."
     },
     "changePassword": {
       "seoTitle": "Change password — OptiBienestar 360",

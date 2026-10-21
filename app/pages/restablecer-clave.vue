@@ -13,24 +13,40 @@ const publicPath = usePublicPath()
 
 useSeoMeta({ title: () => t('auth.reset.seoTitle') })
 
+// The reset token is a credential: never leak it to third parties through the
+// Referer header (fonts, CDNs, analytics) while it is still on this page.
+useHead({ meta: [{ name: 'referrer', content: 'no-referrer' }] })
+
 const { resetPassword } = useAuth()
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 
-// El token llega como query param desde el enlace del correo.
-const token = computed(() => (typeof route.query.token === 'string' ? route.query.token : ''))
+// The token arrives as a query param from the email link. It is read once and
+// kept in memory; the URL is then cleaned (no reload) so it does not linger in
+// the address bar or the browser history. Without the link (or when the email
+// button did not work) the user pastes the code from the email into a field.
+const linkToken = typeof route.query.token === 'string' ? route.query.token.trim() : ''
+// The paste field is shown when no link token arrived, or after the API rejects
+// the link token (so a mistyped/truncated link can be fixed by hand).
+const showTokenField = ref(linkToken === '')
 
+onMounted(() => {
+  if (route.query.token === undefined) return
+  const query = { ...route.query }
+  delete query.token
+  router.replace({ path: route.path, query, hash: route.hash })
+})
+
+// Mirrors the backend policy (ResetPasswordRequest: 8–128 chars, no complexity
+// rules; the last N passwords cannot be reused — reported by the API).
 const schema = computed(() => z
   .object({
+    token: z.string().trim().min(1, t('validation.required')),
     newPassword: z
       .string()
-      .min(10, t('validation.minChars', { n: 10 }))
-      .max(128, t('validation.maxChars', { n: 128 }))
-      .regex(/[A-Z]/, t('validation.passwordUppercase'))
-      .regex(/[a-z]/, t('validation.passwordLowercase'))
-      .regex(/[0-9]/, t('validation.passwordNumber'))
-      .regex(/[^A-Za-z0-9]/, t('validation.passwordSymbol')),
+      .min(8, t('validation.minChars', { n: 8 }))
+      .max(128, t('validation.maxChars', { n: 128 })),
     confirmPassword: z.string(),
   })
   .refine((d: { newPassword: string, confirmPassword: string }) => d.newPassword === d.confirmPassword, {
@@ -39,11 +55,12 @@ const schema = computed(() => z
   }))
 
 interface Schema {
+  token: string
   newPassword: string
   confirmPassword: string
 }
 
-const state = reactive<Partial<Schema>>({ newPassword: '', confirmPassword: '' })
+const state = reactive<Partial<Schema>>({ token: linkToken, newPassword: '', confirmPassword: '' })
 const isSubmitting = ref(false)
 const apiError = ref<string | null>(null)
 
@@ -51,7 +68,7 @@ const onSubmit = async (event: FormSubmitEvent<Schema>): Promise<void> => {
   isSubmitting.value = true
   apiError.value = null
   try {
-    await resetPassword(token.value, event.data.newPassword)
+    await resetPassword(event.data.token, event.data.newPassword)
     toast.add({
       title: t('auth.reset.successTitle'),
       description: t('auth.reset.successDescription'),
@@ -62,6 +79,7 @@ const onSubmit = async (event: FormSubmitEvent<Schema>): Promise<void> => {
   }
   catch (err: unknown) {
     apiError.value = (err as ApiError)?.message || t('auth.reset.errorFallback')
+    showTokenField.value = true
   }
   finally {
     isSubmitting.value = false
@@ -80,22 +98,32 @@ const onSubmit = async (event: FormSubmitEvent<Schema>): Promise<void> => {
       </p>
     </div>
 
-    <UAlert
-      v-if="!token"
-      color="error"
-      variant="subtle"
-      icon="i-lucide-link-2-off"
-      :title="$t('auth.reset.invalidLinkTitle')"
-      :description="$t('auth.reset.invalidLinkDescription')"
-    />
-
     <UForm
-      v-else
       :schema="schema"
       :state="state"
       class="space-y-5"
       @submit="onSubmit"
     >
+      <UFormField
+        v-if="showTokenField"
+        :label="$t('auth.fields.resetToken')"
+        :help="$t('auth.reset.tokenHelp')"
+        name="token"
+        required
+      >
+        <UInput
+          v-model="state.token"
+          type="text"
+          autocomplete="one-time-code"
+          autocapitalize="off"
+          spellcheck="false"
+          :placeholder="$t('auth.reset.tokenPlaceholder')"
+          icon="i-lucide-key-round"
+          size="lg"
+          class="w-full font-mono"
+        />
+      </UFormField>
+
       <UFormField :label="$t('auth.fields.newPassword')" name="newPassword" required>
         <UInput
           v-model="state.newPassword"

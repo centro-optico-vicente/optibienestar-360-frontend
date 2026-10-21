@@ -146,11 +146,18 @@ Backend mueve el refresh token a blacklist Redis. **No hay cookie httpOnly que l
   ↓
 [useAuth().recoverPassword(email) → POST /v1/auth/recover-password {email}]
   ↓
-[Backend envía email con el token (hoy la plantilla no arma un link al frontend)]
+[Backend envía email con un botón/enlace y el mismo token como código de respaldo:
+ APP_FRONTEND_URL + /restablecer-clave?token=... (o /en/reset-password?token=... si el destinatario es `en`)]
   ↓
-[Usuario abre /restablecer-clave?token=... (token leído de route.query.token) — /reset-password redirige 301 conservando ?token=]
+[Usuario abre el enlace — /reset-password redirige 301 conservando ?token=]
   ↓
-[Ingresa nuevo password]
+[La página lee route.query.token una vez, lo guarda en memoria y lo quita de la URL con router.replace (sin recargar);
+ <meta name="referrer" content="no-referrer"> para que no salga en el Referer]
+  ↓
+[Sin ?token= (o si la API rechaza el del enlace) → campo «Código de recuperación» para pegar el código del correo]
+  ↓
+[Ingresa nuevo password (zod igual a la política del backend: 8–128 caracteres, sin reglas de complejidad;
+ la API rechaza las últimas N contraseñas con auth.password.history.repeat)]
   ↓
 [useAuth().resetPassword(token, newPassword) → POST /v1/auth/reset-password {token, newPassword}]
   ↓

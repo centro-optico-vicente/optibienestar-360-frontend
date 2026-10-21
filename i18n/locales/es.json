@@ -120,7 +120,8 @@
       "newPassword": "Nueva contraseña",
       "confirmPassword": "Confirmar contraseña",
       "currentPassword": "Contraseña actual",
-      "confirmNewPassword": "Confirmar nueva contraseña"
+      "confirmNewPassword": "Confirmar nueva contraseña",
+      "resetToken": "Código de recuperación"
     },
     "backToLogin": "← Volver a iniciar sesión",
     "logout": "Cerrar sesión",
@@ -142,10 +143,10 @@
     "recover": {
       "seoTitle": "Recuperar contraseña — OptiBienestar 360",
       "heading": "Recuperar contraseña",
-      "subheading": "Te enviaremos un enlace para restablecer tu contraseña.",
-      "submit": "Enviar enlace",
+      "subheading": "Te enviaremos un correo con un enlace y un código para restablecer tu contraseña.",
+      "submit": "Enviar correo",
       "sentTitle": "Revisa tu correo",
-      "sentDescription": "Si el correo existe, recibirás un enlace para restablecer tu contraseña.",
+      "sentDescription": "Si el correo existe, recibirás un enlace y un código para restablecer tu contraseña. Ambos expiran en 1 hora.",
       "errorFallback": "No fue posible procesar la solicitud"
     },
     "reset": {
@@ -155,9 +156,9 @@
       "submit": "Restablecer contraseña",
       "successTitle": "Contraseña restablecida",
       "successDescription": "Ya puedes iniciar sesión con tu nueva contraseña.",
-      "invalidLinkTitle": "Enlace no válido",
-      "invalidLinkDescription": "Falta el token de recuperación. Solicita un nuevo enlace desde «Recuperar contraseña».",
-      "errorFallback": "El enlace no es válido o ha expirado"
+      "errorFallback": "El enlace o el código no es válido o ha expirado",
+      "tokenPlaceholder": "Pega aquí el código del correo",
+      "tokenHelp": "Si el botón del correo no funcionó, copia el código que viene en el mensaje."
     },
     "changePassword": {
       "seoTitle": "Cambiar contraseña — OptiBienestar 360",
