@@ -742,6 +742,14 @@
       "promoterProfile": {
         "label": "Mi perfil",
         "description": "Tu foto y tu QR de afiliación."
+      },
+      "affiliationRequests": {
+        "label": "Solicitudes de afiliación",
+        "description": "Revisar, corregir y aprobar las afiliaciones de la página pública."
+      },
+      "myAffiliationRequests": {
+        "label": "Mis solicitudes de afiliación",
+        "description": "Las solicitudes que llegaron por tu QR y su estado."
       }
     },
     "other": {
@@ -4537,14 +4545,14 @@
   "affiliationRequest": {
     "seoTitle": "Afíliate · OptiBienestar 360",
     "title": "Afíliate a OptiBienestar 360",
-    "subtitle": "Crea tu cuenta y elige tu plan. Tu afiliación queda registrada al instante.",
+    "subtitle": "Envía tu solicitud y elige tu plan. Revisamos tus datos y te avisamos por correo.",
     "referredBy": "Te refiere el asesor con código",
     "email": "Correo electrónico",
     "phone": "Teléfono",
-    "submit": "Crear mi afiliación",
+    "submit": "Enviar solicitud",
     "required": "Completa los campos obligatorios",
-    "sentTitle": "¡Tu afiliación fue creada!",
-    "sentBody": "Ya puedes entrar a tu portal con {email} para ver tu Credencial Digital y reportar tu primer pago.",
+    "sentTitle": "Solicitud recibida",
+    "sentBody": "Te avisaremos por correo a {email} cuando la revisemos. Al aprobarla podrás entrar con ese correo y la contraseña que elegiste.",
     "firstName": "Nombres",
     "lastName": "Apellidos",
     "document": "Cédula",
@@ -4554,12 +4562,11 @@
     "plan": "Plan",
     "planPlaceholder": "Elige un plan",
     "month": "mes",
-    "activationNote": "Tu membresía se activa cuando el equipo apruebe tu primer pago. Podrás reportarlo desde tu portal.",
+    "activationNote": "Cuando aprobemos tu solicitud podrás entrar con tu correo y esta contraseña. Tu membresía se activa cuando el equipo apruebe tu primer pago.",
     "badDocument": "La cédula debe tener solo números (hasta 9 dígitos)",
     "shortPassword": "La contraseña debe tener al menos 8 caracteres",
     "passwordMismatch": "Las contraseñas no coinciden",
-    "sentPromoter": "Te afilió: {name}",
-    "goLogin": "Iniciar sesión",
+    "sentPromoter": "Tu asesor: {name}",
     "inscription": "Inscripción",
     "termsTitle": "Términos y condiciones",
     "termsShow": "Leer el acuerdo",
@@ -4567,7 +4574,9 @@
     "termsAccept": "He leído y acepto el {title}",
     "termsRequired": "Debes aceptar los términos y condiciones",
     "termsUnavailable": "Los términos y condiciones no están disponibles en este momento. Intenta más tarde.",
-    "termsUpdated": "Los términos y condiciones se actualizaron. Revísalos y acéptalos de nuevo."
+    "termsUpdated": "Los términos y condiciones se actualizaron. Revísalos y acéptalos de nuevo.",
+    "backHome": "Volver al inicio",
+    "termsLiveNote": "El acuerdo se completa con tus datos a medida que llenas el formulario."
   },
   "myContracts": {
     "title": "Mis contratos",
@@ -4590,5 +4599,82 @@
       "ADMIN": "Por la administración"
     },
     "reconstructed": "Esta aceptación es anterior al guardado del texto: se muestra la versión aceptada con tus datos actuales."
+  },
+  "affiliationRequests": {
+    "title": "Solicitudes de afiliación",
+    "subtitle": "Afiliaciones enviadas desde la página pública. Revisa los datos, corrígelos si hace falta y aprueba o rechaza.",
+    "searchPlaceholder": "Buscar por nombre, cédula, correo o teléfono…",
+    "statusAll": "Todos los estados",
+    "empty": "No hay solicitudes con estos filtros",
+    "viewDetail": "Ver solicitud",
+    "status": {
+      "PENDING": "Pendiente",
+      "APPROVED": "Aprobada",
+      "REJECTED": "Rechazada"
+    },
+    "columns": {
+      "applicant": "Solicitante",
+      "document": "Cédula",
+      "plan": "Plan",
+      "advisor": "Asesor",
+      "createdAt": "Recibida",
+      "status": "Estado"
+    },
+    "fields": {
+      "firstName": "Nombres",
+      "lastName": "Apellidos",
+      "documentType": "Tipo de cédula",
+      "documentNumber": "Cédula",
+      "birthDate": "Fecha de nacimiento",
+      "email": "Correo electrónico",
+      "phone": "Teléfono",
+      "plan": "Plan",
+      "referralCode": "Código de referido",
+      "advisor": "Asesor"
+    },
+    "detail": {
+      "seoPage": "Solicitud de afiliación",
+      "notFoundTitle": "Solicitud no encontrada",
+      "receivedAt": "Recibida el {date}",
+      "viaAdvisor": "por el QR de {name}",
+      "reviewedBy": "Revisada por {name} el {date}",
+      "approve": "Aprobar",
+      "reject": "Rechazar",
+      "viewMember": "Ver afiliado",
+      "dataTitle": "Datos del solicitante",
+      "contractTitle": "Contrato aceptado",
+      "contractAccepted": "{title} · aceptado el {date}",
+      "ipAddress": "IP",
+      "userAgent": "Navegador",
+      "comment": "Nota (opcional)",
+      "required": "Completa los campos obligatorios",
+      "savedToast": "Datos corregidos",
+      "saveBeforeApprove": "Guarda o descarta los cambios antes de aprobar.",
+      "termsChangedTitle": "El contrato cambió con las correcciones",
+      "termsChangedBody": "Los datos corregidos cambian el texto del contrato. Al aprobar, la persona tendrá que aceptarlo de nuevo cuando entre por primera vez.",
+      "approveTitle": "Aprobar solicitud",
+      "approveNotice": "Se crearán el usuario (con la contraseña que eligió la persona), el afiliado y la membresía, que queda suspendida hasta el primer pago. Le enviaremos un correo con el enlace para entrar.",
+      "approvedToast": "Solicitud aprobada",
+      "rejectTitle": "Rechazar solicitud",
+      "rejectNotice": "La persona recibirá un correo con este motivo.",
+      "rejectionReason": "Motivo del rechazo",
+      "rejectedToast": "Solicitud rechazada"
+    },
+    "log": {
+      "title": "Bitácora",
+      "empty": "Sin movimientos",
+      "applicant": "El solicitante",
+      "actions": {
+        "CREATED": "Solicitud recibida",
+        "UPDATED": "Datos corregidos",
+        "APPROVED": "Aprobada",
+        "REJECTED": "Rechazada"
+      }
+    },
+    "mine": {
+      "title": "Mis solicitudes de afiliación",
+      "subtitle": "Las personas que se registraron con tu QR y en qué estado está su solicitud.",
+      "empty": "Todavía no hay solicitudes con tu QR"
+    }
   }
 }

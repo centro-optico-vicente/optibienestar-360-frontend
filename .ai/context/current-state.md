@@ -64,6 +64,7 @@ las vistas 1 (Auth/RBAC) y 2 (Catálogos) están completas; siguen 3 (Aliados),
 
 ## Cambios recientes
 
+- **2026-10-21** — Solicitudes de afiliación (backend V188): `/afiliarse` envía una solicitud (`POST /v1/public/affiliation-requests`) con vista previa en vivo del contrato; pantallas admin `/dashboard/affiliation-requests` (listado + detalle con corrección, contrato aceptado, bitácora, aprobar/rechazar con motivo) y portal del asesor `/advisors/affiliation-requests`; composable `useAffiliationRequests`, tipos `types/affiliationRequests.ts`, permisos `AFFILIATION_REQUEST_*` en el menú.
 - **2026-06-01** — Imagen Docker + CI/CD + config en runtime ([ADR 0006](../decisions/loc-0006-ci-cd-docker-runtime-config.md)); `.githooks/`; ADRs locales 0006–0010; checklist separado por fase/vertical.
 - **2026-05-31** — RBAC editable: gestión de usuarios, roles y permisos por dominio.
 - **2026-05-18** — Bootstrap del `.ai/` local del frontend.
