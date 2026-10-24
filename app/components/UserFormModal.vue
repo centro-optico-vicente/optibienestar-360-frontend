@@ -6,7 +6,7 @@ import type {
   AdminUpdateUserRequest,
   UserDto,
 } from '~/types/admin'
-import { SUPPORTED_LOCALES, toLocaleCode } from '~/composables/useAppLocale'
+import { SUPPORTED_LOCALES, toLocaleCode, type LocaleCode } from '~/composables/useAppLocale'
 
 // Shared create/edit form, used by both users/index.vue (row actions) and
 // users/[uuid].vue ("Editar" button) so the latter no longer has to navigate
@@ -76,7 +76,7 @@ const statusOptions = computed(() =>
 const localeOptions = computed(() =>
   SUPPORTED_LOCALES.map(code => ({ label: t(`security.users.locales.${code}`), value: code })),
 )
-const loadedLocale = ref<string | null>(null)
+const loadedLocale = ref<LocaleCode | null>(null)
 
 interface FormState {
   email: string
@@ -88,7 +88,7 @@ interface FormState {
   documentType: string | undefined
   documentNumber: string
   phone: string
-  locale: string
+  locale: LocaleCode
   status: string
   active: boolean
   roleIds: string[]
