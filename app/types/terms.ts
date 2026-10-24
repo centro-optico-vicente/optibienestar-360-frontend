@@ -45,6 +45,12 @@ export interface TermsVersionDto {
   contentRendered?: string
   /** Only "visible on the public website" (`/v1/public/terms`); acceptance is requested either way. */
   isPublic: boolean
+  /**
+   * Must be accepted before using the platform (backend V192); `false` = can be
+   * postponed, locking only its module. Policy, not text: editable even on a
+   * vigente version.
+   */
+  isMandatory: boolean
   validFrom: string
   /** Server-computed: `validFrom <= now`. `false` = still scheduled. */
   isVigent: boolean
@@ -65,6 +71,8 @@ export interface TermsVersionCreateRequest {
   title: string
   contentMarkdown: string
   isPublic?: boolean
+  /** Omitted on create → backend default by type (AFILIADO `true`, others `false`). */
+  isMandatory?: boolean
   /** ISO instant. Future = scheduled (only one allowed per stream at a time). */
   validFrom: string
   /** ALIADO only (422 otherwise) — optional scope narrowing which allies can use the template. */
@@ -112,8 +120,9 @@ export interface PendingTermDto {
   allyAgreementUuid: string | null
   previousAcceptance: PreviousTermsAcceptance | null
   /**
-   * Server-decided: only AFILIADO blocks the app. ASESOR / ALIADO can be
-   * postponed ("remind me later"); until accepted their module stays locked
+   * The version's `isMandatory` (set by the admin; AFILIADO by default): a
+   * mandatory item blocks the app. Optional ones can be postponed ("remind me
+   * later"); until accepted their module stays locked
    * (backend answers 403 `terms.pending` on `/v1/advisors/me/**` and
    * `/v1/allies/me/**`).
    */

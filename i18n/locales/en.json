@@ -4122,9 +4122,12 @@
         "title": "Title",
         "content": "Content (markdown)",
         "validFrom": "Effective from",
-        "isPublic": "Visible on the website"
+        "isPublic": "Visible on the website",
+        "isMandatory": "Mandatory"
       },
       "isPublicHelp": "Only decides whether this version is shown on the public website. Acceptance is requested either way.",
+      "isMandatoryHelp": "Mandatory: must be accepted to use the platform. When off, the user can postpone it (\"Remind me later\"), but this contract's modules stay locked until accepted. The change applies right away to the live version, without asking anyone to accept again.",
+      "mandatorySavedToast": "Mandatory setting updated",
       "missingFields": "Fill in the title, content and effective date",
       "savedToast": "Version saved successfully",
       "publishNew": "Publish new version",
@@ -4165,6 +4168,7 @@
         "scope": "Scope",
         "status": "Status",
         "public": "On website",
+        "mandatory": "Mandatory",
         "edit": "Edit",
         "statuses": {
           "current": "Current",

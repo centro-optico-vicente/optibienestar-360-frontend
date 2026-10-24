@@ -211,9 +211,12 @@ interface TermTabState {
   currentValidFrom: string | null
   /** The row being edited: the scheduled (not-yet-vigente) version if one exists, otherwise a fresh draft. */
   editingUuid: string | null
+  /** The live version of the stream, if any — its `isMandatory` can change in place (policy, not text). */
+  currentUuid: string | null
   title: string
   contentMarkdown: string
   isPublic: boolean
+  isMandatory: boolean
   validFrom: string
   /** Server-rendered text (placeholders resolved) of the version shown in the editor, as last saved. */
   previewRendered: string | null
@@ -230,7 +233,7 @@ interface TermTabState {
   invalidVariables: string[]
 }
 
-function emptyTabState(): TermTabState {
+function emptyTabState(type: TermType): TermTabState {
   return {
     loaded: false,
     loading: false,
@@ -238,9 +241,12 @@ function emptyTabState(): TermTabState {
     currentContent: null,
     currentValidFrom: null,
     editingUuid: null,
+    currentUuid: null,
     title: '',
     contentMarkdown: '',
     isPublic: false,
+    // Same default as the backend when the flag is omitted.
+    isMandatory: type === TERM_TYPES.MEMBER,
     validFrom: '',
     previewRendered: null,
     versions: [],
@@ -254,9 +260,9 @@ function emptyTabState(): TermTabState {
 }
 
 const termTabs = reactive<Record<TermType, TermTabState>>({
-  [TERM_TYPES.MEMBER]: emptyTabState(),
-  [TERM_TYPES.ADVISOR]: emptyTabState(),
-  [TERM_TYPES.ALLY]: emptyTabState(),
+  [TERM_TYPES.MEMBER]: emptyTabState(TERM_TYPES.MEMBER),
+  [TERM_TYPES.ADVISOR]: emptyTabState(TERM_TYPES.ADVISOR),
+  [TERM_TYPES.ALLY]: emptyTabState(TERM_TYPES.ALLY),
 })
 
 const activeTerm = computed(() => termTabs[activeTermTab.value])
@@ -285,6 +291,7 @@ function applyTermStream(tab: TermTabState) {
   tab.currentContent = current?.contentMarkdown ?? null
   tab.currentValidFrom = current?.validFrom ?? null
   tab.editingUuid = scheduled?.uuid ?? null
+  tab.currentUuid = current?.uuid ?? null
 
   if (!current && !scheduled) {
     tab.previewRendered = null
@@ -293,6 +300,7 @@ function applyTermStream(tab: TermTabState) {
   tab.title = scheduled?.title ?? current?.title ?? ''
   tab.contentMarkdown = scheduled?.contentMarkdown ?? current?.contentMarkdown ?? ''
   tab.isPublic = scheduled?.isPublic ?? current?.isPublic ?? false
+  tab.isMandatory = scheduled?.isMandatory ?? current?.isMandatory ?? tab.isMandatory
   tab.validFrom = scheduled ? scheduled.validFrom.slice(0, 16) : ''
   tab.previewRendered = scheduled?.contentRendered ?? current?.contentRendered ?? null
 }
@@ -338,6 +346,33 @@ function selectTermTab(type: TermType) {
   loadTermType(type)
 }
 
+/**
+ * "Obligatorio" is policy, not contract text: it applies right away to the
+ * live version (and the scheduled one, if any) without publishing a new
+ * version, so nobody has to accept again. A stream with no version yet just
+ * carries it into the next save.
+ */
+const savingMandatory = ref(false)
+async function onMandatoryChange(type: TermType, value: boolean) {
+  const tab = termTabs[type]
+  tab.isMandatory = value
+  const targets = [tab.currentUuid, tab.editingUuid].filter((uuid): uuid is string => !!uuid)
+  if (!canManageTerms.value || targets.length === 0) return
+  savingMandatory.value = true
+  try {
+    for (const uuid of targets) await termsApi.update(uuid, { isMandatory: value })
+    toast.add({ title: t('organization.terms.mandatorySavedToast'), color: 'success', icon: 'i-lucide-check-circle' })
+    await loadTermType(type, true)
+  }
+  catch {
+    // useApi already notified; reload to show the stored value again.
+    await loadTermType(type, true)
+  }
+  finally {
+    savingMandatory.value = false
+  }
+}
+
 async function saveTermTab(type: TermType) {
   if (!canManageTerms.value) return
   const tab = termTabs[type]
@@ -353,6 +388,7 @@ async function saveTermTab(type: TermType) {
         title: tab.title,
         contentMarkdown: tab.contentMarkdown,
         isPublic: tab.isPublic,
+        isMandatory: tab.isMandatory,
         validFrom: validFromIso,
       })
     }
@@ -364,6 +400,7 @@ async function saveTermTab(type: TermType) {
         title: tab.title,
         contentMarkdown: tab.contentMarkdown,
         isPublic: tab.isPublic,
+        isMandatory: tab.isMandatory,
         validFrom: validFromIso,
         ...(type === TERM_TYPES.ALLY
           ? {
@@ -741,6 +778,7 @@ onMounted(() => {
                   <th class="text-left font-semibold px-3 py-2">{{ t('organization.terms.fields.validFrom') }}</th>
                   <th class="text-left font-semibold px-3 py-2">{{ t('organization.terms.versionsList.status') }}</th>
                   <th class="text-left font-semibold px-3 py-2">{{ t('organization.terms.versionsList.public') }}</th>
+                  <th class="text-left font-semibold px-3 py-2">{{ t('organization.terms.versionsList.mandatory') }}</th>
                   <th class="px-3 py-2" />
                 </tr>
               </thead>
@@ -753,6 +791,7 @@ onMounted(() => {
                     {{ t(`organization.terms.versionsList.statuses.${termRowStatus(v, activeTerm.versions)}`) }}
                   </td>
                   <td class="px-3 py-2 text-prohealth-700">{{ v.isPublic ? t('common.yes') : t('common.no') }}</td>
+                  <td class="px-3 py-2 text-prohealth-700">{{ v.isMandatory ? t('common.yes') : t('common.no') }}</td>
                   <td class="px-3 py-2 text-right">
                     <UButton size="xs" color="neutral" variant="ghost" icon="i-lucide-pencil" @click="editTermStream(v)">
                       {{ t('organization.terms.versionsList.edit') }}
@@ -903,6 +942,13 @@ onMounted(() => {
           </UFormField>
           <UFormField :label="t('organization.terms.fields.isPublic')" :help="t('organization.terms.isPublicHelp')">
             <USwitch v-model="activeTerm.isPublic" :disabled="!canManageTerms" />
+          </UFormField>
+          <UFormField :label="t('organization.terms.fields.isMandatory')" :help="t('organization.terms.isMandatoryHelp')">
+            <USwitch
+              :model-value="activeTerm.isMandatory"
+              :disabled="!canManageTerms || savingMandatory"
+              @update:model-value="onMandatoryChange(activeTermTab, $event)"
+            />
           </UFormField>
         </div>
 

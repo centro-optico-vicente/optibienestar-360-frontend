@@ -4122,9 +4122,12 @@
         "title": "Título",
         "content": "Contenido (markdown)",
         "validFrom": "Vigente desde",
-        "isPublic": "Visible en la web"
+        "isPublic": "Visible en la web",
+        "isMandatory": "Obligatorio"
       },
       "isPublicHelp": "Solo decide si esta versión se muestra en la web pública. Se pide aceptarla igual, sea visible o no.",
+      "isMandatoryHelp": "Obligatorio: hay que aceptarlo para usar la plataforma. Si está desactivado, el usuario puede posponerlo («Recordar más tarde»), pero los módulos de este contrato quedan bloqueados hasta que lo acepte. El cambio se aplica de inmediato a la versión vigente, sin pedir que se acepte de nuevo.",
+      "mandatorySavedToast": "Obligatoriedad actualizada",
       "missingFields": "Completa título, contenido y fecha de vigencia",
       "savedToast": "Versión guardada correctamente",
       "publishNew": "Publicar nueva versión",
@@ -4165,6 +4168,7 @@
         "scope": "Alcance",
         "status": "Estado",
         "public": "En la web",
+        "mandatory": "Obligatorio",
         "edit": "Editar",
         "statuses": {
           "current": "Vigente",
