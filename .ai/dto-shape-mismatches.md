@@ -6,6 +6,8 @@
 > [`checklists/vertical-3-aliados.md`](checklists/vertical-3-aliados.md) y
 > [`checklists/vertical-4-afiliados-y-familia.md`](checklists/vertical-4-afiliados-y-familia.md).
 > Este archivo documenta **el patrón**, no los casos.
+>
+> **Estado 2026-10-24:** los desfases de aliados (admin y público) están corregidos: los tipos se dividieron espejando el cable (fix táctico 1 de abajo). La opción durable (tipos generados desde OpenAPI) sigue pendiente en vertical-10.
 
 ## El patrón
 
@@ -15,8 +17,8 @@ Los seis hallazgos tienen exactamente la misma forma:
 
 | Recurso | Backend: listar | Backend: detalle | Frontend |
 |---|---|---|---|
-| Aliado admin | `AllyListItemDto` (plano: `allyTypeName`) | `AllyDetailDto` (anidado: `allyType{}`) | un solo `AllyDto` (anidado) |
-| Aliado público | `PublicAllyListItemDto` (plano, sin especialidades) | `PublicAllyDetailDto` (`specialtyNames: String[]`) | un solo `PublicAllyDto` (anidado, `specialties: CatalogRef[]`) |
+| Aliado admin | `AllyListItemDto` (plano: `allyTypeName`) | `AllyDetailDto` (anidado: `allyType{}`) | `AllyListItemDto` + `AllyDto` ✅ corregido |
+| Aliado público | `PublicAllyListItemDto` (plano, sin especialidades) | `PublicAllyDetailDto` (`specialtyNames: String[]`) | `PublicAllyListItemDto` + `PublicAllyDetailDto` ✅ corregido (#224) |
 | Personal de aliado | `AllyUserDto` (plano: `userUuid`) | — | `AllyUserDto` con `user{}` anidado ✅ corregido |
 | Afiliado | `MemberListItemDto` | `MemberDetailDto` (`activeBeneficiariesCount`) | `MemberDto` con `beneficiaries[]` inexistente |
 
