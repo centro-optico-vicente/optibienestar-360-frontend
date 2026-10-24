@@ -1,4 +1,5 @@
 import { useDebounceFn } from '@vueuse/core'
+import type { CatalogItem } from '~/types/catalogs'
 import { nowTimeInCaracas, withCaracasOffset } from '~/utils/date'
 
 export type CurrencyConverterState = 'idle' | 'loading' | 'ok' | 'unavailable'
@@ -14,6 +15,8 @@ export interface CurrencyConverterResult {
   rateBaseCurrency: string | null
   rateQuoteCurrency: string | null
   rateDate: string | null
+  /** `asOf` sent to the backend for this result (`''` = now) — lets the popover re-query another target currency for the same point in time. */
+  asOf: string
 }
 
 const DEBOUNCE_MS = 400
@@ -25,6 +28,25 @@ const FALLBACK_REFERENCE = 'USD'
 // firing one each. Keyed `base|quote|asOf`; failures are not cached (a
 // missing rate today shouldn't get "stuck" if it appears seconds later).
 const rateCache = new Map<string, Promise<{ rate: number, rateDate: string | null } | null>>()
+
+// Same module-level dedup for the popover's "convert to" picker options:
+// every popover on the screen shares one GET /v1/me/currencies (open to any
+// authenticated role, unlike /v1/admin/currencies/options). A failure is
+// not cached, so the next popover retries.
+let convertibleCurrenciesPending: Promise<CatalogItem[]> | null = null
+
+/** Active currencies a conversion can target (the popover's picker). Never throws — `[]` on failure. */
+export function loadConvertibleCurrencies(): Promise<CatalogItem[]> {
+  if (!convertibleCurrenciesPending) {
+    convertibleCurrenciesPending = useApi<CatalogItem[]>('/v1/me/currencies', { silent: true })
+      .then(list => (list ?? []).filter(c => c.active && c.code))
+      .catch(() => {
+        convertibleCurrenciesPending = null
+        return []
+      })
+  }
+  return convertibleCurrenciesPending
+}
 
 function isValidAmount(raw: string | number | null | undefined): number | null {
   if (raw === null || raw === undefined || raw === '') return null
@@ -86,6 +108,7 @@ export function useCurrencyConverter(
     rateBaseCurrency: null,
     rateQuoteCurrency: null,
     rateDate: null,
+    asOf: '',
   })
 
   async function resolveSystemCurrencies(): Promise<{ official: string, reference: string }> {
@@ -127,7 +150,7 @@ export function useCurrencyConverter(
     const targetCurrency = sourceCurrency === official ? reference : official
 
     if (targetCurrency === sourceCurrency) {
-      result.value = { state: 'idle', sourceAmount, sourceCurrency, convertedAmount: null, targetCurrency: null, rate: null, rateBaseCurrency: null, rateQuoteCurrency: null, rateDate: null }
+      result.value = { state: 'idle', sourceAmount, sourceCurrency, convertedAmount: null, targetCurrency: null, rate: null, rateBaseCurrency: null, rateQuoteCurrency: null, rateDate: null, asOf }
       return
     }
 
@@ -140,7 +163,7 @@ export function useCurrencyConverter(
     const looked = await lookupRate(displayBase, displayQuote, asOf)
 
     if (!looked) {
-      result.value = { state: 'unavailable', sourceAmount, sourceCurrency, convertedAmount: null, targetCurrency, rate: null, rateBaseCurrency: displayBase, rateQuoteCurrency: displayQuote, rateDate: null }
+      result.value = { state: 'unavailable', sourceAmount, sourceCurrency, convertedAmount: null, targetCurrency, rate: null, rateBaseCurrency: displayBase, rateQuoteCurrency: displayQuote, rateDate: null, asOf }
       return
     }
 
@@ -158,6 +181,7 @@ export function useCurrencyConverter(
       rateBaseCurrency: displayBase,
       rateQuoteCurrency: displayQuote,
       rateDate: looked.rateDate,
+      asOf,
     }
   }
 

@@ -78,7 +78,9 @@
       "sourceAmount": "Source Amount",
       "convertedAmount": "Converted Amount",
       "rate": "Exchange Rate",
-      "rateDate": "Exchange Rate Date"
+      "rateDate": "Exchange Rate Date",
+      "targetCurrency": "Convert to",
+      "crossRateHint": "Cross rate via {currency}"
     },
     "close": "Close",
     "clearFilters": "Clear filters",

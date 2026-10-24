@@ -17,6 +17,30 @@ export interface CurrentExchangeRateDto {
   rateDate: string | null
 }
 
+/**
+ * Response of GET /v1/exchange-rates/convert?amount=&from=&to=&asOf= — an
+ * amount converted between two arbitrary currencies, resolved server-side
+ * (crossed through the org's official currency when the pair has no rate
+ * of its own — `viaCurrencyCode` names that bridge, `null` for a direct
+ * pair). Raw values plus `_Display` strings already formatted for the
+ * request's locale (hub ADR 0014). `available: false` (every other field
+ * null) is the degrade path, same as `CurrentExchangeRateDto`.
+ */
+export interface ConvertedAmountDto {
+  available: boolean
+  amount: number | string | null
+  amount_Display: string | null
+  fromCurrencyCode: string | null
+  toCurrencyCode: string | null
+  convertedAmount: number | string | null
+  convertedAmount_Display: string | null
+  rate: number | string | null
+  rate_Display: string | null
+  rateDate: string | null
+  rateDate_Display: string | null
+  viaCurrencyCode: string | null
+}
+
 // ---- Admin CRUD over exchange_rates (/v1/admin/exchange-rates, ADR 0015 §2/§7) ----
 
 /** Mirrors the backend `ExchangeRate.Source` enum. Only `MANUAL` rows are editable/deletable. */
