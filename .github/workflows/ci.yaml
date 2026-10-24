@@ -44,6 +44,10 @@ jobs:
           node-version: '22'
           cache: 'pnpm'
 
+      # Zero-dependency script: fails fast before the install if es/en drift apart.
+      - name: Check i18n key parity (es/en)
+        run: node scripts/check-i18n-parity.mjs
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
