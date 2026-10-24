@@ -6,6 +6,7 @@ import type {
   AdminUpdateUserRequest,
   UserDto,
 } from '~/types/admin'
+import { SUPPORTED_LOCALES, toLocaleCode, type LocaleCode } from '~/composables/useAppLocale'
 
 // Shared create/edit form, used by both users/index.vue (row actions) and
 // users/[uuid].vue ("Editar" button) so the latter no longer has to navigate
@@ -68,6 +69,15 @@ const statusOptions = computed(() =>
   STATUS_VALUES.map(s => ({ label: t(`security.users.status.${s}`), value: s })),
 )
 
+// User's preferred language (drives their emails and localized API responses).
+// Only AdminUpdateUserRequest accepts it (`^(es|es-VE|en)$`); create has no locale field.
+// Regional variants (es-VE) fold onto the bundled code for display; the value is only
+// sent when the admin actually changes it, so an untouched es-VE isn't rewritten to es.
+const localeOptions = computed(() =>
+  SUPPORTED_LOCALES.map(code => ({ label: t(`security.users.locales.${code}`), value: code })),
+)
+const loadedLocale = ref<LocaleCode | null>(null)
+
 interface FormState {
   email: string
   firstName: string
@@ -78,6 +88,7 @@ interface FormState {
   documentType: string | undefined
   documentNumber: string
   phone: string
+  locale: LocaleCode
   status: string
   active: boolean
   roleIds: string[]
@@ -93,6 +104,7 @@ const state = reactive<FormState>({
   documentType: undefined,
   documentNumber: '',
   phone: '',
+  locale: toLocaleCode(null),
   status: 'ACTIVE',
   active: true,
   roleIds: [],
@@ -142,6 +154,8 @@ function resetForm() {
   state.documentType = undefined
   state.documentNumber = ''
   state.phone = ''
+  state.locale = toLocaleCode(null)
+  loadedLocale.value = null
   state.status = 'ACTIVE'
   state.active = true
   state.roleIds = []
@@ -165,6 +179,8 @@ function populateEditForm(u: UserDto) {
   state.documentType = u.documentType || undefined
   state.documentNumber = u.documentNumber ?? ''
   state.phone = u.phone ?? ''
+  state.locale = toLocaleCode(u.locale)
+  loadedLocale.value = state.locale
   state.status = u.status || 'ACTIVE'
   state.active = u.active ?? true
   state.roleIds = (u.roles ?? []).map(r => r.uuid)
@@ -225,6 +241,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         documentType: state.documentType || undefined,
         documentNumber: state.documentNumber || undefined,
         phone: state.phone || undefined,
+        locale: state.locale !== loadedLocale.value ? state.locale : undefined,
         status: state.status,
         active: state.active,
         roleIds: state.roleIds,
@@ -329,6 +346,23 @@ function requestDelete() {
 
         <UFormField :label="t('security.users.fields.phone')" name="phone">
           <UInput v-model="state.phone" class="w-full" />
+        </UFormField>
+
+        <UFormField
+          v-if="mode === 'edit'"
+          :label="t('security.users.fields.locale')"
+          :help="t('security.users.fields.localeHint')"
+          name="locale"
+        >
+          <USelectMenu
+            v-model="state.locale"
+            :items="localeOptions"
+            label-key="label"
+            value-key="value"
+            icon="i-lucide-languages"
+            :search-input="false"
+            class="w-full"
+          />
         </UFormField>
 
         <div v-if="mode === 'edit'" class="grid grid-cols-1 sm:grid-cols-2 gap-4">

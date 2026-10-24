@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { RoleDto, UserDto } from '~/types/admin'
+import { toLocaleCode } from '~/composables/useAppLocale'
 import type { AllyListItemDto, AssignAllyUserRequest, UserAllyDto } from '~/types/allies'
 
 definePageMeta({
@@ -21,6 +22,11 @@ const alliesApi = useAllies()
 const { can } = usePermissions()
 const { formatDate } = useFormatters()
 const toast = useToast()
+
+/** User's preferred language; regional variants (es-VE) fold onto the bundled code. */
+function localeLabel(raw?: string | null): string {
+  return raw ? t(`security.users.locales.${toLocaleCode(raw)}`) : t('common.empty')
+}
 
 const canUpdate = computed(() => can('USER_UPDATE'))
 const canDelete = computed(() => can('USER_DELETE'))
@@ -402,6 +408,10 @@ async function refreshAll() {
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('security.users.fields.phone') }}</dt>
             <dd class="text-prohealth-800 mt-0.5">{{ user.phone || t('common.empty') }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('security.users.fields.locale') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ localeLabel(user.locale) }}</dd>
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('security.users.columns.lastLogin') }}</dt>

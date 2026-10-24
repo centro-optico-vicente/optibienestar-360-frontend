@@ -216,9 +216,15 @@
         "documentType": "Tipo de documento",
         "documentNumber": "Número de documento",
         "phone": "Teléfono",
+        "locale": "Idioma",
+        "localeHint": "Idioma de sus correos y de los mensajes que le devuelve el sistema.",
         "status": "Estado",
         "active": "Cuenta activa",
         "roles": "Roles"
+      },
+      "locales": {
+        "es": "Español",
+        "en": "English"
       },
       "status": {
         "ACTIVE": "Activo",
