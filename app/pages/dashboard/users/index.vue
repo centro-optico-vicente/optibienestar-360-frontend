@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
 import type { UserDto } from '~/types/admin'
+import { toLocaleCode } from '~/composables/useAppLocale'
 import type { SortDirection } from '~/composables/useTableSort'
 
 definePageMeta({
@@ -17,6 +18,10 @@ const users = useUsers()
 const { can } = usePermissions()
 const { formatDate } = useFormatters()
 const toast = useToast()
+
+/** User's preferred language as a short bundled code (es-VE folds onto es) and its name. */
+const localeCodeOf = (raw: string) => toLocaleCode(raw)
+const localeLabel = (raw: string) => t(`security.users.locales.${toLocaleCode(raw)}`)
 
 const canCreate = computed(() => can('USER_CREATE'))
 const canUpdate = computed(() => can('USER_UPDATE'))
@@ -323,7 +328,12 @@ async function confirmDelete() {
             >
               <td class="px-5 py-3">
                 <div class="font-semibold text-prohealth-900">{{ u.fullName }}</div>
-                <div class="text-xs text-prohealth-500">{{ u.email }}</div>
+                <div class="flex items-center gap-1.5 text-xs text-prohealth-500">
+                  <span>{{ u.email }}</span>
+                  <UTooltip v-if="u.locale" :text="localeLabel(u.locale)">
+                    <UBadge color="neutral" variant="outline" size="sm" class="uppercase">{{ localeCodeOf(u.locale) }}</UBadge>
+                  </UTooltip>
+                </div>
               </td>
               <td class="px-5 py-3 text-prohealth-700">
                 <span v-if="u.documentNumber">{{ u.documentType }} {{ u.documentNumber }}</span>

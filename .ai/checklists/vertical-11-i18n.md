@@ -43,8 +43,8 @@
 
 ## Fase 4 — Locale en formularios admin
 
-- [ ] [P2/C1] Formulario admin de usuarios (`pages/admin/users/`) — campo `locale` (select `es`/`en`) en create/update, matchea `AdminUpdateUserRequest.locale` del backend (`@Pattern ^(es|es-VE|en)$`). Permite que el admin fije el idioma de un usuario (afecta el idioma de sus emails y respuestas API).
-- [ ] [P2/C1] Mostrar el `locale` del usuario en la vista de detalle/listado admin (columna o badge).
+- [x] [P2/C1] Formulario admin de usuarios (`pages/admin/users/`) — campo `locale` (select `es`/`en`) en create/update, matchea `AdminUpdateUserRequest.locale` del backend (`@Pattern ^(es|es-VE|en)$`). Permite que el admin fije el idioma de un usuario (afecta el idioma de sus emails y respuestas API). — 2026-10-24. Select "Idioma" en el modo **editar** de `components/UserFormModal.vue` (ruta real `pages/dashboard/users/`). Solo en editar: `AdminCreateUserRequest` del backend no tiene `locale`. `es-VE` se muestra como `es` (`toLocaleCode`) y el valor solo se envía si el admin lo cambia, así un `es-VE` intacto no se reescribe.
+- [x] [P2/C1] Mostrar el `locale` del usuario en la vista de detalle/listado admin (columna o badge). — 2026-10-24. Badge `ES`/`EN` junto al email en el listado (tooltip con el nombre del idioma) y campo "Idioma" en el detalle `pages/dashboard/users/[uuid].vue`.
 
 ## Fase 5 — QA / cobertura
 
