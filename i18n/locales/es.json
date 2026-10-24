@@ -639,6 +639,10 @@
         "label": "Usuarios",
         "description": "Cuentas y accesos al sistema."
       },
+      "securityPolicy": {
+        "label": "Política de seguridad",
+        "description": "Intentos de acceso, bloqueo, expiración e historial de contraseñas."
+      },
       "auditSessions": {
         "label": "Accesos y sesiones",
         "description": "Historial de inicios de sesión y sesiones activas."
@@ -4683,6 +4687,36 @@
       "title": "Mis solicitudes de afiliación",
       "subtitle": "Las personas que se registraron con tu QR y en qué estado está su solicitud.",
       "empty": "Todavía no hay solicitudes con tu QR"
+    }
+  },
+  "securityPolicy": {
+    "title": "Política de seguridad",
+    "subtitle": "Reglas de inicio de sesión y contraseñas que se aplican a todas las cuentas.",
+    "seoTitle": "Política de seguridad — OptiBienestar 360",
+    "updatedToast": "Política de seguridad actualizada",
+    "readOnly": "Solo lectura: no tienes permiso para modificar la política de seguridad.",
+    "fields": {
+      "maxLoginAttempts": "Intentos fallidos antes del bloqueo",
+      "maxLoginAttemptsHelp": "La cuenta se bloquea al alcanzar este número de intentos fallidos. Mínimo 1.",
+      "lockoutDurationMinutes": "Duración del bloqueo",
+      "lockoutDurationMinutesHelp": "Minutos que la cuenta permanece bloqueada. Mínimo 1.",
+      "daysPasswordExpires": "Vigencia de la contraseña",
+      "daysPasswordExpiresHelp": "Días de vigencia que se registran al guardar una contraseña nueva. 0 = sin fecha de expiración.",
+      "passwordHistoryCount": "Historial de contraseñas",
+      "passwordHistoryCountHelp": "Cantidad de contraseñas anteriores que no se pueden reutilizar. 0 = permite repetir la contraseña.",
+      "maxConcurrentSessions": "Sesiones simultáneas máximas",
+      "maxConcurrentSessionsHelp": "Se guarda para uso futuro; todavía no limita los inicios de sesión. Mínimo 1."
+    },
+    "units": {
+      "attempts": "intentos",
+      "minutes": "minutos",
+      "days": "días",
+      "passwords": "contraseñas",
+      "sessions": "sesiones"
+    },
+    "validation": {
+      "integer": "Debe ser un número entero",
+      "min": "Mínimo {n}"
     }
   }
 }
