@@ -1,8 +1,9 @@
 // Types for the Partners vertical (/v1/admin/allies, /v1/public/allies, /v1/allies/me),
 // aligned with the backend integration guide (V11–V12, PRs #57–#67).
 //
-// The admin list is paged (Page<AllyDto>) with RSQL + `q`. The detail includes
-// professions[] and allyTypes[] (both M:N). Sub-resources: services, agreements
+// The admin list is paged (Page<AllyListItemDto>, compact) with RSQL + `q`; the
+// detail (AllyDto, backend AllyDetailDto) includes professions[] and allyTypes[]
+// (both M:N) but does NOT inline services. Sub-resources: services, agreements
 // (ALLY_AGREEMENT_VIEW_ALL/CREATE/UPDATE/DELETE) and users (staff with
 // OWNER/STAFF/VIEWER membership, ALLY_USER_VIEW_ALL/CREATE/UPDATE/DELETE).
 // PUT uses PATCH semantics.
@@ -50,7 +51,6 @@ export interface AllyDto {
   /** Soft-delete/reactivation flag — distinct from `status` (a business workflow value). */
   active?: boolean
   professions?: CatalogRef[]
-  services?: AllyServiceDto[]
   createdAt?: string
 }
 

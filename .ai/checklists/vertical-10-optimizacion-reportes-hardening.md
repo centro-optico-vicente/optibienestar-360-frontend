@@ -36,7 +36,7 @@
 > El denominador común es que los `*Dto` del frontend se escriben a mano, y **TypeScript valida el código contra el tipo, no el tipo contra la realidad** — por eso los 6 pasaron typecheck, build y CI sin ruido.
 
 - [ ] [P1/C3] **Generar los tipos desde el OpenAPI del backend** — `springdoc-openapi` ya está y los controllers declaran su tipo de retorno exacto, así que `/v3/api-docs` es fiel. Generar `app/types/api.d.ts` con `openapi-typescript` convierte cada desfase futuro en error de compilación. Decidir: ¿se genera en CI contra un backend levantado, o se commitea el esquema? Es cambio de tooling → **merece ADR propio**.
-- [ ] [P2/C2] Alternativa táctica si no se toma el generador: espejar el cable dividiendo `AllyDto` → `AllyListItemDto` + `AllyDetailDto` y `PublicAllyDto` → `PublicAllyListItemDto` + `PublicAllyDetailDto`. Mata los 5 síntomas pendientes pero no la clase.
+- [x] [P2/C2] Alternativa táctica si no se toma el generador: espejar el cable dividiendo `AllyDto` → `AllyListItemDto` + `AllyDetailDto` y `PublicAllyDto` → `PublicAllyListItemDto` + `PublicAllyDetailDto`. Mata los 5 síntomas pendientes pero no la clase. — Hecho para aliados: `AllyListItemDto` + `AllyDto` (#84) y `PublicAllyListItemDto` + `PublicAllyDetailDto` (#224); `AllyDto.services` muerto quitado 2026-10-24.
 
 ## Dependencias
 
