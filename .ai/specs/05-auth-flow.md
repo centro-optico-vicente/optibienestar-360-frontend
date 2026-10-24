@@ -177,6 +177,20 @@ Detalle del backend: [backend spec 18 — Contratos (T&C)](https://github.com/ce
 - **«Mis contratos»** (`/dashboard/contracts`, entrada en `OTHER_NAV` junto a «Cambiar contraseña», sin permiso: cualquier usuario autenticado): `GET /v1/me/terms/acceptances`, agrupado por tipo y, para ALIADO, por aliado; cada fila muestra versión, fecha y canal, y se expande para leer el texto tal como se aceptó. Las aceptaciones anteriores a V189 se marcan como texto reconstruido.
 - Las variables MONEY/NUMBER de las plantillas (`plan.monthlyFee`, etc.) salen del endpoint de variables del editor (`/dashboard/organization`); el monto se escribe en su moneda con la cláusula «o su equivalente en bolívares a la tasa oficial del BCV vigente el día del pago», nunca convertido.
 
+## Política de seguridad (admin)
+
+`/dashboard/security/policy` edita la única política activa del backend (`GET`/`PUT /v1/admin/security-policy`, `useSecurityPolicy()`). Permisos: `SECURITY_POLICY_VIEW` (ver) / `SECURITY_POLICY_UPDATE` (editar). El PUT envía los 5 campos siempre (reemplazo completo).
+
+| Campo | Mín. | `0` significa |
+|---|---|---|
+| `maxLoginAttempts` | 1 | — |
+| `lockoutDurationMinutes` | 1 | — |
+| `daysPasswordExpires` | 0 | sin fecha de expiración en contraseñas nuevas (el login aún no rechaza vencidas) |
+| `passwordHistoryCount` | 0 | se permite repetir la misma contraseña |
+| `maxConcurrentSessions` | 1 | — (se guarda, aún no se aplica en el login) |
+
+Los mínimos viven en `SECURITY_POLICY_MIN` (`types/securityPolicy.ts`) y se reflejan en el schema zod y en `:min` de `UInputNumber`; el backend los valida igual (Bean Validation + CHECKs V191).
+
 ## Reglas
 
 > **Corrección 2026-10-09:** las dos reglas de storage de abajo describían el diseño original (cookie httpOnly) y **contradicen directamente el código real** — no se tocó el código, se corrige la documentación para que deje de mentir. El storage real está formalizado en [ADR 0024 del hub](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0024-jwt-token-storage.md): decisión intencional (continuidad de sesión multi-pestaña) + CSP como mitigación XSS (ver `docker/default.conf`).

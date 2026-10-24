@@ -639,6 +639,10 @@
         "label": "Users",
         "description": "System accounts and access."
       },
+      "securityPolicy": {
+        "label": "Security policy",
+        "description": "Login attempts, lockout, password expiry and history."
+      },
       "auditSessions": {
         "label": "Login sessions",
         "description": "Login attempt history and active sessions."
@@ -4683,6 +4687,36 @@
       "title": "My affiliation requests",
       "subtitle": "The people who signed up with your QR and where their request stands.",
       "empty": "No requests through your QR yet"
+    }
+  },
+  "securityPolicy": {
+    "title": "Security policy",
+    "subtitle": "Login and password rules applied to every account.",
+    "seoTitle": "Security policy — OptiBienestar 360",
+    "updatedToast": "Security policy updated",
+    "readOnly": "Read only: you do not have permission to change the security policy.",
+    "fields": {
+      "maxLoginAttempts": "Failed attempts before lockout",
+      "maxLoginAttemptsHelp": "The account is locked once this many failed attempts are reached. Minimum 1.",
+      "lockoutDurationMinutes": "Lockout duration",
+      "lockoutDurationMinutesHelp": "Minutes the account stays locked. Minimum 1.",
+      "daysPasswordExpires": "Password validity",
+      "daysPasswordExpiresHelp": "Validity in days recorded when a new password is saved. 0 = no expiry date.",
+      "passwordHistoryCount": "Password history",
+      "passwordHistoryCountHelp": "Number of previous passwords that cannot be reused. 0 = allows repeating the password.",
+      "maxConcurrentSessions": "Maximum concurrent sessions",
+      "maxConcurrentSessionsHelp": "Stored for future use; it does not limit logins yet. Minimum 1."
+    },
+    "units": {
+      "attempts": "attempts",
+      "minutes": "minutes",
+      "days": "days",
+      "passwords": "passwords",
+      "sessions": "sessions"
+    },
+    "validation": {
+      "integer": "Must be a whole number",
+      "min": "Minimum {n}"
     }
   }
 }

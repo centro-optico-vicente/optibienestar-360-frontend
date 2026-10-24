@@ -282,6 +282,9 @@ export const PERMISSIONS = [
   // ORGANIZATION (V98) — single-row read/update, no create/delete.
   'ORGANIZATION_VIEW',
   'ORGANIZATION_UPDATE',
+  // SECURITY_POLICY (V191) — single active auth policy, read/update only.
+  'SECURITY_POLICY_VIEW',
+  'SECURITY_POLICY_UPDATE',
 
   // ENTITY_CONFIG (V81) — SYSTEM-only for now
   'ENTITY_CONFIG_VIEW',
