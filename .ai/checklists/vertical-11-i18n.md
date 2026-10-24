@@ -48,7 +48,7 @@
 
 ## Fase 5 — QA / cobertura
 
-- [ ] [P2/C2] Lint/test que verifique **paridad de keys** entre `es.json` y `en.json` (falla CI si una key existe en uno y no en el otro).
+- [x] [P2/C2] Lint/test que verifique **paridad de keys** entre `es.json` y `en.json` (falla CI si una key existe en uno y no en el otro). — 2026-10-24. `scripts/check-i18n-parity.mjs` (Node puro, sin deps; `pnpm i18n:check`) corre en el job `Typecheck & Build` antes de `pnpm install`. Además de keys, valida tipo de valor, traducciones vacías y que los placeholders `{name}` coincidan por mensaje. Estado al agregarlo: 3562 keys, paridad es/en OK.
 - [ ] [P2/C2] Guard anti-hardcode: regla (eslint o script) que detecte strings visibles fuera de `$t()` en `.vue` (al menos en `pages/` y `components/`).
 - [ ] [P2/C2] Test e2e/unit: cambiar idioma vía `<LocaleSwitcher>` → request siguiente lleva `Accept-Language` nuevo y el `ProblemDetail` simulado llega en ese idioma.
 
