@@ -4122,9 +4122,12 @@
         "title": "Title",
         "content": "Content (markdown)",
         "validFrom": "Effective from",
-        "isPublic": "Visible on the website"
+        "isPublic": "Visible on the website",
+        "isMandatory": "Mandatory"
       },
       "isPublicHelp": "Only decides whether this version is shown on the public website. Acceptance is requested either way.",
+      "isMandatoryHelp": "Mandatory: must be accepted to use the platform. When off, the user can postpone it (\"Remind me later\"), but this contract's modules stay locked until accepted. The change applies right away to the live version, without asking anyone to accept again.",
+      "mandatorySavedToast": "Mandatory setting updated",
       "missingFields": "Fill in the title, content and effective date",
       "savedToast": "Version saved successfully",
       "publishNew": "Publish new version",
@@ -4165,6 +4168,7 @@
         "scope": "Scope",
         "status": "Status",
         "public": "On website",
+        "mandatory": "Mandatory",
         "edit": "Edit",
         "statuses": {
           "current": "Current",
@@ -4238,10 +4242,14 @@
   },
   "termsAcceptance": {
     "title": "Terms and conditions",
-    "subtitle": "You must read and accept the following documents to continue.",
+    "subtitleMandatory": "You must read and accept this document to use the platform.",
+    "subtitleOptional": "You can accept it now or later, but the modules of this contract stay locked until you do.",
+    "step": "Document {current} of {total}",
     "scrollHint": "Scroll to the end to accept",
     "acceptLabel": "I have read and accept this document",
-    "continue": "Continue",
+    "accept": "Accept",
+    "acceptAndNext": "Accept and continue",
+    "remindLater": "Remind me later",
     "allyHeading": "Agreement with {ally}",
     "version": "Version {version}",
     "tabs": {
@@ -4249,7 +4257,13 @@
       "changes": "Changes"
     },
     "changesSince": "Changes from version {version} you accepted on {date}",
-    "noChanges": "The text is the same as the one you accepted before."
+    "noChanges": "The text is the same as the one you accepted before.",
+    "blocked": {
+      "title": "Module locked",
+      "body": "To use this module you must accept the “{contract}” contract.",
+      "bodyGeneric": "To use this module you must accept its pending contract.",
+      "acceptNow": "Accept now"
+    }
   },
   "entityConfig": {
     "title": "Entity configuration",

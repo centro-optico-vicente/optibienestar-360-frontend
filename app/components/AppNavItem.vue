@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { isNavGroup, mosaicTarget } from '~/utils/nav'
 import type { NavEntry, NavGroup, NavLeaf } from '~/utils/nav'
+import { gatedTermType } from '~/types/terms'
 
 // Una entrada del sidebar: ítem simple o grupo colapsable con botón de mosaico.
 // El narrowing leaf/grupo se hace aquí en <script> (nullable bajo v-if) para que
@@ -21,6 +22,9 @@ const ACTIVE_LINK = 'bg-prohealth-50 text-prohealth-700 font-semibold'
 const group = computed<NavGroup | null>(() => (isNavGroup(props.entry) ? props.entry : null))
 const leaf = computed<NavLeaf | null>(() => (isNavGroup(props.entry) ? null : props.entry))
 const isOpen = computed<boolean>(() => group.value != null && props.openGroup === group.value.key)
+// Padlock on entries whose contract (ASESOR / ALIADO) is still pending.
+const { isBlocked } = usePendingTerms()
+const isLocked = (to: string) => isBlocked(gatedTermType(to))
 const isActiveGroup = computed<boolean>(() => group.value != null && props.activeGroupKey === group.value.key)
 </script>
 
@@ -35,7 +39,8 @@ const isActiveGroup = computed<boolean>(() => group.value != null && props.activ
     @click="emit('navigate')"
   >
     <UIcon :name="leaf.icon" class="w-5 h-5" />
-    {{ leaf.label }}
+    <span class="flex-1">{{ leaf.label }}</span>
+    <UIcon v-if="isLocked(leaf.to)" name="i-lucide-lock" class="w-3.5 h-3.5 text-prohealth-400" />
   </NuxtLink>
 
   <!-- Grupo colapsable con botón de mosaico -->
@@ -82,7 +87,8 @@ const isActiveGroup = computed<boolean>(() => group.value != null && props.activ
           @click="emit('navigate')"
         >
           <UIcon :name="child.icon" class="w-4 h-4 shrink-0" />
-          <span class="truncate">{{ child.label }}</span>
+          <span class="truncate flex-1">{{ child.label }}</span>
+          <UIcon v-if="isLocked(child.to)" name="i-lucide-lock" class="w-3.5 h-3.5 shrink-0 text-prohealth-400" />
         </NuxtLink>
       </li>
     </ul>

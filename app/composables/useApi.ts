@@ -1,5 +1,6 @@
 import type { FetchError } from 'ofetch'
 import type { ApiError, ProblemDetail } from '~/types/auth'
+import { TERMS_PENDING_CODE, type TermType } from '~/types/terms'
 
 type ApiFetchOptions = NonNullable<Parameters<typeof $fetch>[1]>
 
@@ -57,6 +58,8 @@ export const useApi = async <T = unknown>(
   const config = useRuntimeConfig()
   const auth = useAuthStore()
   const toast = useToast()
+  // Resolved up front: after the await below there may be no active Nuxt context.
+  const { openNow, checkPending } = usePendingTerms()
   const { $i18n } = useNuxtApp()
   const { formatTime } = useFormatters()
   // Global i18n instance: useApi runs from event handlers too, where useI18n()
@@ -107,10 +110,24 @@ export const useApi = async <T = unknown>(
       if (import.meta.client) await navigateTo(currentLoginPath())
     }
 
+    // 403 terms.pending: the module's contract (ASESOR / ALIADO) was postponed —
+    // offer it right from the toast instead of a bare "forbidden".
+    const termsPending = status === 403 && problem?.code === TERMS_PENDING_CODE
+    if (termsPending && !silent) {
+      const termType = (problem?.termType ?? null) as TermType | null
+      void checkPending()
+      toast.add({
+        title: problemMessage(status, problem, t, formatTime) || t('termsAcceptance.blocked.bodyGeneric'),
+        color: 'warning',
+        icon: 'i-lucide-lock',
+        actions: [{ label: t('termsAcceptance.blocked.acceptNow'), onClick: () => openNow(termType) }],
+      })
+    }
+
     // Global notification (except silenced ones and errors the component handles).
     // The backend sends a localized ProblemDetail; when it's missing (network/timeout)
     // we fall back to `errors.byStatus.<code>` and finally `errors.unexpected` (i18n bundles).
-    if (!silent && status !== 400 && status !== 404 && status !== 401 && status !== 0) {
+    if (!silent && !termsPending && status !== 400 && status !== 404 && status !== 401 && status !== 0) {
       toast.add({
         title: problemMessage(status, problem, t, formatTime)
           || t(`errors.byStatus.${status}`, t('errors.unexpected')),
