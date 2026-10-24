@@ -78,7 +78,9 @@
       "sourceAmount": "Monto Origen",
       "convertedAmount": "Monto Convertido",
       "rate": "Tasa de Cambio",
-      "rateDate": "Fecha de Tasa de Cambio"
+      "rateDate": "Fecha de Tasa de Cambio",
+      "targetCurrency": "Convertir a",
+      "crossRateHint": "Tasa cruzada vía {currency}"
     },
     "close": "Cerrar",
     "clearFilters": "Limpiar filtros",

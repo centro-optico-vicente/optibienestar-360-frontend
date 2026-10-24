@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { CatalogItem } from '~/types/catalogs'
+import type { ConvertedAmountDto } from '~/types/currencies'
 import type { CurrencyConverterResult } from '~/composables/useCurrencyConverter'
 
 /**
@@ -8,11 +10,21 @@ import type { CurrencyConverterResult } from '~/composables/useCurrencyConverter
  * `useCurrencyConverter`). Takes `result` as a prop instead of computing it
  * itself so it can share one `useCurrencyConverter` instance with the
  * hover tooltip that wraps the whole field — see `CurrencyConverterDisplay`.
+ *
+ * A "convert to" picker lets the user see the amount in any other active
+ * currency. Its default is `result.targetCurrency` (the org's opposite
+ * system currency), rendered straight from `result` with no extra request;
+ * picking anything else re-queries `GET /v1/exchange-rates/convert` for the
+ * same amount, source currency and `asOf`, and renders the backend's
+ * formatted values. Only this popover changes — the wrapping tooltip keeps
+ * showing the configured conversion. The pick is per field and lasts while
+ * the component lives.
  */
 const props = defineProps<{ result: CurrencyConverterResult }>()
 
 const { t } = useI18n()
 const { formatCurrency, formatDate } = useFormatters()
+const exchangeRates = useExchangeRates()
 
 // Shared with the wrapping `CurrencyConverterDisplay` so its hover tooltip
 // suppresses itself while this popover is open.
@@ -34,6 +46,65 @@ const formattedRate = computed(() => {
   }).format(r.rate)
   return `${oneUnit} = ${rateAmount}`
 })
+
+// --- "Convert to" picker ---
+
+const currencies = ref<CatalogItem[]>([])
+
+// Loaded lazily on first open — most popovers on a listing are never opened.
+watch(popoverOpen, async (open) => {
+  if (open && !currencies.value.length) currencies.value = await loadConvertibleCurrencies()
+})
+
+const targetOptions = computed(() => currencies.value
+  .filter(c => c.code !== props.result.sourceCurrency)
+  .map(c => ({ label: c.symbol ? `${c.code} (${c.symbol})` : c.code!, value: c.code! })))
+
+/** `null` = the configured default (`result.targetCurrency`). */
+const selectedTarget = ref<string | null>(null)
+
+const targetModel = computed({
+  get: () => selectedTarget.value ?? props.result.targetCurrency ?? undefined,
+  set: (code: string | undefined) => {
+    selectedTarget.value = !code || code === props.result.targetCurrency ? null : code
+  },
+})
+
+// Source currency changed (e.g. the form's currency select) — the pick may
+// no longer make sense (or now equal the source), so go back to the default.
+watch(() => props.result.sourceCurrency, () => {
+  selectedTarget.value = null
+})
+
+const override = ref<ConvertedAmountDto | null>(null)
+const overrideLoading = ref(false)
+let overrideRequest = 0
+
+async function loadOverride() {
+  const r = props.result
+  const target = selectedTarget.value
+  if (!target || !r.sourceCurrency || r.sourceAmount === null) {
+    override.value = null
+    return
+  }
+  const request = ++overrideRequest
+  overrideLoading.value = true
+  try {
+    const dto = await exchangeRates.convert(r.sourceAmount, r.sourceCurrency, target, r.asOf || undefined)
+    if (request === overrideRequest) override.value = dto
+  }
+  catch {
+    if (request === overrideRequest) override.value = null
+  }
+  finally {
+    if (request === overrideRequest) overrideLoading.value = false
+  }
+}
+
+watch(
+  [selectedTarget, () => props.result.sourceAmount, () => props.result.sourceCurrency, () => props.result.asOf],
+  loadOverride,
+)
 </script>
 
 <template>
@@ -48,8 +119,44 @@ const formattedRate = computed(() => {
     />
 
     <template #content>
-      <div class="p-4 w-72 text-sm space-y-2">
-        <template v-if="result.state === 'ok'">
+      <div class="p-4 w-80 text-sm space-y-2">
+        <div v-if="targetOptions.length && result.state !== 'loading'" class="flex justify-between items-center gap-3">
+          <span class="text-prohealth-400">{{ t('common.currencyConverter.targetCurrency') }}</span>
+          <USelect
+            v-model="targetModel"
+            :items="targetOptions"
+            size="xs"
+            class="w-36"
+          />
+        </div>
+
+        <template v-if="selectedTarget">
+          <p v-if="overrideLoading" class="text-prohealth-400">{{ t('common.loading') }}</p>
+          <template v-else-if="override?.available">
+            <div class="flex justify-between gap-3">
+              <span class="text-prohealth-400">{{ t('common.currencyConverter.sourceAmount') }}</span>
+              <span class="font-medium whitespace-nowrap">{{ override.amount_Display }}</span>
+            </div>
+            <div class="flex justify-between gap-3">
+              <span class="text-prohealth-400">{{ t('common.currencyConverter.convertedAmount') }}</span>
+              <span class="font-medium whitespace-nowrap">{{ override.convertedAmount_Display }}</span>
+            </div>
+            <div class="flex justify-between gap-3">
+              <span class="text-prohealth-400">{{ t('common.currencyConverter.rate') }}</span>
+              <span class="font-medium whitespace-nowrap">{{ override.rate_Display }}</span>
+            </div>
+            <div class="flex justify-between gap-3">
+              <span class="text-prohealth-400">{{ t('common.currencyConverter.rateDate') }}</span>
+              <span class="font-medium whitespace-nowrap">{{ override.rateDate_Display }}</span>
+            </div>
+            <p v-if="override.viaCurrencyCode" class="text-xs text-prohealth-400">
+              {{ t('common.currencyConverter.crossRateHint', { currency: override.viaCurrencyCode }) }}
+            </p>
+          </template>
+          <p v-else class="text-prohealth-400">{{ t('common.currencyConverter.noRate') }}</p>
+        </template>
+
+        <template v-else-if="result.state === 'ok'">
           <div class="flex justify-between gap-3">
             <span class="text-prohealth-400">{{ t('common.currencyConverter.sourceAmount') }}</span>
             <span class="font-medium whitespace-nowrap">{{ formatCurrency(result.sourceAmount, result.sourceCurrency ?? undefined) }}</span>

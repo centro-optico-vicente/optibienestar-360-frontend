@@ -1,5 +1,6 @@
 import type { Page } from '~/types/admin'
 import type {
+  ConvertedAmountDto,
   CurrentExchangeRateDto,
   ExchangeRateCreateRequest,
   ExchangeRateDto,
@@ -42,6 +43,21 @@ export const useExchangeRates = () => {
       silent: true,
     })
 
+  /**
+   * Converts `amount` from `from` to `to` server-side (GET
+   * /v1/exchange-rates/convert), as of `asOf` (same format as `current`).
+   * Used by the conversion popover's "convert to" picker, where the target
+   * may be any active currency — the backend crosses through the official
+   * currency when the pair has no rate of its own. Never throws on a
+   * missing rate (`available: false`); `silent` for the same reason as
+   * `current`.
+   */
+  const convert = (amount: number, from: string, to: string, asOf?: string) =>
+    useApi<ConvertedAmountDto>('/v1/exchange-rates/convert', {
+      query: { amount, from, to, ...(asOf ? { asOf } : {}) },
+      silent: true,
+    })
+
   /** History for a pair, newest `validFrom` first by default. */
   const list = (params: ListParams = {}) =>
     useApi<Page<ExchangeRateDto>>('/v1/admin/exchange-rates', {
@@ -74,5 +90,5 @@ export const useExchangeRates = () => {
   const fetchLatest = () =>
     useApi<IngestionSummaryDto>('/v1/admin/exchange-rates/fetch-latest', { method: 'POST' })
 
-  return { current, list, create, update, remove, fetchLatest }
+  return { current, convert, list, create, update, remove, fetchLatest }
 }
