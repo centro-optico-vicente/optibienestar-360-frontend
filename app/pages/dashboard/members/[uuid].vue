@@ -65,7 +65,6 @@ async function loadMember() {
   loading.value = true
   try {
     member.value = await members.get(memberUuid)
-    beneficiaries.value = member.value.beneficiaries ?? []
   }
   catch (err) {
     if ((err as ApiError).status === 404) notFound.value = true
@@ -528,7 +527,8 @@ async function confirmMedicalDelete() {
 
 onMounted(async () => {
   await loadMember()
-  await Promise.all([loadMedicalRecord(), loadDocumentTypes()])
+  // Beneficiaries live in their own sub-resource; the member detail doesn't inline them.
+  await Promise.all([member.value ? loadBeneficiaries() : Promise.resolve(), loadMedicalRecord(), loadDocumentTypes()])
 })
 
 // Header "Refrescar": re-fetch the member + beneficiaries + medical record at once.

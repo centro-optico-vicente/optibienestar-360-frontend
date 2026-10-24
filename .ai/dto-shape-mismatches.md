@@ -18,7 +18,7 @@ Los seis hallazgos tienen exactamente la misma forma:
 | Aliado admin | `AllyListItemDto` (plano: `allyTypeName`) | `AllyDetailDto` (anidado: `allyType{}`) | un solo `AllyDto` (anidado) |
 | Aliado público | `PublicAllyListItemDto` (plano, sin especialidades) | `PublicAllyDetailDto` (`specialtyNames: String[]`) | un solo `PublicAllyDto` (anidado, `specialties: CatalogRef[]`) |
 | Personal de aliado | `AllyUserDto` (plano: `userUuid`) | — | `AllyUserDto` con `user{}` anidado ✅ corregido |
-| Afiliado | `MemberListItemDto` | `MemberDetailDto` (`activeBeneficiariesCount`) | `MemberDto` con `beneficiaries[]` inexistente |
+| Afiliado | `MemberListItemDto` | `MemberDetailDto` (`activeBeneficiariesCount`) | `MemberDto` sin `beneficiaries[]`; se cargan del sub-recurso ✅ corregido (2026-10-24) |
 
 El tipo del frontend describe **la forma que el desarrollador esperaba**, no la que viaja por el cable.
 Como el listado usa la proyección compacta, la mitad de los campos leídos llegan `undefined` — y
