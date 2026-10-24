@@ -5,7 +5,9 @@ const auth = useAuthStore()
 const { fetchMe } = useAuth()
 const { locale } = useI18n()
 const { applyHint, syncFromUser } = useAppLocale()
-const { checkPending } = usePendingTerms()
+const { checkPending, now: termsNow } = usePendingTerms()
+// Lets postponed contracts ("Recordar más tarde") come back once the snooze runs out.
+useIntervalFn(() => { termsNow.value = Date.now() }, 30_000)
 
 // Re-checked on every auth state change (login, logout, hydration) — covers
 // "a new T&C version was published while the user had no active session"

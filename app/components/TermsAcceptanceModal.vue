@@ -4,117 +4,95 @@ import DOMPurify from 'dompurify'
 import { pendingTermKey, TERM_TYPES, type PendingTermDto } from '~/types/terms'
 import { hasLineChanges, lineDiff, type LineDiffPart } from '~/utils/lineDiff'
 
+// One document per step: the first visible item (mandatory AFILIADO first,
+// then the optional ASESOR / ALIADO ones unless postponed). Accepting removes
+// it from `visible`, so the next one slides in. Optional items offer
+// "Recordar más tarde" (usePendingTerms.snooze) — their module stays locked
+// until accepted.
 const { t } = useI18n()
-const { pending, acceptAll } = usePendingTerms()
+const { visible, snooze, acceptOne } = usePendingTerms()
 
-const isOpen = computed(() => pending.value.length > 0)
+const isOpen = computed(() => visible.value.length > 0)
+const current = computed<PendingTermDto | null>(() => visible.value[0] ?? null)
+const currentKey = computed(() => (current.value ? pendingTermKey(current.value) : ''))
+
+// "Documento X de N" — counts the ones accepted since the modal opened so the
+// total doesn't shrink as each step is accepted.
+const acceptedThisRound = ref(0)
+watch(isOpen, (open) => {
+  if (!open) acceptedThisRound.value = 0
+})
+const step = computed(() => acceptedThisRound.value + 1)
+const total = computed(() => acceptedThisRound.value + visible.value.length)
 
 const md = new MarkdownIt({ html: false, linkify: true, breaks: true })
-function renderedHtml(markdown: string) {
-  return DOMPurify.sanitize(md.render(markdown || ''))
-}
+const renderedHtml = computed(() => DOMPurify.sanitize(md.render(current.value?.contentMarkdown || '')))
 
-/**
- * Pending items in display order, grouped: each AFILIADO / ASESOR item on its
- * own, ALIADO items by ally (backend V189 serves one item per agreement, so a
- * user in several allies sees each ally's agreements under its name).
- */
-interface TermsGroup {
-  key: string
-  heading: string | null
-  items: PendingTermDto[]
-}
+const allyHeading = computed(() =>
+  current.value?.termType === TERM_TYPES.ALLY && current.value.allyName
+    ? t('termsAcceptance.allyHeading', { ally: current.value.allyName })
+    : null,
+)
 
-const groups = computed<TermsGroup[]>(() => {
-  const result: TermsGroup[] = []
-  const byAlly = new Map<string, TermsGroup>()
-  for (const term of pending.value) {
-    if (term.termType !== TERM_TYPES.ALLY || !term.allyUuid) {
-      result.push({ key: pendingTermKey(term), heading: null, items: [term] })
-      continue
-    }
-    let group = byAlly.get(term.allyUuid)
-    if (!group) {
-      group = {
-        key: `ally:${term.allyUuid}`,
-        heading: t('termsAcceptance.allyHeading', { ally: term.allyName ?? '' }),
-        items: [],
-      }
-      byAlly.set(term.allyUuid, group)
-      result.push(group)
-    }
-    group.items.push(term)
-  }
-  return result
-})
-
-// One "scrolled to the end" + "checked" flag per pending item, keyed by
-// version + agreement (pendingTermKey) so re-renders (e.g. an item dropping
-// off mid-flow) don't desync indices, and the same version pending for two
-// agreements keeps two independent flags.
+// Per-item flags keyed by version + agreement (pendingTermKey), so the same
+// version pending for two agreements keeps two independent states.
 const scrolledToEnd = reactive<Record<string, boolean>>({})
 const checked = reactive<Record<string, boolean>>({})
-const activeTab = reactive<Record<string, string>>({})
-
-watch(pending, (list) => {
-  for (const term of list) {
-    const key = pendingTermKey(term)
-    if (!(key in scrolledToEnd)) scrolledToEnd[key] = false
-    if (!(key in checked)) checked[key] = false
-    if (!(key in activeTab)) activeTab[key] = 'contract'
-  }
-}, { immediate: true })
+const activeTab = ref<'contract' | 'changes'>('contract')
 
 const tabs = computed(() => [
   { label: t('termsAcceptance.tabs.contract'), value: 'contract', icon: 'i-lucide-file-text' },
   { label: t('termsAcceptance.tabs.changes'), value: 'changes', icon: 'i-lucide-git-compare' },
 ])
 
-/** Line diff between the text accepted before and the one to accept now (memoized per item). */
-const diffs = computed(() => {
-  const result: Record<string, LineDiffPart[]> = {}
-  for (const term of pending.value) {
-    if (term.previousAcceptance) {
-      result[pendingTermKey(term)] = lineDiff(term.previousAcceptance.renderedContent, term.contentMarkdown)
-    }
-  }
-  return result
+/** Line diff between the text accepted before and the one to accept now. */
+const diff = computed<LineDiffPart[]>(() => {
+  const term = current.value
+  return term?.previousAcceptance ? lineDiff(term.previousAcceptance.renderedContent, term.contentMarkdown) : []
 })
 
 const { formatDate } = useFormatters()
-function previousLabel(term: PendingTermDto): string {
-  const previous = term.previousAcceptance
+const previousLabel = computed(() => {
+  const previous = current.value?.previousAcceptance
   if (!previous) return ''
   return t('termsAcceptance.changesSince', {
     version: previous.versionNumber,
     date: previous.acceptedAt_Display || formatDate(previous.acceptedAt, 'datetime'),
   })
-}
+})
 
-function onContentScroll(key: string, event: Event) {
-  const el = event.target as HTMLElement
+const contentEl = ref<HTMLElement | null>(null)
+
+function markIfAtEnd(el: HTMLElement | null) {
   // 4px tolerance — some browsers round scrollHeight/clientHeight sub-pixel.
-  if (el.scrollTop + el.clientHeight >= el.scrollHeight - 4) {
-    scrolledToEnd[key] = true
+  if (el && el.scrollTop + el.clientHeight >= el.scrollHeight - 4) {
+    scrolledToEnd[currentKey.value] = true
   }
 }
 
-const allChecked = computed(() =>
-  pending.value.length > 0 && pending.value.every(term => checked[pendingTermKey(term)]),
-)
+// New step: back to the contract tab, scroll to the top, and enable the
+// checkbox right away when the text is short enough to need no scroll.
+watch(currentKey, async () => {
+  activeTab.value = 'contract'
+  await nextTick()
+  if (contentEl.value) contentEl.value.scrollTop = 0
+  markIfAtEnd(contentEl.value)
+}, { immediate: true })
+// The modal mounts its content lazily: re-check once the element exists.
+watch(contentEl, el => markIfAtEnd(el))
+
+const canAccept = computed(() => !!current.value && !!checked[currentKey.value])
 
 const submitting = ref(false)
-async function onContinue() {
-  if (!allChecked.value) return
+async function onAccept() {
+  if (!current.value || !canAccept.value) return
   submitting.value = true
   try {
-    await acceptAll(pending.value.map(term => ({
-      termsVersionUuid: term.termsVersionUuid,
-      allyAgreementUuid: term.allyAgreementUuid,
-    })))
+    await acceptOne(current.value)
+    acceptedThisRound.value++
   }
   catch {
-    // useApi already notified; modal stays open so the user can retry.
+    // useApi already notified; the step stays open so the user can retry.
   }
   finally {
     submitting.value = false
@@ -127,95 +105,101 @@ async function onContinue() {
     :open="isOpen"
     :dismissible="false"
     :close="false"
-    :ui="{ content: 'max-w-2xl' }"
+    :ui="{ content: 'max-w-5xl' }"
   >
     <template #content>
-      <div class="p-6 space-y-5">
-        <div>
-          <h2 class="text-lg font-extrabold text-prohealth-900">{{ t('termsAcceptance.title') }}</h2>
-          <p class="text-sm text-prohealth-600 mt-1">{{ t('termsAcceptance.subtitle') }}</p>
+      <div v-if="current" class="flex flex-col max-h-[92vh] p-6 gap-4">
+        <div class="flex items-start justify-between gap-4">
+          <div class="min-w-0">
+            <p class="text-xs font-semibold uppercase tracking-wider text-prohealth-500">
+              {{ t('termsAcceptance.title') }} · {{ t('termsAcceptance.step', { current: step, total }) }}
+            </p>
+            <h2 class="text-lg font-extrabold text-prohealth-900 mt-1">{{ current.title }}</h2>
+            <p v-if="allyHeading" class="flex items-center gap-1.5 text-sm text-prohealth-700 mt-0.5">
+              <UIcon name="i-lucide-building-2" class="w-4 h-4" />
+              {{ allyHeading }}
+            </p>
+            <p class="text-sm text-prohealth-600 mt-1">
+              {{ current.mandatory ? t('termsAcceptance.subtitleMandatory') : t('termsAcceptance.subtitleOptional') }}
+            </p>
+          </div>
+          <span class="text-xs text-prohealth-500 shrink-0 mt-1">
+            {{ t('termsAcceptance.version', { version: current.versionNumber }) }}
+          </span>
         </div>
 
-        <div class="space-y-6 max-h-[65vh] overflow-y-auto pr-1">
-          <section v-for="group in groups" :key="group.key" class="space-y-4">
-            <h3 v-if="group.heading" class="flex items-center gap-2 font-extrabold text-prohealth-900">
-              <UIcon name="i-lucide-building-2" class="w-4 h-4 text-prohealth-600" />
-              {{ group.heading }}
-            </h3>
+        <UTabs
+          v-if="current.previousAcceptance"
+          v-model="activeTab"
+          :items="tabs"
+          :content="false"
+          size="xs"
+        />
 
-            <div v-for="term in group.items" :key="pendingTermKey(term)" class="space-y-2">
-              <div class="flex items-baseline justify-between gap-3">
-                <h4 class="font-bold text-prohealth-900">{{ term.title }}</h4>
-                <span class="text-xs text-prohealth-500 shrink-0">
-                  {{ t('termsAcceptance.version', { version: term.versionNumber }) }}
-                </span>
-              </div>
+        <div
+          v-show="activeTab !== 'changes'"
+          ref="contentEl"
+          class="terms-content h-[55vh] min-h-48 overflow-y-auto rounded-lg border border-prohealth-100 bg-prohealth-50/40 p-5 text-sm text-prohealth-800"
+          @scroll="markIfAtEnd($event.target as HTMLElement)"
+          v-html="renderedHtml"
+        />
 
-              <UTabs
-                v-if="term.previousAcceptance"
-                v-model="activeTab[pendingTermKey(term)]"
-                :items="tabs"
-                :content="false"
-                size="xs"
-              />
-
-              <div
-                v-show="activeTab[pendingTermKey(term)] !== 'changes'"
-                class="terms-content h-56 overflow-y-auto rounded-lg border border-prohealth-100 bg-prohealth-50/40 p-4 text-sm text-prohealth-800"
-                @scroll="onContentScroll(pendingTermKey(term), $event)"
-                v-html="renderedHtml(term.contentMarkdown)"
-              />
-
-              <div
-                v-if="term.previousAcceptance"
-                v-show="activeTab[pendingTermKey(term)] === 'changes'"
-                class="h-56 overflow-y-auto rounded-lg border border-prohealth-100 bg-white text-xs"
-              >
-                <p class="sticky top-0 bg-white/95 px-3 py-2 border-b border-prohealth-100 text-prohealth-600">
-                  {{ previousLabel(term) }}
-                </p>
-                <p
-                  v-if="!hasLineChanges(diffs[pendingTermKey(term)] ?? [])"
-                  class="px-3 py-4 text-prohealth-500"
-                >
-                  {{ t('termsAcceptance.noChanges') }}
-                </p>
-                <div v-else class="py-1 font-mono">
-                  <div
-                    v-for="(part, index) in diffs[pendingTermKey(term)] ?? []"
-                    :key="index"
-                    class="diff-line px-3 whitespace-pre-wrap break-words"
-                    :class="{
-                      'bg-green-50 text-green-800': part.kind === 'added',
-                      'bg-red-50 text-red-700 line-through decoration-red-300': part.kind === 'removed',
-                      'text-prohealth-400': part.kind === 'unchanged',
-                    }"
-                  >
-                    <span class="select-none inline-block w-4" aria-hidden="true">{{ part.kind === 'added' ? '+' : part.kind === 'removed' ? '−' : ' ' }}</span>{{ part.text || ' ' }}
-                  </div>
-                </div>
-              </div>
-
-              <UCheckbox
-                v-model="checked[pendingTermKey(term)]"
-                :disabled="!scrolledToEnd[pendingTermKey(term)]"
-                :label="scrolledToEnd[pendingTermKey(term)]
-                  ? t('termsAcceptance.acceptLabel')
-                  : t('termsAcceptance.scrollHint')"
-              />
-            </div>
-          </section>
-        </div>
-
-        <UButton
-          block
-          color="primary"
-          :loading="submitting"
-          :disabled="!allChecked"
-          @click="onContinue"
+        <div
+          v-if="current.previousAcceptance"
+          v-show="activeTab === 'changes'"
+          class="h-[55vh] min-h-48 overflow-y-auto rounded-lg border border-prohealth-100 bg-white text-xs"
         >
-          {{ t('termsAcceptance.continue') }}
-        </UButton>
+          <p class="sticky top-0 bg-white/95 px-3 py-2 border-b border-prohealth-100 text-prohealth-600">
+            {{ previousLabel }}
+          </p>
+          <p v-if="!hasLineChanges(diff)" class="px-3 py-4 text-prohealth-500">
+            {{ t('termsAcceptance.noChanges') }}
+          </p>
+          <div v-else class="py-1 font-mono">
+            <div
+              v-for="(part, index) in diff"
+              :key="index"
+              class="diff-line px-3 whitespace-pre-wrap break-words"
+              :class="{
+                'bg-green-50 text-green-800': part.kind === 'added',
+                'bg-red-50 text-red-700 line-through decoration-red-300': part.kind === 'removed',
+                'text-prohealth-400': part.kind === 'unchanged',
+              }"
+            >
+              <span class="select-none inline-block w-4" aria-hidden="true">{{ part.kind === 'added' ? '+' : part.kind === 'removed' ? '−' : ' ' }}</span>{{ part.text || ' ' }}
+            </div>
+          </div>
+        </div>
+
+        <UCheckbox
+          v-model="checked[currentKey]"
+          :disabled="!scrolledToEnd[currentKey]"
+          :label="scrolledToEnd[currentKey]
+            ? t('termsAcceptance.acceptLabel')
+            : t('termsAcceptance.scrollHint')"
+        />
+
+        <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+          <UButton
+            v-if="!current.mandatory"
+            color="neutral"
+            variant="soft"
+            icon="i-lucide-clock"
+            :disabled="submitting"
+            @click="snooze"
+          >
+            {{ t('termsAcceptance.remindLater') }}
+          </UButton>
+          <UButton
+            color="primary"
+            icon="i-lucide-check"
+            :loading="submitting"
+            :disabled="!canAccept"
+            @click="onAccept"
+          >
+            {{ step < total ? t('termsAcceptance.acceptAndNext') : t('termsAcceptance.accept') }}
+          </UButton>
+        </div>
       </div>
     </template>
   </UModal>

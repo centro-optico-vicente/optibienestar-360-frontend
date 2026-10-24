@@ -1,8 +1,9 @@
 // Types for the Terms & Conditions vertical (/v1/admin/terms, /v1/public/terms,
 // /v1/me/terms) — see terms-and-conditions.md at the workspace root for the
 // full design. Versioned per contract kind, never overwritten (a "current"
-// version is the latest `validFrom <= now` of its stream); one modal accept
-// covers all pending versions. ALIADO contracts are accepted once per ally
+// version is the latest `validFrom <= now` of its stream); the modal accepts
+// one document per step, and only AFILIADO is mandatory — ASESOR / ALIADO can
+// be postponed, locking their module meanwhile. ALIADO contracts are accepted once per ally
 // agreement (backend V189) and every acceptance keeps the text as accepted.
 //
 // Audience (backend `TermsAcceptanceService`), by linked entity, never by
@@ -110,6 +111,13 @@ export interface PendingTermDto {
   allyName: string | null
   allyAgreementUuid: string | null
   previousAcceptance: PreviousTermsAcceptance | null
+  /**
+   * Server-decided: only AFILIADO blocks the app. ASESOR / ALIADO can be
+   * postponed ("remind me later"); until accepted their module stays locked
+   * (backend answers 403 `terms.pending` on `/v1/advisors/me/**` and
+   * `/v1/allies/me/**`).
+   */
+  mandatory: boolean
 }
 
 /** One accepted pending item — POST /v1/me/terms/accept `items[]`. */
@@ -117,6 +125,25 @@ export interface TermsAcceptItem {
   termsVersionUuid: string
   /** ALIADO only. */
   allyAgreementUuid?: string | null
+}
+
+/** Problem `code` of the 403 the backend sends while a module's contract is pending. */
+export const TERMS_PENDING_CODE = 'terms.pending'
+
+/**
+ * Self-service areas locked until their contract is accepted — mirrors the
+ * backend `TermsGateConfig` (`/v1/advisors/me/**` → ASESOR,
+ * `/v1/allies/me/**` → ALIADO).
+ */
+const TERMS_GATED_ROUTES: ReadonlyArray<{ prefix: string, termType: TermType }> = [
+  { prefix: '/advisors', termType: TERM_TYPES.ADVISOR },
+  { prefix: '/allies', termType: TERM_TYPES.ALLY },
+]
+
+/** Contract kind that gates `path`, or `null` when the route is not gated. */
+export function gatedTermType(path: string): TermType | null {
+  const match = TERMS_GATED_ROUTES.find(r => path === r.prefix || path.startsWith(`${r.prefix}/`))
+  return match?.termType ?? null
 }
 
 /** Stable key of a pending item: version + agreement (one version may be pending for several agreements). */

@@ -4238,10 +4238,14 @@
   },
   "termsAcceptance": {
     "title": "Términos y condiciones",
-    "subtitle": "Debes leer y aceptar los siguientes documentos para continuar.",
+    "subtitleMandatory": "Debes leer y aceptar este documento para usar la plataforma.",
+    "subtitleOptional": "Puedes aceptarlo ahora o más tarde, pero los módulos de este contrato quedan bloqueados hasta que lo aceptes.",
+    "step": "Documento {current} de {total}",
     "scrollHint": "Desplázate hasta el final para poder aceptar",
     "acceptLabel": "He leído y acepto este documento",
-    "continue": "Continuar",
+    "accept": "Aceptar",
+    "acceptAndNext": "Aceptar y continuar",
+    "remindLater": "Recordar más tarde",
     "allyHeading": "Convenio con {ally}",
     "version": "Versión {version}",
     "tabs": {
@@ -4249,7 +4253,13 @@
       "changes": "Cambios"
     },
     "changesSince": "Cambios respecto a la versión {version} que aceptaste el {date}",
-    "noChanges": "El texto es igual al que aceptaste antes."
+    "noChanges": "El texto es igual al que aceptaste antes.",
+    "blocked": {
+      "title": "Módulo bloqueado",
+      "body": "Para usar este módulo debes aceptar el contrato «{contract}».",
+      "bodyGeneric": "Para usar este módulo debes aceptar su contrato pendiente.",
+      "acceptNow": "Aceptar ahora"
+    }
   },
   "entityConfig": {
     "title": "Configuración de entidades",

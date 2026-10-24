@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { OTHER_NAV, isNavGroup } from '~/utils/nav'
+import { gatedTermType } from '~/types/terms'
 
 const auth = useAuthStore()
 const profilePhoto = useProfilePhoto()
@@ -8,6 +9,13 @@ const { logout } = useAuth()
 const route = useRoute()
 const router = useRouter()
 const { can } = usePermissions()
+
+// Advisor / ally portals stay locked while their (postponed) contract is pending.
+const { isBlocked } = usePendingTerms()
+const blockedTermType = computed(() => {
+  const type = gatedTermType(route.path)
+  return isBlocked(type) ? type : null
+})
 
 // Warms useFormatters().formatCurrency's default-currency fallback (ADR
 // 0015 §4) — a session without ORGANIZATION_VIEW (promoter/member portals)
@@ -266,7 +274,8 @@ defineShortcuts({
       </header>
 
       <main class="flex-1 p-4 lg:p-8">
-        <slot />
+        <TermsBlockedNotice v-if="blockedTermType" :term-type="blockedTermType" />
+        <slot v-else />
       </main>
     </div>
   </div>
