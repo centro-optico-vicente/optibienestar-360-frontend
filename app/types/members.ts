@@ -2,8 +2,10 @@
 // aligned with the backend integration guide (V17–V19, PRs #68–#76).
 //
 // Lists are paged (Page<MemberListItemDto>) with RSQL + free-text `q`. The detail
-// includes beneficiaries[]. The medical record is a 1:1 sub-resource with upsert via
-// PUT. PUT uses PATCH semantics (only non-null fields are applied).
+// does NOT include beneficiaries: they live in their own sub-resource
+// (/v1/admin/members/{uuid}/beneficiaries, /v1/me/family); the detail only carries
+// counts (activeBeneficiariesCount, slot summary). The medical record is a 1:1
+// sub-resource with upsert via PUT. PUT uses PATCH semantics (only non-null fields are applied).
 
 /** Beneficiary relationship to the holder. */
 export type BeneficiaryRelationship = 'CHILD' | 'SPOUSE' | 'PARENT' | 'SIBLING' | 'OTHER'
@@ -134,7 +136,6 @@ export interface MemberDto {
   /** Soft-delete/reactivation flag — distinct from `status` (a business workflow value). */
   active?: boolean
   notes?: string
-  beneficiaries?: BeneficiaryDto[]
   // Family-nucleus slot summary (detail only). Totals come from the active
   // membership's plan: null without one; extraSlotsTotal null = no cap.
   baseSlotsUsed?: number

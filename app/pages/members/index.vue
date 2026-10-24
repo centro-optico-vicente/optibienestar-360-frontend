@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import type { ApiError } from '~/types/auth'
-import type { MemberDto } from '~/types/members'
+import type { BeneficiaryDto, MemberDto } from '~/types/members'
 
 // Member portal: Digital Credential + covered beneficiaries.
 // GET /v1/me/member requires MEMBER_VIEW_OWN; it returns 404 if the user isn't enrolled.
+// Beneficiaries come from GET /v1/me/family (same permission): the member detail doesn't inline them.
 definePageMeta({
   layout: 'dashboard',
   middleware: 'can',
@@ -33,6 +34,7 @@ interface DigitalCard {
 }
 
 const member = ref<MemberDto | null>(null)
+const beneficiaries = ref<BeneficiaryDto[]>([])
 const card = ref<DigitalCard | null>(null)
 const qrDataUri = computed(() => card.value?.qrCodeDataUri ?? null)
 const { photoUrl, ensure: ensurePhoto } = useProfilePhoto()
@@ -46,6 +48,9 @@ onMounted(async () => {
     useApi<DigitalCard>('/v1/me/digital-card', { silent: true })
       .then((res) => { card.value = res })
       .catch(() => { card.value = null })
+    members.myFamily()
+      .then((res) => { beneficiaries.value = res ?? [] })
+      .catch(() => { beneficiaries.value = [] })
     ensurePhoto()
   }
   catch (err) {
@@ -217,14 +222,14 @@ function relationshipLabel(r?: string | null): string {
           <p class="text-xs text-prohealth-500 mt-0.5">{{ t('members.portal.beneficiaries.subtitle') }}</p>
         </div>
 
-        <div v-if="!member.beneficiaries?.length" class="px-6 py-10 text-center text-prohealth-500">
+        <div v-if="!beneficiaries.length" class="px-6 py-10 text-center text-prohealth-500">
           <UIcon name="i-lucide-users" class="w-7 h-7 mx-auto mb-2 text-prohealth-300" />
           <p class="text-sm">{{ t('members.portal.beneficiaries.empty') }}</p>
         </div>
 
         <ul v-else class="divide-y divide-prohealth-100">
           <li
-            v-for="b in member.beneficiaries"
+            v-for="b in beneficiaries"
             :key="b.uuid"
             class="px-6 py-3.5 flex items-center justify-between gap-3"
           >

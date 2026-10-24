@@ -115,6 +115,10 @@ export const useMembers = () => {
   const me = () =>
     useApi<MemberDto>('/v1/me/member', { silent: true })
 
+  /** My covered beneficiaries (GET /v1/me/family, MEMBER_VIEW_OWN). The member detail doesn't inline them. */
+  const myFamily = () =>
+    useApi<BeneficiaryDto[]>('/v1/me/family', { silent: true })
+
   // ---- Enlace permanente promotor (MEMBER_ASSIGN_PROMOTER) ----
   /** Reasigna o vincula (si el afiliado no tenía) el promotor. `body` trae promoterUuid XOR referralCode. */
   const assignPromoter = (memberUuid: string, body: AssignPromoterRequest) =>
@@ -153,6 +157,7 @@ export const useMembers = () => {
     upsertMedicalRecord,
     removeMedicalRecord,
     me,
+    myFamily,
     assignPromoter,
     bulkAssignPromoter,
     portfolioToSupervisor,
