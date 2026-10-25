@@ -192,7 +192,14 @@ async function onConfirm() {
           </div>
           <div class="rounded-xl border border-prohealth-100 bg-prohealth-50/40 p-3">
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.payout.totals.amount') }}</dt>
-            <dd class="text-prohealth-900 text-lg font-semibold mt-0.5">{{ money(preview.totalAmount, preview.currency) }}</dd>
+            <dd class="text-prohealth-900 text-lg font-semibold mt-0.5">
+              <CurrencyConverterDisplay :amount="preview.totalAmount" :currency="preview.currency" v-slot="{ result }">
+                <span class="inline-flex items-center gap-1">
+                  {{ money(preview.totalAmount, preview.currency) }}
+                  <CurrencyConverterTrigger :result="result" />
+                </span>
+              </CurrencyConverterDisplay>
+            </dd>
           </div>
           <div class="rounded-xl border border-prohealth-100 bg-prohealth-50/40 p-3">
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.payout.totals.executedAt') }}</dt>
@@ -229,7 +236,14 @@ async function onConfirm() {
                   </td>
                   <td class="px-4 py-2.5 text-prohealth-500 font-mono text-xs">{{ p.promoterCode }}</td>
                   <td class="px-4 py-2.5 text-prohealth-700 text-right">{{ p.commissionCount }}</td>
-                  <td class="px-4 py-2.5 text-prohealth-900 font-semibold text-right">{{ money(p.totalAmount, p.currency) }}</td>
+                  <td class="px-4 py-2.5 text-prohealth-900 font-semibold text-right">
+                    <CurrencyConverterDisplay :amount="p.totalAmount" :currency="p.currency" v-slot="{ result }">
+                      <span class="inline-flex items-center justify-end gap-1">
+                        {{ money(p.totalAmount, p.currency) }}
+                        <CurrencyConverterTrigger :result="result" />
+                      </span>
+                    </CurrencyConverterDisplay>
+                  </td>
                   <td class="px-4 py-2.5">
                     <UBadge :color="p.emailDispatched ? 'success' : 'neutral'" variant="subtle" size="sm">
                       {{ p.emailDispatched ? t('common.yes') : t('common.no') }}

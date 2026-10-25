@@ -588,7 +588,14 @@ async function confirmVoid() {
             <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-sm">
               <div>
                 <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.calculationBasis') }}</dt>
-                <dd class="text-prohealth-800 mt-0.5">{{ money(detail.calculationBasis, detail.currency) }}</dd>
+                <dd class="text-prohealth-800 mt-0.5">
+                  <CurrencyConverterDisplay :amount="detail.calculationBasis" :currency="detail.currency_Code || detail.currency" :date="detail.earnedAt" v-slot="{ result }">
+                    <span class="inline-flex items-center gap-1">
+                      {{ money(detail.calculationBasis, detail.currency) }}
+                      <CurrencyConverterTrigger :result="result" />
+                    </span>
+                  </CurrencyConverterDisplay>
+                </dd>
               </div>
               <div>
                 <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.commissionPct') }}</dt>
@@ -596,7 +603,15 @@ async function confirmVoid() {
               </div>
               <div>
                 <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.flatAmount') }}</dt>
-                <dd class="text-prohealth-800 mt-0.5">{{ money(detail.flatAmount, detail.currency) }}</dd>
+                <dd class="text-prohealth-800 mt-0.5">
+                  <CurrencyConverterDisplay v-if="detail.flatAmount != null" :amount="detail.flatAmount" :currency="detail.currency_Code || detail.currency" :date="detail.earnedAt" v-slot="{ result }">
+                    <span class="inline-flex items-center gap-1">
+                      {{ money(detail.flatAmount, detail.currency) }}
+                      <CurrencyConverterTrigger :result="result" />
+                    </span>
+                  </CurrencyConverterDisplay>
+                  <template v-else>{{ t('common.empty') }}</template>
+                </dd>
               </div>
               <div>
                 <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('commissions.detail.fields.tier') }}</dt>

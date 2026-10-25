@@ -197,7 +197,13 @@ async function confirm() {
             :error="amountError"
             class="sm:col-span-2"
           >
-            <UInput v-model="copayAmount" placeholder="0.00" inputmode="decimal" class="w-full" />
+            <CurrencyConverterDisplay :amount="copayAmount" :currency="copayCurrency" v-slot="{ result }">
+              <UInput v-model="copayAmount" placeholder="0.00" inputmode="decimal" class="w-full">
+                <template #trailing>
+                  <CurrencyConverterTrigger :result="result" />
+                </template>
+              </UInput>
+            </CurrencyConverterDisplay>
           </UFormField>
           <UFormField :label="t('validator.usage.fields.copayCurrency')" :error="currencyError">
             <UInput v-model="copayCurrency" maxlength="3" class="w-full font-mono uppercase" />

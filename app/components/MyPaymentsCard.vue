@@ -91,7 +91,12 @@ function allocationLabel(p: PaymentDto): string {
       >
         <div class="min-w-0">
           <p class="font-semibold text-prohealth-900">
-            <MoneyWithTooltip :display="p.amount_Display" :converted-display="p.amountConverted_Display" :rate-date="p.exchangeRateDate" />
+            <CurrencyConverterDisplay :amount="p.amount" :currency="p.currency_Code" :date="p.paymentDate" v-slot="{ result }">
+              <span class="inline-flex items-center gap-1">
+                {{ p.amount_Display }}
+                <CurrencyConverterTrigger :result="result" />
+              </span>
+            </CurrencyConverterDisplay>
           </p>
           <p v-if="p.discountAmount" class="text-xs text-green-700">
             {{ t('promotions.portal.paymentSaving', { amount: p.discountAmount_Display ?? p.discountAmount, reason: p.discountReason ?? '' }) }}

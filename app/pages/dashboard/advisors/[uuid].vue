@@ -536,7 +536,14 @@ async function loadCommissionsSummary() {
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('promoters.detail.fields.totalCommissionPaid') }}</dt>
-            <dd class="text-prohealth-900 text-lg font-semibold mt-0.5">{{ money(promoter.totalCommissionPaid) }}</dd>
+            <dd class="text-prohealth-900 text-lg font-semibold mt-0.5">
+              <CurrencyConverterDisplay :amount="promoter.totalCommissionPaid" currency="USD" v-slot="{ result }">
+                <span class="inline-flex items-center gap-1">
+                  {{ money(promoter.totalCommissionPaid) }}
+                  <CurrencyConverterTrigger :result="result" />
+                </span>
+              </CurrencyConverterDisplay>
+            </dd>
           </div>
         </dl>
       </div>
@@ -697,7 +704,15 @@ async function loadCommissionsSummary() {
                   </UBadge>
                 </td>
                 <td class="px-6 py-3 text-prohealth-600">{{ m.nextDueDate_Display ?? date(m.nextDueDate) }}</td>
-                <td class="px-6 py-3 text-prohealth-700">{{ money(m.monthlyFee) }}</td>
+                <td class="px-6 py-3 text-prohealth-700">
+                  <CurrencyConverterDisplay v-if="m.monthlyFee != null" :amount="m.monthlyFee" currency="USD" v-slot="{ result }">
+                    <span class="inline-flex items-center gap-1">
+                      {{ money(m.monthlyFee) }}
+                      <CurrencyConverterTrigger :result="result" />
+                    </span>
+                  </CurrencyConverterDisplay>
+                  <template v-else>{{ t('common.empty') }}</template>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -756,7 +771,14 @@ async function loadCommissionsSummary() {
               <tr v-for="s in commissionsSummary" v-else :key="`${s.periodStart}-${s.periodEnd}`" class="hover:bg-prohealth-50/50">
                 <td class="px-6 py-3 font-semibold text-prohealth-900">{{ s.periodStart_Display ?? date(s.periodStart) }} – {{ s.periodEnd_Display ?? date(s.periodEnd) }}</td>
                 <td class="px-6 py-3 text-prohealth-700">{{ s.commissionCount }}</td>
-                <td class="px-6 py-3 text-prohealth-700">{{ money(s.totalAmount) }}</td>
+                <td class="px-6 py-3 text-prohealth-700">
+                  <CurrencyConverterDisplay :amount="s.totalAmount" currency="USD" v-slot="{ result }">
+                    <span class="inline-flex items-center gap-1">
+                      {{ money(s.totalAmount) }}
+                      <CurrencyConverterTrigger :result="result" />
+                    </span>
+                  </CurrencyConverterDisplay>
+                </td>
               </tr>
             </tbody>
           </table>

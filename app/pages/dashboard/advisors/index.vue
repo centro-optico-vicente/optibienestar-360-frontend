@@ -339,7 +339,14 @@ async function confirmDelete() {
                 </UBadge>
               </td>
               <td class="px-5 py-3 text-prohealth-700">{{ p.totalReferrals }}</td>
-              <td class="px-5 py-3 text-prohealth-700">{{ money(p.totalCommissionPaid) }}</td>
+              <td class="px-5 py-3 text-prohealth-700">
+                <CurrencyConverterDisplay :amount="p.totalCommissionPaid" currency="USD" v-slot="{ result }">
+                  <span class="inline-flex items-center gap-1">
+                    {{ money(p.totalCommissionPaid) }}
+                    <CurrencyConverterTrigger :result="result" />
+                  </span>
+                </CurrencyConverterDisplay>
+              </td>
               <td class="px-5 py-3">
                 <UBadge :color="p.active ? 'success' : 'neutral'" variant="subtle" size="sm">
                   {{ p.active_Display ?? (p.active ? t('common.yes') : t('common.no')) }}
