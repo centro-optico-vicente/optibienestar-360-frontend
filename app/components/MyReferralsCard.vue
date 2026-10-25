@@ -88,7 +88,15 @@ function referredName(r: MyReferralDto): string {
           <p class="text-xs text-prohealth-500">
             <span class="font-mono">{{ r.referralCode }}</span>
             <template v-if="r.enrolledAt"> · {{ t('referrals.mine.enrolledOn', { date: r.enrolledAt_Display ?? formatDate(r.enrolledAt, 'short') }) }}</template>
-            <template v-if="r.status === 'REWARD_GRANTED'"> · {{ t('referrals.mine.reward', { reward: rewardLabel(r) }) }}</template>
+            <template v-if="r.status === 'REWARD_GRANTED'">
+              <CurrencyConverterDisplay v-if="r.rewardFlatAmount != null" :amount="r.rewardFlatAmount" :currency="r.rewardCurrency || 'USD'" v-slot="{ result }">
+                <span class="inline-flex items-center gap-1">
+                  · {{ t('referrals.mine.reward', { reward: rewardLabel(r) }) }}
+                  <CurrencyConverterTrigger :result="result" />
+                </span>
+              </CurrencyConverterDisplay>
+              <template v-else> · {{ t('referrals.mine.reward', { reward: rewardLabel(r) }) }}</template>
+            </template>
           </p>
         </div>
         <UBadge :color="referralStatusColor(r.status)" variant="subtle" size="sm">

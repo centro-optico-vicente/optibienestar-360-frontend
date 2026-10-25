@@ -383,7 +383,14 @@ async function confirmLifecycle() {
                 {{ promotionSummary(promotionByMembership[m.uuid]!) }}
               </UBadge>
             </td>
-            <td class="px-6 py-3 text-prohealth-700">{{ money(m.monthlyFee) }}</td>
+            <td class="px-6 py-3 text-prohealth-700">
+              <CurrencyConverterDisplay :amount="m.monthlyFee" currency="USD" v-slot="{ result }">
+                <span class="inline-flex items-center gap-1">
+                  {{ money(m.monthlyFee) }}
+                  <CurrencyConverterTrigger :result="result" />
+                </span>
+              </CurrencyConverterDisplay>
+            </td>
             <td class="px-6 py-3">
               <UBadge :color="membershipStatusColor(m.status)" variant="subtle" size="sm">
                 {{ m.status_Display ?? statusLabel(m.status) }}

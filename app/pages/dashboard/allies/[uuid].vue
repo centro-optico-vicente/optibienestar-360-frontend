@@ -1225,7 +1225,15 @@ onMounted(async () => {
                   <div v-if="s.description" class="text-xs text-prohealth-500 line-clamp-1">{{ s.description }}</div>
                 </td>
                 <td class="px-6 py-3 text-prohealth-700">{{ s.serviceCategory?.name || t('common.empty') }}</td>
-                <td class="px-6 py-3 text-prohealth-700">{{ money(s.priceUsd) }}</td>
+                <td class="px-6 py-3 text-prohealth-700">
+                  <CurrencyConverterDisplay v-if="s.priceUsd" :amount="s.priceUsd" currency="USD" v-slot="{ result }">
+                    <span class="inline-flex items-center gap-1">
+                      {{ money(s.priceUsd) }}
+                      <CurrencyConverterTrigger :result="result" />
+                    </span>
+                  </CurrencyConverterDisplay>
+                  <template v-else>{{ t('common.empty') }}</template>
+                </td>
                 <td class="px-6 py-3 text-prohealth-700">{{ s.discountPct ? `${s.discountPct}%` : t('common.empty') }}</td>
                 <td class="px-6 py-3">
                   <UIcon

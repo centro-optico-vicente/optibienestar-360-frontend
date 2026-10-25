@@ -218,8 +218,22 @@ async function onConfirm() {
                   <td class="px-4 py-2.5 text-prohealth-500 font-mono text-xs">{{ topUp.promoterCode }}</td>
                   <td class="px-4 py-2.5 text-prohealth-700">{{ t(`commissions.retroactiveTopUps.ledgerTypes.${topUp.ledgerType}`) }}</td>
                   <td class="px-4 py-2.5 text-prohealth-700">{{ topUp.targetTierName }}</td>
-                  <td class="px-4 py-2.5 text-prohealth-700 text-right">{{ money(topUp.targetAmount, preview.currency) }}</td>
-                  <td class="px-4 py-2.5 text-prohealth-700 text-right">{{ money(topUp.alreadyPaidAmount, preview.currency) }}</td>
+                  <td class="px-4 py-2.5 text-prohealth-700 text-right">
+                    <CurrencyConverterDisplay :amount="topUp.targetAmount" :currency="preview.currency" v-slot="{ result }">
+                      <span class="inline-flex items-center justify-end gap-1">
+                        {{ money(topUp.targetAmount, preview.currency) }}
+                        <CurrencyConverterTrigger :result="result" />
+                      </span>
+                    </CurrencyConverterDisplay>
+                  </td>
+                  <td class="px-4 py-2.5 text-prohealth-700 text-right">
+                    <CurrencyConverterDisplay :amount="topUp.alreadyPaidAmount" :currency="preview.currency" v-slot="{ result }">
+                      <span class="inline-flex items-center justify-end gap-1">
+                        {{ money(topUp.alreadyPaidAmount, preview.currency) }}
+                        <CurrencyConverterTrigger :result="result" />
+                      </span>
+                    </CurrencyConverterDisplay>
+                  </td>
                   <td class="px-4 py-2.5 font-semibold text-right text-emerald-600">
                     <CurrencyConverterDisplay :amount="topUp.retroAmount" :currency="preview.currency" v-slot="{ result }">
                       <span class="inline-flex items-center justify-end gap-1">

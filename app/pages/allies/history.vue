@@ -111,7 +111,12 @@ function money(v?: number | string | null, currency?: string | null): string {
           </div>
           <div class="text-right shrink-0">
             <p v-if="u.copayAmount" class="text-sm font-semibold text-prohealth-800">
-              {{ money(u.copayAmount, u.copayCurrency) }}
+              <CurrencyConverterDisplay :amount="u.copayAmount" :currency="u.copayCurrency" :date="u.usageDate" v-slot="{ result }">
+                <span class="inline-flex items-center justify-end gap-1">
+                  {{ money(u.copayAmount, u.copayCurrency) }}
+                  <CurrencyConverterTrigger :result="result" />
+                </span>
+              </CurrencyConverterDisplay>
             </p>
             <p class="text-xs text-prohealth-400">{{ t('validator.history.copayLabel') }}</p>
           </div>

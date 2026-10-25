@@ -330,7 +330,15 @@ function contactTypeIcon(type: PromoterContactType): string {
                 </UBadge>
               </td>
               <td class="px-5 py-3 text-prohealth-600">{{ r.nextDueDate_Display ?? formatDate(r.nextDueDate, 'short') }}</td>
-              <td class="px-5 py-3 text-prohealth-700">{{ money(r.monthlyFee) }}</td>
+              <td class="px-5 py-3 text-prohealth-700">
+                <CurrencyConverterDisplay v-if="r.monthlyFee != null" :amount="r.monthlyFee" currency="USD" v-slot="{ result }">
+                  <span class="inline-flex items-center gap-1">
+                    {{ money(r.monthlyFee) }}
+                    <CurrencyConverterTrigger :result="result" />
+                  </span>
+                </CurrencyConverterDisplay>
+                <template v-else>{{ t('common.empty') }}</template>
+              </td>
               <td class="px-5 py-3">
                 <div class="flex items-center justify-end gap-1">
                   <UTooltip :text="t('promoterSelf.portfolio.history.action')">
@@ -459,10 +467,15 @@ function contactTypeIcon(type: PromoterContactType): string {
                 <p class="text-xs text-prohealth-500">{{ c.createdAt_Display ?? formatDate(c.createdAt, 'datetime') }}</p>
               </div>
               <p v-if="c.type === 'PAYMENT_PROMISE'" class="text-sm text-prohealth-700 mt-0.5">
-                {{ t('promoterSelf.portfolio.history.promiseLine', {
-                  amount: money(c.promisedAmount),
-                  date: c.promisedAtDate_Display ?? formatDate(c.promisedAtDate, 'short'),
-                }) }}
+                <CurrencyConverterDisplay :amount="c.promisedAmount" currency="USD" :date="c.promisedAtDate" v-slot="{ result }">
+                  <span class="inline-flex items-center gap-1">
+                    {{ t('promoterSelf.portfolio.history.promiseLine', {
+                      amount: money(c.promisedAmount),
+                      date: c.promisedAtDate_Display ?? formatDate(c.promisedAtDate, 'short'),
+                    }) }}
+                    <CurrencyConverterTrigger :result="result" />
+                  </span>
+                </CurrencyConverterDisplay>
               </p>
               <p v-if="c.note" class="text-sm text-prohealth-600 mt-0.5 whitespace-pre-line break-words">{{ c.note }}</p>
             </div>
