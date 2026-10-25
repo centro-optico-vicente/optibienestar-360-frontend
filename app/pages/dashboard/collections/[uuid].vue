@@ -344,11 +344,25 @@ function onReviewed(updated: PaymentDto) {
           <template v-if="payment.discountAmount">
             <div>
               <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.discount') }}</dt>
-              <dd class="text-prohealth-800 mt-0.5">{{ payment.discountAmount_Display ?? payment.discountAmount }}</dd>
+              <dd class="text-prohealth-800 mt-0.5">
+                <CurrencyConverterDisplay :amount="payment.discountAmount" :currency="payment.currency_Code" :date="payment.paymentDate" v-slot="{ result }">
+                  <span class="inline-flex items-center gap-1">
+                    {{ payment.discountAmount_Display ?? payment.discountAmount }}
+                    <CurrencyConverterTrigger :result="result" />
+                  </span>
+                </CurrencyConverterDisplay>
+              </dd>
             </div>
             <div>
               <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.netAmount') }}</dt>
-              <dd class="text-prohealth-900 font-semibold mt-0.5">{{ formatCurrency(netAmount(payment), payment.currency_Code || payment.currency) }}</dd>
+              <dd class="text-prohealth-900 font-semibold mt-0.5">
+                <CurrencyConverterDisplay :amount="netAmount(payment)" :currency="payment.currency_Code || payment.currency" :date="payment.paymentDate" v-slot="{ result }">
+                  <span class="inline-flex items-center gap-1">
+                    {{ formatCurrency(netAmount(payment), payment.currency_Code || payment.currency) }}
+                    <CurrencyConverterTrigger :result="result" />
+                  </span>
+                </CurrencyConverterDisplay>
+              </dd>
             </div>
             <div>
               <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.discountReason') }}</dt>
@@ -375,7 +389,14 @@ function onReviewed(updated: PaymentDto) {
               <tr v-for="line in payment.lines" :key="line.uuid">
                 <td class="px-4 py-2 text-prohealth-800">{{ line.method_Display || t('common.empty') }}</td>
                 <td class="px-4 py-2 text-prohealth-800">{{ line.bank_Display || t('common.empty') }}</td>
-                <td class="px-4 py-2 text-prohealth-800 text-right">{{ line.amount_Display ?? line.amount }}</td>
+                <td class="px-4 py-2 text-prohealth-800 text-right">
+                  <CurrencyConverterDisplay :amount="line.amount" :currency="payment.currency_Code" :date="payment.paymentDate" v-slot="{ result }">
+                    <span class="inline-flex items-center justify-end gap-1">
+                      {{ line.amount_Display ?? line.amount }}
+                      <CurrencyConverterTrigger :result="result" />
+                    </span>
+                  </CurrencyConverterDisplay>
+                </td>
                 <td class="px-4 py-2 text-prohealth-800 font-mono">{{ line.referenceNumber || t('common.empty') }}</td>
               </tr>
             </tbody>

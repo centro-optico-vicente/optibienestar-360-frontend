@@ -669,7 +669,14 @@ async function confirmRemoveException() {
         <div v-if="effectiveness" class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('campaigns.detail.effectiveness.totalCollected') }}</dt>
-            <dd class="text-prohealth-800 mt-0.5 text-lg font-bold">{{ money(effectiveness.totalCollected, effectiveness.currency_Code) }}</dd>
+            <dd class="text-prohealth-800 mt-0.5 text-lg font-bold">
+              <CurrencyConverterDisplay :amount="effectiveness.totalCollected" :currency="effectiveness.currency_Code" v-slot="{ result }">
+                <span class="inline-flex items-center gap-1">
+                  {{ money(effectiveness.totalCollected, effectiveness.currency_Code) }}
+                  <CurrencyConverterTrigger :result="result" />
+                </span>
+              </CurrencyConverterDisplay>
+            </dd>
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('campaigns.detail.effectiveness.transactionCount') }}</dt>
@@ -807,7 +814,14 @@ async function confirmRemoveException() {
                 <td class="px-6 py-3">
                   <UBadge :color="tx.source === 'AUTO' ? 'neutral' : 'warning'" variant="subtle" size="sm">{{ txSourceLabel(tx) }}</UBadge>
                 </td>
-                <td class="px-6 py-3 text-prohealth-700">{{ txAmount(tx) }}</td>
+                <td class="px-6 py-3 text-prohealth-700">
+                  <CurrencyConverterDisplay :amount="tx.amount" :currency="tx.currency_Code" :date="tx.resolvedAt" v-slot="{ result }">
+                    <span class="inline-flex items-center gap-1">
+                      {{ txAmount(tx) }}
+                      <CurrencyConverterTrigger :result="result" />
+                    </span>
+                  </CurrencyConverterDisplay>
+                </td>
               </tr>
             </tbody>
           </table>

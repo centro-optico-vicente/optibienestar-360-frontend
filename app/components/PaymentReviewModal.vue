@@ -99,7 +99,12 @@ async function confirm() {
           <div class="flex items-center justify-between">
             <span class="text-prohealth-500">{{ t('payments.detail.fields.amount') }}</span>
             <span class="font-semibold text-prohealth-900 inline-flex items-center gap-1">
-              {{ money(payment.amount, payment.currency) }}
+              <CurrencyConverterDisplay :amount="payment.amount" :currency="payment.currency_Code || payment.currency" :date="payment.paymentDate" v-slot="{ result }">
+                <span class="inline-flex items-center gap-1">
+                  {{ money(payment.amount, payment.currency) }}
+                  <CurrencyConverterTrigger :result="result" />
+                </span>
+              </CurrencyConverterDisplay>
               <CommonEntityLinkCell :to="currencyLink(payment.currency)" :label="payment.currency" :can="canViewCurrency" />
             </span>
           </div>
