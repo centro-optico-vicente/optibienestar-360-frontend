@@ -47,7 +47,13 @@ export const useOrganization = () => {
     if (currenciesLoaded.value) return currencies.value
     currenciesLoaded.value = true
     try {
-      currencies.value = await useApi<OrganizationCurrenciesDto>('/v1/organizations/currencies', { silent: true })
+      // No session (public pages): the anonymous twin, same payload.
+      const auth = useAuthStore()
+      const signedIn = !!(auth.accessToken || auth.refreshToken)
+      currencies.value = await useApi<OrganizationCurrenciesDto>(
+        signedIn ? '/v1/organizations/currencies' : '/v1/public/organization/currencies',
+        { silent: true, skipAuth: !signedIn },
+      )
     }
     catch {
       currencies.value = null

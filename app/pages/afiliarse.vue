@@ -70,6 +70,8 @@ function money(value: number | string | null | undefined, currency?: string | nu
   return formatCurrency(Number(value), currency || 'USD')
 }
 
+const selectedPlan = computed(() => plans.value.find(p => p.uuid === state.planUuid) ?? null)
+
 const planItems = computed(() => plans.value.map((p) => {
   const parts = [p.name]
   if (p.inscriptionFee != null) parts.push(`${t('affiliationRequest.inscription')} ${money(p.inscriptionFee, p.currency_Code)}`)
@@ -256,6 +258,21 @@ async function submit() {
           <UFormField :label="t('affiliationRequest.plan')" required class="sm:col-span-2">
             <USelect v-model="state.planUuid" :items="planItems" :placeholder="t('affiliationRequest.planPlaceholder')" class="w-full" />
           </UFormField>
+          <!-- The select's option labels can't host the converter button, so the chosen plan's fees are repeated here. -->
+          <div v-if="selectedPlan && (selectedPlan.inscriptionFee != null || selectedPlan.monthlyFee != null)" class="sm:col-span-2 -mt-2 flex flex-wrap gap-x-6 gap-y-1 text-sm text-prohealth-700">
+            <CurrencyConverterDisplay v-if="selectedPlan.inscriptionFee != null" :amount="selectedPlan.inscriptionFee" :currency="selectedPlan.currency_Code || 'USD'" v-slot="{ result }">
+              <span class="inline-flex items-center gap-1">
+                {{ t('affiliationRequest.inscription') }}: <strong>{{ money(selectedPlan.inscriptionFee, selectedPlan.currency_Code) }}</strong>
+                <CurrencyConverterTrigger :result="result" />
+              </span>
+            </CurrencyConverterDisplay>
+            <CurrencyConverterDisplay v-if="selectedPlan.monthlyFee != null" :amount="selectedPlan.monthlyFee" :currency="selectedPlan.currency_Code || 'USD'" v-slot="{ result }">
+              <span class="inline-flex items-center gap-1">
+                <strong>{{ money(selectedPlan.monthlyFee, selectedPlan.currency_Code) }}</strong> / {{ t('affiliationRequest.month') }}
+                <CurrencyConverterTrigger :result="result" />
+              </span>
+            </CurrencyConverterDisplay>
+          </div>
           <div class="sm:col-span-2 rounded-xl border border-prohealth-100 p-4 space-y-3">
             <p class="text-sm font-semibold text-prohealth-900">{{ t('affiliationRequest.termsTitle') }}</p>
             <p v-if="termsUnavailable" class="text-sm text-red-600">{{ t('affiliationRequest.termsUnavailable') }}</p>
