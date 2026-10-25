@@ -31,14 +31,21 @@ const rateCache = new Map<string, Promise<{ rate: number, rateDate: string | nul
 
 // Same module-level dedup for the popover's "convert to" picker options:
 // every popover on the screen shares one GET /v1/me/currencies (open to any
-// authenticated role, unlike /v1/admin/currencies/options). A failure is
+// authenticated role — or anonymous visitor via /v1/public/currencies —
+// unlike /v1/admin/currencies/options). A failure is
 // not cached, so the next popover retries.
 let convertibleCurrenciesPending: Promise<CatalogItem[]> | null = null
 
 /** Active currencies a conversion can target (the popover's picker). Never throws — `[]` on failure. */
 export function loadConvertibleCurrencies(): Promise<CatalogItem[]> {
   if (!convertibleCurrenciesPending) {
-    convertibleCurrenciesPending = useApi<CatalogItem[]>('/v1/me/currencies', { silent: true })
+    // No session (public pages): /v1/public/currencies, same item shape.
+    const auth = useAuthStore()
+    const signedIn = !!(auth.accessToken || auth.refreshToken)
+    convertibleCurrenciesPending = useApi<CatalogItem[]>(
+      signedIn ? '/v1/me/currencies' : '/v1/public/currencies',
+      { silent: true, skipAuth: !signedIn },
+    )
       .then(list => (list ?? []).filter(c => c.active && c.code))
       .catch(() => {
         convertibleCurrenciesPending = null

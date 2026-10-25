@@ -163,7 +163,14 @@ function money(v?: number | string | null): string {
                 </p>
               </div>
               <div v-if="s.priceAmount" class="text-right shrink-0">
-                <p class="font-bold text-prohealth-900">{{ money(s.priceAmount) }}</p>
+                <p class="font-bold text-prohealth-900">
+                  <CurrencyConverterDisplay :amount="s.priceAmount" currency="USD" v-slot="{ result }">
+                    <span class="inline-flex items-center justify-end gap-1">
+                      {{ money(s.priceAmount) }}
+                      <CurrencyConverterTrigger :result="result" />
+                    </span>
+                  </CurrencyConverterDisplay>
+                </p>
                 <p v-if="s.discountPct" class="text-xs font-semibold text-lime-700">
                   {{ t('allies.public.detail.discountAffiliates', { pct: s.discountPct }) }}
                 </p>

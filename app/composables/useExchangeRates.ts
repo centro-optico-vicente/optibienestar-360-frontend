@@ -26,6 +26,13 @@ interface ListParams {
  * - update -> EXCHANGE_RATE_UPDATE (MANUAL rows only) · remove -> EXCHANGE_RATE_DELETE (MANUAL rows only)
  */
 export const useExchangeRates = () => {
+  // The converter popover also lives on public pages (affiliation form,
+  // public ally detail): with no session the lookups go to their anonymous
+  // twins under /v1/public (same services, same contract), without auth.
+  const auth = useAuthStore()
+  const signedIn = () => !!(auth.accessToken || auth.refreshToken)
+  const lookupBase = () => (signedIn() ? '/v1/exchange-rates' : '/v1/public/exchange-rates')
+
   /**
    * Rate to multiply an amount in `base` by, to get its equivalent in
    * `quote`. `asOf` previews the rate vigente as of that point in time
@@ -38,9 +45,10 @@ export const useExchangeRates = () => {
    * this is a best-effort UI hint, not a user-triggered action.
    */
   const current = (base: string, quote: string, asOf?: string) =>
-    useApi<CurrentExchangeRateDto>('/v1/exchange-rates/current', {
+    useApi<CurrentExchangeRateDto>(`${lookupBase()}/current`, {
       query: { base, quote, ...(asOf ? { asOf } : {}) },
       silent: true,
+      skipAuth: !signedIn(),
     })
 
   /**
@@ -53,9 +61,10 @@ export const useExchangeRates = () => {
    * `current`.
    */
   const convert = (amount: number, from: string, to: string, asOf?: string) =>
-    useApi<ConvertedAmountDto>('/v1/exchange-rates/convert', {
+    useApi<ConvertedAmountDto>(`${lookupBase()}/convert`, {
       query: { amount, from, to, ...(asOf ? { asOf } : {}) },
       silent: true,
+      skipAuth: !signedIn(),
     })
 
   /** History for a pair, newest `validFrom` first by default. */
