@@ -65,10 +65,11 @@ async function refreshAll() {
   }
 }
 
-// Amount in USD, formatted in the VE convention (useFormatters). Empty → '—'.
+// Amount in the plan's own currency (falls back to USD), formatted in the VE
+// convention (useFormatters). Empty → '—'.
 function money(v?: number | string | null): string {
   if (v === null || v === undefined || v === '') return t('common.empty')
-  return formatCurrency(Number(v), 'USD')
+  return formatCurrency(Number(v), plan.value?.currency_Code || 'USD')
 }
 
 // Plan type label; falls back to the raw value for unknown types.
@@ -338,20 +339,38 @@ async function confirmDelete() {
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('plans.pricing.inscription') }}</dt>
-            <dd class="text-prohealth-900 text-lg font-semibold mt-0.5">{{ plan.inscriptionFee_Display ?? money(plan.inscriptionFee) }}</dd>
+            <dd class="text-prohealth-900 text-lg font-semibold mt-0.5">
+              <CurrencyConverterDisplay :amount="plan.inscriptionFee" :currency="plan.currency_Code" v-slot="{ result }">
+                <span class="inline-flex items-center gap-1">
+                  {{ plan.inscriptionFee_Display ?? money(plan.inscriptionFee) }}
+                  <CurrencyConverterTrigger :result="result" />
+                </span>
+              </CurrencyConverterDisplay>
+            </dd>
             <dd class="text-xs text-prohealth-500">{{ t('plans.pricing.inscriptionHint') }}</dd>
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('plans.pricing.monthly') }}</dt>
             <dd class="text-prohealth-900 text-lg font-semibold mt-0.5">
-              <MoneyWithTooltip :display="plan.monthlyFee_Display ?? money(plan.monthlyFee)" :converted-display="plan.amountConverted_Display" :rate-date="plan.exchangeRateDate" />
+              <CurrencyConverterDisplay :amount="plan.monthlyFee" :currency="plan.currency_Code" v-slot="{ result }">
+                <span class="inline-flex items-center gap-1">
+                  {{ plan.monthlyFee_Display ?? money(plan.monthlyFee) }}
+                  <CurrencyConverterTrigger :result="result" />
+                </span>
+              </CurrencyConverterDisplay>
             </dd>
             <dd class="text-xs text-prohealth-500">{{ t('plans.pricing.monthlyHint') }}</dd>
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('plans.pricing.extraBeneficiary') }}</dt>
             <dd class="text-prohealth-900 text-lg font-semibold mt-0.5">
-              {{ plan.extraBeneficiaryInscriptionFee != null ? money(plan.extraBeneficiaryInscriptionFee) : t('plans.pricing.notAllowed') }}
+              <CurrencyConverterDisplay v-if="plan.extraBeneficiaryInscriptionFee != null" :amount="plan.extraBeneficiaryInscriptionFee" :currency="plan.currency_Code" v-slot="{ result }">
+                <span class="inline-flex items-center gap-1">
+                  {{ money(plan.extraBeneficiaryInscriptionFee) }}
+                  <CurrencyConverterTrigger :result="result" />
+                </span>
+              </CurrencyConverterDisplay>
+              <template v-else>{{ t('plans.pricing.notAllowed') }}</template>
             </dd>
             <dd class="text-xs text-prohealth-500">{{ t('plans.pricing.extraBeneficiaryHint') }}</dd>
           </div>

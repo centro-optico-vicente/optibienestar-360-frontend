@@ -294,9 +294,21 @@ function openAudit(p: PlanDto) {
               <td class="px-5 py-3">
                 <UBadge color="primary" variant="subtle" size="sm">{{ typeLabel(p.type) }}</UBadge>
               </td>
-              <td class="px-5 py-3 text-prohealth-700">{{ p.inscriptionFee_Display ?? t('common.empty') }}</td>
               <td class="px-5 py-3 text-prohealth-700">
-                <MoneyWithTooltip :display="p.monthlyFee_Display" :converted-display="p.amountConverted_Display" :rate-date="p.exchangeRateDate" />
+                <CurrencyConverterDisplay :amount="p.inscriptionFee" :currency="p.currency_Code" v-slot="{ result }">
+                  <span class="inline-flex items-center gap-1" @click.stop>
+                    {{ p.inscriptionFee_Display ?? t('common.empty') }}
+                    <CurrencyConverterTrigger :result="result" />
+                  </span>
+                </CurrencyConverterDisplay>
+              </td>
+              <td class="px-5 py-3 text-prohealth-700">
+                <CurrencyConverterDisplay :amount="p.monthlyFee" :currency="p.currency_Code" v-slot="{ result }">
+                  <span class="inline-flex items-center gap-1" @click.stop>
+                    {{ p.monthlyFee_Display ?? t('common.empty') }}
+                    <CurrencyConverterTrigger :result="result" />
+                  </span>
+                </CurrencyConverterDisplay>
                 <div class="text-xs mt-0.5" @click.stop>
                   <CommonEntityLinkCell
                     :to="p.currency_Uuid ? `/dashboard/catalogs/currencies?edit=${p.currency_Uuid}` : null"
