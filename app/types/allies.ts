@@ -3,12 +3,14 @@
 //
 // The admin list is paged (Page<AllyListItemDto>, compact) with RSQL + `q`; the
 // detail (AllyDto, backend AllyDetailDto) includes professions[] and allyTypes[]
-// (both M:N) but does NOT inline services. Sub-resources: services, agreements
+// (both M:N) but does NOT inline its offers. Sub-resources: products (offers of
+// the products catalog, hub ADR 0026 — paged), agreements
 // (ALLY_AGREEMENT_VIEW_ALL/CREATE/UPDATE/DELETE) and users (staff with
 // OWNER/STAFF/VIEWER membership, ALLY_USER_VIEW_ALL/CREATE/UPDATE/DELETE).
 // PUT uses PATCH semantics.
 
 import type { CatalogRef, CityRef } from '~/types/members'
+import type { ProductType } from '~/types/products'
 
 // ---- Partner ----
 
@@ -51,6 +53,8 @@ export interface AllyDto {
   /** Soft-delete/reactivation flag — distinct from `status` (a business workflow value). */
   active?: boolean
   professions?: CatalogRef[]
+  /** Active offers (products and services) of the ally. */
+  activeProductsCount?: number | null
   createdAt?: string
 }
 
@@ -132,54 +136,127 @@ export interface UpdateAllyRequest extends Partial<CreateAllyRequest> {
   active?: boolean
 }
 
-// ---- Partner services ----
+// ---- Partner products and services (offers — hub ADR 0026) ----
 
-/** Service review status (proposals are born in PROPOSED). */
-export type ServiceReviewStatus = 'PROPOSED' | 'APPROVED' | 'REJECTED'
 
-/** Scalars carry a localized `_Display` sibling (hub ADR 0014) — render it directly. */
-export interface AllyServiceDto {
+/** Offer review workflow; offers proposed by the ally (or created by admin) are born PROPOSED. */
+export type ProductReviewStatus = 'PROPOSED' | 'IN_REVIEW' | 'APPROVED' | 'REJECTED' | 'REMOVED'
+
+/** Product category as nested in an offer (backend `ProductCategoryDto`). */
+export interface ProductCategoryRef {
   uuid: string
+  code?: string | null
   name: string
-  description?: string
-  serviceCategory?: CatalogRef
-  priceUsd?: string
-  discountPct?: string
+  description?: string | null
+  active?: boolean
+}
+
+/**
+ * An ally's offer of a product (backend `AllyProductDto`): the product's own
+ * fields (type, category, name, description, appointment, image) flattened
+ * next to the offer terms (price, discount, final price, exclusions) and the
+ * review/publication state. `exclusive` → the product belongs to this ally,
+ * so its item fields are editable from the offer; otherwise only the offer
+ * terms are. Scalars carry a localized `_Display` sibling (hub ADR 0014).
+ */
+export interface AllyProductDto {
+  uuid: string
+  allyUuid?: string
+  productUuid: string
+  productType: ProductType | string
+  productType_Display?: string | null
+  exclusive: boolean
+  exclusive_Display?: string | null
+  productCategory?: ProductCategoryRef | null
+  name: string
+  description?: string | null
+  requiresAppointment?: boolean
+  requiresAppointment_Display?: string | null
+  imageUrl?: string | null
+
+  priceAmount?: number | string | null
+  priceAmount_Display?: string | null
+  discountPct?: number | string | null
+  discountPct_Display?: string | null
+  finalPrice?: number | string | null
+  finalPrice_Display?: string | null
   /** Where the preferential rate does not apply (V179), free text. */
   exclusions?: string | null
-  requiresAppointment?: boolean
-  reviewStatus?: ServiceReviewStatus | string
+
+  reviewStatus?: ProductReviewStatus | string
   reviewStatus_Display?: string | null
+  reviewedByUuid?: string | null
+  reviewedAt?: string | null
+  reviewedAt_Display?: string | null
+  reviewReason?: string | null
+
   published?: boolean
   published_Display?: string | null
+  publishedAt?: string | null
+  publishedAt_Display?: string | null
+
   active?: boolean
   active_Display?: string | null
   status?: string
   status_Display?: string | null
   createdAt?: string
   createdAt_Display?: string | null
+  updatedAt?: string
+  updatedAt_Display?: string | null
 }
 
-export interface CreateAllyServiceRequest {
-  serviceCategoryUuid: string
-  name: string
+/**
+ * Body of `POST /v1/admin/allies/{allyUuid}/products`. Either `productUuid`
+ * (offer an existing general product, or one exclusive to this ally) or —
+ * when it is omitted — the item fields, which create a new product exclusive
+ * to the ally. Decimals travel as strings to avoid precision loss.
+ */
+export interface AllyProductCreateRequest {
+  productUuid?: string
+  productCategoryUuid?: string
+  productType?: ProductType
+  name?: string
   description?: string
-  priceUsd?: string
+  requiresAppointment?: boolean
+  priceAmount?: string
   discountPct?: string
   /** Free text; an empty string clears it on update. */
   exclusions?: string
+}
+
+/**
+ * PUT with PATCH semantics. The item fields (category, type, name, description,
+ * requiresAppointment) are only accepted when the product is exclusive to this
+ * ally — the backend answers 422 otherwise. `reviewStatus` never changes this way.
+ */
+export interface AllyProductUpdateRequest {
+  productCategoryUuid?: string
+  productType?: ProductType
+  name?: string
+  description?: string
   requiresAppointment?: boolean
-}
-
-/** PUT with PATCH semantics; `reviewStatus` is NOT changed this way. */
-export interface UpdateAllyServiceRequest extends Partial<CreateAllyServiceRequest> {
+  priceAmount?: string
+  discountPct?: string
+  exclusions?: string
   published?: boolean
-  status?: string
+  active?: boolean
 }
 
-/** Body of POST /v1/allies/me/services (proposal made by the partner itself). */
-export interface ProposeAllyServiceRequest extends CreateAllyServiceRequest {
+/** Body of `POST /v1/me/allies/products` (proposal made by the partner itself). */
+export interface ProposeAllyProductRequest extends AllyProductCreateRequest {
   allyUuid: string
+}
+
+/** One transition of an offer's review workflow (`GET .../{uuid}/log`). */
+export interface AllyProductReviewLogDto {
+  fromStatus?: ProductReviewStatus | string | null
+  fromStatus_Display?: string | null
+  toStatus: ProductReviewStatus | string
+  toStatus_Display?: string | null
+  actorUuid?: string | null
+  actionAt: string
+  actionAt_Display?: string | null
+  comment?: string | null
 }
 
 // ---- Agreements ----
@@ -299,7 +376,7 @@ export interface UpdateAllyUserRequest {
  * Response item of GET /v1/me/allies — "which allies do I operate on?".
  *
  * `uuid` is the ALLY's uuid (not the staff-membership pivot's): it is what
- * POST /v1/allies/me/benefit-usages and POST /v1/allies/me/services expect as
+ * POST /v1/allies/me/benefit-usages and POST /v1/me/allies/products expect as
  * `allyUuid`, and reading it straight off this record is the whole point of
  * the endpoint. `allyRole` is the caller's authority inside this ally, so the
  * portal can hide write actions from a VIEWER instead of letting them 403 at
@@ -362,7 +439,10 @@ export interface PublicAllyListItemDto {
   googleMapsUrl?: string | null
 }
 
-/** Approved, published service of a public partner (backend `PublicAllyServiceDto`). */
+/**
+ * @deprecated Legacy shape of `PublicAllyDetailDto.services`, kept while the
+ * public pages move to {@link PublicAllyProductDto} (`products`).
+ */
 export interface PublicAllyServiceDto {
   uuid: string
   categoryName?: string | null
@@ -375,9 +455,29 @@ export interface PublicAllyServiceDto {
   requiresAppointment?: boolean
 }
 
+/** Approved, published offer of a public partner (backend `PublicAllyProductDto`). */
+export interface PublicAllyProductDto {
+  /** The offer's uuid (what `BenefitUsageRegisterRequest.allyProductUuid` expects). */
+  uuid: string
+  productUuid?: string | null
+  productType?: ProductType | string | null
+  productType_Display?: string | null
+  categoryName?: string | null
+  name: string
+  description?: string | null
+  priceAmount?: number | string | null
+  discountPct?: number | string | null
+  finalPrice?: number | string | null
+  exclusions?: string | null
+  requiresAppointment?: boolean
+  imageUrl?: string | null
+}
+
 /** Public partner profile (GET /v1/public/allies/{uuid} — backend `PublicAllyDetailDto`). */
 export interface PublicAllyDetailDto extends PublicAllyListItemDto {
   address?: string | null
   professionNames?: string[]
+  products?: PublicAllyProductDto[]
+  /** @deprecated Use `products` (hub ADR 0026); still sent during the transition. */
   services?: PublicAllyServiceDto[]
 }

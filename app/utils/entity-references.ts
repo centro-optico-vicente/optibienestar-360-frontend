@@ -28,7 +28,7 @@ export type EntityReferenceKey =
   | 'marital_status'
   | 'occupation'
   | 'profession'
-  | 'service_category'
+  | 'product_category'
   | 'ally_type'
   | 'promoter_type'
   | 'promoter_rank'
@@ -53,7 +53,7 @@ const CATALOG_ENTITY_KEYS: Partial<Record<EntityReferenceKey, string>> = {
   marital_status: 'marital-statuses',
   occupation: 'occupations',
   profession: 'professions',
-  service_category: 'service-categories',
+  product_category: 'product-categories',
   ally_type: 'ally-types',
   promoter_type: 'advisor-types',
   promoter_rank: 'advisor-ranks',

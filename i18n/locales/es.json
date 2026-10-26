@@ -517,7 +517,7 @@
       },
       "alliances": {
         "label": "Alianzas",
-        "description": "Red de aliados prestadores, su clasificación y servicios."
+        "description": "Red de aliados, su clasificación y sus productos y servicios."
       },
       "comercial": {
         "label": "Comercial",
@@ -599,9 +599,13 @@
         "label": "Aliados",
         "description": "Comercios y prestadores de la red."
       },
-      "serviceCategories": {
-        "label": "Categorías de servicio",
-        "description": "Categorías de los servicios ofrecidos."
+      "productCategories": {
+        "label": "Categorías de productos y servicios",
+        "description": "Categorías de los productos y servicios ofrecidos."
+      },
+      "products": {
+        "label": "Productos y servicios",
+        "description": "Catálogo maestro de productos y servicios que ofrecen los aliados."
       },
       "professions": {
         "label": "Profesiones",
@@ -1094,9 +1098,9 @@
         "label": "Profesiones",
         "labelSingular": "Profesión"
       },
-      "service-categories": {
-        "label": "Categorías de servicio",
-        "labelSingular": "Categoría de servicio"
+      "product-categories": {
+        "label": "Categorías de productos y servicios",
+        "labelSingular": "Categoría de producto o servicio"
       },
       "ally-types": {
         "label": "Tipos de aliado",
@@ -1196,7 +1200,9 @@
       "marital_status": "Estado civil",
       "occupation": "Ocupación",
       "profession": "Profesión",
-      "service_category": "Categoría de servicio",
+      "product_category": "Categoría de producto o servicio",
+      "product": "Producto o servicio",
+      "ally_product": "Oferta de aliado",
       "promoter_type": "Tipo de asesor"
     }
   },
@@ -1417,41 +1423,72 @@
       "fileNumberHint": "Nº de expediente del Convenio de Alianza Estratégica: [CÓDIGO DE ASESOR]-[Nº DE ALIADO]"
     },
     "tabs": {
-      "services": "Servicios",
+      "products": "Productos y servicios",
       "professions": "Profesiones",
       "allyTypes": "Tipos de aliado",
       "agreements": "Acuerdos",
       "staff": "Personal"
     },
-    "services": {
-      "title": "Servicios",
-      "hint": "Los servicios nuevos quedan en revisión (PROPOSED).",
-      "addTooltip": "Añadir servicio",
+    "products": {
+      "title": "Productos y servicios",
+      "hint": "Lo que ofrece el aliado: productos o servicios del catálogo general o exclusivos suyos. Las ofertas nuevas quedan en revisión (Propuesto).",
+      "addTooltip": "Añadir producto o servicio",
       "add": "Añadir",
-      "empty": "Sin servicios registrados",
-      "createdToast": "Servicio creado (en revisión)",
-      "updatedToast": "Servicio actualizado",
-      "deletedToast": "Servicio eliminado",
+      "empty": "Sin productos ni servicios registrados",
+      "searchPlaceholder": "Buscar por nombre…",
+      "paginationSummary": "{shown} de {total} oferta(s)",
+      "createdToast": "Oferta creada (en revisión)",
+      "updatedToast": "Oferta actualizada",
+      "deletedToast": "Oferta eliminada",
+      "approvedToast": "Oferta aprobada",
+      "rejectedToast": "Oferta rechazada",
+      "withdrawnToast": "Oferta retirada",
+      "general": "General",
+      "exclusive": "Exclusivo",
       "columns": {
-        "service": "Servicio",
+        "item": "Producto / servicio",
+        "type": "Tipo",
         "category": "Categoría",
         "price": "Precio",
         "discount": "Tarifa Pref.",
-        "appointment": "Cita",
+        "finalPrice": "Precio final",
         "review": "Revisión",
         "published": "Publicado"
       },
       "reviewStatus": {
         "PROPOSED": "Propuesto",
+        "IN_REVIEW": "En revisión",
         "APPROVED": "Aprobado",
-        "REJECTED": "Rechazado"
+        "REJECTED": "Rechazado",
+        "REMOVED": "Retirado"
+      },
+      "review": {
+        "approve": "Aprobar",
+        "reject": "Rechazar",
+        "withdraw": "Retirar",
+        "rejectTitle": "Rechazar oferta",
+        "withdrawTitle": "Retirar oferta",
+        "reasonLabel": "Motivo",
+        "reasonHelp": "El aliado verá este motivo.",
+        "confirm": "Confirmar"
       },
       "form": {
-        "createTitle": "Añadir servicio",
-        "editTitle": "Editar servicio",
-        "createDescription": "El servicio quedará en revisión (PROPOSED).",
+        "createTitle": "Añadir producto o servicio",
+        "editTitle": "Editar oferta",
+        "createDescription": "La oferta quedará en revisión (Propuesto).",
         "editDescription": "El estado de revisión no se cambia por esta vía.",
+        "source": "Origen",
+        "sourceGeneral": "Del catálogo general",
+        "sourceExclusive": "Crear exclusivo de este aliado",
+        "sourceGeneralNoPermission": "Para elegir del catálogo general necesitas ver Productos y servicios.",
+        "productSearchPlaceholder": "Buscar en el catálogo general…",
+        "productSearchHelp": "Escribe al menos 2 letras para buscar.",
+        "generalLockedHint": "Es un producto del catálogo general: aquí solo cambian las condiciones de la oferta. Sus datos se editan en Productos y servicios.",
+        "itemSection": "Datos del producto o servicio",
+        "offerSection": "Condiciones de la oferta",
         "fields": {
+          "product": "Producto o servicio",
+          "type": "Tipo",
           "category": "Categoría",
           "name": "Nombre",
           "description": "Descripción",
@@ -1465,8 +1502,8 @@
         "exclusionsPlaceholder": "Ej.: ofertas existentes, licores, cigarrillos"
       },
       "delete": {
-        "title": "Eliminar servicio",
-        "confirm": "¿Seguro que deseas eliminar el servicio {name}? (soft-delete)"
+        "title": "Eliminar oferta",
+        "confirm": "¿Seguro que deseas eliminar la oferta {name}? (soft-delete)"
       }
     },
     "professions": {
@@ -1616,39 +1653,144 @@
     "portal": {
       "seoTitle": "Mi empresa aliada — OptiBienestar 360",
       "title": "Mi empresa aliada",
-      "subtitle": "Propón nuevos servicios para tu empresa. Quedan en revisión hasta que OptiBienestar 360 los apruebe.",
+      "subtitle": "Propón productos y servicios para tu empresa. Quedan en revisión hasta que OptiBienestar 360 los apruebe.",
       "lastProposedTitle": "«{name}» enviado a revisión",
       "lastProposedDescription": "Te notificaremos cuando sea aprobado y publicado en el directorio.",
-      "formTitle": "Proponer un servicio",
+      "formTitle": "Proponer un producto o servicio",
       "formHint": "Debes tener membresía activa (propietario o personal) en la empresa aliada.",
-      "proposedToast": "Servicio propuesto",
+      "proposedToast": "Propuesta enviada",
       "proposedToastDescription": "Quedó en revisión; el equipo de OptiBienestar 360 lo aprobará.",
       "submit": "Enviar propuesta",
+      "sourceExisting": "Uno que ya está en el catálogo",
+      "sourceExclusive": "Uno nuevo, exclusivo de mi empresa",
+      "productSearchPlaceholder": "Buscar en el catálogo…",
+      "productHelp": "Escribe al menos 2 letras. Si no aparece, propónlo como nuevo.",
       "namePlaceholder": "Consulta de Cardiología",
       "fields": {
+        "source": "¿Qué quieres ofrecer?",
+        "product": "Producto o servicio",
+        "type": "Tipo",
         "category": "Categoría",
-        "name": "Nombre del servicio",
+        "name": "Nombre",
         "description": "Descripción",
         "price": "Precio (USD)",
         "discount": "Tarifa Preferencial para afiliados (%)",
         "requiresAppointment": "Requiere cita",
+        "exclusions": "Exclusiones (no aplica en)",
         "ally": "Empresa aliada",
-        "allyHelp": "Trabajas en más de una; elige para cuál propones el servicio."
+        "allyHelp": "Trabajas en más de una; elige para cuál haces la propuesta."
       },
       "help": {
         "title": "¿Cómo funciona?",
-        "step1": "Envías la propuesta del servicio con su precio y la Tarifa Preferencial para afiliados.",
+        "step1": "Envías la propuesta con su precio y la Tarifa Preferencial para afiliados.",
         "step2": "El equipo de OptiBienestar 360 la revisa y aprueba.",
         "step3pre": "Una vez publicado, aparece en el ",
         "step3link": "directorio público",
         "step3post": "."
       },
       "noAllyTitle": "No estás asociado a ninguna empresa aliada",
-      "noAllyDescription": "Pide al equipo de OptiBienestar 360 que te vincule a tu empresa aliada para poder proponer servicios."
+      "noAllyDescription": "Pide al equipo de OptiBienestar 360 que te vincule a tu empresa aliada para poder proponer productos y servicios."
     },
     "segments": {
       "B2B": "Comercial (B2B)",
       "B2P": "Profesional (B2P)"
+    }
+  },
+  "products": {
+    "title": "Productos y servicios",
+    "subtitle": "Catálogo maestro de lo que ofrecen los aliados. Los generales los puede ofrecer cualquier aliado; los exclusivos, solo su aliado.",
+    "new": "Nuevo",
+    "createTooltip": "Crear producto o servicio",
+    "noPermission": "No tienes permiso para esta acción",
+    "searchPlaceholder": "Buscar por nombre o código…",
+    "empty": "No hay productos ni servicios",
+    "paginationSummary": "{shown} de {total} producto(s) y servicio(s)",
+    "viewTooltip": "Ver detalle",
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "createdToast": "Producto o servicio creado",
+    "updatedToast": "Producto o servicio actualizado",
+    "deletedToast": "Producto o servicio eliminado",
+    "types": {
+      "SERVICE": "Servicio",
+      "PRODUCT": "Producto"
+    },
+    "filters": {
+      "allTypes": "Todos los tipos",
+      "allCategories": "Todas las categorías",
+      "allScopes": "Generales y exclusivos",
+      "general": "Solo generales",
+      "exclusive": "Solo exclusivos"
+    },
+    "scope": {
+      "general": "General",
+      "exclusiveOf": "Exclusivo de {ally}"
+    },
+    "columns": {
+      "name": "Producto / servicio",
+      "type": "Tipo",
+      "category": "Categoría",
+      "scope": "Alcance",
+      "appointment": "Cita",
+      "image": "Imagen",
+      "status": "Estado"
+    },
+    "form": {
+      "createTitle": "Nuevo producto o servicio",
+      "editTitle": "Editar producto o servicio",
+      "description": "Sin aliado dueño es general (cualquier aliado puede ofrecerlo); con aliado dueño es exclusivo de ese aliado.",
+      "codeHelp": "Opcional; se genera si lo dejas vacío.",
+      "ownerAllyHelp": "Déjalo vacío para que sea general.",
+      "ownerAllyNoPermission": "Necesitas ver Aliados para asignar un aliado dueño.",
+      "generalPlaceholder": "General (ningún aliado)",
+      "allySearchPlaceholder": "Buscar aliado…",
+      "fields": {
+        "code": "Código",
+        "name": "Nombre",
+        "description": "Descripción",
+        "type": "Tipo",
+        "category": "Categoría",
+        "ownerAlly": "Aliado dueño (exclusivo)",
+        "requiresAppointment": "Requiere cita",
+        "active": "Activo"
+      }
+    },
+    "delete": {
+      "title": "Eliminar producto o servicio",
+      "confirm": "¿Seguro que deseas eliminar {name}? (soft-delete)"
+    },
+    "image": {
+      "title": "Imagen del catálogo",
+      "hint": "La imagen se sube privada y solo se muestra al publicarla.",
+      "none": "Sin imagen publicada",
+      "upload": "Subir imagen",
+      "publish": "Publicar",
+      "unpublish": "Despublicar",
+      "delete": "Eliminar",
+      "uploadedToast": "Imagen subida; publícala para que se vea en el catálogo",
+      "publishedToast": "Imagen publicada",
+      "unpublishedToast": "Imagen despublicada",
+      "deletedToast": "Imagen eliminada"
+    },
+    "detail": {
+      "title": "Producto o servicio",
+      "createdAt": "Creado",
+      "tabs": {
+        "info": "Datos",
+        "offers": "Aliados que lo ofrecen"
+      }
+    },
+    "offers": {
+      "empty": "Ningún aliado ofrece este producto o servicio",
+      "ally": "Aliado",
+      "columns": {
+        "ally": "Aliado",
+        "price": "Precio",
+        "discount": "Tarifa Pref.",
+        "finalPrice": "Precio final",
+        "review": "Revisión",
+        "published": "Publicado"
+      }
     }
   },
   "promoterSelf": {
@@ -2474,15 +2616,17 @@
       "title": "Registrar uso de beneficio",
       "ally": "Empresa aliada",
       "submit": "Registrar uso",
-      "noServices": "Sin servicios en catálogo",
+      "noProducts": "Sin productos ni servicios en catálogo",
       "copayPreview": "Copago: {amount}",
       "registeredToast": "Uso registrado",
       "registeredToastDescription": "Se registró el beneficio de {name}.",
       "lastRegisteredTitle": "Uso registrado",
       "lastRegisteredDescription": "Quedó asentado con fecha {date}.",
       "fields": {
-        "service": "Servicio",
-        "serviceHelp": "Opcional. Si el servicio no está en el catálogo, déjalo vacío.",
+        "product": "Producto o servicio",
+        "productHelp": "Opcional. Si no está en el catálogo del aliado, déjalo vacío e indica la categoría.",
+        "category": "Categoría",
+        "categoryHelp": "Obligatoria cuando no eliges un producto o servicio del catálogo.",
         "usageDate": "Fecha de atención",
         "usageDateHelp": "No puede ser futura.",
         "copayAmount": "Copago",

@@ -56,7 +56,7 @@ export function isNavGroup(entry: NavEntry): entry is NavGroup {
 // NO se repiten en Datos maestros. `currencies` se muda a Finanzas junto con
 // Tasas de cambio (mismo dominio multi-moneda, ADR 0015) — hub plan
 // payments-unification §"Reorganización de menú".
-const CATALOGS_IN_VERTICALS = new Set<string>(['ally-types', 'service-categories', 'professions', 'advisor-types', 'advisor-ranks', 'banks', 'payment-categories', 'payment-methods', 'currencies'])
+const CATALOGS_IN_VERTICALS = new Set<string>(['ally-types', 'product-categories', 'professions', 'advisor-types', 'advisor-ranks', 'banks', 'payment-categories', 'payment-methods', 'currencies'])
 
 // El resto de catálogos alimenta "Datos maestros": derivados del registro, así el
 // grupo y su mosaico quedan siempre sincronizados con lo que existe en el sistema.
@@ -94,11 +94,12 @@ export const MAIN_NAV: NavEntry[] = [
     label: 'Aliados',
     labelKey: 'nav.groups.alliances.label',
     icon: 'i-lucide-handshake',
-    description: 'Red de aliados prestadores, su clasificación y servicios.',
+    description: 'Red de aliados, su clasificación y sus productos y servicios.',
     descriptionKey: 'nav.groups.alliances.description',
     children: [
       { label: 'Tipos de aliado', labelKey: 'nav.items.allyTypes.label', to: '/dashboard/catalogs/ally-types', icon: 'i-lucide-tags', description: 'Clasificación de los aliados.', descriptionKey: 'nav.items.allyTypes.description', requires: 'ALLY_TYPE_VIEW_ALL' },
-      { label: 'Categorías de servicio', labelKey: 'nav.items.serviceCategories.label', to: '/dashboard/catalogs/service-categories', icon: 'i-lucide-layers', description: 'Categorías de los servicios ofrecidos.', descriptionKey: 'nav.items.serviceCategories.description', requires: 'SERVICE_CATEGORY_VIEW_ALL' },
+      { label: 'Categorías de productos y servicios', labelKey: 'nav.items.productCategories.label', to: '/dashboard/catalogs/product-categories', icon: 'i-lucide-layers', description: 'Categorías de los productos y servicios ofrecidos.', descriptionKey: 'nav.items.productCategories.description', requires: 'PRODUCT_CATEGORY_VIEW_ALL' },
+      { label: 'Productos y servicios', labelKey: 'nav.items.products.label', to: '/dashboard/products', icon: 'i-lucide-package-search', description: 'Catálogo maestro de productos y servicios que ofrecen los aliados.', descriptionKey: 'nav.items.products.description', requires: 'PRODUCT_VIEW_ALL' },
       { label: 'Profesiones', labelKey: 'nav.items.professions.label', to: '/dashboard/catalogs/professions', icon: 'i-lucide-stethoscope', description: 'Profesiones de los aliados.', descriptionKey: 'nav.items.professions.description', requires: 'PROFESSION_VIEW_ALL' },
       { label: 'Aliados', labelKey: 'nav.items.allies.label', to: '/dashboard/allies', icon: 'i-lucide-handshake', description: 'Comercios y prestadores de la red.', descriptionKey: 'nav.items.allies.description', requires: 'ALLY_VIEW_ALL' },
     ],

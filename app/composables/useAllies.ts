@@ -4,22 +4,24 @@ import type {
   AllyAgreementDto,
   AllyDto,
   AllyListItemDto,
-  AllyServiceDto,
+  AllyProductCreateRequest,
+  AllyProductDto,
+  AllyProductReviewLogDto,
+  AllyProductUpdateRequest,
   AllyUserDto,
   AssignAllyUserRequest,
   CreateAllyAgreementRequest,
   CreateAllyRequest,
-  CreateAllyServiceRequest,
   MyAllyDto,
-  ProposeAllyServiceRequest,
+  ProposeAllyProductRequest,
   PublicAllyDetailDto,
   PublicAllyListItemDto,
   UpdateAllyAgreementRequest,
   UpdateAllyRequest,
-  UpdateAllyServiceRequest,
   UpdateAllyUserRequest,
   UserAllyDto,
 } from '~/types/allies'
+import type { ProductType } from '~/types/products'
 import type { TermsVersionDto } from '~/types/terms'
 
 interface ListParams {
@@ -39,7 +41,8 @@ interface ListParams {
  * - create → ALLY_CREATE · update → ALLY_UPDATE · remove → ALLY_DELETE
  * - agreements → ALLY_AGREEMENT_VIEW_ALL/CREATE/UPDATE/DELETE (V79, decoupled from ALLY_VIEW_ALL)
  * - staff (users) → ALLY_USER_VIEW_ALL/CREATE/UPDATE/DELETE (V79, decoupled from ALLY_VIEW_ALL/ALLY_UPDATE)
- * - proposeService → isAuthenticated() con membresía OWNER/STAFF en el ally
+ * - products (offers, hub ADR 0026) → ALLY_PRODUCT_VIEW_ALL/CREATE/UPDATE/DELETE; review → ALLY_PRODUCT_APPROVE
+ * - proposeProduct → isAuthenticated() con membresía OWNER/STAFF en el ally
  */
 export const useAllies = () => {
   const list = (params: ListParams = {}) =>
@@ -102,20 +105,55 @@ export const useAllies = () => {
   const removeAllyType = (allyUuid: string, allyTypeUuid: string) =>
     useApi<null>(`/v1/admin/allies/${allyUuid}/ally-types/${allyTypeUuid}`, { method: 'DELETE' })
 
-  // ---- Servicios ----
-  const listServices = (allyUuid: string, sort?: string[]) =>
-    useApi<AllyServiceDto[]>(`/v1/admin/allies/${allyUuid}/services`, {
-      query: sort?.length ? { sort } : {},
+  // ---- Products and services (offers of the products catalog, hub ADR 0026) ----
+  const listProducts = (allyUuid: string, params: { page?: number, size?: number, sort?: string[], q?: string, type?: ProductType } = {}) =>
+    useApi<Page<AllyProductDto>>(`/v1/admin/allies/${allyUuid}/products`, {
+      query: {
+        page: params.page ?? 0,
+        size: params.size ?? 20,
+        ...(params.sort?.length ? { sort: params.sort } : {}),
+        ...(params.q ? { q: params.q } : {}),
+        ...(params.type ? { type: params.type } : {}),
+      },
     })
 
-  const createService = (allyUuid: string, body: CreateAllyServiceRequest) =>
-    useApi<AllyServiceDto>(`/v1/admin/allies/${allyUuid}/services`, { method: 'POST', body })
+  const getProduct = (allyUuid: string, uuid: string) =>
+    useApi<AllyProductDto>(`/v1/admin/allies/${allyUuid}/products/${uuid}`)
 
-  const updateService = (allyUuid: string, uuid: string, body: UpdateAllyServiceRequest) =>
-    useApi<AllyServiceDto>(`/v1/admin/allies/${allyUuid}/services/${uuid}`, { method: 'PUT', body })
+  const createProduct = (allyUuid: string, body: AllyProductCreateRequest) =>
+    useApi<AllyProductDto>(`/v1/admin/allies/${allyUuid}/products`, { method: 'POST', body })
 
-  const removeService = (allyUuid: string, uuid: string) =>
-    useApi<null>(`/v1/admin/allies/${allyUuid}/services/${uuid}`, { method: 'DELETE' })
+  const updateProduct = (allyUuid: string, uuid: string, body: AllyProductUpdateRequest) =>
+    useApi<AllyProductDto>(`/v1/admin/allies/${allyUuid}/products/${uuid}`, { method: 'PUT', body })
+
+  const removeProduct = (allyUuid: string, uuid: string) =>
+    useApi<null>(`/v1/admin/allies/${allyUuid}/products/${uuid}`, { method: 'DELETE' })
+
+  // ---- Offer review workflow (ALLY_PRODUCT_APPROVE; log → ALLY_PRODUCT_VIEW_ALL) ----
+  const listPendingProducts = (params: { allyUuid?: string, productCategoryUuid?: string, q?: string, page?: number, size?: number } = {}) =>
+    useApi<Page<AllyProductDto>>('/v1/admin/ally-products/pending', {
+      query: {
+        page: params.page ?? 0,
+        size: params.size ?? 20,
+        ...(params.allyUuid ? { allyUuid: params.allyUuid } : {}),
+        ...(params.productCategoryUuid ? { productCategoryUuid: params.productCategoryUuid } : {}),
+        ...(params.q ? { q: params.q } : {}),
+      },
+    })
+
+  const approveProduct = (uuid: string, comment?: string) =>
+    useApi<AllyProductDto>(`/v1/admin/ally-products/${uuid}/approve`, { method: 'POST', body: comment ? { comment } : {} })
+
+  /** `reason` is mandatory (shown to the ally). */
+  const rejectProduct = (uuid: string, reason: string) =>
+    useApi<AllyProductDto>(`/v1/admin/ally-products/${uuid}/reject`, { method: 'POST', body: { reason } })
+
+  /** Takes an APPROVED offer down (REMOVED); `reason` is mandatory. */
+  const withdrawProduct = (uuid: string, reason: string) =>
+    useApi<AllyProductDto>(`/v1/admin/ally-products/${uuid}/remove`, { method: 'POST', body: { reason } })
+
+  const productReviewLog = (uuid: string) =>
+    useApi<AllyProductReviewLogDto[]>(`/v1/admin/ally-products/${uuid}/log`)
 
   // ---- Acuerdos (ALLY_AGREEMENT_VIEW_ALL / _CREATE / _UPDATE / _DELETE) ----
   const listAgreements = (allyUuid: string, sort?: string[]) =>
@@ -162,9 +200,13 @@ export const useAllies = () => {
     })
 
   // ---- Como aliado (panel /allies/*) ----
-  /** Propone un servicio para mi ally (queda en reviewStatus=PROPOSED). */
-  const proposeService = (body: ProposeAllyServiceRequest) =>
-    useApi<AllyServiceDto>('/v1/allies/me/services', { method: 'POST', body })
+  /**
+   * Proposes an offer for my ally (lands in reviewStatus=PROPOSED): of an
+   * existing general product (`productUuid`) or of a new item that becomes
+   * exclusive to the ally.
+   */
+  const proposeProduct = (body: ProposeAllyProductRequest) =>
+    useApi<AllyProductDto>('/v1/me/allies/products', { method: 'POST', body })
 
   return {
     list,
@@ -180,10 +222,16 @@ export const useAllies = () => {
     listAllyTypes,
     addAllyType,
     removeAllyType,
-    listServices,
-    createService,
-    updateService,
-    removeService,
+    listProducts,
+    getProduct,
+    createProduct,
+    updateProduct,
+    removeProduct,
+    listPendingProducts,
+    approveProduct,
+    rejectProduct,
+    withdrawProduct,
+    productReviewLog,
     listAgreements,
     createAgreement,
     updateAgreement,
@@ -194,7 +242,7 @@ export const useAllies = () => {
     updateUser,
     removeUser,
     listAlliesForUser,
-    proposeService,
+    proposeProduct,
   }
 }
 
@@ -223,7 +271,7 @@ export const usePublicAllies = () => {
       },
     })
 
-  /** Detalle público (incluye professions + servicios APPROVED/PUBLISHED/ACTIVE). */
+  /** Detalle público (incluye professions + productos y servicios APPROVED/PUBLISHED/ACTIVE). */
   const get = (uuid: string) =>
     useApi<PublicAllyDetailDto>(`/v1/public/allies/${uuid}`, { skipAuth: true })
 
@@ -234,7 +282,7 @@ export const usePublicAllies = () => {
  * Partner self-identification (GET /v1/me/allies, ALLY_VIEW_OWN).
  *
  * This is what lets the partner portal know its own `allyUuid` — required by
- * POST /v1/allies/me/benefit-usages and POST /v1/allies/me/services. Scoped by the JWT
+ * POST /v1/allies/me/benefit-usages and POST /v1/me/allies/products. Scoped by the JWT
  * subject: there is no way to ask for another user's allies.
  *
  * Always 200. A partner user not yet attached to an ally gets `[]`, which the

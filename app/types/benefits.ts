@@ -26,7 +26,8 @@ export interface BenefitUsageDto {
   // Where + what
   allyUuid: string
   allyName?: string | null
-  allyServiceUuid?: string | null
+  /** The offer (ally product) consumed, if catalogued. */
+  allyProductUuid?: string | null
   allyUserUuid?: string | null
 
   // When
@@ -45,8 +46,8 @@ export interface BenefitUsageDto {
   // Consumption amount (V171) — same pairing rule as the co-pay.
   consumptionAmount?: number | string | null
   consumptionCurrency?: string | null
-  serviceCategoryUuid?: string | null
-  serviceCategoryName?: string | null
+  productCategoryUuid?: string | null
+  productCategoryName?: string | null
 
   // Detail
   metadata?: Record<string, unknown> | null
@@ -75,7 +76,9 @@ export interface BenefitUsageRegisterRequest {
   membershipUuid: string
   allyUuid: string
   /** Optional — non-catalogued usage is allowed. */
-  allyServiceUuid?: string
+  allyProductUuid?: string
+  /** Required when no `allyProductUuid` is sent (an offer already carries its category). */
+  productCategoryUuid?: string
   /** ISO date (yyyy-MM-dd). Defaults to today in the backend; never in the future. */
   usageDate?: string
   copayAmount?: string

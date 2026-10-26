@@ -30,7 +30,10 @@ const isOpen = computed({
 })
 
 // ---- Form state ----
-const allyServiceUuid = ref<string | undefined>(undefined)
+const allyProductUuid = ref<string | undefined>(undefined)
+// Only sent when no catalogued offer is picked: an offer already carries its own
+// category, and the backend requires one or the other (422 otherwise).
+const productCategoryUuid = ref<string | undefined>(undefined)
 const usageDate = ref('')
 const copayAmount = ref('')
 const copayCurrency = ref('USD')
@@ -52,38 +55,58 @@ function todayInCaracas(): string {
   }).format(new Date())
 }
 
-// ---- Service catalog ----
-// An ALIADO user has no ALLY_VIEW_ALL, so the admin sub-resource
-// (/v1/admin/allies/{uuid}/services) is closed to them. The public detail endpoint
+// ---- Offer catalog (products and services) ----
+// An ALIADO user has no ALLY_PRODUCT_VIEW_ALL, so the admin sub-resource
+// (/v1/admin/allies/{uuid}/products) is closed to them. The public detail endpoint
 // is the only catalog they can read — it returns just APPROVED + PUBLISHED
-// services, and 404s for an unpublished ally. Both are acceptable: allyServiceUuid
-// is optional (the backend allows non-catalogued usage), so a failure here
-// degrades to "no service selected" instead of blocking the counter.
-const serviceOptions = ref<{ label: string, value: string }[]>([])
-const servicesUnavailable = ref(false)
+// offers, and 404s for an unpublished ally. Both are acceptable: allyProductUuid
+// is optional (the backend allows non-catalogued usage, given a category), so a
+// failure here degrades to "no offer selected" instead of blocking the counter.
+const productOptions = ref<{ label: string, value: string }[]>([])
+const productsUnavailable = ref(false)
 
-async function loadServices(allyUuid: string) {
-  serviceOptions.value = []
-  servicesUnavailable.value = false
+async function loadProducts(allyUuid: string) {
+  productOptions.value = []
+  productsUnavailable.value = false
   try {
     const detail = await publicAllies.get(allyUuid)
-    serviceOptions.value = (detail.services ?? []).map(s => ({ label: s.name, value: s.uuid }))
-    servicesUnavailable.value = serviceOptions.value.length === 0
+    // `products` replaces the deprecated `services` (hub ADR 0026); same offer uuids.
+    const offers = detail.products ?? detail.services ?? []
+    productOptions.value = offers.map(s => ({ label: s.name, value: s.uuid }))
+    productsUnavailable.value = productOptions.value.length === 0
   }
   catch {
-    servicesUnavailable.value = true
+    productsUnavailable.value = true
+  }
+}
+
+// Category fallback for a non-catalogued usage (public catalog: no admin key needed).
+const categoryOptions = ref<{ label: string, value: string }[]>([])
+
+async function loadCategories() {
+  if (categoryOptions.value.length) return
+  try {
+    const items = await usePublicCatalog('product-categories').list()
+    categoryOptions.value = items
+      .filter(i => i.active !== false)
+      .map(i => ({ label: i.name, value: i.uuid }))
+  }
+  catch {
+    categoryOptions.value = []
   }
 }
 
 watch(() => props.open, (open) => {
   if (!open) return
-  allyServiceUuid.value = undefined
+  allyProductUuid.value = undefined
+  productCategoryUuid.value = undefined
   usageDate.value = todayInCaracas()
   copayAmount.value = ''
   copayCurrency.value = 'USD'
   notes.value = ''
   touched.value = false
-  if (props.ally) loadServices(props.ally.uuid)
+  if (props.ally) loadProducts(props.ally.uuid)
+  loadCategories()
 })
 
 // ---- Validation ----
@@ -106,6 +129,13 @@ const currencyError = computed(() => {
   return undefined
 })
 
+// Without a catalogued offer the backend needs the category to file the usage under.
+const categoryError = computed(() => {
+  if (!touched.value) return undefined
+  if (!allyProductUuid.value && !productCategoryUuid.value) return t('validation.required')
+  return undefined
+})
+
 const canSubmit = computed(() =>
   !!props.ally && !!props.validation?.membershipUuid && !amountError.value && !currencyError.value)
 
@@ -120,7 +150,7 @@ async function confirm() {
   const ally = props.ally
   const membershipUuid = props.validation?.membershipUuid
   if (!ally || !membershipUuid) return
-  if (amountError.value || currencyError.value) return
+  if (amountError.value || currencyError.value || categoryError.value) return
 
   submitting.value = true
   try {
@@ -128,7 +158,9 @@ async function confirm() {
     const usage = await benefitUsage.register({
       membershipUuid,
       allyUuid: ally.uuid,
-      ...(allyServiceUuid.value ? { allyServiceUuid: allyServiceUuid.value } : {}),
+      ...(allyProductUuid.value
+        ? { allyProductUuid: allyProductUuid.value }
+        : { productCategoryUuid: productCategoryUuid.value }),
       ...(usageDate.value ? { usageDate: usageDate.value } : {}),
       // Both sides or neither — never one.
       ...(amount ? { copayAmount: amount, copayCurrency: copayCurrency.value.trim().toUpperCase() } : {}),
@@ -173,15 +205,33 @@ async function confirm() {
           </div>
         </div>
 
-        <UFormField :label="t('validator.usage.fields.service')" :help="t('validator.usage.fields.serviceHelp')">
+        <UFormField :label="t('validator.usage.fields.product')" :help="t('validator.usage.fields.productHelp')">
           <USelectMenu
             clear
-            v-model="allyServiceUuid"
-            :items="serviceOptions"
+            v-model="allyProductUuid"
+            :items="productOptions"
             label-key="label"
             value-key="value"
-            :disabled="servicesUnavailable"
-            :placeholder="servicesUnavailable ? t('validator.usage.noServices') : t('common.select')"
+            :disabled="productsUnavailable"
+            :placeholder="productsUnavailable ? t('validator.usage.noProducts') : t('common.select')"
+            class="w-full"
+          />
+        </UFormField>
+
+        <UFormField
+          v-if="!allyProductUuid"
+          :label="t('validator.usage.fields.category')"
+          :help="t('validator.usage.fields.categoryHelp')"
+          :error="categoryError"
+          required
+        >
+          <USelectMenu
+            clear
+            v-model="productCategoryUuid"
+            :items="categoryOptions"
+            label-key="label"
+            value-key="value"
+            :placeholder="t('common.select')"
             class="w-full"
           />
         </UFormField>

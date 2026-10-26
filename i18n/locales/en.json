@@ -517,7 +517,7 @@
       },
       "alliances": {
         "label": "Alliances",
-        "description": "Network of provider partners, their classification and services."
+        "description": "Partner network, its classification and its products and services."
       },
       "comercial": {
         "label": "Sales",
@@ -599,9 +599,13 @@
         "label": "Partners",
         "description": "Network businesses and providers."
       },
-      "serviceCategories": {
-        "label": "Service categories",
-        "description": "Categories of the offered services."
+      "productCategories": {
+        "label": "Product and service categories",
+        "description": "Categories of the offered products and services."
+      },
+      "products": {
+        "label": "Products and services",
+        "description": "Master catalog of the products and services partners offer."
       },
       "professions": {
         "label": "Professions",
@@ -1094,9 +1098,9 @@
         "label": "Professions",
         "labelSingular": "Profession"
       },
-      "service-categories": {
-        "label": "Service categories",
-        "labelSingular": "Service category"
+      "product-categories": {
+        "label": "Product and service categories",
+        "labelSingular": "Product or service category"
       },
       "ally-types": {
         "label": "Partner types",
@@ -1196,7 +1200,9 @@
       "marital_status": "Marital status",
       "occupation": "Occupation",
       "profession": "Profession",
-      "service_category": "Service category",
+      "product_category": "Product or service category",
+      "product": "Product or service",
+      "ally_product": "Partner offer",
       "promoter_type": "Advisor type"
     }
   },
@@ -1417,41 +1423,72 @@
       "fileNumberHint": "Strategic Alliance Agreement file number: [ADVISOR CODE]-[ALLY NUMBER]"
     },
     "tabs": {
-      "services": "Services",
+      "products": "Products and services",
       "professions": "Professions",
       "allyTypes": "Partner types",
       "agreements": "Agreements",
       "staff": "Staff"
     },
-    "services": {
-      "title": "Services",
-      "hint": "New services stay under review (PROPOSED).",
-      "addTooltip": "Add service",
+    "products": {
+      "title": "Products and services",
+      "hint": "What the partner offers: products or services from the general catalog or exclusive to it. New offers stay under review (Proposed).",
+      "addTooltip": "Add product or service",
       "add": "Add",
-      "empty": "No services registered",
-      "createdToast": "Service created (under review)",
-      "updatedToast": "Service updated",
-      "deletedToast": "Service deleted",
+      "empty": "No products or services registered",
+      "searchPlaceholder": "Search by name…",
+      "paginationSummary": "{shown} of {total} offer(s)",
+      "createdToast": "Offer created (under review)",
+      "updatedToast": "Offer updated",
+      "deletedToast": "Offer deleted",
+      "approvedToast": "Offer approved",
+      "rejectedToast": "Offer rejected",
+      "withdrawnToast": "Offer withdrawn",
+      "general": "General",
+      "exclusive": "Exclusive",
       "columns": {
-        "service": "Service",
+        "item": "Product / service",
+        "type": "Type",
         "category": "Category",
         "price": "Price",
         "discount": "Pref. Rate",
-        "appointment": "Appt.",
+        "finalPrice": "Final price",
         "review": "Review",
         "published": "Published"
       },
       "reviewStatus": {
         "PROPOSED": "Proposed",
+        "IN_REVIEW": "In review",
         "APPROVED": "Approved",
-        "REJECTED": "Rejected"
+        "REJECTED": "Rejected",
+        "REMOVED": "Withdrawn"
+      },
+      "review": {
+        "approve": "Approve",
+        "reject": "Reject",
+        "withdraw": "Withdraw",
+        "rejectTitle": "Reject offer",
+        "withdrawTitle": "Withdraw offer",
+        "reasonLabel": "Reason",
+        "reasonHelp": "The partner will see this reason.",
+        "confirm": "Confirm"
       },
       "form": {
-        "createTitle": "Add service",
-        "editTitle": "Edit service",
-        "createDescription": "The service will stay under review (PROPOSED).",
+        "createTitle": "Add product or service",
+        "editTitle": "Edit offer",
+        "createDescription": "The offer will stay under review (Proposed).",
         "editDescription": "The review status is not changed this way.",
+        "source": "Source",
+        "sourceGeneral": "From the general catalog",
+        "sourceExclusive": "Create exclusive to this partner",
+        "sourceGeneralNoPermission": "Picking from the general catalog requires viewing Products and services.",
+        "productSearchPlaceholder": "Search the general catalog…",
+        "productSearchHelp": "Type at least 2 letters to search.",
+        "generalLockedHint": "This is a general catalog product: only the offer terms change here. Its data is edited in Products and services.",
+        "itemSection": "Product or service data",
+        "offerSection": "Offer terms",
         "fields": {
+          "product": "Product or service",
+          "type": "Type",
           "category": "Category",
           "name": "Name",
           "description": "Description",
@@ -1465,8 +1502,8 @@
         "exclusionsPlaceholder": "E.g.: existing offers, liquor, cigarettes"
       },
       "delete": {
-        "title": "Delete service",
-        "confirm": "Are you sure you want to delete the service {name}? (soft-delete)"
+        "title": "Delete offer",
+        "confirm": "Are you sure you want to delete the offer {name}? (soft-delete)"
       }
     },
     "professions": {
@@ -1616,39 +1653,144 @@
     "portal": {
       "seoTitle": "My partner company — OptiBienestar 360",
       "title": "My partner company",
-      "subtitle": "Propose new services for your company. They stay under review until OptiBienestar 360 approves them.",
+      "subtitle": "Propose products and services for your company. They stay under review until OptiBienestar 360 approves them.",
       "lastProposedTitle": "“{name}” sent for review",
       "lastProposedDescription": "We'll notify you when it's approved and published in the directory.",
-      "formTitle": "Propose a service",
+      "formTitle": "Propose a product or service",
       "formHint": "You must have an active membership (owner or staff) in the partner company.",
-      "proposedToast": "Service proposed",
+      "proposedToast": "Proposal sent",
       "proposedToastDescription": "It's under review; the OptiBienestar 360 team will approve it.",
       "submit": "Send proposal",
+      "sourceExisting": "One already in the catalog",
+      "sourceExclusive": "A new one, exclusive to my company",
+      "productSearchPlaceholder": "Search the catalog…",
+      "productHelp": "Type at least 2 letters. If it doesn't show up, propose it as new.",
       "namePlaceholder": "Cardiology consultation",
       "fields": {
+        "source": "What do you want to offer?",
+        "product": "Product or service",
+        "type": "Type",
         "category": "Category",
-        "name": "Service name",
+        "name": "Name",
         "description": "Description",
         "price": "Price (USD)",
         "discount": "Member Preferential Rate (%)",
         "requiresAppointment": "Requires appointment",
+        "exclusions": "Exclusions (does not apply to)",
         "ally": "Partner company",
         "allyHelp": "You work at more than one; pick which one you are proposing for."
       },
       "help": {
         "title": "How does it work?",
-        "step1": "You submit the service proposal with its price and the member Preferential Rate.",
+        "step1": "You submit the proposal with its price and the member Preferential Rate.",
         "step2": "The OptiBienestar 360 team reviews and approves it.",
         "step3pre": "Once published, it appears in the ",
         "step3link": "public directory",
         "step3post": "."
       },
       "noAllyTitle": "You are not linked to any partner company",
-      "noAllyDescription": "Ask the OptiBienestar 360 team to link you to your partner company so you can propose services."
+      "noAllyDescription": "Ask the OptiBienestar 360 team to link you to your partner company so you can propose products and services."
     },
     "segments": {
       "B2B": "Commercial (B2B)",
       "B2P": "Professional (B2P)"
+    }
+  },
+  "products": {
+    "title": "Products and services",
+    "subtitle": "Master catalog of what partners offer. General items can be offered by any partner; exclusive ones only by their partner.",
+    "new": "New",
+    "createTooltip": "Create product or service",
+    "noPermission": "You don't have permission for this action",
+    "searchPlaceholder": "Search by name or code…",
+    "empty": "No products or services",
+    "paginationSummary": "{shown} of {total} product(s) and service(s)",
+    "viewTooltip": "View detail",
+    "active": "Active",
+    "inactive": "Inactive",
+    "createdToast": "Product or service created",
+    "updatedToast": "Product or service updated",
+    "deletedToast": "Product or service deleted",
+    "types": {
+      "SERVICE": "Service",
+      "PRODUCT": "Product"
+    },
+    "filters": {
+      "allTypes": "All types",
+      "allCategories": "All categories",
+      "allScopes": "General and exclusive",
+      "general": "General only",
+      "exclusive": "Exclusive only"
+    },
+    "scope": {
+      "general": "General",
+      "exclusiveOf": "Exclusive to {ally}"
+    },
+    "columns": {
+      "name": "Product / service",
+      "type": "Type",
+      "category": "Category",
+      "scope": "Scope",
+      "appointment": "Appt.",
+      "image": "Image",
+      "status": "Status"
+    },
+    "form": {
+      "createTitle": "New product or service",
+      "editTitle": "Edit product or service",
+      "description": "Without an owner partner it is general (any partner may offer it); with one it is exclusive to that partner.",
+      "codeHelp": "Optional; generated when left empty.",
+      "ownerAllyHelp": "Leave it empty to make it general.",
+      "ownerAllyNoPermission": "Viewing Partners is required to assign an owner partner.",
+      "generalPlaceholder": "General (no partner)",
+      "allySearchPlaceholder": "Search partner…",
+      "fields": {
+        "code": "Code",
+        "name": "Name",
+        "description": "Description",
+        "type": "Type",
+        "category": "Category",
+        "ownerAlly": "Owner partner (exclusive)",
+        "requiresAppointment": "Requires appointment",
+        "active": "Active"
+      }
+    },
+    "delete": {
+      "title": "Delete product or service",
+      "confirm": "Are you sure you want to delete {name}? (soft-delete)"
+    },
+    "image": {
+      "title": "Catalog image",
+      "hint": "The image is uploaded privately and only shown once published.",
+      "none": "No published image",
+      "upload": "Upload image",
+      "publish": "Publish",
+      "unpublish": "Unpublish",
+      "delete": "Delete",
+      "uploadedToast": "Image uploaded; publish it to show it in the catalog",
+      "publishedToast": "Image published",
+      "unpublishedToast": "Image unpublished",
+      "deletedToast": "Image deleted"
+    },
+    "detail": {
+      "title": "Product or service",
+      "createdAt": "Created",
+      "tabs": {
+        "info": "Data",
+        "offers": "Partners offering it"
+      }
+    },
+    "offers": {
+      "empty": "No partner offers this product or service",
+      "ally": "Partner",
+      "columns": {
+        "ally": "Partner",
+        "price": "Price",
+        "discount": "Pref. Rate",
+        "finalPrice": "Final price",
+        "review": "Review",
+        "published": "Published"
+      }
     }
   },
   "promoterSelf": {
@@ -2474,15 +2616,17 @@
       "title": "Register benefit usage",
       "ally": "Partner company",
       "submit": "Register usage",
-      "noServices": "No services in catalog",
+      "noProducts": "No products or services in catalog",
       "copayPreview": "Co-pay: {amount}",
       "registeredToast": "Usage registered",
       "registeredToastDescription": "{name}'s benefit was registered.",
       "lastRegisteredTitle": "Usage registered",
       "lastRegisteredDescription": "Recorded with date {date}.",
       "fields": {
-        "service": "Service",
-        "serviceHelp": "Optional. Leave empty if the service is not in the catalog.",
+        "product": "Product or service",
+        "productHelp": "Optional. If it's not in the partner's catalog, leave it empty and pick the category.",
+        "category": "Category",
+        "categoryHelp": "Required when no catalog product or service is picked.",
         "usageDate": "Service date",
         "usageDateHelp": "Cannot be in the future.",
         "copayAmount": "Co-pay",

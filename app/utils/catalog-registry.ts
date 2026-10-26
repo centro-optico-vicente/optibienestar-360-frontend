@@ -189,21 +189,21 @@ export const CATALOGS: CatalogDef[] = [
     ],
   },
   {
-    key: 'service-categories',
-    basePath: '/v1/admin/catalogs/service-categories',
-    viewPermission: 'SERVICE_CATEGORY_VIEW_ALL',
-    createPermission: 'SERVICE_CATEGORY_CREATE',
-    updatePermission: 'SERVICE_CATEGORY_UPDATE',
-    deletePermission: 'SERVICE_CATEGORY_DELETE',
-    label: 'Categorías de servicio',
-    labelSingular: 'Categoría de servicio',
-    labelKey: 'catalogs.registry.service-categories.label',
-    labelSingularKey: 'catalogs.registry.service-categories.labelSingular',
+    key: 'product-categories',
+    basePath: '/v1/admin/catalogs/product-categories',
+    viewPermission: 'PRODUCT_CATEGORY_VIEW_ALL',
+    createPermission: 'PRODUCT_CATEGORY_CREATE',
+    updatePermission: 'PRODUCT_CATEGORY_UPDATE',
+    deletePermission: 'PRODUCT_CATEGORY_DELETE',
+    label: 'Categorías de productos y servicios',
+    labelSingular: 'Categoría de producto o servicio',
+    labelKey: 'catalogs.registry.product-categories.label',
+    labelSingularKey: 'catalogs.registry.product-categories.labelSingular',
     icon: 'i-lucide-layers',
     codeField: 'code',
-    auditEntityKey: 'service_category',
-    auditPermission: 'SERVICE_CATEGORY_RECORD_AUDIT_VIEW',
-    auditReportPermission: 'SERVICE_CATEGORY_REPORT_AUDIT_VIEW',
+    auditEntityKey: 'product_category',
+    auditPermission: 'PRODUCT_CATEGORY_RECORD_AUDIT_VIEW',
+    auditReportPermission: 'PRODUCT_CATEGORY_REPORT_AUDIT_VIEW',
     fields: [
       { name: 'code', label: 'Código', labelKey: 'catalogs.fields.code', type: 'text', required: true, onlyCreate: true, regex: CODE_40, regexMsg: codeMsg(40), regexMsgKey: 'catalogs.validation.codeMax', max: 40, placeholder: 'CONSULTA' },
       { name: 'name', label: 'Nombre', labelKey: 'catalogs.fields.name', type: 'text', required: true, max: 100 },
@@ -405,6 +405,15 @@ export const CATALOGS: CatalogDef[] = [
     ],
   },
 ]
+
+/**
+ * Renamed catalog route keys → their current key. Old links/bookmarks are
+ * redirected by the `catalog-access` middleware (e.g. `service-categories`
+ * became `product-categories` with the products catalog, hub ADR 0026).
+ */
+export const CATALOG_KEY_ALIASES: Record<string, string> = {
+  'service-categories': 'product-categories',
+}
 
 /** Finds a catalog definition by its route key. */
 export function getCatalogDef(key: string): CatalogDef | undefined {
