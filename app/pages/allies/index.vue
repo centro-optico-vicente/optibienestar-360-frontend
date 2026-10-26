@@ -56,7 +56,6 @@ async function loadMyOffers() {
     myOffers.value = []
   }
 }
-watch(() => selectedAlly.value?.uuid, loadMyOffers)
 
 const hasNoAlly = computed(() => !alliesLoading.value && myAllyList.value.length === 0)
 
@@ -156,6 +155,9 @@ const state = reactive({
   exclusions: '',
   requiresAppointment: false,
 })
+
+// `state` must exist before this watcher reads `selectedAlly`.
+watch(() => selectedAlly.value?.uuid, loadMyOffers)
 
 // The offerable list depends on the ally: switching it resets the pick.
 watch(() => state.allyUuid, (uuid, previous) => {
