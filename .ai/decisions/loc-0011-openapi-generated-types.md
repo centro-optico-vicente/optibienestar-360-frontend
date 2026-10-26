@@ -1,6 +1,6 @@
 # ADR LOC-0011 (frontend) — Tipos TypeScript generados desde el OpenAPI del backend
 
-**Estado:** Propuesto
+**Estado:** Aceptado, condicionado a la Fase 0 (2026-10-25, dueño)
 **Fecha:** 2026-10-25
 **Decisores:** equipo OptiBienestar 360 (pendiente de aceptación del dueño)
 **Origen:** [`dto-shape-mismatches.md`](../dto-shape-mismatches.md) · [`vertical-10` §Contrato de tipos](../checklists/vertical-10-optimizacion-reportes-hardening.md) ("merece ADR propio") · [auditoría 2026-09-23](../notes/2026-09-23_audit.md) hallazgo F-04
@@ -54,8 +54,8 @@ No se levantó el backend ni se descargó `/v3/api-docs` para este ADR; todo lo 
 
 1. **Adoptar tipos generados desde OpenAPI como fuente de verdad de la forma del cable**, de forma **incremental y condicionada** a que la Fase 0 confirme que el spec es fiel (puntos 1–3 arriba). Si la Fase 0 falla, el ADR pasa a "Rechazado" y se mantiene la opción táctica.
 2. **Herramienta: `openapi-typescript` en modo solo-tipos.** Genera un único `app/types/api.d.ts`. **No** se adopta `openapi-fetch` en esta etapa: `useApi` (refresh de token, toasts RFC 7807, `Accept-Language`) se conserva intacto y solo cambian los genéricos (`useApi<components['schemas']['AllyListItemDto']>`). Reevaluar `openapi-fetch` en otro ADR si se quiere inferencia de respuesta por ruta.
-3. **Snapshot del spec commiteado** en `api/openapi.json` (revisable en PR: el diff del contrato es visible) **más** `app/types/api.d.ts` generado y commiteado. Un job de CI regenera el `.d.ts` desde el snapshot y falla si hay diferencia (`git diff --exit-code`).
-4. **Detección de drift contra el backend vivo:** workflow programado/`workflow_dispatch` que descarga `/v3/api-docs` del entorno TEST, lo compara con `api/openapi.json` y, si difiere, abre un PR de actualización del snapshot (no falla el CI de otros PRs). Fuente alternativa a evaluar: que el CI del backend publique `openapi.json` como artefacto de release (ver Preguntas abiertas).
+3. **El contrato lo publica el backend, versionado, en cada release** (decisión del dueño, 2026-10-25). El CI del backend genera `openapi.json` y lo adjunta como asset del release (`https://github.com/centro-optico-vicente/optibienestar-360-backend/releases/download/<versión>/openapi.json`; el repo es público, no hace falta token). El frontend **fija la versión del contrato que consume** en un archivo `api/contract-version` (p. ej. `0.0.120`) y un script `api:generate` descarga ese asset y genera `app/types/api.d.ts` con `openapi-typescript`. Subir la versión del contrato es un PR explícito del frontend, cuyo diff muestra el cambio de versión y el typecheck revela los desfases.
+4. **Nada generado se versiona:** ni `api.d.ts` ni `openapi.json` se commitean en el frontend (decisión del dueño). Se generan en CI (antes de `typecheck`) y en local con `pnpm api:generate` (se invoca desde `postinstall` solo si el archivo falta, para no depender de la red en cada instalación). `app/types/api.d.ts` va en `.gitignore`.
 5. **Convivencia:** `app/types/<modulo>.ts` pasa a **re-exportar** alias del generado (`export type AllyListItemDto = components['schemas']['AllyListItemDto']`), de modo que páginas y composables no cambian de import. Los tipos de formulario/estado de UI, permisos (`types/permissions.ts`) y helpers de label siguen a mano.
 
 ## Alternativas
@@ -74,13 +74,14 @@ Las tres herramientas son OSS gratuitas → cumplen hub ADR 0004. Versiones toma
 
 ### Positivas
 - Cada desfase futuro entre backend y frontend se convierte en **error de typecheck** (la clase de bug de las 6 auditorías).
-- El diff de `api/openapi.json` en PR hace visibles los cambios de contrato.
+- El contrato queda atado a una versión del backend (`api/contract-version`): subirla es un PR explícito y el typecheck muestra los desfases.
 - Se elimina el mantenimiento manual de los ~85 `*Dto` a medida que se migra.
 
 ### Negativas / a mitigar
 - **Dependencia del backend:** la fidelidad depende de resolver `_Display`, obligatoriedad y mapper (trabajo en el repo backend, no solo aquí).
 - Si el spec sigue público en producción, hay que decidir su exposición (ver abajo) antes de que el CI dependa de él.
-- Ruido de revisión por `api.d.ts` grande commiteado (tamaño real **no verificado**).
+- Cada instalación/CI depende de poder descargar el asset del release (repo público, sin token); si GitHub no responde, `api:generate` falla. Mitigación: caché del archivo descargado en CI.
+- El diff de un cambio de contrato no se ve en el PR del frontend (solo cambia la versión); hay que leer las notas del release del backend o comparar los dos `openapi.json`.
 - CI pasa a tener un job extra y una fuente más que puede fallar por razones ajenas al PR.
 - Tipos de request: la forma generada de `*Request` puede diferir de los modelos de formulario (strings vacíos, `null`); no se eliminan los tipos de estado de formulario.
 
@@ -88,18 +89,20 @@ Las tres herramientas son OSS gratuitas → cumplen hub ADR 0004. Versiones toma
 
 | Fase | Contenido | Criterio de salida |
 |---|---|---|
-| **0 — Spike (backend + manual)** | Descargar `/v3/api-docs` de TEST; comprobar: ¿aparece `city_Uuid/_Display`? ¿qué campos son `required`? ¿3.0 o 3.1? ¿tamaño? Comparar 3 DTOs (`AllyListItemDto`, `MemberDetailDto`, `PublicAllyDetailDto`) contra una respuesta real. | Informe con veredicto go/no-go; lista de cambios necesarios en backend. |
-| **1 — Backend** | `OpenApiCustomizer` para `_Display`, regla de `required`, y (decisión del dueño) restringir `/v3/api-docs` en prod. | Spec de TEST refleja el cable real en los 3 DTOs. |
-| **2 — Tooling frontend** | Dependencia dev `openapi-typescript`, script `api:generate`, `api/openapi.json` + `app/types/api.d.ts`, job CI de regeneración. Sin consumidores. | CI verde; ningún cambio de comportamiento. |
+| **0 — Spike (backend + manual)** | Descargar `/v3/api-docs` de TEST (única vez, antes de que exista el asset del release); comprobar: ¿aparece `city_Uuid/_Display`? ¿qué campos son `required`? ¿3.0 o 3.1? ¿tamaño? Comparar 3 DTOs (`AllyListItemDto`, `MemberDetailDto`, `PublicAllyDetailDto`) contra una respuesta real. | Informe con veredicto go/no-go; lista de cambios necesarios en backend. |
+| **1 — Backend** (ADR y PRs propios en `optibienestar-360-backend`) | (a) `OpenApiCustomizer` para `_Display` y regla de `required`; (b) generar `openapi.json` en el CI y adjuntarlo al release con su versión; (c) restringir `/v3/api-docs` y Swagger UI en prod con una variable de entorno (el perfil `prod` también lo usa staging). | El `openapi.json` de un release refleja el cable real en los 3 DTOs. |
+| **2 — Tooling frontend** | Dependencia dev `openapi-typescript`, `api/contract-version`, script `api:generate` (descarga el asset del release y genera `api.d.ts`, ignorado por git), paso de CI previo al typecheck. Sin consumidores. | CI verde; ningún cambio de comportamiento. |
 | **3 — Piloto: Aliados** | `types/allies.ts` re-exporta del generado (ya tiene lista/detalle/público auditados: base ideal de comparación). | Typecheck pasa sin cambios de código o los errores revelan desfases reales. |
 | **4 — Resto por módulo** | Afiliados, pagos, comisiones, catálogos… un módulo por PR, empezando por los más usados. | Cada PR borra los tipos manuales equivalentes. |
-| **5 — Drift programado** | Workflow contra TEST + PR automático del snapshot. | Un cambio de backend aparece como PR en el frontend sin intervención. |
+| **5 — Aviso de contrato nuevo** | Workflow programado que compara `api/contract-version` con el último release del backend y abre un PR de actualización de versión. | Un release de backend con contrato distinto aparece como PR en el frontend sin intervención. |
 
 **Rollback:** el generador es solo tipos y convive con los manuales; revertir un PR de módulo restaura los tipos escritos a mano. Fase 2 se revierte quitando dependencia y archivos.
 
-## Preguntas abiertas para el dueño
+## Resolución de las preguntas (2026-10-25)
 
-1. ¿Se restringe `/v3/api-docs` y Swagger UI en producción (hoy `permitAll` en todos los perfiles)? Si se cierra en prod, el snapshot debe venir de TEST o del CI del backend.
-2. ¿Quién mantiene el snapshot: el frontend lo descarga de TEST, o el backend publica `openapi.json` como artefacto en su CI (requiere un plugin Gradle de springdoc, **no evaluado**)?
-3. ¿Se acepta que parte del trabajo (customizer `_Display`, `required`) viva en el repo backend, con su propio PR/ADR?
-4. ¿El tamaño del spec (99 controllers) justifica commitear `api.d.ts`, o se genera en CI y no se versiona?
+1. **`/v3/api-docs` y Swagger UI en producción: se restringen.** Con la opción B el spec ya no se descarga de ningún entorno, así que producción puede cerrarlo. Como el perfil `prod` también lo usa staging (compose: `staging` → `BACKEND_PROFILE=prod`), se controla con una variable de entorno (p. ej. `SPRINGDOC_ENABLED`, apagada por defecto en `prod`) y no apagando el perfil entero. Se hace en el backend (Fase 1c).
+2. **Quién mantiene el snapshot: opción B, el backend lo publica versionado en cada release.** La generación puede hacerse con el plugin Gradle de springdoc o, alternativa a evaluar en el ADR del backend, con una prueba de contexto Spring (`MockMvc` sobre `/v3/api-docs`) que escriba el archivo, sin levantar la base de datos; el workflow `publish.yaml` ya se dispara con `release: published` y es el lugar natural para adjuntarlo.
+3. **El trabajo de `_Display` y `required` vive en el repo backend: aceptado**, con su propio ADR y PRs.
+4. **No se commitea `api.d.ts`** (tampoco `openapi.json`): se genera a partir del contrato versionado.
+
+Queda condicionado a la **Fase 0**: si el spec no es fiel al cable (puntos 1–3 de los riesgos), el ADR pasa a "Rechazado".
