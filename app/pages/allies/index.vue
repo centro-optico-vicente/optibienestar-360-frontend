@@ -2,7 +2,7 @@
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { CatalogItem } from '~/types/catalogs'
-import type { AllyProductDto, MyAllyDto } from '~/types/allies'
+import { canOperateAtCounter, type AllyProductDto, type MyAllyDto } from '~/types/allies'
 import type { SelectItem } from '~/types/options'
 import { ROLES } from '~/types/auth'
 import { PRODUCT_TYPE_OPTIONS, type ProductType } from '~/types/products'
@@ -36,6 +36,8 @@ const alliesLoading = ref(true)
 
 const allyOptions = computed(() => myAllyList.value.map(a => ({ label: a.name, value: a.uuid })))
 const selectedAlly = computed(() => myAllyList.value.find(a => a.uuid === state.allyUuid) ?? null)
+// VIEWER members only read the galleries (writes answer 403 — hub ADR 0027).
+const canEditMedia = computed(() => canOperateAtCounter(selectedAlly.value?.allyRole))
 const hasNoAlly = computed(() => !alliesLoading.value && myAllyList.value.length === 0)
 
 async function loadMyAllies() {
@@ -234,6 +236,29 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       :title="t('allies.portal.lastProposedTitle', { name: lastProposed.name })"
       :description="t('allies.portal.lastProposedDescription')"
     />
+
+    <!-- Own gallery (hub ADR 0027): published immediately -->
+    <div v-if="selectedAlly" class="bg-white rounded-2xl border border-prohealth-100 p-6 space-y-2">
+      <h2 class="font-bold text-prohealth-900">{{ t('allies.portal.gallery.title') }}</h2>
+      <p class="text-xs text-prohealth-500">{{ t('allies.portal.gallery.hint') }}</p>
+      <MediaGalleryEditor
+        :key="selectedAlly.uuid"
+        :base="`/v1/me/allies/${selectedAlly.uuid}/media`"
+        :readonly="!canEditMedia"
+      />
+    </div>
+
+    <!-- Gallery of the offer just proposed -->
+    <div v-if="lastProposed" class="bg-white rounded-2xl border border-prohealth-100 p-6 space-y-2">
+      <h2 class="font-bold text-prohealth-900">{{ t('allies.portal.gallery.offerTitle', { name: lastProposed.name }) }}</h2>
+      <p class="text-xs text-prohealth-500">{{ t('allies.portal.gallery.offerHint') }}</p>
+      <MediaGalleryEditor
+        :key="lastProposed.uuid"
+        :base="`/v1/me/allies/products/${lastProposed.uuid}/media`"
+        :readonly="!canEditMedia"
+        :empty-hint="t('media.offerFallbackHint')"
+      />
+    </div>
 
     <!-- Form -->
     <div v-if="!hasNoAlly" class="bg-white rounded-2xl border border-prohealth-100 p-6">

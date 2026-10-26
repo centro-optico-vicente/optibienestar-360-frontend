@@ -403,6 +403,18 @@ function requestDelete() {
         >
           <USwitch v-model="state.published" />
         </UFormField>
+
+        <!-- Offer gallery (hub ADR 0027); needs an existing offer, so edit mode only. -->
+        <MediaGalleryEditor
+          v-if="mode === 'edit' && editing"
+          :base="`/v1/admin/allies/${allyUuid}/products/${editing.uuid}/media`"
+          :can-read="can('ALLY_PRODUCT_VIEW_ALL')"
+          :can-upload="can('ALLY_PRODUCT_IMAGE_UPLOAD')"
+          :can-update="can('ALLY_PRODUCT_IMAGE_UPDATE')"
+          :can-delete="can('ALLY_PRODUCT_IMAGE_DELETE')"
+          :empty-hint="t('media.offerFallbackHint')"
+          class="pt-2 border-t border-prohealth-100"
+        />
       </UForm>
     </template>
 

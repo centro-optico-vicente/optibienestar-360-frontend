@@ -7,6 +7,8 @@
 // ADR 0014): FKs travel as `<rel>_Uuid` + `<rel>_Display`, presentational
 // scalars carry a read-only `<field>_Display` sibling.
 
+import type { PublicImageDto } from '~/types/media'
+
 export type ProductType = 'SERVICE' | 'PRODUCT'
 
 // `label` is the Spanish fallback; `labelKey` resolves to i18n at the usage point.
@@ -133,6 +135,8 @@ export interface PublicProductOfferDto {
   allyLogoUrl?: string | null
   allyPhone?: string | null
   allyWhatsapp?: string | null
+  /** Offer's own gallery, else the product's (hub ADR 0027). */
+  images?: PublicImageDto[]
 }
 
 /**
@@ -149,6 +153,8 @@ export interface PublicProductDetailDto {
   categoryName?: string | null
   requiresAppointment?: boolean
   imageUrl?: string | null
+  /** Ordered gallery, primary first (hub ADR 0027). */
+  images?: PublicImageDto[]
   offersCount: number
   minFinalPrice?: number | string | null
   maxDiscountPct?: number | string | null

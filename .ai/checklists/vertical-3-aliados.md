@@ -69,3 +69,15 @@
 - [ ] [v3] [P1/C2] Admin: CRUD de **programas de fidelidad** `pages/admin/loyalty-programs/` (`/v1/admin/loyalty-programs`, `ALLY_LOYALTY_MANAGE`) — métrica (consumo $ / nº compras), umbral ($100 / 50), premio parametrizable (servicio gratis / % descuento), aliado o global. _(El backend evalúa y emite vouchers.)_
 - [ ] [v3] [P1/C2] Portal aliado (`pages/allies/`): otorgar **cortesía** a 1 persona de una membresía (`POST /v1/allies/me/courtesy-grants`, `ALLY_COURTESY_GRANT`) — p. ej. 1ª consulta gratis; + listado de cortesías/vouchers emitidos y su estado de canje. _(El validador reconoce el canje.)_
 - [ ] [v3] [P1/C2] Afiliado: **"Mis vouchers de fidelidad"** (`GET /v1/me/loyalty-vouchers`, `LOYALTY_VIEW_OWN`) — vouchers ganados por consumo/compras, con premio y estado (pendiente/canjeado/vencido). _(Solo muestra; el canje ocurre en el aliado vía validador.)_
+
+## Galerías de imágenes (hub ADR 0027)
+
+> Reemplaza el logo de texto libre del aliado y el flujo de imagen de producto en dos pasos (`/image`, `/publish`, `/unpublish`, eliminados sin alias). Plan: [hub `plans/2026-10-26-media-items.md`](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/plans/2026-10-26-media-items.md). Requiere el backend de media desplegado antes.
+
+- [x] `MediaGalleryEditor.vue` reutilizable + `useMedia.ts` + `types/media.ts` (orden con arrastrar/flechas → `PUT /order`, principal, subir, URL https, texto alternativo, eliminar, `n / 10`, mensajes 403/422).
+- [x] Permisos `ALLY_IMAGE_*`, `ALLY_PRODUCT_IMAGE_*` y `PRODUCT_IMAGE_UPDATE` en `types/permissions.ts`.
+- [x] Admin: detalle del aliado, `ProductDetailModal` y `AllyProductFormModal` (edición de oferta, con la nota "se usan las del producto").
+- [x] Portal del aliado (`pages/allies/index.vue`): galería del aliado y de la oferta recién propuesta (`/v1/me/...`); VIEWER en solo lectura.
+- [x] Páginas públicas: `PublicImageGallery.vue` en `/aliados/{uuid}`, `/catalogo/{uuid}` y las ofertas de la comparativa (respaldo a `logoUrl`/`imageUrl`).
+- [x] i18n `media.*` es/en.
+- [ ] Portal: listado de las ofertas propias para editar su galería en cualquier momento (hoy solo la oferta recién propuesta; falta un endpoint de lectura `/v1/me/allies/{allyUuid}/products`).

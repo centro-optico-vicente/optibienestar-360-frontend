@@ -1136,6 +1136,17 @@ onMounted(async () => {
         </dl>
       </div>
 
+      <!-- Image gallery (hub ADR 0027): replaces the old free-text logo URL -->
+      <div class="bg-white rounded-2xl border border-prohealth-100 p-6">
+        <MediaGalleryEditor
+          :base="`/v1/admin/allies/${allyUuid}/media`"
+          :can-read="can('ALLY_VIEW_ALL')"
+          :can-upload="can('ALLY_IMAGE_UPLOAD')"
+          :can-update="can('ALLY_IMAGE_UPDATE')"
+          :can-delete="can('ALLY_IMAGE_DELETE')"
+        />
+      </div>
+
       <!-- Sub-resource tabs -->
       <UTabs v-model="activeTab" :items="tabs" :content="false" />
 

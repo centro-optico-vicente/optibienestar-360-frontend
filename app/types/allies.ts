@@ -11,6 +11,7 @@
 
 import type { CatalogRef, CityRef } from '~/types/members'
 import type { ProductType } from '~/types/products'
+import type { PublicImageDto } from '~/types/media'
 
 // ---- Partner ----
 
@@ -474,6 +475,8 @@ export interface PublicAllyProductDto {
   exclusions?: string | null
   requiresAppointment?: boolean
   imageUrl?: string | null
+  /** Ordered gallery of the offer (own images, else the product's); hub ADR 0027. */
+  images?: PublicImageDto[]
   /**
    * The product is published in the GENERAL catalog (`/v1/public/products`).
    * Only then does a comparison page `/catalogo/{productUuid}` exist; an
@@ -486,6 +489,8 @@ export interface PublicAllyProductDto {
 export interface PublicAllyDetailDto extends PublicAllyListItemDto {
   address?: string | null
   professionNames?: string[]
+  /** Ordered gallery, primary first (hub ADR 0027). */
+  images?: PublicImageDto[]
   products?: PublicAllyProductDto[]
   /** @deprecated Use `products` (hub ADR 0026); still sent during the transition. */
   services?: PublicAllyServiceDto[]

@@ -2,9 +2,9 @@
 import type { AllyProductDto } from '~/types/allies'
 import type { ProductDto } from '~/types/products'
 
-// Read view of one catalog product (hub ADR 0026): its data, the catalog image
-// (upload private → publish), and the tab "Aliados que lo ofrecen" built from
-// GET /v1/admin/products/{uuid}/offers (every ally offering it, any review state).
+// Read view of one catalog product (hub ADR 0026): its data, its image gallery
+// (MediaGalleryEditor, hub ADR 0027 — published immediately), and the tab
+// "Aliados que lo ofrecen" built from GET /v1/admin/products/{uuid}/offers (every ally offering it, any review state).
 const props = defineProps<{
   open: boolean
   productUuid: string | null
@@ -12,7 +12,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:open': [boolean]
-  /** The image changed — the list should reload to refresh its thumbnail. */
+  /** The gallery changed — the list should reload to refresh its thumbnail. */
   'changed': []
   'edit-requested': [string]
 }>()
@@ -21,7 +21,6 @@ const { t } = useI18n()
 const { formatCurrency } = useFormatters()
 const productsApi = useProducts()
 const { can } = usePermissions()
-const toast = useToast()
 
 const isOpen = computed({
   get: () => props.open,
@@ -29,8 +28,7 @@ const isOpen = computed({
 })
 
 const canUpdate = computed(() => can('PRODUCT_UPDATE'))
-const canUploadImage = computed(() => can('PRODUCT_IMAGE_UPLOAD'))
-const canDeleteImage = computed(() => can('PRODUCT_IMAGE_DELETE'))
+const mediaBase = computed(() => props.productUuid ? `/v1/admin/products/${props.productUuid}/media` : '')
 const canViewOffers = computed(() => can('ALLY_PRODUCT_VIEW_ALL'))
 const canViewAllies = computed(() => can('ALLY_VIEW_ALL'))
 
@@ -112,49 +110,6 @@ function reviewStatusColor(s?: string): 'success' | 'warning' | 'error' | 'info'
   return 'neutral'
 }
 
-// ---- Catalog image ----
-const fileInput = ref<HTMLInputElement | null>(null)
-const imageBusy = ref(false)
-
-async function runImageAction(action: () => Promise<unknown>, toastKey: string) {
-  if (!props.productUuid) return
-  imageBusy.value = true
-  try {
-    await action()
-    toast.add({ title: t(toastKey), color: 'success', icon: 'i-lucide-check-circle' })
-    await loadProduct()
-    emit('changed')
-  }
-  catch {
-    // toast handled by useApi (e.g. 404/422 when there is no image yet)
-  }
-  finally {
-    imageBusy.value = false
-  }
-}
-
-async function onFileSelected(event: Event) {
-  const input = event.target as HTMLInputElement
-  const file = input.files?.[0]
-  input.value = ''
-  if (!file || !props.productUuid) return
-  const uuid = props.productUuid
-  await runImageAction(() => productsApi.uploadImage(uuid, file), 'products.image.uploadedToast')
-}
-
-function publishImage() {
-  const uuid = props.productUuid
-  if (uuid) runImageAction(() => productsApi.publishImage(uuid), 'products.image.publishedToast')
-}
-function unpublishImage() {
-  const uuid = props.productUuid
-  if (uuid) runImageAction(() => productsApi.unpublishImage(uuid), 'products.image.unpublishedToast')
-}
-function deleteImage() {
-  const uuid = props.productUuid
-  if (uuid) runImageAction(() => productsApi.deleteImage(uuid), 'products.image.deletedToast')
-}
-
 function requestEdit() {
   if (!props.productUuid) return
   const uuid = props.productUuid
@@ -219,63 +174,16 @@ function requestEdit() {
             </div>
           </dl>
 
-          <div class="space-y-3">
-            <p class="text-xs font-semibold uppercase tracking-wide text-prohealth-400">{{ t('products.image.title') }}</p>
-            <div class="aspect-square rounded-xl border border-prohealth-100 bg-prohealth-50/40 flex items-center justify-center overflow-hidden">
-              <img v-if="product.imageUrl" :src="product.imageUrl" :alt="product.name" class="w-full h-full object-cover">
-              <div v-else class="text-center text-xs text-prohealth-400 px-4">
-                <UIcon name="i-lucide-image-off" class="w-8 h-8 mx-auto mb-1" />
-                {{ t('products.image.none') }}
-              </div>
-            </div>
-            <p class="text-xs text-prohealth-500">{{ t('products.image.hint') }}</p>
-            <input ref="fileInput" type="file" accept="image/*" class="hidden" @change="onFileSelected">
-            <div class="flex flex-wrap gap-2">
-              <UButton
-                size="xs"
-                color="primary"
-                variant="soft"
-                icon="i-lucide-upload"
-                :disabled="!canUploadImage"
-                :loading="imageBusy"
-                @click="fileInput?.click()"
-              >
-                {{ t('products.image.upload') }}
-              </UButton>
-              <UButton
-                v-if="!product.imageUrl"
-                size="xs"
-                color="success"
-                variant="soft"
-                icon="i-lucide-eye"
-                :disabled="!canUploadImage || imageBusy"
-                @click="publishImage"
-              >
-                {{ t('products.image.publish') }}
-              </UButton>
-              <UButton
-                v-else
-                size="xs"
-                color="neutral"
-                variant="soft"
-                icon="i-lucide-eye-off"
-                :disabled="!canUploadImage || imageBusy"
-                @click="unpublishImage"
-              >
-                {{ t('products.image.unpublish') }}
-              </UButton>
-              <UButton
-                size="xs"
-                color="error"
-                variant="ghost"
-                icon="i-lucide-trash-2"
-                :disabled="!canDeleteImage || imageBusy"
-                @click="deleteImage"
-              >
-                {{ t('products.image.delete') }}
-              </UButton>
-            </div>
-          </div>
+          <MediaGalleryEditor
+            v-if="mediaBase"
+            class="md:col-span-3"
+            :base="mediaBase"
+            :can-read="can('PRODUCT_VIEW_ALL')"
+            :can-upload="can('PRODUCT_IMAGE_UPLOAD')"
+            :can-update="can('PRODUCT_IMAGE_UPDATE')"
+            :can-delete="can('PRODUCT_IMAGE_DELETE')"
+            @changed="emit('changed')"
+          />
         </div>
 
         <!-- Allies that offer it -->
