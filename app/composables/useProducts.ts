@@ -28,7 +28,7 @@ interface ProductListParams {
  * Products catalog master (/v1/admin/products — hub ADR 0026).
  * Backend permissions per action:
  * - list/get → PRODUCT_VIEW_ALL · create → PRODUCT_CREATE · update → PRODUCT_UPDATE · remove → PRODUCT_DELETE
- * - image upload/publish/unpublish → PRODUCT_IMAGE_UPLOAD · image delete → PRODUCT_IMAGE_DELETE
+ * - images: see useMedia (`/v1/admin/products/{uuid}/media`, hub ADR 0027)
  * - offers (every ally offering the product) → ALLY_PRODUCT_VIEW_ALL
  */
 export const useProducts = () => {
@@ -66,22 +66,6 @@ export const useProducts = () => {
       query: { page: params.page ?? 0, size: params.size ?? 50 },
     })
 
-  // ---- Catalog image (uploaded private; published explicitly) ----
-  const uploadImage = (uuid: string, file: File) => {
-    const form = new FormData()
-    form.append('image', file)
-    return useApi<unknown>(`/v1/admin/products/${uuid}/image`, { method: 'POST', body: form })
-  }
-
-  const publishImage = (uuid: string) =>
-    useApi<null>(`/v1/admin/products/${uuid}/image/publish`, { method: 'POST' })
-
-  const unpublishImage = (uuid: string) =>
-    useApi<null>(`/v1/admin/products/${uuid}/image/unpublish`, { method: 'POST' })
-
-  const deleteImage = (uuid: string) =>
-    useApi<null>(`/v1/admin/products/${uuid}/image`, { method: 'DELETE' })
-
   return {
     list,
     get,
@@ -89,10 +73,6 @@ export const useProducts = () => {
     update,
     remove,
     listOffers,
-    uploadImage,
-    publishImage,
-    unpublishImage,
-    deleteImage,
   }
 }
 

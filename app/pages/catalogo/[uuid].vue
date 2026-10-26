@@ -128,14 +128,14 @@ onMounted(load)
     <template v-else>
       <!-- Product -->
       <div class="bg-white rounded-2xl border border-prohealth-100 p-6 lg:p-8">
+        <PublicImageGallery
+          :images="product.images"
+          :fallback-url="product.imageUrl"
+          :alt="product.name"
+          class="mb-6 max-w-xl"
+        />
         <div class="flex flex-col sm:flex-row items-start gap-5">
-          <img
-            v-if="product.imageUrl"
-            :src="product.imageUrl"
-            :alt="product.name"
-            class="w-28 h-28 rounded-2xl object-cover border border-prohealth-100 shrink-0"
-          >
-          <span v-else class="shrink-0 w-20 h-20 rounded-2xl bg-cyan-50 grid place-items-center">
+          <span v-if="!product.imageUrl && !product.images?.length" class="shrink-0 w-20 h-20 rounded-2xl bg-cyan-50 grid place-items-center">
             <UIcon
               :name="product.productType === 'PRODUCT' ? 'i-lucide-package' : 'i-lucide-briefcase-medical'"
               class="w-9 h-9 text-cyan-600"
@@ -212,6 +212,13 @@ onMounted(load)
                 {{ t('catalog.public.detail.bestPrice') }}
               </UBadge>
             </div>
+
+            <PublicImageGallery
+              v-if="o.images?.length"
+              :images="o.images"
+              :alt="o.allyName"
+              class="mt-4"
+            />
 
             <dl class="grid grid-cols-3 gap-3 mt-4 text-sm">
               <div>

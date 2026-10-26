@@ -1697,7 +1697,16 @@
         "step3post": "."
       },
       "noAllyTitle": "You are not linked to any partner company",
-      "noAllyDescription": "Ask the OptiBienestar 360 team to link you to your partner company so you can propose products and services."
+      "noAllyDescription": "Ask the OptiBienestar 360 team to link you to your partner company so you can propose products and services.",
+      "gallery": {
+        "title": "My partner's images",
+        "hint": "Logo and photos shown in the public directory. They are published immediately.",
+        "offersTitle": "Images of my offers",
+        "offersHint": "Add photos to each offer, in any review state. They are published immediately.",
+        "offersEmpty": "You have no offers yet.",
+        "show": "Images",
+        "hide": "Hide"
+      }
     },
     "segments": {
       "B2B": "Commercial (B2B)",
@@ -1820,19 +1829,6 @@
     "delete": {
       "title": "Delete product or service",
       "confirm": "Are you sure you want to delete {name}? (soft-delete)"
-    },
-    "image": {
-      "title": "Catalog image",
-      "hint": "The image is uploaded privately and only shown once published.",
-      "none": "No published image",
-      "upload": "Upload image",
-      "publish": "Publish",
-      "unpublish": "Unpublish",
-      "delete": "Delete",
-      "uploadedToast": "Image uploaded; publish it to show it in the catalog",
-      "publishedToast": "Image published",
-      "unpublishedToast": "Image unpublished",
-      "deletedToast": "Image deleted"
     },
     "detail": {
       "title": "Product or service",
@@ -4954,5 +4950,53 @@
       "integer": "Must be a whole number",
       "min": "Minimum {n}"
     }
+  },
+  "media": {
+    "title": "Images",
+    "count": "{n} / {max}",
+    "hint": "JPG, PNG or WEBP up to {mb} MB, or an https URL. They are published immediately. Drag or use the arrows to reorder; the primary one is the cover.",
+    "limitReached": "You reached the maximum of {max} images.",
+    "readonlyHint": "Read only: you do not have permission to change the images.",
+    "noReadPermission": "You do not have permission to view the images.",
+    "empty": "No images uploaded",
+    "offerFallbackHint": "If you upload no images, the product's images are used.",
+    "upload": "Upload image",
+    "addUrl": "Add URL",
+    "primary": "Primary",
+    "makePrimary": "Mark as primary",
+    "moveEarlier": "Move earlier",
+    "moveLater": "Move later",
+    "editCaption": "Edit alt text",
+    "noCaption": "No alt text",
+    "captionPlaceholder": "Alt text (optional)",
+    "source": {
+      "UPLOAD": "File",
+      "URL": "URL"
+    },
+    "uploadedToast": "Image uploaded and published",
+    "urlAddedToast": "Image added",
+    "primaryToast": "Primary image updated",
+    "captionSavedToast": "Alt text saved",
+    "deletedToast": "Image deleted",
+    "errors": {
+      "notImage": "The file must be an image (JPG, PNG or WEBP)",
+      "tooLarge": "The image exceeds {mb} MB",
+      "httpsOnly": "The URL must start with https://"
+    },
+    "urlModal": {
+      "title": "Add image by URL",
+      "description": "An https link to an image hosted elsewhere.",
+      "url": "Image URL",
+      "caption": "Alt text",
+      "submit": "Add"
+    },
+    "delete": {
+      "title": "Delete image",
+      "confirm": "Are you sure you want to delete this image?",
+      "primaryNote": "When the primary image is deleted, the next one becomes primary."
+    },
+    "previous": "Previous image",
+    "next": "Next image",
+    "showImage": "Show image {n}"
   }
 }

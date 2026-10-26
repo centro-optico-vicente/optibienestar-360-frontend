@@ -2,7 +2,7 @@
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { CatalogItem } from '~/types/catalogs'
-import type { AllyProductDto, MyAllyDto } from '~/types/allies'
+import { canOperateAtCounter, type AllyProductDto, type MyAllyDto } from '~/types/allies'
 import type { SelectItem } from '~/types/options'
 import { ROLES } from '~/types/auth'
 import { PRODUCT_TYPE_OPTIONS, type ProductType } from '~/types/products'
@@ -36,6 +36,27 @@ const alliesLoading = ref(true)
 
 const allyOptions = computed(() => myAllyList.value.map(a => ({ label: a.name, value: a.uuid })))
 const selectedAlly = computed(() => myAllyList.value.find(a => a.uuid === state.allyUuid) ?? null)
+// VIEWER members only read the galleries (writes answer 403 — hub ADR 0027).
+const canEditMedia = computed(() => canOperateAtCounter(selectedAlly.value?.allyRole))
+// ---- Own offers (galleries) ----
+const myOffers = ref<AllyProductDto[]>([])
+const openOffer = ref<string | null>(null)
+
+async function loadMyOffers() {
+  const uuid = selectedAlly.value?.uuid
+  openOffer.value = null
+  if (!uuid) {
+    myOffers.value = []
+    return
+  }
+  try {
+    myOffers.value = (await myAllies.listProducts(uuid)).content ?? []
+  }
+  catch {
+    myOffers.value = []
+  }
+}
+
 const hasNoAlly = computed(() => !alliesLoading.value && myAllyList.value.length === 0)
 
 async function loadMyAllies() {
@@ -135,6 +156,9 @@ const state = reactive({
   requiresAppointment: false,
 })
 
+// `state` must exist before this watcher reads `selectedAlly`.
+watch(() => selectedAlly.value?.uuid, loadMyOffers)
+
 // The offerable list depends on the ally: switching it resets the pick.
 watch(() => state.allyUuid, (uuid, previous) => {
   if (!previous) return
@@ -185,6 +209,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       color: 'success',
       icon: 'i-lucide-check-circle',
     })
+    loadMyOffers()
     // Keep allyUuid for the next proposal; clear the rest.
     state.productUuid = undefined
     state.productCategoryUuid = undefined
@@ -234,6 +259,55 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       :title="t('allies.portal.lastProposedTitle', { name: lastProposed.name })"
       :description="t('allies.portal.lastProposedDescription')"
     />
+
+    <!-- Own gallery (hub ADR 0027): published immediately -->
+    <div v-if="selectedAlly" class="bg-white rounded-2xl border border-prohealth-100 p-6 space-y-2">
+      <h2 class="font-bold text-prohealth-900">{{ t('allies.portal.gallery.title') }}</h2>
+      <p class="text-xs text-prohealth-500">{{ t('allies.portal.gallery.hint') }}</p>
+      <MediaGalleryEditor
+        :key="selectedAlly.uuid"
+        :base="`/v1/me/allies/${selectedAlly.uuid}/media`"
+        :readonly="!canEditMedia"
+      />
+    </div>
+
+    <!-- Own offers (any review state), each with its gallery (hub ADR 0027) -->
+    <div v-if="selectedAlly" class="bg-white rounded-2xl border border-prohealth-100 p-6 space-y-3">
+      <div>
+        <h2 class="font-bold text-prohealth-900">{{ t('allies.portal.gallery.offersTitle') }}</h2>
+        <p class="text-xs text-prohealth-500">{{ t('allies.portal.gallery.offersHint') }}</p>
+      </div>
+      <p v-if="!myOffers.length" class="text-xs text-prohealth-400">{{ t('allies.portal.gallery.offersEmpty') }}</p>
+      <ul v-else class="divide-y divide-prohealth-100">
+        <li v-for="o in myOffers" :key="o.uuid" class="py-3">
+          <div class="flex items-center justify-between gap-3">
+            <div class="min-w-0">
+              <p class="font-semibold text-sm text-prohealth-900 truncate">{{ o.name }}</p>
+              <p class="text-xs text-prohealth-500">
+                {{ o.reviewStatus_Display ?? t(`allies.products.reviewStatus.${o.reviewStatus}`, String(o.reviewStatus ?? '')) }}
+              </p>
+            </div>
+            <UButton
+              size="xs"
+              color="primary"
+              variant="soft"
+              icon="i-lucide-images"
+              @click="openOffer = openOffer === o.uuid ? null : o.uuid"
+            >
+              {{ openOffer === o.uuid ? t('allies.portal.gallery.hide') : t('allies.portal.gallery.show') }}
+            </UButton>
+          </div>
+          <MediaGalleryEditor
+            v-if="openOffer === o.uuid"
+            :key="o.uuid"
+            class="mt-3"
+            :base="`/v1/me/allies/products/${o.uuid}/media`"
+            :readonly="!canEditMedia"
+            :empty-hint="t('media.offerFallbackHint')"
+          />
+        </li>
+      </ul>
+    </div>
 
     <!-- Form -->
     <div v-if="!hasNoAlly" class="bg-white rounded-2xl border border-prohealth-100 p-6">

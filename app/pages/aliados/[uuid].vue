@@ -122,6 +122,13 @@ function money(v?: number | string | null): string {
           </div>
         </div>
 
+        <PublicImageGallery
+          :images="ally.images"
+          :fallback-url="ally.logoUrl"
+          :alt="ally.name"
+          class="mt-5"
+        />
+
         <p v-if="ally.description" class="text-prohealth-700 mt-5">
           {{ ally.description }}
         </p>
@@ -211,6 +218,12 @@ function money(v?: number | string | null): string {
                 </p>
               </div>
             </div>
+            <PublicImageGallery
+              :images="s.images"
+              :fallback-url="s.imageUrl"
+              :alt="s.name"
+              class="mb-3"
+            />
             <p v-if="s.description" class="text-sm text-prohealth-600 mt-2 line-clamp-2">
               {{ s.description }}
             </p>

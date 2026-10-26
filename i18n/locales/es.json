@@ -1697,7 +1697,16 @@
         "step3post": "."
       },
       "noAllyTitle": "No estás asociado a ninguna empresa aliada",
-      "noAllyDescription": "Pide al equipo de OptiBienestar 360 que te vincule a tu empresa aliada para poder proponer productos y servicios."
+      "noAllyDescription": "Pide al equipo de OptiBienestar 360 que te vincule a tu empresa aliada para poder proponer productos y servicios.",
+      "gallery": {
+        "title": "Imágenes de mi aliado",
+        "hint": "Logo y fotos que se muestran en el directorio público. Se publican de inmediato.",
+        "offersTitle": "Imágenes de mis ofertas",
+        "offersHint": "Agrega fotos a cada oferta, en cualquier estado de revisión. Se publican de inmediato.",
+        "offersEmpty": "Aún no tienes ofertas.",
+        "show": "Imágenes",
+        "hide": "Ocultar"
+      }
     },
     "segments": {
       "B2B": "Comercial (B2B)",
@@ -1820,19 +1829,6 @@
     "delete": {
       "title": "Eliminar producto o servicio",
       "confirm": "¿Seguro que deseas eliminar {name}? (soft-delete)"
-    },
-    "image": {
-      "title": "Imagen del catálogo",
-      "hint": "La imagen se sube privada y solo se muestra al publicarla.",
-      "none": "Sin imagen publicada",
-      "upload": "Subir imagen",
-      "publish": "Publicar",
-      "unpublish": "Despublicar",
-      "delete": "Eliminar",
-      "uploadedToast": "Imagen subida; publícala para que se vea en el catálogo",
-      "publishedToast": "Imagen publicada",
-      "unpublishedToast": "Imagen despublicada",
-      "deletedToast": "Imagen eliminada"
     },
     "detail": {
       "title": "Producto o servicio",
@@ -4954,5 +4950,53 @@
       "integer": "Debe ser un número entero",
       "min": "Mínimo {n}"
     }
+  },
+  "media": {
+    "title": "Imágenes",
+    "count": "{n} / {max}",
+    "hint": "JPG, PNG o WEBP de hasta {mb} MB, o una URL https. Se publican de inmediato. Arrastra o usa las flechas para ordenar; la principal es la portada.",
+    "limitReached": "Alcanzaste el máximo de {max} imágenes.",
+    "readonlyHint": "Solo lectura: no tienes permiso para modificar las imágenes.",
+    "noReadPermission": "No tienes permiso para ver las imágenes.",
+    "empty": "Sin imágenes cargadas",
+    "offerFallbackHint": "Si no cargas imágenes se usan las del producto.",
+    "upload": "Subir imagen",
+    "addUrl": "Agregar URL",
+    "primary": "Principal",
+    "makePrimary": "Marcar como principal",
+    "moveEarlier": "Mover antes",
+    "moveLater": "Mover después",
+    "editCaption": "Editar texto alternativo",
+    "noCaption": "Sin texto alternativo",
+    "captionPlaceholder": "Texto alternativo (opcional)",
+    "source": {
+      "UPLOAD": "Archivo",
+      "URL": "URL"
+    },
+    "uploadedToast": "Imagen subida y publicada",
+    "urlAddedToast": "Imagen agregada",
+    "primaryToast": "Imagen principal actualizada",
+    "captionSavedToast": "Texto alternativo guardado",
+    "deletedToast": "Imagen eliminada",
+    "errors": {
+      "notImage": "El archivo debe ser una imagen (JPG, PNG o WEBP)",
+      "tooLarge": "La imagen supera los {mb} MB",
+      "httpsOnly": "La URL debe empezar con https://"
+    },
+    "urlModal": {
+      "title": "Agregar imagen por URL",
+      "description": "Enlace https a una imagen alojada en otro sitio.",
+      "url": "URL de la imagen",
+      "caption": "Texto alternativo",
+      "submit": "Agregar"
+    },
+    "delete": {
+      "title": "Eliminar imagen",
+      "confirm": "¿Seguro que deseas eliminar esta imagen?",
+      "primaryNote": "Al eliminar la principal, la siguiente pasa a serlo."
+    },
+    "previous": "Imagen anterior",
+    "next": "Imagen siguiente",
+    "showImage": "Ver imagen {n}"
   }
 }
