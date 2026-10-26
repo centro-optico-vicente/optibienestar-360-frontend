@@ -1,10 +1,10 @@
 # ADR LOC-0013 (frontend) — Estrategia de rendering: SPA actual vs SSR / híbrido
 
-**Estado:** Propuesto
+**Estado:** Aceptado — opción A, mantener SPA (2026-10-25, dueño)
 **Fecha:** 2026-10-25
-**Decisores:** equipo OptiBienestar 360 (pendiente de aceptación del dueño)
+**Decisores:** equipo OptiBienestar 360 y dueño del producto
 **Origen:** tarea "Rendering (SSR)" en [`vertical-10`](../checklists/vertical-10-optimizacion-reportes-hardening.md) ("solicitado por el equipo: pasar de SPA a Universal Rendering")
-**Si se acepta cualquier opción distinta de "mantener SPA" supersede:** [ADR LOC-0003 SPA mode](loc-0003-spa-mode.md) y obliga a revisar [ADR LOC-0006 CI/CD + Docker + config en runtime](loc-0006-ci-cd-docker-runtime-config.md).
+**Si se reabre y se acepta cualquier opción distinta de "mantener SPA" supersede:** [ADR LOC-0003 SPA mode](loc-0003-spa-mode.md) y obliga a revisar [ADR LOC-0006 CI/CD + Docker + config en runtime](loc-0006-ci-cd-docker-runtime-config.md).
 **Requiere enmienda en el hub** (no se hace aquí) si se acepta: [hub ADR 0001 Stack](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0001-stack.md) (hoy: "universal o SPA según necesidad", real SPA), [hub ADR 0003 Infraestructura](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0003-infrastructure.md) / [0021 edge real NPM](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0021-traefik-vs-npm-reality.md) y [hub ADR 0024 JWT storage](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0024-jwt-token-storage.md) si el SSR llegara a rutas autenticadas.
 
 > Todo lo marcado **(no verificado)** es una afirmación que no se pudo comprobar en el repo y debe resolverse en un spike antes de cualquier migración. Ninguna cifra de memoria/latencia de este ADR fue medida.
@@ -59,15 +59,23 @@ Conclusión honesta: SSR en rutas autenticadas **reabre ADR 0024** y arrastra ba
 | **C** | **Híbrido SSR solo público**: `ssr: true` con rutas privadas en `ssr:false`; imagen Node | `/aliados` y `/aliados/[uuid]` con HTML y meta completos en cada request (SEO real y Open Graph por aliado); privadas siguen SPA, **sin tocar JWT** | Medio-alto: imagen Node, ajustes de CSP, memoria, smoke, entrypoint, NPM; revisar código cliente-only en las rutas públicas | Un Node vivo para unas pocas rutas; riesgo de hidratación en páginas públicas; ADR 0003 hub requiere enmienda |
 | **D** | **SSR completo + cookies** | Todo renderizado en servidor | Alto: C + backend de cookies + CSRF + reabrir ADR 0024 + migración de `auth` store y 26 archivos | Alto; beneficio no demostrado para el panel |
 
-## Decisión (propuesta)
+## Decisión
 
-**Recomendación: A ahora, con un spike acotado de B; diferir C hasta que el negocio confirme que el SEO del directorio público es un requisito; rechazar D.**
+**Opción A: mantener la SPA.** No se adopta SSR ni modo híbrido ahora (decisión del dueño, 2026-10-25).
 
-1. **Mantener SPA** como decisión vigente para toda la app autenticada (admin + portales = 63 de 70 páginas). No hay evidencia en el repo de problema de FCP ni de requisito de SEO tras login.
-2. **Spike (1 PR de experimento, sin merge a producción) de la opción B**: comprobar que `ssr:true` + `routeRules` `ssr:false` por defecto + `prerender` en rutas públicas estáticas genera HTML correcto con `pnpm generate`, que nginx lo sirve sin cambios de infraestructura y que el SPA restante no cambia. Si funciona, es la mejora de SEO/metadatos más barata (conserva nginx, 128 MB, `/config.js`, CSP, réplicas).
-3. **C solo si** el dueño confirma que la visibilidad en buscadores / previsualizaciones del directorio (`/aliados/[uuid]`) es un objetivo de negocio. Hoy no hay `robots.txt`/sitemap ni métricas de tráfico orgánico en el repo; la decisión es de producto, no técnica.
-4. **D rechazado**: obliga a reabrir hub ADR 0024 (cookies + CSRF en el backend) por un beneficio que solo existiría en pantallas que nadie indexa.
-5. Si el dueño prefiere ir a C o D, **debe abrirse una enmienda/ADR en el hub** (ADR 0001 y 0003/0021, y 0024 si D) antes de implementar; este ADR no la reemplaza.
+**Motivación original y por qué no alcanza:** el cambio se consideró como mejora de rendimiento anticipada a producción ("solicitado por el equipo: pasar de SPA a Universal Rendering"). Hasta hoy **no hay ningún reporte de lentitud** ni medición que lo respalde. Además, el SSR no acelera lo que más usa el panel:
+- 63 de 70 páginas están tras el login y dependen de llamadas a la API; el SSR autenticado exigiría pasar los tokens a cookies y añadir CSRF (reabre hub ADR 0024).
+- Pasar de un contenedor nginx estático (128 MB, 0.5 CPU) a un servidor Node añade un salto por el servidor y más memoria; podría empeorar la latencia en vez de mejorarla.
+- El híbrido con `prerender` (opción B) solo cubre unas pocas rutas públicas estáticas, con casi ningún efecto sobre el rendimiento del panel.
+
+**Opciones B, C y D:**
+- **B (spike de prerender): diferida.** No se justifica por rendimiento. El único uso que conserva sentido es la vista previa (Open Graph) de `/afiliarse` al compartir el enlace por WhatsApp, cuyo rastreador no ejecuta JavaScript; es un tema de producto aparte.
+- **C (Node SSR para rutas públicas): diferida** hasta que haya datos (Search Console, métricas reales) que muestren demanda orgánica por aliado.
+- **D (SSR completo + cookies): rechazada.**
+
+**Lo que ya está bien** (verificado en `docker/default.conf` de `origin/main`): `gzip on`; archivos con hash de Nuxt con `Cache-Control: public, max-age=31536000, immutable`; HTML con `no-cache`; `ssr: false` en `nuxt.config.ts`.
+
+**Criterio para reabrir este ADR:** las mediciones de TEST/producción (ver Plan) muestran un problema de carga inicial que el SSR resuelva, o el negocio declara un objetivo de SEO/Open Graph para páginas públicas de este frontend. Si se reabre para C o D, hace falta primero una enmienda en el hub (ADR 0001, 0003/0021 y, si D, 0024).
 
 ## Alternativas descartadas
 
@@ -86,20 +94,21 @@ Conclusión honesta: SSR en rutas autenticadas **reabre ADR 0024** y arrastra ba
 - Si luego se decide C, habrá que pagar el costo de infra descrito arriba.
 - Los 301 seguirán duplicados (`nuxt.config.ts` y `default.conf`) mientras no haya Node.
 
-## Plan
+## Plan: medir antes de producción (en lugar del spike)
 
-| Fase | Contenido | Salida |
+| # | Acción | Salida |
 |---|---|---|
-| 0 | Decisión de producto: ¿SEO/Open Graph del directorio público es objetivo? ¿métrica actual de tráfico orgánico? | Sí/No del dueño |
-| 1 | Spike B en rama descartable: `ssr: true` + `'/**': { ssr: false }` + `prerender` de rutas públicas estáticas; CI con `pnpm generate` + smoke existente; revisar que `.output/public` contiene HTML para esas rutas | Informe go/no-go (no se mergea sin ADR aceptado) |
-| 2 (condicional) | Si Fase 0 = Sí: diseñar C (imagen Node, CSP con nonce/payload externo, memoria medida en TEST, smoke, `docker-rollout`) + enmienda de hub ADR 0001/0003/0021 | ADR de implementación + enmiendas |
-| — | D no se planifica | — |
+| 1 | Lighthouse sobre pantallas clave en TEST: login, dashboard, un listado grande (pagos/afiliados) y el directorio público; fijar un presupuesto (p. ej. login < 2 s en 4G) | Línea base y presupuesto de rendimiento |
+| 2 | Revisar el tamaño de los bundles (`nuxi analyze`); cargar solo donde se usan las librerías pesadas (p. ej. `@zxing` del lector QR) | Lista de dependencias a cargar de forma diferida |
+| 3 | Medir la latencia de la API (p95) de los listados más pesados en el backend | Consultas lentas identificadas |
+| 4 | Confirmar brotli y caché de los archivos con hash en Cloudflare | Compresión y caché en el borde verificadas |
+| 5 | Ya en producción: registrar métricas web reales (LCP, INP) | Datos para reabrir o cerrar este ADR |
 
-**Rollback:** A/B: revertir config (sin cambios de infraestructura). C: re-desplegar el tag anterior de la imagen nginx (la imagen estática anterior sigue siendo válida mientras no se borre del registry).
+**Rollback:** no aplica (no hay cambio de arquitectura).
 
-## Preguntas abiertas para el dueño
+## Resolución de las preguntas (2026-10-25)
 
-1. ¿El directorio público de aliados y `/afiliarse` deben posicionarse en buscadores y mostrar previews (Open Graph) al compartir enlaces? Hoy no hay `robots.txt`, sitemap ni métricas en el repo.
-2. ¿Prefiere resolverlo moviendo esas páginas al landing SSG en vez de añadir un Node al frontend?
-3. ¿Hay algún motivo distinto de SEO (rendimiento percibido del panel, requerimiento de un cliente) que justifique SSR en rutas autenticadas? Sin él, D no se justifica porque reabre cookies + CSRF.
-4. ¿Cuánta memoria adicional está dispuesto a asignar al servicio `frontend` (hoy 128 MB, 0.5 CPU, un contenedor) si se llegara a C?
+1. **¿Posicionar el directorio público y `/afiliarse` en buscadores?** No hay un objetivo de SEO declarado: la motivación del dueño era el rendimiento anticipado. Recomendación aceptada: el SEO del directorio vive en la landing (`/red-de-salud`, ya con etiquetas, sitemap y datos estructurados) y la SPA no se indexa; las fichas individuales por aliado no se posicionan. Se registrará la landing en Google Search Console para decidir con datos.
+2. **¿Mover esas páginas a la landing SSG?** No por ahora: duplicaría el flujo de afiliación; sería otra decisión de arquitectura.
+3. **¿Otro motivo para SSR en rutas autenticadas?** Ninguno (el rendimiento percibido no está demostrado). D queda rechazada.
+4. **¿Memoria adicional para el servicio `frontend`?** No aplica: no se va a C.

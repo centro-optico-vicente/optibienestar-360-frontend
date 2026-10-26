@@ -66,4 +66,4 @@ Frontend multi-rol (Vue 3 + Nuxt 4) que sirve a admin, operador, aliados, afilia
 - [ADR 0010 Localización Venezuela (espejo)](decisions/loc-0010-localization-venezuela.md)
 - [ADR 0011 Tipos generados desde OpenAPI](decisions/loc-0011-openapi-generated-types.md) — **Aceptado** (condicionado a la Fase 0)
 - [ADR 0012 Migración Nuxt UI v3 → v4](decisions/loc-0012-nuxt-ui-v4-migration.md) — **Aceptado e implementado** ([#255](https://github.com/centro-optico-vicente/optibienestar-360-frontend/pull/255))
-- [ADR 0013 Estrategia de rendering: SPA vs SSR/híbrido](decisions/loc-0013-ssr-rendering-strategy.md) — **Propuesto**
+- [ADR 0013 Estrategia de rendering: SPA vs SSR/híbrido](decisions/loc-0013-ssr-rendering-strategy.md) — **Aceptado** (mantener SPA; medir antes de producción)
