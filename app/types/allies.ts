@@ -162,6 +162,9 @@ export interface ProductCategoryRef {
 export interface AllyProductDto {
   uuid: string
   allyUuid?: string
+  /** The offering ally — ADR 0014 FK pair; cross-ally lists show its name. */
+  ally_Uuid?: string | null
+  ally_Display?: string | null
   productUuid: string
   productType: ProductType | string
   productType_Display?: string | null
@@ -471,6 +474,12 @@ export interface PublicAllyProductDto {
   exclusions?: string | null
   requiresAppointment?: boolean
   imageUrl?: string | null
+  /**
+   * The product is published in the GENERAL catalog (`/v1/public/products`).
+   * Only then does a comparison page `/catalogo/{productUuid}` exist; an
+   * unpublished product's offer still shows on its ally's own page.
+   */
+  inCatalog?: boolean
 }
 
 /** Public partner profile (GET /v1/public/allies/{uuid} — backend `PublicAllyDetailDto`). */

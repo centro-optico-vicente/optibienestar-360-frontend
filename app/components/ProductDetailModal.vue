@@ -20,7 +20,6 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const { formatCurrency } = useFormatters()
 const productsApi = useProducts()
-const allies = useAllies()
 const { can } = usePermissions()
 const toast = useToast()
 
@@ -62,8 +61,6 @@ async function loadProduct() {
 // ---- Offers ----
 const offers = ref<AllyProductDto[]>([])
 const offersLoading = ref(false)
-// AllyProductDto carries only `allyUuid`; names are resolved once per ally.
-const allyNames = ref<Record<string, string>>({})
 
 async function loadOffers() {
   if (!props.productUuid || !canViewOffers.value) return
@@ -71,7 +68,6 @@ async function loadOffers() {
   try {
     const res = await productsApi.listOffers(props.productUuid, { size: 100 })
     offers.value = res.content ?? []
-    await resolveAllyNames()
   }
   catch {
     offers.value = []
@@ -81,19 +77,12 @@ async function loadOffers() {
   }
 }
 
-async function resolveAllyNames() {
-  if (!canViewAllies.value) return
-  const missing = [...new Set(offers.value.map(o => o.allyUuid).filter((u): u is string => !!u && !allyNames.value[u]))]
-  const results = await Promise.allSettled(missing.map(u => allies.get(u)))
-  const next = { ...allyNames.value }
-  results.forEach((r) => {
-    if (r.status === 'fulfilled') next[r.value.uuid] = r.value.name
-  })
-  allyNames.value = next
-}
-
+// The offering ally travels as the ADR 0014 pair `ally_Uuid` + `ally_Display`.
 function allyLabel(o: AllyProductDto): string {
-  return (o.allyUuid && allyNames.value[o.allyUuid]) || t('products.offers.ally')
+  return o.ally_Display || t('products.offers.ally')
+}
+function allyUuidOf(o: AllyProductDto): string | null | undefined {
+  return o.ally_Uuid ?? o.allyUuid
 }
 
 watch(() => props.open, (open) => {
@@ -213,6 +202,10 @@ function requestEdit() {
               <dd class="text-prohealth-900">{{ product.requiresAppointment ? t('common.yes') : t('common.no') }}</dd>
             </div>
             <div>
+              <dt class="text-xs text-prohealth-500">{{ t('products.columns.published') }}</dt>
+              <dd class="text-prohealth-900">{{ product.published_Display ?? (product.published ? t('common.yes') : t('common.no')) }}</dd>
+            </div>
+            <div>
               <dt class="text-xs text-prohealth-500">{{ t('products.columns.status') }}</dt>
               <dd class="text-prohealth-900">{{ product.active ? t('products.active') : t('products.inactive') }}</dd>
             </div>
@@ -309,8 +302,8 @@ function requestEdit() {
               <tr v-for="o in offers" v-else :key="o.uuid" class="hover:bg-prohealth-50/50">
                 <td class="px-4 py-2">
                   <NuxtLink
-                    v-if="o.allyUuid && canViewAllies"
-                    :to="`/dashboard/allies/${o.allyUuid}`"
+                    v-if="allyUuidOf(o) && canViewAllies"
+                    :to="`/dashboard/allies/${allyUuidOf(o)}`"
                     class="font-semibold text-cyan-700 hover:underline"
                     @click="isOpen = false"
                   >

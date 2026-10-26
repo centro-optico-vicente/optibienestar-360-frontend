@@ -28,8 +28,6 @@ useSeoMeta({ title: () => t('allies.portal.seoTitle') })
 
 const allies = useAllies()
 const myAllies = useMyAllies()
-const productsApi = useProducts()
-const { can } = usePermissions()
 const toast = useToast()
 
 // ---- Which ally am I proposing for? ----
@@ -70,32 +68,26 @@ async function loadCategories() {
 }
 
 // ---- Existing product search ----
-// An ally user normally lacks PRODUCT_VIEW_ALL, so the admin master is closed to
-// them; the public cross-ally catalog is the fallback (deduplicated by product).
-// It only lists products some ally already offers publicly — anything else is
-// proposed as a new exclusive item.
+// GET /v1/me/allies/products/offerable: what the selected ally may still offer
+// (general products plus its own exclusive ones, minus those already offered).
+// Membership-gated, so it needs no admin key.
 const productSearchTerm = ref('')
 const productOptions = ref<SelectItem[]>([])
 const productSearching = ref(false)
 let searchTimer: ReturnType<typeof setTimeout> | undefined
 
 async function searchProducts(q?: string) {
+  if (!state.allyUuid) {
+    productOptions.value = []
+    return
+  }
   productSearching.value = true
   try {
-    if (can('PRODUCT_VIEW_ALL')) {
-      const res = await productsApi.list({ q, exclusive: false, size: 20, sort: ['name,asc'] })
-      productOptions.value = (res.content ?? []).map(p => ({
-        label: p.productCategory_Display ? `${p.name} · ${p.productCategory_Display}` : p.name,
-        value: p.uuid,
-      }))
-    }
-    else {
-      const res = await productsApi.searchPublic({ q })
-      const seen = new Set<string>()
-      productOptions.value = (res.content ?? [])
-        .filter(o => !seen.has(o.productUuid) && seen.add(o.productUuid))
-        .map(o => ({ label: o.categoryName ? `${o.name} · ${o.categoryName}` : o.name, value: o.productUuid }))
-    }
+    const res = await allies.listOfferableProducts(state.allyUuid, { q })
+    productOptions.value = (res.content ?? []).map(p => ({
+      label: p.productCategory_Display ? `${p.name} · ${p.productCategory_Display}` : p.name,
+      value: p.uuid,
+    }))
   }
   catch {
     productOptions.value = []
@@ -113,9 +105,9 @@ watch(productSearchTerm, (q) => {
   searchTimer = setTimeout(() => searchProducts(term), 400)
 })
 
-onMounted(() => {
-  loadMyAllies()
+onMounted(async () => {
   loadCategories()
+  await loadMyAllies()
   searchProducts()
 })
 
@@ -141,6 +133,14 @@ const state = reactive({
   discountPct: '',
   exclusions: '',
   requiresAppointment: false,
+})
+
+// The offerable list depends on the ally: switching it resets the pick.
+watch(() => state.allyUuid, (uuid, previous) => {
+  if (!previous) return
+  state.productUuid = undefined
+  productOptions.value = []
+  if (uuid) searchProducts()
 })
 
 // Locale-reactive schema so validation messages follow the UI locale; item

@@ -6,7 +6,9 @@ import type {
   ProductListItemDto,
   ProductType,
   ProductUpdateRequest,
+  PublicProductDetailDto,
   PublicProductListItemDto,
+  PublicProductSearchParams,
 } from '~/types/products'
 
 interface ProductListParams {
@@ -80,20 +82,8 @@ export const useProducts = () => {
   const deleteImage = (uuid: string) =>
     useApi<null>(`/v1/admin/products/${uuid}/image`, { method: 'DELETE' })
 
-  /**
-   * Public cross-ally catalog (no auth): publicly visible offers. Used by the
-   * ally portal to pick an existing product, since an ally user has no
-   * PRODUCT_VIEW_ALL — it only covers products some ally already offers publicly.
-   */
-  const searchPublic = (params: { q?: string, size?: number } = {}) =>
-    useApi<Page<PublicProductListItemDto>>('/v1/public/products', {
-      skipAuth: true,
-      query: { page: 0, size: params.size ?? 50, ...(params.q ? { q: params.q } : {}) },
-    })
-
   return {
     list,
-    searchPublic,
     get,
     create,
     update,
@@ -104,4 +94,34 @@ export const useProducts = () => {
     unpublishImage,
     deleteImage,
   }
+}
+
+/**
+ * Public cross-ally catalog (/v1/public/products, no auth — hub ADR 0026).
+ * Every filter takes plain words, as a lead would type them; the `*Uuid`
+ * twins the backend still accepts are deliberately not exposed here.
+ */
+export const usePublicProducts = () => {
+  const search = (params: PublicProductSearchParams = {}) =>
+    useApi<Page<PublicProductListItemDto>>('/v1/public/products', {
+      skipAuth: true,
+      query: {
+        page: params.page ?? 0,
+        size: params.size ?? 12,
+        ...(params.q ? { q: params.q } : {}),
+        ...(params.type ? { type: params.type } : {}),
+        ...(params.category ? { category: params.category } : {}),
+        ...(params.city ? { city: params.city } : {}),
+        ...(params.ally ? { ally: params.ally } : {}),
+      },
+    })
+
+  /** Product comparison across allies, best final price first; optional `city` (city or state name). */
+  const get = (uuid: string, city?: string) =>
+    useApi<PublicProductDetailDto>(`/v1/public/products/${uuid}`, {
+      skipAuth: true,
+      query: city ? { city } : {},
+    })
+
+  return { search, get }
 }

@@ -34,9 +34,13 @@
 - [x] [P0/C2] Detalle de aliado: pestaña **"Productos y servicios"** paginada (`GET /v1/admin/allies/{uuid}/products` → `Page`), alta eligiendo un producto general (buscador sobre `/v1/admin/products?exclusive=false`) o "crear exclusivo"; los datos del ítem solo se editan si es exclusivo (`AllyProductFormModal`). Aprobar / rechazar / retirar en la fila (`/v1/admin/ally-products/{uuid}/approve|reject|remove`, `ALLY_PRODUCT_APPROVE`). Permisos `ALLY_PRODUCT_*`.
 - [x] [P0/C2] Portal aliado `pages/allies/index.vue`: proponer un producto existente o uno nuevo exclusivo (`POST /v1/me/allies/products`). Sin `PRODUCT_VIEW_ALL` el buscador usa el catálogo público `/v1/public/products` (solo lo que algún aliado ya ofrece públicamente).
 - [x] [P1/C1] Catálogo `product-categories` (registro + nav "Alianzas"); `/dashboard/catalogs/service-categories` redirige.
-- [ ] [P1/C2] Backend: `AllyProductDto` no trae el nombre del aliado (solo `allyUuid`) — la pestaña "Aliados que lo ofrecen" lo resuelve con un `GET /v1/admin/allies/{uuid}` por aliado. Pedir un par `ally_Uuid` + `ally_Display` (ADR 0014).
-- [ ] [P1/C2] Backend: el portal del aliado no tiene un listado de productos ofrecibles (generales) — hoy cae al catálogo público. Falta algo como `GET /v1/me/allies/products/offerable`.
-- [ ] [P2/C1] Páginas públicas `/aliados` y `/catalogo` siguen leyendo `PublicAllyDetailDto.services` (deprecado) — migrar a `products` en la tarea B3.
+- [x] [P1/C2] "Aliados que lo ofrecen" usa `ally_Display` (backend #361); se quitó el `GET` por aliado.
+- [x] [P1/C2] Portal aliado: el buscador usa `GET /v1/me/allies/products/offerable` (backend #361).
+- [x] [P1/C2] Cola de revisión `pages/dashboard/ally-products/pending.vue` (`/v1/admin/ally-products/pending`, filtros aliado/categoría/q, aprobar/rechazar, historial) — hoja "Revisión de ofertas" en "Alianzas", `ALLY_PRODUCT_APPROVE`.
+- [x] [P1/C2] Tres niveles de "aparece en público": aliado (`published`, directorio), oferta (`published`, switch en la fila y el form — ficha del aliado) y producto (`published`, "Visible en el catálogo general" — solo el catálogo general; columna + filtro RSQL `published==`).
+- [x] [P0/C3] Catálogo público `/catalogo` ↔ `/en/catalog` (`pages/catalogo/index.vue`): búsqueda, chips de tipo, categoría por nombre, ciudad/estado y aliado en palabras, reflejados en la URL (`?q=&tipo=&categoria=&ciudad=&aliado=`), "Ver más".
+- [x] [P0/C2] Comparación `/catalogo/{uuid}` (`pages/catalogo/[uuid].vue`): resumen "Desde $X · hasta Y%", ofertas por aliado (precio, tarifa, precio final, exclusiones, WhatsApp/teléfono, enlace al aliado), filtro de ciudad (`?ciudad=`), 404 amable.
+- [x] [P1/C2] `/aliados`: filtros en palabras (q sobre nombre/RIF/nº/ciudad, ciudad o estado, rubro por nombre) en la URL; `/aliados/{uuid}` lee `products` (tipo, precio final, exclusiones), "Comparar con otros aliados" solo si `inCatalog`, y "Ver todo lo que ofrece en el catálogo" → `/catalogo?aliado=<nombre>`.
 
 ## Adicionales v2 — Flujo de Aprobación de Servicios
 

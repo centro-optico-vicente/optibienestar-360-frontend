@@ -65,6 +65,19 @@ const search = ref('')
 const typeFilter = ref<ProductType | undefined>(undefined)
 const categoryFilter = ref<string | undefined>(undefined)
 const scopeFilter = ref<'general' | 'exclusive' | undefined>(undefined)
+const publishedFilter = ref<'yes' | 'no' | undefined>(undefined)
+const publishedOptions = computed(() => [
+  { label: t('products.filters.published'), value: 'yes' },
+  { label: t('products.filters.unpublished'), value: 'no' },
+])
+
+/** RSQL `filter` from the filters without a dedicated query param (allowed fields only). */
+function buildFilter(): string | undefined {
+  const parts: string[] = []
+  if (categoryFilter.value) parts.push(`productCategory.uuid==${categoryFilter.value}`)
+  if (publishedFilter.value) parts.push(`published==${publishedFilter.value === 'yes'}`)
+  return parts.length ? parts.join(';') : undefined
+}
 const includeInactive = ref(false)
 const sort = useTableSort([])
 const hasActiveSort = computed(() => sort.hasActiveSort.value)
@@ -82,8 +95,7 @@ async function load() {
       q: search.value.trim() || undefined,
       type: typeFilter.value,
       exclusive: scopeFilter.value ? scopeFilter.value === 'exclusive' : undefined,
-      // The category has no dedicated query param — RSQL `filter` (allowed field).
-      filter: categoryFilter.value ? `productCategory.uuid==${categoryFilter.value}` : undefined,
+      filter: buildFilter(),
       includeInactive: includeInactive.value,
     })
     data.value = res.content ?? []
@@ -118,7 +130,7 @@ watch(search, () => {
   clearTimeout(searchTimer)
   searchTimer = setTimeout(reloadFromFirstPage, 400)
 })
-watch([typeFilter, categoryFilter, scopeFilter, includeInactive], reloadFromFirstPage)
+watch([typeFilter, categoryFilter, scopeFilter, publishedFilter, includeInactive], reloadFromFirstPage)
 watch(sort.orders, () => { if (!resetting.value) load() }, { deep: true })
 
 async function resetFilters() {
@@ -127,6 +139,7 @@ async function resetFilters() {
   typeFilter.value = undefined
   categoryFilter.value = undefined
   scopeFilter.value = undefined
+  publishedFilter.value = undefined
   includeInactive.value = false
   sort.reset()
   size.value = DEFAULT_PAGE_SIZE
@@ -284,6 +297,16 @@ onMounted(async () => {
         :placeholder="t('products.filters.allScopes')"
         class="w-48"
       />
+      <USelectMenu
+        clear
+        v-model="publishedFilter"
+        :items="publishedOptions"
+        label-key="label"
+        value-key="value"
+        :search-input="false"
+        :placeholder="t('products.filters.allPublication')"
+        class="w-52"
+      />
       <UCheckbox v-model="includeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
       <UButton
         v-if="hasActiveSort"
@@ -322,6 +345,10 @@ onMounted(async () => {
               </th>
               <th class="px-5 py-3 font-semibold">{{ t('products.columns.appointment') }}</th>
               <th class="px-5 py-3 font-semibold">{{ t('products.columns.image') }}</th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('published')">
+                {{ t('products.columns.published') }}
+                <SortIndicator :state="sort.stateOf('published')" :multi-active="isMultiSort" @clear="sort.remove('published')" />
+              </th>
               <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('active')">
                 {{ t('products.columns.status') }}
                 <SortIndicator :state="sort.stateOf('active')" :multi-active="isMultiSort" @clear="sort.remove('active')" />
@@ -330,9 +357,9 @@ onMounted(async () => {
             </tr>
           </thead>
           <tbody class="divide-y divide-prohealth-100">
-            <TableSkeleton v-if="loading" :rows="8" :cols="8" />
+            <TableSkeleton v-if="loading" :rows="8" :cols="9" />
             <tr v-else-if="data.length === 0">
-              <td colspan="8" class="px-5 py-12 text-center text-prohealth-500">
+              <td colspan="9" class="px-5 py-12 text-center text-prohealth-500">
                 <UIcon name="i-lucide-package-search" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
                 {{ t('products.empty') }}
               </td>
@@ -366,6 +393,11 @@ onMounted(async () => {
               <td class="px-5 py-3">
                 <img v-if="p.imageUrl" :src="p.imageUrl" :alt="p.name" class="w-9 h-9 rounded-lg object-cover border border-prohealth-100">
                 <UIcon v-else name="i-lucide-image-off" class="w-4 h-4 text-prohealth-300" />
+              </td>
+              <td class="px-5 py-3">
+                <UBadge :color="p.published ? 'success' : 'neutral'" variant="subtle" size="sm" :title="t('products.form.publishedHelp')">
+                  {{ p.published_Display ?? (p.published ? t('common.yes') : t('common.no')) }}
+                </UBadge>
               </td>
               <td class="px-5 py-3">
                 <UBadge :color="p.active ? 'success' : 'neutral'" variant="subtle" size="sm">
