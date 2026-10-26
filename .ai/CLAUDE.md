@@ -64,3 +64,4 @@ Frontend multi-rol (Vue 3 + Nuxt 4) que sirve a admin, operador, aliados, afilia
 - [ADR 0008 Naming TypeScript/Vue](decisions/loc-0008-typescript-vue-naming-conventions.md)
 - [ADR 0009 Convenciones de código (espejo)](decisions/loc-0009-code-conventions.md)
 - [ADR 0010 Localización Venezuela (espejo)](decisions/loc-0010-localization-venezuela.md)
+- [ADR 0013 Estrategia de rendering: SPA vs SSR/híbrido](decisions/loc-0013-ssr-rendering-strategy.md) — **Propuesto**

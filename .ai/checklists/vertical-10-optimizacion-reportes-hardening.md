@@ -46,5 +46,6 @@
 
 > Solicitado por el equipo: pasar de SPA a Universal Rendering. Hoy es SPA por decisión congelada ([ADR 0003](../decisions/loc-0003-spa-mode.md)); migrar implica superseder ese ADR y rehacer el despliegue de [ADR 0006](../decisions/loc-0006-ci-cd-docker-runtime-config.md).
 
+- [ ] [P2/C1] **ADR propuesto:** [ADR LOC-0013](../decisions/loc-0013-ssr-rendering-strategy.md) (estado Propuesto, pendiente de aceptación). Recomienda mantener SPA + spike de prerender híbrido; SSR completo requeriría cookies/CSRF (reabre hub ADR 0024) y enmienda de hub ADR 0001/0003. **No ejecutar las dos tareas siguientes hasta decidir.**
 - [ ] [P2/C2] Escribir ADR que supersede [ADR 0003](../decisions/loc-0003-spa-mode.md): adoptar Universal Rendering (`ssr: true`) y revisar [ADR 0006](../decisions/loc-0006-ci-cd-docker-runtime-config.md)
 - [ ] [P2/C5] Migrar a Universal (`ssr: true`): imagen **Node** en lugar de Nginx estático, reescribir Dockerfiles + smoke tests del CI + wiring Traefik. El env var (`NUXT_PUBLIC_API_BASE_URL`) pasa a leerse nativo en runtime → elimina la inyección por `/config.js`. Manejar cookies/JWT e hidratación server-side.
