@@ -395,7 +395,12 @@ function requestDelete() {
           />
         </UFormField>
 
-        <UFormField v-if="mode === 'edit'" :label="t('allies.products.form.fields.published')" name="published">
+        <UFormField
+          v-if="mode === 'edit'"
+          :label="t('allies.products.form.fields.published')"
+          name="published"
+          :help="t('allies.products.form.publishedHelp')"
+        >
           <USwitch v-model="state.published" />
         </UFormField>
       </UForm>

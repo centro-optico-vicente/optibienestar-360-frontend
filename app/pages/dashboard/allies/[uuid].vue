@@ -268,6 +268,25 @@ async function confirmPrdDelete() {
   }
 }
 
+// ---- Publication of the offer (AllyProductUpdateRequest.published) ----
+const prdPublishingUuid = ref<string | null>(null)
+
+async function togglePublished(p: AllyProductDto, published: boolean) {
+  prdPublishingUuid.value = p.uuid
+  try {
+    const saved = await allies.updateProduct(allyUuid, p.uuid, { published })
+    const i = products.value.findIndex(x => x.uuid === p.uuid)
+    if (i >= 0) products.value[i] = saved
+    toast.add({ title: t('allies.products.updatedToast'), color: 'success', icon: 'i-lucide-check-circle' })
+  }
+  catch {
+    // toast handled by useApi
+  }
+  finally {
+    prdPublishingUuid.value = null
+  }
+}
+
 // ---- Review workflow (ALLY_PRODUCT_APPROVE) ----
 function canApproveOffer(p: AllyProductDto): boolean {
   return p.reviewStatus === 'PROPOSED' || p.reviewStatus === 'IN_REVIEW'
@@ -1259,9 +1278,17 @@ onMounted(async () => {
                   </UBadge>
                 </td>
                 <td class="px-6 py-3">
-                  <UBadge :color="p.published ? 'success' : 'neutral'" variant="subtle" size="sm">
-                    {{ p.published_Display ?? (p.published ? t('common.yes') : t('common.no')) }}
-                  </UBadge>
+                  <!-- The offer's own "appears in public" flag, toggled in place. -->
+                  <UTooltip :text="t('allies.products.form.publishedHelp')">
+                    <USwitch
+                      :model-value="!!p.published"
+                      :disabled="!canUpdateProducts || prdPublishingUuid === p.uuid"
+                      :loading="prdPublishingUuid === p.uuid"
+                      size="sm"
+                      :aria-label="t('allies.products.columns.published')"
+                      @update:model-value="(v: boolean) => togglePublished(p, v)"
+                    />
+                  </UTooltip>
                 </td>
                 <td class="px-6 py-3">
                   <div class="flex items-center justify-end gap-1">

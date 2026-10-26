@@ -4,6 +4,7 @@ const auth = useAuthStore()
 const publicPath = usePublicPath()
 
 const navLinks = [
+  { labelKey: 'layout.public.nav.catalog', to: '/catalogo' },
   { labelKey: 'layout.public.nav.allies', to: '/aliados' },
 ]
 

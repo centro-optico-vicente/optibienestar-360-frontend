@@ -3,7 +3,9 @@ import type { ApiError } from '~/types/auth'
 import type { PublicAllyDetailDto } from '~/types/allies'
 
 // PUBLIC partner detail (no login). The backend only exposes PUBLISHED+ACTIVE
-// partners and APPROVED/PUBLISHED/ACTIVE services (/v1/public/allies/{uuid}).
+// partners and their APPROVED/PUBLISHED/ACTIVE offers (/v1/public/allies/{uuid},
+// `products` — hub ADR 0026). Offers of a product published in the general
+// catalog (`inCatalog`) link to their cross-ally comparison /catalogo/{productUuid}.
 // English pair of this public screen (hub URL convention): same page, rendered
 // in English by middleware/public-locale.global.ts. The fixed `key` keeps the
 // component (and any typed input) when the switcher jumps between the two URLs.
@@ -28,7 +30,25 @@ const notFound = ref(false)
 
 useSeoMeta({
   title: () => (ally.value ? t('allies.public.detail.seoTitle', { name: ally.value.name }) : ''),
+  description: () => ally.value?.description || t('allies.public.seoDescription'),
+  ogTitle: () => (ally.value ? t('allies.public.detail.seoTitle', { name: ally.value.name }) : ''),
+  ogImage: () => ally.value?.logoUrl || undefined,
 })
+
+// `products` replaces the deprecated `services` (hub ADR 0026).
+const offers = computed(() => ally.value?.products ?? [])
+
+/** "Ver todo lo que ofrece" → the general catalog filtered by this ally's name. */
+const catalogLink = computed(() =>
+  ally.value ? `${publicPath('/catalogo')}?aliado=${encodeURIComponent(ally.value.name)}` : publicPath('/catalogo'))
+
+function typeLabel(type?: string | null, display?: string | null): string {
+  return display ?? (type ? t(`products.types.${type}`, type) : '')
+}
+
+function hasDiscount(v?: number | string | null): boolean {
+  return v !== null && v !== undefined && v !== '' && Number(v) > 0
+}
 
 onMounted(async () => {
   try {
@@ -140,38 +160,53 @@ function money(v?: number | string | null): string {
         </div>
       </div>
 
-      <!-- Services -->
+      <!-- Products and services -->
       <div class="mt-6">
-        <h2 class="text-lg font-bold text-prohealth-900 mb-4">{{ t('allies.public.detail.servicesTitle') }}</h2>
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <h2 class="text-lg font-bold text-prohealth-900">{{ t('allies.public.detail.productsTitle') }}</h2>
+          <UButton
+            v-if="offers.some(o => o.inCatalog)"
+            :to="catalogLink"
+            color="primary"
+            variant="link"
+            size="sm"
+            trailing-icon="i-lucide-arrow-right"
+          >
+            {{ t('allies.public.detail.viewAllInCatalog') }}
+          </UButton>
+        </div>
 
-        <div v-if="!ally.services?.length" class="bg-white rounded-2xl border border-prohealth-100 py-10 text-center">
-          <UIcon name="i-lucide-briefcase-medical" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
-          <p class="text-sm text-prohealth-500">{{ t('allies.public.detail.servicesEmpty') }}</p>
+        <div v-if="!offers.length" class="bg-white rounded-2xl border border-prohealth-100 py-10 text-center">
+          <UIcon name="i-lucide-package" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
+          <p class="text-sm text-prohealth-500">{{ t('allies.public.detail.productsEmpty') }}</p>
         </div>
 
         <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div
-            v-for="s in ally.services"
+            v-for="s in offers"
             :key="s.uuid"
-            class="bg-white rounded-2xl border border-prohealth-100 p-5"
+            class="bg-white rounded-2xl border border-prohealth-100 p-5 flex flex-col"
           >
             <div class="flex items-start justify-between gap-3">
               <div class="min-w-0">
-                <h3 class="font-semibold text-prohealth-900">{{ s.name }}</h3>
-                <p v-if="s.categoryName" class="text-xs text-prohealth-500 mt-0.5">
-                  {{ s.categoryName }}
+                <p class="text-[11px] font-semibold uppercase tracking-wide text-cyan-700">
+                  {{ [typeLabel(s.productType, s.productType_Display), s.categoryName].filter(Boolean).join(' · ') }}
                 </p>
+                <h3 class="font-semibold text-prohealth-900">{{ s.name }}</h3>
               </div>
-              <div v-if="s.priceAmount" class="text-right shrink-0">
+              <div v-if="s.finalPrice != null && s.finalPrice !== ''" class="text-right shrink-0">
                 <p class="font-bold text-prohealth-900">
-                  <CurrencyConverterDisplay :amount="s.priceAmount" currency="USD" v-slot="{ result }">
+                  <CurrencyConverterDisplay :amount="s.finalPrice" currency="USD" v-slot="{ result }">
                     <span class="inline-flex items-center justify-end gap-1">
-                      {{ money(s.priceAmount) }}
+                      {{ money(s.finalPrice) }}
                       <CurrencyConverterTrigger :result="result" />
                     </span>
                   </CurrencyConverterDisplay>
                 </p>
-                <p v-if="s.discountPct" class="text-xs font-semibold text-lime-700">
+                <p v-if="hasDiscount(s.discountPct) && s.priceAmount != null" class="text-xs text-prohealth-400 line-through">
+                  {{ money(s.priceAmount) }}
+                </p>
+                <p v-if="hasDiscount(s.discountPct)" class="text-xs font-semibold text-lime-700">
                   {{ t('allies.public.detail.discountAffiliates', { pct: s.discountPct }) }}
                 </p>
               </div>
@@ -188,6 +223,15 @@ function money(v?: number | string | null): string {
               <UIcon name="i-lucide-calendar-check" class="w-3.5 h-3.5" />
               {{ t('allies.public.detail.requiresAppointment') }}
             </div>
+            <!-- Comparison only exists for products published in the general catalog. -->
+            <NuxtLink
+              v-if="s.inCatalog && s.productUuid"
+              :to="publicPath(`/catalogo/${s.productUuid}`)"
+              class="mt-auto pt-3 text-xs font-medium text-cyan-700 hover:underline inline-flex items-center gap-1"
+            >
+              {{ t('allies.public.detail.compareOthers') }}
+              <UIcon name="i-lucide-arrow-right" class="w-3.5 h-3.5" />
+            </NuxtLink>
           </div>
         </div>
       </div>

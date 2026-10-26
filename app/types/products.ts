@@ -35,6 +35,14 @@ export interface ProductListItemDto {
   exclusive_Display?: string | null
   requiresAppointment: boolean
   requiresAppointment_Display?: string | null
+  /**
+   * May appear in the public catalog (V199). `false` hides every ally's offer
+   * of this product, whatever the offer's own `published` flag says.
+   */
+  published: boolean
+  published_Display?: string | null
+  publishedAt?: string | null
+  publishedAt_Display?: string | null
   /** Public catalog image URL — only set once the image is published. */
   imageUrl?: string | null
   active: boolean
@@ -62,6 +70,8 @@ export interface ProductCreateRequest {
   /** Set → exclusive to that ally; omitted → general. */
   ownerAllyUuid?: string
   requiresAppointment?: boolean
+  /** Defaults to `true` in the backend. */
+  published?: boolean
 }
 
 /** PUT with PATCH semantics: only the fields sent change. */
@@ -76,21 +86,85 @@ export interface ProductUpdateRequest {
   /** `true` turns an exclusive product back into a general one. */
   general?: boolean
   requiresAppointment?: boolean
+  /** `false` hides every ally's offer of this product from the public catalog. */
+  published?: boolean
   active?: boolean
 }
 
 /**
  * Row of the public cross-ally catalog `GET /v1/public/products` (backend
  * `PublicProductListItemDto`): one publicly visible OFFER (approved + published)
- * with its product and parent-ally slice. Only the fields read here are typed.
+ * with its product and the parent ally's public identity slice.
  */
 export interface PublicProductListItemDto {
   /** Offer uuid. */
   uuid: string
   productUuid: string
   productType?: ProductType | string | null
+  productType_Display?: string | null
   categoryName?: string | null
   name: string
-  allyUuid?: string | null
-  allyName?: string | null
+  description?: string | null
+  priceAmount?: number | string | null
+  discountPct?: number | string | null
+  finalPrice?: number | string | null
+  exclusions?: string | null
+  requiresAppointment?: boolean
+  imageUrl?: string | null
+  allyUuid: string
+  allyName: string
+  allyTypeNames?: string[]
+  allyCityName?: string | null
+  allyLogoUrl?: string | null
+  allyPhone?: string | null
+}
+
+/** One ally's public offer of a product, inside {@link PublicProductDetailDto}. */
+export interface PublicProductOfferDto {
+  offerUuid: string
+  priceAmount?: number | string | null
+  discountPct?: number | string | null
+  finalPrice?: number | string | null
+  exclusions?: string | null
+  allyUuid: string
+  allyName: string
+  allyTypeNames?: string[]
+  allyCityName?: string | null
+  allyLogoUrl?: string | null
+  allyPhone?: string | null
+  allyWhatsapp?: string | null
+}
+
+/**
+ * Public product comparison `GET /v1/public/products/{uuid}?city=` (backend
+ * `PublicProductDetailDto`): the product plus every ally offering it publicly,
+ * best final price first. 404 when nobody offers it publicly (in that city).
+ */
+export interface PublicProductDetailDto {
+  uuid: string
+  name: string
+  description?: string | null
+  productType?: ProductType | string | null
+  productType_Display?: string | null
+  categoryName?: string | null
+  requiresAppointment?: boolean
+  imageUrl?: string | null
+  offersCount: number
+  minFinalPrice?: number | string | null
+  maxDiscountPct?: number | string | null
+  offers: PublicProductOfferDto[]
+}
+
+/**
+ * Plain-word filters of the public catalog (hub ADR 0026): what a lead would
+ * type — never ids. `type` is `servicio` / `producto`.
+ */
+export interface PublicProductSearchParams {
+  page?: number
+  size?: number
+  q?: string
+  type?: string
+  category?: string
+  city?: string
+  ally?: string
 }

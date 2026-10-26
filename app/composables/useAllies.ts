@@ -21,7 +21,7 @@ import type {
   UpdateAllyUserRequest,
   UserAllyDto,
 } from '~/types/allies'
-import type { ProductType } from '~/types/products'
+import type { ProductListItemDto, ProductType } from '~/types/products'
 import type { TermsVersionDto } from '~/types/terms'
 
 interface ListParams {
@@ -208,6 +208,20 @@ export const useAllies = () => {
   const proposeProduct = (body: ProposeAllyProductRequest) =>
     useApi<AllyProductDto>('/v1/me/allies/products', { method: 'POST', body })
 
+  /**
+   * Products my ally may still offer — general ones plus its own exclusive
+   * ones, minus those it already offers (membership-gated, no admin key).
+   */
+  const listOfferableProducts = (allyUuid: string, params: { q?: string, type?: string, size?: number } = {}) =>
+    useApi<Page<ProductListItemDto>>('/v1/me/allies/products/offerable', {
+      query: {
+        allyUuid,
+        size: params.size ?? 20,
+        ...(params.q ? { q: params.q } : {}),
+        ...(params.type ? { type: params.type } : {}),
+      },
+    })
+
   return {
     list,
     get,
@@ -243,15 +257,23 @@ export const useAllies = () => {
     removeUser,
     listAlliesForUser,
     proposeProduct,
+    listOfferableProducts,
   }
 }
 
+/**
+ * Plain-word filters of the public directory (hub ADR 0026) — what a lead would
+ * type, never ids: `q` matches name, RIF, ally number, description, city and
+ * state; `city` a city or state name; `category` / `type` (`servicio`/`producto`)
+ * keep allies publicly offering something of that category or type.
+ */
 interface PublicDirectoryParams {
   page?: number
   size?: number
   q?: string
-  cityUuid?: string
-  professionUuid?: string
+  city?: string
+  category?: string
+  type?: string
 }
 
 /**
@@ -266,8 +288,9 @@ export const usePublicAllies = () => {
         page: params.page ?? 0,
         size: params.size ?? 20,
         ...(params.q ? { q: params.q } : {}),
-        ...(params.cityUuid ? { cityUuid: params.cityUuid } : {}),
-        ...(params.professionUuid ? { professionUuid: params.professionUuid } : {}),
+        ...(params.city ? { city: params.city } : {}),
+        ...(params.category ? { category: params.category } : {}),
+        ...(params.type ? { type: params.type } : {}),
       },
     })
 

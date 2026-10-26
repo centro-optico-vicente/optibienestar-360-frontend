@@ -19,6 +19,7 @@ interface PublicRoutePair {
 export const PUBLIC_ROUTE_PAIRS: readonly PublicRoutePair[] = [
   { es: '/', en: '/en' },
   { es: '/aliados', en: '/en/allies', prefix: true },
+  { es: '/catalogo', en: '/en/catalog', prefix: true },
   { es: '/afiliarse', en: '/en/join' },
   { es: '/recuperar-clave', en: '/en/forgot-password' },
   { es: '/restablecer-clave', en: '/en/reset-password' },

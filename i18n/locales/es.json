@@ -607,6 +607,10 @@
         "label": "Productos y servicios",
         "description": "Catálogo maestro de productos y servicios que ofrecen los aliados."
       },
+      "allyProductReview": {
+        "label": "Revisión de ofertas",
+        "description": "Ofertas de aliados pendientes de aprobar o rechazar."
+      },
       "professions": {
         "label": "Profesiones",
         "description": "Profesiones y actividades de los aliados."
@@ -787,6 +791,7 @@
         "home": "Inicio",
         "about": "Sobre nosotros",
         "departments": "Departamentos",
+        "catalog": "Catálogo",
         "allies": "Aliados",
         "contact": "Contacto"
       },
@@ -1395,7 +1400,8 @@
       "referralCodeHelp": "Código que el aliado entrega a sus clientes para usar una promoción. Solo atribuye, no genera comisión.",
       "fileNumberHelp": "Formato [CÓDIGO DE ASESOR]-[Nº DE ALIADO]; lo asigna el sistema.",
       "representativeHelp": "Persona que firma el Convenio de Alianza Estratégica en nombre del aliado.",
-      "capturedByPromoterHelp": "Su código de asesor encabeza el número de expediente del convenio."
+      "capturedByPromoterHelp": "Su código de asesor encabeza el número de expediente del convenio.",
+      "publishedHelp": "El aliado aparece en el directorio público de aliados."
     },
     "delete": {
       "title": "Eliminar aliado",
@@ -1495,11 +1501,12 @@
           "price": "Precio (USD)",
           "discount": "Tarifa Preferencial (%)",
           "requiresAppointment": "Requiere cita",
-          "published": "Publicado",
+          "published": "Publicado por el aliado",
           "exclusions": "Exclusiones (no aplica en)"
         },
         "exclusionsHelp": "Casos en los que la Tarifa Preferencial no aplica. Se muestra a los afiliados en el directorio.",
-        "exclusionsPlaceholder": "Ej.: ofertas existentes, licores, cigarrillos"
+        "exclusionsPlaceholder": "Ej.: ofertas existentes, licores, cigarrillos",
+        "publishedHelp": "Visible en la ficha pública del aliado (una vez aprobada la oferta)."
       },
       "delete": {
         "title": "Eliminar oferta",
@@ -1628,10 +1635,9 @@
       "emptyTitle": "No encontramos aliados",
       "emptyBody": "Prueba con otros filtros o términos de búsqueda.",
       "filters": {
-        "search": "Buscar por nombre…",
-        "state": "Estado",
-        "city": "Ciudad",
-        "profession": "Profesión",
+        "search": "Nombre, RIF, número de aliado o ciudad…",
+        "cityOrState": "Ciudad o estado",
+        "category": "Rubro",
         "clear": "Limpiar filtros"
       },
       "detail": {
@@ -1640,8 +1646,10 @@
         "notFoundTitle": "Aliado no disponible",
         "notFoundBody": "No existe o ya no forma parte del directorio.",
         "backToDirectory": "Volver al directorio",
-        "servicesTitle": "Servicios disponibles",
-        "servicesEmpty": "Este aliado aún no tiene servicios publicados.",
+        "productsTitle": "Productos y servicios",
+        "productsEmpty": "Este aliado aún no tiene productos ni servicios publicados.",
+        "viewAllInCatalog": "Ver todo lo que ofrece en el catálogo",
+        "compareOthers": "Comparar con otros aliados",
         "discountAffiliates": "Tarifa Preferencial -{pct}%",
         "requiresAppointment": "Requiere cita previa",
         "ctaTitle": "¿Aún no eres afiliado?",
@@ -1696,6 +1704,54 @@
       "B2P": "Profesional (B2P)"
     }
   },
+  "catalog": {
+    "public": {
+      "seoTitle": "Catálogo de productos y servicios — OptiBienestar 360",
+      "seoDescription": "Productos y servicios de los aliados de OptiBienestar 360 con Tarifa Preferencial para afiliados: compara precios y descuentos por aliado.",
+      "heroBadge": "Catálogo",
+      "heroTitle1": "Productos y servicios",
+      "heroTitle2": "con Tarifa Preferencial.",
+      "heroLead": "Compara precios y descuentos de toda la red de aliados y encuentra la mejor opción cerca de ti.",
+      "filters": {
+        "search": "¿Qué buscas? Producto, servicio, aliado o ciudad…",
+        "category": "Categoría",
+        "city": "Ciudad o estado",
+        "ally": "Aliado: nombre, RIF o número",
+        "clear": "Limpiar filtros"
+      },
+      "types": {
+        "all": "Todo",
+        "servicio": "Servicios",
+        "producto": "Productos"
+      },
+      "resultsCount": "{total} resultado(s)",
+      "emptyTitle": "No encontramos productos ni servicios",
+      "emptyBody": "Prueba con otras palabras o quita algún filtro.",
+      "discount": "-{pct}%",
+      "compare": "Comparar",
+      "loadMore": "Ver más",
+      "detail": {
+        "seoTitle": "{name} — Catálogo OptiBienestar 360",
+        "back": "Catálogo",
+        "notFoundTitle": "Producto o servicio no disponible",
+        "notFoundBody": "Ningún aliado lo ofrece públicamente en este momento.",
+        "backToCatalog": "Volver al catálogo",
+        "notInCityTitle": "Nadie lo ofrece en «{city}»",
+        "notInCityBody": "Prueba con otra ciudad o estado, o mira todas las ofertas.",
+        "anyCity": "Ver todas las ciudades",
+        "from": "Desde {price}",
+        "upTo": "hasta {pct}% de descuento",
+        "offersCount": "Ofrecido por {n} aliado | Ofrecido por {n} aliados",
+        "compareTitle": "Compara entre aliados",
+        "bestPrice": "Mejor precio",
+        "price": "Precio",
+        "discountLabel": "Tarifa Pref.",
+        "finalPrice": "Precio final",
+        "whatsapp": "WhatsApp",
+        "viewAlly": "Ver aliado"
+      }
+    }
+  },
   "products": {
     "title": "Productos y servicios",
     "subtitle": "Catálogo maestro de lo que ofrecen los aliados. Los generales los puede ofrecer cualquier aliado; los exclusivos, solo su aliado.",
@@ -1720,7 +1776,10 @@
       "allCategories": "Todas las categorías",
       "allScopes": "Generales y exclusivos",
       "general": "Solo generales",
-      "exclusive": "Solo exclusivos"
+      "exclusive": "Solo exclusivos",
+      "allPublication": "Catálogo general: todos",
+      "published": "Visibles en el catálogo general",
+      "unpublished": "Ocultos del catálogo general"
     },
     "scope": {
       "general": "General",
@@ -1733,6 +1792,7 @@
       "scope": "Alcance",
       "appointment": "Cita",
       "image": "Imagen",
+      "published": "Catálogo general",
       "status": "Estado"
     },
     "form": {
@@ -1744,6 +1804,7 @@
       "ownerAllyNoPermission": "Necesitas ver Aliados para asignar un aliado dueño.",
       "generalPlaceholder": "General (ningún aliado)",
       "allySearchPlaceholder": "Buscar aliado…",
+      "publishedHelp": "Si está apagado, solo se ve desde los aliados que publiquen su oferta.",
       "fields": {
         "code": "Código",
         "name": "Nombre",
@@ -1752,6 +1813,7 @@
         "category": "Categoría",
         "ownerAlly": "Aliado dueño (exclusivo)",
         "requiresAppointment": "Requiere cita",
+        "published": "Visible en el catálogo general",
         "active": "Activo"
       }
     },
@@ -1791,6 +1853,22 @@
         "review": "Revisión",
         "published": "Publicado"
       }
+    }
+  },
+  "allyProductReview": {
+    "title": "Revisión de ofertas",
+    "subtitle": "Productos y servicios que los aliados propusieron y esperan aprobación, del más antiguo al más reciente.",
+    "searchPlaceholder": "Buscar por producto o servicio…",
+    "allAllies": "Todos los aliados",
+    "empty": "No hay ofertas pendientes de revisión",
+    "columns": {
+      "ally": "Aliado",
+      "proposedAt": "Propuesta"
+    },
+    "log": {
+      "open": "Historial de revisión",
+      "title": "Historial de revisión",
+      "empty": "Sin movimientos registrados"
     }
   },
   "promoterSelf": {

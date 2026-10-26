@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import type { CatalogItem } from '~/types/catalogs'
 import type { PublicAllyListItemDto } from '~/types/allies'
 
 // PUBLIC partner directory (no login). Only shows PUBLISHED+ACTIVE partners with
-// data sanitized by the backend (/v1/public/allies).
+// data sanitized by the backend (/v1/public/allies). Filters take plain words, as
+// a lead would type them (hub ADR 0026): `q` over name, RIF, ally number, city and
+// state; a city/state name; the "rubro" (product category) by name. They are
+// mirrored to the URL (?q=&ciudad=&categoria=) so a search can be shared.
 // English pair of this public screen (hub URL convention): same page, rendered
 // in English by middleware/public-locale.global.ts. The fixed `key` keeps the
 // component (and any typed input) when the switcher jumps between the two URLs.
@@ -11,13 +13,22 @@ definePageMeta({ layout: 'default', alias: ['/en/allies'], key: 'public-allies' 
 
 const { t } = useI18n()
 const publicPath = usePublicPath()
+const route = useRoute()
+const router = useRouter()
 
 useSeoMeta({
   title: () => t('allies.public.seoTitle'),
   description: () => t('allies.public.seoDescription'),
+  ogTitle: () => t('allies.public.seoTitle'),
+  ogDescription: () => t('allies.public.seoDescription'),
 })
 
 const publicAllies = usePublicAllies()
+
+function queryString(key: string): string {
+  const v = route.query[key]
+  return typeof v === 'string' ? v : ''
+}
 
 // ---- List + filters ----
 const data = ref<PublicAllyListItemDto[]>([])
@@ -25,9 +36,17 @@ const total = ref(0)
 const loading = ref(false)
 const page = ref(1) // UPagination is 1-based; the API is 0-based
 const size = ref(12)
-const search = ref('')
-const cityUuid = ref<string | undefined>(undefined)
-const professionUuid = ref<string | undefined>(undefined)
+const search = ref(queryString('q'))
+const city = ref(queryString('ciudad'))
+const category = ref<string | undefined>(queryString('categoria') || undefined)
+
+function syncUrl() {
+  const query: Record<string, string> = {}
+  if (search.value.trim()) query.q = search.value.trim()
+  if (city.value.trim()) query.ciudad = city.value.trim()
+  if (category.value) query.categoria = category.value
+  router.replace({ query })
+}
 
 async function load() {
   loading.value = true
@@ -36,8 +55,8 @@ async function load() {
       page: page.value - 1,
       size: size.value,
       q: search.value.trim() || undefined,
-      cityUuid: cityUuid.value,
-      professionUuid: professionUuid.value,
+      city: city.value.trim() || undefined,
+      category: category.value || undefined,
     })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
@@ -52,77 +71,45 @@ async function load() {
   }
 }
 
+function reloadFromFirstPage() {
+  syncUrl()
+  if (page.value !== 1) page.value = 1
+  else load()
+}
+
 watch(page, load)
-watch([cityUuid, professionUuid], () => {
-  page.value = 1
-  load()
-})
+watch(category, reloadFromFirstPage)
 let searchTimer: ReturnType<typeof setTimeout> | undefined
-watch(search, () => {
+watch([search, city], () => {
   clearTimeout(searchTimer)
-  searchTimer = setTimeout(() => {
-    page.value = 1
-    load()
-  }, 400)
+  searchTimer = setTimeout(reloadFromFirstPage, 400)
 })
 
-// ---- Catalogs for the filters ----
-type Option = { label: string, value: string }
-const professionOptions = ref<Option[]>([])
-const stateOptions = ref<Option[]>([])
-const cityOptions = ref<Option[]>([])
+// "Rubro": product categories by NAME (the API takes name or code, never ids here).
+const categoryOptions = ref<string[]>([])
 
-function toOptions(items: CatalogItem[]): Option[] {
-  return items
-    .filter(i => i.active !== false)
-    .map(i => ({ label: i.name, value: i.uuid }))
-}
-
-async function loadCatalogs() {
-  const safeList = async (resource: string, query?: Record<string, string>) => {
-    try {
-      return await usePublicCatalog(resource).list({ size: '-1', ...query })
-    }
-    catch {
-      return [] as CatalogItem[]
-    }
-  }
-  const [professions, states] = await Promise.all([
-    safeList('professions'),
-    safeList('states', { country: 'VE' }),
-  ])
-  professionOptions.value = toOptions(professions)
-  stateOptions.value = toOptions(states)
-}
-
-// Cities cascade based on the selected state.
-const selectedStateUuid = ref<string | undefined>(undefined)
-watch(selectedStateUuid, async (stateUuid) => {
-  cityOptions.value = []
-  cityUuid.value = undefined
-  if (!stateUuid) return
+async function loadCategories() {
   try {
-    const cities = await usePublicCatalog('cities').list({ stateUuid, size: '-1' })
-    cityOptions.value = toOptions(cities)
+    const items = await usePublicCatalog('product-categories').list()
+    categoryOptions.value = items.filter(i => i.active !== false).map(i => i.name)
   }
   catch {
-    cityOptions.value = []
+    categoryOptions.value = []
   }
-})
+}
 
 function clearFilters() {
   search.value = ''
-  selectedStateUuid.value = undefined
-  cityUuid.value = undefined
-  professionUuid.value = undefined
+  city.value = ''
+  category.value = undefined
 }
 
 const hasFilters = computed(() =>
-  Boolean(search.value.trim() || selectedStateUuid.value || cityUuid.value || professionUuid.value),
+  Boolean(search.value.trim() || city.value.trim() || category.value),
 )
 
 onMounted(async () => {
-  await Promise.all([load(), loadCatalogs()])
+  await Promise.all([load(), loadCategories()])
 })
 </script>
 
@@ -156,34 +143,20 @@ onMounted(async () => {
           :placeholder="t('allies.public.filters.search')"
           icon="i-lucide-search"
           size="lg"
+          class="lg:col-span-2"
         />
-        <USelectMenu
-          clear
-          v-model="selectedStateUuid"
-          :items="stateOptions"
-          label-key="label"
-          value-key="value"
-          :placeholder="t('allies.public.filters.state')"
-          size="lg"
-        />
-        <USelectMenu
-          clear
-          v-model="cityUuid"
-          :items="cityOptions"
-          label-key="label"
-          value-key="value"
-          :disabled="!selectedStateUuid"
-          :placeholder="t('allies.public.filters.city')"
+        <UInput
+          v-model="city"
+          :placeholder="t('allies.public.filters.cityOrState')"
+          icon="i-lucide-map-pin"
           size="lg"
         />
         <div class="flex items-center gap-2">
           <USelectMenu
             clear
-            v-model="professionUuid"
-            :items="professionOptions"
-            label-key="label"
-            value-key="value"
-            :placeholder="t('allies.public.filters.profession')"
+            v-model="category"
+            :items="categoryOptions"
+            :placeholder="t('allies.public.filters.category')"
             size="lg"
             class="flex-1"
           />

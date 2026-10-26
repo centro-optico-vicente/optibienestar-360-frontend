@@ -607,6 +607,10 @@
         "label": "Products and services",
         "description": "Master catalog of the products and services partners offer."
       },
+      "allyProductReview": {
+        "label": "Offer review",
+        "description": "Partner offers waiting to be approved or rejected."
+      },
       "professions": {
         "label": "Professions",
         "description": "Professions and business activities of the partners."
@@ -787,6 +791,7 @@
         "home": "Home",
         "about": "About us",
         "departments": "Departments",
+        "catalog": "Catalog",
         "allies": "Partners",
         "contact": "Contact"
       },
@@ -1395,7 +1400,8 @@
       "referralCodeHelp": "Code the ally hands to its customers to use a promotion. Attribution only, no commission.",
       "fileNumberHelp": "Format [ADVISOR CODE]-[ALLY NUMBER]; assigned by the system.",
       "representativeHelp": "Person who signs the Strategic Alliance Agreement on behalf of the ally.",
-      "capturedByPromoterHelp": "Their advisor code prefixes the agreement file number."
+      "capturedByPromoterHelp": "Their advisor code prefixes the agreement file number.",
+      "publishedHelp": "The partner appears in the public partner directory."
     },
     "delete": {
       "title": "Delete partner",
@@ -1495,11 +1501,12 @@
           "price": "Price (USD)",
           "discount": "Preferential Rate (%)",
           "requiresAppointment": "Requires appointment",
-          "published": "Published",
+          "published": "Published by the partner",
           "exclusions": "Exclusions (does not apply to)"
         },
         "exclusionsHelp": "Cases where the Preferential Rate does not apply. Shown to members in the directory.",
-        "exclusionsPlaceholder": "E.g.: existing offers, liquor, cigarettes"
+        "exclusionsPlaceholder": "E.g.: existing offers, liquor, cigarettes",
+        "publishedHelp": "Visible on the partner's public page (once the offer is approved)."
       },
       "delete": {
         "title": "Delete offer",
@@ -1628,10 +1635,9 @@
       "emptyTitle": "No partners found",
       "emptyBody": "Try other filters or search terms.",
       "filters": {
-        "search": "Search by name…",
-        "state": "State",
-        "city": "City",
-        "profession": "Profession",
+        "search": "Name, tax ID, partner number or city…",
+        "cityOrState": "City or state",
+        "category": "Line of business",
         "clear": "Clear filters"
       },
       "detail": {
@@ -1640,8 +1646,10 @@
         "notFoundTitle": "Partner unavailable",
         "notFoundBody": "It doesn't exist or is no longer part of the directory.",
         "backToDirectory": "Back to directory",
-        "servicesTitle": "Available services",
-        "servicesEmpty": "This partner doesn't have published services yet.",
+        "productsTitle": "Products and services",
+        "productsEmpty": "This partner doesn't have published products or services yet.",
+        "viewAllInCatalog": "See everything it offers in the catalog",
+        "compareOthers": "Compare with other partners",
         "discountAffiliates": "Preferential Rate -{pct}%",
         "requiresAppointment": "Requires an appointment",
         "ctaTitle": "Not a member yet?",
@@ -1696,6 +1704,54 @@
       "B2P": "Professional (B2P)"
     }
   },
+  "catalog": {
+    "public": {
+      "seoTitle": "Products and services catalog — OptiBienestar 360",
+      "seoDescription": "Products and services from OptiBienestar 360 partners with a Preferential Rate for members: compare prices and discounts by partner.",
+      "heroBadge": "Catalog",
+      "heroTitle1": "Products and services",
+      "heroTitle2": "at a Preferential Rate.",
+      "heroLead": "Compare prices and discounts across the partner network and find the best option near you.",
+      "filters": {
+        "search": "What are you looking for? Product, service, partner or city…",
+        "category": "Category",
+        "city": "City or state",
+        "ally": "Partner: name, tax ID or number",
+        "clear": "Clear filters"
+      },
+      "types": {
+        "all": "All",
+        "servicio": "Services",
+        "producto": "Products"
+      },
+      "resultsCount": "{total} result(s)",
+      "emptyTitle": "No products or services found",
+      "emptyBody": "Try other words or remove a filter.",
+      "discount": "-{pct}%",
+      "compare": "Compare",
+      "loadMore": "Load more",
+      "detail": {
+        "seoTitle": "{name} — OptiBienestar 360 catalog",
+        "back": "Catalog",
+        "notFoundTitle": "Product or service unavailable",
+        "notFoundBody": "No partner offers it publicly right now.",
+        "backToCatalog": "Back to catalog",
+        "notInCityTitle": "Nobody offers it in “{city}”",
+        "notInCityBody": "Try another city or state, or see every offer.",
+        "anyCity": "See all cities",
+        "from": "From {price}",
+        "upTo": "up to {pct}% off",
+        "offersCount": "Offered by {n} partner | Offered by {n} partners",
+        "compareTitle": "Compare across partners",
+        "bestPrice": "Best price",
+        "price": "Price",
+        "discountLabel": "Pref. Rate",
+        "finalPrice": "Final price",
+        "whatsapp": "WhatsApp",
+        "viewAlly": "View partner"
+      }
+    }
+  },
   "products": {
     "title": "Products and services",
     "subtitle": "Master catalog of what partners offer. General items can be offered by any partner; exclusive ones only by their partner.",
@@ -1720,7 +1776,10 @@
       "allCategories": "All categories",
       "allScopes": "General and exclusive",
       "general": "General only",
-      "exclusive": "Exclusive only"
+      "exclusive": "Exclusive only",
+      "allPublication": "General catalog: all",
+      "published": "Visible in the general catalog",
+      "unpublished": "Hidden from the general catalog"
     },
     "scope": {
       "general": "General",
@@ -1733,6 +1792,7 @@
       "scope": "Scope",
       "appointment": "Appt.",
       "image": "Image",
+      "published": "General catalog",
       "status": "Status"
     },
     "form": {
@@ -1744,6 +1804,7 @@
       "ownerAllyNoPermission": "Viewing Partners is required to assign an owner partner.",
       "generalPlaceholder": "General (no partner)",
       "allySearchPlaceholder": "Search partner…",
+      "publishedHelp": "When off, it is only shown through the partners that publish their offer.",
       "fields": {
         "code": "Code",
         "name": "Name",
@@ -1752,6 +1813,7 @@
         "category": "Category",
         "ownerAlly": "Owner partner (exclusive)",
         "requiresAppointment": "Requires appointment",
+        "published": "Visible in the general catalog",
         "active": "Active"
       }
     },
@@ -1791,6 +1853,22 @@
         "review": "Review",
         "published": "Published"
       }
+    }
+  },
+  "allyProductReview": {
+    "title": "Offer review",
+    "subtitle": "Products and services proposed by partners and waiting for approval, oldest first.",
+    "searchPlaceholder": "Search by product or service…",
+    "allAllies": "All partners",
+    "empty": "No offers waiting for review",
+    "columns": {
+      "ally": "Partner",
+      "proposedAt": "Proposed"
+    },
+    "log": {
+      "open": "Review history",
+      "title": "Review history",
+      "empty": "No recorded changes"
     }
   },
   "promoterSelf": {

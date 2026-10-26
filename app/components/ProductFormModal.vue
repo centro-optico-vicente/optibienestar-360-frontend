@@ -52,6 +52,7 @@ interface ProductFormState {
   productCategoryUuid: string | undefined
   ownerAllyUuid: string | undefined
   requiresAppointment: boolean
+  published: boolean
   active: boolean
 }
 
@@ -63,6 +64,7 @@ const state = reactive<ProductFormState>({
   productCategoryUuid: undefined,
   ownerAllyUuid: undefined,
   requiresAppointment: false,
+  published: true,
   active: true,
 })
 
@@ -74,6 +76,7 @@ function resetState() {
   state.productCategoryUuid = undefined
   state.ownerAllyUuid = undefined
   state.requiresAppointment = false
+  state.published = true
   state.active = true
 }
 
@@ -157,6 +160,7 @@ watch(() => props.open, async (open) => {
     state.productCategoryUuid = full.productCategory_Uuid ?? undefined
     state.ownerAllyUuid = full.ownerAlly_Uuid ?? undefined
     state.requiresAppointment = full.requiresAppointment
+    state.published = full.published ?? true
     state.active = full.active
     if (full.ownerAlly_Uuid) {
       allyOptions.value = [{ label: full.ownerAlly_Display ?? full.ownerAlly_Uuid, value: full.ownerAlly_Uuid }]
@@ -184,6 +188,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         productCategoryUuid: state.productCategoryUuid!,
         ownerAllyUuid: state.ownerAllyUuid || undefined,
         requiresAppointment: state.requiresAppointment,
+        published: state.published,
       }
       saved = await productsApi.create(body)
       toast.add({ title: t('products.createdToast'), color: 'success', icon: 'i-lucide-check-circle' })
@@ -198,6 +203,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         productType: state.productType,
         productCategoryUuid: state.productCategoryUuid,
         requiresAppointment: state.requiresAppointment,
+        published: state.published,
         active: state.active,
         ...(state.ownerAllyUuid
           ? { ownerAllyUuid: state.ownerAllyUuid }
@@ -306,6 +312,13 @@ function requestDelete() {
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('products.form.fields.requiresAppointment')" name="requiresAppointment">
             <USwitch v-model="state.requiresAppointment" />
+          </UFormField>
+          <UFormField
+            :label="t('products.form.fields.published')"
+            name="published"
+            :help="t('products.form.publishedHelp')"
+          >
+            <USwitch v-model="state.published" />
           </UFormField>
           <UFormField v-if="mode === 'edit'" :label="t('products.form.fields.active')" name="active">
             <USwitch v-model="state.active" />

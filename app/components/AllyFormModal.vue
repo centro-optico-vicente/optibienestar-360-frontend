@@ -610,7 +610,7 @@ function requestDelete() {
           <UFormField :label="t('allies.form.fields.joinedAt')" name="joinedAt">
             <UInput v-model="state.joinedAt" type="date" class="w-full" />
           </UFormField>
-          <UFormField :label="t('allies.form.fields.published')" name="published">
+          <UFormField :label="t('allies.form.fields.published')" name="published" :help="t('allies.form.publishedHelp')">
             <USwitch v-model="state.published" />
           </UFormField>
           <UFormField v-if="mode === 'edit'" :label="t('allies.form.fields.status')" name="status">
