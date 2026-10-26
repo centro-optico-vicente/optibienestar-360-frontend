@@ -51,6 +51,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # Types come from the OpenAPI contract of the backend release pinned in api/contract-version
+      # (ADR LOC-0011); nothing generated is committed.
+      - name: Generate API types from the backend contract
+        run: pnpm api:generate
+
       - name: Typecheck
         run: pnpm typecheck
 
