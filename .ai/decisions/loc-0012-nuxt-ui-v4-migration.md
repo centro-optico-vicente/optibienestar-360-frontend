@@ -1,6 +1,6 @@
 # ADR LOC-0012 (frontend) — Migración de Nuxt UI v3 a v4
 
-**Estado:** Propuesto
+**Estado:** Aceptado (2026-10-25, dueño) — implementado en [PR #255](https://github.com/centro-optico-vicente/optibienestar-360-frontend/pull/255)
 **Fecha:** 2026-10-25
 **Decisores:** equipo OptiBienestar 360 (pendiente de aceptación del dueño)
 **Origen:** tarea "Migrar `@nuxt/ui` v3 → v4" en [`vertical-10` §Dependencias](../checklists/vertical-10-optimizacion-reportes-hardening.md)
@@ -103,9 +103,11 @@ Condición: no mezclar con otro cambio (ni la estrategia de rendering de ADR LOC
 - Riesgo de regresión visual silenciosa en overrides `:ui` y tema (mitigado con revisión manual).
 - Hay que actualizar la documentación (ADR LOC-0001, `.ai/`, hub ADR 0001).
 
-## Preguntas abiertas para el dueño
+## Resolución de las preguntas (2026-10-25)
 
-1. ¿Cómo se regenera `pnpm-lock.yaml` sin correr `pnpm install` en local? (¿workflow de CI que haga commit del lockfile, o se autoriza una ejecución puntual?). Sin lockfile actualizado, `--frozen-lockfile` del CI falla.
-2. ¿Quién hace la revisión visual en TEST y con qué plazo? ¿Se acepta el riesgo sin capturas automáticas?
-3. ¿Se acepta subir a la última 4.x (4.12.0 al 2026-10-25) o se prefiere fijar `4.0.x` y subir luego? La guía oficial solo cubre 4.0.
-4. ¿Se enmienda el hub ADR 0001 (dice "Nuxt 3" y "Nuxt UI v3") junto con este cambio?
+1. **Lockfile:** el dueño ejecuta `pnpm install` en la rama del PR #255 y sube `pnpm-lock.yaml` (no se corre pnpm en local por regla del proyecto).
+2. **Revisión visual en TEST:** la hace el dueño con la lista de comprobación del PR #255, antes de publicar el release.
+3. **Versión:** se sube a la última 4.x (`^4.11.3`; resuelve 4.12.0). La guía oficial solo cubre 4.0, por eso la revisión visual es obligatoria.
+4. **Hub ADR 0001** ("Nuxt 3" / "Nuxt UI v3"): sigue pendiente de enmienda; no se hizo en este cambio.
+
+Verificado al implementar (npm, 4.11.3 y 4.12.0): `@nuxt/ui/locale` sigue exportando; Node requerido `^20.19.0 || >=22.12.0`; tailwind `^4.3.3`, por eso se subió `tailwindcss` en `package.json`. Sin verificar: `useToast` (la guía v4 no lo menciona).
