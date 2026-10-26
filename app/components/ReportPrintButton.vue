@@ -126,7 +126,7 @@ const defaultLabel = computed(() => {
 <template>
   <template v-if="canPrint">
     <div v-if="!iconOnly" class="inline-flex items-center">
-      <UButtonGroup>
+      <UFieldGroup>
         <UButton
           :color="(color as any)"
           :variant="(variant as any)"
@@ -148,7 +148,7 @@ const defaultLabel = computed(() => {
             :aria-label="t('reports.printOptions')"
           />
         </UDropdownMenu>
-      </UButtonGroup>
+      </UFieldGroup>
     </div>
 
     <div v-else class="inline-flex items-center">

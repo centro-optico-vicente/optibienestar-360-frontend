@@ -9,7 +9,7 @@ Frontend multi-rol (Vue 3 + Nuxt 4) que sirve a admin, operador, aliados, afilia
 ## Stack confirmado
 
 - Vue 3 + Nuxt 4 — real: SPA (`ssr: false`, ver [ADR 0003 local](decisions/loc-0003-spa-mode.md))
-- Nuxt UI v3 (componentes accesibles con Tailwind v4)
+- Nuxt UI v4 (componentes accesibles con Tailwind v4; migrado desde v3, ver [ADR LOC-0012](decisions/loc-0012-nuxt-ui-v4-migration.md))
 - Pinia state
 - VueUse, i18n, image, icon
 - vee-validate + zod (forms)
