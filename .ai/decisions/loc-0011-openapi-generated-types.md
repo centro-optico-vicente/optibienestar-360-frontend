@@ -1,6 +1,6 @@
 # ADR LOC-0011 (frontend) — Tipos TypeScript generados desde el OpenAPI del backend
 
-**Estado:** Aceptado, condicionado a la Fase 0 (2026-10-25, dueño)
+**Estado:** Aceptado (2026-10-25, dueño). **Fase 0 superada y Fase 1 completa** (2026-10-26): el release backend 0.0.121 publica un `openapi.json` fiel al cable (ver "Resultado de la Fase 0").
 **Fecha:** 2026-10-25
 **Decisores:** equipo OptiBienestar 360 (pendiente de aceptación del dueño)
 **Origen:** [`dto-shape-mismatches.md`](../dto-shape-mismatches.md) · [`vertical-10` §Contrato de tipos](../checklists/vertical-10-optimizacion-reportes-hardening.md) ("merece ADR propio") · [auditoría 2026-09-23](../notes/2026-09-23_audit.md) hallazgo F-04
@@ -37,10 +37,10 @@ Los arreglos aplicados hasta hoy son la opción táctica (espejar el cable a man
 - **Escala:** 99 clases `@RestController` y ~287 records `*Dto/*Request/*Response`.
 - **Seguridad del endpoint:** `SecurityConfig.PUBLIC_PATHS` incluye `/v3/api-docs/**`, `/swagger-ui/**` y `/swagger-ui.html` con `permitAll()`. No existe ninguna propiedad `springdoc.*` en `application-dev/prod/test.properties` (solo en `application.properties`), así que **la especificación completa —incluida toda la superficie `/v1/admin/**`— es pública también en producción**. Esto es un hallazgo de seguridad independiente de este ADR (enumera endpoints, parámetros y DTOs a cualquier anónimo); ver Preguntas abiertas.
 - **Ninguna anotación `@Schema`** en `src/main` (0 coincidencias). El esquema se infiere solo de los records y de Bean Validation (114 archivos con `@NotNull/@NotBlank`, la mayoría en requests).
-- **Convención `_Display` (hub ADR 0014):** los pares `<rel>_Uuid`/`<rel>_Display` y `<campo>_Display` **no existen en los records**: los emite en serialización `DisplayBeanSerializerModifier` (un `BeanSerializerModifier` de Jackson) a partir de `@Display DisplayRef city`, `@Display(Kind.DATETIME) Instant createdAt`, etc. (ver `AllyListItemDto`). 48 DTOs usan `_Display`.
+- **Convención `_Display` (hub ADR 0014):** los pares `<rel>_Uuid`/`<rel>_Display` y `<campo>_Display` **no existen en los records**: los emite en serialización `DisplayValueSerializerModifier` (un `BeanSerializerModifier` de Jackson 3; emite además una tercera clave `<rel>_Code`; corregido tras la Fase 0, antes decía `DisplayBeanSerializerModifier`) a partir de `@Display DisplayRef city`, `@Display(Kind.DATETIME) Instant createdAt`, etc. (ver `AllyListItemDto`). 48 DTOs usan `_Display`.
 - **Casing:** camelCase tal cual (sin estrategia de nombres, hub ADR 0019).
 
-### Riesgos técnicos del contrato generado (no verificados — requieren Fase 0)
+### Riesgos técnicos del contrato generado (hipótesis iniciales; resultados verificados abajo en "Resultado de la Fase 0")
 
 1. **`_Display` probablemente no aparece en el spec.** swagger-core/springdoc introspeccionan la clase, no pasan por el `BeanSerializerModifier`. Lo esperable es que `/v3/api-docs` describa `city: DisplayRef` (anidado) en vez de `city_Uuid` + `city_Display`, y que omita `createdAt_Display`. Si es así, el tipo generado **mentiría igual que hoy**, en el eje que más usa el frontend. Hace falta un `OpenApiCustomizer`/`ModelConverter` en el backend que replique la regla del modifier (o una prueba de contrato que compare ambos).
 2. **Obligatoriedad de campos.** Sin `@Schema(requiredMode)` ni `@NotNull` en responses, springdoc marca los campos como opcionales → el tipo generado tendría `?` en todo, perdiendo parte del valor (hoy los tipos manuales sí declaran obligatorios). Hay que decidir una regla (p. ej. record components primitivos/`@NotNull` = required) y aplicarla en el backend.
@@ -89,14 +89,30 @@ Las tres herramientas son OSS gratuitas → cumplen hub ADR 0004. Versiones toma
 
 | Fase | Contenido | Criterio de salida |
 |---|---|---|
-| **0 — Spike (backend + manual)** | Descargar `/v3/api-docs` de TEST (única vez, antes de que exista el asset del release); comprobar: ¿aparece `city_Uuid/_Display`? ¿qué campos son `required`? ¿3.0 o 3.1? ¿tamaño? Comparar 3 DTOs (`AllyListItemDto`, `MemberDetailDto`, `PublicAllyDetailDto`) contra una respuesta real. | Informe con veredicto go/no-go; lista de cambios necesarios en backend. |
-| **1 — Backend** (ADR y PRs propios en `optibienestar-360-backend`) | (a) `OpenApiCustomizer` para `_Display` y regla de `required`; (b) generar `openapi.json` en el CI y adjuntarlo al release con su versión; (c) restringir `/v3/api-docs` y Swagger UI en prod con una variable de entorno (el perfil `prod` también lo usa staging). | El `openapi.json` de un release refleja el cable real en los 3 DTOs. |
+| **0 — Spike (backend + manual) ✅ superada** | Descargar `/v3/api-docs` de TEST (única vez, antes de que exista el asset del release); comprobar: ¿aparece `city_Uuid/_Display`? ¿qué campos son `required`? ¿3.0 o 3.1? ¿tamaño? Comparar 3 DTOs (`AllyListItemDto`, `MemberDetailDto`, `PublicAllyDetailDto`) contra una respuesta real. | Informe con veredicto go/no-go; lista de cambios necesarios en backend. |
+| **1 — Backend ✅ completa (PRs #349–#352, release 0.0.121)** (ADR y PRs propios en `optibienestar-360-backend`) | (a) `OpenApiCustomizer` para `_Display` y regla de `required`; (b) generar `openapi.json` en el CI y adjuntarlo al release con su versión; (c) restringir `/v3/api-docs` y Swagger UI en prod con una variable de entorno (el perfil `prod` también lo usa staging). | El `openapi.json` de un release refleja el cable real en los 3 DTOs. |
 | **2 — Tooling frontend** | Dependencia dev `openapi-typescript`, `api/contract-version`, script `api:generate` (descarga el asset del release y genera `api.d.ts`, ignorado por git), paso de CI previo al typecheck. Sin consumidores. | CI verde; ningún cambio de comportamiento. |
 | **3 — Piloto: Aliados** | `types/allies.ts` re-exporta del generado (ya tiene lista/detalle/público auditados: base ideal de comparación). | Typecheck pasa sin cambios de código o los errores revelan desfases reales. |
 | **4 — Resto por módulo** | Afiliados, pagos, comisiones, catálogos… un módulo por PR, empezando por los más usados. | Cada PR borra los tipos manuales equivalentes. |
 | **5 — Aviso de contrato nuevo** | Workflow programado que compara `api/contract-version` con el último release del backend y abre un PR de actualización de versión. | Un release de backend con contrato distinto aparece como PR en el frontend sin intervención. |
 
 **Rollback:** el generador es solo tipos y convive con los manuales; revertir un PR de módulo restaura los tipos escritos a mano. Fase 2 se revierte quitando dependencia y archivos.
+
+## Resultado de la Fase 0 (2026-10-26)
+
+Verificado por el CI del backend (artefacto de la corrida 40262115722) y comprobado de nuevo sobre el asset del **release 0.0.121** (`https://github.com/centro-optico-vicente/optibienestar-360-backend/releases/download/0.0.121/openapi.json`: HTTP 200, 1.010.064 B, OpenAPI 3.1.0, 413 rutas, 381 esquemas). Detalle en el ADR `loc-0015` del backend y en sus PRs #349–#352.
+
+| Pregunta | Antes (spec sin corregir) | Ahora (0.0.121) |
+|---|---|---|
+| `_Display` / `_Code` | **No aparecían**: `AllyListItemDto` tenía 14 propiedades con `city: DisplayRef`; la API real emite 21 claves y no emite `city` | `AllyListItemDto`: 21 propiedades = 21 claves del cable, sin `city` |
+| `required` | Solo 114 de 381 esquemas, 112 de ellos `*Request`; ninguno de los 3 DTOs | `AllyListItemDto` 20 obligatorias (todas menos `city_Code`); `MemberDetailDto` 43/43 y `PublicAllyDetailDto` 16/16, todas obligatorias |
+| Nulabilidad | No expresada (el cable emite `null` explícito) | Explícita (`anyOf [$ref, null]`, tipos nulos): el frontend verá `string \| null` |
+| Mismo `ObjectMapper` | No: springdoc usa el mapper Jackson 2 de swagger-core; las respuestas usan el `JsonMapper` de Jackson 3 | Se mantiene; un test del backend compara el spec con lo que serializa la API real y falla si divergen (`OpenApiWireFidelityIT`) |
+| `Page<X>` | Aplanado por instancia (26 `PageX`, 37 `AppliedSortPageX`) | Sin cambio; el esquema coincide con las 12 claves serializadas |
+| Enums | Solo enums Java reales; los `String` de estado son `string` | Sin cambio |
+| Versión OpenAPI | 3.1.0 | 3.1.0 |
+
+**Veredicto: GO.** Límites conocidos: solo se procesan los `record`; los campos `List<DisplayRef>` quedan como arreglo de `DisplayRef` más `<campo>_Display`; todo par `*_Uuid`/`*_Display` es nulable aunque el DTO sea `NON_NULL`. Los releases anteriores al 0.0.121 traen el spec sin corregir: la primera versión de contrato utilizable es **0.0.121**.
 
 ## Resolución de las preguntas (2026-10-25)
 
