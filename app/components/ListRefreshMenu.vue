@@ -39,7 +39,7 @@ const items = computed(() => [
 
 <template>
   <div class="inline-flex items-center">
-    <UButtonGroup>
+    <UFieldGroup>
       <UButton
         :color="color"
         :variant="variant"
@@ -69,6 +69,6 @@ const items = computed(() => [
           </span>
         </template>
       </UDropdownMenu>
-    </UButtonGroup>
+    </UFieldGroup>
   </div>
 </template>
