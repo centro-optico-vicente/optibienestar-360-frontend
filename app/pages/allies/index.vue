@@ -2,10 +2,14 @@
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { CatalogItem } from '~/types/catalogs'
-import type { AllyServiceDto, MyAllyDto } from '~/types/allies'
+import type { AllyProductDto, MyAllyDto } from '~/types/allies'
+import type { SelectItem } from '~/types/options'
 import { ROLES } from '~/types/auth'
+import { PRODUCT_TYPE_OPTIONS, type ProductType } from '~/types/products'
 
-// Partner panel: propose services (POST /v1/allies/me/services, born in PROPOSED).
+// Partner panel: propose products and services (POST /v1/me/allies/products,
+// born in PROPOSED — hub ADR 0026). The ally either offers an existing product
+// of the catalog or proposes a new item that becomes exclusive to it.
 // The backend requires the user to have OWNER/STAFF membership in the given ally.
 //
 // The ally is resolved from GET /v1/me/allies — never typed. One ally (the common
@@ -24,6 +28,8 @@ useSeoMeta({ title: () => t('allies.portal.seoTitle') })
 
 const allies = useAllies()
 const myAllies = useMyAllies()
+const productsApi = useProducts()
+const { can } = usePermissions()
 const toast = useToast()
 
 // ---- Which ally am I proposing for? ----
@@ -53,7 +59,7 @@ const categoryOptions = ref<{ label: string, value: string }[]>([])
 
 async function loadCategories() {
   try {
-    const items = await usePublicCatalog('service-categories').list({ size: '-1' })
+    const items = await usePublicCatalog('product-categories').list({ size: '-1' })
     categoryOptions.value = items
       .filter((i: CatalogItem) => i.active !== false)
       .map((i: CatalogItem) => ({ label: i.name, value: i.uuid }))
@@ -63,47 +69,116 @@ async function loadCategories() {
   }
 }
 
+// ---- Existing product search ----
+// An ally user normally lacks PRODUCT_VIEW_ALL, so the admin master is closed to
+// them; the public cross-ally catalog is the fallback (deduplicated by product).
+// It only lists products some ally already offers publicly — anything else is
+// proposed as a new exclusive item.
+const productSearchTerm = ref('')
+const productOptions = ref<SelectItem[]>([])
+const productSearching = ref(false)
+let searchTimer: ReturnType<typeof setTimeout> | undefined
+
+async function searchProducts(q?: string) {
+  productSearching.value = true
+  try {
+    if (can('PRODUCT_VIEW_ALL')) {
+      const res = await productsApi.list({ q, exclusive: false, size: 20, sort: ['name,asc'] })
+      productOptions.value = (res.content ?? []).map(p => ({
+        label: p.productCategory_Display ? `${p.name} · ${p.productCategory_Display}` : p.name,
+        value: p.uuid,
+      }))
+    }
+    else {
+      const res = await productsApi.searchPublic({ q })
+      const seen = new Set<string>()
+      productOptions.value = (res.content ?? [])
+        .filter(o => !seen.has(o.productUuid) && seen.add(o.productUuid))
+        .map(o => ({ label: o.categoryName ? `${o.name} · ${o.categoryName}` : o.name, value: o.productUuid }))
+    }
+  }
+  catch {
+    productOptions.value = []
+  }
+  finally {
+    productSearching.value = false
+  }
+}
+
+watch(productSearchTerm, (q) => {
+  clearTimeout(searchTimer)
+  const term = q.trim()
+  // Don't clear the options on '' — USelectMenu resets the term right after a pick.
+  if (term.length < 2) return
+  searchTimer = setTimeout(() => searchProducts(term), 400)
+})
+
 onMounted(() => {
   loadMyAllies()
   loadCategories()
+  searchProducts()
 })
 
 // ---- Proposal form ----
 const isSubmitting = ref(false)
-const lastProposed = ref<AllyServiceDto | null>(null)
+const lastProposed = ref<AllyProductDto | null>(null)
+
+const source = ref<'existing' | 'exclusive'>('existing')
+const sourceItems = computed(() => [
+  { label: t('allies.portal.sourceExisting'), value: 'existing' },
+  { label: t('allies.portal.sourceExclusive'), value: 'exclusive' },
+])
+const typeOptions = computed(() => PRODUCT_TYPE_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
 
 const state = reactive({
   allyUuid: '',
-  serviceCategoryUuid: undefined as string | undefined,
+  productUuid: undefined as string | undefined,
+  productCategoryUuid: undefined as string | undefined,
+  productType: 'SERVICE' as ProductType,
   name: '',
   description: '',
-  priceUsd: '',
+  priceAmount: '',
   discountPct: '',
+  exclusions: '',
   requiresAppointment: false,
 })
 
-// Locale-reactive schema so validation messages follow the UI locale.
-const schema = computed(() => z.object({
-  allyUuid: z.string().min(1, t('validation.required')).uuid(t('validation.invalidUuid')),
-  serviceCategoryUuid: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
-  name: z.string().min(3, t('validation.minChars', { n: 3 })),
-  description: z.string().optional(),
-  priceUsd: z.string().regex(/^\d*(\.\d{1,2})?$/, t('validation.invalidAmount')).optional().or(z.literal('')),
-  discountPct: z.string().regex(/^\d*(\.\d{1,2})?$/, t('validation.invalidPercent')).optional().or(z.literal('')),
-}))
+// Locale-reactive schema so validation messages follow the UI locale; item
+// fields are only required when proposing a new exclusive item.
+const schema = computed(() => {
+  const required = z.string({ message: t('validation.required') }).min(1, t('validation.required'))
+  const optional = z.any().optional()
+  const isNew = source.value === 'exclusive'
+  return z.object({
+    allyUuid: z.string().min(1, t('validation.required')).uuid(t('validation.invalidUuid')),
+    productUuid: isNew ? optional : required,
+    productCategoryUuid: isNew ? required : optional,
+    name: isNew ? z.string().min(3, t('validation.minChars', { n: 3 })) : optional,
+    description: z.string().optional(),
+    priceAmount: z.string().regex(/^\d*(\.\d{1,2})?$/, t('validation.invalidAmount')).optional().or(z.literal('')),
+    discountPct: z.string().regex(/^\d*(\.\d{1,2})?$/, t('validation.invalidPercent')).optional().or(z.literal('')),
+  })
+})
 
 async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
   isSubmitting.value = true
   try {
-    lastProposed.value = await allies.proposeService({
-      allyUuid: state.allyUuid,
-      serviceCategoryUuid: state.serviceCategoryUuid!,
-      name: state.name,
-      description: state.description || undefined,
-      priceUsd: state.priceUsd || undefined,
+    const terms = {
+      priceAmount: state.priceAmount || undefined,
       discountPct: state.discountPct || undefined,
-      requiresAppointment: state.requiresAppointment,
-    })
+      exclusions: state.exclusions.trim() || undefined,
+    }
+    lastProposed.value = await allies.proposeProduct(source.value === 'existing'
+      ? { allyUuid: state.allyUuid, productUuid: state.productUuid!, ...terms }
+      : {
+          allyUuid: state.allyUuid,
+          productCategoryUuid: state.productCategoryUuid!,
+          productType: state.productType,
+          name: state.name,
+          description: state.description || undefined,
+          requiresAppointment: state.requiresAppointment,
+          ...terms,
+        })
     toast.add({
       title: t('allies.portal.proposedToast'),
       description: t('allies.portal.proposedToastDescription'),
@@ -111,11 +186,14 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       icon: 'i-lucide-check-circle',
     })
     // Keep allyUuid for the next proposal; clear the rest.
-    state.serviceCategoryUuid = undefined
+    state.productUuid = undefined
+    state.productCategoryUuid = undefined
+    state.productType = 'SERVICE'
     state.name = ''
     state.description = ''
-    state.priceUsd = ''
+    state.priceAmount = ''
     state.discountPct = ''
+    state.exclusions = ''
     state.requiresAppointment = false
   }
   catch {
@@ -195,37 +273,90 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           {{ selectedAlly.name }}
         </p>
 
-        <UFormField :label="t('allies.portal.fields.category')" name="serviceCategoryUuid" required>
+        <UFormField :label="t('allies.portal.fields.source')">
+          <URadioGroup v-model="source" :items="sourceItems" orientation="horizontal" />
+        </UFormField>
+
+        <!-- Offer an existing product of the catalog -->
+        <UFormField
+          v-if="source === 'existing'"
+          :label="t('allies.portal.fields.product')"
+          name="productUuid"
+          :help="t('allies.portal.productHelp')"
+          required
+        >
           <USelectMenu
             clear
-            v-model="state.serviceCategoryUuid"
-            :items="categoryOptions"
+            v-model="state.productUuid"
+            v-model:search-term="productSearchTerm"
+            :items="productOptions"
             label-key="label"
             value-key="value"
-            :placeholder="t('common.select')"
+            ignore-filter
+            icon="i-lucide-search"
+            :loading="productSearching"
+            :placeholder="t('allies.portal.productSearchPlaceholder')"
+            :search-input="{ placeholder: t('allies.portal.productSearchPlaceholder'), icon: 'i-lucide-search' }"
             class="w-full"
           />
         </UFormField>
 
-        <UFormField :label="t('allies.portal.fields.name')" name="name" required>
-          <UInput v-model="state.name" :placeholder="t('allies.portal.namePlaceholder')" class="w-full" />
-        </UFormField>
+        <!-- New item, exclusive to this ally -->
+        <template v-else>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <UFormField :label="t('allies.portal.fields.type')" name="productType" required>
+              <USelectMenu
+                v-model="state.productType"
+                :items="typeOptions"
+                label-key="label"
+                value-key="value"
+                :search-input="false"
+                class="w-full"
+              />
+            </UFormField>
+            <UFormField :label="t('allies.portal.fields.category')" name="productCategoryUuid" required>
+              <USelectMenu
+                clear
+                v-model="state.productCategoryUuid"
+                :items="categoryOptions"
+                label-key="label"
+                value-key="value"
+                :placeholder="t('common.select')"
+                class="w-full"
+              />
+            </UFormField>
+          </div>
 
-        <UFormField :label="t('allies.portal.fields.description')" name="description">
-          <UTextarea v-model="state.description" :rows="2" class="w-full" />
-        </UFormField>
+          <UFormField :label="t('allies.portal.fields.name')" name="name" required>
+            <UInput v-model="state.name" :placeholder="t('allies.portal.namePlaceholder')" class="w-full" />
+          </UFormField>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <UFormField :label="t('allies.portal.fields.price')" name="priceUsd">
-            <UInput v-model="state.priceUsd" placeholder="100.00" class="w-full" />
+          <UFormField :label="t('allies.portal.fields.description')" name="description">
+            <UTextarea v-model="state.description" :rows="2" class="w-full" />
+          </UFormField>
+
+          <UFormField :label="t('allies.portal.fields.requiresAppointment')" name="requiresAppointment">
+            <USwitch v-model="state.requiresAppointment" />
+          </UFormField>
+        </template>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <UFormField :label="t('allies.portal.fields.price')" name="priceAmount">
+            <UInput v-model="state.priceAmount" placeholder="100.00" class="w-full" />
           </UFormField>
           <UFormField :label="t('allies.portal.fields.discount')" name="discountPct">
             <UInput v-model="state.discountPct" placeholder="10.00" class="w-full" />
           </UFormField>
-          <UFormField :label="t('allies.portal.fields.requiresAppointment')" name="requiresAppointment">
-            <USwitch v-model="state.requiresAppointment" />
-          </UFormField>
         </div>
+
+        <UFormField :label="t('allies.portal.fields.exclusions')" name="exclusions" :help="t('allies.products.form.exclusionsHelp')">
+          <UTextarea
+            v-model="state.exclusions"
+            :rows="2"
+            :placeholder="t('allies.products.form.exclusionsPlaceholder')"
+            class="w-full"
+          />
+        </UFormField>
 
         <div class="flex items-center justify-between gap-3 pt-2">
           <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>

@@ -25,7 +25,9 @@ export const AUDIT_ENTITY_KEYS = [
   'marital_status',
   'occupation',
   'profession',
-  'service_category',
+  'product_category',
+  'product',
+  'ally_product',
   'promoter_type',
   'promoter_rank',
 ] as const
@@ -62,7 +64,8 @@ export const AUDIT_ENTITY_PERMISSIONS: Partial<Record<AuditEntityKey, { viewPerm
   marital_status: { viewPermission: 'MARITAL_STATUS_RECORD_AUDIT_VIEW', viewReportPermission: 'MARITAL_STATUS_REPORT_AUDIT_VIEW' },
   occupation: { viewPermission: 'OCCUPATION_RECORD_AUDIT_VIEW', viewReportPermission: 'OCCUPATION_REPORT_AUDIT_VIEW' },
   profession: { viewPermission: 'PROFESSION_RECORD_AUDIT_VIEW', viewReportPermission: 'PROFESSION_REPORT_AUDIT_VIEW' },
-  service_category: { viewPermission: 'SERVICE_CATEGORY_RECORD_AUDIT_VIEW', viewReportPermission: 'SERVICE_CATEGORY_REPORT_AUDIT_VIEW' },
+  product_category: { viewPermission: 'PRODUCT_CATEGORY_RECORD_AUDIT_VIEW', viewReportPermission: 'PRODUCT_CATEGORY_REPORT_AUDIT_VIEW' },
+  product: { viewPermission: 'PRODUCT_RECORD_AUDIT_VIEW', viewReportPermission: 'PRODUCT_REPORT_AUDIT_VIEW' },
   promoter_type: { viewPermission: 'PROMOTER_TYPE_RECORD_AUDIT_VIEW', viewReportPermission: 'PROMOTER_TYPE_REPORT_AUDIT_VIEW' },
   promoter_rank: { viewPermission: 'PROMOTER_RANK_RECORD_AUDIT_VIEW', viewReportPermission: 'PROMOTER_RANK_REPORT_AUDIT_VIEW' },
 }

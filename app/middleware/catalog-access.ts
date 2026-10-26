@@ -1,4 +1,4 @@
-import { CATALOGS, getCatalogDef } from '~/utils/catalog-registry'
+import { CATALOG_KEY_ALIASES, CATALOGS, getCatalogDef } from '~/utils/catalog-registry'
 
 // Blocks the catalog admin screens by the catalog's own view key (V78), which
 // `definePageMeta` cannot express: the page is dynamic (`[resource].vue`), so the
@@ -18,6 +18,12 @@ export default defineNuxtRouteMiddleware((to) => {
   if (!resource) {
     const hasAnyCatalog = CATALOGS.some(c => auth.permissions.includes(c.viewPermission))
     return hasAnyCatalog ? undefined : navigateTo('/403')
+  }
+
+  // Renamed catalog: keep old links working (query such as `?edit=` included).
+  const alias = CATALOG_KEY_ALIASES[String(resource)]
+  if (alias) {
+    return navigateTo({ path: `/dashboard/catalogs/${alias}`, query: to.query }, { replace: true, redirectCode: 301 })
   }
 
   const def = getCatalogDef(String(resource))

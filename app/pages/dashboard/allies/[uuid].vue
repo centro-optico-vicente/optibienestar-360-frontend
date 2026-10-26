@@ -2,21 +2,19 @@
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { ApiError } from '~/types/auth'
-import type { CatalogItem } from '~/types/catalogs'
 import type { CatalogRef } from '~/types/members'
 import { toSelectItems } from '~/types/options'
 import type {
   AllyAgreementDto,
   AllyDto,
+  AllyProductDto,
   AllyRole,
-  AllyServiceDto,
   AllyUserDto,
   AgreementType,
   CreateAllyAgreementRequest,
-  CreateAllyServiceRequest,
   UpdateAllyAgreementRequest,
-  UpdateAllyServiceRequest,
 } from '~/types/allies'
+import { PRODUCT_TYPE_OPTIONS, type ProductType } from '~/types/products'
 import {
   AGREEMENT_TYPE_OPTIONS,
   ALLY_ROLE_OPTIONS,
@@ -56,6 +54,12 @@ const canViewStaff = computed(() => can('ALLY_USER_VIEW_ALL'))
 const canCreateStaff = computed(() => can('ALLY_USER_CREATE'))
 const canUpdateStaff = computed(() => can('ALLY_USER_UPDATE'))
 const canDeleteStaff = computed(() => can('ALLY_USER_DELETE'))
+// Offers of the products catalog (hub ADR 0026).
+const canViewProducts = computed(() => can('ALLY_PRODUCT_VIEW_ALL'))
+const canCreateProducts = computed(() => can('ALLY_PRODUCT_CREATE'))
+const canUpdateProducts = computed(() => can('ALLY_PRODUCT_UPDATE'))
+const canDeleteProducts = computed(() => can('ALLY_PRODUCT_DELETE'))
+const canApproveProducts = computed(() => can('ALLY_PRODUCT_APPROVE'))
 
 // ---- Ally load ----
 const ally = ref<AllyDto | null>(null)
@@ -115,7 +119,7 @@ function date(iso?: string | null): string {
 }
 
 // Amount in USD, formatted in the VE convention. Empty → '—'.
-function money(v?: string | null): string {
+function money(v?: number | string | null): string {
   if (v === null || v === undefined || v === '') return t('common.empty')
   return formatCurrency(Number(v), 'USD')
 }
@@ -134,7 +138,7 @@ function roleLabel(role?: string | null): string {
   return role ? t(`allies.staff.roles.${role}`, role) : t('common.empty')
 }
 function reviewStatusLabel(s?: string | null): string {
-  return s ? t(`allies.services.reviewStatus.${s}`, s) : t('common.empty')
+  return s ? t(`allies.products.reviewStatus.${s}`, s) : t('common.empty')
 }
 function staffStatusLabel(s?: string | null): string {
   return s ? t(`allies.staff.status.${s}`, s) : t('common.empty')
@@ -150,7 +154,9 @@ const staffStatusOptions = computed(() => STAFF_STATUS_OPTIONS.map(s => ({ label
 
 // ---- Tabs ----
 const tabs = computed(() => [
-  { label: t('allies.tabs.services'), value: 'services', icon: 'i-lucide-briefcase-medical' },
+  ...(canViewProducts.value
+    ? [{ label: t('allies.tabs.products'), value: 'products', icon: 'i-lucide-package' }]
+    : []),
   { label: t('allies.tabs.professions'), value: 'professions', icon: 'i-lucide-stethoscope' },
   { label: t('allies.tabs.allyTypes'), value: 'allyTypes', icon: 'i-lucide-tags' },
   ...(canViewAgreements.value
@@ -160,198 +166,176 @@ const tabs = computed(() => [
     ? [{ label: t('allies.tabs.staff'), value: 'users', icon: 'i-lucide-users' }]
     : []),
 ])
-const activeTab = ref('services')
+const activeTab = ref(canViewProducts.value ? 'products' : 'professions')
 
 // =========================================================
-// Services
+// Products and services (offers of the products catalog, hub ADR 0026)
 // =========================================================
-const services = ref<AllyServiceDto[]>([])
-const servicesLoading = ref(false)
-const servicesSort = useTableSort([])
-const servicesHasActiveSort = computed(() => servicesSort.hasActiveSort.value)
-const servicesIsMultiSort = computed(() => servicesSort.orders.value.length > 1)
+const products = ref<AllyProductDto[]>([])
+const productsTotal = ref(0)
+const productsLoading = ref(false)
+const productsPage = ref(1) // UPagination is 1-based; the API is 0-based
+const PRODUCTS_PAGE_SIZE = 20
+const productsSearch = ref('')
+const productsType = ref<ProductType | undefined>(undefined)
+const productsSort = useTableSort([])
+const productsHasActiveSort = computed(() => productsSort.hasActiveSort.value)
+const productsIsMultiSort = computed(() => productsSort.orders.value.length > 1)
+const productTypeOptions = computed(() => PRODUCT_TYPE_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
 
-async function loadServices() {
-  servicesLoading.value = true
+async function loadProducts() {
+  if (!canViewProducts.value) return
+  productsLoading.value = true
   try {
-    services.value = await allies.listServices(allyUuid, servicesSort.sortParam.value)
+    const res = await allies.listProducts(allyUuid, {
+      page: productsPage.value - 1,
+      size: PRODUCTS_PAGE_SIZE,
+      sort: productsSort.sortParam.value,
+      q: productsSearch.value.trim() || undefined,
+      type: productsType.value,
+    })
+    products.value = res.content ?? []
+    productsTotal.value = res.totalElements ?? 0
   }
   catch {
     // toast handled by useApi
   }
   finally {
-    servicesLoading.value = false
+    productsLoading.value = false
   }
 }
-watch(servicesSort.orders, () => loadServices(), { deep: true })
-
-const categoryOptions = ref<{ label: string, value: string }[]>([])
-
-async function loadCategories() {
-  try {
-    const items = await usePublicCatalog('service-categories').list({ size: '-1' })
-    categoryOptions.value = items
-      .filter((i: CatalogItem) => i.active !== false)
-      .map((i: CatalogItem) => ({ label: i.name, value: i.uuid }))
-  }
-  catch {
-    categoryOptions.value = []
-  }
-}
-
-const svcFormOpen = ref(false)
-const svcMode = ref<'create' | 'edit'>('create')
-const svcEditingUuid = ref<string | null>(null)
-const svcEditingItem = ref<AllyServiceDto | null>(null)
-const svcSubmitting = ref(false)
-// Save button lives in the modal's #footer slot, outside the <UForm> element,
-// so it can't use type="submit"; it triggers validation via this instead.
-const svcFormRef = ref<{ submit: () => Promise<void> } | null>(null)
-
-interface SvcFormState {
-  serviceCategoryUuid: string | undefined
-  name: string
-  description: string
-  priceUsd: string
-  discountPct: string
-  exclusions: string
-  requiresAppointment: boolean
-  published: boolean
-}
-
-const svcState = reactive<SvcFormState>({
-  serviceCategoryUuid: undefined,
-  name: '',
-  description: '',
-  priceUsd: '',
-  discountPct: '',
-  exclusions: '',
-  requiresAppointment: false,
-  published: false,
+watch(productsSort.orders, () => loadProducts(), { deep: true })
+watch(productsPage, () => loadProducts())
+watch(productsType, () => {
+  if (productsPage.value !== 1) productsPage.value = 1
+  else loadProducts()
+})
+let productsSearchTimer: ReturnType<typeof setTimeout> | undefined
+watch(productsSearch, () => {
+  clearTimeout(productsSearchTimer)
+  productsSearchTimer = setTimeout(() => {
+    if (productsPage.value !== 1) productsPage.value = 1
+    else loadProducts()
+  }, 400)
 })
 
-const svcSchema = computed(() => z.object({
-  serviceCategoryUuid: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
-  name: z.string().min(3, t('validation.minChars', { n: 3 })),
-  description: z.string().optional(),
-  priceUsd: z.string().regex(/^\d*(\.\d{1,2})?$/, t('validation.invalidAmount')).optional().or(z.literal('')),
-  discountPct: z.string().regex(/^\d*(\.\d{1,2})?$/, t('validation.invalidPercent')).optional().or(z.literal('')),
-}))
-
-function resetSvcForm() {
-  svcState.serviceCategoryUuid = undefined
-  svcState.name = ''
-  svcState.description = ''
-  svcState.priceUsd = ''
-  svcState.discountPct = ''
-  svcState.exclusions = ''
-  svcState.requiresAppointment = false
-  svcState.published = false
+function productTypeLabel(p: AllyProductDto): string {
+  return p.productType_Display ?? (p.productType ? t(`products.types.${p.productType}`, String(p.productType)) : t('common.empty'))
 }
 
-function openSvcCreate() {
-  svcMode.value = 'create'
-  svcEditingUuid.value = null
-  resetSvcForm()
-  svcFormOpen.value = true
+// ---- Create / edit (AllyProductFormModal loads the full offer by uuid) ----
+const prdFormOpen = ref(false)
+const prdMode = ref<'create' | 'edit'>('create')
+const prdEditingUuid = ref<string | null>(null)
+
+function openPrdCreate() {
+  prdMode.value = 'create'
+  prdEditingUuid.value = null
+  prdFormOpen.value = true
 }
 
-function openSvcEdit(s: AllyServiceDto) {
-  svcMode.value = 'edit'
-  svcEditingUuid.value = s.uuid
-  svcEditingItem.value = s
-  resetSvcForm()
-  svcState.serviceCategoryUuid = s.serviceCategory?.uuid
-  svcState.name = s.name ?? ''
-  svcState.description = s.description ?? ''
-  svcState.priceUsd = s.priceUsd ?? ''
-  svcState.discountPct = s.discountPct ?? ''
-  svcState.exclusions = s.exclusions ?? ''
-  svcState.requiresAppointment = s.requiresAppointment ?? false
-  svcState.published = s.published ?? false
-  svcFormOpen.value = true
+function openPrdEdit(p: AllyProductDto) {
+  prdMode.value = 'edit'
+  prdEditingUuid.value = p.uuid
+  prdFormOpen.value = true
 }
 
-async function onSvcSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
-  svcSubmitting.value = true
+// ---- Delete ----
+const prdDeleteOpen = ref(false)
+const prdDeleting = ref(false)
+const prdTarget = ref<AllyProductDto | null>(null)
+
+function openPrdDelete(p: AllyProductDto) {
+  prdTarget.value = p
+  prdDeleteOpen.value = true
+}
+
+async function confirmPrdDelete() {
+  if (!prdTarget.value) return
+  prdDeleting.value = true
   try {
-    if (svcMode.value === 'create') {
-      const body: CreateAllyServiceRequest = {
-        serviceCategoryUuid: svcState.serviceCategoryUuid!,
-        name: svcState.name,
-        description: svcState.description || undefined,
-        priceUsd: svcState.priceUsd || undefined,
-        discountPct: svcState.discountPct || undefined,
-        exclusions: svcState.exclusions.trim() || undefined,
-        requiresAppointment: svcState.requiresAppointment,
-      }
-      await allies.createService(allyUuid, body)
-      toast.add({ title: t('allies.services.createdToast'), color: 'success', icon: 'i-lucide-check-circle' })
-    }
-    else if (svcEditingUuid.value) {
-      const body: UpdateAllyServiceRequest = {
-        serviceCategoryUuid: svcState.serviceCategoryUuid,
-        name: svcState.name,
-        description: svcState.description || undefined,
-        priceUsd: svcState.priceUsd || undefined,
-        discountPct: svcState.discountPct || undefined,
-        // Empty string clears the exclusions.
-        exclusions: svcState.exclusions.trim(),
-        requiresAppointment: svcState.requiresAppointment,
-        published: svcState.published,
-      }
-      await allies.updateService(allyUuid, svcEditingUuid.value, body)
-      toast.add({ title: t('allies.services.updatedToast'), color: 'success', icon: 'i-lucide-check-circle' })
-    }
-    svcFormOpen.value = false
-    await loadServices()
+    await allies.removeProduct(allyUuid, prdTarget.value.uuid)
+    toast.add({ title: t('allies.products.deletedToast'), color: 'success', icon: 'i-lucide-check-circle' })
+    prdDeleteOpen.value = false
+    if (products.value.length === 1 && productsPage.value > 1) productsPage.value -= 1
+    else await loadProducts()
   }
   catch {
     // toast handled by useApi
   }
   finally {
-    svcSubmitting.value = false
+    prdDeleting.value = false
   }
 }
 
-const svcDeleteOpen = ref(false)
-const svcDeleting = ref(false)
-const svcTarget = ref<AllyServiceDto | null>(null)
-
-function openSvcDelete(s: AllyServiceDto) {
-  svcTarget.value = s
-  svcDeleteOpen.value = true
+// ---- Review workflow (ALLY_PRODUCT_APPROVE) ----
+function canApproveOffer(p: AllyProductDto): boolean {
+  return p.reviewStatus === 'PROPOSED' || p.reviewStatus === 'IN_REVIEW'
+}
+function canWithdrawOffer(p: AllyProductDto): boolean {
+  return p.reviewStatus === 'APPROVED'
 }
 
-// Shortcut from the edit modal so the user doesn't have to close it first
-// and hunt for the row's trash icon. Closes the edit modal so the two
-// dialogs never stack.
-function openSvcDeleteFromEdit() {
-  if (!svcEditingItem.value) return
-  svcFormOpen.value = false
-  openSvcDelete(svcEditingItem.value)
-}
+const prdApprovingUuid = ref<string | null>(null)
 
-async function confirmSvcDelete() {
-  if (!svcTarget.value) return
-  svcDeleting.value = true
+async function approveOffer(p: AllyProductDto) {
+  prdApprovingUuid.value = p.uuid
   try {
-    await allies.removeService(allyUuid, svcTarget.value.uuid)
-    toast.add({ title: t('allies.services.deletedToast'), color: 'success', icon: 'i-lucide-check-circle' })
-    svcDeleteOpen.value = false
-    await loadServices()
+    await allies.approveProduct(p.uuid)
+    toast.add({ title: t('allies.products.approvedToast'), color: 'success', icon: 'i-lucide-check-circle' })
+    await loadProducts()
   }
   catch {
     // toast handled by useApi
   }
   finally {
-    svcDeleting.value = false
+    prdApprovingUuid.value = null
   }
 }
 
-function reviewStatusColor(s?: string): 'success' | 'warning' | 'error' | 'neutral' {
+// Reject (PROPOSED/IN_REVIEW) and withdraw (APPROVED → REMOVED) both require a reason.
+const prdReasonOpen = ref(false)
+const prdReasonAction = ref<'reject' | 'withdraw'>('reject')
+const prdReasonTarget = ref<AllyProductDto | null>(null)
+const prdReason = ref('')
+const prdReasonSubmitting = ref(false)
+
+function openPrdReason(p: AllyProductDto, action: 'reject' | 'withdraw') {
+  prdReasonTarget.value = p
+  prdReasonAction.value = action
+  prdReason.value = ''
+  prdReasonOpen.value = true
+}
+
+async function confirmPrdReason() {
+  const target = prdReasonTarget.value
+  const reason = prdReason.value.trim()
+  if (!target || !reason) return
+  prdReasonSubmitting.value = true
+  try {
+    if (prdReasonAction.value === 'reject') {
+      await allies.rejectProduct(target.uuid, reason)
+      toast.add({ title: t('allies.products.rejectedToast'), color: 'success', icon: 'i-lucide-check-circle' })
+    }
+    else {
+      await allies.withdrawProduct(target.uuid, reason)
+      toast.add({ title: t('allies.products.withdrawnToast'), color: 'success', icon: 'i-lucide-check-circle' })
+    }
+    prdReasonOpen.value = false
+    await loadProducts()
+  }
+  catch {
+    // toast handled by useApi
+  }
+  finally {
+    prdReasonSubmitting.value = false
+  }
+}
+
+function reviewStatusColor(s?: string): 'success' | 'warning' | 'error' | 'info' | 'neutral' {
   if (s === 'APPROVED') return 'success'
   if (s === 'PROPOSED') return 'warning'
+  if (s === 'IN_REVIEW') return 'info'
   if (s === 'REJECTED') return 'error'
   return 'neutral'
 }
@@ -906,8 +890,8 @@ const refreshingAll = ref(false)
 async function refreshAll() {
   refreshingAll.value = true
   try {
-    // loadAgreements / loadStaff early-return without the view permission.
-    await Promise.all([loadAlly(), loadServices(), loadProfessions(), loadAllyTypes(), loadAgreements(), loadStaff()])
+    // loadProducts / loadAgreements / loadStaff early-return without the view permission.
+    await Promise.all([loadAlly(), loadProducts(), loadProfessions(), loadAllyTypes(), loadAgreements(), loadStaff()])
   }
   finally {
     refreshingAll.value = false
@@ -918,12 +902,11 @@ async function refreshAll() {
 onMounted(async () => {
   await loadAlly()
   await Promise.all([
-    loadServices(),
+    loadProducts(),
     loadProfessions(),
     loadAllyTypes(),
     loadAgreements(),
     loadStaff(),
-    loadCategories(),
     loadAllProfessions(),
     loadAllAllyTypes(),
     loadUserOptions(),
@@ -1137,141 +1120,199 @@ onMounted(async () => {
       <!-- Sub-resource tabs -->
       <UTabs v-model="activeTab" :items="tabs" :content="false" />
 
-      <!-- ============ Services ============ -->
-      <div v-show="activeTab === 'services'" class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
-        <div class="flex items-center justify-between px-6 py-4 border-b border-prohealth-100">
+      <!-- ============ Products and services ============ -->
+      <div v-if="canViewProducts" v-show="activeTab === 'products'" class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
+        <div class="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-b border-prohealth-100">
           <div>
-            <h2 class="font-bold text-prohealth-900">{{ t('allies.services.title') }}</h2>
-            <p class="text-xs text-prohealth-500 mt-0.5">{{ t('allies.services.hint') }}</p>
+            <h2 class="font-bold text-prohealth-900">{{ t('allies.products.title') }}</h2>
+            <p class="text-xs text-prohealth-500 mt-0.5">{{ t('allies.products.hint') }}</p>
           </div>
           <div class="flex items-center gap-2">
-            <UTooltip :text="canUpdate ? t('allies.services.addTooltip') : t('allies.noPermission')">
+            <UTooltip :text="canCreateProducts ? t('allies.products.addTooltip') : t('allies.noPermission')">
               <UButton
                 color="primary"
                 variant="soft"
                 icon="i-lucide-plus"
                 size="sm"
-                :disabled="!canUpdate"
-                @click="openSvcCreate"
+                :disabled="!canCreateProducts"
+                @click="openPrdCreate"
               >
-                {{ t('allies.services.add') }}
+                {{ t('allies.products.add') }}
               </UButton>
             </UTooltip>
             <UButton
-              v-if="servicesHasActiveSort"
+              v-if="productsHasActiveSort"
               variant="link"
               color="neutral"
               size="sm"
               icon="i-lucide-list-restart"
               :title="t('common.clearSortHint')"
-              @click="servicesSort.reset()"
+              @click="productsSort.reset()"
             >
               {{ t('common.clearSort') }}
             </UButton>
             <RefreshButton
-              :loading="servicesLoading"
+              :loading="productsLoading"
               :title="t('common.refreshSection')"
-              @refresh="loadServices"
+              @refresh="loadProducts"
             />
           </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 px-6 py-3 border-b border-prohealth-100">
+          <UInput
+            v-model="productsSearch"
+            :placeholder="t('allies.products.searchPlaceholder')"
+            icon="i-lucide-search"
+            size="sm"
+            class="w-full max-w-xs"
+          />
+          <USelectMenu
+            clear
+            v-model="productsType"
+            :items="productTypeOptions"
+            label-key="label"
+            value-key="value"
+            :search-input="false"
+            :placeholder="t('products.filters.allTypes')"
+            size="sm"
+            class="w-44"
+          />
         </div>
 
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
             <thead>
               <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
-                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="servicesSort.toggle('name')">
-                  {{ t('allies.services.columns.service') }}
-                  <SortIndicator :state="servicesSort.stateOf('name')" :multi-active="servicesIsMultiSort" @clear="servicesSort.remove('name')" />
+                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="productsSort.toggle('name')">
+                  {{ t('allies.products.columns.item') }}
+                  <SortIndicator :state="productsSort.stateOf('name')" :multi-active="productsIsMultiSort" @clear="productsSort.remove('name')" />
                 </th>
-                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="servicesSort.toggle('serviceCategory')">
-                  {{ t('allies.services.columns.category') }}
-                  <SortIndicator :state="servicesSort.stateOf('serviceCategory')" :multi-active="servicesIsMultiSort" @clear="servicesSort.remove('serviceCategory')" />
+                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="productsSort.toggle('productType')">
+                  {{ t('allies.products.columns.type') }}
+                  <SortIndicator :state="productsSort.stateOf('productType')" :multi-active="productsIsMultiSort" @clear="productsSort.remove('productType')" />
                 </th>
-                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="servicesSort.toggle('priceUsd')">
-                  {{ t('allies.services.columns.price') }}
-                  <SortIndicator :state="servicesSort.stateOf('priceUsd')" :multi-active="servicesIsMultiSort" @clear="servicesSort.remove('priceUsd')" />
+                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="productsSort.toggle('productCategory')">
+                  {{ t('allies.products.columns.category') }}
+                  <SortIndicator :state="productsSort.stateOf('productCategory')" :multi-active="productsIsMultiSort" @clear="productsSort.remove('productCategory')" />
                 </th>
-                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="servicesSort.toggle('discountPct')">
-                  {{ t('allies.services.columns.discount') }}
-                  <SortIndicator :state="servicesSort.stateOf('discountPct')" :multi-active="servicesIsMultiSort" @clear="servicesSort.remove('discountPct')" />
+                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="productsSort.toggle('priceAmount')">
+                  {{ t('allies.products.columns.price') }}
+                  <SortIndicator :state="productsSort.stateOf('priceAmount')" :multi-active="productsIsMultiSort" @clear="productsSort.remove('priceAmount')" />
                 </th>
-                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="servicesSort.toggle('requiresAppointment')">
-                  {{ t('allies.services.columns.appointment') }}
-                  <SortIndicator :state="servicesSort.stateOf('requiresAppointment')" :multi-active="servicesIsMultiSort" @clear="servicesSort.remove('requiresAppointment')" />
+                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="productsSort.toggle('discountPct')">
+                  {{ t('allies.products.columns.discount') }}
+                  <SortIndicator :state="productsSort.stateOf('discountPct')" :multi-active="productsIsMultiSort" @clear="productsSort.remove('discountPct')" />
                 </th>
-                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="servicesSort.toggle('reviewStatus')">
-                  {{ t('allies.services.columns.review') }}
-                  <SortIndicator :state="servicesSort.stateOf('reviewStatus')" :multi-active="servicesIsMultiSort" @clear="servicesSort.remove('reviewStatus')" />
+                <th class="px-6 py-3 font-semibold select-none">{{ t('allies.products.columns.finalPrice') }}</th>
+                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="productsSort.toggle('reviewStatus')">
+                  {{ t('allies.products.columns.review') }}
+                  <SortIndicator :state="productsSort.stateOf('reviewStatus')" :multi-active="productsIsMultiSort" @clear="productsSort.remove('reviewStatus')" />
                 </th>
-                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="servicesSort.toggle('published')">
-                  {{ t('allies.services.columns.published') }}
-                  <SortIndicator :state="servicesSort.stateOf('published')" :multi-active="servicesIsMultiSort" @clear="servicesSort.remove('published')" />
+                <th class="px-6 py-3 font-semibold cursor-pointer select-none" @click="productsSort.toggle('published')">
+                  {{ t('allies.products.columns.published') }}
+                  <SortIndicator :state="productsSort.stateOf('published')" :multi-active="productsIsMultiSort" @clear="productsSort.remove('published')" />
                 </th>
                 <th class="px-6 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-prohealth-100">
-              <TableSkeleton v-if="servicesLoading" :rows="3" :cols="8" />
-              <tr v-else-if="services.length === 0">
-                <td colspan="8" class="px-6 py-10 text-center text-prohealth-500">
-                  <UIcon name="i-lucide-briefcase-medical" class="w-7 h-7 mx-auto mb-2 text-prohealth-300" />
-                  {{ t('allies.services.empty') }}
+              <TableSkeleton v-if="productsLoading" :rows="3" :cols="9" />
+              <tr v-else-if="products.length === 0">
+                <td colspan="9" class="px-6 py-10 text-center text-prohealth-500">
+                  <UIcon name="i-lucide-package" class="w-7 h-7 mx-auto mb-2 text-prohealth-300" />
+                  {{ t('allies.products.empty') }}
                 </td>
               </tr>
-              <tr v-for="s in services" v-else :key="s.uuid" class="hover:bg-prohealth-50/50">
+              <tr v-for="p in products" v-else :key="p.uuid" class="hover:bg-prohealth-50/50">
                 <td class="px-6 py-3">
-                  <div class="font-semibold text-prohealth-900">{{ s.name }}</div>
-                  <div v-if="s.description" class="text-xs text-prohealth-500 line-clamp-1">{{ s.description }}</div>
+                  <div class="flex items-center gap-2">
+                    <span class="font-semibold text-prohealth-900">{{ p.name }}</span>
+                    <UBadge :color="p.exclusive ? 'info' : 'neutral'" variant="subtle" size="xs">
+                      {{ p.exclusive ? t('allies.products.exclusive') : t('allies.products.general') }}
+                    </UBadge>
+                    <UIcon
+                      v-if="p.requiresAppointment"
+                      name="i-lucide-calendar-check"
+                      class="w-4 h-4 text-cyan-600"
+                      :title="t('allies.products.form.fields.requiresAppointment')"
+                    />
+                  </div>
+                  <div v-if="p.description" class="text-xs text-prohealth-500 line-clamp-1">{{ p.description }}</div>
                 </td>
-                <td class="px-6 py-3 text-prohealth-700">{{ s.serviceCategory?.name || t('common.empty') }}</td>
+                <td class="px-6 py-3 text-prohealth-700">{{ productTypeLabel(p) }}</td>
+                <td class="px-6 py-3 text-prohealth-700">{{ p.productCategory?.name || t('common.empty') }}</td>
                 <td class="px-6 py-3 text-prohealth-700">
-                  <CurrencyConverterDisplay v-if="s.priceUsd" :amount="s.priceUsd" currency="USD" v-slot="{ result }">
+                  <CurrencyConverterDisplay v-if="p.priceAmount != null && p.priceAmount !== ''" :amount="p.priceAmount" currency="USD" v-slot="{ result }">
                     <span class="inline-flex items-center gap-1">
-                      {{ money(s.priceUsd) }}
+                      {{ money(p.priceAmount) }}
                       <CurrencyConverterTrigger :result="result" />
                     </span>
                   </CurrencyConverterDisplay>
                   <template v-else>{{ t('common.empty') }}</template>
                 </td>
-                <td class="px-6 py-3 text-prohealth-700">{{ s.discountPct ? `${s.discountPct}%` : t('common.empty') }}</td>
+                <td class="px-6 py-3 text-prohealth-700">{{ p.discountPct != null && p.discountPct !== '' ? `${p.discountPct}%` : t('common.empty') }}</td>
+                <td class="px-6 py-3 font-semibold text-prohealth-900">{{ money(p.finalPrice) }}</td>
                 <td class="px-6 py-3">
-                  <UIcon
-                    :name="s.requiresAppointment ? 'i-lucide-calendar-check' : 'i-lucide-minus'"
-                    class="w-4 h-4"
-                    :class="s.requiresAppointment ? 'text-cyan-600' : 'text-prohealth-300'"
-                  />
-                </td>
-                <td class="px-6 py-3">
-                  <UBadge :color="reviewStatusColor(s.reviewStatus)" variant="subtle" size="sm">
-                    {{ s.reviewStatus_Display ?? (s.reviewStatus ? reviewStatusLabel(s.reviewStatus) : t('common.empty')) }}
+                  <UBadge :color="reviewStatusColor(p.reviewStatus)" variant="subtle" size="sm" :title="p.reviewReason || undefined">
+                    {{ p.reviewStatus_Display ?? (p.reviewStatus ? reviewStatusLabel(p.reviewStatus) : t('common.empty')) }}
                   </UBadge>
                 </td>
                 <td class="px-6 py-3">
-                  <UBadge :color="s.published ? 'success' : 'neutral'" variant="subtle" size="sm">
-                    {{ s.published_Display ?? (s.published ? t('common.yes') : t('common.no')) }}
+                  <UBadge :color="p.published ? 'success' : 'neutral'" variant="subtle" size="sm">
+                    {{ p.published_Display ?? (p.published ? t('common.yes') : t('common.no')) }}
                   </UBadge>
                 </td>
                 <td class="px-6 py-3">
                   <div class="flex items-center justify-end gap-1">
-                    <UTooltip :text="canUpdate ? t('common.edit') : t('allies.noPermission')">
+                    <template v-if="canApproveProducts">
+                      <UTooltip v-if="canApproveOffer(p)" :text="t('allies.products.review.approve')">
+                        <UButton
+                          color="success"
+                          variant="ghost"
+                          icon="i-lucide-check"
+                          size="sm"
+                          :loading="prdApprovingUuid === p.uuid"
+                          @click="approveOffer(p)"
+                        />
+                      </UTooltip>
+                      <UTooltip v-if="canApproveOffer(p)" :text="t('allies.products.review.reject')">
+                        <UButton
+                          color="warning"
+                          variant="ghost"
+                          icon="i-lucide-x"
+                          size="sm"
+                          @click="openPrdReason(p, 'reject')"
+                        />
+                      </UTooltip>
+                      <UTooltip v-if="canWithdrawOffer(p)" :text="t('allies.products.review.withdraw')">
+                        <UButton
+                          color="warning"
+                          variant="ghost"
+                          icon="i-lucide-circle-slash"
+                          size="sm"
+                          @click="openPrdReason(p, 'withdraw')"
+                        />
+                      </UTooltip>
+                    </template>
+                    <UTooltip :text="canUpdateProducts ? t('common.edit') : t('allies.noPermission')">
                       <UButton
                         color="neutral"
                         variant="ghost"
                         icon="i-lucide-pencil"
                         size="sm"
-                        :disabled="!canUpdate"
-                        @click="openSvcEdit(s)"
+                        :disabled="!canUpdateProducts"
+                        @click="openPrdEdit(p)"
                       />
                     </UTooltip>
-                    <UTooltip :text="canDelete ? t('common.delete') : t('allies.noPermission')">
+                    <UTooltip :text="canDeleteProducts ? t('common.delete') : t('allies.noPermission')">
                       <UButton
                         color="error"
                         variant="ghost"
                         icon="i-lucide-trash-2"
                         size="sm"
-                        :disabled="!canDelete"
-                        @click="openSvcDelete(s)"
+                        :disabled="!canDeleteProducts"
+                        @click="openPrdDelete(p)"
                       />
                     </UTooltip>
                   </div>
@@ -1279,6 +1320,16 @@ onMounted(async () => {
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <div
+          v-if="productsTotal > PRODUCTS_PAGE_SIZE"
+          class="flex items-center flex-wrap justify-between gap-3 px-6 py-3 border-t border-prohealth-100"
+        >
+          <p class="text-xs text-prohealth-500">
+            {{ t('allies.products.paginationSummary', { shown: products.length, total: productsTotal }) }}
+          </p>
+          <UPagination v-model:page="productsPage" :total="productsTotal" :items-per-page="PRODUCTS_PAGE_SIZE" />
         </div>
       </div>
 
@@ -1684,121 +1735,58 @@ onMounted(async () => {
       </div>
     </template>
 
-    <!-- Service modal -->
-    <UModal
-      v-model:open="svcFormOpen"
-      :title="svcMode === 'create' ? t('allies.services.form.createTitle') : t('allies.services.form.editTitle')"
-      :description="svcMode === 'create' ? t('allies.services.form.createDescription') : t('allies.services.form.editDescription')"
-    >
+    <!-- Product / service offer modal -->
+    <AllyProductFormModal
+      v-model:open="prdFormOpen"
+      :ally-uuid="allyUuid"
+      :mode="prdMode"
+      :offer-uuid="prdEditingUuid"
+      :can-delete="canDeleteProducts"
+      @saved="loadProducts"
+      @delete-requested="openPrdDelete"
+    />
+
+    <!-- Delete offer modal -->
+    <UModal v-model:open="prdDeleteOpen" :title="t('allies.products.delete.title')">
       <template #body>
-        <UForm
-          ref="svcFormRef"
-          :schema="svcSchema"
-          :state="svcState"
-          class="space-y-4"
-          @submit="onSvcSubmit"
-        >
-          <UFormField :label="t('allies.services.form.fields.category')" name="serviceCategoryUuid" required>
-            <USelectMenu
-              clear
-              v-model="svcState.serviceCategoryUuid"
-              :items="categoryOptions"
-              label-key="label"
-              value-key="value"
-              :placeholder="t('common.select')"
-              class="w-full"
-            />
-          </UFormField>
-
-          <UFormField :label="t('allies.services.form.fields.name')" name="name" required>
-            <UInput v-model="svcState.name" class="w-full" />
-          </UFormField>
-
-          <UFormField :label="t('allies.services.form.fields.description')" name="description">
-            <UTextarea v-model="svcState.description" :rows="2" class="w-full" />
-          </UFormField>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField :label="t('allies.services.form.fields.price')" name="priceUsd">
-              <UInput v-model="svcState.priceUsd" placeholder="100.00" class="w-full" />
-            </UFormField>
-            <UFormField :label="t('allies.services.form.fields.discount')" name="discountPct">
-              <UInput v-model="svcState.discountPct" placeholder="10.00" class="w-full" />
-            </UFormField>
-          </div>
-
-          <UFormField
-            :label="t('allies.services.form.fields.exclusions')"
-            name="exclusions"
-            :help="t('allies.services.form.exclusionsHelp')"
-          >
-            <UTextarea
-              v-model="svcState.exclusions"
-              :rows="2"
-              :placeholder="t('allies.services.form.exclusionsPlaceholder')"
-              class="w-full"
-            />
-          </UFormField>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField :label="t('allies.services.form.fields.requiresAppointment')" name="requiresAppointment">
-              <USwitch v-model="svcState.requiresAppointment" />
-            </UFormField>
-            <UFormField v-if="svcMode === 'edit'" :label="t('allies.services.form.fields.published')" name="published">
-              <USwitch v-model="svcState.published" />
-            </UFormField>
-          </div>
-
-        </UForm>
-      </template>
-
-      <template #footer>
-        <div class="w-full space-y-2">
-          <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
-
-          <div class="flex items-center justify-between gap-3">
-            <div v-if="svcMode === 'edit' && svcEditingItem">
-              <UTooltip :text="canDelete ? t('common.delete') : t('allies.noPermission')">
-                <UButton
-                  color="error"
-                  variant="ghost"
-                  icon="i-lucide-trash-2"
-                  size="sm"
-                  :label="t('common.delete')"
-                  :disabled="svcSubmitting || !canDelete"
-                  @click="openSvcDeleteFromEdit"
-                />
-              </UTooltip>
-            </div>
-            <div v-else />
-
-            <div class="flex items-center gap-3">
-              <UButton color="neutral" variant="ghost" :disabled="svcSubmitting" @click="svcFormOpen = false">
-                {{ t('common.cancel') }}
-              </UButton>
-              <UButton color="primary" :loading="svcSubmitting" icon="i-lucide-save" @click="svcFormRef?.submit()">
-                {{ svcMode === 'create' ? t('allies.services.add') : t('common.saveChanges') }}
-              </UButton>
-            </div>
-          </div>
+        <i18n-t keypath="allies.products.delete.confirm" tag="p" class="text-sm text-prohealth-700" scope="global">
+          <template #name>
+            <span class="font-semibold">{{ prdTarget?.name }}</span>
+          </template>
+        </i18n-t>
+        <div class="flex items-center justify-end gap-3 pt-5">
+          <UButton color="neutral" variant="ghost" :disabled="prdDeleting" @click="prdDeleteOpen = false">
+            {{ t('common.cancel') }}
+          </UButton>
+          <UButton color="error" :loading="prdDeleting" icon="i-lucide-trash-2" @click="confirmPrdDelete">
+            {{ t('common.delete') }}
+          </UButton>
         </div>
       </template>
     </UModal>
 
-    <!-- Delete service modal -->
-    <UModal v-model:open="svcDeleteOpen" :title="t('allies.services.delete.title')">
+    <!-- Reject / withdraw offer (reason required, shown to the ally) -->
+    <UModal
+      v-model:open="prdReasonOpen"
+      :title="prdReasonAction === 'reject' ? t('allies.products.review.rejectTitle') : t('allies.products.review.withdrawTitle')"
+      :description="prdReasonTarget?.name"
+    >
       <template #body>
-        <i18n-t keypath="allies.services.delete.confirm" tag="p" class="text-sm text-prohealth-700" scope="global">
-          <template #name>
-            <span class="font-semibold">{{ svcTarget?.name }}</span>
-          </template>
-        </i18n-t>
+        <UFormField :label="t('allies.products.review.reasonLabel')" :help="t('allies.products.review.reasonHelp')" required>
+          <UTextarea v-model="prdReason" :rows="3" class="w-full" />
+        </UFormField>
         <div class="flex items-center justify-end gap-3 pt-5">
-          <UButton color="neutral" variant="ghost" :disabled="svcDeleting" @click="svcDeleteOpen = false">
+          <UButton color="neutral" variant="ghost" :disabled="prdReasonSubmitting" @click="prdReasonOpen = false">
             {{ t('common.cancel') }}
           </UButton>
-          <UButton color="error" :loading="svcDeleting" icon="i-lucide-trash-2" @click="confirmSvcDelete">
-            {{ t('common.delete') }}
+          <UButton
+            color="warning"
+            :loading="prdReasonSubmitting"
+            :disabled="!prdReason.trim()"
+            icon="i-lucide-check"
+            @click="confirmPrdReason"
+          >
+            {{ t('allies.products.review.confirm') }}
           </UButton>
         </div>
       </template>

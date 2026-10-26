@@ -75,7 +75,7 @@ function money(v?: number | string | null, currency?: string | null): string | n
             </p>
             <p class="text-xs text-prohealth-500 truncate">
               {{ u.usageDate_Display ?? formatDate(u.usageDate) }}
-              · {{ [u.serviceCategoryName, u.planCode].filter(Boolean).join(' · ') || t('common.empty') }}
+              · {{ [u.productCategoryName, u.planCode].filter(Boolean).join(' · ') || t('common.empty') }}
             </p>
             <p v-if="u.notes" class="text-xs text-prohealth-400 truncate mt-0.5">{{ u.notes }}</p>
           </div>

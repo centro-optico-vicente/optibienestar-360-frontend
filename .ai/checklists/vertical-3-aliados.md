@@ -26,13 +26,27 @@
 
 - [ ] [P0/C3] Página `pages/allies/dashboard.vue` (vista del propio aliado)
 
+## Catálogo de productos y servicios (hub ADR 0026)
+
+> El backend reemplazó los "servicios del aliado" (`ally_services`) por un **catálogo maestro de productos** (`products`: `SERVICE`/`PRODUCT`, categoría, aliado dueño = exclusivo o null = general) y las **ofertas** del aliado (`ally_products`: precio, tarifa preferencial, precio final, exclusiones, revisión, publicación). La categoría `service-categories` pasó a `product-categories`. Las rutas viejas `/services` responden como alias deprecado, pero con otra forma JSON y otros permisos — el front se migró en `feature/products-model`.
+
+- [x] [P0/C3] Maestro `pages/dashboard/products/index.vue` (`useProducts`, `types/products.ts`) — tabla con `q`, filtros tipo / categoría (`filter=productCategory.uuid==…`) / general-exclusivo; alta/edición en `ProductFormModal` (la edición carga `GET /{uuid}`); borrado lógico; detalle `ProductDetailModal` con imagen (subir → publicar/despublicar/eliminar) y pestaña **"Aliados que lo ofrecen"** (`GET /v1/admin/products/{uuid}/offers`). Permisos `PRODUCT_*`, auditoría `product`.
+- [x] [P0/C2] Detalle de aliado: pestaña **"Productos y servicios"** paginada (`GET /v1/admin/allies/{uuid}/products` → `Page`), alta eligiendo un producto general (buscador sobre `/v1/admin/products?exclusive=false`) o "crear exclusivo"; los datos del ítem solo se editan si es exclusivo (`AllyProductFormModal`). Aprobar / rechazar / retirar en la fila (`/v1/admin/ally-products/{uuid}/approve|reject|remove`, `ALLY_PRODUCT_APPROVE`). Permisos `ALLY_PRODUCT_*`.
+- [x] [P0/C2] Portal aliado `pages/allies/index.vue`: proponer un producto existente o uno nuevo exclusivo (`POST /v1/me/allies/products`). Sin `PRODUCT_VIEW_ALL` el buscador usa el catálogo público `/v1/public/products` (solo lo que algún aliado ya ofrece públicamente).
+- [x] [P1/C1] Catálogo `product-categories` (registro + nav "Alianzas"); `/dashboard/catalogs/service-categories` redirige.
+- [ ] [P1/C2] Backend: `AllyProductDto` no trae el nombre del aliado (solo `allyUuid`) — la pestaña "Aliados que lo ofrecen" lo resuelve con un `GET /v1/admin/allies/{uuid}` por aliado. Pedir un par `ally_Uuid` + `ally_Display` (ADR 0014).
+- [ ] [P1/C2] Backend: el portal del aliado no tiene un listado de productos ofrecibles (generales) — hoy cae al catálogo público. Falta algo como `GET /v1/me/allies/products/offerable`.
+- [ ] [P2/C1] Páginas públicas `/aliados` y `/catalogo` siguen leyendo `PublicAllyDetailDto.services` (deprecado) — migrar a `products` en la tarea B3.
+
 ## Adicionales v2 — Flujo de Aprobación de Servicios
 
+> **Nota (hub ADR 0026):** los "servicios" ahora son **ofertas de productos** — rutas `/v1/me/allies/products*` y `/v1/admin/ally-products/*`, permiso `ALLY_PRODUCT_APPROVE` (antes `ALLY_SERVICE_APPROVE`). Los ítems de abajo conservan la redacción original.
+>
 > Equivalente UI del [backend vertical-3 §Adicionales v2](https://github.com/fenix-core/optibienestar-360-backend/blob/main/.ai/checklists/vertical-3-aliados.md) (ítem PDF #6). Mapa: [`../scope-additions-v2.md`](../scope-additions-v2.md).
 
 ### Portal aliado
 
-- [ ] [v2] [P0/C2] Form "Proponer servicio" en `pages/allies/` → `POST /v1/allies/me/services` (categoría + nombre/desc/precio + `discount_pct` + requiere cita). El servicio entra en `PROPOSED`. Selector de aliado si el usuario pertenece a varios.
+- [x] [v2] [P0/C2] Form "Proponer servicio" en `pages/allies/` → `POST /v1/allies/me/services` (hoy `POST /v1/me/allies/products`, producto existente o nuevo exclusivo) (categoría + nombre/desc/precio + `discount_pct` + requiere cita). El servicio entra en `PROPOSED`. Selector de aliado si el usuario pertenece a varios.
 - [ ] [v2] [P0/C2] Listado de servicios propios del aliado con **badge de estado** (PROPOSED/IN_REVIEW/APPROVED/REJECTED/REMOVED) y, en REJECTED/REMOVED, el `review_reason`.
 - [ ] [v2] [P0/C2] Acción "Retirar servicio" sobre un APPROVED (`DELETE /v1/allies/me/services/{uuid}` → transiciona a REMOVED). Solo OWNER/STAFF.
 - [ ] [v2] [P0/C2] Vista de historial de revisión del servicio (`GET /v1/allies/me/services/{uuid}/log`) — log compartido admin↔aliado.
@@ -40,7 +54,7 @@
 ### Admin — cola de revisión
 
 - [ ] [v2] [P0/C3] Página `pages/admin/ally-services/pending.vue` — cola de revisión (`GET /v1/admin/ally-services/pending`, filtrable por aliado/tipo).
-- [ ] [v2] [P0/C2] Acciones aprobar / rechazar / remover (`POST .../{uuid}/approve|reject|remove`) — reject/remove exigen `reason`. Botones gated por permiso `ALLY_SERVICE_APPROVE`.
+- [x] [v2] [P0/C2] Acciones aprobar / rechazar / remover (`POST .../{uuid}/approve|reject|remove`) — reject/remove exigen `reason`. Botones gated por permiso `ALLY_PRODUCT_APPROVE` (antes `ALLY_SERVICE_APPROVE`). _Hechas en la pestaña "Productos y servicios" del detalle de aliado; la cola global sigue pendiente._
 - [ ] [v2] [P0/C2] Vista de historial de revisión admin (`GET /v1/admin/ally-services/{uuid}/log`) — mismo log que ve el aliado.
 - [ ] [v2] [P0/C1] El directorio público (`pages` públicas) solo muestra servicios `APPROVED` (el backend ya filtra; el front no debe asumir otros estados visibles).
 
