@@ -9,12 +9,12 @@ on:
       nginx_version:
         description: 'Nginx version to use as base image'
         required: false
-        default: '1.31.0'
+        default: '1.31.8'
 
 env:
   DOCKER_HUB_REGISTRY: ${{ vars.DOCKER_HUB_REGISTRY || 'docker.io' }}
   DOCKER_HUB_REPOSITORY: ${{ vars.DOCKER_HUB_REPOSITORY || format('{0}/optibienestar-360-frontend', vars.DOCKER_HUB_USERNAME) }}
-  NGINX_VERSION: ${{ github.event.inputs.nginx_version || vars.NGINX_VERSION || '1.31.0' }}
+  NGINX_VERSION: ${{ github.event.inputs.nginx_version || vars.NGINX_VERSION || '1.31.8' }}
 
 jobs:
   build-and-test:

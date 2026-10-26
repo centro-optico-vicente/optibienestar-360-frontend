@@ -93,6 +93,9 @@ const assignPromotionUuid = ref<string | undefined>(undefined)
 const assignCode = ref('')
 const assignSubmitting = ref(false)
 const assignSelected = computed(() => assignOptions.value.find(p => p.uuid === assignPromotionUuid.value) ?? null)
+// Nuxt UI v4 types SelectMenuItem.description as `string | undefined` (no null), while the DTO allows null.
+const withoutNullDescription = (list: PromotionDto[]) => list.map(p => ({ ...p, description: p.description ?? undefined }))
+const assignPromotionItems = computed(() => withoutNullDescription(assignOptions.value))
 
 async function openAssign(m: MembershipDto) {
   assignTarget.value = m
@@ -215,6 +218,7 @@ const enrollState = reactive<EnrollState>({
 // Promotions offered for the chosen plan (ACQUISITION, campaign running, cap available).
 const enrollPromotions = ref<PromotionDto[]>([])
 const enrollPromotion = computed(() => enrollPromotions.value.find(p => p.uuid === enrollState.promotionUuid) ?? null)
+const enrollPromotionItems = computed(() => withoutNullDescription(enrollPromotions.value))
 watch(() => enrollState.planUuid, async (planUuid) => {
   enrollState.promotionUuid = undefined
   enrollState.promotionCode = ''
@@ -488,7 +492,7 @@ async function confirmLifecycle() {
             <USelectMenu
               clear
               v-model="enrollState.promotionUuid"
-              :items="enrollPromotions"
+              :items="enrollPromotionItems"
               label-key="name"
               value-key="uuid"
               :placeholder="t('promotions.membership.noPromotion')"
@@ -588,7 +592,7 @@ async function confirmLifecycle() {
             <UFormField :label="t('promotions.membership.promotion')" required :help="assignSelected?.description || undefined">
               <USelectMenu
                 v-model="assignPromotionUuid"
-                :items="assignOptions"
+                :items="assignPromotionItems"
                 label-key="name"
                 value-key="uuid"
                 class="w-full"
