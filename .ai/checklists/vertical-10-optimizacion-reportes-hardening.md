@@ -40,7 +40,7 @@
 
 ## Dependencias
 
-- [ ] [P1/C1] **ADR propuesto:** [ADR LOC-0012](../decisions/loc-0012-nuxt-ui-v4-migration.md) (estado Propuesto, pendiente de aceptación). Verificado 2026-10-25: el repo está en Nuxt 4.2.2 + Nuxt UI 3.3.7; superficie incompatible real = 2 archivos (`UButtonGroup`). No ejecutar hasta aceptar el ADR.
+- [x] [P1/C1] **Migrar `@nuxt/ui` v3 → v4** — [ADR LOC-0012](../decisions/loc-0012-nuxt-ui-v4-migration.md) aceptado e implementado en [#255](https://github.com/centro-optico-vicente/optibienestar-360-frontend/pull/255) (único cambio incompatible: `UButtonGroup` → `UFieldGroup`; typecheck de formularios/selects ajustado). Pendiente la revisión visual manual en TEST (62 `:ui` en 41 archivos, tokens `--ui-*`, toasts) antes de publicar el release.
 - [ ] [P1/C3] Migrar `@nuxt/ui` v3 → v4: bump del dep + guía de migración oficial + re-testear las vistas ya construidas (login, dashboard, users, roles, catalogs). Tailwind v4 (4.3.0) ya está → prerequisito cubierto. **Hacerlo antes** de construir los verticales 3–10 evita rework y habilita los componentes Pro (tablas/dashboards) gratis.
 
 ## Rendering (SSR)
