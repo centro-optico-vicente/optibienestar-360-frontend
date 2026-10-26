@@ -1701,8 +1701,11 @@
       "gallery": {
         "title": "Imágenes de mi aliado",
         "hint": "Logo y fotos que se muestran en el directorio público. Se publican de inmediato.",
-        "offerTitle": "Imágenes de {name}",
-        "offerHint": "Fotos de la oferta recién propuesta. Se publican de inmediato."
+        "offersTitle": "Imágenes de mis ofertas",
+        "offersHint": "Agrega fotos a cada oferta, en cualquier estado de revisión. Se publican de inmediato.",
+        "offersEmpty": "Aún no tienes ofertas.",
+        "show": "Imágenes",
+        "hide": "Ocultar"
       }
     },
     "segments": {

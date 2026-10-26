@@ -1701,8 +1701,11 @@
       "gallery": {
         "title": "My partner's images",
         "hint": "Logo and photos shown in the public directory. They are published immediately.",
-        "offerTitle": "Images of {name}",
-        "offerHint": "Photos of the offer you just proposed. They are published immediately."
+        "offersTitle": "Images of my offers",
+        "offersHint": "Add photos to each offer, in any review state. They are published immediately.",
+        "offersEmpty": "You have no offers yet.",
+        "show": "Images",
+        "hide": "Hide"
       }
     },
     "segments": {

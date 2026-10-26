@@ -315,5 +315,16 @@ export const useMyAllies = () => {
   /** Allies I operate on, primary first then alphabetical (order set by the backend). */
   const list = () => useApi<MyAllyDto[]>('/v1/me/allies')
 
-  return { list }
+  /** The ally's OWN offers in every review state (any active member may read). */
+  const listProducts = (allyUuid: string, params: { q?: string, type?: string, page?: number, size?: number } = {}) =>
+    useApi<Page<AllyProductDto>>(`/v1/me/allies/${allyUuid}/products`, {
+      query: {
+        page: params.page ?? 0,
+        size: params.size ?? 50,
+        ...(params.q ? { q: params.q } : {}),
+        ...(params.type ? { type: params.type } : {}),
+      },
+    })
+
+  return { list, listProducts }
 }

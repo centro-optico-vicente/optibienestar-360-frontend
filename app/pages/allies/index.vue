@@ -38,6 +38,26 @@ const allyOptions = computed(() => myAllyList.value.map(a => ({ label: a.name, v
 const selectedAlly = computed(() => myAllyList.value.find(a => a.uuid === state.allyUuid) ?? null)
 // VIEWER members only read the galleries (writes answer 403 — hub ADR 0027).
 const canEditMedia = computed(() => canOperateAtCounter(selectedAlly.value?.allyRole))
+// ---- Own offers (galleries) ----
+const myOffers = ref<AllyProductDto[]>([])
+const openOffer = ref<string | null>(null)
+
+async function loadMyOffers() {
+  const uuid = selectedAlly.value?.uuid
+  openOffer.value = null
+  if (!uuid) {
+    myOffers.value = []
+    return
+  }
+  try {
+    myOffers.value = (await myAllies.listProducts(uuid)).content ?? []
+  }
+  catch {
+    myOffers.value = []
+  }
+}
+watch(() => selectedAlly.value?.uuid, loadMyOffers)
+
 const hasNoAlly = computed(() => !alliesLoading.value && myAllyList.value.length === 0)
 
 async function loadMyAllies() {
@@ -187,6 +207,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       color: 'success',
       icon: 'i-lucide-check-circle',
     })
+    loadMyOffers()
     // Keep allyUuid for the next proposal; clear the rest.
     state.productUuid = undefined
     state.productCategoryUuid = undefined
@@ -248,16 +269,42 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       />
     </div>
 
-    <!-- Gallery of the offer just proposed -->
-    <div v-if="lastProposed" class="bg-white rounded-2xl border border-prohealth-100 p-6 space-y-2">
-      <h2 class="font-bold text-prohealth-900">{{ t('allies.portal.gallery.offerTitle', { name: lastProposed.name }) }}</h2>
-      <p class="text-xs text-prohealth-500">{{ t('allies.portal.gallery.offerHint') }}</p>
-      <MediaGalleryEditor
-        :key="lastProposed.uuid"
-        :base="`/v1/me/allies/products/${lastProposed.uuid}/media`"
-        :readonly="!canEditMedia"
-        :empty-hint="t('media.offerFallbackHint')"
-      />
+    <!-- Own offers (any review state), each with its gallery (hub ADR 0027) -->
+    <div v-if="selectedAlly" class="bg-white rounded-2xl border border-prohealth-100 p-6 space-y-3">
+      <div>
+        <h2 class="font-bold text-prohealth-900">{{ t('allies.portal.gallery.offersTitle') }}</h2>
+        <p class="text-xs text-prohealth-500">{{ t('allies.portal.gallery.offersHint') }}</p>
+      </div>
+      <p v-if="!myOffers.length" class="text-xs text-prohealth-400">{{ t('allies.portal.gallery.offersEmpty') }}</p>
+      <ul v-else class="divide-y divide-prohealth-100">
+        <li v-for="o in myOffers" :key="o.uuid" class="py-3">
+          <div class="flex items-center justify-between gap-3">
+            <div class="min-w-0">
+              <p class="font-semibold text-sm text-prohealth-900 truncate">{{ o.name }}</p>
+              <p class="text-xs text-prohealth-500">
+                {{ o.reviewStatus_Display ?? t(`allies.products.reviewStatus.${o.reviewStatus}`, String(o.reviewStatus ?? '')) }}
+              </p>
+            </div>
+            <UButton
+              size="xs"
+              color="primary"
+              variant="soft"
+              icon="i-lucide-images"
+              @click="openOffer = openOffer === o.uuid ? null : o.uuid"
+            >
+              {{ openOffer === o.uuid ? t('allies.portal.gallery.hide') : t('allies.portal.gallery.show') }}
+            </UButton>
+          </div>
+          <MediaGalleryEditor
+            v-if="openOffer === o.uuid"
+            :key="o.uuid"
+            class="mt-3"
+            :base="`/v1/me/allies/products/${o.uuid}/media`"
+            :readonly="!canEditMedia"
+            :empty-hint="t('media.offerFallbackHint')"
+          />
+        </li>
+      </ul>
     </div>
 
     <!-- Form -->

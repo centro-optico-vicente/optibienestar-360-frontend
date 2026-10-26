@@ -80,4 +80,4 @@
 - [x] Portal del aliado (`pages/allies/index.vue`): galería del aliado y de la oferta recién propuesta (`/v1/me/...`); VIEWER en solo lectura.
 - [x] Páginas públicas: `PublicImageGallery.vue` en `/aliados/{uuid}`, `/catalogo/{uuid}` y las ofertas de la comparativa (respaldo a `logoUrl`/`imageUrl`).
 - [x] i18n `media.*` es/en.
-- [ ] Portal: listado de las ofertas propias para editar su galería en cualquier momento (hoy solo la oferta recién propuesta; falta un endpoint de lectura `/v1/me/allies/{allyUuid}/products`).
+- [x] Portal: listado de las ofertas propias (`GET /v1/me/allies/{allyUuid}/products`) con galería por oferta.

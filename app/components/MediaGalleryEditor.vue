@@ -264,7 +264,7 @@ defineExpose({ reload: load })
       {{ t('media.hint', { mb: MEDIA_MAX_FILE_MB }) }}
       <span v-if="atLimit" class="text-amber-700 font-medium"> {{ t('media.limitReached', { max: MEDIA_MAX_ITEMS }) }}</span>
     </p>
-    <p v-else-if="readonly || !canUpload" class="text-xs text-prohealth-500">{{ t('media.readonlyHint') }}</p>
+    <p v-else-if="props.readonly || !props.canUpload" class="text-xs text-prohealth-500">{{ t('media.readonlyHint') }}</p>
 
     <UAlert
       v-if="errorMessage"
