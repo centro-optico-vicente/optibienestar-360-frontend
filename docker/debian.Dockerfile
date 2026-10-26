@@ -4,7 +4,7 @@
 
 # Global build args (declared before the first FROM so both stages' FROM lines can use them).
 ARG NODE_VERSION=22
-ARG NGINX_VERSION=1.31.0
+ARG NGINX_VERSION=1.31.8
 
 # ---------- Stage 1: build ----------
 FROM node:${NODE_VERSION}-bookworm-slim AS build
@@ -26,11 +26,14 @@ COPY . .
 RUN pnpm generate
 
 # ---------- Stage 2: serve ----------
-ARG NGINX_VERSION=1.31.0
+ARG NGINX_VERSION=1.31.8
 FROM nginx:${NGINX_VERSION}
 
 ARG BUILD_VERSION=unknown
 ARG BUILD_DATE=unknown
+
+# Pull in OS package security fixes published after the base image was built.
+RUN apt-get update && apt-get upgrade -y --no-install-recommends && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 LABEL org.opencontainers.image.title="optibienestar-360-frontend" \
 	org.opencontainers.image.description="Panel admin y portales OptiBienestar 360 (Nuxt SPA) servido por Nginx (Debian)" \

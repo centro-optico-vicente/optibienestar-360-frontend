@@ -61,7 +61,7 @@ pnpm generate
 CI solo corre este job (`docker-smoke`) cuando el diff toca `docker/**` o el propio `ci.yaml` — cambios de código puro (páginas, componentes, composables) no lo disparan. Si estás tocando nginx/Dockerfile y querés probarlo local:
 
 ```bash
-docker build -f docker/alpine.Dockerfile -t frontend-local --build-arg NGINX_VERSION=1.31.0 .
+docker build -f docker/alpine.Dockerfile -t frontend-local --build-arg NGINX_VERSION=1.31.8 .
 docker run -d --name frontend-local -e NUXT_PUBLIC_API_BASE_URL=http://localhost:8080 -p 18080:80 frontend-local
 curl -sf http://localhost:18080/
 ```
