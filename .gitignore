@@ -78,6 +78,9 @@ web_modules/
 .next
 out
 
+# Types generated from the backend's OpenAPI contract (pnpm api:generate, ADR LOC-0011)
+app/types/api.d.ts
+
 # Nuxt.js build / generate output
 .nuxt
 dist

@@ -212,7 +212,7 @@ export interface AllyListItemDto {
 
 La forma real de `Page<T>` está en [`03-state-management.md`](03-state-management.md) / [ADR 0019 del hub](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0019-api-json-casing-contract.md) — no es `PageDTO` con `total_elements`/`has_next` en snake_case.
 
-A futuro: auto-generar desde OpenAPI con `openapi-typescript` (pendiente, sin ADR que lo congele — ver auditoría hallazgo H-FS-8).
+**Tipos generados desde OpenAPI ([ADR LOC-0011](../decisions/loc-0011-openapi-generated-types.md), Fase 2):** `api/contract-version` fija la versión del backend cuyo `openapi.json` (asset del release) consume este frontend; `pnpm api:generate` lo descarga a `.cache/openapi/<versión>/` (ignorado por git) y genera `app/types/api.d.ts` con `openapi-typescript` (solo tipos; `useApi` no cambia). Nada generado se versiona; el CI lo ejecuta antes de `pnpm typecheck`. Tras clonar o al subir la versión: `pnpm api:generate`. Para un backend aún sin release: `API_CONTRACT_FILE=/ruta/openapi.json pnpm api:generate`. Subir la versión del contrato = PR que edita `api/contract-version`; el typecheck revela los desfases. Sin consumidores todavía (Fase 3: piloto Aliados).
 
 ## Reglas
 
