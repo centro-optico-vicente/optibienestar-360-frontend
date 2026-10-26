@@ -140,7 +140,7 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
           />
         </UFormField>
         <UFormField v-else :label="t('campaigns.form.campaign')">
-          <UInput :model-value="campaignDisplay || campaignUuid" disabled readonly icon="i-lucide-rocket" class="w-full" />
+          <UInput :model-value="campaignDisplay || campaignUuid || ''" disabled readonly icon="i-lucide-rocket" class="w-full" />
         </UFormField>
 
         <template v-if="!referenceLocked">
@@ -159,7 +159,7 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
         </template>
         <UFormField v-else :label="t('campaigns.exceptions.transaction')">
           <UInput
-            :model-value="paymentDisplay || membershipDisplay || paymentUuid || membershipUuid"
+            :model-value="paymentDisplay || membershipDisplay || paymentUuid || membershipUuid || ''"
             disabled
             readonly
             icon="i-lucide-receipt"
