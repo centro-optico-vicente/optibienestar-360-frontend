@@ -455,7 +455,7 @@ function requestDelete() {
         <!-- Agreement file "[CÓDIGO DE ASESOR]-[Nº DE ALIADO]" — assigned by the backend, read-only. -->
         <div v-if="mode === 'edit' && (allyNumber || fileNumber)" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('allies.form.fields.allyNumber')" name="allyNumber">
-            <UInput :model-value="allyNumber ?? ''" disabled class="w-full font-mono" />
+            <UInput :model-value="String(allyNumber ?? '')" disabled class="w-full font-mono" />
           </UFormField>
           <UFormField :label="t('allies.form.fields.fileNumber')" name="fileNumber" :help="t('allies.form.fileNumberHelp')">
             <UInput :model-value="fileNumber ?? ''" disabled class="w-full font-mono" />

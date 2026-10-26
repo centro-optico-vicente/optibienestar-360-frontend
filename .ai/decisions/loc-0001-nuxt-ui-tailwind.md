@@ -29,7 +29,7 @@ export default defineNuxtConfig({
   modules: ['@nuxt/ui'],
 });
 
-// app.config.ts (sintaxis real Nuxt UI v3 — v2 usaba `primary`/`gray` planos)
+// app.config.ts (misma sintaxis en Nuxt UI v3 y v4: no requiere migrar — v2 usaba `primary`/`gray` planos)
 export default defineAppConfig({
   ui: {
     colors: {
