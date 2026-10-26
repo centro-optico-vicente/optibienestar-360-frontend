@@ -69,7 +69,7 @@ a mano vuelve a mentir. Opciones, de menos a más ambiciosa:
    controllers declaran su tipo de retorno exacto, así que `/v3/api-docs` es fiel. Generar
    `app/types/api.d.ts` con `openapi-typescript` y consumir esos tipos convierte cada desfase futuro en
    un error de compilación. Requiere decidir si se genera en CI (contra un backend levantado) o se
-   commitea el esquema — es un cambio de tooling, merece su propio ADR.
+   commitea el esquema — es un cambio de tooling, merece su propio ADR. **ADR propuesto:** [LOC-0011](decisions/loc-0011-openapi-generated-types.md)
 
 **Recomendación:** (1) ahora para parar el sangrado, (2) como tarea de hardening en
 [`checklists/vertical-10-optimizacion-reportes-hardening.md`](checklists/vertical-10-optimizacion-reportes-hardening.md).
