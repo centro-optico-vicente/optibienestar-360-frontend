@@ -1883,7 +1883,8 @@
       "form": {
         "title": "Register an affiliate payment",
         "description": "Register a membership payment for an affiliate in your portfolio for review.",
-        "memberHelp": "Your portfolio. Not there? Register them with the button on the right."
+        "memberHelp": "Your portfolio, or search by name or document for someone with no advisor. Not there? Register them with the button on the right.",
+        "unassignedTag": "no advisor"
       }
     },
     "payouts": {

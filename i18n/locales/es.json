@@ -1883,7 +1883,8 @@
       "form": {
         "title": "Registrar pago de afiliado",
         "description": "Registra el pago de membresía de un afiliado de tu cartera para revisión.",
-        "memberHelp": "Tu cartera. ¿No está? Regístralo con el botón de la derecha."
+        "memberHelp": "Tu cartera, o busca por nombre o documento a alguien sin asesor. ¿No existe? Regístralo con el botón de la derecha.",
+        "unassignedTag": "sin asesor"
       }
     },
     "payouts": {
