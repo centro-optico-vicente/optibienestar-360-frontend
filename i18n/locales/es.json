@@ -2360,13 +2360,29 @@
     "assignOwn": {
       "title": "Asignar a una membresía",
       "description": "Si pagas por un familiar, indica a qué membresía corresponde este pago. El revisor lo verificará al aprobarlo.",
-      "documentLabel": "Cédula del titular",
-      "documentHelp": "Escribe el número exacto de documento del titular.",
       "search": "Buscar",
-      "notFound": "No encontramos una membresía activa con ese documento.",
-      "membershipLabel": "Membresía",
       "confirm": "Asignar",
       "savedToast": "Pago asignado a la membresía"
+    },
+    "beneficiary": {
+      "byContract": "Por n.º de contrato",
+      "byDocument": "Por cédula del titular",
+      "contractPlaceholder": "OB-000123",
+      "documentPlaceholder": "Número de documento",
+      "exactHelp": "Escribe el dato exacto; verás a quién corresponde antes de confirmar.",
+      "notFound": "No encontramos a nadie con ese dato. Revisa que esté bien escrito.",
+      "noMembership": "Sin membresía activa: el pago quedará como saldo a favor de esta persona.",
+      "needsMembership": "Esta persona no tiene una membresía activa a la que asignar el pago.",
+      "confirm": "Es esta persona",
+      "change": "Cambiar",
+      "contract": "Contrato",
+      "creditOnly": "Sin membresía activa: el pago será saldo a favor de esta persona.",
+      "sectionTitle": "Pago a favor de otra persona",
+      "sectionHelp": "Si pagas por un familiar, búscalo y confirma que es la persona correcta. El pago se aplica a su membresía, o queda como saldo a favor suyo si no tiene una.",
+      "toggle": "Pagar a favor de otra persona",
+      "confirmRequired": "Busca y confirma a la persona antes de registrar el pago.",
+      "detailLabel": "Beneficiario",
+      "forLabel": "A favor de {name}"
     }
   },
   "members": {
@@ -2762,7 +2778,8 @@
         "DUE_SOON": "Por vencer",
         "UP_TO_DATE": "Al día"
       }
-    }
+    },
+    "contractNumber": "Contrato"
   },
   "validator": {
     "seoTitle": "Validador — OptiBienestar 360",

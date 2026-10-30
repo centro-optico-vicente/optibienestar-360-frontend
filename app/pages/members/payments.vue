@@ -177,7 +177,12 @@ async function confirmDelete() {
               </td>
             </tr>
             <tr v-for="p in data" v-else :key="p.uuid" class="hover:bg-prohealth-50/50">
-              <td class="px-5 py-3 text-prohealth-800">{{ p.plan_Display ?? t('common.empty') }}</td>
+              <td class="px-5 py-3 text-prohealth-800">
+                {{ p.plan_Display ?? t('common.empty') }}
+                <span v-if="p.beneficiary_Display" class="block text-xs text-prohealth-500">
+                  {{ t('payments.beneficiary.forLabel', { name: p.beneficiary_Display }) }}
+                </span>
+              </td>
               <td class="px-5 py-3 font-medium text-prohealth-900">
                 <CurrencyConverterDisplay :amount="p.amount" :currency="p.currency_Code" :date="p.paymentDate" v-slot="{ result }">
                   <span class="inline-flex items-center gap-1">

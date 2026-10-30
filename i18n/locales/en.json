@@ -2360,13 +2360,29 @@
     "assignOwn": {
       "title": "Assign to a membership",
       "description": "If you are paying for a relative, say which membership this payment is for. The reviewer will verify it on approval.",
-      "documentLabel": "Holder's document number",
-      "documentHelp": "Enter the holder's exact document number.",
       "search": "Search",
-      "notFound": "We could not find an active membership with that document.",
-      "membershipLabel": "Membership",
       "confirm": "Assign",
       "savedToast": "Payment assigned to the membership"
+    },
+    "beneficiary": {
+      "byContract": "By contract number",
+      "byDocument": "By holder's document",
+      "contractPlaceholder": "OB-000123",
+      "documentPlaceholder": "Document number",
+      "exactHelp": "Type the exact value; you will see who it belongs to before confirming.",
+      "notFound": "We could not find anyone with that value. Check it is spelled correctly.",
+      "noMembership": "No active membership: the payment will become this person's credit.",
+      "needsMembership": "This person has no active membership to assign the payment to.",
+      "confirm": "This is the person",
+      "change": "Change",
+      "contract": "Contract",
+      "creditOnly": "No active membership: the payment will be this person's credit.",
+      "sectionTitle": "Pay on behalf of someone else",
+      "sectionHelp": "If you are paying for a relative, find them and confirm it is the right person. The payment settles their membership, or becomes their credit if they have none.",
+      "toggle": "Pay on behalf of someone else",
+      "confirmRequired": "Find and confirm the person before registering the payment.",
+      "detailLabel": "Beneficiary",
+      "forLabel": "For {name}"
     }
   },
   "members": {
@@ -2762,7 +2778,8 @@
         "DUE_SOON": "Due soon",
         "UP_TO_DATE": "Up to date"
       }
-    }
+    },
+    "contractNumber": "Contract"
   },
   "validator": {
     "seoTitle": "Validator — OptiBienestar 360",

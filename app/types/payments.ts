@@ -79,6 +79,11 @@ export interface PaymentDto {
   person_Display?: string | null
   promoter_Uuid?: string | null
   promoter_Display?: string | null
+  /** Who the payment credits when the payer is not the holder (V203), with document / contract snapshots. */
+  beneficiary_Uuid?: string | null
+  beneficiary_Display?: string | null
+  beneficiaryDocument?: string | null
+  beneficiaryContractNumber?: string | null
   // Subject (flat refs extracted by the mapper — member/membership resolve
   // to a readable `_Display` server-side, hub ADR 0014)
   membership_Uuid?: string | null
@@ -343,6 +348,22 @@ export interface MyPaymentCreateRequest {
   adminNotes?: string
   /** See {@link PaymentCreateRequest.lines}. */
   lines?: PaymentLineRequest[]
+  /** Pay for someone else (V203): membership from a CONFIRMED lookup. */
+  beneficiaryMembershipUuid?: string
+  /** Holder with no active membership from a CONFIRMED lookup: the payment becomes their credit. */
+  beneficiaryPersonUuid?: string
+}
+
+/**
+ * One match of GET /v1/me/payments/membership-lookup (V203). The name is abbreviated server-side; the
+ * membership fields are null when the holder has no active membership (payment then becomes their credit).
+ */
+export interface BeneficiaryMatchDto {
+  personUuid: string
+  membershipUuid: string | null
+  contractNumber: string | null
+  holderName: string
+  planName: string | null
 }
 
 /**
