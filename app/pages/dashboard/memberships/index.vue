@@ -261,7 +261,10 @@ function paymentStatusColor(s?: string | null): 'error' | 'warning' | 'success' 
               </td>
             </tr>
             <tr v-for="m in data" v-else :key="m.uuid" class="hover:bg-prohealth-50/50">
-              <td class="px-5 py-3 text-prohealth-900 font-medium">{{ m.member_Display ?? m.member_Code }}</td>
+              <td class="px-5 py-3 text-prohealth-900 font-medium">
+                {{ m.member_Display ?? m.member_Code }}
+                <span v-if="m.contractNumber" class="block text-xs font-mono font-normal text-prohealth-500">{{ m.contractNumber }}</span>
+              </td>
               <td class="px-5 py-3 text-prohealth-600">{{ m.advisor_Display ?? t('common.empty') }}</td>
               <td class="px-5 py-3 text-prohealth-700">
                 {{ m.planName }}

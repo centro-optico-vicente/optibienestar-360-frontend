@@ -442,6 +442,14 @@ function onReviewed(updated: PaymentDto) {
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.membership') }}</dt>
             <dd class="text-prohealth-800 mt-0.5">{{ payment.membership_Display || t('common.empty') }}</dd>
           </div>
+          <div v-if="payment.beneficiary_Display">
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.beneficiary.detailLabel') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">
+              {{ payment.beneficiary_Display }}
+              <span v-if="payment.beneficiaryDocument" class="block text-xs font-mono text-prohealth-500">{{ payment.beneficiaryDocument }}</span>
+              <span v-if="payment.beneficiaryContractNumber" class="block text-xs font-mono text-prohealth-500">{{ payment.beneficiaryContractNumber }}</span>
+            </dd>
+          </div>
         </dl>
       </div>
 

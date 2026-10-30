@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
-import type { MyPaymentCreateRequest, PaymentDto } from '~/types/payments'
+import type { BeneficiaryMatchDto, MyPaymentCreateRequest, PaymentDto } from '~/types/payments'
 import { BANK_ACCOUNT_TYPE_OPTIONS } from '~/types/payments'
 import type { CatalogItem } from '~/types/catalogs'
 
@@ -212,7 +212,17 @@ const schema = computed(() => z.object({
   adminNotes: z.string().optional(),
 }))
 
+// Pay on behalf of someone else (V203): only a holder CONFIRMED in the lookup is ever sent.
+const payForOther = ref(false)
+const beneficiary = ref<BeneficiaryMatchDto | null>(null)
+
+watch(payForOther, (on) => {
+  if (!on) beneficiary.value = null
+})
+
 function resetForm() {
+  payForOther.value = false
+  beneficiary.value = null
   state.amount = ''
   state.currency = 'USD'
   state.paymentMethodUuid = ''
@@ -252,6 +262,10 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       color: 'error',
       icon: 'i-lucide-circle-alert',
     })
+    return
+  }
+  if (payForOther.value && !beneficiary.value) {
+    toast.add({ title: t('payments.beneficiary.confirmRequired'), color: 'error', icon: 'i-lucide-circle-alert' })
     return
   }
   isSubmitting.value = true
@@ -298,6 +312,8 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         ...linesEditor.toRequests(),
       ]
     }
+    if (beneficiary.value?.membershipUuid) payload.beneficiaryMembershipUuid = beneficiary.value.membershipUuid
+    else if (beneficiary.value) payload.beneficiaryPersonUuid = beneficiary.value.personUuid
     const result = await payments.registerOwn(payload, supportFile.value)
     toast.add({ title: t('payments.form.registeredToast'), description: t('payments.form.registeredToastDescription'), color: 'success', icon: 'i-lucide-check-circle' })
     emit('saved', result)
@@ -372,6 +388,14 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
               <CommonEntityQuickLinkButton :to="'/dashboard/catalogs/payment-methods'" :can="canViewMethods" @navigate="openCatalog" />
             </div>
           </UFormField>
+        </div>
+
+        <div class="rounded-xl border border-prohealth-100 p-3 space-y-3">
+          <USwitch v-model="payForOther" :label="t('payments.beneficiary.toggle')" />
+          <template v-if="payForOther">
+            <p class="text-xs text-prohealth-600">{{ t('payments.beneficiary.sectionHelp') }}</p>
+            <BeneficiaryLookup v-model="beneficiary" />
+          </template>
         </div>
 
         <CompanyBankAccountPicker v-model="state.companyBankAccountUuid" />

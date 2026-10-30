@@ -59,6 +59,8 @@ export function isMembershipReactivatable(status?: string | null): boolean {
 export interface MembershipDto {
   uuid: string
   memberUuid: string
+  /** Human contract number (V203), e.g. OB-000123. */
+  contractNumber?: string | null
   // Plan (flat refs)
   planUuid: string
   planCode: string
@@ -130,6 +132,7 @@ export interface MembershipReviewRequest {
 export interface MembershipListItemDto {
   uuid: string
   memberUuid: string
+  contractNumber?: string | null
   member_Uuid?: string | null
   member_Code?: string | null
   member_Display?: string | null

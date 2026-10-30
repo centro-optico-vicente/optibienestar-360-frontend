@@ -1,6 +1,7 @@
 import type { Page } from '~/types/admin'
 import type {
   AssignMembershipRequest,
+  BeneficiaryMatchDto,
   CreditBalanceDto,
   DiscountAuthorityDto,
   DownlinePaymentCreateRequest,
@@ -180,12 +181,12 @@ export const usePayments = () => {
     useApi<PaymentDto>(`/v1/me/payments/${uuid}/membership`, { method: 'PUT', body: { membershipUuid } })
 
   /**
-   * Confirms the membership of someone I pay for by their exact document number
-   * (GET /v1/me/payments/membership-lookup, COLLECTION_CREATE_OWN). The holder's name comes back abbreviated.
+   * Confirms the holder I pay for by exact document number OR exact contract number
+   * (GET /v1/me/payments/membership-lookup, COLLECTION_CREATE_OWN). The holder's name comes back abbreviated;
+   * membership fields are null when they have no active membership.
    */
-  const lookupMembership = (documentNumber: string) =>
-    useApi<{ membershipUuid: string, holderName: string, planName: string }[]>(
-      '/v1/me/payments/membership-lookup', { query: { documentNumber } })
+  const lookupMembership = (params: { documentNumber?: string, contractNumber?: string }) =>
+    useApi<BeneficiaryMatchDto[]>('/v1/me/payments/membership-lookup', { query: params })
 
   /** Staff: assigns an APPROVED membership-less collection (credit) to a membership (COLLECTION_ASSIGN_MEMBERSHIP). */
   const assignMembership = (uuid: string, body: AssignMembershipRequest) =>
