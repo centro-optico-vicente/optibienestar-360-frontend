@@ -29,6 +29,7 @@ const toast = useToast()
 const canApprove = computed(() => can('PAYMENT_APPROVE'))
 const canReject = computed(() => can('PAYMENT_REJECT'))
 const canDiscount = computed(() => can('ALLOWS_DISCOUNT'))
+const canAssignMembership = computed(() => can('COLLECTION_ASSIGN_MEMBERSHIP'))
 const canViewMember = computed(() => can('MEMBER_VIEW_ALL'))
 const canViewCurrency = computed(() => can('CURRENCY_VIEW_ALL'))
 const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('PAYMENT_RECORD_AUDIT_VIEW'))
@@ -163,6 +164,12 @@ async function viewSupport() {
 }
 
 // ---- Review (approve/reject) ----
+// An approved collection with no membership is the person's credit; staff can assign it to a membership.
+const assignOpen = ref(false)
+const canAssignCredit = computed(() =>
+  canAssignMembership.value && payment.value?.direction !== 'OUT'
+  && payment.value?.status === 'APPROVED' && !payment.value?.membership_Uuid)
+
 const reviewOpen = ref(false)
 const reviewAction = ref<'approve' | 'reject'>('approve')
 
@@ -287,6 +294,15 @@ function onReviewed(updated: PaymentDto) {
                 </UButton>
               </UTooltip>
             </template>
+            <UButton
+              v-if="canAssignCredit"
+              color="primary"
+              variant="soft"
+              icon="i-lucide-link"
+              @click="assignOpen = true"
+            >
+              {{ t('payments.assignMembership.action') }}
+            </UButton>
             <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
               <UButton color="neutral" variant="ghost" icon="i-lucide-history" @click="auditOpen = true" />
             </UTooltip>
@@ -511,6 +527,13 @@ function onReviewed(updated: PaymentDto) {
         </dl>
       </div>
     </template>
+
+    <!-- Assign credit to a membership -->
+    <PaymentAssignMembershipModal
+      v-model:open="assignOpen"
+      :payment="payment"
+      @assigned="onReviewed"
+    />
 
     <!-- Approve/reject modal -->
     <PaymentReviewModal

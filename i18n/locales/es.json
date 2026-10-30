@@ -1988,6 +1988,17 @@
     }
   },
   "payments": {
+    "assignMembership": {
+      "action": "Asignar a membresía",
+      "title": "Asignar a una membresía",
+      "description": "Este cobro quedó como saldo a favor de quien pagó. Asígnalo a la membresía que cubre; se liquidan sus cargos del período indicado.",
+      "member": "Afiliado titular",
+      "memberHelp": "Busca por nombre o documento.",
+      "membership": "Membresía",
+      "membershipPlaceholder": "Elige primero al afiliado",
+      "confirm": "Asignar",
+      "toast": "Cobro asignado a la membresía"
+    },
     "title": "Cobros",
     "subtitle": "Registro y revisión de cobros de membresía: aprobación o rechazo con comprobante.",
     "collectionsReport": {
@@ -2624,6 +2635,7 @@
       "title": "Mis consumos",
       "subtitle": "Historial de los beneficios que usaste en los aliados de la red.",
       "empty": "Todavía no tienes consumos registrados.",
+      "notAffiliatedBody": "Cuando te afilies, aquí verás los beneficios que uses en los aliados de la red.",
       "consumption": "consumo",
       "copay": "Copago"
     },
