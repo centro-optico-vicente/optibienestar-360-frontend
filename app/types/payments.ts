@@ -352,6 +352,8 @@ export interface MyPaymentCreateRequest {
   beneficiaryMembershipUuid?: string
   /** Holder with no active membership from a CONFIRMED lookup: the payment becomes their credit. */
   beneficiaryPersonUuid?: string
+  /** Remember the first line's origin account (bank + account number) for next time (V204). */
+  rememberOriginAccount?: boolean
 }
 
 /**
@@ -410,6 +412,8 @@ export interface CompanyBankAccountDto {
   holderDocument: string
   notes?: string | null
   sortOrder: number
+  /** Shown without authentication on `GET /v1/public/company-bank-accounts` (V204). */
+  publicVisible: boolean
   active: boolean
 }
 
@@ -423,7 +427,22 @@ export interface CompanyBankAccountRequest {
   holderDocument: string
   notes?: string
   sortOrder?: number
+  /** Show it without authentication; defaults to private on create (V204). */
+  publicVisible?: boolean
   active?: boolean
+}
+
+/** An origin account the caller chose to remember (V204): `GET /v1/me/bank-accounts`. */
+export interface SavedOriginAccountDto {
+  uuid: string
+  bank_Uuid?: string | null
+  bank_Code?: string | null
+  bank_Display?: string | null
+  accountType?: string | null
+  accountCode?: string | null
+  accountIdentifier: string
+  identification?: string | null
+  alias?: string | null
 }
 
 /** `GET /v1/me/payments/credit-balance` — the caller's credit ("saldo a favor") per currency (V201). */

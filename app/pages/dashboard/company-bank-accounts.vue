@@ -105,6 +105,7 @@ const state = reactive({
   holderDocument: '',
   notes: '',
   sortOrder: '0',
+  publicVisible: false,
   active: true,
 })
 
@@ -121,7 +122,7 @@ const schema = computed(() => z.object({
 
 function openCreate() {
   editingUuid.value = null
-  Object.assign(state, { bankUuid: '', currency: 'USD', accountType: 'CORRIENTE', accountNumber: '', holderName: '', holderDocument: '', notes: '', sortOrder: '0', active: true })
+  Object.assign(state, { bankUuid: '', currency: 'USD', accountType: 'CORRIENTE', accountNumber: '', holderName: '', holderDocument: '', notes: '', sortOrder: '0', publicVisible: false, active: true })
   formOpen.value = true
 }
 
@@ -136,6 +137,7 @@ function openEdit(a: CompanyBankAccountDto) {
     holderDocument: a.holderDocument,
     notes: a.notes ?? '',
     sortOrder: String(a.sortOrder),
+    publicVisible: a.publicVisible,
     active: a.active,
   })
   formOpen.value = true
@@ -153,6 +155,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       holderDocument: state.holderDocument.trim(),
       notes: state.notes.trim() || undefined,
       sortOrder: Number(state.sortOrder),
+      publicVisible: state.publicVisible,
       active: state.active,
     }
     if (editingUuid.value) await accountsApi.update(editingUuid.value, body)
@@ -244,9 +247,14 @@ async function confirmDelete() {
               <td class="px-5 py-3 text-prohealth-600">{{ a.currency_Code }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ a.holderName }} <span class="text-xs text-prohealth-400">({{ a.holderDocument }})</span></td>
               <td class="px-5 py-3">
-                <UBadge :color="a.active ? 'success' : 'neutral'" variant="subtle" size="sm">
-                  {{ a.active ? t('catalogs.status.active') : t('catalogs.status.inactive') }}
-                </UBadge>
+                <div class="flex flex-wrap items-center gap-1">
+                  <UBadge :color="a.active ? 'success' : 'neutral'" variant="subtle" size="sm">
+                    {{ a.active ? t('catalogs.status.active') : t('catalogs.status.inactive') }}
+                  </UBadge>
+                  <UBadge :color="a.publicVisible ? 'info' : 'neutral'" variant="subtle" size="sm" :icon="a.publicVisible ? 'i-lucide-globe' : 'i-lucide-lock'">
+                    {{ a.publicVisible ? t('payments.companyAccounts.public') : t('payments.companyAccounts.private') }}
+                  </UBadge>
+                </div>
               </td>
               <td class="px-5 py-3 text-right whitespace-nowrap">
                 <UButton v-if="canUpdate" color="neutral" variant="ghost" icon="i-lucide-pencil" size="sm" @click="openEdit(a)" />
@@ -305,6 +313,11 @@ async function confirmDelete() {
               <USwitch v-model="state.active" />
             </UFormField>
           </div>
+          <UCheckbox
+            v-model="state.publicVisible"
+            :label="t('payments.companyAccounts.fields.publicVisible')"
+            :description="t('payments.companyAccounts.publicHelp')"
+          />
         </UForm>
       </template>
       <template #footer>
