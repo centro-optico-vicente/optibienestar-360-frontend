@@ -253,6 +253,8 @@ export const MAIN_NAV: NavEntry[] = [
 
 export const OTHER_NAV: NavLeaf[] = [
   { label: 'Cambiar contraseña', labelKey: 'nav.other.changePassword', to: '/dashboard/change-password', icon: 'i-lucide-key-round' },
+  // Any authenticated user: the origin bank accounts they chose to remember (GET /v1/me/bank-accounts, own data).
+  { label: 'Mis cuentas bancarias', labelKey: 'nav.other.myBankAccounts', to: '/dashboard/my-bank-accounts', icon: 'i-lucide-landmark' },
   // Any authenticated user: the contracts they accepted (GET /v1/me/terms/acceptances).
   { label: 'Mis contratos', labelKey: 'nav.other.myContracts', to: '/dashboard/contracts', icon: 'i-lucide-file-check-2' },
 ]

@@ -782,7 +782,8 @@
     },
     "other": {
       "changePassword": "Cambiar contraseña",
-      "myContracts": "Mis contratos"
+      "myContracts": "Mis contratos",
+      "myBankAccounts": "Mis cuentas bancarias"
     }
   },
   "layout": {
@@ -5149,5 +5150,32 @@
     "previous": "Imagen anterior",
     "next": "Imagen siguiente",
     "showImage": "Ver imagen {n}"
+  },
+  "myBankAccounts": {
+    "title": "Mis cuentas bancarias",
+    "subtitle": "Las cuentas desde las que pagas. Al registrar un pago puedes elegir una de ellas para no escribir todos los datos otra vez.",
+    "profileLink": {
+      "title": "Mis cuentas bancarias",
+      "body": "Las cuentas desde las que pagas, para reutilizarlas en tus pagos."
+    },
+    "add": "Agregar cuenta",
+    "addTitle": "Agregar cuenta",
+    "editTitle": "Editar cuenta",
+    "formHelp": "Son tus propias cuentas de origen; solo tú las ves.",
+    "empty": "Todavía no tienes cuentas guardadas. Son las cuentas desde las que pagas; también puedes guardar una mientras registras un pago.",
+    "fields": {
+      "bank": "Banco",
+      "accountType": "Tipo de cuenta",
+      "accountCode": "Código de cuenta",
+      "accountIdentifier": "Número de cuenta",
+      "identification": "Documento del titular",
+      "alias": "Alias"
+    },
+    "identificationHelp": "Cédula o RIF del titular de la cuenta.",
+    "aliasHelp": "Un nombre para reconocerla, por ejemplo \"Cuenta nómina\".",
+    "savedToast": "Cuenta guardada",
+    "removedToast": "Cuenta eliminada",
+    "deleteTitle": "Eliminar cuenta",
+    "deleteConfirm": "Esta cuenta dejará de aparecer entre tus cuentas guardadas. Tus pagos ya registrados no cambian."
   }
 }
