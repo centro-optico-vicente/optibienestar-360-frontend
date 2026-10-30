@@ -3,7 +3,7 @@ import type { SelectItem } from '~/types/options'
 import { memberOptionLabel } from '~/types/members'
 import type { MembershipListItemDto, MembershipStatusFilter } from '~/types/memberships'
 import { membershipStatusColor } from '~/types/memberships'
-import { PLAN_TYPE_OPTIONS } from '~/types/plans'
+import { PLAN_TYPE_OPTIONS, type PlanType } from '~/types/plans'
 
 // Cross-member memberships list (GET /v1/admin/memberships) with filters by affiliate, advisor,
 // plan, plan type, status (lifecycle plus derived overdue / due soon) and date ranges. Picking one
@@ -72,7 +72,7 @@ const selectedMemberLabel = computed(() =>
 const filters = reactive({
   promoterUuid: '',
   planUuid: '',
-  planType: '',
+  planType: null as PlanType | null,
   status: '' as MembershipStatusFilter | '',
   enrolledFrom: '',
   enrolledTo: '',
@@ -110,7 +110,7 @@ async function loadFilterOptions() {
 const activeFilterCount = computed(() => Object.values(filters).filter(Boolean).length)
 
 function clearFilters() {
-  Object.assign(filters, { promoterUuid: '', planUuid: '', planType: '', status: '', enrolledFrom: '', enrolledTo: '', nextDueFrom: '', nextDueTo: '' })
+  Object.assign(filters, { promoterUuid: '', planUuid: '', planType: null, status: '', enrolledFrom: '', enrolledTo: '', nextDueFrom: '', nextDueTo: '' })
 }
 
 // ---- List ----
