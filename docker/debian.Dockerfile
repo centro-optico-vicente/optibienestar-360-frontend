@@ -29,8 +29,8 @@ RUN pnpm generate
 ARG NGINX_VERSION=1.31.8
 FROM nginx:${NGINX_VERSION}
 
-ARG BUILD_VERSION=unknown
-ARG BUILD_DATE=unknown
+ARG BUILD_VERSION=0.0.1-dev
+ARG BUILD_DATE=
 
 # Pull in OS package security fixes published after the base image was built.
 RUN apt-get update && apt-get upgrade -y --no-install-recommends && apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -46,6 +46,12 @@ LABEL org.opencontainers.image.title="optibienestar-360-frontend" \
 # is the serve stage, after the build); the entrypoint reads it at container start
 # to render /config.js. Set production explicitly with `-e NUXT_PUBLIC_API_BASE_URL=...`.
 ENV NUXT_PUBLIC_API_BASE_URL="https://api-test.centroopticovicente.com"
+
+# Build identity exposed by the entrypoint in /version.json. Fixed at build time
+# from the release tag — not meant to be overridden per environment. Without a
+# build arg (local image) it reports 0.0.1-dev, same as `pnpm dev`.
+ENV APP_VERSION="${BUILD_VERSION}" \
+	APP_BUILD_DATE="${BUILD_DATE}"
 
 COPY docker/default.conf /etc/nginx/conf.d/default.conf
 # Runtime config renderer: writes /usr/share/nginx/html/config.js from env vars
