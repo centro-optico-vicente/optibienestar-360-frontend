@@ -1,5 +1,5 @@
 // Public screens (hub URL convention): the canonical Spanish paths (`/`,
-// `/aliados`, `/aliados/{uuid}`, `/catalogo`, `/catalogo/{uuid}`, `/afiliarse`, `/cuentas`, `/recuperar-clave`,
+// `/aliados`, `/aliados/{uuid}`, `/catalogo`, `/catalogo/{uuid}`, `/afiliarse`, `/recuperar-clave`,
 // `/restablecer-clave`) and their English pairs under `/en` (see
 // utils/publicRoutes.ts). The old /recover-password and /reset-password 301 to the
 // Spanish ones (nuxt.config.ts routeRules + docker/default.conf). Matching is exact

@@ -2359,7 +2359,7 @@
       },
       "public": "Public",
       "private": "Private",
-      "publicHelp": "Visible without logging in on the public page and endpoint. Otherwise only people registering a payment see it."
+      "publicHelp": "Visible without logging in on the public company accounts endpoint. Otherwise only people registering a payment see it."
     },
     "assignOwn": {
       "title": "Assign to a membership",
@@ -5149,16 +5149,5 @@
     "previous": "Previous image",
     "next": "Next image",
     "showImage": "Show image {n}"
-  },
-  "publicAccounts": {
-    "seoTitle": "Accounts to pay into — OptiBienestar 360",
-    "seoDescription": "OptiBienestar 360 bank accounts where you can deposit or transfer your payment.",
-    "title": "Accounts to pay into",
-    "subtitle": "These are the accounts where you can deposit or transfer. Then register your payment saying which one you used.",
-    "empty": "There are no public accounts available right now.",
-    "loadFailed": "We could not load the accounts. Please try again later.",
-    "copy": "Copy number",
-    "copied": "Number copied",
-    "copyFailed": "Could not copy the number"
   }
 }
