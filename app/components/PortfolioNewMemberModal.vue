@@ -25,11 +25,23 @@ const isOpen = computed({
 const isSubmitting = ref(false)
 const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 
-// The admin document-type catalog is not readable by an advisor, and the backend only accepts V / E here.
-const documentTypeOptions = computed(() => [
-  { label: t('members.form.documentTypes.V'), value: 'V' },
-  { label: t('members.form.documentTypes.E'), value: 'E' },
-])
+// Document types come from the public catalog (the admin one is not readable by an advisor). The backend
+// only accepts V / E for a new member, so the list is narrowed to those codes; if the request fails we fall back to them.
+const ALLOWED_DOCUMENT_TYPES = ['V', 'E']
+const documentTypeOptions = ref(ALLOWED_DOCUMENT_TYPES.map(code => ({ label: t(`members.form.documentTypes.${code}`), value: code })))
+
+onMounted(async () => {
+  try {
+    const items = await usePublicCatalog('document-types').list()
+    const loaded = items
+      .filter(item => item.code && ALLOWED_DOCUMENT_TYPES.includes(item.code))
+      .map(item => ({ label: t(`members.form.documentTypes.${item.code}`, item.name), value: item.code as string }))
+    if (loaded.length) documentTypeOptions.value = loaded
+  }
+  catch {
+    // Keep the V / E fallback.
+  }
+})
 
 const state = reactive({
   firstName: '',

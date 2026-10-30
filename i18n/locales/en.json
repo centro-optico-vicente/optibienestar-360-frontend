@@ -1988,6 +1988,17 @@
     }
   },
   "payments": {
+    "assignMembership": {
+      "action": "Assign to membership",
+      "title": "Assign to a membership",
+      "description": "This collection was left as credit for whoever paid. Assign it to the membership it covers; its charges for the given period are settled.",
+      "member": "Holder",
+      "memberHelp": "Search by name or document.",
+      "membership": "Membership",
+      "membershipPlaceholder": "Pick the affiliate first",
+      "confirm": "Assign",
+      "toast": "Collection assigned to the membership"
+    },
     "title": "Collections",
     "subtitle": "Register and review membership fee collections: approval or rejection with proof.",
     "collectionsReport": {
@@ -2345,6 +2356,17 @@
         "notes": "Notes",
         "sortOrder": "Order"
       }
+    },
+    "assignOwn": {
+      "title": "Assign to a membership",
+      "description": "If you are paying for a relative, say which membership this payment is for. The reviewer will verify it on approval.",
+      "documentLabel": "Holder's document number",
+      "documentHelp": "Enter the holder's exact document number.",
+      "search": "Search",
+      "notFound": "We could not find an active membership with that document.",
+      "membershipLabel": "Membership",
+      "confirm": "Assign",
+      "savedToast": "Payment assigned to the membership"
     }
   },
   "members": {
@@ -2624,6 +2646,7 @@
       "title": "My usage",
       "subtitle": "History of the benefits you used at network allies.",
       "empty": "You have no recorded usage yet.",
+      "notAffiliatedBody": "Once you join, you will see here the benefits you use at the network allies.",
       "consumption": "consumption",
       "copay": "Co-pay"
     },

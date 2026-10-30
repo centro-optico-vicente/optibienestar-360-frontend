@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Page } from '~/types/admin'
+import type { ApiError } from '~/types/auth'
 import type { BenefitUsageDto } from '~/types/benefits'
 
 // The member's own benefit usage at allies (GET /v1/me/usage-history,
@@ -14,6 +15,10 @@ const { t } = useI18n()
 const { formatCurrency, formatDate } = useFormatters()
 
 useSeoMeta({ title: () => t('common.seoTitle', { page: t('members.usage.title') }) })
+
+// Personal screen: advisors and allies see it too, and they may not be affiliates (GET /v1/me/member -> 404).
+const members = useMembers()
+const notAffiliated = ref(false)
 
 const data = ref<BenefitUsageDto[]>([])
 const total = ref(0)
@@ -41,7 +46,20 @@ async function load() {
 }
 
 watch(page, load)
-onMounted(load)
+onMounted(async () => {
+  loading.value = true
+  try {
+    await members.me()
+  }
+  catch (err) {
+    if ((err as ApiError).status === 404) {
+      notAffiliated.value = true
+      loading.value = false
+      return
+    }
+  }
+  await load()
+})
 
 function money(v?: number | string | null, currency?: string | null): string | null {
   if (v === null || v === undefined || v === '') return null
@@ -60,6 +78,15 @@ function money(v?: number | string | null, currency?: string | null): string | n
       <div v-if="loading" class="px-6 py-8 space-y-3">
         <USkeleton class="h-5 w-full rounded" />
         <USkeleton class="h-5 w-3/4 rounded" />
+      </div>
+
+      <div v-else-if="notAffiliated" class="px-6 py-10 text-center text-prohealth-500">
+        <UIcon name="i-lucide-clipboard-list" class="w-7 h-7 mx-auto mb-2 text-prohealth-300" />
+        <p class="text-sm font-semibold text-prohealth-700">{{ t('members.portal.notAffiliatedTitle') }}</p>
+        <p class="text-sm mt-1">{{ t('members.usage.notAffiliatedBody') }}</p>
+        <UButton to="/afiliarse" color="primary" variant="soft" size="sm" class="mt-4">
+          {{ t('members.portal.joinCta') }}
+        </UButton>
       </div>
 
       <div v-else-if="data.length === 0" class="px-6 py-10 text-center text-prohealth-500">
