@@ -4,12 +4,14 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 import type { DownlinePaymentCreateRequest, PaymentDto } from '~/types/payments'
 import { BANK_ACCOUNT_TYPE_OPTIONS } from '~/types/payments'
 import type { CatalogItem } from '~/types/catalogs'
+import type { MemberDto } from '~/types/members'
 
 // Promoter self-service registration on behalf of a downline affiliate
-// (POST /v1/advisors/me/payments, multipart, PAYMENT_CREATE_DOWNLINE). The
+// (POST /v1/advisors/me/payments, multipart, COLLECTION_CREATE_DOWNLINE). The
 // member picker is the caller's own portfolio (GET /v1/advisors/me) rather
-// than a global member search — a promoter only ever registers for their
-// own downline, and the backend re-verifies that ownership regardless.
+// than a global member search, and the backend re-verifies ownership regardless.
+// No active membership is needed (V201): without one the approved payment is the
+// person's credit. A new person can be registered into the portfolio on the spot.
 const props = defineProps<{ open: boolean }>()
 
 const emit = defineEmits<{
@@ -117,10 +119,7 @@ async function loadPortfolio() {
   loadingMembers.value = true
   try {
     const dashboard = await promoters.me()
-    // Only affiliates with an active membership can receive a collection —
-    // the backend rejects the rest with membership.active.not_found.
     memberOptions.value = dashboard.portfolio
-      .filter(row => row.membershipStatus !== null)
       .map(row => ({ label: row.memberName, value: row.memberUuid }))
   }
   catch {
@@ -129,6 +128,16 @@ async function loadPortfolio() {
   finally {
     loadingMembers.value = false
   }
+}
+
+// ---- New person in my portfolio (PROMOTER_PORTFOLIO_CREATE) ----
+const canCreatePerson = computed(() => can('PROMOTER_PORTFOLIO_CREATE'))
+const newMemberOpen = ref(false)
+
+function onMemberCreated(member: MemberDto) {
+  const label = [member.firstName, member.lastName].filter(Boolean).join(' ')
+  memberOptions.value = [{ label, value: member.uuid }, ...memberOptions.value.filter(o => o.value !== member.uuid)]
+  state.memberUuid = member.uuid
 }
 
 interface FormState {
@@ -144,6 +153,7 @@ interface FormState {
   phone: string
   email: string
   referenceNumber: string
+  companyBankAccountUuid: string
   paymentDate: string
   inscription: boolean
   appliedPeriod: string
@@ -164,6 +174,7 @@ const state = reactive<FormState>({
   phone: '',
   email: '',
   referenceNumber: '',
+  companyBankAccountUuid: '',
   paymentDate: '',
   inscription: false,
   appliedPeriod: '',
@@ -251,6 +262,7 @@ function resetForm() {
   state.phone = ''
   state.email = ''
   state.referenceNumber = ''
+  state.companyBankAccountUuid = ''
   state.paymentDate = ''
   state.inscription = false
   state.appliedPeriod = ''
@@ -306,12 +318,15 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         : (state.coverageThroughPeriod ? `${state.coverageThroughPeriod}-01` : undefined),
       adminNotes: state.adminNotes.trim() || undefined,
     }
-    if (linesEditor.lines.value.length > 0) {
+    // The company account travels on the line (the flat fields have no slot for it), so picking one
+    // sends the first line explicitly even when there are no extra lines.
+    if (linesEditor.lines.value.length > 0 || state.companyBankAccountUuid) {
       payload.lines = [
         {
           paymentMethodUuid: payload.paymentMethodUuid,
           bankUuid: payload.bankUuid,
-          amount: firstLineAmount.value.toFixed(2),
+          companyBankAccountUuid: state.companyBankAccountUuid || undefined,
+          amount: linesEditor.lines.value.length > 0 ? firstLineAmount.value.toFixed(2) : state.amount.trim(),
           identification: payload.identification,
           bankAccountType: payload.bankAccountType,
           bankAccountCode: payload.bankAccountCode,
@@ -346,17 +361,22 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
   >
     <template #body>
       <UForm ref="formRef" :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
-        <UFormField :label="t('payments.form.fields.member')" name="memberUuid" required>
-          <USelectMenu
-            clear
-            v-model="state.memberUuid"
-            :items="memberOptions"
-            label-key="label"
-            value-key="value"
-            :loading="loadingMembers"
-            :placeholder="t('payments.form.memberPlaceholderSearch')"
-            class="w-full"
-          />
+        <UFormField :label="t('payments.form.fields.member')" name="memberUuid" required :help="t('promoterSelf.collections.form.memberHelp')">
+          <div class="flex items-center gap-2">
+            <USelectMenu
+              clear
+              v-model="state.memberUuid"
+              :items="memberOptions"
+              label-key="label"
+              value-key="value"
+              :loading="loadingMembers"
+              :placeholder="t('payments.form.memberPlaceholderSearch')"
+              class="w-full"
+            />
+            <UTooltip v-if="canCreatePerson" :text="t('promoterSelf.newMember.title')">
+              <UButton color="neutral" variant="soft" icon="i-lucide-user-plus" @click="newMemberOpen = true" />
+            </UTooltip>
+          </div>
         </UFormField>
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -406,6 +426,8 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
             </div>
           </UFormField>
         </div>
+
+        <CompanyBankAccountPicker v-model="state.companyBankAccountUuid" />
 
         <div v-if="selectedMethod?.mandatoryIdentification || selectedMethod?.mandatoryBank || selectedMethod?.mandatoryBankAccount || selectedMethod?.mandatoryAccountType || selectedMethod?.mandatoryAccountCode || selectedMethod?.mandatoryPhone || selectedMethod?.mandatoryEmail" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField v-if="selectedMethod?.mandatoryIdentification" :label="t('payments.payouts.fields.identification')" name="identification" required><UInput class="w-full" v-model="state.identification" /></UFormField>
@@ -517,6 +539,8 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           </UFormField>
         </div>
       </UForm>
+
+      <PortfolioNewMemberModal v-model:open="newMemberOpen" @created="onMemberCreated" />
     </template>
 
     <template #footer>

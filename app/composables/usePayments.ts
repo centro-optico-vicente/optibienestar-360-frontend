@@ -1,5 +1,7 @@
 import type { Page } from '~/types/admin'
 import type {
+  AssignMembershipRequest,
+  CreditBalanceDto,
   DiscountAuthorityDto,
   DownlinePaymentCreateRequest,
   PaymentDiscountRequest,
@@ -36,7 +38,7 @@ interface ListParams {
  * - list/get/support -> PAYMENT_VIEW_ALL
  * - register (multipart) -> PAYMENT_CREATE
  * - approve -> PAYMENT_APPROVE · reject -> PAYMENT_REJECT
- * - mine() -> PAYMENT_VIEW_OWN (authenticated member's history)
+ * - mine() -> COLLECTION_VIEW_OWN (authenticated member's history)
  *
  * Payments are not edited: they are registered and then approved/rejected
  * (human review). A still-PENDING payment (a mistaken registration, not yet
@@ -159,7 +161,7 @@ export const usePayments = () => {
     })
 
   // ---- Member self-service ----
-  /** My payment history (PAYMENT_VIEW_OWN). No RSQL nor free-text. */
+  /** My payment history (COLLECTION_VIEW_OWN). No RSQL nor free-text. */
   const mine = (params: Pick<ListParams, 'page' | 'size' | 'sort'> = {}) =>
     useApi<Page<PaymentDto>>('/v1/me/payments', {
       query: {
@@ -168,6 +170,18 @@ export const usePayments = () => {
         sort: params.sort?.length ? params.sort : ['receivedAt,desc'],
       },
     })
+
+  /** My credit ("saldo a favor") per currency (COLLECTION_VIEW_OWN) — I may hold some without any membership. */
+  const creditBalance = () =>
+    useApi<CreditBalanceDto>('/v1/me/payments/credit-balance', { silent: true })
+
+  /** Points my own DRAFT/PENDING payment at a membership, e.g. paying a relative-holder's plan (COLLECTION_CREATE_OWN). */
+  const assignOwnMembership = (uuid: string, membershipUuid: string) =>
+    useApi<PaymentDto>(`/v1/me/payments/${uuid}/membership`, { method: 'PUT', body: { membershipUuid } })
+
+  /** Staff: assigns an APPROVED membership-less collection (credit) to a membership (COLLECTION_ASSIGN_MEMBERSHIP). */
+  const assignMembership = (uuid: string, body: AssignMembershipRequest) =>
+    useApi<PaymentDto>(`/v1/admin/payments/${uuid}/assign-membership`, { method: 'POST', body })
 
   // ---- Promoter self-service (hub plan payments-unification, "Mis portales") ----
   /**
@@ -185,7 +199,7 @@ export const usePayments = () => {
       },
     })
 
-  /** Register a payment for the caller's own active membership (PAYMENT_CREATE_OWN). `draft` — see {@link register}. */
+  /** Register a payment for the caller's own active membership (COLLECTION_CREATE_OWN). `draft` — see {@link register}. */
   const registerOwn = (payload: MyPaymentCreateRequest, support?: File | null, draft?: boolean) =>
     useApi<PaymentDto>('/v1/me/payments', { method: 'POST', body: toPaymentForm(payload, support), query: draft ? { draft: true } : {} })
 
@@ -201,12 +215,12 @@ export const usePayments = () => {
   const reactivateToDraftOwn = (uuid: string) =>
     useApi<PaymentDto>(`/v1/me/payments/${uuid}/reactivate`, { method: 'PUT' })
 
-  /** Delete the caller's own still-PENDING payment (PAYMENT_DELETE_OWN). */
+  /** Delete the caller's own still-PENDING payment (COLLECTION_DELETE_OWN). */
   const removeOwn = (uuid: string) =>
     useApi<void>(`/v1/me/payments/${uuid}`, { method: 'DELETE' })
 
   // ---- Promoter downline management (hub plan payments-unification, "Mis portales") ----
-  /** Register a collection for an affiliate in the caller's own downline (PAYMENT_CREATE_DOWNLINE). `draft` — see {@link register}. */
+  /** Register a collection for an affiliate in the caller's own downline (COLLECTION_CREATE_DOWNLINE). `draft` — see {@link register}. */
   const registerForDownline = (payload: DownlinePaymentCreateRequest, support?: File | null, draft?: boolean) =>
     useApi<PaymentDto>('/v1/advisors/me/payments', { method: 'POST', body: toPaymentForm(payload, support), query: draft ? { draft: true } : {} })
 
@@ -236,11 +250,12 @@ export const usePayments = () => {
       body: { reason } as PaymentRejectRequest,
     })
 
-  /** Delete a PENDING downline collection registered by mistake (PAYMENT_DELETE_DOWNLINE). */
+  /** Delete a PENDING downline collection registered by mistake (COLLECTION_DELETE_DOWNLINE). */
   const removeForDownline = (uuid: string) =>
     useApi<void>(`/v1/advisors/me/payments/${uuid}`, { method: 'DELETE' })
 
   return {
+    creditBalance, assignOwnMembership, assignMembership,
     list, get, register, registerOut, updateOut, removeOut, processOut, approveOut, rejectOut, approve, reject, applyDiscount, discountAuthority, remove, supportUrl, mine, mineForPromoter,
     updateLines, submit, reactivateToDraft,
     registerOwn, removeOwn, updateLinesOwn, submitOwn, reactivateToDraftOwn,

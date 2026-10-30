@@ -125,3 +125,54 @@ export interface MembershipReviewRequest {
   /** Free-text reason stored in lastStatusChangeReason (max 500). */
   reason?: string
 }
+
+/** Compact row of `GET /v1/admin/memberships` (cross-member list). Edit forms must load the detail instead. */
+export interface MembershipListItemDto {
+  uuid: string
+  memberUuid: string
+  member_Uuid?: string | null
+  member_Code?: string | null
+  member_Display?: string | null
+  advisor_Uuid?: string | null
+  advisor_Display?: string | null
+  planUuid: string
+  planCode: string
+  planName: string
+  planType: string
+  planType_Display?: string | null
+  enrolledAt: string
+  enrolledAt_Display?: string | null
+  nextDueDate: string
+  nextDueDate_Display?: string | null
+  lastPaidThrough?: string | null
+  lastPaidThrough_Display?: string | null
+  monthlyFee: number | string
+  monthlyFee_Display?: string | null
+  currency_Code: string
+  status: string
+  status_Display?: string | null
+  /** Derived collection state; null for CANCELED / EXPIRED. */
+  paymentStatus?: 'OVERDUE' | 'DUE_SOON' | 'UP_TO_DATE' | null
+  paymentStatus_Display?: string | null
+  daysOverdue: number
+}
+
+/** Status filter values of `GET /v1/admin/memberships` — lifecycle plus the derived `OVERDUE` / `DUE_SOON`. */
+export type MembershipStatusFilter = 'ACTIVE' | 'SUSPENDED' | 'EXPIRED' | 'CANCELED' | 'OVERDUE' | 'DUE_SOON'
+
+export interface MembershipSearchParams {
+  page?: number
+  size?: number
+  sort?: string[]
+  q?: string
+  memberUuid?: string
+  promoterUuid?: string
+  planUuid?: string
+  planType?: string
+  status?: MembershipStatusFilter
+  dueSoonDays?: number
+  enrolledFrom?: string
+  enrolledTo?: string
+  nextDueFrom?: string
+  nextDueTo?: string
+}

@@ -211,6 +211,9 @@ export interface PaymentLineDto {
   reviewedAt?: string | null
   reviewedAt_Display?: string | null
   reviewReason?: string | null
+  /** Company account the payer indicated (V201). */
+  companyBankAccount_Uuid?: string | null
+  companyBankAccount_Display?: string | null
 }
 
 /**
@@ -232,6 +235,8 @@ export interface PaymentLineRequest {
   phone?: string
   email?: string
   referenceNumber?: string
+  /** Company account (V201) the payer says they paid into; optional. */
+  companyBankAccountUuid?: string
 }
 
 /** Body of `PUT /{uuid}/lines` — replaces the entire lines collection of a DRAFT payment. */
@@ -369,4 +374,46 @@ export interface PaymentSupportUrlDto {
   fileName?: string | null
   contentType?: string | null
   sizeBytes?: number | null
+}
+
+/** A bank account owned by the company (V201) — what a payer deposits into. `GET /v1/me/company-bank-accounts` + admin CRUD. */
+export interface CompanyBankAccountDto {
+  uuid: string
+  bank_Uuid?: string | null
+  bank_Code?: string | null
+  bank_Display?: string | null
+  currency_Code: string
+  accountType: string
+  accountNumber: string
+  holderName: string
+  holderDocument: string
+  notes?: string | null
+  sortOrder: number
+  active: boolean
+}
+
+export interface CompanyBankAccountRequest {
+  bankUuid: string
+  /** ISO code, e.g. `USD`. */
+  currency: string
+  accountType: string
+  accountNumber: string
+  holderName: string
+  holderDocument: string
+  notes?: string
+  sortOrder?: number
+  active?: boolean
+}
+
+/** `GET /v1/me/payments/credit-balance` — the caller's credit ("saldo a favor") per currency (V201). */
+export interface CreditBalanceDto {
+  balances: Array<{ currency_Code: string, amount: number | string, amount_Display?: string | null }>
+}
+
+/** Body of `POST /v1/admin/payments/{uuid}/assign-membership` — COLLECTION_ASSIGN_MEMBERSHIP (V201). */
+export interface AssignMembershipRequest {
+  membershipUuid: string
+  /** First day of the covered month (`yyyy-MM-01`); defaults to the current month server-side. */
+  appliedPeriod?: string
+  coverageThroughPeriod?: string
 }

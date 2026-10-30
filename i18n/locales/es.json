@@ -737,7 +737,7 @@
       },
       "myPayments": {
         "label": "Mis pagos",
-        "description": "Tu historial de pagos de membresía."
+        "description": "Tu historial de pagos y tu saldo a favor."
       },
       "myPortfolio": {
         "label": "Mi cartera",
@@ -770,6 +770,14 @@
       "myAffiliationRequests": {
         "label": "Mis solicitudes de afiliación",
         "description": "Las solicitudes que llegaron por tu QR y su estado."
+      },
+      "myAdvisor": {
+        "label": "Mi asesor",
+        "description": "Tu asesor actual y los anteriores."
+      },
+      "companyBankAccounts": {
+        "label": "Cuentas de la empresa",
+        "description": "Cuentas bancarias de OptiBienestar donde se reciben los pagos."
       }
     },
     "other": {
@@ -1874,7 +1882,8 @@
       "empty": "Sin pagos registrados en tu cartera",
       "form": {
         "title": "Registrar pago de afiliado",
-        "description": "Registra el pago de membresía de un afiliado de tu cartera para revisión."
+        "description": "Registra el pago de membresía de un afiliado de tu cartera para revisión.",
+        "memberHelp": "Tu cartera. ¿No está? Regístralo con el botón de la derecha."
       }
     },
     "payouts": {
@@ -1962,12 +1971,19 @@
           "PAYMENT_PROMISE": "Promesa de pago",
           "NOTE": "Nota"
         }
-      }
+      },
+      "registerPayment": "Registrar cobro"
     },
     "payoutAccounts": {
       "title": "Mis datos de cobro",
       "contactAdmin": "Si tus datos cambiaron, comunícate con administración.",
       "empty": "Todavía no tienes datos de cobro registrados. Comunícate con administración para registrarlos."
+    },
+    "newMember": {
+      "title": "Nuevo en mi cartera",
+      "description": "Registra a una persona que aún no es afiliada. Quedará en tu cartera, sin membresía, y podrás registrar su pago.",
+      "submit": "Registrar en mi cartera",
+      "createdToast": "Persona registrada en tu cartera"
     }
   },
   "payments": {
@@ -2118,7 +2134,7 @@
       "empty": "Aún no tienes pagos registrados.",
       "form": {
         "title": "Registrar mi pago",
-        "description": "Registra el pago de tu membresía para revisión."
+        "description": "Registra un pago a la empresa. Si aún no tienes membresía activa, quedará como saldo a favor al ser aprobado."
       }
     },
     "columns": {
@@ -2298,6 +2314,36 @@
       "reasonRequired": "El motivo es obligatorio",
       "apply": "Aplicar descuento",
       "appliedToast": "Descuento aplicado"
+    },
+    "credit": {
+      "title": "Saldo a favor",
+      "help": "Se aplica a una membresía cuando el personal lo asigne."
+    },
+    "companyAccounts": {
+      "title": "Cuentas de la empresa",
+      "subtitle": "Cuentas bancarias propias donde los afiliados depositan sus pagos.",
+      "pickerLabel": "¿En qué cuenta de la empresa pagaste?",
+      "pickerHelp": "Opcional. Indica a cuál cuenta depositaste o transferiste.",
+      "searchPlaceholder": "Buscar por número, titular o documento…",
+      "includeInactive": "Ver inactivas",
+      "empty": "No hay cuentas registradas.",
+      "createTitle": "Nueva cuenta de la empresa",
+      "editTitle": "Editar cuenta de la empresa",
+      "savedToast": "Cuenta guardada",
+      "deletedToast": "Cuenta desactivada",
+      "deleteTitle": "Desactivar cuenta",
+      "deleteConfirm": "La cuenta dejará de mostrarse a quienes pagan. Los pagos ya registrados no cambian.",
+      "sortOrderHelp": "Menor número aparece primero.",
+      "fields": {
+        "bank": "Banco",
+        "currency": "Moneda",
+        "accountType": "Tipo de cuenta",
+        "accountNumber": "Número de cuenta",
+        "holderName": "Titular",
+        "holderDocument": "Documento del titular",
+        "notes": "Notas",
+        "sortOrder": "Orden"
+      }
     }
   },
   "members": {
@@ -2376,6 +2422,10 @@
       "validation": {
         "documentMin": "Mínimo 5 dígitos",
         "adult": "El titular debe ser mayor de 18 años"
+      },
+      "documentTypes": {
+        "V": "V — Venezolano",
+        "E": "E — Extranjero"
       }
     },
     "delete": {
@@ -2575,6 +2625,17 @@
       "empty": "Todavía no tienes consumos registrados.",
       "consumption": "consumo",
       "copay": "Copago"
+    },
+    "advisor": {
+      "title": "Mi asesor",
+      "subtitle": "Quién te asesora hoy y quién lo hizo antes.",
+      "notEnrolled": "Aún no eres afiliado, por eso no tienes asesor asignado.",
+      "current": "Asesor actual",
+      "none": "Todavía no tienes un asesor asignado.",
+      "history": "Historial de asesores",
+      "historyEmpty": "Aún no hay cambios de asesor.",
+      "changed": "De {from} a {to}",
+      "assigned": "Asignado a {to}"
     }
   },
   "memberships": {
@@ -2635,12 +2696,48 @@
       "title": "Membresías",
       "description": "Las afiliaciones a planes se gestionan por titular. Busca un afiliado para ver y administrar sus membresías.",
       "searchLabel": "Afiliado",
-      "searchHelp": "Escribe nombre o documento (mín. 2 caracteres).",
+      "searchHelp": "Despliega para ver afiliados o escribe nombre o documento (mín. 1 carácter).",
       "searchPlaceholder": "Busca por nombre o documento…",
       "managingFor": "Gestionando membresías de",
       "viewFullRecord": "Ver expediente completo",
       "emptyTitle": "Selecciona un afiliado",
-      "emptyDescription": "Busca por nombre o documento para gestionar sus membresías."
+      "emptyDescription": "Busca por nombre o documento para gestionar sus membresías.",
+      "emptyList": "No hay membresías con esos filtros.",
+      "manage": "Gestionar membresías del afiliado",
+      "statusFilter": {
+        "ACTIVE": "Activas",
+        "DUE_SOON": "Por vencer",
+        "OVERDUE": "Atrasadas",
+        "SUSPENDED": "Suspendidas",
+        "EXPIRED": "Vencidas",
+        "CANCELED": "Canceladas"
+      },
+      "filters": {
+        "status": "Estado",
+        "advisor": "Asesor",
+        "plan": "Plan",
+        "planType": "Tipo de plan",
+        "any": "Todos",
+        "enrolledFrom": "Afiliación desde",
+        "enrolledTo": "Afiliación hasta",
+        "nextDueFrom": "Próximo vencimiento desde",
+        "nextDueTo": "Próximo vencimiento hasta",
+        "clear": "Quitar filtros"
+      },
+      "columns": {
+        "member": "Afiliado",
+        "advisor": "Asesor",
+        "plan": "Plan",
+        "enrolledAt": "Afiliación",
+        "nextDueDate": "Próx. vencimiento",
+        "status": "Estado",
+        "collection": "Cobro"
+      },
+      "paymentStatus": {
+        "OVERDUE": "Atrasada {days} d",
+        "DUE_SOON": "Por vencer",
+        "UP_TO_DATE": "Al día"
+      }
     }
   },
   "validator": {

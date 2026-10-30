@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import type { PaymentDto } from '~/types/payments'
+import type { CreditBalanceDto, PaymentDto } from '~/types/payments'
 import { paymentStatusColor } from '~/types/payments'
 
 // "Mis pagos" (hub plan payments-unification, "Mis portales") — the
-// affiliate's own membership-fee collections. List is PAYMENT_VIEW_OWN;
-// register/delete-while-pending (V121) are PAYMENT_CREATE_OWN/
-// PAYMENT_DELETE_OWN. Approve/reject stay exclusively an admin action —
-// there is no self-approval path.
+// caller's own collections, with or without a membership (V201: without one the
+// approved payment is credit, shown below). List is COLLECTION_VIEW_OWN;
+// register/delete-while-pending are COLLECTION_CREATE_OWN/COLLECTION_DELETE_OWN.
+// Approve/reject stay exclusively an admin action — there is no self-approval path.
 definePageMeta({
   layout: 'dashboard',
   middleware: 'can',
-  permission: 'PAYMENT_VIEW_OWN',
+  permission: 'COLLECTION_VIEW_OWN',
 })
 
 const { t } = useI18n()
@@ -22,8 +22,19 @@ const payments = usePayments()
 const { can } = usePermissions()
 const toast = useToast()
 
-const canRegister = computed(() => can('PAYMENT_CREATE_OWN'))
-const canDelete = computed(() => can('PAYMENT_DELETE_OWN'))
+const canRegister = computed(() => can('COLLECTION_CREATE_OWN'))
+const canDelete = computed(() => can('COLLECTION_DELETE_OWN'))
+
+// Credit ("saldo a favor") per currency — empty list = nothing to show, never an error (ADR 0012 empty state).
+const credit = ref<CreditBalanceDto['balances']>([])
+async function loadCredit() {
+  try {
+    credit.value = ((await payments.creditBalance())?.balances ?? []).filter(b => Number(b.amount) > 0)
+  }
+  catch {
+    credit.value = []
+  }
+}
 
 const data = ref<PaymentDto[]>([])
 const total = ref(0)
@@ -49,7 +60,10 @@ async function load() {
 }
 
 watch(page, load)
-onMounted(load)
+onMounted(() => {
+  load()
+  loadCredit()
+})
 
 function statusLabel(s?: string | null): string {
   return s ? t(`payments.status.${s}`, s) : t('common.empty')
@@ -67,7 +81,7 @@ const formOpen = ref(false)
 
 async function onSaved() {
   page.value = 1
-  await load()
+  await Promise.all([load(), loadCredit()])
 }
 
 // ---- Delete (only while still PENDING) ----
@@ -117,6 +131,14 @@ async function confirmDelete() {
           {{ t('common.new') }}
         </UButton>
       </UTooltip>
+    </div>
+
+    <div v-if="credit.length > 0" class="rounded-2xl border border-green-200 bg-green-50 px-5 py-3 flex flex-wrap items-center gap-x-6 gap-y-1">
+      <p class="text-sm font-semibold text-green-800">{{ t('payments.credit.title') }}</p>
+      <p v-for="b in credit" :key="b.currency_Code" class="text-sm text-green-900">
+        <span class="font-semibold">{{ b.amount_Display ?? b.amount }}</span> {{ b.currency_Code }}
+      </p>
+      <p class="text-xs text-green-700">{{ t('payments.credit.help') }}</p>
     </div>
 
     <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-16rem)] min-h-[24rem]">

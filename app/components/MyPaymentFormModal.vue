@@ -5,8 +5,9 @@ import type { MyPaymentCreateRequest, PaymentDto } from '~/types/payments'
 import { BANK_ACCOUNT_TYPE_OPTIONS } from '~/types/payments'
 import type { CatalogItem } from '~/types/catalogs'
 
-// Self-service registration (POST /v1/me/payments, multipart, PAYMENT_CREATE_OWN)
-// — the affiliate's own membership, resolved server-side. Same fields as
+// Self-service registration (POST /v1/me/payments, multipart, COLLECTION_CREATE_OWN)
+// — the caller's active membership is resolved server-side when they have one; without one
+// (V201) the approved payment becomes their credit ("saldo a favor"). Same fields as
 // PaymentFormModal minus the member/membership picker.
 const props = defineProps<{ open: boolean }>()
 
@@ -118,6 +119,7 @@ interface FormState {
   phone: string
   email: string
   referenceNumber: string
+  companyBankAccountUuid: string
   paymentDate: string
   inscription: boolean
   appliedPeriod: string
@@ -137,6 +139,7 @@ const state = reactive<FormState>({
   phone: '',
   email: '',
   referenceNumber: '',
+  companyBankAccountUuid: '',
   paymentDate: '',
   inscription: false,
   appliedPeriod: '',
@@ -221,6 +224,7 @@ function resetForm() {
   state.phone = ''
   state.email = ''
   state.referenceNumber = ''
+  state.companyBankAccountUuid = ''
   state.paymentDate = ''
   state.inscription = false
   state.appliedPeriod = ''
@@ -274,12 +278,15 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         : (state.coverageThroughPeriod ? `${state.coverageThroughPeriod}-01` : undefined),
       adminNotes: state.adminNotes.trim() || undefined,
     }
-    if (linesEditor.lines.value.length > 0) {
+    // The company account travels on the line (the flat fields have no slot for it), so picking one
+    // sends the first line explicitly even when there are no extra lines.
+    if (linesEditor.lines.value.length > 0 || state.companyBankAccountUuid) {
       payload.lines = [
         {
           paymentMethodUuid: payload.paymentMethodUuid,
           bankUuid: payload.bankUuid,
-          amount: firstLineAmount.value.toFixed(2),
+          companyBankAccountUuid: state.companyBankAccountUuid || undefined,
+          amount: linesEditor.lines.value.length > 0 ? firstLineAmount.value.toFixed(2) : state.amount.trim(),
           identification: payload.identification,
           bankAccountType: payload.bankAccountType,
           bankAccountCode: payload.bankAccountCode,
@@ -366,6 +373,8 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
             </div>
           </UFormField>
         </div>
+
+        <CompanyBankAccountPicker v-model="state.companyBankAccountUuid" />
 
         <div v-if="selectedMethod?.mandatoryIdentification || selectedMethod?.mandatoryBank || selectedMethod?.mandatoryBankAccount || selectedMethod?.mandatoryAccountType || selectedMethod?.mandatoryAccountCode || selectedMethod?.mandatoryPhone || selectedMethod?.mandatoryEmail" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField v-if="selectedMethod?.mandatoryIdentification" :label="t('payments.payouts.fields.identification')" name="identification" required><UInput class="w-full" v-model="state.identification" /></UFormField>
