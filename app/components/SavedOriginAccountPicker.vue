@@ -33,7 +33,7 @@ async function load() {
 
 onMounted(load)
 
-function onSelect(uuid: string | undefined) {
+function onSelect(uuid: string | null | undefined) {
   model.value = uuid ?? ''
   emit('pick', accounts.value.find(a => a.uuid === uuid) ?? null)
 }
