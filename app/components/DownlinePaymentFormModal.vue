@@ -130,6 +130,34 @@ async function loadPortfolio() {
   }
 }
 
+// Search beyond the portfolio: members nobody advises can be collected from too (they join the portfolio).
+// Debounced like the memberships picker; options are merged, never wiped, so a just-picked member keeps its label.
+const memberSearchTerm = ref('')
+let memberSearchTimer: ReturnType<typeof setTimeout> | undefined
+watch(memberSearchTerm, (q) => {
+  clearTimeout(memberSearchTimer)
+  const term = q.trim()
+  if (term.length < 2) return
+  memberSearchTimer = setTimeout(async () => {
+    loadingMembers.value = true
+    try {
+      const found = await promoters.searchCandidates(term)
+      const merged = new Map(memberOptions.value.map(o => [o.value, o]))
+      for (const c of found) {
+        const label = c.inPortfolio ? c.fullName : `${c.fullName} — ${t('promoterSelf.collections.form.unassignedTag')}`
+        merged.set(c.uuid, { label, value: c.uuid })
+      }
+      memberOptions.value = [...merged.values()]
+    }
+    catch {
+      // useApi already notified the error; keep the options we have
+    }
+    finally {
+      loadingMembers.value = false
+    }
+  }, 400)
+})
+
 // ---- New person in my portfolio (PROMOTER_PORTFOLIO_CREATE) ----
 const canCreatePerson = computed(() => can('PROMOTER_PORTFOLIO_CREATE'))
 const newMemberOpen = ref(false)
@@ -366,6 +394,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
             <USelectMenu
               clear
               v-model="state.memberUuid"
+              v-model:search-term="memberSearchTerm"
               :items="memberOptions"
               label-key="label"
               value-key="value"
