@@ -6,7 +6,7 @@ import { paymentStatusColor } from '~/types/payments'
 definePageMeta({
   layout: 'dashboard',
   middleware: 'can',
-  permission: 'PAYMENT_VIEW_ALL',
+  permission: 'COLLECTION_VIEW_ALL',
 })
 
 const { t } = useI18n()
@@ -26,8 +26,8 @@ const payments = usePayments()
 const { can } = usePermissions()
 const toast = useToast()
 
-const canApprove = computed(() => can('PAYMENT_APPROVE'))
-const canReject = computed(() => can('PAYMENT_REJECT'))
+const canApprove = computed(() => can('COLLECTION_APPROVE'))
+const canReject = computed(() => can('COLLECTION_REJECT'))
 const canDiscount = computed(() => can('ALLOWS_DISCOUNT'))
 const canAssignMembership = computed(() => can('COLLECTION_ASSIGN_MEMBERSHIP'))
 const canViewMember = computed(() => can('MEMBER_VIEW_ALL'))
