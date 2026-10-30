@@ -2354,8 +2354,12 @@
         "holderName": "Holder",
         "holderDocument": "Holder document",
         "notes": "Notes",
-        "sortOrder": "Order"
-      }
+        "sortOrder": "Order",
+        "publicVisible": "Show publicly"
+      },
+      "public": "Public",
+      "private": "Private",
+      "publicHelp": "Visible without logging in on the public company accounts endpoint. Otherwise only people registering a payment see it."
     },
     "assignOwn": {
       "title": "Assign to a membership",
@@ -2383,6 +2387,15 @@
       "confirmRequired": "Find and confirm the person before registering the payment.",
       "detailLabel": "Beneficiary",
       "forLabel": "For {name}"
+    },
+    "savedAccounts": {
+      "label": "My saved accounts",
+      "help": "Accounts you already paid from and chose to remember.",
+      "placeholder": "Pick a saved account",
+      "forget": "Forget this account",
+      "removedToast": "Account forgotten",
+      "remember": "Remember this account for future payments",
+      "rememberHelp": "We store the origin bank and account number so you do not have to type them again."
     }
   },
   "members": {

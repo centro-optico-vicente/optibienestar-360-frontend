@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
-import type { BeneficiaryMatchDto, MyPaymentCreateRequest, PaymentDto } from '~/types/payments'
+import type { BeneficiaryMatchDto, MyPaymentCreateRequest, PaymentDto, SavedOriginAccountDto } from '~/types/payments'
 import { BANK_ACCOUNT_TYPE_OPTIONS } from '~/types/payments'
 import type { CatalogItem } from '~/types/catalogs'
 
@@ -212,6 +212,39 @@ const schema = computed(() => z.object({
   adminNotes: z.string().optional(),
 }))
 
+// ---- Saved origin accounts (V204) ----
+// Picking one fills the origin fields (still editable). The "remember" box saves THIS account for next time;
+// it makes no sense when the account is the saved one, unchanged, or when bank / account number are empty.
+const savedAccountUuid = ref('')
+const savedAccount = ref<SavedOriginAccountDto | null>(null)
+const rememberOrigin = ref(false)
+
+function onPickSaved(account: SavedOriginAccountDto | null) {
+  savedAccount.value = account
+  if (!account) return
+  state.bankUuid = account.bank_Uuid ?? ''
+  state.bankAccountType = account.accountType ?? ''
+  state.bankAccountCode = account.accountCode ?? ''
+  state.bankAccountIdentifier = account.accountIdentifier
+  state.identification = account.identification ?? ''
+  rememberOrigin.value = false
+}
+
+const originUnchangedFromSaved = computed(() => {
+  const a = savedAccount.value
+  return !!a
+    && (a.bank_Uuid ?? '') === state.bankUuid
+    && (a.accountType ?? '') === state.bankAccountType
+    && (a.accountCode ?? '') === state.bankAccountCode
+    && a.accountIdentifier === state.bankAccountIdentifier.trim()
+    && (a.identification ?? '') === state.identification
+})
+const canRemember = computed(() =>
+  !!state.bankUuid && state.bankAccountIdentifier.trim() !== '' && !originUnchangedFromSaved.value)
+watch(canRemember, (ok) => {
+  if (!ok) rememberOrigin.value = false
+})
+
 // Pay on behalf of someone else (V203): only a holder CONFIRMED in the lookup is ever sent.
 const payForOther = ref(false)
 const beneficiary = ref<BeneficiaryMatchDto | null>(null)
@@ -221,6 +254,9 @@ watch(payForOther, (on) => {
 })
 
 function resetForm() {
+  savedAccountUuid.value = ''
+  savedAccount.value = null
+  rememberOrigin.value = false
   payForOther.value = false
   beneficiary.value = null
   state.amount = ''
@@ -312,6 +348,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         ...linesEditor.toRequests(),
       ]
     }
+    if (rememberOrigin.value && canRemember.value) payload.rememberOriginAccount = true
     if (beneficiary.value?.membershipUuid) payload.beneficiaryMembershipUuid = beneficiary.value.membershipUuid
     else if (beneficiary.value) payload.beneficiaryPersonUuid = beneficiary.value.personUuid
     const result = await payments.registerOwn(payload, supportFile.value)
@@ -400,6 +437,8 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
 
         <CompanyBankAccountPicker v-model="state.companyBankAccountUuid" />
 
+        <SavedOriginAccountPicker v-if="selectedMethod?.mandatoryBank || selectedMethod?.mandatoryBankAccount" v-model="savedAccountUuid" @pick="onPickSaved" />
+
         <div v-if="selectedMethod?.mandatoryIdentification || selectedMethod?.mandatoryBank || selectedMethod?.mandatoryBankAccount || selectedMethod?.mandatoryAccountType || selectedMethod?.mandatoryAccountCode || selectedMethod?.mandatoryPhone || selectedMethod?.mandatoryEmail" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField v-if="selectedMethod?.mandatoryIdentification" :label="t('payments.payouts.fields.identification')" name="identification" required><UInput class="w-full" v-model="state.identification" /></UFormField>
           <UFormField v-if="selectedMethod?.mandatoryBank" :label="t('payments.payouts.fields.bank')" name="bankUuid" required>
@@ -414,6 +453,14 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           <UFormField v-if="selectedMethod?.mandatoryPhone" :label="t('payments.payouts.fields.phone')" name="phone" required><UInput class="w-full" v-model="state.phone" /></UFormField>
           <UFormField v-if="selectedMethod?.mandatoryEmail" :label="t('payments.payouts.fields.email')" name="email" required><UInput class="w-full" v-model="state.email" type="email" /></UFormField>
         </div>
+
+        <UCheckbox
+          v-if="selectedMethod?.mandatoryBank || selectedMethod?.mandatoryBankAccount"
+          v-model="rememberOrigin"
+          :disabled="!canRemember"
+          :label="t('payments.savedAccounts.remember')"
+          :description="t('payments.savedAccounts.rememberHelp')"
+        />
 
         <!-- Additional payment lines (V117 lines feature) — split this payment across
              several methods. The block above stays the first line; each row here is

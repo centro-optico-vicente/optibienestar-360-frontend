@@ -2354,8 +2354,12 @@
         "holderName": "Titular",
         "holderDocument": "Documento del titular",
         "notes": "Notas",
-        "sortOrder": "Orden"
-      }
+        "sortOrder": "Orden",
+        "publicVisible": "Mostrar públicamente"
+      },
+      "public": "Pública",
+      "private": "Privada",
+      "publicHelp": "Visible sin iniciar sesión en el endpoint público de cuentas. Si no, solo la ven quienes registran un pago."
     },
     "assignOwn": {
       "title": "Asignar a una membresía",
@@ -2383,6 +2387,15 @@
       "confirmRequired": "Busca y confirma a la persona antes de registrar el pago.",
       "detailLabel": "Beneficiario",
       "forLabel": "A favor de {name}"
+    },
+    "savedAccounts": {
+      "label": "Mis cuentas guardadas",
+      "help": "Cuentas desde las que ya pagaste y decidiste recordar.",
+      "placeholder": "Elegir una cuenta guardada",
+      "forget": "Olvidar esta cuenta",
+      "removedToast": "Cuenta olvidada",
+      "remember": "Recordar esta cuenta para próximos pagos",
+      "rememberHelp": "Guardamos el banco y el número de cuenta de origen para que no tengas que escribirlos otra vez."
     }
   },
   "members": {
