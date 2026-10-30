@@ -2356,6 +2356,17 @@
         "notes": "Notes",
         "sortOrder": "Order"
       }
+    },
+    "assignOwn": {
+      "title": "Assign to a membership",
+      "description": "If you are paying for a relative, say which membership this payment is for. The reviewer will verify it on approval.",
+      "documentLabel": "Holder's document number",
+      "documentHelp": "Enter the holder's exact document number.",
+      "search": "Search",
+      "notFound": "We could not find an active membership with that document.",
+      "membershipLabel": "Membership",
+      "confirm": "Assign",
+      "savedToast": "Payment assigned to the membership"
     }
   },
   "members": {

@@ -2356,6 +2356,17 @@
         "notes": "Notas",
         "sortOrder": "Orden"
       }
+    },
+    "assignOwn": {
+      "title": "Asignar a una membresía",
+      "description": "Si pagas por un familiar, indica a qué membresía corresponde este pago. El revisor lo verificará al aprobarlo.",
+      "documentLabel": "Cédula del titular",
+      "documentHelp": "Escribe el número exacto de documento del titular.",
+      "search": "Buscar",
+      "notFound": "No encontramos una membresía activa con ese documento.",
+      "membershipLabel": "Membresía",
+      "confirm": "Asignar",
+      "savedToast": "Pago asignado a la membresía"
     }
   },
   "members": {

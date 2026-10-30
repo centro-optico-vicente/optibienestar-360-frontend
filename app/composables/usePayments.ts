@@ -179,6 +179,14 @@ export const usePayments = () => {
   const assignOwnMembership = (uuid: string, membershipUuid: string) =>
     useApi<PaymentDto>(`/v1/me/payments/${uuid}/membership`, { method: 'PUT', body: { membershipUuid } })
 
+  /**
+   * Confirms the membership of someone I pay for by their exact document number
+   * (GET /v1/me/payments/membership-lookup, COLLECTION_CREATE_OWN). The holder's name comes back abbreviated.
+   */
+  const lookupMembership = (documentNumber: string) =>
+    useApi<{ membershipUuid: string, holderName: string, planName: string }[]>(
+      '/v1/me/payments/membership-lookup', { query: { documentNumber } })
+
   /** Staff: assigns an APPROVED membership-less collection (credit) to a membership (COLLECTION_ASSIGN_MEMBERSHIP). */
   const assignMembership = (uuid: string, body: AssignMembershipRequest) =>
     useApi<PaymentDto>(`/v1/admin/payments/${uuid}/assign-membership`, { method: 'POST', body })
@@ -255,7 +263,7 @@ export const usePayments = () => {
     useApi<void>(`/v1/advisors/me/payments/${uuid}`, { method: 'DELETE' })
 
   return {
-    creditBalance, assignOwnMembership, assignMembership,
+    creditBalance, assignOwnMembership, lookupMembership, assignMembership,
     list, get, register, registerOut, updateOut, removeOut, processOut, approveOut, rejectOut, approve, reject, applyDiscount, discountAuthority, remove, supportUrl, mine, mineForPromoter,
     updateLines, submit, reactivateToDraft,
     registerOwn, removeOwn, updateLinesOwn, submitOwn, reactivateToDraftOwn,

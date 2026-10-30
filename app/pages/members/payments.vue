@@ -76,12 +76,26 @@ function isPending(p: PaymentDto): boolean {
   return p.status === 'PENDING'
 }
 
+// The payer may still point a not-yet-approved payment at another membership (e.g. a relative's plan).
+function canAssign(p: PaymentDto): boolean {
+  return canRegister.value && (p.status === 'DRAFT' || p.status === 'PENDING')
+}
+
 // ---- Register (modal) ----
 const formOpen = ref(false)
 
 async function onSaved() {
   page.value = 1
   await Promise.all([load(), loadCredit()])
+}
+
+// ---- Assign to a membership (DRAFT / PENDING) ----
+const assignOpen = ref(false)
+const assignTarget = ref<PaymentDto | null>(null)
+
+function openAssign(p: PaymentDto) {
+  assignTarget.value = p
+  assignOpen.value = true
 }
 
 // ---- Delete (only while still PENDING) ----
@@ -183,6 +197,9 @@ async function confirmDelete() {
                 </UBadge>
               </td>
               <td class="px-5 py-3 text-right">
+                <UTooltip v-if="canAssign(p)" :text="t('payments.assignOwn.title')">
+                  <UButton color="neutral" variant="ghost" icon="i-lucide-link" size="sm" @click="openAssign(p)" />
+                </UTooltip>
                 <UTooltip v-if="isPending(p)" :text="canDelete ? t('common.delete') : t('payments.tooltips.noPermissionDelete')">
                   <UButton
                     color="error"
@@ -206,6 +223,8 @@ async function confirmDelete() {
 
     <!-- Register modal -->
     <MyPaymentFormModal v-model:open="formOpen" @saved="onSaved" />
+
+    <PaymentAssignOwnMembershipModal v-model:open="assignOpen" :payment="assignTarget" @assigned="load" />
 
     <!-- Delete confirmation modal (PENDING only) -->
     <UModal v-model:open="deleteOpen" :title="t('payments.delete.title')">
