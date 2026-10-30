@@ -737,7 +737,7 @@
       },
       "myPayments": {
         "label": "My payments",
-        "description": "Your membership payment history."
+        "description": "Your payment history and your credit balance."
       },
       "myPortfolio": {
         "label": "My portfolio",
@@ -770,6 +770,14 @@
       "myAffiliationRequests": {
         "label": "My affiliation requests",
         "description": "The requests that came through your QR and their status."
+      },
+      "myAdvisor": {
+        "label": "My advisor",
+        "description": "Your current advisor and previous ones."
+      },
+      "companyBankAccounts": {
+        "label": "Company accounts",
+        "description": "OptiBienestar bank accounts where payments are received."
       }
     },
     "other": {
@@ -1874,7 +1882,8 @@
       "empty": "No payments in your portfolio yet",
       "form": {
         "title": "Register an affiliate payment",
-        "description": "Register a membership payment for an affiliate in your portfolio for review."
+        "description": "Register a membership payment for an affiliate in your portfolio for review.",
+        "memberHelp": "Your portfolio. Not there? Register them with the button on the right."
       }
     },
     "payouts": {
@@ -1962,12 +1971,19 @@
           "PAYMENT_PROMISE": "Payment promise",
           "NOTE": "Note"
         }
-      }
+      },
+      "registerPayment": "Register payment"
     },
     "payoutAccounts": {
       "title": "My payout details",
       "contactAdmin": "If your details changed, contact the administration.",
       "empty": "You have no payout details registered yet. Contact the administration to register them."
+    },
+    "newMember": {
+      "title": "New in my portfolio",
+      "description": "Register someone who is not an affiliate yet. They join your portfolio with no membership and you can register their payment.",
+      "submit": "Register in my portfolio",
+      "createdToast": "Person registered in your portfolio"
     }
   },
   "payments": {
@@ -2118,7 +2134,7 @@
       "empty": "You don't have any registered payments yet.",
       "form": {
         "title": "Register my payment",
-        "description": "Register your membership payment for review."
+        "description": "Register a payment to the company. Without an active membership it becomes credit once approved."
       }
     },
     "columns": {
@@ -2298,6 +2314,36 @@
       "reasonRequired": "The reason is required",
       "apply": "Apply discount",
       "appliedToast": "Discount applied"
+    },
+    "credit": {
+      "title": "Credit balance",
+      "help": "It is applied to a membership when staff assign it."
+    },
+    "companyAccounts": {
+      "title": "Company accounts",
+      "subtitle": "The company's own bank accounts where affiliates deposit their payments.",
+      "pickerLabel": "Which company account did you pay into?",
+      "pickerHelp": "Optional. Tells us which account you deposited or transferred to.",
+      "searchPlaceholder": "Search by number, holder or document…",
+      "includeInactive": "Show inactive",
+      "empty": "No accounts registered.",
+      "createTitle": "New company account",
+      "editTitle": "Edit company account",
+      "savedToast": "Account saved",
+      "deletedToast": "Account deactivated",
+      "deleteTitle": "Deactivate account",
+      "deleteConfirm": "The account will stop showing to payers. Payments already registered are unchanged.",
+      "sortOrderHelp": "Lower numbers show first.",
+      "fields": {
+        "bank": "Bank",
+        "currency": "Currency",
+        "accountType": "Account type",
+        "accountNumber": "Account number",
+        "holderName": "Holder",
+        "holderDocument": "Holder document",
+        "notes": "Notes",
+        "sortOrder": "Order"
+      }
     }
   },
   "members": {
@@ -2376,6 +2422,10 @@
       "validation": {
         "documentMin": "At least 5 digits",
         "adult": "The holder must be 18 or older"
+      },
+      "documentTypes": {
+        "V": "V — Venezuelan",
+        "E": "E — Foreigner"
       }
     },
     "delete": {
@@ -2575,6 +2625,17 @@
       "empty": "You have no recorded usage yet.",
       "consumption": "consumption",
       "copay": "Co-pay"
+    },
+    "advisor": {
+      "title": "My advisor",
+      "subtitle": "Who advises you today and who did before.",
+      "notEnrolled": "You are not an affiliate yet, so you have no advisor assigned.",
+      "current": "Current advisor",
+      "none": "You do not have an advisor assigned yet.",
+      "history": "Advisor history",
+      "historyEmpty": "No advisor changes yet.",
+      "changed": "From {from} to {to}",
+      "assigned": "Assigned to {to}"
     }
   },
   "memberships": {
@@ -2635,12 +2696,48 @@
       "title": "Memberships",
       "description": "Plan enrollments are managed per holder. Search for a member to view and manage their memberships.",
       "searchLabel": "Member",
-      "searchHelp": "Type a name or document number (min. 2 characters).",
+      "searchHelp": "Open to list affiliates or type name or document (min. 1 character).",
       "searchPlaceholder": "Search by name or document…",
       "managingFor": "Managing memberships for",
       "viewFullRecord": "View full record",
       "emptyTitle": "Select a member",
-      "emptyDescription": "Search by name or document to manage their memberships."
+      "emptyDescription": "Search by name or document to manage their memberships.",
+      "emptyList": "No memberships match those filters.",
+      "manage": "Manage the affiliate's memberships",
+      "statusFilter": {
+        "ACTIVE": "Active",
+        "DUE_SOON": "Due soon",
+        "OVERDUE": "Overdue",
+        "SUSPENDED": "Suspended",
+        "EXPIRED": "Expired",
+        "CANCELED": "Canceled"
+      },
+      "filters": {
+        "status": "Status",
+        "advisor": "Advisor",
+        "plan": "Plan",
+        "planType": "Plan type",
+        "any": "All",
+        "enrolledFrom": "Enrolled from",
+        "enrolledTo": "Enrolled to",
+        "nextDueFrom": "Next due from",
+        "nextDueTo": "Next due to",
+        "clear": "Clear filters"
+      },
+      "columns": {
+        "member": "Affiliate",
+        "advisor": "Advisor",
+        "plan": "Plan",
+        "enrolledAt": "Enrolled",
+        "nextDueDate": "Next due",
+        "status": "Status",
+        "collection": "Collection"
+      },
+      "paymentStatus": {
+        "OVERDUE": "Overdue {days} d",
+        "DUE_SOON": "Due soon",
+        "UP_TO_DATE": "Up to date"
+      }
     }
   },
   "validator": {

@@ -255,3 +255,17 @@ export interface MedicalRecordDto {
 
 /** Body of PUT /medical-record (upsert with PATCH semantics). */
 export type UpsertMedicalRecordRequest = Omit<MedicalRecordDto, 'uuid' | 'updatedAt'>
+
+/** `GET /v1/me/member/advisor` — the caller's advisor and previous ones ("Mi asesor"). `exists=false` when they have no member record. */
+export interface MyAdvisorDto {
+  exists: boolean
+  advisorUuid?: string | null
+  advisorName?: string | null
+  /** Newest first; `fromName` is absent for the first assignment. */
+  history: Array<{
+    fromName?: string | null
+    toName: string
+    assignedAt: string
+    assignedAt_Display?: string | null
+  }>
+}

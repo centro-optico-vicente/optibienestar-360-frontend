@@ -252,7 +252,7 @@ function relationshipLabel(r?: string | null): string {
       <!-- My active promotion (self-gated by MEMBER_VIEW_OWN; hidden when none) -->
       <MyPromotionCard />
 
-      <!-- My payments (self-gated by PAYMENT_VIEW_OWN) -->
+      <!-- My payments (self-gated by COLLECTION_VIEW_OWN) -->
       <MyPaymentsCard />
 
       <!-- My referrals (self-gated by REFERRAL_CODE_VIEW_OWN) -->

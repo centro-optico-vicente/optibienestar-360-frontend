@@ -11,6 +11,7 @@ import type {
   MemberDto,
   MemberListItemDto,
   MemberPromoterAssignmentDto,
+  MyAdvisorDto,
   PortfolioToSupervisorRequest,
   UpdateBeneficiaryRequest,
   UpdateMemberRequest,
@@ -119,6 +120,10 @@ export const useMembers = () => {
   const myFamily = () =>
     useApi<BeneficiaryDto[]>('/v1/me/family', { silent: true })
 
+  /** My current advisor and previous advisors (MEMBER_ADVISOR_VIEW_OWN). `exists=false` when I have no member record (advisors/allies). */
+  const myAdvisor = () =>
+    useApi<MyAdvisorDto>('/v1/me/member/advisor', { silent: true })
+
   // ---- Enlace permanente promotor (MEMBER_ASSIGN_PROMOTER) ----
   /** Reasigna o vincula (si el afiliado no tenía) el promotor. `body` trae promoterUuid XOR referralCode. */
   const assignPromoter = (memberUuid: string, body: AssignPromoterRequest) =>
@@ -158,6 +163,7 @@ export const useMembers = () => {
     removeMedicalRecord,
     me,
     myFamily,
+    myAdvisor,
     assignPromoter,
     bulkAssignPromoter,
     portfolioToSupervisor,

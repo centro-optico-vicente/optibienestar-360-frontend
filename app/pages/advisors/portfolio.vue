@@ -32,6 +32,12 @@ useSeoMeta({ title: () => t('common.seoTitle', { page: t('promoterSelf.portfolio
 
 const canContact = computed(() => can('PROMOTER_CONTACT_OWN'))
 
+// V201: register a new person into the portfolio and collect from anyone in it, membership or not.
+const canCreatePerson = computed(() => can('PROMOTER_PORTFOLIO_CREATE'))
+const canRegisterPayment = computed(() => can('COLLECTION_CREATE_DOWNLINE'))
+const newMemberOpen = ref(false)
+const paymentOpen = ref(false)
+
 const dashboard = ref<PromoterDashboardDto | null>(null)
 const score = ref<CollectionScoreDto | null>(null)
 const loading = ref(false)
@@ -238,7 +244,15 @@ function contactTypeIcon(type: PromoterContactType): string {
         <h1 class="text-2xl font-extrabold text-prohealth-900">{{ t('promoterSelf.portfolio.title') }}</h1>
         <p class="text-sm text-prohealth-700/70 mt-1">{{ t('promoterSelf.portfolio.subtitle') }}</p>
       </div>
-      <RefreshButton :loading="loading" @refresh="load" />
+      <div class="flex items-center gap-2">
+        <UButton v-if="canCreatePerson" color="primary" variant="outline" icon="i-lucide-user-plus" @click="newMemberOpen = true">
+          {{ t('promoterSelf.newMember.title') }}
+        </UButton>
+        <UButton v-if="canRegisterPayment" color="primary" variant="outline" icon="i-lucide-receipt" @click="paymentOpen = true">
+          {{ t('promoterSelf.portfolio.registerPayment') }}
+        </UButton>
+        <RefreshButton :loading="loading" @refresh="load" />
+      </div>
     </div>
 
     <!-- Collection score summary -->
@@ -483,5 +497,8 @@ function contactTypeIcon(type: PromoterContactType): string {
         </ul>
       </template>
     </UModal>
+
+    <PortfolioNewMemberModal v-model:open="newMemberOpen" @created="load" />
+    <DownlinePaymentFormModal v-model:open="paymentOpen" @saved="load" />
   </div>
 </template>
