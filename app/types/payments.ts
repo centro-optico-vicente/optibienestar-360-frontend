@@ -445,6 +445,16 @@ export interface SavedOriginAccountDto {
   alias?: string | null
 }
 
+/** Body of `POST` / `PUT /v1/me/bank-accounts` — one of the caller's own origin accounts (V204). */
+export interface MyBankAccountRequest {
+  bankUuid: string
+  accountType?: string | null
+  accountCode?: string | null
+  accountIdentifier: string
+  identification?: string | null
+  alias?: string | null
+}
+
 /** `GET /v1/me/payments/credit-balance` — the caller's credit ("saldo a favor") per currency (V201). */
 export interface CreditBalanceDto {
   balances: Array<{ currency_Code: string, amount: number | string, amount_Display?: string | null }>
