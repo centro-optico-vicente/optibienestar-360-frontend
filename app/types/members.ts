@@ -148,6 +148,11 @@ export interface MemberDto {
   createdAt?: string
   /** Fecha de confirmación (primer pago aprobado, o manual para afiliados con subsidio). null/undefined = pendiente. */
   confirmedAt?: string
+  /** `false` = the person's credit is frozen: it is not applied automatically to monthly fees (hub ADR 0029). */
+  creditAutoApply?: boolean
+  creditHoldReason?: string | null
+  creditHoldAt?: string | null
+  creditHoldAt_Display?: string | null
 }
 
 /** Fila del histórico de reasignaciones de promotor de un afiliado (GET .../advisor-history). @JsonInclude(NON_NULL) en el backend. */

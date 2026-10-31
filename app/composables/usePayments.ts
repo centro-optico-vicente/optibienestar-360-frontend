@@ -8,6 +8,8 @@ import type {
   PaymentDiscountRequest,
   MyPaymentCreateRequest,
   PaymentApproveRequest,
+  PaymentClaimDto,
+  PaymentClaimRequest,
   PaymentCreateRequest,
   PaymentDto,
   PaymentLinesUpdateRequest,
@@ -176,6 +178,18 @@ export const usePayments = () => {
   const creditBalance = () =>
     useApi<CreditBalanceDto>('/v1/me/payments/credit-balance', { silent: true })
 
+  /** Flags the remaining credit of my own approved payment as wrong / overpaid / a refund request (COLLECTION_CLAIM_CREATE_OWN). */
+  const claimOwn = (uuid: string, body: PaymentClaimRequest) =>
+    useApi<PaymentClaimDto>(`/v1/me/payments/${uuid}/claim`, { method: 'POST', body })
+
+  /** Withdraws my own open claim on a payment. */
+  const withdrawClaimOwn = (uuid: string) =>
+    useApi<void>(`/v1/me/payments/${uuid}/claim`, { method: 'DELETE' })
+
+  /** Staff opens a claim on somebody's payment (COLLECTION_CLAIM_CREATE). */
+  const claimAsStaff = (uuid: string, body: PaymentClaimRequest) =>
+    useApi<PaymentClaimDto>(`/v1/admin/payments/${uuid}/claim`, { method: 'POST', body })
+
   /** Points my own DRAFT/PENDING payment at a membership, e.g. paying a relative-holder's plan (COLLECTION_CREATE_OWN). */
   const assignOwnMembership = (uuid: string, membershipUuid: string) =>
     useApi<PaymentDto>(`/v1/me/payments/${uuid}/membership`, { method: 'PUT', body: { membershipUuid } })
@@ -264,7 +278,7 @@ export const usePayments = () => {
     useApi<void>(`/v1/advisors/me/payments/${uuid}`, { method: 'DELETE' })
 
   return {
-    creditBalance, assignOwnMembership, lookupMembership, assignMembership,
+    creditBalance, claimOwn, withdrawClaimOwn, claimAsStaff, assignOwnMembership, lookupMembership, assignMembership,
     list, get, register, registerOut, updateOut, removeOut, processOut, approveOut, rejectOut, approve, reject, applyDiscount, discountAuthority, remove, supportUrl, mine, mineForPromoter,
     updateLines, submit, reactivateToDraft,
     registerOwn, removeOwn, updateLinesOwn, submitOwn, reactivateToDraftOwn,

@@ -332,6 +332,11 @@ export const PERMISSIONS = [
   'MEMBER_ADVISOR_VIEW_OWN',
   'PROMOTER_PORTFOLIO_CREATE',
 
+  // Payment claims and credit hold (hub ADR 0029) — a payer or staff flags a payment's remaining credit
+  // as wrong / overpaid / refund request; staff resolve it and can freeze a person's credit.
+  'COLLECTION_CLAIM_CREATE_OWN', 'COLLECTION_CLAIM_VIEW_ALL', 'COLLECTION_CLAIM_CREATE', 'COLLECTION_CLAIM_RESOLVE',
+  'PERSON_CREDIT_HOLD_UPDATE',
+
   // TERMS & CONDITIONS (V139) — versioned T&C per role (AFILIADO/ASESOR/ALIADO).
   'TERMS_VIEW_ALL',
   'TERMS_CREATE',
