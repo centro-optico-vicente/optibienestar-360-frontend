@@ -30,8 +30,8 @@ const week = ref<Record<number, Range[]>>(emptyWeek())
 const loading = ref(false)
 const saving = ref(false)
 const dirty = ref(false)
-// Not `readonly` in the template: it would resolve to Vue's auto-imported readonly().
-const isReadonly = computed(() => props.readonly === true)
+// Not `readonly` / `isReadonly` in the template: both resolve to auto-imported Vue functions.
+const viewOnly = computed(() => props.readonly === true)
 
 function emptyWeek(): Record<number, Range[]> {
   return Object.fromEntries(DAYS.map(d => [d, [] as Range[]]))
@@ -135,11 +135,11 @@ async function save() {
     <div v-if="loading" class="text-sm text-prohealth-500 py-4">{{ t('allies.openingHours.loading') }}</div>
 
     <template v-else>
-      <p v-if="isReadonly && isEmpty" class="text-sm text-prohealth-500">{{ t('allies.openingHours.empty') }}</p>
+      <p v-if="viewOnly && isEmpty" class="text-sm text-prohealth-500">{{ t('allies.openingHours.empty') }}</p>
 
       <div
         v-for="day in DAYS"
-        v-show="!isReadonly || (week[day] ?? []).length > 0"
+        v-show="!viewOnly || (week[day] ?? []).length > 0"
         :key="day"
         class="flex flex-col sm:flex-row sm:items-start gap-2 py-2 border-b border-prohealth-50 last:border-b-0"
       >
@@ -153,7 +153,7 @@ async function save() {
           </p>
 
           <div v-for="(range, index) in week[day]" :key="index" class="flex items-center gap-2">
-            <template v-if="isReadonly">
+            <template v-if="viewOnly">
               <span class="text-sm text-prohealth-700">{{ range.opensAt }} – {{ range.closesAt }}</span>
             </template>
             <template v-else>
@@ -185,11 +185,11 @@ async function save() {
             </template>
           </div>
 
-          <p v-if="!isReadonly && dayError(day)" class="text-xs text-red-600">{{ t(dayError(day) ?? '') }}</p>
+          <p v-if="!viewOnly && dayError(day)" class="text-xs text-red-600">{{ t(dayError(day) ?? '') }}</p>
         </div>
 
         <UButton
-          v-if="!isReadonly"
+          v-if="!viewOnly"
           color="primary"
           variant="ghost"
           icon="i-lucide-plus"
@@ -201,7 +201,7 @@ async function save() {
         </UButton>
       </div>
 
-      <div v-if="!isReadonly" class="flex flex-wrap items-center justify-between gap-2 pt-2">
+      <div v-if="!viewOnly" class="flex flex-wrap items-center justify-between gap-2 pt-2">
         <UButton
           color="neutral"
           variant="soft"
