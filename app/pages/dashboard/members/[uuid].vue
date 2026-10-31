@@ -738,6 +738,16 @@ async function refreshAll() {
         @confirmed="loadMember"
       />
 
+      <!-- Credit hold: freezes the automatic use of this person's credit (hub ADR 0029) -->
+      <MemberCreditHoldCard
+        v-if="member"
+        :member-uuid="memberUuid"
+        :credit-auto-apply="member.creditAutoApply"
+        :hold-reason="member.creditHoldReason"
+        :hold-at-display="member.creditHoldAt_Display"
+        @changed="loadMember"
+      />
+
       <!-- Sub-resource tabs -->
       <UTabs v-model="activeTab" :items="tabs" :content="false" />
 

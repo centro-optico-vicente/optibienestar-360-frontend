@@ -30,6 +30,7 @@ const canApprove = computed(() => can('COLLECTION_APPROVE'))
 const canReject = computed(() => can('COLLECTION_REJECT'))
 const canDiscount = computed(() => can('ALLOWS_DISCOUNT'))
 const canAssignMembership = computed(() => can('COLLECTION_ASSIGN_MEMBERSHIP'))
+const canClaimAsStaff = computed(() => can('COLLECTION_CLAIM_CREATE'))
 const canViewMember = computed(() => can('MEMBER_VIEW_ALL'))
 const canViewCurrency = computed(() => can('CURRENCY_VIEW_ALL'))
 const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('PAYMENT_RECORD_AUDIT_VIEW'))
@@ -170,6 +171,12 @@ const canAssignCredit = computed(() =>
   canAssignMembership.value && payment.value?.direction !== 'OUT'
   && payment.value?.status === 'APPROVED' && !payment.value?.membership_Uuid)
 
+// Staff can open a claim on an approved collection with credit left (hub ADR 0029); an open claim shows below.
+const claimOpen = ref(false)
+const canOpenClaim = computed(() =>
+  canClaimAsStaff.value && payment.value?.direction !== 'OUT' && payment.value?.status === 'APPROVED'
+  && Number(payment.value?.creditRemaining ?? 0) > 0 && !payment.value?.openClaim)
+
 const reviewOpen = ref(false)
 const reviewAction = ref<'approve' | 'reject'>('approve')
 
@@ -294,6 +301,15 @@ function onReviewed(updated: PaymentDto) {
                 </UButton>
               </UTooltip>
             </template>
+            <UButton
+              v-if="canOpenClaim"
+              color="warning"
+              variant="soft"
+              icon="i-lucide-message-square-warning"
+              @click="claimOpen = true"
+            >
+              {{ t('payments.claim.action') }}
+            </UButton>
             <UButton
               v-if="canAssignCredit"
               color="primary"
@@ -442,6 +458,18 @@ function onReviewed(updated: PaymentDto) {
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.membership') }}</dt>
             <dd class="text-prohealth-800 mt-0.5">{{ payment.membership_Display || t('common.empty') }}</dd>
           </div>
+          <div v-if="payment.openClaim">
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.claim.detailLabel') }}</dt>
+            <dd class="text-sm text-prohealth-900 mt-0.5">
+              <UBadge color="warning" variant="subtle" size="sm">
+                {{ payment.openClaim.reason_Display ?? payment.openClaim.reason }} · {{ payment.openClaim.claimedAmount_Display ?? payment.openClaim.claimedAmount }}
+              </UBadge>
+              <span v-if="payment.openClaim.comment" class="block text-xs text-prohealth-600 mt-1">{{ payment.openClaim.comment }}</span>
+              <NuxtLink v-if="can('COLLECTION_CLAIM_VIEW_ALL')" to="/dashboard/payment-claims" class="block text-xs text-cyan-700 hover:underline mt-1">
+                {{ t('payments.claim.manageLink') }}
+              </NuxtLink>
+            </dd>
+          </div>
           <div v-if="payment.beneficiary_Display">
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.beneficiary.detailLabel') }}</dt>
             <dd class="text-prohealth-800 mt-0.5">
@@ -535,6 +563,9 @@ function onReviewed(updated: PaymentDto) {
         </dl>
       </div>
     </template>
+
+    <!-- Staff claim on the credit of this payment -->
+    <PaymentClaimModal v-model:open="claimOpen" :payment="payment" staff @claimed="loadPayment" />
 
     <!-- Assign credit to a membership -->
     <PaymentAssignMembershipModal

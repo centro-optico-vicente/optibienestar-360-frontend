@@ -84,6 +84,11 @@ export interface PaymentDto {
   beneficiary_Display?: string | null
   beneficiaryDocument?: string | null
   beneficiaryContractNumber?: string | null
+  /** Open claim on this payment's remaining credit (hub ADR 0029); `null` when there is none. */
+  openClaim?: PaymentClaimDto | null
+  /** Credit of this payment not yet applied to a membership; `null` when it is not credit. */
+  creditRemaining?: number | string | null
+  creditRemaining_Display?: string | null
   // Subject (flat refs extracted by the mapper — member/membership resolve
   // to a readable `_Display` server-side, hub ADR 0014)
   membership_Uuid?: string | null
@@ -456,6 +461,51 @@ export interface MyBankAccountRequest {
 }
 
 /** `GET /v1/me/payments/credit-balance` — the caller's credit ("saldo a favor") per currency (V201). */
+export type ClaimReason = 'ERROR' | 'OVERPAID' | 'REFUND_REQUEST' | 'OTHER'
+export const CLAIM_REASONS: readonly ClaimReason[] = ['ERROR', 'OVERPAID', 'REFUND_REQUEST', 'OTHER']
+export type ClaimStatus = 'OPEN' | 'KEPT_AS_CREDIT' | 'REFUNDED' | 'REJECTED' | 'WITHDRAWN' | 'USED_BY_AGREEMENT'
+export const CLAIM_STATUSES: readonly ClaimStatus[] = ['OPEN', 'KEPT_AS_CREDIT', 'REFUNDED', 'REJECTED', 'WITHDRAWN', 'USED_BY_AGREEMENT']
+
+/** A claim on the remaining credit of an approved payment (hub ADR 0029). While OPEN that amount is frozen. */
+export interface PaymentClaimDto {
+  uuid: string
+  paymentUuid: string
+  /** Payment reference, payer and beneficiary — present on the admin list rows. */
+  payment_Display?: string | null
+  person_Display?: string | null
+  beneficiary_Display?: string | null
+  reason: ClaimReason
+  reason_Display?: string | null
+  claimedAmount: number | string
+  claimedAmount_Display?: string | null
+  currency_Code?: string | null
+  comment?: string | null
+  status: ClaimStatus
+  status_Display?: string | null
+  openedAt?: string | null
+  openedAt_Display?: string | null
+  openedBy_Display?: string | null
+  resolvedAt?: string | null
+  resolvedAt_Display?: string | null
+  resolutionNote?: string | null
+  refundedAmount?: number | string | null
+}
+
+/** Body of `POST /v1/me/payments/{uuid}/claim` and `POST /v1/admin/payments/{uuid}/claim`. */
+export interface PaymentClaimRequest {
+  reason: ClaimReason
+  claimedAmount: number
+  comment?: string
+}
+
+/** Body of `PUT /v1/admin/payment-claims/{uuid}/resolve` — COLLECTION_CLAIM_RESOLVE. */
+export interface ResolvePaymentClaimRequest {
+  action: 'KEEP_AS_CREDIT' | 'REFUND' | 'REJECT'
+  /** Required for REFUND; at most the claimed amount. */
+  refundedAmount?: number
+  note?: string
+}
+
 export interface CreditBalanceDto {
   balances: Array<{ currency_Code: string, amount: number | string, amount_Display?: string | null }>
 }
