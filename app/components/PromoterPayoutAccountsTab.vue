@@ -58,7 +58,7 @@ async function loadOptions() {
       .map((method: CatalogItem) => ({ label: method.name, value: method.uuid }))
     bankOptions.value = banks
       .filter((bank: CatalogItem) => bank.active)
-      .map((bank: CatalogItem) => ({ label: bank.code ? `${bank.code} — ${bank.name}` : bank.name, value: bank.uuid }))
+      .map((bank: CatalogItem) => ({ label: bankOptionLabel(bank), value: bank.uuid }))
   }
   catch {
     // useApi already reported the API error; the selects stay empty.
