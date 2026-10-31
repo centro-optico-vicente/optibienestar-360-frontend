@@ -782,6 +782,14 @@
       "paymentClaims": {
         "label": "Payment claims",
         "description": "Claims on a payment's balance: refunds, mistakes and overpayments."
+      },
+      "myPatients": {
+        "label": "My patients",
+        "description": "Patients whose medical history you can read."
+      },
+      "myMedicalAccess": {
+        "label": "Who viewed my history",
+        "description": "Medical allies with access to your medical history."
       }
     },
     "other": {
@@ -4700,7 +4708,8 @@
       "reports": "Reports",
       "dataChangeAudit": "Data change audit",
       "reportAudit": "Report audit",
-      "sessions": "Session and system usage"
+      "sessions": "Session and system usage",
+      "patientAccess": "Medical history for medical allies"
     },
     "audit": {
       "sectionTitle": "Audit",
@@ -4743,7 +4752,11 @@
       }
     },
     "updatedToast": "Configuration updated successfully",
-    "saveButton": "Save changes"
+    "saveButton": "Save changes",
+    "patientAccess": {
+      "enabled": "Let medical allies read their patients' history",
+      "enabledHelp": "After scanning the credential QR, the doctor of a medical professional ally can read that patient's medical history. Keep it off until legal confirms the membership agreement clause."
+    }
   },
   "markdownEditor": {
     "source": "Markdown",
@@ -5378,5 +5391,42 @@
   },
   "banks": {
     "officialNameTooltip": "Official name: {name}"
+  },
+  "patientAccess": {
+    "viewRecord": "View medical history",
+    "record": {
+      "title": "Medical history",
+      "loggedNotice": "This read is logged and the patient can see it.",
+      "failed": "The medical history could not be loaded.",
+      "empty": "The patient has no medical history on file yet."
+    },
+    "patients": {
+      "seoTitle": "My patients — OptiBienestar 360",
+      "title": "My patients",
+      "subtitle": "Patients whose credential you scanned. You can read their medical history until they revoke the access.",
+      "scanCta": "Scan credential",
+      "disabledTitle": "Feature not enabled",
+      "disabledDescription": "Medical history access for allies is not enabled yet.",
+      "notEligibleTitle": "Not available for this ally",
+      "notEligibleDescription": "Only the doctor or a medical operator of a medical professional ally can read their patients' history.",
+      "empty": "You have no patients yet. Scan an affiliate's credential QR in the validator.",
+      "since": "Since {date}"
+    },
+    "mine": {
+      "title": "Who viewed my history",
+      "subtitle": "Medical allies who can read your medical history because they scanned your credential, and every time they read it.",
+      "activeTitle": "With access",
+      "noActive": "No doctor has access to your medical history.",
+      "since": "since {date}",
+      "revoke": "Revoke access",
+      "readsTitle": "Reads",
+      "noReads": "Nobody has read your medical history.",
+      "revokedTitle": "Revoked access",
+      "revokedOn": "revoked on {date}",
+      "revokeTitle": "Revoke access",
+      "revokeDescription": "{doctor} will no longer see your medical history. Scanning your credential again restores the access.",
+      "cancel": "Cancel",
+      "revokedToast": "Access revoked"
+    }
   }
 }
