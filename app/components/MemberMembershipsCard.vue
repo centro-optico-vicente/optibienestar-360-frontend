@@ -376,6 +376,7 @@ async function confirmLifecycle() {
               </div>
               <div class="text-xs text-prohealth-500 font-mono">{{ m.planCode }}</div>
               <div v-if="m.contractNumber" class="text-xs text-prohealth-700 font-mono">{{ t('memberships.contractNumber') }}: {{ m.contractNumber }}</div>
+              <div v-if="m.inscriptionPaymentMethod_Display" class="text-xs text-prohealth-700">{{ t('memberships.paymentMode') }}: {{ m.inscriptionPaymentMethod_Display }}</div>
               <UBadge
                 v-if="promotionByMembership[m.uuid]"
                 color="primary"

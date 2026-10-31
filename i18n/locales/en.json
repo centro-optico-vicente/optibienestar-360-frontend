@@ -2875,7 +2875,8 @@
         "UP_TO_DATE": "Up to date"
       }
     },
-    "contractNumber": "Contract"
+    "contractNumber": "Contract",
+    "paymentMode": "Payment mode"
   },
   "validator": {
     "seoTitle": "Validator — OptiBienestar 360",
