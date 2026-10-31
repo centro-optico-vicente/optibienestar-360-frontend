@@ -33,6 +33,10 @@ export interface CatalogItem {
   state_Uuid?: string | null
   state_Display?: string | null
   state_Code?: string | null
+  // `professions` (V213) — general profession of a sub-specialty (FK triple); null = top level.
+  parent_Uuid?: string | null
+  parent_Display?: string | null
+  parent_Code?: string | null
   // `advisor-ranks` (V101) — hierarchy_level is the immutable ordering key,
   // max_subordinates optional (no cap when absent). `parentRankUuid` (this
   // hub plan) is the real parent/superior FK — `null` means top of the

@@ -782,6 +782,10 @@
       "paymentClaims": {
         "label": "Payment claims",
         "description": "Claims on a payment's balance: refunds, mistakes and overpayments."
+      },
+      "licensingBodies": {
+        "label": "Licensing bodies",
+        "description": "Bodies that issue professional licenses (M.P.P.S., Medical Association…)."
       }
     },
     "other": {
@@ -1066,7 +1070,9 @@
       "requiresApproval": "Requires approval",
       "maxDiscountPct": "Maximum discount (%)",
       "segment": "Segment",
-      "professionalArea": "Professional area (B2P only)"
+      "professionalArea": "Professional area (B2P only)",
+      "parentProfession": "General profession (if it is a sub-specialty)",
+      "professionalAreaOptional": "Professional area"
     },
     "promoterRanksTree": {
       "title": "Rank tree",
@@ -1147,6 +1153,10 @@
       "payment-methods": {
         "label": "Payment methods",
         "labelSingular": "Payment method"
+      },
+      "licensing-bodies": {
+        "label": "Licensing bodies",
+        "labelSingular": "Licensing body"
       }
     }
   },
@@ -1218,6 +1228,7 @@
       "marital_status": "Marital status",
       "occupation": "Occupation",
       "profession": "Profession",
+      "licensing_body": "Licensing body",
       "product_category": "Product or service category",
       "product": "Product or service",
       "ally_product": "Partner offer",
@@ -1486,7 +1497,8 @@
       "professions": "Professions",
       "allyTypes": "Partner types",
       "agreements": "Agreements",
-      "staff": "Staff"
+      "staff": "Staff",
+      "licenses": "Licenses"
     },
     "products": {
       "title": "Products and services",
@@ -1725,7 +1737,8 @@
         "exclusions": "Does not apply to: {exclusions}"
       },
       "office": "Office {number}",
-      "appointments": "Appointments"
+      "appointments": "Appointments",
+      "licensesTitle": "Verified licenses"
     },
     "portal": {
       "seoTitle": "My partner space — OptiBienestar 360",
@@ -1780,6 +1793,36 @@
     "segments": {
       "B2B": "Commercial (B2B)",
       "B2P": "Professional (B2P)"
+    },
+    "licenses": {
+      "title": "Professional licenses",
+      "hint": "Licenses of the holder person. They apply to all of the professional's sites.",
+      "addButton": "Add",
+      "noHolder": "Register the ally's holder person first to add their licenses.",
+      "empty": "No licenses registered.",
+      "reviewedAt": "Reviewed on {date}",
+      "verify": "Verify",
+      "reject": "Reject",
+      "createdToast": "License added",
+      "updatedToast": "License updated",
+      "verifiedToast": "License verified",
+      "rejectedToast": "License rejected",
+      "deletedToast": "License deleted",
+      "deleteTitle": "Delete license",
+      "deleteBody": "Delete the license {body} · {number}?",
+      "status": {
+        "PENDING": "Pending",
+        "VERIFIED": "Verified",
+        "REJECTED": "Rejected"
+      },
+      "form": {
+        "createTitle": "New license",
+        "editTitle": "Edit license",
+        "createDescription": "It stays pending until someone verifies it.",
+        "editDescription": "Changing the body or the number sends it back to pending verification.",
+        "body": "Licensing body",
+        "number": "Number"
+      }
     }
   },
   "catalog": {
