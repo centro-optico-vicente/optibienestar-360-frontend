@@ -39,12 +39,21 @@ const size = ref(12)
 const search = ref(queryString('q'))
 const city = ref(queryString('ciudad'))
 const category = ref<string | undefined>(queryString('categoria') || undefined)
+// Commercial (B2B) or professional (B2P) allies — `?tipo=comercial|profesional` in the URL.
+const SEGMENT_BY_SLUG: Record<string, string> = { comercial: 'B2B', profesional: 'B2P' }
+const SLUG_BY_SEGMENT: Record<string, string> = { B2B: 'comercial', B2P: 'profesional' }
+const segment = ref<string | undefined>(SEGMENT_BY_SLUG[queryString('tipo')] || undefined)
+const segmentOptions = computed(() => [
+  { label: t('allies.public.filters.segmentB2B'), value: 'B2B' },
+  { label: t('allies.public.filters.segmentB2P'), value: 'B2P' },
+])
 
 function syncUrl() {
   const query: Record<string, string> = {}
   if (search.value.trim()) query.q = search.value.trim()
   if (city.value.trim()) query.ciudad = city.value.trim()
   if (category.value) query.categoria = category.value
+  if (segment.value) query.tipo = SLUG_BY_SEGMENT[segment.value] ?? segment.value
   router.replace({ query })
 }
 
@@ -57,6 +66,7 @@ async function load() {
       q: search.value.trim() || undefined,
       city: city.value.trim() || undefined,
       category: category.value || undefined,
+      segment: segment.value || undefined,
     })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
@@ -78,7 +88,7 @@ function reloadFromFirstPage() {
 }
 
 watch(page, load)
-watch(category, reloadFromFirstPage)
+watch([category, segment], reloadFromFirstPage)
 let searchTimer: ReturnType<typeof setTimeout> | undefined
 watch([search, city], () => {
   clearTimeout(searchTimer)
@@ -102,10 +112,11 @@ function clearFilters() {
   search.value = ''
   city.value = ''
   category.value = undefined
+  segment.value = undefined
 }
 
 const hasFilters = computed(() =>
-  Boolean(search.value.trim() || city.value.trim() || category.value),
+  Boolean(search.value.trim() || city.value.trim() || category.value || segment.value),
 )
 
 onMounted(async () => {
@@ -137,13 +148,24 @@ onMounted(async () => {
 
     <!-- Filters -->
     <section class="max-w-7xl mx-auto px-6 lg:px-10 -mt-8 relative z-10">
-      <div class="bg-white rounded-2xl border border-prohealth-100 shadow-sm p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div class="bg-white rounded-2xl border border-prohealth-100 shadow-sm p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
         <UInput
           v-model="search"
           :placeholder="t('allies.public.filters.search')"
           icon="i-lucide-search"
           size="lg"
           class="lg:col-span-2"
+        />
+        <USelectMenu
+          clear
+          v-model="segment"
+          :items="segmentOptions"
+          value-key="value"
+          label-key="label"
+          :search-input="false"
+          :placeholder="t('allies.public.filters.segment')"
+          icon="i-lucide-layers"
+          size="lg"
         />
         <UInput
           v-model="city"
@@ -211,8 +233,14 @@ onMounted(async () => {
               <h3 class="font-bold text-prohealth-900 group-hover:text-cyan-700 transition-colors truncate">
                 {{ a.name }}
               </h3>
-              <p v-if="a.allySegments?.length" class="text-[11px] font-semibold uppercase tracking-wide text-cyan-700 mt-0.5">
-                {{ a.allySegments.map(seg => t(`allies.segments.${seg}`, seg)).join(' · ') }}
+              <p v-if="a.segment || a.allySegments?.length" class="text-[11px] font-semibold uppercase tracking-wide text-cyan-700 mt-0.5">
+                {{ a.segment
+                  ? (a.segment_Display || t(`allies.segments.${a.segment}`, a.segment))
+                  : a.allySegments!.map(seg => t(`allies.segments.${seg}`, seg)).join(' · ') }}
+              </p>
+              <p v-if="a.hostName" class="text-xs text-prohealth-500 mt-0.5 truncate">
+                <UIcon name="i-lucide-hospital" class="w-3.5 h-3.5 inline -mt-0.5" />
+                {{ a.hostName }}<template v-if="a.officeNumber"> · {{ t('allies.public.office', { number: a.officeNumber }) }}</template>
               </p>
               <p class="text-xs text-prohealth-500 mt-0.5">
                 <template v-if="a.allyTypeNames?.length">{{ a.allyTypeNames.join(', ') }}</template>

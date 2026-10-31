@@ -15,21 +15,76 @@ import type { PublicImageDto } from '~/types/media'
 
 // ---- Partner ----
 
+/**
+ * B2B "Aliado Comercial" (an organization) / B2P "Aliado Profesional" (a
+ * professional: physician, psychologist, lawyer…) — the ally's own segment
+ * since V209 (hub ADR 0031); its types must belong to it.
+ */
+export type AllySegment = 'B2B' | 'B2P'
+
+/** Holder person of an ally (V209): the professional (B2P) or the signing representative (B2B). Admin-only. */
+export interface AllyHolderPersonDto {
+  uuid: string
+  documentType: string
+  documentNumber: string
+  firstName: string
+  lastName: string
+  fullName?: string | null
+  birthDate?: string | null
+  birthDate_Display?: string | null
+  phone?: string | null
+  email?: string | null
+}
+
+/**
+ * Find-or-create by cédula: an existing person is linked as-is (only its empty
+ * phone / email / birth date are filled); a new one needs first and last name.
+ */
+export interface AllyHolderPersonRequest {
+  documentType: string
+  documentNumber: string
+  firstName?: string
+  lastName?: string
+  birthDate?: string
+  phone?: string
+  email?: string
+}
+
 export interface AllyDto {
   uuid: string
   name: string
   allyTypes?: CatalogRef[]
+  segment?: AllySegment
+  segment_Display?: string | null
+  holder?: AllyHolderPersonDto | null
+  // B2P practice site (V209)
+  /** Host clinic when it is an ally too — ADR 0014 FK pair. */
+  hostAlly_Uuid?: string | null
+  hostAlly_Display?: string | null
+  hostName?: string | null
+  officeNumber?: string | null
+  appointmentPhone?: string | null
+  assistantName?: string | null
+  // B2B commercial data (V209)
+  commercialZone?: string | null
+  tradeName?: string | null
+  foundedYear?: number | null
+  cashRegistersCount?: number | null
+  branchesCount?: number | null
+  hasPos?: boolean | null
+  representativePosition?: string | null
   /** Sequential "Nº de Aliado", assigned by the backend (V179) — read-only. */
   allyNumber?: number | null
   /**
-   * Agreement file number "[CÓDIGO DE ASESOR]-[Nº DE ALIADO]" (e.g. `ABC123-0007`);
-   * just the zero-padded number (`0007`) when no promoter captured the ally. Read-only.
+   * Agreement file number as each agreement form prints it (hub ADR 0031): B2B just
+   * the zero-padded number (`0007`); B2P "[CÓDIGO DE ASESOR]-[Nº DE ALIADO]"
+   * (`ABC123-0007`), or just the number when no promoter captured it. Read-only.
    */
   fileNumber?: string | null
   /** Promoter (advisor) who captured the ally — ADR 0014 FK pair. */
   capturedByPromoter_Uuid?: string | null
   capturedByPromoter_Display?: string | null
-  /** Legal representative / physician who signs the agreement. */
+  /** @deprecated V209 — free-text representative, replaced by `holder`. */
   representativeName?: string | null
   representativeDocumentType?: string | null
   representativeDocumentNumber?: string | null
@@ -79,6 +134,8 @@ export interface AllyListItemDto {
   name: string
   /** Sequential "Nº de Aliado" (V179). */
   allyNumber?: number | null
+  segment?: AllySegment
+  segment_Display?: string | null
 
   /** Backend-formatted names of every ally type this partner belongs to (M:N). */
   allyTypeNames?: string[]
@@ -108,6 +165,24 @@ export interface AllyListItemDto {
 export interface CreateAllyRequest {
   name: string
   allyTypeUuids: string[]
+  /** Omitted on create = derived from the types. */
+  segment?: AllySegment
+  /** Required for B2P (the professional); the signing representative for B2B. */
+  holder?: AllyHolderPersonRequest
+  // B2P only — rejected (422) for a B2B ally
+  hostAllyUuid?: string
+  hostName?: string
+  officeNumber?: string
+  appointmentPhone?: string
+  assistantName?: string
+  // B2B only — rejected (422) for a B2P ally
+  commercialZone?: string
+  tradeName?: string
+  foundedYear?: number
+  cashRegistersCount?: number
+  branchesCount?: number
+  hasPos?: boolean
+  representativePosition?: string
   taxDocumentType?: string
   taxDocumentNumber?: string
   email?: string
@@ -448,8 +523,17 @@ export interface PublicAllyListItemDto {
   uuid: string
   name: string
   allyTypeNames?: string[]
-  /** Distinct segments (`B2B` / `B2P`) of the partner's active types (V179). */
+  /** Distinct segments (`B2B` / `B2P`) of the partner's active types (V179). Superseded by `segment`. */
   allySegments?: string[]
+  /** The partner's own segment (V209). */
+  segment?: AllySegment | null
+  segment_Display?: string | null
+  /** B2P: clinic where the professional practices. */
+  hostName?: string | null
+  /** B2P: office (consultorio) number. */
+  officeNumber?: string | null
+  /** B2P: phone for appointments. */
+  appointmentPhone?: string | null
   cityName?: string | null
   logoUrl?: string | null
   description?: string | null

@@ -981,6 +981,9 @@ onMounted(async () => {
               <UBadge :color="ally.published ? 'success' : 'neutral'" variant="subtle">
                 {{ ally.published ? t('allies.published') : t('allies.draft') }}
               </UBadge>
+              <UBadge v-if="ally.segment" :color="ally.segment === 'B2P' ? 'info' : 'primary'" variant="subtle" icon="i-lucide-layers">
+                {{ ally.segment_Display || t(`allies.segments.${ally.segment}`) }}
+              </UBadge>
               <UTooltip v-if="ally.fileNumber" :text="t('allies.detail.fileNumberHint')">
                 <UBadge color="info" variant="outline" icon="i-lucide-folder-open" class="font-mono">
                   {{ t('allies.detail.fileNumber', { number: ally.fileNumber }) }}
@@ -1110,13 +1113,63 @@ onMounted(async () => {
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.form.fields.capturedByPromoter') }}</dt>
             <dd class="text-prohealth-800 mt-0.5">{{ ally.capturedByPromoter_Display || t('common.empty') }}</dd>
           </div>
+          <!-- Holder person (V209): professional (B2P) or signing representative (B2B). -->
           <div>
-            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.form.fields.representativeName') }}</dt>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">
+              {{ ally.segment === 'B2P' ? t('allies.form.holder.professionalTitle') : t('allies.form.holder.representativeTitle') }}
+            </dt>
             <dd class="text-prohealth-800 mt-0.5">
-              {{ ally.representativeName || t('common.empty') }}
-              <template v-if="ally.representativeDocumentNumber"> · {{ ally.representativeDocumentType }}-{{ ally.representativeDocumentNumber }}</template>
+              <template v-if="ally.holder">
+                {{ ally.holder.fullName || `${ally.holder.firstName} ${ally.holder.lastName}` }}
+                · {{ ally.holder.documentType }}-{{ ally.holder.documentNumber }}
+                <template v-if="ally.segment !== 'B2P' && ally.representativePosition"> · {{ ally.representativePosition }}</template>
+              </template>
+              <template v-else-if="ally.representativeName">
+                {{ ally.representativeName }}
+                <template v-if="ally.representativeDocumentNumber"> · {{ ally.representativeDocumentType }}-{{ ally.representativeDocumentNumber }}</template>
+              </template>
+              <template v-else>{{ t('common.empty') }}</template>
             </dd>
           </div>
+          <template v-if="ally.segment === 'B2P'">
+            <div>
+              <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.form.fields.hostName') }}</dt>
+              <dd class="text-prohealth-800 mt-0.5">{{ ally.hostAlly_Display || ally.hostName || t('common.empty') }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.form.fields.officeNumber') }}</dt>
+              <dd class="text-prohealth-800 mt-0.5">{{ ally.officeNumber || t('common.empty') }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.form.fields.appointmentPhone') }}</dt>
+              <dd class="text-prohealth-800 mt-0.5">{{ ally.appointmentPhone || t('common.empty') }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.form.fields.assistantName') }}</dt>
+              <dd class="text-prohealth-800 mt-0.5">{{ ally.assistantName || t('common.empty') }}</dd>
+            </div>
+          </template>
+          <template v-else>
+            <div>
+              <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.form.fields.tradeName') }}</dt>
+              <dd class="text-prohealth-800 mt-0.5">{{ ally.tradeName || t('common.empty') }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.form.fields.commercialZone') }}</dt>
+              <dd class="text-prohealth-800 mt-0.5">{{ ally.commercialZone || t('common.empty') }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.detail.fields.operation') }}</dt>
+              <dd class="text-prohealth-800 mt-0.5">
+                {{ t('allies.detail.operationSummary', {
+                  founded: ally.foundedYear ?? '—',
+                  registers: ally.cashRegistersCount ?? '—',
+                  branches: ally.branchesCount ?? '—',
+                  pos: ally.hasPos == null ? '—' : (ally.hasPos ? t('common.yes') : t('common.no')),
+                }) }}
+              </dd>
+            </div>
+          </template>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.form.fields.referralCode') }}</dt>
             <dd class="text-prohealth-800 mt-0.5 font-mono">{{ ally.referralCode || t('common.empty') }}</dd>

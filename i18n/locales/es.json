@@ -672,8 +672,8 @@
         "description": "Tu Credencial Digital de afiliado."
       },
       "myAllyCompany": {
-        "label": "Mi empresa aliada",
-        "description": "Panel de tu empresa aliada."
+        "label": "Mi espacio de aliado",
+        "description": "Panel de tu espacio como aliado, comercial o profesional."
       },
       "validator": {
         "label": "Validador",
@@ -1407,14 +1407,52 @@
         "capturedByPromoter": "Asesor que lo captó",
         "representativeName": "Representante / médico firmante",
         "representativeDocumentType": "Tipo de documento del representante",
-        "representativeDocumentNumber": "C.I. / RIF del representante"
+        "representativeDocumentNumber": "C.I. / RIF del representante",
+        "segment": "Tipo de aliado",
+        "nameProfessional": "Nombre a mostrar (consulta)",
+        "holderDocumentType": "Tipo",
+        "holderDocumentNumber": "Cédula de identidad",
+        "holderFirstName": "Nombres",
+        "holderLastName": "Apellidos",
+        "holderBirthDate": "Fecha de nacimiento",
+        "holderPhone": "Teléfono celular",
+        "holderEmail": "Correo electrónico",
+        "representativePosition": "Cargo",
+        "hostAlly": "Centro clínico (aliado)",
+        "hostName": "Centro clínico principal",
+        "officeNumber": "Número de consultorio",
+        "appointmentPhone": "Teléfono para citas",
+        "assistantName": "Nombre del asistente",
+        "tradeName": "Nombre comercial",
+        "commercialZone": "Región / zona comercial",
+        "foundedYear": "Año de fundación",
+        "cashRegistersCount": "Nº de cajas",
+        "branchesCount": "Nº de sucursales",
+        "hasPos": "¿Maneja sistema POS?"
       },
       "referralCodeFormat": "El código debe tener entre 4 y 20 letras, números o guiones",
       "referralCodeHelp": "Código que el aliado entrega a sus clientes para usar una promoción. Solo atribuye, no genera comisión.",
       "fileNumberHelp": "Formato [CÓDIGO DE ASESOR]-[Nº DE ALIADO]; lo asigna el sistema.",
       "representativeHelp": "Persona que firma el Convenio de Alianza Estratégica en nombre del aliado.",
       "capturedByPromoterHelp": "Su código de asesor encabeza el número de expediente del convenio.",
-      "publishedHelp": "El aliado aparece en el directorio público de aliados."
+      "publishedHelp": "El aliado aparece en el directorio público de aliados.",
+      "segmentHelp": "Comercial: una empresa o comercio. Profesional: un médico, psicólogo, abogado u otro profesional; cada lugar donde atiende es un aliado aparte.",
+      "foundedYearFormat": "Indica un año de 4 dígitos",
+      "representativePositionPlaceholder": "Ej.: Gerente, Socio",
+      "holder": {
+        "professionalTitle": "Profesional",
+        "representativeTitle": "Representante legal (firma el convenio)",
+        "help": "Se busca por cédula: si la persona ya existe en el sistema (afiliado, asesor u otra sede), se enlaza esa misma persona.",
+        "legacy": "Representante cargado antes como texto: {name}. Indica su cédula para enlazarlo como persona.",
+        "linkedHint": "Persona ya enlazada: sus datos se editan en su propia ficha. Cambia la cédula para enlazar a otra persona."
+      },
+      "site": {
+        "title": "Coordenadas de consulta",
+        "hostAllyHelp": "Si la clínica también es aliada, selecciónala; si no, escribe su nombre."
+      },
+      "commercial": {
+        "title": "Estructura operativa"
+      }
     },
     "delete": {
       "title": "Eliminar aliado",
@@ -1436,10 +1474,12 @@
         "city": "Ciudad",
         "address": "Dirección",
         "googleMapsUrl": "Enlace de Google Maps",
-        "description": "Descripción"
+        "description": "Descripción",
+        "operation": "Estructura operativa"
       },
       "fileNumber": "Expediente {number}",
-      "fileNumberHint": "Nº de expediente del Convenio de Alianza Estratégica: [CÓDIGO DE ASESOR]-[Nº DE ALIADO]"
+      "fileNumberHint": "Nº de expediente del Convenio de Alianza Estratégica: [CÓDIGO DE ASESOR]-[Nº DE ALIADO]",
+      "operationSummary": "Fundada en {founded} · {registers} cajas · {branches} sucursales · POS: {pos}"
     },
     "tabs": {
       "products": "Productos y servicios",
@@ -1662,7 +1702,10 @@
         "search": "Nombre, RIF, número de aliado o ciudad…",
         "cityOrState": "Ciudad o estado",
         "category": "Rubro",
-        "clear": "Limpiar filtros"
+        "clear": "Limpiar filtros",
+        "segment": "Comerciales y profesionales",
+        "segmentB2B": "Comercios y empresas",
+        "segmentB2P": "Profesionales"
       },
       "detail": {
         "seoTitle": "{name} — Red de aliados OptiBienestar 360",
@@ -1680,12 +1723,14 @@
         "ctaBody": "Únete a OptiBienestar 360 y accede a la Tarifa Preferencial en toda la red.",
         "ctaButton": "Quiero afiliarme",
         "exclusions": "No aplica en: {exclusions}"
-      }
+      },
+      "office": "Consultorio {number}",
+      "appointments": "Citas"
     },
     "portal": {
-      "seoTitle": "Mi empresa aliada — OptiBienestar 360",
-      "title": "Mi empresa aliada",
-      "subtitle": "Propón productos y servicios para tu empresa. Quedan en revisión hasta que OptiBienestar 360 los apruebe.",
+      "seoTitle": "Mi espacio de aliado — OptiBienestar 360",
+      "title": "Mi espacio de aliado",
+      "subtitle": "Propón productos y servicios para tu negocio o consulta. Quedan en revisión hasta que OptiBienestar 360 los apruebe.",
       "lastProposedTitle": "«{name}» enviado a revisión",
       "lastProposedDescription": "Te notificaremos cuando sea aprobado y publicado en el directorio.",
       "formTitle": "Proponer un producto o servicio",

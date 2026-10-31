@@ -265,7 +265,8 @@ export const useAllies = () => {
  * Plain-word filters of the public directory (hub ADR 0026) — what a lead would
  * type, never ids: `q` matches name, RIF, ally number, description, city and
  * state; `city` a city or state name; `category` / `type` (`servicio`/`producto`)
- * keep allies publicly offering something of that category or type.
+ * keep allies publicly offering something of that category or type; `segment`
+ * (`B2B` / `B2P`, hub ADR 0031) keeps only commercial or only professional allies.
  */
 interface PublicDirectoryParams {
   page?: number
@@ -274,6 +275,7 @@ interface PublicDirectoryParams {
   city?: string
   category?: string
   type?: string
+  segment?: string
 }
 
 /**
@@ -291,6 +293,7 @@ export const usePublicAllies = () => {
         ...(params.city ? { city: params.city } : {}),
         ...(params.category ? { category: params.category } : {}),
         ...(params.type ? { type: params.type } : {}),
+        ...(params.segment ? { segment: params.segment } : {}),
       },
     })
 
