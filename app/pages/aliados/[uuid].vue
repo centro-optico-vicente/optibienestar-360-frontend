@@ -146,6 +146,24 @@ function money(v?: number | string | null): string {
 
         <!-- Contact data -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6 pt-6 border-t border-prohealth-100 text-sm">
+          <!-- B2P practice site: host clinic, office and appointment phone (hub ADR 0031). -->
+          <div v-if="ally.hostName" class="flex items-start gap-2.5">
+            <UIcon name="i-lucide-hospital" class="w-4.5 h-4.5 text-cyan-600 shrink-0 mt-0.5" />
+            <span class="text-prohealth-700">
+              {{ ally.hostName }}<template v-if="ally.officeNumber"> · {{ t('allies.public.office', { number: ally.officeNumber }) }}</template>
+            </span>
+          </div>
+          <div v-else-if="ally.officeNumber" class="flex items-start gap-2.5">
+            <UIcon name="i-lucide-door-open" class="w-4.5 h-4.5 text-cyan-600 shrink-0 mt-0.5" />
+            <span class="text-prohealth-700">{{ t('allies.public.office', { number: ally.officeNumber }) }}</span>
+          </div>
+          <div v-if="ally.appointmentPhone" class="flex items-center gap-2.5">
+            <UIcon name="i-lucide-calendar-clock" class="w-4.5 h-4.5 text-cyan-600 shrink-0" />
+            <span class="text-prohealth-700">
+              {{ t('allies.public.appointments') }}:
+              <a :href="`tel:${ally.appointmentPhone}`" class="hover:text-cyan-700">{{ ally.appointmentPhone }}</a>
+            </span>
+          </div>
           <div v-if="ally.address" class="flex items-start gap-2.5">
             <UIcon name="i-lucide-map-pin" class="w-4.5 h-4.5 text-cyan-600 mt-0.5 shrink-0" />
             <span class="text-prohealth-700">{{ ally.address }}</span>

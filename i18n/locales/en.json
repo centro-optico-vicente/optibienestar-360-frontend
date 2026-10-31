@@ -672,8 +672,8 @@
         "description": "Your affiliate Digital Credential."
       },
       "myAllyCompany": {
-        "label": "My partner company",
-        "description": "Your partner company panel."
+        "label": "My partner space",
+        "description": "Your partner panel, commercial or professional."
       },
       "validator": {
         "label": "Validator",
@@ -1407,14 +1407,52 @@
         "capturedByPromoter": "Captured by advisor",
         "representativeName": "Representative / signing physician",
         "representativeDocumentType": "Representative document type",
-        "representativeDocumentNumber": "Representative ID / RIF"
+        "representativeDocumentNumber": "Representative ID / RIF",
+        "segment": "Partner type",
+        "nameProfessional": "Display name (practice)",
+        "holderDocumentType": "Type",
+        "holderDocumentNumber": "ID document",
+        "holderFirstName": "First names",
+        "holderLastName": "Last names",
+        "holderBirthDate": "Date of birth",
+        "holderPhone": "Mobile phone",
+        "holderEmail": "Email",
+        "representativePosition": "Position",
+        "hostAlly": "Clinic (partner)",
+        "hostName": "Main clinic",
+        "officeNumber": "Office number",
+        "appointmentPhone": "Appointment phone",
+        "assistantName": "Assistant name",
+        "tradeName": "Trade name",
+        "commercialZone": "Commercial region / zone",
+        "foundedYear": "Founding year",
+        "cashRegistersCount": "Cash registers",
+        "branchesCount": "Branches",
+        "hasPos": "Uses a POS system?"
       },
       "referralCodeFormat": "The code must be 4-20 letters, digits or hyphens",
       "referralCodeHelp": "Code the ally hands to its customers to use a promotion. Attribution only, no commission.",
       "fileNumberHelp": "Format [ADVISOR CODE]-[ALLY NUMBER]; assigned by the system.",
       "representativeHelp": "Person who signs the Strategic Alliance Agreement on behalf of the ally.",
       "capturedByPromoterHelp": "Their advisor code prefixes the agreement file number.",
-      "publishedHelp": "The partner appears in the public partner directory."
+      "publishedHelp": "The partner appears in the public partner directory.",
+      "segmentHelp": "Commercial: a company or store. Professional: a physician, psychologist, lawyer or other professional; each place they practice at is a separate partner.",
+      "foundedYearFormat": "Enter a 4-digit year",
+      "representativePositionPlaceholder": "E.g.: Manager, Partner",
+      "holder": {
+        "professionalTitle": "Professional",
+        "representativeTitle": "Legal representative (signs the agreement)",
+        "help": "Looked up by ID document: if the person already exists in the system (member, advisor or another site), that same person is linked.",
+        "legacy": "Representative previously entered as text: {name}. Enter their ID document to link them as a person.",
+        "linkedHint": "Person already linked: their data is edited on their own record. Change the ID document to link someone else."
+      },
+      "site": {
+        "title": "Practice details",
+        "hostAllyHelp": "If the clinic is a partner too, select it; otherwise type its name."
+      },
+      "commercial": {
+        "title": "Operating structure"
+      }
     },
     "delete": {
       "title": "Delete partner",
@@ -1436,10 +1474,12 @@
         "city": "City",
         "address": "Address",
         "googleMapsUrl": "Google Maps link",
-        "description": "Description"
+        "description": "Description",
+        "operation": "Operating structure"
       },
       "fileNumber": "File {number}",
-      "fileNumberHint": "Strategic Alliance Agreement file number: [ADVISOR CODE]-[ALLY NUMBER]"
+      "fileNumberHint": "Strategic Alliance Agreement file number: [ADVISOR CODE]-[ALLY NUMBER]",
+      "operationSummary": "Founded in {founded} · {registers} registers · {branches} branches · POS: {pos}"
     },
     "tabs": {
       "products": "Products and services",
@@ -1651,7 +1691,10 @@
         "search": "Name, tax ID, partner number or city…",
         "cityOrState": "City or state",
         "category": "Line of business",
-        "clear": "Clear filters"
+        "clear": "Clear filters",
+        "segment": "Commercial and professional",
+        "segmentB2B": "Stores and companies",
+        "segmentB2P": "Professionals"
       },
       "detail": {
         "seoTitle": "{name} — OptiBienestar 360 partner network",
@@ -1669,12 +1712,14 @@
         "ctaBody": "Join OptiBienestar 360 and access the Preferential Rate across the network.",
         "ctaButton": "I want to join",
         "exclusions": "Does not apply to: {exclusions}"
-      }
+      },
+      "office": "Office {number}",
+      "appointments": "Appointments"
     },
     "portal": {
-      "seoTitle": "My partner company — OptiBienestar 360",
-      "title": "My partner company",
-      "subtitle": "Propose products and services for your company. They stay under review until OptiBienestar 360 approves them.",
+      "seoTitle": "My partner space — OptiBienestar 360",
+      "title": "My partner space",
+      "subtitle": "Propose products and services for your business or practice. They stay under review until OptiBienestar 360 approves them.",
       "lastProposedTitle": "“{name}” sent for review",
       "lastProposedDescription": "We'll notify you when it's approved and published in the directory.",
       "formTitle": "Propose a product or service",
