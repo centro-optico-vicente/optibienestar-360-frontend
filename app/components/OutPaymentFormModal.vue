@@ -177,7 +177,7 @@ async function loadOptions() {
       .map((method: CatalogItem) => ({ label: method.name, value: method.uuid }))
     const activeBanks = banks.filter((bank: CatalogItem) => bank.active)
     bankOptions.value = activeBanks
-      .map((bank: CatalogItem) => ({ label: bank.code ? `${bank.code} — ${bank.name}` : bank.name, value: bank.uuid }))
+      .map((bank: CatalogItem) => ({ label: bankOptionLabel(bank), value: bank.uuid }))
     banksByUuid.value = Object.fromEntries(activeBanks.map((bank: CatalogItem) => [bank.uuid, bank]))
   }
   catch {

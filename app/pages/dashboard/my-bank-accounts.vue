@@ -33,7 +33,7 @@ async function load() {
 
 const bankItems = ref<CatalogItem[]>([])
 const bankOptions = computed(() => bankItems.value.map(b => ({
-  label: b.code ? `${b.code} — ${b.name}` : b.name,
+  label: bankOptionLabel(b),
   value: b.uuid,
 })))
 

@@ -84,7 +84,7 @@ async function loadCatalogs() {
       useApi<CatalogItem[]>('/v1/me/payment-methods'),
     ])
     methodItems.value = methods ?? []
-    bankOptions.value = (banks ?? []).filter(b => b.active).map(b => ({ label: b.code ? `${b.code} — ${b.name}` : b.name, value: b.uuid }))
+    bankOptions.value = (banks ?? []).filter(b => b.active).map(b => ({ label: bankOptionLabel(b), value: b.uuid }))
     currencyOptions.value = (currencies ?? []).filter(c => c.active).map(c => ({ label: `${c.code} (${c.symbol})`, value: c.code! }))
   }
   catch {
