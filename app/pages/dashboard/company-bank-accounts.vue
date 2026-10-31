@@ -6,7 +6,10 @@ import type { CompanyBankAccountDto, CompanyBankAccountRequest } from '~/types/p
 import { BANK_ACCOUNT_TYPE_OPTIONS } from '~/types/payments'
 
 // The company's own bank accounts (V201) — what payers see to know where to deposit, and what they
-// pick on each payment line. Granular permissions per action; delete only deactivates.
+// pick on each payment line; also where a commission payout leaves from. Since V206 each account has a
+// payment method and the form is method-first, like the advisor payout accounts: the method's `mandatory*`
+// flags decide which fields show and are required (Pago Móvil = bank + document + phone; a transfer =
+// account type + number; Zelle = email). Granular permissions per action; delete only deactivates.
 definePageMeta({
   layout: 'dashboard',
   middleware: 'can',
@@ -69,19 +72,25 @@ watch(page, load)
 // ---- Bank / currency options (self-service read-only catalogs: no admin catalog permission needed) ----
 const bankOptions = ref<{ label: string, value: string }[]>([])
 const currencyOptions = ref<{ label: string, value: string }[]>([])
+// The self-service method list already carries the `mandatory*` flags the form needs.
+const methodItems = ref<CatalogItem[]>([])
+const methodOptions = computed(() => methodItems.value.filter(m => m.active).map(m => ({ label: m.name, value: m.uuid })))
 
 async function loadCatalogs() {
   try {
-    const [banks, currencies] = await Promise.all([
+    const [banks, currencies, methods] = await Promise.all([
       useApi<CatalogItem[]>('/v1/me/banks'),
       useApi<CatalogItem[]>('/v1/me/currencies'),
+      useApi<CatalogItem[]>('/v1/me/payment-methods'),
     ])
+    methodItems.value = methods ?? []
     bankOptions.value = (banks ?? []).filter(b => b.active).map(b => ({ label: b.code ? `${b.code} — ${b.name}` : b.name, value: b.uuid }))
     currencyOptions.value = (currencies ?? []).filter(c => c.active).map(c => ({ label: `${c.code} (${c.symbol})`, value: c.code! }))
   }
   catch {
     bankOptions.value = []
     currencyOptions.value = []
+    methodItems.value = []
   }
 }
 
@@ -96,45 +105,85 @@ const editingUuid = ref<string | null>(null)
 const saving = ref(false)
 const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 
-const state = reactive({
-  bankUuid: '',
-  currency: 'USD',
-  accountType: 'CORRIENTE',
-  accountNumber: '',
-  holderName: '',
-  holderDocument: '',
-  notes: '',
-  sortOrder: '0',
-  publicVisible: false,
-  active: true,
-})
+interface FormState {
+  paymentMethodUuid: string
+  bankUuid: string | undefined
+  currency: string
+  accountType: string
+  accountNumber: string
+  holderName: string
+  holderDocument: string
+  phone: string
+  email: string
+  notes: string
+  sortOrder: string
+  publicVisible: boolean
+  active: boolean
+}
 
-const schema = computed(() => z.object({
-  bankUuid: z.string().min(1, t('validation.required')),
-  currency: z.string().min(1, t('validation.required')),
-  accountType: z.string().min(1, t('validation.required')),
-  accountNumber: z.string().min(1, t('validation.required')).max(40, t('validation.maxChars', { n: 40 })),
-  holderName: z.string().min(1, t('validation.required')).max(160, t('validation.maxChars', { n: 160 })),
-  holderDocument: z.string().min(1, t('validation.required')).max(30, t('validation.maxChars', { n: 30 })),
-  notes: z.string().max(255, t('validation.maxChars', { n: 255 })).optional(),
-  sortOrder: z.string().regex(/^\d+$/, t('validation.required')),
-}))
+function emptyState(): FormState {
+  return {
+    paymentMethodUuid: '',
+    bankUuid: undefined,
+    currency: 'USD',
+    accountType: '',
+    accountNumber: '',
+    holderName: '',
+    holderDocument: '',
+    phone: '',
+    email: '',
+    notes: '',
+    sortOrder: '0',
+    publicVisible: false,
+    active: true,
+  }
+}
+
+const state = reactive<FormState>(emptyState())
+
+const selectedMethod = computed(() => methodItems.value.find(m => m.uuid === state.paymentMethodUuid) ?? null)
+// A transfer's account number may come from either flag (same rule as the backend).
+const needsAccountNumber = computed(() => Boolean(selectedMethod.value?.mandatoryAccountCode || selectedMethod.value?.mandatoryBankAccount))
+
+const requiredMsg = computed(() => t('validation.required'))
+const schema = computed(() => {
+  const m = selectedMethod.value
+  const optional = (max: number) => z.string().max(max, t('validation.maxChars', { n: max })).optional()
+  const required = (flag: boolean | undefined, max: number) => (flag
+    ? z.string().min(1, requiredMsg.value).max(max, t('validation.maxChars', { n: max }))
+    : optional(max))
+  return z.object({
+    paymentMethodUuid: z.string().min(1, requiredMsg.value),
+    currency: z.string().min(1, requiredMsg.value),
+    accountType: required(m?.mandatoryAccountType, 40),
+    accountNumber: required(needsAccountNumber.value, 40),
+    holderName: z.string().min(1, requiredMsg.value).max(160, t('validation.maxChars', { n: 160 })),
+    holderDocument: required(m?.mandatoryIdentification, 30),
+    phone: required(m?.mandatoryPhone, 30),
+    email: m?.mandatoryEmail ? z.string().email(t('validation.emailInvalid')).max(160) : optional(160),
+    notes: optional(255),
+    sortOrder: z.string().regex(/^\d+$/, requiredMsg.value),
+  }).refine(() => !m?.mandatoryBank || Boolean(state.bankUuid), { message: requiredMsg.value, path: ['bankUuid'] })
+})
 
 function openCreate() {
   editingUuid.value = null
-  Object.assign(state, { bankUuid: '', currency: 'USD', accountType: 'CORRIENTE', accountNumber: '', holderName: '', holderDocument: '', notes: '', sortOrder: '0', publicVisible: false, active: true })
+  Object.assign(state, emptyState())
   formOpen.value = true
 }
 
 function openEdit(a: CompanyBankAccountDto) {
   editingUuid.value = a.uuid
   Object.assign(state, {
-    bankUuid: a.bank_Uuid ?? '',
+    paymentMethodUuid: a.paymentMethod_Uuid ?? '',
+    bankUuid: a.bank_Uuid ?? undefined,
     currency: a.currency_Code,
-    accountType: a.accountType,
-    accountNumber: a.accountNumber,
+    accountType: a.accountType ?? '',
+    accountNumber: a.accountNumber ?? '',
     holderName: a.holderName,
-    holderDocument: a.holderDocument,
+    holderDocument: a.holderDocument ?? '',
+    phone: a.phone ?? '',
+    email: a.email ?? '',
     notes: a.notes ?? '',
     sortOrder: String(a.sortOrder),
     publicVisible: a.publicVisible,
@@ -144,16 +193,23 @@ function openEdit(a: CompanyBankAccountDto) {
 }
 
 async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
+  const m = selectedMethod.value
   saving.value = true
   try {
+    // Fields the selected method does not use are sent as null, so switching the method does not leave the
+    // previous method's data behind (same full-replace rule as the advisor payout accounts).
+    const keep = (flag: boolean | undefined, value: string) => (flag && value.trim() ? value.trim() : null)
     const body: CompanyBankAccountRequest = {
-      bankUuid: state.bankUuid,
+      paymentMethodUuid: state.paymentMethodUuid,
+      bankUuid: m?.mandatoryBank ? (state.bankUuid || null) : null,
       currency: state.currency,
-      accountType: state.accountType,
-      accountNumber: state.accountNumber.trim(),
+      accountType: keep(m?.mandatoryAccountType, state.accountType),
+      accountNumber: keep(needsAccountNumber.value, state.accountNumber),
       holderName: state.holderName.trim(),
-      holderDocument: state.holderDocument.trim(),
-      notes: state.notes.trim() || undefined,
+      holderDocument: state.holderDocument.trim() || null,
+      phone: keep(m?.mandatoryPhone, state.phone),
+      email: keep(m?.mandatoryEmail, state.email),
+      notes: state.notes.trim() || null,
       sortOrder: Number(state.sortOrder),
       publicVisible: state.publicVisible,
       active: state.active,
@@ -170,6 +226,15 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
   finally {
     saving.value = false
   }
+}
+
+function accountTypeLabel(value?: string | null): string {
+  return BANK_ACCOUNT_TYPE_OPTIONS.find(option => option.value === value)?.label ?? value ?? ''
+}
+
+/** Account number, else phone, else email: what identifies the account at a glance. */
+function destinationOf(a: CompanyBankAccountDto): string {
+  return a.accountNumber || a.phone || a.email || ''
 }
 
 // ---- Delete (soft) ----
@@ -223,9 +288,9 @@ async function confirmDelete() {
         <table class="w-full text-sm">
           <thead class="sticky top-0 bg-white z-10">
             <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
+              <th class="px-5 py-3 font-semibold">{{ t('payments.companyAccounts.fields.method') }}</th>
               <th class="px-5 py-3 font-semibold">{{ t('payments.companyAccounts.fields.bank') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('payments.companyAccounts.fields.accountNumber') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('payments.companyAccounts.fields.accountType') }}</th>
+              <th class="px-5 py-3 font-semibold">{{ t('payments.companyAccounts.fields.destination') }}</th>
               <th class="px-5 py-3 font-semibold">{{ t('payments.companyAccounts.fields.currency') }}</th>
               <th class="px-5 py-3 font-semibold">{{ t('payments.companyAccounts.fields.holderName') }}</th>
               <th class="px-5 py-3 font-semibold">{{ t('catalogs.columns.status') }}</th>
@@ -233,19 +298,22 @@ async function confirmDelete() {
             </tr>
           </thead>
           <tbody class="divide-y divide-prohealth-100">
-            <TableSkeleton v-if="loading" :rows="6" :cols="7" />
+            <TableSkeleton v-if="loading" :rows="6" :cols="8" />
             <tr v-else-if="data.length === 0">
-              <td colspan="7" class="px-5 py-12 text-center text-prohealth-500">
+              <td colspan="8" class="px-5 py-12 text-center text-prohealth-500">
                 <UIcon name="i-lucide-piggy-bank" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
                 {{ t('payments.companyAccounts.empty') }}
               </td>
             </tr>
             <tr v-for="a in data" v-else :key="a.uuid" class="hover:bg-prohealth-50/50">
-              <td class="px-5 py-3 text-prohealth-800">{{ a.bank_Display ?? a.bank_Code }}</td>
-              <td class="px-5 py-3 font-mono text-prohealth-900">{{ a.accountNumber }}</td>
-              <td class="px-5 py-3 text-prohealth-600">{{ a.accountType }}</td>
+              <td class="px-5 py-3 font-semibold text-prohealth-900">{{ a.paymentMethod_Display || a.paymentMethodCode || t('common.empty') }}</td>
+              <td class="px-5 py-3 text-prohealth-800">
+                {{ [a.bankCode ?? a.bank_Code, a.bank_Display].filter(Boolean).join(' ') || t('common.empty') }}
+                <span v-if="a.accountType" class="block text-xs text-prohealth-500">{{ accountTypeLabel(a.accountType) }}</span>
+              </td>
+              <td class="px-5 py-3 font-mono text-prohealth-900">{{ destinationOf(a) || t('common.empty') }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ a.currency_Code }}</td>
-              <td class="px-5 py-3 text-prohealth-600">{{ a.holderName }} <span class="text-xs text-prohealth-400">({{ a.holderDocument }})</span></td>
+              <td class="px-5 py-3 text-prohealth-600">{{ a.holderName }} <span v-if="a.holderDocument" class="text-xs text-prohealth-400">({{ a.holderDocument }})</span></td>
               <td class="px-5 py-3">
                 <div class="flex flex-wrap items-center gap-1">
                   <UBadge :color="a.active ? 'success' : 'neutral'" variant="subtle" size="sm">
@@ -279,29 +347,41 @@ async function confirmDelete() {
       <template #body>
         <UForm ref="formRef" :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField :label="t('payments.companyAccounts.fields.bank')" name="bankUuid" required>
-              <USelectMenu v-model="state.bankUuid" :items="bankOptions" label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" />
+            <UFormField :label="t('payments.companyAccounts.fields.method')" name="paymentMethodUuid" required>
+              <USelectMenu v-model="state.paymentMethodUuid" :items="methodOptions" label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" />
             </UFormField>
             <UFormField :label="t('payments.companyAccounts.fields.currency')" name="currency" required>
               <USelectMenu v-model="state.currency" :items="currencyOptions" label-key="label" value-key="value" class="w-full font-mono" />
             </UFormField>
           </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField :label="t('payments.companyAccounts.fields.accountType')" name="accountType" required>
-              <USelectMenu v-model="state.accountType" :items="BANK_ACCOUNT_TYPE_OPTIONS" label-key="label" value-key="value" class="w-full" />
-            </UFormField>
-            <UFormField :label="t('payments.companyAccounts.fields.accountNumber')" name="accountNumber" required>
-              <UInput v-model="state.accountNumber" class="w-full font-mono" />
-            </UFormField>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField :label="t('payments.companyAccounts.fields.holderName')" name="holderName" required>
-              <UInput v-model="state.holderName" class="w-full" />
-            </UFormField>
-            <UFormField :label="t('payments.companyAccounts.fields.holderDocument')" name="holderDocument" required>
-              <UInput v-model="state.holderDocument" class="w-full" />
-            </UFormField>
-          </div>
+          <template v-if="selectedMethod">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <UFormField v-if="selectedMethod.mandatoryBank" :label="t('payments.companyAccounts.fields.bank')" name="bankUuid" required>
+                <USelectMenu v-model="state.bankUuid" :items="bankOptions" label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" />
+              </UFormField>
+              <UFormField v-if="selectedMethod.mandatoryAccountType" :label="t('payments.companyAccounts.fields.accountType')" name="accountType" required>
+                <USelectMenu v-model="state.accountType" :items="BANK_ACCOUNT_TYPE_OPTIONS" label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" />
+              </UFormField>
+              <UFormField v-if="needsAccountNumber" :label="t('payments.companyAccounts.fields.accountNumber')" name="accountNumber" required>
+                <UInput v-model="state.accountNumber" class="w-full font-mono" maxlength="40" />
+              </UFormField>
+              <UFormField v-if="selectedMethod.mandatoryPhone" :label="t('payments.companyAccounts.fields.phone')" name="phone" required>
+                <UInput v-model="state.phone" class="w-full font-mono" inputmode="tel" maxlength="30" :placeholder="t('payments.companyAccounts.phonePlaceholder')" />
+              </UFormField>
+              <UFormField v-if="selectedMethod.mandatoryEmail" :label="t('payments.companyAccounts.fields.email')" name="email" required>
+                <UInput v-model="state.email" type="email" class="w-full" maxlength="160" />
+              </UFormField>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <UFormField :label="t('payments.companyAccounts.fields.holderName')" name="holderName" required>
+                <UInput v-model="state.holderName" class="w-full" maxlength="160" />
+              </UFormField>
+              <UFormField :label="t('payments.companyAccounts.fields.holderDocument')" name="holderDocument" :required="Boolean(selectedMethod.mandatoryIdentification)" :help="t('payments.companyAccounts.holderDocumentHelp')">
+                <UInput v-model="state.holderDocument" class="w-full" maxlength="30" />
+              </UFormField>
+            </div>
+          </template>
+          <p v-else class="text-sm text-prohealth-500">{{ t('payments.companyAccounts.pickMethodHint') }}</p>
           <UFormField :label="t('payments.companyAccounts.fields.notes')" name="notes">
             <UTextarea v-model="state.notes" :rows="2" class="w-full" />
           </UFormField>

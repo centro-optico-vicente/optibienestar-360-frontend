@@ -221,9 +221,15 @@ export interface PaymentLineDto {
   reviewedAt?: string | null
   reviewedAt_Display?: string | null
   reviewReason?: string | null
-  /** Company account the payer indicated (V201). */
+  /** Company account the payer indicated (V201) — for a payout, the company account the money left from. */
   companyBankAccount_Uuid?: string | null
   companyBankAccount_Display?: string | null
+  /** Account number / phone / email of that company account. */
+  companyBankAccount_Code?: string | null
+  /** Payout only: the advisor's payout account the money went to (V206). */
+  payoutAccount_Uuid?: string | null
+  payoutAccount_Display?: string | null
+  payoutAccount_Code?: string | null
 }
 
 /**
@@ -321,6 +327,10 @@ export interface OutPaymentCreateRequest {
   referenceNumber?: string
   paymentDate: string
   adminNotes?: string
+  /** Company account the money leaves from (V206). */
+  companyBankAccountUuid?: string
+  /** The advisor's payout account the money goes to; must belong to the selected promoter (V206). */
+  payoutAccountUuid?: string
 }
 
 export type OutPaymentUpdateRequest = OutPaymentCreateRequest
@@ -404,18 +414,32 @@ export interface PaymentSupportUrlDto {
   sizeBytes?: number | null
 }
 
-/** A bank account owned by the company (V201) — what a payer deposits into. `GET /v1/me/company-bank-accounts` + admin CRUD. */
+/**
+ * A bank account owned by the company (V201) — where a payer deposits, and where a commission payout leaves from.
+ * `GET /v1/me/company-bank-accounts` + admin CRUD. Since V206 it has a payment method (transfer, Pago Móvil,
+ * Zelle…) whose `mandatory*` flags decide which fields apply, same as the advisor payout accounts.
+ */
 export interface CompanyBankAccountDto {
   uuid: string
+  paymentMethod_Uuid?: string | null
+  paymentMethod_Display?: string | null
+  paymentMethod_Code?: string | null
+  /** Catalog code of the method (BANK_TRANSFER, PAGO_MOVIL, ZELLE…). */
+  paymentMethodCode?: string | null
   bank_Uuid?: string | null
-  bank_Code?: string | null
+  /** Commercial (short) bank name, e.g. "Mercantil". */
   bank_Display?: string | null
+  bank_Code?: string | null
+  /** SUDEBAN code of the bank (e.g. 0102) — what a Pago Móvil asks for. */
+  bankCode?: string | null
   currency_Code: string
-  accountType: string
-  accountNumber: string
+  accountType?: string | null
+  accountNumber?: string | null
   holderName: string
-  holderDocument: string
+  holderDocument?: string | null
   notes?: string | null
+  phone?: string | null
+  email?: string | null
   sortOrder: number
   /** Shown without authentication on `GET /v1/public/company-bank-accounts` (V204). */
   publicVisible: boolean
@@ -423,14 +447,18 @@ export interface CompanyBankAccountDto {
 }
 
 export interface CompanyBankAccountRequest {
-  bankUuid: string
+  /** The method decides which of the fields below are required (its `mandatory*` flags). */
+  paymentMethodUuid: string
+  bankUuid?: string | null
   /** ISO code, e.g. `USD`. */
   currency: string
-  accountType: string
-  accountNumber: string
+  accountType?: string | null
+  accountNumber?: string | null
   holderName: string
-  holderDocument: string
-  notes?: string
+  holderDocument?: string | null
+  notes?: string | null
+  phone?: string | null
+  email?: string | null
   sortOrder?: number
   /** Show it without authentication; defaults to private on create (V204). */
   publicVisible?: boolean

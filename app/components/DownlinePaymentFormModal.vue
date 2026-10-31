@@ -456,7 +456,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           </UFormField>
         </div>
 
-        <CompanyBankAccountPicker v-model="state.companyBankAccountUuid" />
+        <CompanyBankAccountPicker v-model="state.companyBankAccountUuid" :method-uuid="state.paymentMethodUuid" :amount="state.amount" :currency="state.currency" :date="state.paymentDate ? state.paymentDate.slice(0, 10) : ''" :label="t('payments.companyAccounts.destinationLabel')" :help="t('payments.companyAccounts.destinationHelp')" />
 
         <div v-if="selectedMethod?.mandatoryIdentification || selectedMethod?.mandatoryBank || selectedMethod?.mandatoryBankAccount || selectedMethod?.mandatoryAccountType || selectedMethod?.mandatoryAccountCode || selectedMethod?.mandatoryPhone || selectedMethod?.mandatoryEmail" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField v-if="selectedMethod?.mandatoryIdentification" :label="t('payments.payouts.fields.identification')" name="identification" required><UInput class="w-full" v-model="state.identification" /></UFormField>

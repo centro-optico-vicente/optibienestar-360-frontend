@@ -2118,7 +2118,9 @@
         "accountType": "Tipo de cuenta",
         "accountCode": "Código de cuenta",
         "phone": "Teléfono",
-        "email": "Correo electrónico"
+        "email": "Correo electrónico",
+        "originAccount": "Cuenta de origen (empresa)",
+        "payoutAccount": "Cuenta destino (asesor)"
       },
       "searchPlaceholder": "Buscar por referencia…",
       "empty": "Sin pagos de comisión",
@@ -2130,7 +2132,11 @@
         "reference": "Referencia",
         "reviewedBy": "Revisado por"
       },
-      "prefilledFromDossier": "Datos tomados de la cuenta de cobro del asesor"
+      "prefilledFromDossier": "Datos tomados de la cuenta de cobro del asesor",
+      "originAccountHelp": "La cuenta de la empresa desde la que sale el pago. Solo se muestran las del método elegido.",
+      "payoutAccountHelp": "La cuenta de cobro del asesor a la que llega el pago; se preselecciona su cuenta predeterminada.",
+      "noPayoutAccounts": "Este asesor no tiene cuentas de cobro registradas.",
+      "pickPromoterFirst": "Elige primero al asesor."
     },
     "movements": {
       "title": "Movimientos",
@@ -2221,7 +2227,10 @@
         "uuid": "UUID",
         "discount": "Descuento",
         "netAmount": "Neto a pagar",
-        "discountReason": "Motivo del descuento"
+        "discountReason": "Motivo del descuento",
+        "originAccount": "Cuenta de origen (empresa)",
+        "destinationAccount": "Cuenta destino (empresa)",
+        "payoutAccount": "Cuenta destino (asesor)"
       },
       "proof": {
         "fileNameFallback": "Comprobante",
@@ -2239,7 +2248,8 @@
         "method": "Método",
         "bank": "Banco",
         "amount": "Monto",
-        "reference": "Referencia"
+        "reference": "Referencia",
+        "accounts": "Cuentas"
       }
     },
     "form": {
@@ -2361,11 +2371,22 @@
         "holderDocument": "Documento del titular",
         "notes": "Notas",
         "sortOrder": "Orden",
-        "publicVisible": "Mostrar públicamente"
+        "publicVisible": "Mostrar públicamente",
+        "method": "Método de pago",
+        "destination": "Cuenta / teléfono / correo",
+        "phone": "Teléfono",
+        "email": "Correo"
       },
       "public": "Pública",
       "private": "Privada",
-      "publicHelp": "Visible sin iniciar sesión en el endpoint público de cuentas. Si no, solo la ven quienes registran un pago."
+      "publicHelp": "Visible sin iniciar sesión en el endpoint público de cuentas. Si no, solo la ven quienes registran un pago.",
+      "destinationLabel": "Cuenta destino (¿a dónde pagaste?)",
+      "destinationHelp": "La cuenta de la empresa en la que depositaste. Solo se muestran las del método elegido.",
+      "noneForMethod": "No hay cuentas de la empresa para este método.",
+      "noneAtAll": "Todavía no hay cuentas de la empresa registradas.",
+      "pickMethodHint": "Elige primero el método de pago: de él dependen los datos que pide la cuenta.",
+      "holderDocumentHelp": "Cédula o RIF, por ejemplo J-12345678-9.",
+      "phonePlaceholder": "04141234567"
     },
     "assignOwn": {
       "title": "Asignar a una membresía",
@@ -2426,6 +2447,25 @@
       "withdraw": "Retirar el reclamo",
       "detailLabel": "Reclamo abierto",
       "manageLink": "Gestionar en Reclamos de pagos"
+    },
+    "accountCopy": {
+      "copied": "{what} copiado",
+      "mobilePayment": "Pago móvil",
+      "data": "Datos de la cuenta",
+      "mobilePaymentButton": "Copiar pago móvil",
+      "allButton": "Copiar datos",
+      "mobileHint": "Copia teléfono, cédula o RIF y banco, uno por línea, en el orden que piden los bancos.",
+      "mobileHintWithAmount": "Copia teléfono, cédula o RIF, banco y el monto en bolívares, uno por línea, en el orden que piden los bancos.",
+      "fields": {
+        "method": "Método",
+        "bank": "Banco",
+        "accountType": "Tipo de cuenta",
+        "accountNumber": "Número de cuenta",
+        "holderName": "Titular",
+        "document": "Cédula o RIF",
+        "phone": "Teléfono",
+        "email": "Correo"
+      }
     }
   },
   "members": {
