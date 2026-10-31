@@ -90,6 +90,12 @@ export interface MembershipDto {
   exchangeRateUsed?: number | string | null
   exchangeRateDate?: string | null
   gracePeriodDays: number
+  /**
+   * "Modalidad de pago" of the B2C dossier (hub ADR 0031 §14): method of the first
+   * approved inscription payment line. Read-only, derived; null until the inscription is approved.
+   */
+  inscriptionPaymentMethod_Uuid?: string | null
+  inscriptionPaymentMethod_Display?: string | null
   // Status
   status: MembershipStatus | string
   status_Display?: string | null
