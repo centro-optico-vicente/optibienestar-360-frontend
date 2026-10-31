@@ -5263,5 +5263,16 @@
     "noteLabel": "Nota de resolución",
     "confirm": "Resolver",
     "resolvedToast": "Reclamo resuelto"
+  },
+  "publicAccounts": {
+    "seoTitle": "Cuentas para pagar — OptiBienestar 360",
+    "seoDescription": "Cuentas bancarias de OptiBienestar 360 donde puedes depositar o transferir tu pago.",
+    "title": "Cuentas para pagar",
+    "subtitle": "Estas son las cuentas donde puedes depositar o transferir. Después registra tu pago indicando en cuál lo hiciste.",
+    "empty": "Por ahora no hay cuentas públicas disponibles.",
+    "loadFailed": "No pudimos cargar las cuentas. Intenta de nuevo más tarde.",
+    "copy": "Copiar número",
+    "copied": "Número copiado",
+    "copyFailed": "No se pudo copiar el número"
   }
 }

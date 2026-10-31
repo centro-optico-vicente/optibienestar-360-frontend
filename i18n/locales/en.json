@@ -5263,5 +5263,16 @@
     "noteLabel": "Resolution note",
     "confirm": "Resolve",
     "resolvedToast": "Claim resolved"
+  },
+  "publicAccounts": {
+    "seoTitle": "Accounts to pay into — OptiBienestar 360",
+    "seoDescription": "OptiBienestar 360 bank accounts where you can deposit or transfer your payment.",
+    "title": "Accounts to pay into",
+    "subtitle": "These are the accounts where you can deposit or transfer. Then register your payment saying which one you used.",
+    "empty": "There are no public accounts available right now.",
+    "loadFailed": "We could not load the accounts. Please try again later.",
+    "copy": "Copy number",
+    "copied": "Number copied",
+    "copyFailed": "Could not copy the number"
   }
 }
