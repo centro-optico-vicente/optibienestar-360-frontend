@@ -13,6 +13,8 @@ import type {
   CreateAllyAgreementRequest,
   CreateAllyRequest,
   MyAllyDto,
+  OpeningHourDto,
+  OpeningHoursRequest,
   ProposeAllyProductRequest,
   PublicAllyDetailDto,
   PublicAllyListItemDto,
@@ -92,6 +94,13 @@ export const useAllies = () => {
 
   const removeProfession = (allyUuid: string, professionUuid: string) =>
     useApi<null>(`/v1/admin/allies/${allyUuid}/professions/${professionUuid}`, { method: 'DELETE' })
+
+  // ---- Horario de atención (V214): la semana completa se lee y se reemplaza ----
+  const getOpeningHours = (allyUuid: string) =>
+    useApi<OpeningHourDto[]>(`/v1/admin/allies/${allyUuid}/opening-hours`)
+
+  const replaceOpeningHours = (allyUuid: string, body: OpeningHoursRequest) =>
+    useApi<OpeningHourDto[]>(`/v1/admin/allies/${allyUuid}/opening-hours`, { method: 'PUT', body })
 
   // ---- Tipos de aliado (ManyToMany: añadir/quitar sin body) ----
   const listAllyTypes = (allyUuid: string, sort?: string[]) =>
@@ -232,6 +241,8 @@ export const useAllies = () => {
     usage,
     listProfessions,
     addProfession,
+    getOpeningHours,
+    replaceOpeningHours,
     removeProfession,
     listAllyTypes,
     addAllyType,
@@ -276,6 +287,10 @@ interface PublicDirectoryParams {
   category?: string
   type?: string
   segment?: string
+  /** Only allies open right now in the business zone (ADR 0031 §7). */
+  openNow?: boolean
+  /** Only allies with opening hours today. */
+  openToday?: boolean
 }
 
 /**
@@ -294,6 +309,8 @@ export const usePublicAllies = () => {
         ...(params.category ? { category: params.category } : {}),
         ...(params.type ? { type: params.type } : {}),
         ...(params.segment ? { segment: params.segment } : {}),
+        ...(params.openNow ? { openNow: 'true' } : {}),
+        ...(params.openToday ? { openToday: 'true' } : {}),
       },
     })
 
@@ -329,5 +346,13 @@ export const useMyAllies = () => {
       },
     })
 
-  return { list, listProducts }
+  /** The ally's weekly opening hours (any active member may read). */
+  const getOpeningHours = (allyUuid: string) =>
+    useApi<OpeningHourDto[]>(`/v1/me/allies/${allyUuid}/opening-hours`)
+
+  /** Replaces the week — only an active OWNER (ALLY_OPENING_HOURS_UPDATE_OWN). */
+  const replaceOpeningHours = (allyUuid: string, body: OpeningHoursRequest) =>
+    useApi<OpeningHourDto[]>(`/v1/me/allies/${allyUuid}/opening-hours`, { method: 'PUT', body })
+
+  return { list, listProducts, getOpeningHours, replaceOpeningHours }
 }

@@ -206,6 +206,15 @@ async function submitPromise() {
 
 // ---- Contact history (on demand, per affiliate) ----
 const historyOpen = ref(false)
+
+// Titular's emergency contact (V212): the advisor loads it for members of their own portfolio.
+const canEmergency = computed(() => can('MEMBER_EMERGENCY_CONTACT_UPDATE_DOWNLINE'))
+const emergencyOpen = ref(false)
+const emergencyTarget = ref<{ memberUuid: string, memberName: string } | null>(null)
+function openEmergency(row: { memberUuid: string, memberName: string }) {
+  emergencyTarget.value = { memberUuid: row.memberUuid, memberName: row.memberName }
+  emergencyOpen.value = true
+}
 const historyLoading = ref(false)
 const historyTarget = ref<PromoterMemberRow | null>(null)
 const history = ref<PromoterMemberContactDto[]>([])
@@ -355,6 +364,16 @@ function contactTypeIcon(type: PromoterContactType): string {
               </td>
               <td class="px-5 py-3">
                 <div class="flex items-center justify-end gap-1">
+                  <UTooltip v-if="canEmergency" :text="t('members.emergencyContact.title')">
+                    <UButton
+                      color="neutral"
+                      variant="ghost"
+                      icon="i-lucide-phone-call"
+                      size="sm"
+                      :aria-label="t('members.emergencyContact.title')"
+                      @click="openEmergency(r)"
+                    />
+                  </UTooltip>
                   <UTooltip :text="t('promoterSelf.portfolio.history.action')">
                     <UButton
                       color="neutral"
@@ -499,6 +518,16 @@ function contactTypeIcon(type: PromoterContactType): string {
     </UModal>
 
     <PortfolioNewMemberModal v-model:open="newMemberOpen" @created="load" />
+    <UModal
+      v-model:open="emergencyOpen"
+      :title="t('members.emergencyContact.title')"
+      :description="emergencyTarget?.memberName"
+      :ui="{ content: 'max-w-xl' }"
+    >
+      <template #body>
+        <MemberEmergencyContactCard v-if="emergencyTarget" scope="advisor" :member-uuid="emergencyTarget.memberUuid" />
+      </template>
+    </UModal>
     <DownlinePaymentFormModal v-model:open="paymentOpen" @saved="load" />
   </div>
 </template>

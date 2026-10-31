@@ -20,6 +20,8 @@ export interface SystemConfigDto {
   loginSessionExpirationDays: number
   /** Global fallback default sort, restricted to COMMON_SORT_FIELDS. Empty/absent = unconfigured. */
   defaultSort?: ConfigSortOrder[] | null
+  /** Medical allies may read their patients' medical history (backend V215, hub ADR 0032). Off by default. */
+  patientMedicalAccessEnabled?: boolean
   updatedAt?: string
 }
 
@@ -33,6 +35,7 @@ export interface UpdateSystemConfigRequest {
   loginAuditEnabled?: boolean
   loginSessionExpirationDays?: number
   defaultSort?: ConfigSortOrder[]
+  patientMedicalAccessEnabled?: boolean
 }
 
 export const useSystemConfig = () => {

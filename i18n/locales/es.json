@@ -786,6 +786,14 @@
       "licensingBodies": {
         "label": "Entes emisores de colegiaturas",
         "description": "Organismos que emiten colegiaturas (M.P.P.S., Colegio de Médicos…)."
+      },
+      "myPatients": {
+        "label": "Mis pacientes",
+        "description": "Pacientes cuya historia médica puedes consultar."
+      },
+      "myMedicalAccess": {
+        "label": "Quién vio mi historia",
+        "description": "Médicos aliados con acceso a tu historia médica."
       }
     },
     "other": {
@@ -1498,7 +1506,8 @@
       "allyTypes": "Tipos de aliado",
       "agreements": "Acuerdos",
       "staff": "Personal",
-      "licenses": "Colegiaturas"
+      "licenses": "Colegiaturas",
+      "openingHours": "Horario"
     },
     "products": {
       "title": "Productos y servicios",
@@ -1717,7 +1726,10 @@
         "clear": "Limpiar filtros",
         "segment": "Comerciales y profesionales",
         "segmentB2B": "Comercios y empresas",
-        "segmentB2P": "Profesionales"
+        "segmentB2P": "Profesionales",
+        "anyTime": "Cualquier horario",
+        "openNow": "Abierto ahora",
+        "openToday": "Atiende hoy"
       },
       "detail": {
         "seoTitle": "{name} — Red de aliados OptiBienestar 360",
@@ -1738,7 +1750,8 @@
       },
       "office": "Consultorio {number}",
       "appointments": "Citas",
-      "licensesTitle": "Colegiaturas verificadas"
+      "licensesTitle": "Colegiaturas verificadas",
+      "openingHours": "Horario de atención"
     },
     "portal": {
       "seoTitle": "Mi espacio de aliado — OptiBienestar 360",
@@ -1822,6 +1835,35 @@
         "editDescription": "Si cambias el ente o el número, vuelve a quedar pendiente de verificación.",
         "body": "Ente emisor",
         "number": "Número"
+      }
+    },
+    "openingHours": {
+      "title": "Horario de atención",
+      "hint": "Días y tramos en que atiende el aliado (hora de Caracas). Se muestran en su ficha pública y en el convenio.",
+      "portalHint": "Días y tramos en que atiendes. Se muestran en tu ficha pública.",
+      "portalReadonlyHint": "Solo el propietario del aliado puede cambiar el horario.",
+      "loading": "Cargando horario…",
+      "empty": "Sin horario cargado.",
+      "closed": "Cerrado",
+      "opensAt": "Abre",
+      "closesAt": "Cierra",
+      "addRange": "Agregar tramo",
+      "removeRange": "Quitar tramo",
+      "copyMonday": "Copiar el lunes a martes–viernes",
+      "save": "Guardar horario",
+      "savedToast": "Horario guardado",
+      "errors": {
+        "invalidRange": "Cada tramo debe cerrar después de abrir.",
+        "overlap": "Los tramos de un mismo día no pueden solaparse."
+      },
+      "days": {
+        "1": "Lunes",
+        "2": "Martes",
+        "3": "Miércoles",
+        "4": "Jueves",
+        "5": "Viernes",
+        "6": "Sábado",
+        "7": "Domingo"
       }
     }
   },
@@ -2597,7 +2639,18 @@
       "SPOUSE": "Cónyuge",
       "PARENT": "Padre/Madre",
       "SIBLING": "Hermano/a",
-      "OTHER": "Otro"
+      "OTHER": "Otro",
+      "FRIEND": "Amigo/a"
+    },
+    "emergencyContact": {
+      "title": "Contacto de emergencia",
+      "empty": "Aún no se cargó un contacto de emergencia.",
+      "savedToast": "Contacto de emergencia guardado",
+      "fields": {
+        "name": "Nombre del contacto",
+        "phone": "Teléfono de emergencia",
+        "relationship": "Parentesco"
+      }
     },
     "status": {
       "ACTIVE": "Activo",
@@ -4743,7 +4796,8 @@
       "reports": "Reportes",
       "dataChangeAudit": "Auditoría de cambios de datos",
       "reportAudit": "Auditoría de reportes",
-      "sessions": "Sesión y uso del sistema"
+      "sessions": "Sesión y uso del sistema",
+      "patientAccess": "Historia médica para aliados médicos"
     },
     "audit": {
       "sectionTitle": "Auditoría",
@@ -4786,7 +4840,11 @@
       }
     },
     "updatedToast": "Configuración actualizada correctamente",
-    "saveButton": "Guardar cambios"
+    "saveButton": "Guardar cambios",
+    "patientAccess": {
+      "enabled": "Permitir que los médicos aliados vean la historia de sus pacientes",
+      "enabledHelp": "Al escanear el QR de la credencial, el médico de un aliado profesional del área médica puede consultar la historia médica de ese paciente. Mantener apagado hasta que legal confirme la cláusula del Acuerdo de Membresía."
+    }
   },
   "markdownEditor": {
     "source": "Markdown",
@@ -5421,5 +5479,42 @@
   },
   "banks": {
     "officialNameTooltip": "Nombre oficial: {name}"
+  },
+  "patientAccess": {
+    "viewRecord": "Ver historia médica",
+    "record": {
+      "title": "Historia médica",
+      "loggedNotice": "Esta consulta queda registrada y el paciente puede verla.",
+      "failed": "No se pudo cargar la historia médica.",
+      "empty": "El paciente aún no tiene historia médica registrada."
+    },
+    "patients": {
+      "seoTitle": "Mis pacientes — OptiBienestar 360",
+      "title": "Mis pacientes",
+      "subtitle": "Pacientes cuya credencial escaneaste. Puedes consultar su historia médica mientras no revoquen el acceso.",
+      "scanCta": "Escanear credencial",
+      "disabledTitle": "Función no activada",
+      "disabledDescription": "La consulta de historia médica por aliados todavía no está activada.",
+      "notEligibleTitle": "No disponible para este aliado",
+      "notEligibleDescription": "Solo el médico o un operador médico de un aliado profesional del área médica puede consultar la historia de sus pacientes.",
+      "empty": "Todavía no tienes pacientes. Escanea el QR de la credencial de un afiliado en el validador.",
+      "since": "Desde {date}"
+    },
+    "mine": {
+      "title": "Quién vio mi historia",
+      "subtitle": "Médicos aliados que pueden consultar tu historia médica porque escanearon tu credencial, y cada vez que la consultaron.",
+      "activeTitle": "Con acceso",
+      "noActive": "Ningún médico tiene acceso a tu historia médica.",
+      "since": "desde {date}",
+      "revoke": "Revocar acceso",
+      "readsTitle": "Consultas",
+      "noReads": "Nadie ha consultado tu historia médica.",
+      "revokedTitle": "Accesos revocados",
+      "revokedOn": "revocado el {date}",
+      "revokeTitle": "Revocar acceso",
+      "revokeDescription": "{doctor} dejará de ver tu historia médica. Si vuelve a escanear tu credencial, recuperará el acceso.",
+      "cancel": "Cancelar",
+      "revokedToast": "Acceso revocado"
+    }
   }
 }

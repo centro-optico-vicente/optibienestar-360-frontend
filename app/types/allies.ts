@@ -591,8 +591,29 @@ export interface PublicAllyProductDto {
 }
 
 /** Public partner profile (GET /v1/public/allies/{uuid} — backend `PublicAllyDetailDto`). */
+/**
+ * One range of an ally's weekly opening hours (backend V214, hub ADR 0031 §7).
+ * `dayOfWeek` is ISO-8601 (1 = Monday … 7 = Sunday); times are `HH:mm` in
+ * the business zone (America/Caracas).
+ */
+export interface OpeningHourDto {
+  dayOfWeek: number
+  dayOfWeek_Display?: string | null
+  opensAt: string
+  closesAt: string
+}
+
+/** Replaces the whole week; an empty `ranges` clears it. */
+export interface OpeningHoursRequest {
+  ranges: Array<{ dayOfWeek: number, opensAt: string, closesAt: string }>
+}
+
 export interface PublicAllyDetailDto extends PublicAllyListItemDto {
   address?: string | null
+  /** Weekly opening hours, by day then opening time (V214). */
+  openingHours?: OpeningHourDto[]
+  /** Same week as text, e.g. "Lun–Vie 08:00–12:00, 14:00–18:00"; null without hours. */
+  openingHoursLabel?: string | null
   professionNames?: string[]
   /** Ordered gallery, primary first (hub ADR 0027). */
   images?: PublicImageDto[]

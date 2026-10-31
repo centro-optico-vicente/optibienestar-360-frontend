@@ -59,6 +59,7 @@ const state = reactive({
   loginAuditEnabled: true,
   defaultSort: [] as ConfigSortOrder[],
   loginSessionExpirationDays: 30,
+  patientMedicalAccessEnabled: false,
 })
 
 const schema = computed(() =>
@@ -74,6 +75,7 @@ const schema = computed(() =>
     captureBeforeAfterMode: z.enum(['PER_ENTITY', 'FORCE_ENABLED', 'FORCE_DISABLED']),
     reportAuditMode: z.enum(['PER_ENTITY', 'FORCE_ENABLED', 'FORCE_DISABLED']),
     loginAuditEnabled: z.boolean(),
+    patientMedicalAccessEnabled: z.boolean(),
     loginSessionExpirationDays: z
       .number()
       .int()
@@ -109,6 +111,7 @@ async function load() {
     state.loginAuditEnabled = res.loginAuditEnabled
     state.loginSessionExpirationDays = res.loginSessionExpirationDays
     state.defaultSort = res.defaultSort ?? []
+    state.patientMedicalAccessEnabled = res.patientMedicalAccessEnabled ?? false
   }
   catch {
     state.reportFooter = ''
@@ -153,6 +156,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
             loginAuditEnabled: state.loginAuditEnabled,
             loginSessionExpirationDays: state.loginSessionExpirationDays,
             defaultSort: state.defaultSort,
+            patientMedicalAccessEnabled: state.patientMedicalAccessEnabled,
           }
         : {}),
     })
@@ -165,6 +169,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     state.loginAuditEnabled = updated.loginAuditEnabled
     state.loginSessionExpirationDays = updated.loginSessionExpirationDays
     state.defaultSort = updated.defaultSort ?? []
+    state.patientMedicalAccessEnabled = updated.patientMedicalAccessEnabled ?? false
     snapshot.value = snapshotState()
     toast.add({
       title: t('systemConfig.updatedToast'),
@@ -349,6 +354,18 @@ onMounted(load)
                 class="w-full sm:w-40"
                 :disabled="isSubmitting || !state.loginAuditEnabled"
               />
+            </UFormField>
+          </div>
+
+          <!-- Historia médica para aliados médicos (hub ADR 0032) -->
+          <div class="bg-white rounded-2xl border border-prohealth-100 p-6 shadow-sm space-y-4">
+            <h2 class="text-base font-bold text-prohealth-900">{{ t('systemConfig.sections.patientAccess') }}</h2>
+            <UFormField
+              :label="t('systemConfig.patientAccess.enabled')"
+              :help="t('systemConfig.patientAccess.enabledHelp')"
+              name="patientMedicalAccessEnabled"
+            >
+              <USwitch v-model="state.patientMedicalAccessEnabled" :disabled="isSubmitting || !canUpdateAudit" />
             </UFormField>
           </div>
 

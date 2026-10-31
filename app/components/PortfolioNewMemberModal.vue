@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
-import type { MemberDto } from '~/types/members'
+import type { EmergencyContactFieldsState, MemberDto } from '~/types/members'
+import { hasEmergencyContact, toEmergencyContactRequest } from '~/types/members'
 
 // "New person in my portfolio" (POST /v1/advisors/me/portfolio/members, PROMOTER_PORTFOLIO_CREATE):
 // the advisor registers someone who is not an affiliate yet. The person joins the caller's portfolio
@@ -17,6 +18,12 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const promoters = usePromoters()
 const toast = useToast()
+const { canAny } = usePermissions()
+
+// Titular's emergency contact (V212): optional, saved right after the person joins the portfolio.
+const emergencyApi = useEmergencyContact()
+const canEditEmergency = computed(() => canAny(...emergencyApi.permissions('advisor').update))
+const emergency = ref<EmergencyContactFieldsState>({ name: '', phone: '', relationship: undefined })
 
 const isOpen = computed({
   get: () => props.open,
@@ -75,6 +82,7 @@ const schema = computed(() => z.object({
 watch(() => props.open, (open) => {
   if (!open) return
   Object.assign(state, { firstName: '', lastName: '', documentType: 'V', documentNumber: '', birthDate: '', phone: '', email: '' })
+  emergency.value = { name: '', phone: '', relationship: undefined }
 })
 
 async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
@@ -89,6 +97,14 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       phone: state.phone.trim() || undefined,
       email: state.email.trim() || undefined,
     })
+    if (canEditEmergency.value && hasEmergencyContact(emergency.value)) {
+      try {
+        await emergencyApi.update('advisor', toEmergencyContactRequest(emergency.value), created.uuid)
+      }
+      catch {
+        // useApi already notified; the person is registered and the contact can be loaded later.
+      }
+    }
     toast.add({ title: t('promoterSelf.newMember.createdToast'), color: 'success', icon: 'i-lucide-check-circle' })
     emit('created', created)
     isOpen.value = false
@@ -137,6 +153,14 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           <UFormField :label="t('members.form.fields.email')" name="email">
             <UInput v-model="state.email" type="email" class="w-full" />
           </UFormField>
+        </div>
+
+        <div v-if="canEditEmergency" class="space-y-3 pt-2 border-t border-default">
+          <h4 class="text-sm font-semibold flex items-center gap-2 pt-2">
+            <UIcon name="i-lucide-phone-call" />
+            {{ t('members.emergencyContact.title') }}
+          </h4>
+          <EmergencyContactFields v-model="emergency" />
         </div>
       </UForm>
     </template>

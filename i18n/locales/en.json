@@ -786,6 +786,14 @@
       "licensingBodies": {
         "label": "Licensing bodies",
         "description": "Bodies that issue professional licenses (M.P.P.S., Medical Association…)."
+      },
+      "myPatients": {
+        "label": "My patients",
+        "description": "Patients whose medical history you can read."
+      },
+      "myMedicalAccess": {
+        "label": "Who viewed my history",
+        "description": "Medical allies with access to your medical history."
       }
     },
     "other": {
@@ -1498,7 +1506,8 @@
       "allyTypes": "Partner types",
       "agreements": "Agreements",
       "staff": "Staff",
-      "licenses": "Licenses"
+      "licenses": "Licenses",
+      "openingHours": "Opening hours"
     },
     "products": {
       "title": "Products and services",
@@ -1717,7 +1726,10 @@
         "clear": "Clear filters",
         "segment": "Commercial and professional",
         "segmentB2B": "Stores and companies",
-        "segmentB2P": "Professionals"
+        "segmentB2P": "Professionals",
+        "anyTime": "Any time",
+        "openNow": "Open now",
+        "openToday": "Open today"
       },
       "detail": {
         "seoTitle": "{name} — OptiBienestar 360 partner network",
@@ -1738,7 +1750,8 @@
       },
       "office": "Office {number}",
       "appointments": "Appointments",
-      "licensesTitle": "Verified licenses"
+      "licensesTitle": "Verified licenses",
+      "openingHours": "Opening hours"
     },
     "portal": {
       "seoTitle": "My partner space — OptiBienestar 360",
@@ -1822,6 +1835,35 @@
         "editDescription": "Changing the body or the number sends it back to pending verification.",
         "body": "Licensing body",
         "number": "Number"
+      }
+    },
+    "openingHours": {
+      "title": "Opening hours",
+      "hint": "Days and time ranges the ally is open (Caracas time). Shown on its public page and in the agreement.",
+      "portalHint": "Days and time ranges you are open. Shown on your public page.",
+      "portalReadonlyHint": "Only the owner of the ally can change the opening hours.",
+      "loading": "Loading opening hours…",
+      "empty": "No opening hours yet.",
+      "closed": "Closed",
+      "opensAt": "Opens",
+      "closesAt": "Closes",
+      "addRange": "Add range",
+      "removeRange": "Remove range",
+      "copyMonday": "Copy Monday to Tuesday–Friday",
+      "save": "Save opening hours",
+      "savedToast": "Opening hours saved",
+      "errors": {
+        "invalidRange": "Each range must close after it opens.",
+        "overlap": "Ranges of the same day cannot overlap."
+      },
+      "days": {
+        "1": "Monday",
+        "2": "Tuesday",
+        "3": "Wednesday",
+        "4": "Thursday",
+        "5": "Friday",
+        "6": "Saturday",
+        "7": "Sunday"
       }
     }
   },
@@ -2597,7 +2639,18 @@
       "SPOUSE": "Spouse",
       "PARENT": "Parent",
       "SIBLING": "Sibling",
-      "OTHER": "Other"
+      "OTHER": "Other",
+      "FRIEND": "Friend"
+    },
+    "emergencyContact": {
+      "title": "Emergency contact",
+      "empty": "No emergency contact loaded yet.",
+      "savedToast": "Emergency contact saved",
+      "fields": {
+        "name": "Contact name",
+        "phone": "Emergency phone",
+        "relationship": "Relationship"
+      }
     },
     "status": {
       "ACTIVE": "Active",
@@ -4743,7 +4796,8 @@
       "reports": "Reports",
       "dataChangeAudit": "Data change audit",
       "reportAudit": "Report audit",
-      "sessions": "Session and system usage"
+      "sessions": "Session and system usage",
+      "patientAccess": "Medical history for medical allies"
     },
     "audit": {
       "sectionTitle": "Audit",
@@ -4786,7 +4840,11 @@
       }
     },
     "updatedToast": "Configuration updated successfully",
-    "saveButton": "Save changes"
+    "saveButton": "Save changes",
+    "patientAccess": {
+      "enabled": "Let medical allies read their patients' history",
+      "enabledHelp": "After scanning the credential QR, the doctor of a medical professional ally can read that patient's medical history. Keep it off until legal confirms the membership agreement clause."
+    }
   },
   "markdownEditor": {
     "source": "Markdown",
@@ -5421,5 +5479,42 @@
   },
   "banks": {
     "officialNameTooltip": "Official name: {name}"
+  },
+  "patientAccess": {
+    "viewRecord": "View medical history",
+    "record": {
+      "title": "Medical history",
+      "loggedNotice": "This read is logged and the patient can see it.",
+      "failed": "The medical history could not be loaded.",
+      "empty": "The patient has no medical history on file yet."
+    },
+    "patients": {
+      "seoTitle": "My patients — OptiBienestar 360",
+      "title": "My patients",
+      "subtitle": "Patients whose credential you scanned. You can read their medical history until they revoke the access.",
+      "scanCta": "Scan credential",
+      "disabledTitle": "Feature not enabled",
+      "disabledDescription": "Medical history access for allies is not enabled yet.",
+      "notEligibleTitle": "Not available for this ally",
+      "notEligibleDescription": "Only the doctor or a medical operator of a medical professional ally can read their patients' history.",
+      "empty": "You have no patients yet. Scan an affiliate's credential QR in the validator.",
+      "since": "Since {date}"
+    },
+    "mine": {
+      "title": "Who viewed my history",
+      "subtitle": "Medical allies who can read your medical history because they scanned your credential, and every time they read it.",
+      "activeTitle": "With access",
+      "noActive": "No doctor has access to your medical history.",
+      "since": "since {date}",
+      "revoke": "Revoke access",
+      "readsTitle": "Reads",
+      "noReads": "Nobody has read your medical history.",
+      "revokedTitle": "Revoked access",
+      "revokedOn": "revoked on {date}",
+      "revokeTitle": "Revoke access",
+      "revokeDescription": "{doctor} will no longer see your medical history. Scanning your credential again restores the access.",
+      "cancel": "Cancel",
+      "revokedToast": "Access revoked"
+    }
   }
 }

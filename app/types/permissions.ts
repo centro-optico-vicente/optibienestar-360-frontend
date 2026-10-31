@@ -68,6 +68,11 @@ export const PERMISSIONS = [
   'AFFILIATION_REQUEST_REJECT',
   'MEDICAL_RECORD_VIEW',
   'MEDICAL_RECORD_UPDATE',
+  // Patient medical history for medical allies (backend V215, hub ADR 0032).
+  'MEMBER_MEDICAL_RECORD_VIEW_PATIENT',
+  'ALLY_PATIENT_LINK_VIEW_OWN',
+  'ALLY_PATIENT_LINK_REVOKE_OWN',
+  'ALLY_PATIENT_LINK_VIEW_ALL',
   // Corporate contracts (V38, granular per V79). Member enrollment is a
   // separate association concern with its own CRUD set.
   'CORPORATE_CONTRACT_VIEW_ALL',
@@ -340,6 +345,12 @@ export const PERMISSIONS = [
   // as wrong / overpaid / refund request; staff resolve it and can freeze a person's credit.
   'COLLECTION_CLAIM_CREATE_OWN', 'COLLECTION_CLAIM_VIEW_ALL', 'COLLECTION_CLAIM_CREATE', 'COLLECTION_CLAIM_RESOLVE',
   'PERSON_CREDIT_HOLD_UPDATE',
+
+  // Titular's emergency contact (V212, hub ADR 0031 §14) — only the three emergency-contact
+  // fields of the medical record: staff, advisor (own portfolio) and the affiliate (own record).
+  'MEMBER_EMERGENCY_CONTACT_VIEW_ALL', 'MEMBER_EMERGENCY_CONTACT_UPDATE',
+  'MEMBER_EMERGENCY_CONTACT_UPDATE_DOWNLINE',
+  'MEMBER_EMERGENCY_CONTACT_VIEW_OWN', 'MEMBER_EMERGENCY_CONTACT_UPDATE_OWN',
 
   // TERMS & CONDITIONS (V139) — versioned T&C per role (AFILIADO/ASESOR/ALIADO).
   'TERMS_VIEW_ALL',

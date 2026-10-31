@@ -233,10 +233,13 @@ export const MAIN_NAV: NavEntry[] = [
     children: [
       { label: 'Mi carnet', labelKey: 'nav.items.myCard.label', to: '/members', icon: 'i-lucide-id-card', description: 'Tu carnet de afiliado.', descriptionKey: 'nav.items.myCard.description', requires: 'MEMBER_VIEW_OWN' },
       { label: 'Mis consumos', labelKey: 'nav.items.myUsage.label', to: '/members/usage', icon: 'i-lucide-clipboard-list', description: 'Tus usos del beneficio en aliados.', descriptionKey: 'nav.items.myUsage.description', requires: 'MEMBER_VIEW_OWN' },
+      { label: 'Quién vio mi historia', labelKey: 'nav.items.myMedicalAccess.label', to: '/members/medical-access', icon: 'i-lucide-shield-check', description: 'Médicos aliados con acceso a tu historia médica.', descriptionKey: 'nav.items.myMedicalAccess.description', requires: 'ALLY_PATIENT_LINK_VIEW_OWN' },
       { label: 'Mi perfil', labelKey: 'nav.items.promoterProfile.label', to: '/advisors', icon: 'i-lucide-qr-code', description: 'Tu foto y tu QR de afiliación.', descriptionKey: 'nav.items.promoterProfile.description', requires: 'PROMOTER_VIEW_OWN' },
       { label: 'Mi espacio de aliado', labelKey: 'nav.items.myAllyCompany.label', to: '/allies', icon: 'i-lucide-building-2', description: 'Panel de tu espacio como aliado, comercial o profesional.', descriptionKey: 'nav.items.myAllyCompany.description', roles: [ROLES.ALLY] },
       { label: 'Validador', labelKey: 'nav.items.validator.label', to: '/allies/validator', icon: 'i-lucide-scan-line', description: 'Valida la solvencia de un afiliado.', descriptionKey: 'nav.items.validator.description', requires: 'ALLY_VALIDATE_MEMBER' },
       { label: 'Consumos', labelKey: 'nav.items.usageHistory.label', to: '/allies/history', icon: 'i-lucide-clipboard-list', description: 'Beneficios registrados en tu aliado.', descriptionKey: 'nav.items.usageHistory.description', requires: 'ALLY_VIEW_OWN' },
+      // Hub ADR 0032: the backend narrows it to the doctor / OPERADOR_MEDICO of a B2P medical ally.
+      { label: 'Mis pacientes', labelKey: 'nav.items.myPatients.label', to: '/allies/patients', icon: 'i-lucide-stethoscope', description: 'Pacientes cuya historia médica puedes consultar.', descriptionKey: 'nav.items.myPatients.description', requires: 'MEMBER_MEDICAL_RECORD_VIEW_PATIENT' },
       // Autoservicio (hub plan payments-unification, §"Pantallas requeridas") —
       // mismo endpoint/tabla que las pantallas de admin, filtrado por el
       // propio afiliado/promotor autenticado.
