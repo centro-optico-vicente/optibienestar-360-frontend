@@ -193,7 +193,8 @@ async function confirmDelete() {
         <tbody class="divide-y divide-prohealth-100">
           <tr v-for="a in accounts" :key="a.uuid" class="hover:bg-prohealth-50/50">
             <td class="px-5 py-3 text-prohealth-900">
-              {{ a.bank_Display ?? a.bank_Code ?? t('common.empty') }}
+              <BankName v-if="a.bank_Display || a.bank_Code" :uuid="a.bank_Uuid" :code="a.bank_Code" :name="a.bank_Display" />
+              <template v-else>{{ t('common.empty') }}</template>
               <p v-if="a.alias" class="text-xs text-prohealth-500">{{ a.alias }}</p>
             </td>
             <td class="px-5 py-3 text-prohealth-600">{{ typeLabel(a.accountType) }}</td>

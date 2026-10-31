@@ -308,7 +308,8 @@ async function confirmDelete() {
             <tr v-for="a in data" v-else :key="a.uuid" class="hover:bg-prohealth-50/50">
               <td class="px-5 py-3 font-semibold text-prohealth-900">{{ a.paymentMethod_Display || a.paymentMethodCode || t('common.empty') }}</td>
               <td class="px-5 py-3 text-prohealth-800">
-                {{ [a.bankCode ?? a.bank_Code, a.bank_Display].filter(Boolean).join(' ') || t('common.empty') }}
+                <BankName v-if="a.bank_Display || a.bankCode || a.bank_Code" :uuid="a.bank_Uuid" :code="a.bankCode ?? a.bank_Code" :name="a.bank_Display" />
+                <template v-else>{{ t('common.empty') }}</template>
                 <span v-if="a.accountType" class="block text-xs text-prohealth-500">{{ accountTypeLabel(a.accountType) }}</span>
               </td>
               <td class="px-5 py-3 font-mono text-prohealth-900">{{ destinationOf(a) || t('common.empty') }}</td>

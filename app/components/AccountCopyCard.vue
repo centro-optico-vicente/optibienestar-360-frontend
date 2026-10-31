@@ -50,7 +50,7 @@ function copyAll() {
   <div class="space-y-2 rounded-lg bg-prohealth-50/60 p-3 text-xs text-prohealth-700">
     <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1">
       <div v-if="account.methodName"><dt class="inline font-semibold">{{ t('payments.accountCopy.fields.method') }}: </dt><dd class="inline">{{ account.methodName }}</dd></div>
-      <div v-if="bank"><dt class="inline font-semibold">{{ t('payments.accountCopy.fields.bank') }}: </dt><dd class="inline">{{ bank }}</dd></div>
+      <div v-if="bank"><dt class="inline font-semibold">{{ t('payments.accountCopy.fields.bank') }}: </dt><dd class="inline"><BankName :uuid="account.bankUuid" :code="account.bankCode" :name="account.bankName" /></dd></div>
       <div v-if="account.accountType"><dt class="inline font-semibold">{{ t('payments.accountCopy.fields.accountType') }}: </dt><dd class="inline">{{ account.accountType }}</dd></div>
       <div v-if="account.accountNumber" class="flex items-center gap-1">
         <dt class="font-semibold">{{ t('payments.accountCopy.fields.accountNumber') }}: </dt>
