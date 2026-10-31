@@ -213,8 +213,9 @@ const schema = computed(() => z.object({
 }))
 
 // ---- Saved origin accounts (V204) ----
-// Picking one fills the origin fields (still editable). The "remember" box saves THIS account for next time;
-// it makes no sense when the account is the saved one, unchanged, or when bank / account number are empty.
+// Picking one fills the origin fields (still editable); the picker only lists accounts of the selected method.
+// The "remember" box saves THIS account for next time (by method, V207); it makes no sense when the account is
+// the saved one, unchanged, or when the line lacks what its method needs to identify the account.
 const savedAccountUuid = ref('')
 const savedAccount = ref<SavedOriginAccountDto | null>(null)
 const rememberOrigin = ref(false)
@@ -225,8 +226,10 @@ function onPickSaved(account: SavedOriginAccountDto | null) {
   state.bankUuid = account.bank_Uuid ?? ''
   state.bankAccountType = account.accountType ?? ''
   state.bankAccountCode = account.accountCode ?? ''
-  state.bankAccountIdentifier = account.accountIdentifier
+  state.bankAccountIdentifier = account.accountIdentifier ?? ''
   state.identification = account.identification ?? ''
+  state.phone = account.phone ?? ''
+  state.email = account.email ?? ''
   rememberOrigin.value = false
 }
 
@@ -236,11 +239,31 @@ const originUnchangedFromSaved = computed(() => {
     && (a.bank_Uuid ?? '') === state.bankUuid
     && (a.accountType ?? '') === state.bankAccountType
     && (a.accountCode ?? '') === state.bankAccountCode
-    && a.accountIdentifier === state.bankAccountIdentifier.trim()
+    && (a.accountIdentifier ?? '') === state.bankAccountIdentifier.trim()
     && (a.identification ?? '') === state.identification
+    && (a.phone ?? '') === state.phone.trim()
+    && (a.email ?? '') === state.email.trim()
 })
-const canRemember = computed(() =>
-  !!state.bankUuid && state.bankAccountIdentifier.trim() !== '' && !originUnchangedFromSaved.value)
+
+// Same rule as the backend: the method's flags decide what must be there, and something must identify the
+// account (number, phone or email) — cash, for instance, has nothing to remember.
+const hasOriginFields = computed(() => {
+  const m = selectedMethod.value
+  return !!m && Boolean(m.mandatoryBank || m.mandatoryBankAccount || m.mandatoryAccountCode
+    || m.mandatoryAccountType || m.mandatoryIdentification || m.mandatoryPhone || m.mandatoryEmail)
+})
+const canRemember = computed(() => {
+  const m = selectedMethod.value
+  if (!m || originUnchangedFromSaved.value) return false
+  const filled = (v: string) => v.trim() !== ''
+  if (m.mandatoryBank && !state.bankUuid) return false
+  if (m.mandatoryIdentification && !filled(state.identification)) return false
+  if (m.mandatoryAccountType && !filled(state.bankAccountType)) return false
+  if ((m.mandatoryBankAccount || m.mandatoryAccountCode) && !filled(state.bankAccountIdentifier)) return false
+  if (m.mandatoryPhone && !filled(state.phone)) return false
+  if (m.mandatoryEmail && !filled(state.email)) return false
+  return filled(state.bankAccountIdentifier) || filled(state.phone) || filled(state.email)
+})
 watch(canRemember, (ok) => {
   if (!ok) rememberOrigin.value = false
 })
@@ -438,7 +461,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         </div>
 
 
-        <SavedOriginAccountPicker v-if="selectedMethod?.mandatoryBank || selectedMethod?.mandatoryBankAccount" v-model="savedAccountUuid" @pick="onPickSaved" />
+        <SavedOriginAccountPicker v-if="hasOriginFields" v-model="savedAccountUuid" :method-uuid="state.paymentMethodUuid" @pick="onPickSaved" />
 
         <div v-if="selectedMethod?.mandatoryIdentification || selectedMethod?.mandatoryBank || selectedMethod?.mandatoryBankAccount || selectedMethod?.mandatoryAccountType || selectedMethod?.mandatoryAccountCode || selectedMethod?.mandatoryPhone || selectedMethod?.mandatoryEmail" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField v-if="selectedMethod?.mandatoryIdentification" :label="t('payments.payouts.fields.identification')" name="identification" required><UInput class="w-full" v-model="state.identification" /></UFormField>
@@ -456,7 +479,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         </div>
 
         <UCheckbox
-          v-if="selectedMethod?.mandatoryBank || selectedMethod?.mandatoryBankAccount"
+          v-if="hasOriginFields"
           v-model="rememberOrigin"
           :disabled="!canRemember"
           :label="t('payments.savedAccounts.remember')"

@@ -2422,7 +2422,7 @@
       "forget": "Forget this account",
       "removedToast": "Account forgotten",
       "remember": "Remember this account for future payments",
-      "rememberHelp": "We store the origin bank and account number so you do not have to type them again."
+      "rememberHelp": "We keep the details of the account you pay from (bank, number or phone, depending on the method) so you do not have to type them again."
     },
     "claim": {
       "title": "Report a problem with this payment",
@@ -5251,7 +5251,11 @@
       "accountCode": "Account code",
       "accountIdentifier": "Account number",
       "identification": "Holder's document",
-      "alias": "Alias"
+      "alias": "Alias",
+      "paymentMethod": "Payment method",
+      "account": "Account / phone",
+      "phone": "Phone",
+      "email": "Email"
     },
     "identificationHelp": "ID or tax number of the account holder.",
     "aliasHelp": "A name to recognise it, for example \"Payroll account\".",

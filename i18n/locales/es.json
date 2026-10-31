@@ -2422,7 +2422,7 @@
       "forget": "Olvidar esta cuenta",
       "removedToast": "Cuenta olvidada",
       "remember": "Recordar esta cuenta para próximos pagos",
-      "rememberHelp": "Guardamos el banco y el número de cuenta de origen para que no tengas que escribirlos otra vez."
+      "rememberHelp": "Guardamos los datos de la cuenta desde la que pagas (banco, número o teléfono, según el método) para que no tengas que escribirlos otra vez."
     },
     "claim": {
       "title": "Reportar un problema con este pago",
@@ -5251,7 +5251,11 @@
       "accountCode": "Código de cuenta",
       "accountIdentifier": "Número de cuenta",
       "identification": "Documento del titular",
-      "alias": "Alias"
+      "alias": "Alias",
+      "paymentMethod": "Método de pago",
+      "account": "Cuenta / teléfono",
+      "phone": "Teléfono",
+      "email": "Correo"
     },
     "identificationHelp": "Cédula o RIF del titular de la cuenta.",
     "aliasHelp": "Un nombre para reconocerla, por ejemplo \"Cuenta nómina\".",
