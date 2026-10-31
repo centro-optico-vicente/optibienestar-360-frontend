@@ -2554,7 +2554,18 @@
       "SPOUSE": "Spouse",
       "PARENT": "Parent",
       "SIBLING": "Sibling",
-      "OTHER": "Other"
+      "OTHER": "Other",
+      "FRIEND": "Friend"
+    },
+    "emergencyContact": {
+      "title": "Emergency contact",
+      "empty": "No emergency contact loaded yet.",
+      "savedToast": "Emergency contact saved",
+      "fields": {
+        "name": "Contact name",
+        "phone": "Emergency phone",
+        "relationship": "Relationship"
+      }
     },
     "status": {
       "ACTIVE": "Active",
