@@ -56,7 +56,7 @@ export function isNavGroup(entry: NavEntry): entry is NavGroup {
 // NO se repiten en Datos maestros. `currencies` se muda a Finanzas junto con
 // Tasas de cambio (mismo dominio multi-moneda, ADR 0015) — hub plan
 // payments-unification §"Reorganización de menú".
-const CATALOGS_IN_VERTICALS = new Set<string>(['ally-types', 'product-categories', 'professions', 'advisor-types', 'advisor-ranks', 'banks', 'payment-categories', 'payment-methods', 'currencies'])
+const CATALOGS_IN_VERTICALS = new Set<string>(['ally-types', 'product-categories', 'professions', 'licensing-bodies', 'advisor-types', 'advisor-ranks', 'banks', 'payment-categories', 'payment-methods', 'currencies'])
 
 // El resto de catálogos alimenta "Datos maestros": derivados del registro, así el
 // grupo y su mosaico quedan siempre sincronizados con lo que existe en el sistema.
@@ -102,6 +102,7 @@ export const MAIN_NAV: NavEntry[] = [
       { label: 'Productos y servicios', labelKey: 'nav.items.products.label', to: '/dashboard/products', icon: 'i-lucide-package-search', description: 'Catálogo maestro de productos y servicios que ofrecen los aliados.', descriptionKey: 'nav.items.products.description', requires: 'PRODUCT_VIEW_ALL' },
       { label: 'Revisión de ofertas', labelKey: 'nav.items.allyProductReview.label', to: '/dashboard/ally-products/pending', icon: 'i-lucide-clipboard-check', description: 'Ofertas de aliados pendientes de aprobar o rechazar.', descriptionKey: 'nav.items.allyProductReview.description', requires: 'ALLY_PRODUCT_APPROVE' },
       { label: 'Profesiones', labelKey: 'nav.items.professions.label', to: '/dashboard/catalogs/professions', icon: 'i-lucide-stethoscope', description: 'Profesiones de los aliados.', descriptionKey: 'nav.items.professions.description', requires: 'PROFESSION_VIEW_ALL' },
+      { label: 'Entes emisores de colegiaturas', labelKey: 'nav.items.licensingBodies.label', to: '/dashboard/catalogs/licensing-bodies', icon: 'i-lucide-badge-check', description: 'Organismos que emiten colegiaturas (M.P.P.S., Colegio de Médicos…).', descriptionKey: 'nav.items.licensingBodies.description', requires: 'LICENSING_BODY_VIEW_ALL' },
       { label: 'Aliados', labelKey: 'nav.items.allies.label', to: '/dashboard/allies', icon: 'i-lucide-handshake', description: 'Comercios y prestadores de la red.', descriptionKey: 'nav.items.allies.description', requires: 'ALLY_VIEW_ALL' },
     ],
   },

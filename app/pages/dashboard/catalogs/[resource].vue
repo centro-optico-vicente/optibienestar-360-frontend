@@ -215,7 +215,11 @@ async function loadParents() {
   // advisor-ranks.parentRankUuid) aren't under `/v1/admin/catalogs/*` like the
   // rest — `useCatalogOptions` would 404. Those are populated separately from
   // `allRanks` (see the watcher below), excluding the record being edited.
-  const parentFields = def.value.fields.filter(f => f.type === 'parent' && f.parentKey && f.parentKey !== def.value!.key)
+  // Self-references of a regular catalog (professions.parentUuid, V213) DO live
+  // under `/v1/admin/catalogs/*`, so they load like any other FK.
+  const isRegularCatalog = def.value.basePath.startsWith('/v1/admin/catalogs/')
+  const parentFields = def.value.fields.filter(f => f.type === 'parent' && f.parentKey
+    && (f.parentKey !== def.value!.key || isRegularCatalog))
   await Promise.all(parentFields.map(async (f) => {
     const pdef = getCatalogDef(f.parentKey!)
     if (!pdef) return
@@ -377,7 +381,9 @@ const checkboxState = reactive<Record<string, boolean>>({})
 watch([allRanks, editingUuid], () => {
   if (!def.value) return
   const selfField = def.value.fields.find(f => f.type === 'parent' && f.parentKey === def.value!.key)
-  if (!selfField) return
+  // Only advisor-ranks feeds its self-FK from `allRanks`; regular catalogs
+  // (professions) load theirs in loadParents().
+  if (!selfField || def.value.basePath.startsWith('/v1/admin/catalogs/')) return
   parentOptions.value = {
     ...parentOptions.value,
     [selfField.name]: allRanks.value

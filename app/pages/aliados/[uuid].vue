@@ -156,6 +156,8 @@ function money(v?: number | string | null): string {
           </UBadge>
         </div>
 
+        <PublicAllyLicenses v-if="ally.segment === 'B2P'" :ally-uuid="allyUuid" />
+
         <!-- Contact data -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6 pt-6 border-t border-prohealth-100 text-sm">
           <!-- B2P practice site: host clinic, office and appointment phone (hub ADR 0031). -->

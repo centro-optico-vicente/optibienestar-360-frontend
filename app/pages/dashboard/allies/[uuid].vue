@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { offerDiscountText } from '~/utils/offerDiscount'
+import { professionLabel, professionTreeItems } from '~/utils/professionLabel'
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { ApiError } from '~/types/auth'
@@ -53,6 +54,8 @@ const canCreateAgreements = computed(() => can('ALLY_AGREEMENT_CREATE'))
 const canUpdateAgreements = computed(() => can('ALLY_AGREEMENT_UPDATE'))
 const canDeleteAgreements = computed(() => can('ALLY_AGREEMENT_DELETE'))
 const canViewStaff = computed(() => can('ALLY_USER_VIEW_ALL'))
+// Licenses (V213) only exist for a professional (B2P) ally's holder person.
+const canViewLicenses = computed(() => can('PERSON_LICENSE_VIEW_ALL') && ally.value?.segment === 'B2P')
 const canCreateStaff = computed(() => can('ALLY_USER_CREATE'))
 const canUpdateStaff = computed(() => can('ALLY_USER_UPDATE'))
 const canDeleteStaff = computed(() => can('ALLY_USER_DELETE'))
@@ -161,6 +164,9 @@ const tabs = computed(() => [
     : []),
   { label: t('allies.tabs.professions'), value: 'professions', icon: 'i-lucide-stethoscope' },
   { label: t('allies.tabs.allyTypes'), value: 'allyTypes', icon: 'i-lucide-tags' },
+  ...(canViewLicenses.value
+    ? [{ label: t('allies.tabs.licenses'), value: 'licenses', icon: 'i-lucide-badge-check' }]
+    : []),
   { label: t('allies.tabs.openingHours'), value: 'openingHours', icon: 'i-lucide-clock' },
   ...(canViewAgreements.value
     ? [{ label: t('allies.tabs.agreements'), value: 'agreements', icon: 'i-lucide-file-signature' }]
@@ -365,7 +371,7 @@ function reviewStatusColor(s?: string): 'success' | 'warning' | 'error' | 'info'
 // =========================================================
 // Professions (ManyToMany)
 // =========================================================
-const professions = ref<CatalogRef[]>([])
+const professions = ref<(CatalogRef & { parent_Uuid?: string | null, parent_Display?: string | null })[]>([])
 const professionsLoading = ref(false)
 const allProfessionOptions = ref<{ label: string, value: string }[]>([])
 const professionToAdd = ref<string | undefined>(undefined)
@@ -386,8 +392,10 @@ async function loadProfessions() {
 
 async function loadAllProfessions() {
   try {
-    const items = await useCatalogOptions('professions').options({ limit: 200 })
-    allProfessionOptions.value = toSelectItems(items)
+    // Full list (not the flat options) so sub-specialties (V213) show under
+    // their general profession.
+    const items = await useCatalog('/v1/admin/catalogs/professions').listAll()
+    allProfessionOptions.value = professionTreeItems(items)
   }
   catch {
     allProfessionOptions.value = []
@@ -1443,7 +1451,7 @@ onMounted(async () => {
               value-key="value"
               :placeholder="t('common.select')"
               :disabled="!canUpdate"
-              class="w-48"
+              class="w-64"
             />
             <UButton
               color="primary"
@@ -1481,7 +1489,7 @@ onMounted(async () => {
               size="lg"
               class="gap-1.5"
             >
-              {{ s.name }}
+              {{ professionLabel(s) }}
               <UButton
                 v-if="canUpdate"
                 color="primary"
@@ -1497,6 +1505,12 @@ onMounted(async () => {
         </div>
       </div>
 
+      <!-- ============ Licenses (B2P, V213) ============ -->
+      <AllyLicensesPanel
+        v-if="canViewLicenses && activeTab === 'licenses'"
+        :ally-uuid="allyUuid"
+        :has-holder="Boolean(ally?.holder)"
+      />
       <!-- ============ Opening hours (V214, hub ADR 0031 §7) ============ -->
       <div v-if="activeTab === 'openingHours'" class="bg-white rounded-2xl border border-prohealth-100">
         <div class="px-6 py-4 border-b border-prohealth-100">

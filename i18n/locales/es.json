@@ -783,6 +783,10 @@
         "label": "Reclamos de pagos",
         "description": "Reclamos sobre el saldo de un pago: reembolsos, errores y pagos de más."
       },
+      "licensingBodies": {
+        "label": "Entes emisores de colegiaturas",
+        "description": "Organismos que emiten colegiaturas (M.P.P.S., Colegio de Médicos…)."
+      },
       "myPatients": {
         "label": "Mis pacientes",
         "description": "Pacientes cuya historia médica puedes consultar."
@@ -1074,7 +1078,9 @@
       "requiresApproval": "Requiere aprobación",
       "maxDiscountPct": "Descuento máximo (%)",
       "segment": "Segmento",
-      "professionalArea": "Área profesional (solo B2P)"
+      "professionalArea": "Área profesional (solo B2P)",
+      "parentProfession": "Profesión general (si es sub-especialidad)",
+      "professionalAreaOptional": "Área profesional"
     },
     "promoterRanksTree": {
       "title": "Árbol de cargos",
@@ -1155,6 +1161,10 @@
       "payment-methods": {
         "label": "Métodos de pago",
         "labelSingular": "Método de pago"
+      },
+      "licensing-bodies": {
+        "label": "Entes emisores de colegiaturas",
+        "labelSingular": "Ente emisor"
       }
     }
   },
@@ -1226,6 +1236,7 @@
       "marital_status": "Estado civil",
       "occupation": "Ocupación",
       "profession": "Profesión",
+      "licensing_body": "Ente emisor de colegiaturas",
       "product_category": "Categoría de producto o servicio",
       "product": "Producto o servicio",
       "ally_product": "Oferta de aliado",
@@ -1495,6 +1506,7 @@
       "allyTypes": "Tipos de aliado",
       "agreements": "Acuerdos",
       "staff": "Personal",
+      "licenses": "Colegiaturas",
       "openingHours": "Horario"
     },
     "products": {
@@ -1738,6 +1750,7 @@
       },
       "office": "Consultorio {number}",
       "appointments": "Citas",
+      "licensesTitle": "Colegiaturas verificadas",
       "openingHours": "Horario de atención"
     },
     "portal": {
@@ -1793,6 +1806,36 @@
     "segments": {
       "B2B": "Comercial (B2B)",
       "B2P": "Profesional (B2P)"
+    },
+    "licenses": {
+      "title": "Colegiaturas",
+      "hint": "Registros profesionales de la persona titular. Valen para todas sus sedes.",
+      "addButton": "Añadir",
+      "noHolder": "Registra primero a la persona titular del aliado para cargar sus colegiaturas.",
+      "empty": "Sin colegiaturas registradas.",
+      "reviewedAt": "Revisada el {date}",
+      "verify": "Verificar",
+      "reject": "Rechazar",
+      "createdToast": "Colegiatura registrada",
+      "updatedToast": "Colegiatura actualizada",
+      "verifiedToast": "Colegiatura verificada",
+      "rejectedToast": "Colegiatura rechazada",
+      "deletedToast": "Colegiatura eliminada",
+      "deleteTitle": "Eliminar colegiatura",
+      "deleteBody": "¿Eliminar la colegiatura {body} · {number}?",
+      "status": {
+        "PENDING": "Pendiente",
+        "VERIFIED": "Verificada",
+        "REJECTED": "Rechazada"
+      },
+      "form": {
+        "createTitle": "Nueva colegiatura",
+        "editTitle": "Editar colegiatura",
+        "createDescription": "Queda pendiente hasta que alguien la verifique.",
+        "editDescription": "Si cambias el ente o el número, vuelve a quedar pendiente de verificación.",
+        "body": "Ente emisor",
+        "number": "Número"
+      }
     },
     "openingHours": {
       "title": "Horario de atención",
