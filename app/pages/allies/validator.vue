@@ -22,6 +22,7 @@ const { formatDate } = useFormatters()
 const { can } = usePermissions()
 const myAllies = useMyAllies()
 const validator = useValidator()
+const patientAccess = usePatientAccess()
 
 useSeoMeta({ title: () => t('validator.seoTitle') })
 
@@ -72,16 +73,25 @@ const canValidate = computed(() => !!document.value.trim() && !validating.value)
 // Retyping invalidates the panel: showing a previous affiliate's ACTIVE badge next
 // to a new document is the one mistake this screen must never make.
 watch(document, (value) => {
-  if (result.value && value.trim() !== validatedDocument.value) result.value = null
+  if (result.value && value.trim() !== validatedDocument.value) {
+    result.value = null
+    linkedMemberUuid.value = null
+  }
 })
 
-async function validate() {
+/**
+ * @param fromScan the value came from the credential QR. Only a scan opens the
+ *        doctor–patient link (hub ADR 0032) — a typed document never does.
+ */
+async function validate(fromScan = false) {
   const doc = document.value.trim()
   if (!doc) return
   validating.value = true
+  linkedMemberUuid.value = null
   try {
     result.value = await validator.validate(doc)
     validatedDocument.value = doc
+    if (fromScan) await openPatientLink()
   }
   catch {
     // silent: true — surface it in the panel instead of a toast, so the operator's
@@ -105,13 +115,51 @@ const scannerOpen = ref(false)
 
 function onScanned(value: string) {
   document.value = value
-  validate()
+  validate(true)
 }
+
+// ---- Patient medical history (hub ADR 0032) ----
+// Offered only to the doctor (or an OPERADOR_MEDICO) of a B2P medical ally, and
+// only while the system switch is on. A QR scan opens the doctor–patient link;
+// from then on the doctor also finds the patient in "Mis pacientes".
+const patientEligible = ref(false)
+/** Member whose link this screen just opened — the button belongs to that result only. */
+const linkedMemberUuid = ref<string | null>(null)
+const recordModalOpen = ref(false)
+
+watch(selectedAllyUuid, async (allyUuid) => {
+  patientEligible.value = false
+  linkedMemberUuid.value = null
+  if (!allyUuid || !can('MEMBER_MEDICAL_RECORD_VIEW_PATIENT')) return
+  try {
+    const res = await patientAccess.eligibility(allyUuid)
+    patientEligible.value = res.enabled && res.eligible
+  }
+  catch {
+    patientEligible.value = false
+  }
+})
+
+async function openPatientLink() {
+  const memberUuid = result.value?.memberUuid
+  if (!patientEligible.value || !selectedAllyUuid.value || !memberUuid) return
+  try {
+    await patientAccess.openLink(selectedAllyUuid.value, memberUuid)
+    linkedMemberUuid.value = memberUuid
+  }
+  catch {
+    // useApi already notified; the counter flow (validation, usage) goes on.
+  }
+}
+
+const canViewMedicalRecord = computed(() =>
+  patientEligible.value && !!result.value?.memberUuid && linkedMemberUuid.value === result.value.memberUuid)
 
 function reset() {
   document.value = ''
   result.value = null
   validatedDocument.value = ''
+  linkedMemberUuid.value = null
   failed.value = false
   focusDocument()
 }
@@ -201,7 +249,7 @@ function onRegistered(usage: BenefitUsageDto) {
               autofocus
               autocomplete="off"
               class="flex-1 font-mono"
-              @keyup.enter="validate"
+              @keyup.enter="validate()"
             />
             <UButton
               size="xl"
@@ -209,7 +257,7 @@ function onRegistered(usage: BenefitUsageDto) {
               icon="i-lucide-search"
               :loading="validating"
               :disabled="!canValidate"
-              @click="validate"
+              @click="validate()"
             >
               {{ t('validator.validateButton') }}
             </UButton>
@@ -303,7 +351,7 @@ function onRegistered(usage: BenefitUsageDto) {
           </div>
         </dl>
 
-        <div v-if="canRegisterUsage || result.memberFullName" class="pt-2 flex flex-wrap items-center gap-3">
+        <div v-if="canRegisterUsage || result.memberFullName || canViewMedicalRecord" class="pt-2 flex flex-wrap items-center gap-3">
           <UButton v-if="canRegisterUsage" color="primary" size="lg" icon="i-lucide-clipboard-check" @click="usageModalOpen = true">
             {{ t('validator.usage.openButton') }}
           </UButton>
@@ -317,6 +365,16 @@ function onRegistered(usage: BenefitUsageDto) {
           >
             {{ t('validator.result.viewUsageHistory') }}
           </UButton>
+          <UButton
+            v-if="canViewMedicalRecord"
+            color="neutral"
+            variant="outline"
+            size="lg"
+            icon="i-lucide-stethoscope"
+            @click="recordModalOpen = true"
+          >
+            {{ t('patientAccess.viewRecord') }}
+          </UButton>
         </div>
       </div>
     </template>
@@ -328,5 +386,11 @@ function onRegistered(usage: BenefitUsageDto) {
       @registered="onRegistered"
     />
     <QrScannerModal v-model:open="scannerOpen" @scanned="onScanned" />
+    <PatientMedicalRecordModal
+      v-model:open="recordModalOpen"
+      :ally-uuid="selectedAllyUuid ?? null"
+      :member-uuid="result?.memberUuid ?? null"
+      :member-name="result?.memberFullName"
+    />
   </div>
 </template>

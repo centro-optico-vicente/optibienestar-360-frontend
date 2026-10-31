@@ -782,6 +782,14 @@
       "paymentClaims": {
         "label": "Reclamos de pagos",
         "description": "Reclamos sobre el saldo de un pago: reembolsos, errores y pagos de más."
+      },
+      "myPatients": {
+        "label": "Mis pacientes",
+        "description": "Pacientes cuya historia médica puedes consultar."
+      },
+      "myMedicalAccess": {
+        "label": "Quién vio mi historia",
+        "description": "Médicos aliados con acceso a tu historia médica."
       }
     },
     "other": {
@@ -4745,7 +4753,8 @@
       "reports": "Reportes",
       "dataChangeAudit": "Auditoría de cambios de datos",
       "reportAudit": "Auditoría de reportes",
-      "sessions": "Sesión y uso del sistema"
+      "sessions": "Sesión y uso del sistema",
+      "patientAccess": "Historia médica para aliados médicos"
     },
     "audit": {
       "sectionTitle": "Auditoría",
@@ -4788,7 +4797,11 @@
       }
     },
     "updatedToast": "Configuración actualizada correctamente",
-    "saveButton": "Guardar cambios"
+    "saveButton": "Guardar cambios",
+    "patientAccess": {
+      "enabled": "Permitir que los médicos aliados vean la historia de sus pacientes",
+      "enabledHelp": "Al escanear el QR de la credencial, el médico de un aliado profesional del área médica puede consultar la historia médica de ese paciente. Mantener apagado hasta que legal confirme la cláusula del Acuerdo de Membresía."
+    }
   },
   "markdownEditor": {
     "source": "Markdown",
@@ -5423,5 +5436,42 @@
   },
   "banks": {
     "officialNameTooltip": "Nombre oficial: {name}"
+  },
+  "patientAccess": {
+    "viewRecord": "Ver historia médica",
+    "record": {
+      "title": "Historia médica",
+      "loggedNotice": "Esta consulta queda registrada y el paciente puede verla.",
+      "failed": "No se pudo cargar la historia médica.",
+      "empty": "El paciente aún no tiene historia médica registrada."
+    },
+    "patients": {
+      "seoTitle": "Mis pacientes — OptiBienestar 360",
+      "title": "Mis pacientes",
+      "subtitle": "Pacientes cuya credencial escaneaste. Puedes consultar su historia médica mientras no revoquen el acceso.",
+      "scanCta": "Escanear credencial",
+      "disabledTitle": "Función no activada",
+      "disabledDescription": "La consulta de historia médica por aliados todavía no está activada.",
+      "notEligibleTitle": "No disponible para este aliado",
+      "notEligibleDescription": "Solo el médico o un operador médico de un aliado profesional del área médica puede consultar la historia de sus pacientes.",
+      "empty": "Todavía no tienes pacientes. Escanea el QR de la credencial de un afiliado en el validador.",
+      "since": "Desde {date}"
+    },
+    "mine": {
+      "title": "Quién vio mi historia",
+      "subtitle": "Médicos aliados que pueden consultar tu historia médica porque escanearon tu credencial, y cada vez que la consultaron.",
+      "activeTitle": "Con acceso",
+      "noActive": "Ningún médico tiene acceso a tu historia médica.",
+      "since": "desde {date}",
+      "revoke": "Revocar acceso",
+      "readsTitle": "Consultas",
+      "noReads": "Nadie ha consultado tu historia médica.",
+      "revokedTitle": "Accesos revocados",
+      "revokedOn": "revocado el {date}",
+      "revokeTitle": "Revocar acceso",
+      "revokeDescription": "{doctor} dejará de ver tu historia médica. Si vuelve a escanear tu credencial, recuperará el acceso.",
+      "cancel": "Cancelar",
+      "revokedToast": "Acceso revocado"
+    }
   }
 }

@@ -64,6 +64,11 @@ export const PERMISSIONS = [
   'AFFILIATION_REQUEST_REJECT',
   'MEDICAL_RECORD_VIEW',
   'MEDICAL_RECORD_UPDATE',
+  // Patient medical history for medical allies (backend V215, hub ADR 0032).
+  'MEMBER_MEDICAL_RECORD_VIEW_PATIENT',
+  'ALLY_PATIENT_LINK_VIEW_OWN',
+  'ALLY_PATIENT_LINK_REVOKE_OWN',
+  'ALLY_PATIENT_LINK_VIEW_ALL',
   // Corporate contracts (V38, granular per V79). Member enrollment is a
   // separate association concern with its own CRUD set.
   'CORPORATE_CONTRACT_VIEW_ALL',
