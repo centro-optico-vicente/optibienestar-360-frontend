@@ -2554,7 +2554,18 @@
       "SPOUSE": "Cónyuge",
       "PARENT": "Padre/Madre",
       "SIBLING": "Hermano/a",
-      "OTHER": "Otro"
+      "OTHER": "Otro",
+      "FRIEND": "Amigo/a"
+    },
+    "emergencyContact": {
+      "title": "Contacto de emergencia",
+      "empty": "Aún no se cargó un contacto de emergencia.",
+      "savedToast": "Contacto de emergencia guardado",
+      "fields": {
+        "name": "Nombre del contacto",
+        "phone": "Teléfono de emergencia",
+        "relationship": "Parentesco"
+      }
     },
     "status": {
       "ACTIVE": "Activo",

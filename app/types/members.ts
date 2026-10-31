@@ -274,3 +274,50 @@ export interface MyAdvisorDto {
     assignedAt_Display?: string | null
   }>
 }
+
+// ---- Emergency contact (V212, hub ADR 0031 §14) ----
+// Only the three emergency-contact columns of the medical record, behind their own
+// permissions so operators, advisors and the affiliate can fill them without seeing clinical data.
+
+/** Backend enum `MedicalRecord.EmergencyContactRelationship` (one more value than beneficiaries: FRIEND). */
+export type EmergencyContactRelationship = BeneficiaryRelationship | 'FRIEND'
+
+export const EMERGENCY_RELATIONSHIP_OPTIONS: { value: EmergencyContactRelationship, labelKey: string }[] = [
+  ...RELATIONSHIP_OPTIONS.map(o => ({ value: o.value as EmergencyContactRelationship, labelKey: o.labelKey })),
+  { value: 'FRIEND', labelKey: 'members.relationships.FRIEND' },
+]
+
+/** `GET .../emergency-contact` — `exists=false` while nothing has been loaded. */
+export interface EmergencyContactDto {
+  name?: string | null
+  phone?: string | null
+  relationship?: EmergencyContactRelationship | null
+  relationship_Display?: string | null
+  exists: boolean
+}
+
+/** Body of `PUT .../emergency-contact`. Replace semantics: null or blank clears a field. */
+export interface EmergencyContactUpdateRequest {
+  name?: string | null
+  phone?: string | null
+  relationship?: EmergencyContactRelationship | null
+}
+
+/** Which surface to call: staff (any member), advisor (own portfolio) or the affiliate's own record. */
+export type EmergencyContactScope = 'admin' | 'advisor' | 'own'
+
+/** Editable state of `EmergencyContactFields` (empty strings while typing; trimmed to null on save). */
+export interface EmergencyContactFieldsState {
+  name: string
+  phone: string
+  relationship: EmergencyContactRelationship | undefined
+}
+
+/** Request body from the form state; blank → null so the backend clears the field. */
+export function toEmergencyContactRequest(s: EmergencyContactFieldsState): EmergencyContactUpdateRequest {
+  return { name: s.name.trim() || null, phone: s.phone.trim() || null, relationship: s.relationship ?? null }
+}
+
+export function hasEmergencyContact(s: EmergencyContactFieldsState): boolean {
+  return Boolean(s.name.trim() || s.phone.trim() || s.relationship)
+}

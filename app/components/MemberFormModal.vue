@@ -5,10 +5,12 @@ import type { SelectItem } from '~/types/options'
 import { toSelectItems } from '~/types/options'
 import type {
   CreateMemberRequest,
+  EmergencyContactFieldsState,
   MemberDto,
   MemberListItemDto,
   UpdateMemberRequest,
 } from '~/types/members'
+import { hasEmergencyContact, toEmergencyContactRequest } from '~/types/members'
 
 type MemberRow = MemberListItemDto | MemberDto
 
@@ -37,6 +39,44 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const members = useMembers()
 const toast = useToast()
+const { canAny } = usePermissions()
+
+// ---- Titular's emergency contact (V212) — saved through its own endpoint, only when the user may ----
+const emergencyApi = useEmergencyContact()
+const emergencyPerms = emergencyApi.permissions('admin')
+const canEditEmergency = computed(() => canAny(...emergencyPerms.update))
+const emergency = ref<EmergencyContactFieldsState>({ name: '', phone: '', relationship: undefined })
+const emergencySnapshot = ref('')
+
+function resetEmergency() {
+  emergency.value = { name: '', phone: '', relationship: undefined }
+  emergencySnapshot.value = JSON.stringify(emergency.value)
+}
+
+async function loadEmergency(memberUuid: string) {
+  if (!canEditEmergency.value) return
+  try {
+    const dto = await emergencyApi.get('admin', memberUuid)
+    emergency.value = { name: dto.name ?? '', phone: dto.phone ?? '', relationship: dto.relationship ?? undefined }
+  }
+  catch {
+    resetEmergency()
+  }
+  emergencySnapshot.value = JSON.stringify(emergency.value)
+}
+
+/** Saves the contact after the member itself was saved; a failure here does not undo the member. */
+async function saveEmergency(memberUuid: string) {
+  if (!canEditEmergency.value) return
+  const changed = JSON.stringify(emergency.value) !== emergencySnapshot.value
+  if (!changed || (props.mode === 'create' && !hasEmergencyContact(emergency.value))) return
+  try {
+    await emergencyApi.update('admin', toEmergencyContactRequest(emergency.value), memberUuid)
+  }
+  catch {
+    // useApi already notified the error; the member is saved and the contact can be retried from the detail.
+  }
+}
 
 // ---- Catalog quick-link buttons (view the selected catalog record) ----
 
@@ -284,8 +324,10 @@ watch(() => props.open, async (open) => {
   if (!open) return
   await loadCatalogs()
   resetForm()
+  resetEmergency()
   editSnapshot.value = ''
   if (props.mode !== 'edit' || !props.member) return
+  loadEmergency(props.member.uuid)
   // The list row (MemberListItemDto) only carries the full name, document, phone and
   // enrollment date; the rest (name parts, birth, gender, catalogs…) only comes in the
   // detail. Always (re-)fetch the full record so the form is populated reliably either way.
@@ -383,6 +425,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       saved = await members.update(props.member.uuid, body)
       toast.add({ title: t('members.updatedToast'), color: 'success', icon: 'i-lucide-check-circle' })
     }
+    await saveEmergency(saved.uuid)
     isOpen.value = false
     emit('saved', saved)
   }
@@ -593,6 +636,14 @@ function requestDelete() {
         <UFormField :label="t('members.form.fields.notes')" name="notes">
           <UTextarea v-model="state.notes" :rows="2" class="w-full" />
         </UFormField>
+
+        <div v-if="canEditEmergency" class="space-y-3 pt-2 border-t border-default">
+          <h4 class="text-sm font-semibold flex items-center gap-2 pt-2">
+            <UIcon name="i-lucide-phone-call" />
+            {{ t('members.emergencyContact.title') }}
+          </h4>
+          <EmergencyContactFields v-model="emergency" />
+        </div>
 
       </UForm>
 
