@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CompanyBankAccountDto } from '~/types/payments'
+import { fromCompanyAccount } from '~/utils/companyAccountCopy'
 
 // PUBLIC list of the company's bank accounts flagged public (no login; backend V204,
 // GET /v1/public/company-bank-accounts). Anyone can see where to pay; accounts that are not
@@ -9,7 +10,6 @@ import type { CompanyBankAccountDto } from '~/types/payments'
 definePageMeta({ layout: 'default', alias: ['/en/accounts'], key: 'public-accounts' })
 
 const { t } = useI18n()
-const toast = useToast()
 
 useSeoMeta({
   title: () => t('publicAccounts.seoTitle'),
@@ -33,16 +33,6 @@ onMounted(async () => {
     loading.value = false
   }
 })
-
-async function copyNumber(number: string) {
-  try {
-    await navigator.clipboard.writeText(number)
-    toast.add({ title: t('publicAccounts.copied'), color: 'success', icon: 'i-lucide-check-circle' })
-  }
-  catch {
-    toast.add({ title: t('publicAccounts.copyFailed'), color: 'error', icon: 'i-lucide-circle-alert' })
-  }
-}
 </script>
 
 <template>
@@ -58,22 +48,14 @@ async function copyNumber(number: string) {
 
     <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <article v-for="a in accounts" :key="a.uuid" class="rounded-2xl border border-prohealth-100 bg-white p-5 space-y-2">
+        <!-- Same card and copy buttons as the payment forms: method-driven fields (Pago Móvil shows the phone,
+             a transfer the account number) and, for Pago Móvil, the 4-line text bank apps accept (no amount here). -->
         <div class="flex items-start justify-between gap-2">
-          <h2 class="font-bold text-prohealth-900">{{ a.bank_Display ?? a.bank_Code }}</h2>
+          <h2 class="font-bold text-prohealth-900">{{ a.paymentMethod_Display ?? a.paymentMethodCode }}</h2>
           <UBadge color="neutral" variant="subtle" size="sm">{{ a.currency_Code }}</UBadge>
         </div>
-        <div class="flex items-center gap-2">
-          <p class="font-mono text-prohealth-900 break-all">{{ a.accountNumber }}</p>
-          <UTooltip :text="t('publicAccounts.copy')">
-            <UButton color="neutral" variant="ghost" icon="i-lucide-copy" size="xs" :aria-label="t('publicAccounts.copy')" @click="copyNumber(a.accountNumber)" />
-          </UTooltip>
-        </div>
-        <dl class="text-xs text-prohealth-700 space-y-0.5">
-          <div><dt class="inline font-semibold">{{ t('payments.companyAccounts.fields.accountType') }}: </dt><dd class="inline">{{ a.accountType }}</dd></div>
-          <div><dt class="inline font-semibold">{{ t('payments.companyAccounts.fields.holderName') }}: </dt><dd class="inline">{{ a.holderName }}</dd></div>
-          <div><dt class="inline font-semibold">{{ t('payments.companyAccounts.fields.holderDocument') }}: </dt><dd class="inline">{{ a.holderDocument }}</dd></div>
-          <div v-if="a.notes"><dt class="inline font-semibold">{{ t('payments.companyAccounts.fields.notes') }}: </dt><dd class="inline">{{ a.notes }}</dd></div>
-        </dl>
+        <AccountCopyCard :account="fromCompanyAccount(a)" :amount-ves="null" />
+        <p v-if="a.notes" class="text-xs text-prohealth-700">{{ a.notes }}</p>
       </article>
     </div>
   </div>
