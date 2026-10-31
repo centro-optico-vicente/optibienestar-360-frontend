@@ -41,6 +41,7 @@ const { can } = usePermissions()
 const toast = useToast()
 
 const canUpdate = computed(() => can('ALLY_UPDATE'))
+const canUpdateOpeningHours = computed(() => can('ALLY_OPENING_HOURS_UPDATE'))
 const canDelete = computed(() => can('ALLY_DELETE'))
 const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('ALLY_RECORD_AUDIT_VIEW'))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('ALLY_REPORT_AUDIT_VIEW'))
@@ -160,6 +161,7 @@ const tabs = computed(() => [
     : []),
   { label: t('allies.tabs.professions'), value: 'professions', icon: 'i-lucide-stethoscope' },
   { label: t('allies.tabs.allyTypes'), value: 'allyTypes', icon: 'i-lucide-tags' },
+  { label: t('allies.tabs.openingHours'), value: 'openingHours', icon: 'i-lucide-clock' },
   ...(canViewAgreements.value
     ? [{ label: t('allies.tabs.agreements'), value: 'agreements', icon: 'i-lucide-file-signature' }]
     : []),
@@ -1492,6 +1494,17 @@ onMounted(async () => {
               />
             </UBadge>
           </div>
+        </div>
+      </div>
+
+      <!-- ============ Opening hours (V214, hub ADR 0031 §7) ============ -->
+      <div v-if="activeTab === 'openingHours'" class="bg-white rounded-2xl border border-prohealth-100">
+        <div class="px-6 py-4 border-b border-prohealth-100">
+          <h2 class="font-bold text-prohealth-900">{{ t('allies.openingHours.title') }}</h2>
+          <p class="text-xs text-prohealth-500 mt-0.5">{{ t('allies.openingHours.hint') }}</p>
+        </div>
+        <div class="px-6 py-4">
+          <AllyOpeningHoursEditor :ally-uuid="allyUuid" scope="admin" :readonly="!canUpdateOpeningHours" />
         </div>
       </div>
 

@@ -39,6 +39,17 @@ useSeoMeta({
 // `products` replaces the deprecated `services` (hub ADR 0026).
 const offers = computed(() => ally.value?.products ?? [])
 
+// Weekly opening hours (V214, hub ADR 0031 §7): one line per day with its ranges.
+const schedule = computed(() => {
+  const byDay = new Map<number, string[]>()
+  for (const h of ally.value?.openingHours ?? []) {
+    const ranges = byDay.get(h.dayOfWeek) ?? []
+    ranges.push(`${h.opensAt.slice(0, 5)}–${h.closesAt.slice(0, 5)}`)
+    byDay.set(h.dayOfWeek, ranges)
+  }
+  return [...byDay.entries()].sort(([a], [b]) => a - b).map(([day, ranges]) => ({ day, ranges: ranges.join(', ') }))
+})
+
 /** "Ver todo lo que ofrece" → the general catalog filtered by this ally's name. */
 const catalogLink = computed(() =>
   ally.value ? `${publicPath('/catalogo')}?aliado=${encodeURIComponent(ally.value.name)}` : publicPath('/catalogo'))
@@ -183,6 +194,20 @@ function money(v?: number | string | null): string {
               {{ ally.website }}
             </a>
           </div>
+        </div>
+
+        <!-- Opening hours -->
+        <div v-if="schedule.length" class="mt-6 pt-6 border-t border-prohealth-100 text-sm">
+          <h2 class="flex items-center gap-2 font-semibold text-prohealth-900 mb-3">
+            <UIcon name="i-lucide-clock" class="w-4.5 h-4.5 text-cyan-600" />
+            {{ t('allies.public.openingHours') }}
+          </h2>
+          <dl class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1.5">
+            <template v-for="row in schedule" :key="row.day">
+              <dt class="text-prohealth-500">{{ t(`allies.openingHours.days.${row.day}`) }}</dt>
+              <dd class="text-prohealth-700">{{ row.ranges }}</dd>
+            </template>
+          </dl>
         </div>
       </div>
 

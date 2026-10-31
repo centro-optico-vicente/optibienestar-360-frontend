@@ -5,7 +5,7 @@ import type { PublicAllyListItemDto } from '~/types/allies'
 // data sanitized by the backend (/v1/public/allies). Filters take plain words, as
 // a lead would type them (hub ADR 0026): `q` over name, RIF, ally number, city and
 // state; a city/state name; the "rubro" (product category) by name. They are
-// mirrored to the URL (?q=&ciudad=&categoria=) so a search can be shared.
+// mirrored to the URL (?q=&ciudad=&categoria=&tipo=&horario=) so a search can be shared.
 // English pair of this public screen (hub URL convention): same page, rendered
 // in English by middleware/public-locale.global.ts. The fixed `key` keeps the
 // component (and any typed input) when the switcher jumps between the two URLs.
@@ -43,6 +43,12 @@ const category = ref<string | undefined>(queryString('categoria') || undefined)
 const SEGMENT_BY_SLUG: Record<string, string> = { comercial: 'B2B', profesional: 'B2P' }
 const SLUG_BY_SEGMENT: Record<string, string> = { B2B: 'comercial', B2P: 'profesional' }
 const segment = ref<string | undefined>(SEGMENT_BY_SLUG[queryString('tipo')] || undefined)
+// Opening hours (hub ADR 0031 §7) — `?horario=ahora|hoy` in the URL.
+const availability = ref<string | undefined>(['ahora', 'hoy'].includes(queryString('horario')) ? queryString('horario') : undefined)
+const availabilityOptions = computed(() => [
+  { label: t('allies.public.filters.openNow'), value: 'ahora' },
+  { label: t('allies.public.filters.openToday'), value: 'hoy' },
+])
 const segmentOptions = computed(() => [
   { label: t('allies.public.filters.segmentB2B'), value: 'B2B' },
   { label: t('allies.public.filters.segmentB2P'), value: 'B2P' },
@@ -54,6 +60,7 @@ function syncUrl() {
   if (city.value.trim()) query.ciudad = city.value.trim()
   if (category.value) query.categoria = category.value
   if (segment.value) query.tipo = SLUG_BY_SEGMENT[segment.value] ?? segment.value
+  if (availability.value) query.horario = availability.value
   router.replace({ query })
 }
 
@@ -67,6 +74,8 @@ async function load() {
       city: city.value.trim() || undefined,
       category: category.value || undefined,
       segment: segment.value || undefined,
+      openNow: availability.value === 'ahora',
+      openToday: availability.value === 'hoy',
     })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
@@ -88,7 +97,7 @@ function reloadFromFirstPage() {
 }
 
 watch(page, load)
-watch([category, segment], reloadFromFirstPage)
+watch([category, segment, availability], reloadFromFirstPage)
 let searchTimer: ReturnType<typeof setTimeout> | undefined
 watch([search, city], () => {
   clearTimeout(searchTimer)
@@ -113,10 +122,11 @@ function clearFilters() {
   city.value = ''
   category.value = undefined
   segment.value = undefined
+  availability.value = undefined
 }
 
 const hasFilters = computed(() =>
-  Boolean(search.value.trim() || city.value.trim() || category.value || segment.value),
+  Boolean(search.value.trim() || city.value.trim() || category.value || segment.value || availability.value),
 )
 
 onMounted(async () => {
@@ -148,7 +158,7 @@ onMounted(async () => {
 
     <!-- Filters -->
     <section class="max-w-7xl mx-auto px-6 lg:px-10 -mt-8 relative z-10">
-      <div class="bg-white rounded-2xl border border-prohealth-100 shadow-sm p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+      <div class="bg-white rounded-2xl border border-prohealth-100 shadow-sm p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
         <UInput
           v-model="search"
           :placeholder="t('allies.public.filters.search')"
@@ -165,6 +175,17 @@ onMounted(async () => {
           :search-input="false"
           :placeholder="t('allies.public.filters.segment')"
           icon="i-lucide-layers"
+          size="lg"
+        />
+        <USelectMenu
+          clear
+          v-model="availability"
+          :items="availabilityOptions"
+          value-key="value"
+          label-key="label"
+          :search-input="false"
+          :placeholder="t('allies.public.filters.anyTime')"
+          icon="i-lucide-clock"
           size="lg"
         />
         <UInput
