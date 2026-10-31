@@ -1897,11 +1897,11 @@
     },
     "portfolio": {
       "title": "My portfolio",
-      "subtitle": "Portfolio management: keep your affiliates' Maintenance Fee up to date.",
+      "subtitle": "My sales: see who is up to date with the Maintenance Fee and follow up with those who aren’t.",
       "empty": "You have no affiliates in your portfolio yet",
       "noMatches": "No affiliate matches the filter",
       "loadError": "We could not load your portfolio.",
-      "searchPlaceholder": "Search affiliate…",
+      "searchPlaceholder": "Search by name or ID…",
       "noPermissionContact": "You don't have permission to log follow-ups",
       "score": {
         "scorePct": "Portfolio up to date",
@@ -1914,19 +1914,26 @@
       "filters": {
         "all": "All",
         "upToDate": "Up to date",
-        "overdue": "Overdue",
+        "due": "Payment due",
+        "overdue": "Delinquent",
         "withoutMembership": "No membership"
       },
       "status": {
-        "upToDate": "Up to date",
-        "overdue": "Overdue",
-        "withoutMembership": "No membership"
+        "UP_TO_DATE": "Up to date",
+        "DUE": "Payment due",
+        "OVERDUE": "Delinquent",
+        "NO_MEMBERSHIP": "No membership"
       },
       "columns": {
         "member": "Affiliate",
-        "status": "Status",
+        "status": "Payment status",
+        "plan": "Plan",
+        "enrolledAt": "Sale date",
         "nextDueDate": "Next due date",
-        "monthlyFee": "Maintenance Fee"
+        "lastPaidThrough": "Paid through",
+        "daysOverdue": "Days overdue",
+        "monthlyFee": "Maintenance Fee",
+        "phone": "Phone"
       },
       "fields": {
         "note": "Note",
@@ -1962,7 +1969,9 @@
           "PAYMENT_PROMISE": "Payment promise",
           "NOTE": "Note"
         }
-      }
+      },
+      "daysOverdueValue": "{count} day | {count} days",
+      "callTooltip": "Call"
     },
     "payoutAccounts": {
       "title": "My payout details",
@@ -2128,7 +2137,8 @@
       "method": "Method",
       "date": "Date",
       "proof": "Proof",
-      "status": "Status"
+      "status": "Status",
+      "period": "Period covered"
     },
     "methods": {
       "BANK_TRANSFER": "Bank transfer",
@@ -2547,7 +2557,28 @@
         "title": "Covered beneficiaries",
         "subtitle": "Family members included in your plan.",
         "empty": "You don't have registered beneficiaries.",
-        "born": "Born {date}"
+        "born": "Born {date}",
+        "add": "Add beneficiary",
+        "formTitle": "New beneficiary",
+        "formDescription": "Register a family member under your plan. Beyond the included slots, the extra inscription fee is charged.",
+        "createdToast": "Beneficiary registered",
+        "cardLabel": "Beneficiary",
+        "withAccess": "Has access",
+        "withoutAccess": "No access",
+        "servicesUsed": "service used | services used",
+        "lastUsage": "Last: {date}",
+        "noUsage": "No usage yet",
+        "access": {
+          "grant": "Give access",
+          "resend": "Resend invitation",
+          "revoke": "Remove access",
+          "modalTitle": "Give access to {name}",
+          "modalDescription": "We will email a link to create their password. With that email they sign in to the portal and see their own credential and usage.",
+          "email": "Beneficiary email",
+          "send": "Send invitation",
+          "grantedToast": "Invitation sent to {email}",
+          "revokedToast": "Access removed"
+        }
       },
       "myData": {
         "title": "My data",
@@ -2567,6 +2598,11 @@
         "download": "Download QR",
         "alt": "Digital Credential QR code",
         "personal": "Your credential is personal and non-transferable. Lending it or sharing screenshots with others voids your membership with no refund."
+      },
+      "beneficiaryView": {
+        "title": "Family coverage",
+        "body": "You are covered as {relationship} on {holder}'s {plan}. Payments and beneficiaries are managed by the holder.",
+        "usage": "See my usage"
       }
     },
     "usage": {
@@ -2574,7 +2610,51 @@
       "subtitle": "History of the benefits you used at network allies.",
       "empty": "You have no recorded usage yet.",
       "consumption": "consumption",
-      "copay": "Co-pay"
+      "copay": "Co-pay",
+      "rating": {
+        "rateButton": "Rate",
+        "editButton": "Edit rating",
+        "title": "Rate usage",
+        "editTitle": "Edit rating",
+        "allyLabel": "How did {name} treat you?",
+        "allyShort": "Partner",
+        "productLabel": "What did you think of {name}?",
+        "productFallback": "Product or service",
+        "optional": "Optional",
+        "allyRequired": "Rate the partner with at least one star.",
+        "commentLabel": "Comment (optional)",
+        "commentPlaceholder": "Tell us about your experience…",
+        "submit": "Save rating",
+        "savedToast": "Thanks for your rating!",
+        "updatedToast": "Rating updated",
+        "errorToast": "The rating could not be saved",
+        "errors": {
+          "notRatable": "This usage can no longer be rated (it was reversed or is disputed).",
+          "productNotApplicable": "This usage has no catalog product or service to rate.",
+          "notFound": "We could not find this usage. Refresh the page and try again."
+        }
+      },
+      "who": {
+        "label": "Who?",
+        "all": "Everyone",
+        "holder": "Holder"
+      },
+      "consumedBy": "Used by",
+      "holderTag": "Holder",
+      "emptyFiltered": "No usage matches this filter.",
+      "filters": {
+        "service": "Service: {name}",
+        "clear": "Clear filter"
+      },
+      "summary": {
+        "title": "By service",
+        "subtitle": "Tap a service to see only its usage.",
+        "empty": "No usage to summarize.",
+        "times": "{count} time | {count} times",
+        "lastUsage": "Last used: {date}",
+        "uncatalogued": "Other ({category})",
+        "filterTooltip": "See this service’s usage"
+      }
     }
   },
   "memberships": {
@@ -2683,7 +2763,9 @@
       "document": "Document",
       "plan": "Plan",
       "nextDueDate": "Next due date",
-      "viewUsageHistory": "View usages"
+      "viewUsageHistory": "View usages",
+      "beneficiary": "Beneficiary",
+      "holder": "Holder"
     },
     "usage": {
       "openButton": "Register usage",
@@ -2706,8 +2788,11 @@
         "copayAmount": "Co-pay",
         "copayHelp": "Optional. What the affiliate paid out of pocket.",
         "copayCurrency": "Currency",
-        "notes": "Notes"
-      }
+        "notes": "Notes",
+        "consumer": "Who is consuming?",
+        "consumerHelp": "The holder or one of the beneficiaries on their plan, so each person sees their own usage."
+      },
+      "holder": "Holder"
     },
     "history": {
       "seoTitle": "Usages — OptiBienestar 360",
@@ -4820,7 +4905,39 @@
     "termsUnavailable": "The terms and conditions are not available right now. Please try again later.",
     "termsUpdated": "The terms and conditions were updated. Please review and accept them again.",
     "backHome": "Back to home",
-    "termsLiveNote": "The agreement is filled in with your data as you complete the form."
+    "termsLiveNote": "The agreement is filled in with your data as you complete the form.",
+    "payment": {
+      "title": "Enrollment payment",
+      "paidSwitch": "I have already paid the enrollment fee",
+      "laterNote": "You can pay the enrollment fee later from your portal, once we approve your request.",
+      "choosePlanFirst": "Choose a plan to see the enrollment amount.",
+      "noFee": "This plan has no enrollment fee.",
+      "amount": "Amount to pay",
+      "method": "Payment method",
+      "methodPlaceholder": "Choose a method",
+      "methodsUnavailable": "Payment methods are not available right now. You can pay later from your portal.",
+      "bank": "Bank",
+      "bankPlaceholder": "Choose a bank",
+      "identification": "Account holder ID",
+      "accountIdentifier": "Account identifier",
+      "accountType": "Account type",
+      "accountTypePlaceholder": "Choose the type",
+      "accountCode": "Account code",
+      "phone": "Payment phone",
+      "email": "Payment email",
+      "reference": "Reference",
+      "referenceHelp": "Operation / receipt number.",
+      "date": "Payment date",
+      "proof": "Proof",
+      "proofHelp": "Image or PDF of the payment proof (optional).",
+      "removeProof": "Remove proof",
+      "errorMethod": "Choose the payment method",
+      "errorField": "Fill in the payment field \"{field}\"",
+      "errorEmail": "The payment email is not valid",
+      "errorDate": "Enter the payment date",
+      "errorDateFuture": "The payment date can't be in the future",
+      "sentNote": "We will review your payment together with the request."
+    }
   },
   "myContracts": {
     "title": "My contracts",
@@ -4902,7 +5019,23 @@
       "rejectTitle": "Reject request",
       "rejectNotice": "The person will receive an email with this reason.",
       "rejectionReason": "Rejection reason",
-      "rejectedToast": "Request rejected"
+      "rejectedToast": "Request rejected",
+      "payment": {
+        "title": "Reported payment",
+        "none": "No payment reported.",
+        "method": "Method",
+        "bank": "Bank",
+        "reference": "Reference",
+        "amount": "Amount",
+        "date": "Payment date",
+        "identification": "Identification",
+        "phone": "Phone",
+        "email": "Email",
+        "accountIdentifier": "Account identifier",
+        "proof": "Proof",
+        "noProof": "No proof attached.",
+        "viewProof": "View proof"
+      }
     },
     "log": {
       "title": "Log",
@@ -4998,5 +5131,13 @@
     "previous": "Previous image",
     "next": "Next image",
     "showImage": "Show image {n}"
+  },
+  "rating": {
+    "none": "No ratings yet",
+    "count": "{n} rating | {n} ratings",
+    "ariaValue": "{value} out of 5 stars",
+    "starLabel": "{n} star | {n} stars",
+    "allyPrefix": "Partner",
+    "offerPrefix": "This service"
   }
 }

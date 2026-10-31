@@ -1897,11 +1897,11 @@
     },
     "portfolio": {
       "title": "Mi cartera",
-      "subtitle": "Gestión de Cartera: mantén al día la Cuota de Mantenimiento de tus afiliados.",
+      "subtitle": "Mis ventas: revisa quién está al día con la Cuota de Mantenimiento y gestiona a quienes no.",
       "empty": "Aún no tienes afiliados en tu cartera",
       "noMatches": "Ningún afiliado coincide con el filtro",
       "loadError": "No pudimos cargar tu cartera.",
-      "searchPlaceholder": "Buscar afiliado…",
+      "searchPlaceholder": "Buscar por nombre o cédula…",
       "noPermissionContact": "No tienes permiso para registrar gestiones",
       "score": {
         "scorePct": "Cartera al día",
@@ -1914,19 +1914,26 @@
       "filters": {
         "all": "Todos",
         "upToDate": "Al día",
-        "overdue": "Vencidos",
+        "due": "Pendiente de pago",
+        "overdue": "Morosos",
         "withoutMembership": "Sin membresía"
       },
       "status": {
-        "upToDate": "Al día",
-        "overdue": "Vencida",
-        "withoutMembership": "Sin membresía"
+        "UP_TO_DATE": "Al día",
+        "DUE": "Pendiente de pago",
+        "OVERDUE": "Moroso",
+        "NO_MEMBERSHIP": "Sin membresía"
       },
       "columns": {
         "member": "Afiliado",
-        "status": "Estado",
+        "status": "Estado de pago",
+        "plan": "Plan",
+        "enrolledAt": "Fecha de venta",
         "nextDueDate": "Próximo vencimiento",
-        "monthlyFee": "Cuota de Mantenimiento"
+        "lastPaidThrough": "Pagado hasta",
+        "daysOverdue": "Días de atraso",
+        "monthlyFee": "Cuota de Mantenimiento",
+        "phone": "Teléfono"
       },
       "fields": {
         "note": "Nota",
@@ -1962,7 +1969,9 @@
           "PAYMENT_PROMISE": "Promesa de pago",
           "NOTE": "Nota"
         }
-      }
+      },
+      "daysOverdueValue": "{count} día | {count} días",
+      "callTooltip": "Llamar"
     },
     "payoutAccounts": {
       "title": "Mis datos de cobro",
@@ -2128,7 +2137,8 @@
       "method": "Método",
       "date": "Fecha",
       "proof": "Comprobante",
-      "status": "Estado"
+      "status": "Estado",
+      "period": "Período cubierto"
     },
     "methods": {
       "BANK_TRANSFER": "Transferencia bancaria",
@@ -2547,7 +2557,28 @@
         "title": "Beneficiarios cubiertos",
         "subtitle": "Familiares incluidos en tu plan.",
         "empty": "No tienes beneficiarios registrados.",
-        "born": "Nac. {date}"
+        "born": "Nac. {date}",
+        "add": "Agregar beneficiario",
+        "formTitle": "Nuevo beneficiario",
+        "formDescription": "Registra a un familiar en tu plan. Si supera los cupos incluidos se genera el cobro de inscripción adicional.",
+        "createdToast": "Beneficiario registrado",
+        "cardLabel": "Beneficiario",
+        "withAccess": "Con acceso",
+        "withoutAccess": "Sin acceso",
+        "servicesUsed": "servicio usado | servicios usados",
+        "lastUsage": "Último: {date}",
+        "noUsage": "Sin consumos aún",
+        "access": {
+          "grant": "Dar acceso",
+          "resend": "Reenviar invitación",
+          "revoke": "Quitar acceso",
+          "modalTitle": "Dar acceso a {name}",
+          "modalDescription": "Le enviaremos un enlace para crear su contraseña. Con ese correo entrará al portal y verá su propia credencial y sus consumos.",
+          "email": "Correo del beneficiario",
+          "send": "Enviar invitación",
+          "grantedToast": "Invitación enviada a {email}",
+          "revokedToast": "Acceso retirado"
+        }
       },
       "myData": {
         "title": "Mis datos",
@@ -2567,6 +2598,11 @@
         "download": "Descargar QR",
         "alt": "Código QR de la Credencial Digital",
         "personal": "Tu credencial es personal e intransferible. Prestarla o compartir capturas de pantalla con terceros anula tu afiliación sin reembolso."
+      },
+      "beneficiaryView": {
+        "title": "Cobertura familiar",
+        "body": "Estás cubierto como {relationship} en el {plan} de {holder}. Tus pagos y beneficiarios los gestiona el titular.",
+        "usage": "Ver mis consumos"
       }
     },
     "usage": {
@@ -2574,7 +2610,51 @@
       "subtitle": "Historial de los beneficios que usaste en los aliados de la red.",
       "empty": "Todavía no tienes consumos registrados.",
       "consumption": "consumo",
-      "copay": "Copago"
+      "copay": "Copago",
+      "rating": {
+        "rateButton": "Calificar",
+        "editButton": "Editar calificación",
+        "title": "Calificar consumo",
+        "editTitle": "Editar calificación",
+        "allyLabel": "¿Cómo te atendió {name}?",
+        "allyShort": "Aliado",
+        "productLabel": "¿Qué te pareció {name}?",
+        "productFallback": "Producto o servicio",
+        "optional": "Opcional",
+        "allyRequired": "Califica al aliado con al menos una estrella.",
+        "commentLabel": "Comentario (opcional)",
+        "commentPlaceholder": "Cuéntanos sobre tu experiencia…",
+        "submit": "Guardar calificación",
+        "savedToast": "¡Gracias por tu calificación!",
+        "updatedToast": "Calificación actualizada",
+        "errorToast": "No se pudo guardar la calificación",
+        "errors": {
+          "notRatable": "Este consumo ya no se puede calificar (fue revertido o está en disputa).",
+          "productNotApplicable": "Este consumo no tiene un producto o servicio de catálogo para calificar.",
+          "notFound": "No encontramos este consumo. Actualiza la página e inténtalo de nuevo."
+        }
+      },
+      "who": {
+        "label": "¿Quién?",
+        "all": "Todos",
+        "holder": "Titular"
+      },
+      "consumedBy": "Consumió",
+      "holderTag": "Titular",
+      "emptyFiltered": "No hay consumos con este filtro.",
+      "filters": {
+        "service": "Servicio: {name}",
+        "clear": "Quitar filtro"
+      },
+      "summary": {
+        "title": "Por servicio",
+        "subtitle": "Toca un servicio para ver solo sus consumos.",
+        "empty": "Sin consumos para resumir.",
+        "times": "{count} vez | {count} veces",
+        "lastUsage": "Último uso: {date}",
+        "uncatalogued": "Otros ({category})",
+        "filterTooltip": "Ver los consumos de este servicio"
+      }
     }
   },
   "memberships": {
@@ -2683,7 +2763,9 @@
       "document": "Documento",
       "plan": "Plan",
       "nextDueDate": "Próximo vencimiento",
-      "viewUsageHistory": "Ver consumos"
+      "viewUsageHistory": "Ver consumos",
+      "beneficiary": "Beneficiario",
+      "holder": "Titular"
     },
     "usage": {
       "openButton": "Registrar uso",
@@ -2706,8 +2788,11 @@
         "copayAmount": "Copago",
         "copayHelp": "Opcional. Lo que pagó el afiliado de su bolsillo.",
         "copayCurrency": "Moneda",
-        "notes": "Notas"
-      }
+        "notes": "Notas",
+        "consumer": "¿Quién consume?",
+        "consumerHelp": "El titular o uno de los beneficiarios de su plan. Así cada persona ve sus propios consumos."
+      },
+      "holder": "Titular"
     },
     "history": {
       "seoTitle": "Consumos — OptiBienestar 360",
@@ -4820,7 +4905,39 @@
     "termsUnavailable": "Los términos y condiciones no están disponibles en este momento. Intenta más tarde.",
     "termsUpdated": "Los términos y condiciones se actualizaron. Revísalos y acéptalos de nuevo.",
     "backHome": "Volver al inicio",
-    "termsLiveNote": "El acuerdo se completa con tus datos a medida que llenas el formulario."
+    "termsLiveNote": "El acuerdo se completa con tus datos a medida que llenas el formulario.",
+    "payment": {
+      "title": "Pago de la inscripción",
+      "paidSwitch": "Ya realicé el pago de la inscripción",
+      "laterNote": "Puedes pagar la inscripción más tarde desde tu portal, cuando aprobemos tu solicitud.",
+      "choosePlanFirst": "Elige un plan para ver el monto de la inscripción.",
+      "noFee": "Este plan no tiene monto de inscripción.",
+      "amount": "Monto a pagar",
+      "method": "Método de pago",
+      "methodPlaceholder": "Elige un método",
+      "methodsUnavailable": "Los métodos de pago no están disponibles en este momento. Puedes pagar más tarde desde tu portal.",
+      "bank": "Banco",
+      "bankPlaceholder": "Elige un banco",
+      "identification": "Identificación del titular",
+      "accountIdentifier": "Identificador de cuenta",
+      "accountType": "Tipo de cuenta",
+      "accountTypePlaceholder": "Elige el tipo",
+      "accountCode": "Código de cuenta",
+      "phone": "Teléfono del pago",
+      "email": "Correo del pago",
+      "reference": "Referencia",
+      "referenceHelp": "N° de operación / comprobante.",
+      "date": "Fecha del pago",
+      "proof": "Comprobante",
+      "proofHelp": "Imagen o PDF del soporte de pago (opcional).",
+      "removeProof": "Quitar comprobante",
+      "errorMethod": "Elige el método de pago",
+      "errorField": "Completa el campo «{field}» del pago",
+      "errorEmail": "El correo del pago no es válido",
+      "errorDate": "Indica la fecha del pago",
+      "errorDateFuture": "La fecha del pago no puede ser futura",
+      "sentNote": "Revisaremos tu pago junto con la solicitud."
+    }
   },
   "myContracts": {
     "title": "Mis contratos",
@@ -4902,7 +5019,23 @@
       "rejectTitle": "Rechazar solicitud",
       "rejectNotice": "La persona recibirá un correo con este motivo.",
       "rejectionReason": "Motivo del rechazo",
-      "rejectedToast": "Solicitud rechazada"
+      "rejectedToast": "Solicitud rechazada",
+      "payment": {
+        "title": "Pago reportado",
+        "none": "Sin pago reportado.",
+        "method": "Método",
+        "bank": "Banco",
+        "reference": "Referencia",
+        "amount": "Monto",
+        "date": "Fecha del pago",
+        "identification": "Identificación",
+        "phone": "Teléfono",
+        "email": "Correo electrónico",
+        "accountIdentifier": "Identificador de cuenta",
+        "proof": "Comprobante",
+        "noProof": "Sin comprobante adjunto.",
+        "viewProof": "Ver comprobante"
+      }
     },
     "log": {
       "title": "Bitácora",
@@ -4998,5 +5131,13 @@
     "previous": "Imagen anterior",
     "next": "Imagen siguiente",
     "showImage": "Ver imagen {n}"
+  },
+  "rating": {
+    "none": "Sin calificaciones todavía",
+    "count": "{n} calificación | {n} calificaciones",
+    "ariaValue": "{value} de 5 estrellas",
+    "starLabel": "{n} estrella | {n} estrellas",
+    "allyPrefix": "Aliado",
+    "offerPrefix": "Este servicio"
   }
 }

@@ -273,6 +273,7 @@ onMounted(() => {
                 <h3 class="font-bold text-prohealth-900 group-hover:text-cyan-700 transition-colors line-clamp-2">
                   {{ item.name }}
                 </h3>
+                <RatingStars :model-value="item.ratingAvg" :count="item.ratingCount" show-value size="xs" class="mt-1" />
               </div>
             </div>
 
@@ -299,6 +300,7 @@ onMounted(() => {
             <NuxtLink :to="publicPath(`/aliados/${item.allyUuid}`)" class="text-prohealth-700 hover:text-cyan-700 truncate">
               <UIcon name="i-lucide-handshake" class="w-3.5 h-3.5 inline -mt-0.5 me-1 text-cyan-600" />
               {{ item.allyName }}<template v-if="item.allyCityName"> · {{ item.allyCityName }}</template>
+              <RatingStars :model-value="item.allyRatingAvg" :count="item.allyRatingCount" show-value size="xs" class="ms-1.5" />
             </NuxtLink>
             <NuxtLink :to="publicPath(`/catalogo/${item.productUuid}`)" class="shrink-0 font-medium text-cyan-700 hover:underline">
               {{ t('catalog.public.compare') }}

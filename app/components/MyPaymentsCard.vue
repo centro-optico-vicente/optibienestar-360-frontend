@@ -2,7 +2,7 @@
 import type { PaymentDto } from '~/types/payments'
 import { paymentStatusColor } from '~/types/payments'
 
-// Authenticated member's payment history (GET /v1/me/payments, PAYMENT_VIEW_OWN).
+// Authenticated member's payment history (GET /v1/me/payments, COLLECTION_VIEW_OWN).
 // Self-gated: if the user lacks the permission, it renders nothing. Meant to be
 // embedded in the member portal (/members) next to the card.
 const { t } = useI18n()
@@ -10,7 +10,7 @@ const { formatDate, formatMonthYear } = useFormatters()
 const payments = usePayments()
 const { can } = usePermissions()
 
-const canView = computed(() => can('PAYMENT_VIEW_OWN'))
+const canView = computed(() => can('COLLECTION_VIEW_OWN'))
 
 const data = ref<PaymentDto[]>([])
 const total = ref(0)

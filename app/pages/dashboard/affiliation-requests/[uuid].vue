@@ -12,6 +12,8 @@ import { PLAN_TYPES } from '~/types/plans'
 // with a mandatory reason (modal, emailed to the applicant). Shows the
 // contract exactly as the applicant accepted it; when a correction changes
 // that text, approving leaves it pending for the member's first login.
+// When the applicant reported the inscription payment, it is shown read-only
+// with its proof (presigned URL, like the collections detail).
 definePageMeta({
   layout: 'dashboard',
   middleware: 'can',
@@ -19,7 +21,7 @@ definePageMeta({
 })
 
 const { t } = useI18n()
-const { formatDate } = useFormatters()
+const { formatDate, formatCurrency } = useFormatters()
 const { can } = usePermissions()
 const toast = useToast()
 const route = useRoute()
@@ -193,6 +195,37 @@ async function confirmReject() {
   finally { rejecting.value = false }
 }
 
+// ---- Reported inscription payment ----
+const paymentRows = computed(() => {
+  const p = request.value?.payment
+  if (!p) return []
+  const amount = p.amount_Display ?? (p.amount != null ? formatCurrency(Number(p.amount), p.currencyCode || 'USD') : null)
+  return [
+    { label: t('affiliationRequests.detail.payment.method'), value: p.paymentMethodName },
+    { label: t('affiliationRequests.detail.payment.amount'), value: amount },
+    { label: t('affiliationRequests.detail.payment.date'), value: p.paymentDate_Display ?? (p.paymentDate ? formatDate(p.paymentDate, 'datetime') : null) },
+    { label: t('affiliationRequests.detail.payment.reference'), value: p.referenceNumber, mono: true },
+    { label: t('affiliationRequests.detail.payment.bank'), value: p.bankName },
+    { label: t('affiliationRequests.detail.payment.identification'), value: p.identification },
+    { label: t('affiliationRequests.detail.payment.accountIdentifier'), value: p.bankAccountIdentifier, mono: true },
+    { label: t('affiliationRequests.detail.payment.phone'), value: p.phone },
+    { label: t('affiliationRequests.detail.payment.email'), value: p.email },
+  ]
+})
+
+const loadingSupport = ref(false)
+async function viewPaymentSupport() {
+  if (!request.value) return
+  loadingSupport.value = true
+  try {
+    const res = await api.paymentSupportUrl(request.value.uuid)
+    // Opens in a new tab; useApi already notifies 404/422 (no proof / R2 off).
+    window.open(res.url, '_blank', 'noopener')
+  }
+  catch { /* toast handled by useApi */ }
+  finally { loadingSupport.value = false }
+}
+
 // ---- Log ----
 function logTitle(entry: AffiliationRequestLogDto): string {
   return entry.action_Display ?? t(`affiliationRequests.log.actions.${entry.action}`, entry.action)
@@ -345,6 +378,37 @@ function statusLabel(r: AffiliationRequestDetailDto): string {
             <div><dt class="inline font-semibold">SHA-256:</dt> <dd class="inline font-mono break-all">{{ request.termsContentSha256 }}</dd></div>
           </dl>
         </div>
+      </div>
+
+      <!-- Reported inscription payment -->
+      <div class="bg-white rounded-2xl border border-prohealth-100 p-6 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <h2 class="text-lg font-bold text-prohealth-900">{{ t('affiliationRequests.detail.payment.title') }}</h2>
+          <UButton
+            v-if="request.payment?.hasSupport"
+            color="primary"
+            variant="outline"
+            size="sm"
+            icon="i-lucide-external-link"
+            :loading="loadingSupport"
+            @click="viewPaymentSupport"
+          >
+            {{ t('affiliationRequests.detail.payment.viewProof') }}
+          </UButton>
+        </div>
+        <p v-if="!request.payment" class="text-sm text-prohealth-500">{{ t('affiliationRequests.detail.payment.none') }}</p>
+        <dl v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-3 text-sm">
+          <div v-for="row in paymentRows" :key="row.label">
+            <dt class="text-xs text-prohealth-500">{{ row.label }}</dt>
+            <dd class="text-prohealth-800" :class="{ 'font-mono': row.mono }">{{ row.value || t('common.empty') }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs text-prohealth-500">{{ t('affiliationRequests.detail.payment.proof') }}</dt>
+            <dd class="text-prohealth-800">
+              {{ request.payment.hasSupport ? (request.payment.supportFileName || t('affiliationRequests.detail.payment.proof')) : t('affiliationRequests.detail.payment.noProof') }}
+            </dd>
+          </div>
+        </dl>
       </div>
 
       <!-- Review log -->

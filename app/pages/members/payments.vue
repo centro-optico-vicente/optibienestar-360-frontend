@@ -3,18 +3,18 @@ import type { PaymentDto } from '~/types/payments'
 import { paymentStatusColor } from '~/types/payments'
 
 // "Mis pagos" (hub plan payments-unification, "Mis portales") — the
-// affiliate's own membership-fee collections. List is PAYMENT_VIEW_OWN;
-// register/delete-while-pending (V121) are PAYMENT_CREATE_OWN/
-// PAYMENT_DELETE_OWN. Approve/reject stay exclusively an admin action —
+// affiliate's own membership-fee collections. List is COLLECTION_VIEW_OWN;
+// register/delete-while-pending (V121) are COLLECTION_CREATE_OWN/
+// COLLECTION_DELETE_OWN. Approve/reject stay exclusively an admin action —
 // there is no self-approval path.
 definePageMeta({
   layout: 'dashboard',
   middleware: 'can',
-  permission: 'PAYMENT_VIEW_OWN',
+  permission: 'COLLECTION_VIEW_OWN',
 })
 
 const { t } = useI18n()
-const { formatDate } = useFormatters()
+const { formatDate, formatMonthYear } = useFormatters()
 
 useSeoMeta({ title: () => t('common.seoTitle', { page: t('payments.mine.title') }) })
 
@@ -22,8 +22,8 @@ const payments = usePayments()
 const { can } = usePermissions()
 const toast = useToast()
 
-const canRegister = computed(() => can('PAYMENT_CREATE_OWN'))
-const canDelete = computed(() => can('PAYMENT_DELETE_OWN'))
+const canRegister = computed(() => can('COLLECTION_CREATE_OWN'))
+const canDelete = computed(() => can('COLLECTION_DELETE_OWN'))
 
 const data = ref<PaymentDto[]>([])
 const total = ref(0)
@@ -56,6 +56,20 @@ function statusLabel(s?: string | null): string {
 }
 function methodLabel(m?: string | null): string {
   return m ? t(`payments.methods.${m}`, m) : t('common.empty')
+}
+
+// Period the payment covers: inscription, one month, or a multi-month
+// advance (V154) — same labels as the admin collection detail.
+function periodLabel(p: PaymentDto): string {
+  if (p.inscription) return t('payments.allocation.inscriptionFull')
+  if (!p.appliedPeriod) return t('common.empty')
+  if (p.coverageThroughPeriod && p.coverageThroughPeriod !== p.appliedPeriod) {
+    return t('payments.allocation.monthlyRange', {
+      from: formatMonthYear(p.appliedPeriod),
+      to: formatMonthYear(p.coverageThroughPeriod),
+    })
+  }
+  return t('payments.allocation.monthlyPeriod', { period: formatMonthYear(p.appliedPeriod) })
 }
 
 function isPending(p: PaymentDto): boolean {
@@ -126,6 +140,7 @@ async function confirmDelete() {
             <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
               <th class="px-5 py-3 font-semibold">{{ t('payments.columns.planReference') }}</th>
               <th class="px-5 py-3 font-semibold">{{ t('payments.columns.amount') }}</th>
+              <th class="px-5 py-3 font-semibold">{{ t('payments.columns.period') }}</th>
               <th class="px-5 py-3 font-semibold">{{ t('payments.columns.method') }}</th>
               <th class="px-5 py-3 font-semibold">{{ t('payments.columns.date') }}</th>
               <th class="px-5 py-3 font-semibold">{{ t('payments.columns.status') }}</th>
@@ -133,9 +148,9 @@ async function confirmDelete() {
             </tr>
           </thead>
           <tbody class="divide-y divide-prohealth-100">
-            <TableSkeleton v-if="loading" :rows="8" :cols="6" />
+            <TableSkeleton v-if="loading" :rows="8" :cols="7" />
             <tr v-else-if="data.length === 0">
-              <td colspan="6" class="px-5 py-12 text-center text-prohealth-500">
+              <td colspan="7" class="px-5 py-12 text-center text-prohealth-500">
                 <UIcon name="i-lucide-receipt" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
                 {{ t('payments.empty') }}
               </td>
@@ -153,6 +168,7 @@ async function confirmDelete() {
                   {{ t('promotions.portal.paymentSaving', { amount: p.discountAmount_Display ?? p.discountAmount, reason: p.discountReason ?? '' }) }}
                 </p>
               </td>
+              <td class="px-5 py-3 text-prohealth-700 whitespace-nowrap">{{ periodLabel(p) }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ methodLabel(p.paymentMethod) }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ p.paymentDate_Display ?? formatDate(p.paymentDate, 'datetime') }}</td>
               <td class="px-5 py-3">

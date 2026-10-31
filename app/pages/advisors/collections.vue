@@ -4,10 +4,10 @@ import { paymentStatusColor } from '~/types/payments'
 
 // "Cobros de mis afiliados" (hub plan payments-unification, "Mis portales") —
 // direction=IN payments from the affiliates in the promoter's own downline
-// (payments.promoter_id, V117). Register/delete (V121, PAYMENT_CREATE_DOWNLINE
-// / PAYMENT_DELETE_DOWNLINE) let the promoter self-manage collections for
+// (payments.promoter_id, V117). Register/delete (V121, COLLECTION_CREATE_DOWNLINE
+// / COLLECTION_DELETE_DOWNLINE) let the promoter self-manage collections for
 // their own portfolio; approve/reject stay admin-only by default (granular
-// permissions exist — PAYMENT_APPROVE_DOWNLINE/PAYMENT_REJECT_DOWNLINE —
+// permissions exist — COLLECTION_APPROVE_DOWNLINE/COLLECTION_REJECT_DOWNLINE —
 // but aren't granted to ASESOR, see V121 header comment).
 definePageMeta({
   layout: 'dashboard',
@@ -24,8 +24,8 @@ const payments = usePayments()
 const { can } = usePermissions()
 const toast = useToast()
 
-const canRegister = computed(() => can('PAYMENT_CREATE_DOWNLINE'))
-const canDelete = computed(() => can('PAYMENT_DELETE_DOWNLINE'))
+const canRegister = computed(() => can('COLLECTION_CREATE_DOWNLINE'))
+const canDelete = computed(() => can('COLLECTION_DELETE_DOWNLINE'))
 
 const data = ref<PaymentDto[]>([])
 const total = ref(0)

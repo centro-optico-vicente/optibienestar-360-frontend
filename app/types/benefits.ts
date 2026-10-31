@@ -22,12 +22,20 @@ export interface BenefitUsageDto {
   memberDocumentNumber?: string | null
   planUuid?: string | null
   planCode?: string | null
+  /** Beneficiary who consumed; null = the holder consumed (GET /v1/me/usage-history). */
+  beneficiaryUuid?: string | null
+  /** Name of whoever consumed: the beneficiary, or the holder. */
+  consumedByName?: string | null
+  /** Beneficiary's relationship to the holder (`BeneficiaryRelationship`); null for the holder. */
+  beneficiaryRelationship?: string | null
 
   // Where + what
   allyUuid: string
   allyName?: string | null
   /** The offer (ally product) consumed, if catalogued. */
   allyProductUuid?: string | null
+  /** Name of the consumed product/service; null when the usage isn't catalogued. */
+  allyProductName?: string | null
   allyUserUuid?: string | null
 
   // When
@@ -52,6 +60,16 @@ export interface BenefitUsageDto {
   // Detail
   metadata?: Record<string, unknown> | null
   notes?: string | null
+
+  // Member's rating (PUT /v1/me/usage-history/{uuid}/rating). All null until rated.
+  /** 1–5 stars given to the ally. */
+  allyRating?: number | null
+  /** 1–5 stars given to the product/service; only when `allyProductUuid` is set. */
+  productRating?: number | null
+  ratingComment?: string | null
+  /** ISO instant of the last (re)rating. */
+  ratedAt?: string | null
+  ratedAt_Display?: string | null
 
   // Audit
   status?: string | null
@@ -86,4 +104,63 @@ export interface BenefitUsageRegisterRequest {
   copayCurrency?: string
   metadata?: Record<string, unknown>
   notes?: string
+  /** Who consumed (V195): one of the membership's beneficiaries; omitted = the holder. */
+  beneficiaryUuid?: string
+}
+
+/** Only REGISTERED usages can be rated (reversed / disputed ones answer 422). */
+export const RATABLE_USAGE_STATUS = 'REGISTERED'
+
+/** Max length of the rating comment (backend validation). */
+export const RATING_COMMENT_MAX = 500
+
+/**
+ * Body of PUT /v1/me/usage-history/{usageUuid}/rating (MEMBER_RATE_USAGE).
+ * Idempotent upsert: calling it again edits the existing rating.
+ *
+ * `productRating` is only accepted when the usage has an `allyProductUuid`;
+ * otherwise omit it (the backend answers 422 `benefit_usage.rating.product_not_applicable`).
+ */
+export interface BenefitUsageRatingRequest {
+  /** 1–5, required. */
+  allyRating: number
+  /** 1–5, only for catalogued usages. */
+  productRating?: number | null
+  /** Optional, max 500 chars. */
+  comment?: string | null
+}
+
+/**
+ * One service in the member's consumption summary
+ * (GET /v1/me/usage-history/summary), most used first. Uncatalogued usages group
+ * by their category, with `productUuid` / `productName` null.
+ */
+export interface UsageServiceSummaryDto {
+  /** Catalog product (not the ally offer); null for uncatalogued usages. */
+  productUuid: string | null
+  productName: string | null
+  productCategoryName: string
+  usageCount: number
+  lastUsageDate: string
+  lastUsageDate_Display?: string | null
+}
+
+/**
+ * Consumption of one family member (GET /v1/me/usage-history/by-person):
+ * the holder (`beneficiaryUuid` null) or a beneficiary. People without usages are absent.
+ */
+export interface UsagePersonSummaryDto {
+  beneficiaryUuid: string | null
+  usageCount: number
+  lastUsageDate: string
+  lastUsageDate_Display?: string | null
+}
+
+/**
+ * "Who consumed" filter of the member's history/summary. `holder` and
+ * `beneficiaryUuid` are mutually exclusive; neither = whole family group.
+ */
+export interface MyUsageScope {
+  holder?: boolean
+  beneficiaryUuid?: string
 }

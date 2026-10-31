@@ -119,6 +119,7 @@ function money(v?: number | string | null): string {
               <template v-else>{{ t('allies.fallbackName') }}</template>
               <template v-if="ally.cityName"> · {{ ally.cityName }}</template>
             </p>
+            <RatingStars :model-value="ally.ratingAvg" :count="ally.ratingCount" show-value show-empty size="md" class="mt-2" />
           </div>
         </div>
 
@@ -200,6 +201,7 @@ function money(v?: number | string | null): string {
                   {{ [typeLabel(s.productType, s.productType_Display), s.categoryName].filter(Boolean).join(' · ') }}
                 </p>
                 <h3 class="font-semibold text-prohealth-900">{{ s.name }}</h3>
+                <RatingStars :model-value="s.ratingAvg" :count="s.ratingCount" show-value size="xs" class="mt-1" />
               </div>
               <div v-if="s.finalPrice != null && s.finalPrice !== ''" class="text-right shrink-0">
                 <p class="font-bold text-prohealth-900">

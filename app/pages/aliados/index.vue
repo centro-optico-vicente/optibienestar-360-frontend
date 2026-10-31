@@ -219,6 +219,7 @@ onMounted(async () => {
                 <template v-else>{{ t('allies.fallbackName') }}</template>
                 <template v-if="a.cityName"> · {{ a.cityName }}</template>
               </p>
+              <RatingStars :model-value="a.ratingAvg" :count="a.ratingCount" show-value size="xs" class="mt-1.5" />
             </div>
             <span class="shrink-0 w-10 h-10 rounded-xl bg-cyan-50 grid place-items-center">
               <UIcon name="i-lucide-handshake" class="w-5 h-5 text-cyan-600" />

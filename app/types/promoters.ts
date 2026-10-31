@@ -259,20 +259,45 @@ export interface PromoterPayoutAccountRequest {
 }
 
 /**
- * One affiliate in a promoter's portfolio — row of `PromoterDashboardDto.portfolio`.
- * `membershipStatus`/`nextDueDate` carry a `_Display` sibling (hub ADR 0014);
- * `monthlyFee` does NOT — same known `MONEY`→VES vs. real USD pricing case
- * (see `PromoterDto`).
+ * Payment situation of a portfolio row, derived by the backend from the
+ * membership status + due date:
+ * - UP_TO_DATE    — ACTIVE and not past `nextDueDate` (al día).
+ * - DUE           — ACTIVE but past `nextDueDate`: hasn't paid yet, still in grace.
+ * - OVERDUE       — SUSPENDED / EXPIRED (moroso).
+ * - NO_MEMBERSHIP — no active membership.
+ */
+export type PromoterPaymentStatus = 'UP_TO_DATE' | 'DUE' | 'OVERDUE' | 'NO_MEMBERSHIP'
+
+/**
+ * One affiliate in a promoter's portfolio — row of `PromoterDashboardDto.portfolio`
+ * (GET /v1/advisors/me and GET /v1/admin/advisors/{uuid}/portfolio). Doubles as
+ * the advisor's "my sales" list: `enrolledAt` is the sale date.
+ * Scalars carry a `_Display` sibling (hub ADR 0014); `monthlyFee_Display` is
+ * NOT used — same known `MONEY`→VES vs. real USD pricing case (see `PromoterDto`).
+ * The backend omits null fields (`@JsonInclude(NON_NULL)`), hence the optionals.
  */
 export interface PromoterMemberRow {
   memberUuid: string
   memberName: string
-  /** ACTIVE = al día; SUSPENDED/EXPIRED = vencida; null = sin membresía activa. */
-  membershipStatus: 'ACTIVE' | 'SUSPENDED' | 'EXPIRED' | null
+  documentNumber?: string | null
+  phone?: string | null
+  planName?: string | null
+  /** Sale / enrollment date (yyyy-MM-dd). */
+  enrolledAt?: string | null
+  enrolledAt_Display?: string | null
+  /** ACTIVE = al día; SUSPENDED/EXPIRED = vencida; null/absent = sin membresía activa. */
+  membershipStatus?: 'ACTIVE' | 'SUSPENDED' | 'EXPIRED' | null
   membershipStatus_Display?: string | null
-  nextDueDate: string | null
+  nextDueDate?: string | null
   nextDueDate_Display?: string | null
-  monthlyFee: number | null
+  /** Last day covered by the member's approved payments. */
+  lastPaidThrough?: string | null
+  lastPaidThrough_Display?: string | null
+  monthlyFee?: number | null
+  monthlyFee_Display?: string | null
+  paymentStatus?: PromoterPaymentStatus | null
+  /** Days past `nextDueDate` (0 when not past it); absent without a due date. */
+  daysOverdue?: number | null
 }
 
 /**

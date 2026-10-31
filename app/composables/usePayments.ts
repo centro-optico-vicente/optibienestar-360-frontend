@@ -36,7 +36,7 @@ interface ListParams {
  * - list/get/support -> PAYMENT_VIEW_ALL
  * - register (multipart) -> PAYMENT_CREATE
  * - approve -> PAYMENT_APPROVE · reject -> PAYMENT_REJECT
- * - mine() -> PAYMENT_VIEW_OWN (authenticated member's history)
+ * - mine() -> COLLECTION_VIEW_OWN (authenticated member's history)
  *
  * Payments are not edited: they are registered and then approved/rejected
  * (human review). A still-PENDING payment (a mistaken registration, not yet
@@ -159,7 +159,7 @@ export const usePayments = () => {
     })
 
   // ---- Member self-service ----
-  /** My payment history (PAYMENT_VIEW_OWN). No RSQL nor free-text. */
+  /** My payment history (COLLECTION_VIEW_OWN). No RSQL nor free-text. */
   const mine = (params: Pick<ListParams, 'page' | 'size' | 'sort'> = {}) =>
     useApi<Page<PaymentDto>>('/v1/me/payments', {
       query: {
@@ -185,7 +185,7 @@ export const usePayments = () => {
       },
     })
 
-  /** Register a payment for the caller's own active membership (PAYMENT_CREATE_OWN). `draft` — see {@link register}. */
+  /** Register a payment for the caller's own active membership (COLLECTION_CREATE_OWN). `draft` — see {@link register}. */
   const registerOwn = (payload: MyPaymentCreateRequest, support?: File | null, draft?: boolean) =>
     useApi<PaymentDto>('/v1/me/payments', { method: 'POST', body: toPaymentForm(payload, support), query: draft ? { draft: true } : {} })
 
@@ -201,12 +201,12 @@ export const usePayments = () => {
   const reactivateToDraftOwn = (uuid: string) =>
     useApi<PaymentDto>(`/v1/me/payments/${uuid}/reactivate`, { method: 'PUT' })
 
-  /** Delete the caller's own still-PENDING payment (PAYMENT_DELETE_OWN). */
+  /** Delete the caller's own still-PENDING payment (COLLECTION_DELETE_OWN). */
   const removeOwn = (uuid: string) =>
     useApi<void>(`/v1/me/payments/${uuid}`, { method: 'DELETE' })
 
   // ---- Promoter downline management (hub plan payments-unification, "Mis portales") ----
-  /** Register a collection for an affiliate in the caller's own downline (PAYMENT_CREATE_DOWNLINE). `draft` — see {@link register}. */
+  /** Register a collection for an affiliate in the caller's own downline (COLLECTION_CREATE_DOWNLINE). `draft` — see {@link register}. */
   const registerForDownline = (payload: DownlinePaymentCreateRequest, support?: File | null, draft?: boolean) =>
     useApi<PaymentDto>('/v1/advisors/me/payments', { method: 'POST', body: toPaymentForm(payload, support), query: draft ? { draft: true } : {} })
 
@@ -222,21 +222,21 @@ export const usePayments = () => {
   const reactivateToDraftForDownline = (uuid: string) =>
     useApi<PaymentDto>(`/v1/advisors/me/payments/${uuid}/reactivate`, { method: 'PUT' })
 
-  /** Approve a PENDING downline collection (PAYMENT_APPROVE_DOWNLINE, not granted by default). */
+  /** Approve a PENDING downline collection (COLLECTION_APPROVE_DOWNLINE, not granted by default). */
   const approveForDownline = (uuid: string, reason?: string) =>
     useApi<PaymentDto>(`/v1/advisors/me/payments/${uuid}/approve`, {
       method: 'PUT',
       body: (reason ? { reason } : {}) as PaymentApproveRequest,
     })
 
-  /** Reject a PENDING downline collection (PAYMENT_REJECT_DOWNLINE, not granted by default). */
+  /** Reject a PENDING downline collection (COLLECTION_REJECT_DOWNLINE, not granted by default). */
   const rejectForDownline = (uuid: string, reason: string) =>
     useApi<PaymentDto>(`/v1/advisors/me/payments/${uuid}/reject`, {
       method: 'PUT',
       body: { reason } as PaymentRejectRequest,
     })
 
-  /** Delete a PENDING downline collection registered by mistake (PAYMENT_DELETE_DOWNLINE). */
+  /** Delete a PENDING downline collection registered by mistake (COLLECTION_DELETE_DOWNLINE). */
   const removeForDownline = (uuid: string) =>
     useApi<void>(`/v1/advisors/me/payments/${uuid}`, { method: 'DELETE' })
 

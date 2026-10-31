@@ -55,6 +55,11 @@ export const PERMISSIONS = [
   'MEMBER_VIEW_ALL',
   'MEMBER_VIEW_OWN',
   'MEMBER_UPLOAD_DOCUMENT',
+  // Rate own benefit usages (ally + product stars), granted to AFILIADO.
+  'MEMBER_RATE_USAGE',
+  'MEMBER_BENEFICIARY_CREATE_OWN',
+  'BENEFICIARY_ACCESS_GRANT_OWN',
+  'BENEFICIARY_ACCESS_REVOKE_OWN',
   // Affiliation requests (backend V188) — review of the public /afiliarse requests.
   // _VIEW_OWN is the advisor's list of the requests from their own QR.
   'AFFILIATION_REQUEST_VIEW_ALL',
@@ -147,15 +152,6 @@ export const PERMISSIONS = [
   'PAYMENT_REJECT',
   'PAYMENT_DELETE',
   'PAYMENT_VIEW_ALL',
-  'PAYMENT_VIEW_OWN',
-  // Self-service (V121, hub plan payments-unification) — AFILIADO over
-  // their own payments, ASESOR over their downline's collections.
-  'PAYMENT_CREATE_OWN',
-  'PAYMENT_DELETE_OWN',
-  'PAYMENT_CREATE_DOWNLINE',
-  'PAYMENT_APPROVE_DOWNLINE',
-  'PAYMENT_REJECT_DOWNLINE',
-  'PAYMENT_DELETE_DOWNLINE',
   'COLLECTION_VIEW_ALL',
   'COLLECTION_VIEW_OWN',
   'COLLECTION_CREATE',

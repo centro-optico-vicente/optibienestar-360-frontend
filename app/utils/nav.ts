@@ -235,7 +235,7 @@ export const MAIN_NAV: NavEntry[] = [
       // Autoservicio (hub plan payments-unification, §"Pantallas requeridas") —
       // mismo endpoint/tabla que las pantallas de admin, filtrado por el
       // propio afiliado/promotor autenticado.
-      { label: 'Mis pagos', labelKey: 'nav.items.myPayments.label', to: '/members/payments', icon: 'i-lucide-receipt', description: 'Tu historial de pagos de membresía.', descriptionKey: 'nav.items.myPayments.description', requires: 'PAYMENT_VIEW_OWN' },
+      { label: 'Mis pagos', labelKey: 'nav.items.myPayments.label', to: '/members/payments', icon: 'i-lucide-receipt', description: 'Tu historial de pagos de membresía.', descriptionKey: 'nav.items.myPayments.description', requires: 'COLLECTION_VIEW_OWN' },
       // Gestión de Cartera del asesor (v2 PDF 2.b): portfolio + collection score,
       // with reminder / payment-promise actions gated by PROMOTER_CONTACT_OWN in-page.
       // Requests that came through the advisor's own QR (backend V188), read-only.

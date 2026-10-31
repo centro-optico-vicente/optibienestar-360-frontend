@@ -55,6 +55,8 @@ export interface BeneficiaryDto {
   documentType?: string
   documentNumber?: string
   birthDate?: string
+  phone?: string | null
+  email?: string | null
   relationship: BeneficiaryRelationship
   extraInscriptionPaid?: boolean
   /** Family-nucleus slot (V178): BASE = included in the plan, EXTRA = paid extension. */
@@ -62,6 +64,8 @@ export interface BeneficiaryDto {
   slotType_Display?: string | null
   status?: string
   createdAt?: string
+  /** The beneficiary has an active login of their own (V195). */
+  hasAccess?: boolean
 }
 
 /**

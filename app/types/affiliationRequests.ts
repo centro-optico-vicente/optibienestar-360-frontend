@@ -98,7 +98,47 @@ export interface AffiliationRequestDetailDto {
   membership_Uuid?: string | null
   createdAt: string
   createdAt_Display?: string | null
+  /** Inscription payment the applicant reported with the request; null when none. */
+  payment?: AffiliationRequestPaymentDto | null
   log: AffiliationRequestLogDto[]
+}
+
+/**
+ * Inscription payment reported on /afiliarse. The amount is the plan's
+ * inscriptionFee (charged server-side, never sent by the applicant). The proof
+ * is fetched through GET /v1/admin/affiliation-requests/{uuid}/payment-support.
+ */
+export interface AffiliationRequestPaymentDto {
+  paymentMethodName?: string | null
+  bankName?: string | null
+  referenceNumber?: string | null
+  amount?: number | string | null
+  amount_Display?: string | null
+  currencyCode?: string | null
+  paymentDate?: string | null
+  paymentDate_Display?: string | null
+  identification?: string | null
+  phone?: string | null
+  email?: string | null
+  bankAccountIdentifier?: string | null
+  supportFileName?: string | null
+  hasSupport: boolean
+  paymentUuid?: string | null
+}
+
+/** Optional `payment` of the public POST /v1/public/affiliation-requests. */
+export interface AffiliationRequestPaymentRequest {
+  paymentMethodUuid: string
+  bankUuid?: string
+  identification?: string
+  bankAccountType?: string
+  bankAccountCode?: string
+  bankAccountIdentifier?: string
+  phone?: string
+  email?: string
+  referenceNumber?: string
+  /** ISO instant, not in the future. */
+  paymentDate: string
 }
 
 export interface AffiliationRequestUpdateRequest {

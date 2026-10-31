@@ -9,10 +9,17 @@
 // (GET /v1/public/terms/AFILIADO). While the form is filled, the contract is
 // re-rendered with the typed data (POST /v1/public/terms/AFILIADO/preview,
 // debounced); if the preview fails the plain public text is shown instead.
+// The applicant may also report the plan's inscription payment (optional
+// `payment` object; the backend charges the plan's inscriptionFee, so no amount
+// is sent). With a proof file the request goes as multipart: `request` (JSON)
+// + `support` (file). ?plan=<uuid> preselects the plan.
 import MarkdownIt from 'markdown-it'
 import DOMPurify from 'dompurify'
 import { PLAN_TYPES } from '~/types/plans'
 import { TERM_TYPES } from '~/types/terms'
+import { BANK_ACCOUNT_TYPE_OPTIONS } from '~/types/payments'
+import type { CatalogItem } from '~/types/catalogs'
+import type { AffiliationRequestPaymentRequest } from '~/types/affiliationRequests'
 
 // English pair of this public screen (hub URL convention): same page, rendered
 // in English by middleware/public-locale.global.ts. The printed QRs keep
@@ -55,11 +62,15 @@ function isSelfServicePlan(p: PublicPlan): boolean {
 const plans = ref<PublicPlan[]>([])
 onMounted(async () => {
   loadTerms()
+  loadPaymentCatalogs()
   try {
     const res = await useApi<PublicPlan[] | { content: PublicPlan[] }>('/v1/public/plans', { skipAuth: true })
     const all = Array.isArray(res) ? res : res.content ?? []
     plans.value = all.filter(isSelfServicePlan)
-    if (plans.value.length === 1) state.planUuid = plans.value[0]!.uuid
+    // ?plan=<uuid> (plan pages / campaigns) wins; a single plan is auto-picked.
+    const queryPlan = String(route.query.plan ?? '').trim()
+    if (queryPlan && plans.value.some(p => p.uuid === queryPlan)) state.planUuid = queryPlan
+    else if (plans.value.length === 1) state.planUuid = plans.value[0]!.uuid
   }
   catch {
     plans.value = []
@@ -116,7 +127,123 @@ const state = reactive({
   email: '', phone: '', password: '', passwordConfirm: '', planUuid: '',
 })
 const sending = ref(false)
-const done = ref<{ email: string, advisorName?: string | null } | null>(null)
+const done = ref<{ email: string, advisorName?: string | null, paymentReported?: boolean } | null>(null)
+
+// ---- Inscription payment (optional) ----
+// Same method-dependent fields as MyPaymentFormModal, driven by the method's
+// mandatory* flags; catalogs come from the public endpoints (no login yet).
+const methodItems = ref<CatalogItem[]>([])
+const bankItems = ref<CatalogItem[]>([])
+const methodOptions = computed(() => methodItems.value.map(m => ({ label: m.name, value: m.uuid })))
+const bankOptions = computed(() => bankItems.value.map(b => ({ label: b.code ? `${b.code} — ${b.name}` : b.name, value: b.uuid })))
+const loadingMethods = ref(false)
+
+async function loadPaymentCatalogs(): Promise<void> {
+  loadingMethods.value = true
+  try {
+    const [methods, banks] = await Promise.all([
+      useApi<CatalogItem[]>('/v1/public/payment-methods', { skipAuth: true, silent: true }),
+      useApi<CatalogItem[]>('/v1/public/banks', { skipAuth: true, silent: true }),
+    ])
+    methodItems.value = (methods ?? []).filter(m => m.active)
+    bankItems.value = (banks ?? []).filter(b => b.active)
+  }
+  catch {
+    methodItems.value = []
+    bankItems.value = []
+  }
+  finally {
+    loadingMethods.value = false
+  }
+}
+
+function localToday(): string {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+const today = localToday()
+
+const payment = reactive({
+  reported: true,
+  paymentMethodUuid: '', bankUuid: '', identification: '', bankAccountType: '', bankAccountCode: '',
+  bankAccountIdentifier: '', phone: '', email: '', referenceNumber: '', paymentDate: today,
+})
+const selectedMethod = computed(() => methodItems.value.find(m => m.uuid === payment.paymentMethodUuid) ?? null)
+const selectedBank = computed(() => bankItems.value.find(b => b.uuid === payment.bankUuid) ?? null)
+const inscriptionDue = computed(() => Number(selectedPlan.value?.inscriptionFee ?? 0) > 0)
+// Without methods (endpoint down / none active) the section degrades to the
+// "pay later" note instead of blocking the request.
+const paymentAvailable = computed(() => inscriptionDue.value && !loadingMethods.value && methodItems.value.length > 0)
+const sendsPayment = computed(() => paymentAvailable.value && payment.reported)
+
+// Same as MyPaymentFormModal: prefix the account code with the bank's SUDEBAN code.
+watch(() => payment.bankUuid, (uuid) => {
+  const bank = uuid ? selectedBank.value : null
+  if (!bank?.code || !selectedMethod.value?.mandatoryAccountCode) return
+  const prefix = `${bank.code}-`
+  if (!payment.bankAccountCode.startsWith(prefix)) payment.bankAccountCode = prefix
+})
+
+const supportFile = ref<File | null>(null)
+const fileInput = ref<HTMLInputElement | null>(null)
+function onFileChange(e: Event) {
+  supportFile.value = (e.target as HTMLInputElement).files?.[0] ?? null
+}
+function clearFile() {
+  supportFile.value = null
+  if (fileInput.value) fileInput.value.value = ''
+}
+function formatSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
+function paymentInvalid(): string | null {
+  const m = selectedMethod.value
+  if (!m) return t('affiliationRequest.payment.errorMethod')
+  const required: [boolean | undefined, string, string][] = [
+    [m.mandatoryIdentification, payment.identification, 'identification'],
+    [m.mandatoryBank, payment.bankUuid, 'bank'],
+    [m.mandatoryBankAccount, payment.bankAccountIdentifier, 'accountIdentifier'],
+    [m.mandatoryAccountType, payment.bankAccountType, 'accountType'],
+    [m.mandatoryAccountCode, payment.bankAccountCode, 'accountCode'],
+    [m.mandatoryPhone, payment.phone, 'phone'],
+    [m.mandatoryEmail, payment.email, 'email'],
+    [m.mandatoryReferenceNumber, payment.referenceNumber, 'reference'],
+  ]
+  for (const [mandatory, value, key] of required) {
+    if (mandatory && !value.trim()) return t('affiliationRequest.payment.errorField', { field: t(`affiliationRequest.payment.${key}`) })
+  }
+  if (m.mandatoryEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payment.email.trim())) return t('affiliationRequest.payment.errorEmail')
+  if (!payment.paymentDate) return t('affiliationRequest.payment.errorDate')
+  if (payment.paymentDate > today) return t('affiliationRequest.payment.errorDateFuture')
+  return null
+}
+
+// The date input is day-only; paymentDate is an instant that must not be in
+// the future: today -> now, an earlier day -> local noon of that day.
+function paymentDateIso(date: string): string {
+  return date === today ? new Date().toISOString() : new Date(`${date}T12:00:00`).toISOString()
+}
+
+function buildPayment(): AffiliationRequestPaymentRequest {
+  const m = selectedMethod.value
+  // Only the fields the method asks for travel (hidden inputs may keep stale values).
+  const pick = (flag: boolean | undefined, value: string) => (flag && value.trim()) || undefined
+  return {
+    paymentMethodUuid: payment.paymentMethodUuid,
+    bankUuid: pick(m?.mandatoryBank, payment.bankUuid),
+    identification: pick(m?.mandatoryIdentification, payment.identification),
+    bankAccountType: pick(m?.mandatoryAccountType, payment.bankAccountType),
+    bankAccountCode: pick(m?.mandatoryAccountCode, payment.bankAccountCode),
+    bankAccountIdentifier: pick(m?.mandatoryBankAccount, payment.bankAccountIdentifier),
+    phone: pick(m?.mandatoryPhone, payment.phone),
+    email: pick(m?.mandatoryEmail, payment.email),
+    referenceNumber: payment.referenceNumber.trim() || undefined,
+    paymentDate: paymentDateIso(payment.paymentDate),
+  }
+}
 
 // ---- Live contract preview ----
 let previewSeq = 0
@@ -165,6 +292,7 @@ function invalid(): string | null {
   if (state.password !== state.passwordConfirm) return t('affiliationRequest.passwordMismatch')
   if (!terms.value) return t('affiliationRequest.termsUnavailable')
   if (!termsAccepted.value) return t('affiliationRequest.termsRequired')
+  if (sendsPayment.value) return paymentInvalid()
   return null
 }
 
@@ -176,24 +304,36 @@ async function submit() {
   }
   sending.value = true
   try {
+    const withPayment = sendsPayment.value
+    const request = {
+      firstName: state.firstName.trim(),
+      lastName: state.lastName.trim(),
+      documentType: state.documentType,
+      documentNumber: state.documentNumber.trim(),
+      birthDate: state.birthDate,
+      email: state.email.trim(),
+      phone: state.phone.trim() || undefined,
+      password: state.password,
+      planUuid: state.planUuid,
+      referralCode: referralCode.value || undefined,
+      termsVersionUuid: terms.value!.uuid,
+      payment: withPayment ? buildPayment() : undefined,
+    }
+    // With a proof: multipart `request` (JSON part) + `support`, same technique
+    // as usePayments().registerOwn; ofetch sets the boundary itself.
+    let body: typeof request | FormData = request
+    if (withPayment && supportFile.value) {
+      const form = new FormData()
+      form.append('request', new Blob([JSON.stringify(request)], { type: 'application/json' }))
+      form.append('support', supportFile.value)
+      body = form
+    }
     const res = await useApi<{ uuid: string, status: string, email: string, advisorName?: string | null }>('/v1/public/affiliation-requests', {
       method: 'POST',
       skipAuth: true,
-      body: {
-        firstName: state.firstName.trim(),
-        lastName: state.lastName.trim(),
-        documentType: state.documentType,
-        documentNumber: state.documentNumber.trim(),
-        birthDate: state.birthDate,
-        email: state.email.trim(),
-        phone: state.phone.trim() || undefined,
-        password: state.password,
-        planUuid: state.planUuid,
-        referralCode: referralCode.value || undefined,
-        termsVersionUuid: terms.value!.uuid,
-      },
+      body,
     })
-    done.value = res
+    done.value = { ...res, paymentReported: withPayment }
   }
   catch {
     // useApi already shows the backend's localized error toast. A newer terms
@@ -214,6 +354,7 @@ async function submit() {
           <UIcon name="i-lucide-mail-check" class="w-12 h-12 mx-auto text-green-500" />
           <h1 class="text-2xl font-extrabold text-prohealth-900">{{ t('affiliationRequest.sentTitle') }}</h1>
           <p class="text-sm text-prohealth-600">{{ t('affiliationRequest.sentBody', { email: done.email }) }}</p>
+          <p v-if="done.paymentReported" class="text-sm text-prohealth-600">{{ t('affiliationRequest.payment.sentNote') }}</p>
           <p v-if="done.advisorName" class="text-xs text-prohealth-500">{{ t('affiliationRequest.sentPromoter', { name: done.advisorName }) }}</p>
           <UButton :to="publicPath('/')" color="primary" variant="outline" icon="i-lucide-house" class="mt-2">{{ t('affiliationRequest.backHome') }}</UButton>
         </div>
@@ -272,6 +413,83 @@ async function submit() {
                 <CurrencyConverterTrigger :result="result" />
               </span>
             </CurrencyConverterDisplay>
+          </div>
+          <!-- Inscription payment (optional): the fields follow the method's mandatory* flags. -->
+          <div class="sm:col-span-2 rounded-xl border border-prohealth-100 p-4 space-y-3">
+            <p class="text-sm font-semibold text-prohealth-900">{{ t('affiliationRequest.payment.title') }}</p>
+            <p v-if="!selectedPlan" class="text-sm text-prohealth-500">{{ t('affiliationRequest.payment.choosePlanFirst') }}</p>
+            <p v-else-if="!inscriptionDue" class="text-sm text-prohealth-500">{{ t('affiliationRequest.payment.noFee') }}</p>
+            <p v-else-if="!loadingMethods && !methodItems.length" class="text-sm text-prohealth-500">{{ t('affiliationRequest.payment.methodsUnavailable') }}</p>
+            <template v-else>
+              <USwitch v-model="payment.reported" :label="t('affiliationRequest.payment.paidSwitch')" />
+              <p v-if="!payment.reported" class="text-xs text-prohealth-500">{{ t('affiliationRequest.payment.laterNote') }}</p>
+              <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <UFormField :label="t('affiliationRequest.payment.amount')" class="sm:col-span-2">
+                  <CurrencyConverterDisplay :amount="selectedPlan.inscriptionFee!" :currency="selectedPlan.currency_Code || 'USD'" v-slot="{ result }">
+                    <span class="inline-flex items-center gap-1 text-sm text-prohealth-700">
+                      <strong>{{ money(selectedPlan.inscriptionFee, selectedPlan.currency_Code) }}</strong>
+                      <CurrencyConverterTrigger :result="result" />
+                    </span>
+                  </CurrencyConverterDisplay>
+                </UFormField>
+                <UFormField :label="t('affiliationRequest.payment.method')" required>
+                  <USelectMenu
+                    v-model="payment.paymentMethodUuid"
+                    :items="methodOptions"
+                    label-key="label"
+                    value-key="value"
+                    :loading="loadingMethods"
+                    :placeholder="t('affiliationRequest.payment.methodPlaceholder')"
+                    class="w-full"
+                  />
+                </UFormField>
+                <UFormField :label="t('affiliationRequest.payment.date')" required>
+                  <UInput v-model="payment.paymentDate" type="date" :max="today" class="w-full" />
+                </UFormField>
+                <UFormField v-if="selectedMethod?.mandatoryIdentification" :label="t('affiliationRequest.payment.identification')" required>
+                  <UInput v-model="payment.identification" class="w-full" maxlength="30" />
+                </UFormField>
+                <UFormField v-if="selectedMethod?.mandatoryBank" :label="t('affiliationRequest.payment.bank')" required>
+                  <USelectMenu v-model="payment.bankUuid" :items="bankOptions" label-key="label" value-key="value" :placeholder="t('affiliationRequest.payment.bankPlaceholder')" class="w-full" />
+                </UFormField>
+                <UFormField v-if="selectedMethod?.mandatoryBankAccount" :label="t('affiliationRequest.payment.accountIdentifier')" required>
+                  <UInput v-model="payment.bankAccountIdentifier" class="w-full" />
+                </UFormField>
+                <UFormField v-if="selectedMethod?.mandatoryAccountType" :label="t('affiliationRequest.payment.accountType')" required>
+                  <USelectMenu v-model="payment.bankAccountType" :items="BANK_ACCOUNT_TYPE_OPTIONS" label-key="label" value-key="value" :placeholder="t('affiliationRequest.payment.accountTypePlaceholder')" class="w-full" />
+                </UFormField>
+                <UFormField v-if="selectedMethod?.mandatoryAccountCode" :label="t('affiliationRequest.payment.accountCode')" required>
+                  <UInput v-model="payment.bankAccountCode" class="w-full" />
+                </UFormField>
+                <UFormField v-if="selectedMethod?.mandatoryPhone" :label="t('affiliationRequest.payment.phone')" required>
+                  <UInput v-model="payment.phone" class="w-full" maxlength="30" />
+                </UFormField>
+                <UFormField v-if="selectedMethod?.mandatoryEmail" :label="t('affiliationRequest.payment.email')" required>
+                  <UInput v-model="payment.email" type="email" class="w-full" maxlength="254" />
+                </UFormField>
+                <UFormField :label="t('affiliationRequest.payment.reference')" :help="t('affiliationRequest.payment.referenceHelp')" :required="Boolean(selectedMethod?.mandatoryReferenceNumber)" class="sm:col-span-2">
+                  <UInput v-model="payment.referenceNumber" class="w-full" maxlength="80" placeholder="0012345678" />
+                </UFormField>
+                <UFormField :label="t('affiliationRequest.payment.proof')" class="sm:col-span-2">
+                  <div class="flex flex-wrap items-center gap-3">
+                    <input
+                      ref="fileInput"
+                      type="file"
+                      accept="image/*,application/pdf"
+                      class="block w-full max-w-xs text-sm text-prohealth-600 file:mr-3 file:rounded-lg file:border-0 file:bg-prohealth-50 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-prohealth-700 hover:file:bg-prohealth-100"
+                      @change="onFileChange"
+                    >
+                    <div v-if="supportFile" class="flex items-center gap-2 text-xs text-prohealth-600">
+                      <UIcon name="i-lucide-paperclip" class="w-4 h-4" />
+                      <span class="font-medium">{{ supportFile.name }}</span>
+                      <span class="text-prohealth-400">({{ formatSize(supportFile.size) }})</span>
+                      <UButton type="button" color="neutral" variant="ghost" icon="i-lucide-x" size="xs" :aria-label="t('affiliationRequest.payment.removeProof')" @click="clearFile" />
+                    </div>
+                  </div>
+                  <p class="text-xs text-prohealth-500 mt-1">{{ t('affiliationRequest.payment.proofHelp') }}</p>
+                </UFormField>
+              </div>
+            </template>
           </div>
           <div class="sm:col-span-2 rounded-xl border border-prohealth-100 p-4 space-y-3">
             <p class="text-sm font-semibold text-prohealth-900">{{ t('affiliationRequest.termsTitle') }}</p>

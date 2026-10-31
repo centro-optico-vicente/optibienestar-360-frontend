@@ -146,6 +146,7 @@ onMounted(load)
               {{ [typeLabel, product.categoryName].filter(Boolean).join(' · ') }}
             </p>
             <h1 class="text-2xl lg:text-3xl font-extrabold text-prohealth-900 mt-1">{{ product.name }}</h1>
+            <RatingStars :model-value="product.ratingAvg" :count="product.ratingCount" show-value show-empty size="md" class="mt-2" />
             <p v-if="product.description" class="text-prohealth-700 mt-3 whitespace-pre-line">{{ product.description }}</p>
             <div v-if="product.requiresAppointment" class="flex items-center gap-1.5 mt-3 text-sm text-cyan-700">
               <UIcon name="i-lucide-calendar-check" class="w-4 h-4" />
@@ -206,6 +207,16 @@ onMounted(load)
                   <p class="text-xs text-prohealth-500">
                     {{ [o.allyTypeNames?.join(', '), o.allyCityName].filter(Boolean).join(' · ') }}
                   </p>
+                  <div v-if="o.ratingAvg != null || o.allyRatingAvg != null" class="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 text-xs text-prohealth-500">
+                    <span v-if="o.ratingAvg != null" class="inline-flex items-center gap-1">
+                      {{ t('rating.offerPrefix') }}
+                      <RatingStars :model-value="o.ratingAvg" :count="o.ratingCount" show-value size="xs" :label="t('rating.offerPrefix')" />
+                    </span>
+                    <span v-if="o.allyRatingAvg != null" class="inline-flex items-center gap-1">
+                      {{ t('rating.allyPrefix') }}
+                      <RatingStars :model-value="o.allyRatingAvg" :count="o.allyRatingCount" show-value size="xs" :label="t('rating.allyPrefix')" />
+                    </span>
+                  </div>
                 </div>
               </div>
               <UBadge v-if="i === 0 && product.offers.length > 1" color="success" variant="subtle" size="sm">

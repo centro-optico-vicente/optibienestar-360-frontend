@@ -5,6 +5,7 @@ import type {
   AffiliationRequestStatus,
   AffiliationRequestUpdateRequest,
 } from '~/types/affiliationRequests'
+import type { PaymentSupportUrlDto } from '~/types/payments'
 
 interface ListParams {
   page?: number
@@ -49,6 +50,13 @@ export const useAffiliationRequests = () => {
       body: { reason },
     })
 
+  /**
+   * Presigned URL of the proof attached to the reported inscription payment
+   * (same shape as the payments' /support). 404 when there is no proof.
+   */
+  const paymentSupportUrl = (uuid: string) =>
+    useApi<PaymentSupportUrlDto>(`/v1/admin/affiliation-requests/${uuid}/payment-support`)
+
   /** Advisor portal: the requests that came through the caller's own QR. */
   const mine = (params: { page?: number, size?: number, status?: AffiliationRequestStatus } = {}) =>
     useApi<Page<AffiliationRequestListItemDto>>('/v1/advisors/me/affiliation-requests', {
@@ -59,5 +67,5 @@ export const useAffiliationRequests = () => {
       },
     })
 
-  return { list, get, update, approve, reject, mine }
+  return { list, get, update, approve, reject, paymentSupportUrl, mine }
 }

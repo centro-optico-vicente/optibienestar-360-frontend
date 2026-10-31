@@ -441,6 +441,9 @@ export interface PublicAllyListItemDto {
   instagram?: string | null
   facebook?: string | null
   googleMapsUrl?: string | null
+  /** Average member rating of the ally (1 decimal, 1–5); null with no votes. */
+  ratingAvg?: number | null
+  ratingCount?: number
 }
 
 /**
@@ -483,6 +486,9 @@ export interface PublicAllyProductDto {
    * unpublished product's offer still shows on its ally's own page.
    */
   inCatalog?: boolean
+  /** Average member rating of this offer (1 decimal, 1–5); null with no votes. */
+  ratingAvg?: number | null
+  ratingCount?: number
 }
 
 /** Public partner profile (GET /v1/public/allies/{uuid} — backend `PublicAllyDetailDto`). */

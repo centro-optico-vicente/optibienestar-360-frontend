@@ -6,7 +6,7 @@ import { BANK_ACCOUNT_TYPE_OPTIONS } from '~/types/payments'
 import type { CatalogItem } from '~/types/catalogs'
 
 // Promoter self-service registration on behalf of a downline affiliate
-// (POST /v1/advisors/me/payments, multipart, PAYMENT_CREATE_DOWNLINE). The
+// (POST /v1/advisors/me/payments, multipart, COLLECTION_CREATE_DOWNLINE). The
 // member picker is the caller's own portfolio (GET /v1/advisors/me) rather
 // than a global member search — a promoter only ever registers for their
 // own downline, and the backend re-verifies that ownership regardless.

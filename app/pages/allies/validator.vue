@@ -283,8 +283,18 @@ function onRegistered(usage: BenefitUsageDto) {
 
         <!-- Identity: present whenever the document matched a person, even if not solvent -->
         <dl v-if="result.memberFullName" class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm pt-2 border-t border-prohealth-900/5">
+          <!-- A beneficiary presented their own document: covered by the holder below -->
+          <div v-if="result.beneficiaryFullName" class="flex items-center justify-between sm:block">
+            <dt class="text-prohealth-500">{{ t('validator.result.beneficiary') }}</dt>
+            <dd class="font-semibold text-prohealth-900">
+              {{ result.beneficiaryFullName }}
+              <span v-if="result.beneficiaryRelationship" class="font-normal text-prohealth-500">
+                · {{ t(`members.relationships.${result.beneficiaryRelationship}`, result.beneficiaryRelationship) }}
+              </span>
+            </dd>
+          </div>
           <div class="flex items-center justify-between sm:block">
-            <dt class="text-prohealth-500">{{ t('validator.result.member') }}</dt>
+            <dt class="text-prohealth-500">{{ result.beneficiaryFullName ? t('validator.result.holder') : t('validator.result.member') }}</dt>
             <dd class="font-semibold text-prohealth-900">{{ result.memberFullName }}</dd>
           </div>
           <div class="flex items-center justify-between sm:block">

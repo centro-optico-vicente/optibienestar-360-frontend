@@ -6,6 +6,7 @@ import type {
   PromoterDashboardDto,
   PromoterMemberContactDto,
   PromoterMemberRow,
+  PromoterPaymentStatus,
 } from '~/types/promoters'
 import { todayInCaracas } from '~/utils/date'
 
@@ -16,6 +17,9 @@ import { todayInCaracas } from '~/utils/date'
 // payment-promise (PROMOTER_CONTACT_OWN) and the contact history
 // (PROMOTER_VIEW_OWN). The backend has no "last contact" per portfolio row,
 // so the history is fetched on demand per affiliate.
+// Each row doubles as one of the advisor's sales (`enrolledAt` = sale date) and
+// carries its `paymentStatus` + `daysOverdue`, so the advisor sees at a glance
+// who isn't up to date — delinquent and most overdue first.
 definePageMeta({
   layout: 'dashboard',
   middleware: 'can',
@@ -62,51 +66,85 @@ async function load() {
 
 onMounted(load)
 
-// ---- Client-side filter + search (the portfolio is an embedded array, not a paged endpoint) ----
-type PortfolioBucket = 'upToDate' | 'overdue' | 'withoutMembership'
-type PortfolioFilter = 'all' | PortfolioBucket
+// ---- Client-side filter + search + sort (the portfolio is an embedded array, not a paged endpoint) ----
+type PortfolioFilter = 'all' | PromoterPaymentStatus
+type ChipColor = 'primary' | 'success' | 'warning' | 'error' | 'neutral'
 
 const filter = ref<PortfolioFilter>('all')
 const search = ref('')
 
-function bucketOf(row: PromoterMemberRow): PortfolioBucket {
-  if (row.membershipStatus === 'ACTIVE') return 'upToDate'
-  if (row.membershipStatus === 'SUSPENDED' || row.membershipStatus === 'EXPIRED') return 'overdue'
-  return 'withoutMembership'
+const PAYMENT_STATUSES: PromoterPaymentStatus[] = ['UP_TO_DATE', 'DUE', 'OVERDUE', 'NO_MEMBERSHIP']
+
+const STATUS_META: Record<PromoterPaymentStatus, { filterKey: string, color: ChipColor, rank: number }> = {
+  OVERDUE: { filterKey: 'overdue', color: 'error', rank: 0 },
+  DUE: { filterKey: 'due', color: 'warning', rank: 1 },
+  UP_TO_DATE: { filterKey: 'upToDate', color: 'success', rank: 2 },
+  NO_MEMBERSHIP: { filterKey: 'withoutMembership', color: 'neutral', rank: 3 },
+}
+
+/** Backend-derived status; falls back to the membership status for older payloads. */
+function statusOf(row: PromoterMemberRow): PromoterPaymentStatus {
+  if (row.paymentStatus) return row.paymentStatus
+  if (row.membershipStatus === 'ACTIVE') return (row.daysOverdue ?? 0) > 0 ? 'DUE' : 'UP_TO_DATE'
+  if (row.membershipStatus === 'SUSPENDED' || row.membershipStatus === 'EXPIRED') return 'OVERDUE'
+  return 'NO_MEMBERSHIP'
 }
 
 const rows = computed(() => dashboard.value?.portfolio ?? [])
 
-const bucketCounts = computed(() => {
-  const counts: Record<PortfolioBucket, number> = { upToDate: 0, overdue: 0, withoutMembership: 0 }
-  for (const r of rows.value) counts[bucketOf(r)]++
+const statusCounts = computed(() => {
+  const counts: Record<PromoterPaymentStatus, number> = { UP_TO_DATE: 0, DUE: 0, OVERDUE: 0, NO_MEMBERSHIP: 0 }
+  for (const r of rows.value) counts[statusOf(r)]++
   return counts
 })
 
+/** Lowercase, accent-free, for name matching. */
+function normalize(v: string): string {
+  return v.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase()
+}
+/** Alphanumerics only, so "V-12.345.678" matches "12345678". */
+function docKey(v: string): string {
+  return v.replace(/[^0-9a-z]/gi, '').toLocaleLowerCase()
+}
+
 const filteredRows = computed(() => {
-  const q = search.value.trim().toLocaleLowerCase()
-  return rows.value.filter(r =>
-    (filter.value === 'all' || bucketOf(r) === filter.value)
-    && (!q || r.memberName.toLocaleLowerCase().includes(q)),
-  )
+  const q = normalize(search.value.trim())
+  const qDoc = docKey(search.value)
+  return rows.value
+    .filter(r =>
+      (filter.value === 'all' || statusOf(r) === filter.value)
+      && (!q
+        || normalize(r.memberName).includes(q)
+        || (!!qDoc && !!r.documentNumber && docKey(r.documentNumber).includes(qDoc))),
+    )
+    // Default order: delinquent first, then pending; most days overdue first; then name.
+    .sort((a, b) =>
+      STATUS_META[statusOf(a)].rank - STATUS_META[statusOf(b)].rank
+      || (b.daysOverdue ?? 0) - (a.daysOverdue ?? 0)
+      || a.memberName.localeCompare(b.memberName),
+    )
 })
 
-const filterOptions = computed<{ value: PortfolioFilter, label: string, count: number, color: 'primary' | 'success' | 'warning' | 'neutral' }[]>(() => [
+const filterOptions = computed<{ value: PortfolioFilter, label: string, count: number, color: ChipColor }[]>(() => [
   { value: 'all', label: t('promoterSelf.portfolio.filters.all'), count: rows.value.length, color: 'primary' },
-  { value: 'upToDate', label: t('promoterSelf.portfolio.filters.upToDate'), count: bucketCounts.value.upToDate, color: 'success' },
-  { value: 'overdue', label: t('promoterSelf.portfolio.filters.overdue'), count: bucketCounts.value.overdue, color: 'warning' },
-  { value: 'withoutMembership', label: t('promoterSelf.portfolio.filters.withoutMembership'), count: bucketCounts.value.withoutMembership, color: 'neutral' },
+  ...PAYMENT_STATUSES.map(s => ({
+    value: s,
+    label: t(`promoterSelf.portfolio.filters.${STATUS_META[s].filterKey}`),
+    count: statusCounts.value[s],
+    color: STATUS_META[s].color,
+  })),
 ])
 
 function statusLabel(row: PromoterMemberRow): string {
-  return t(`promoterSelf.portfolio.status.${bucketOf(row)}`)
+  return t(`promoterSelf.portfolio.status.${statusOf(row)}`)
 }
 
-function statusColor(row: PromoterMemberRow): 'success' | 'warning' | 'neutral' {
-  const b = bucketOf(row)
-  if (b === 'upToDate') return 'success'
-  if (b === 'overdue') return 'warning'
-  return 'neutral'
+function statusColor(row: PromoterMemberRow): ChipColor {
+  return STATUS_META[statusOf(row)].color
+}
+
+function dateCell(value?: string | null, display?: string | null): string {
+  return display ?? (value ? formatDate(value, 'short') : t('common.empty'))
 }
 
 // Monthly fees are priced in USD (same rationale as the admin portfolio tab
@@ -300,15 +338,20 @@ function contactTypeIcon(type: PromoterContactType): string {
             <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
               <th class="px-5 py-3 font-semibold">{{ t('promoterSelf.portfolio.columns.member') }}</th>
               <th class="px-5 py-3 font-semibold">{{ t('promoterSelf.portfolio.columns.status') }}</th>
-              <th class="px-5 py-3 font-semibold">{{ t('promoterSelf.portfolio.columns.nextDueDate') }}</th>
+              <th class="px-5 py-3 font-semibold text-right whitespace-nowrap">{{ t('promoterSelf.portfolio.columns.daysOverdue') }}</th>
+              <th class="px-5 py-3 font-semibold">{{ t('promoterSelf.portfolio.columns.plan') }}</th>
+              <th class="px-5 py-3 font-semibold whitespace-nowrap">{{ t('promoterSelf.portfolio.columns.enrolledAt') }}</th>
+              <th class="px-5 py-3 font-semibold whitespace-nowrap">{{ t('promoterSelf.portfolio.columns.nextDueDate') }}</th>
+              <th class="px-5 py-3 font-semibold whitespace-nowrap">{{ t('promoterSelf.portfolio.columns.lastPaidThrough') }}</th>
               <th class="px-5 py-3 font-semibold">{{ t('promoterSelf.portfolio.columns.monthlyFee') }}</th>
+              <th class="px-5 py-3 font-semibold">{{ t('promoterSelf.portfolio.columns.phone') }}</th>
               <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-prohealth-100">
-            <TableSkeleton v-if="loading" :rows="8" :cols="5" />
+            <TableSkeleton v-if="loading" :rows="8" :cols="10" />
             <tr v-else-if="loadFailed">
-              <td colspan="5" class="px-5 py-12 text-center text-prohealth-500">
+              <td colspan="10" class="px-5 py-12 text-center text-prohealth-500">
                 <UIcon name="i-lucide-circle-alert" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
                 <p>{{ t('promoterSelf.portfolio.loadError') }}</p>
                 <UButton class="mt-3" size="sm" variant="soft" icon="i-lucide-refresh-cw" @click="load">
@@ -317,19 +360,33 @@ function contactTypeIcon(type: PromoterContactType): string {
               </td>
             </tr>
             <tr v-else-if="filteredRows.length === 0">
-              <td colspan="5" class="px-5 py-12 text-center text-prohealth-500">
+              <td colspan="10" class="px-5 py-12 text-center text-prohealth-500">
                 <UIcon name="i-lucide-users" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
                 {{ rows.length === 0 ? t('promoterSelf.portfolio.empty') : t('promoterSelf.portfolio.noMatches') }}
               </td>
             </tr>
             <tr v-for="r in filteredRows" v-else :key="r.memberUuid" class="hover:bg-prohealth-50/50">
-              <td class="px-5 py-3 font-semibold text-prohealth-800">{{ r.memberName }}</td>
               <td class="px-5 py-3">
-                <UBadge :color="statusColor(r)" variant="subtle" size="sm">
-                  {{ r.membershipStatus_Display ?? statusLabel(r) }}
-                </UBadge>
+                <p class="font-semibold text-prohealth-800">{{ r.memberName }}</p>
+                <p v-if="r.documentNumber" class="text-xs text-prohealth-500">{{ r.documentNumber }}</p>
               </td>
-              <td class="px-5 py-3 text-prohealth-600">{{ r.nextDueDate_Display ?? formatDate(r.nextDueDate, 'short') }}</td>
+              <td class="px-5 py-3">
+                <UTooltip :text="r.membershipStatus_Display ?? ''" :disabled="!r.membershipStatus_Display">
+                  <UBadge :color="statusColor(r)" variant="subtle" size="sm" class="whitespace-nowrap">
+                    {{ statusLabel(r) }}
+                  </UBadge>
+                </UTooltip>
+              </td>
+              <td class="px-5 py-3 text-right whitespace-nowrap">
+                <span v-if="(r.daysOverdue ?? 0) > 0" class="font-bold" :class="statusOf(r) === 'OVERDUE' ? 'text-error' : 'text-warning'">
+                  {{ t('promoterSelf.portfolio.daysOverdueValue', { count: r.daysOverdue }, r.daysOverdue ?? 0) }}
+                </span>
+                <span v-else class="text-prohealth-400">{{ r.daysOverdue === 0 ? '0' : t('common.empty') }}</span>
+              </td>
+              <td class="px-5 py-3 text-prohealth-700">{{ r.planName ?? t('common.empty') }}</td>
+              <td class="px-5 py-3 text-prohealth-600 whitespace-nowrap">{{ dateCell(r.enrolledAt, r.enrolledAt_Display) }}</td>
+              <td class="px-5 py-3 whitespace-nowrap" :class="(r.daysOverdue ?? 0) > 0 ? 'text-error font-medium' : 'text-prohealth-600'">{{ dateCell(r.nextDueDate, r.nextDueDate_Display) }}</td>
+              <td class="px-5 py-3 text-prohealth-600 whitespace-nowrap">{{ dateCell(r.lastPaidThrough, r.lastPaidThrough_Display) }}</td>
               <td class="px-5 py-3 text-prohealth-700">
                 <CurrencyConverterDisplay v-if="r.monthlyFee != null" :amount="r.monthlyFee" currency="USD" v-slot="{ result }">
                   <span class="inline-flex items-center gap-1">
@@ -338,6 +395,15 @@ function contactTypeIcon(type: PromoterContactType): string {
                   </span>
                 </CurrencyConverterDisplay>
                 <template v-else>{{ t('common.empty') }}</template>
+              </td>
+              <td class="px-5 py-3 whitespace-nowrap">
+                <UTooltip v-if="r.phone" :text="t('promoterSelf.portfolio.callTooltip')">
+                  <a :href="`tel:${r.phone.replace(/[^\d+]/g, '')}`" class="inline-flex items-center gap-1 text-prohealth-700 hover:text-cyan-700">
+                    <UIcon name="i-lucide-phone" class="w-3.5 h-3.5" />
+                    {{ r.phone }}
+                  </a>
+                </UTooltip>
+                <span v-else class="text-prohealth-400">{{ t('common.empty') }}</span>
               </td>
               <td class="px-5 py-3">
                 <div class="flex items-center justify-end gap-1">
