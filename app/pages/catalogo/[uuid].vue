@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { offerDiscountPct, offerDiscountText } from '~/utils/offerDiscount'
 import type { ApiError } from '~/types/auth'
 import type { PublicProductDetailDto } from '~/types/products'
 
@@ -227,7 +228,7 @@ onMounted(load)
               </div>
               <div>
                 <dt class="text-xs text-prohealth-500">{{ t('catalog.public.detail.discountLabel') }}</dt>
-                <dd class="text-lime-700 font-semibold">{{ hasDiscount(o.discountPct) ? `${o.discountPct}%` : t('common.empty') }}</dd>
+                <dd class="text-lime-700 font-semibold">{{ hasDiscount(offerDiscountPct(o)) ? offerDiscountText(o, money, t('common.empty')) : t('common.empty') }}</dd>
               </div>
               <div>
                 <dt class="text-xs text-prohealth-500">{{ t('catalog.public.detail.finalPrice') }}</dt>

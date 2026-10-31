@@ -1524,6 +1524,17 @@
       "delete": {
         "title": "Eliminar oferta",
         "confirm": "¿Seguro que deseas eliminar la oferta {name}? (soft-delete)"
+      },
+      "discount": {
+        "typeLabel": "Tipo de tarifa preferencial",
+        "types": {
+          "PERCENTAGE": "Porcentaje",
+          "FLAT": "Monto fijo"
+        },
+        "amountLabel": "Descuento en monto (USD)",
+        "exceedsPrice": "El descuento no puede ser mayor que el precio",
+        "preview": "El afiliado paga {price} (equivale a {pct} % de descuento)",
+        "flatNeedsPrice": "El descuento en monto necesita el precio"
       }
     },
     "professions": {

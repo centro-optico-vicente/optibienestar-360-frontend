@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { offerDiscountText } from '~/utils/offerDiscount'
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { ApiError } from '~/types/auth'
@@ -1281,7 +1282,7 @@ onMounted(async () => {
                   </CurrencyConverterDisplay>
                   <template v-else>{{ t('common.empty') }}</template>
                 </td>
-                <td class="px-6 py-3 text-prohealth-700">{{ p.discountPct != null && p.discountPct !== '' ? `${p.discountPct}%` : t('common.empty') }}</td>
+                <td class="px-6 py-3 text-prohealth-700">{{ offerDiscountText(p, money, t('common.empty')) }}</td>
                 <td class="px-6 py-3 font-semibold text-prohealth-900">{{ money(p.finalPrice) }}</td>
                 <td class="px-6 py-3">
                   <UBadge :color="reviewStatusColor(p.reviewStatus)" variant="subtle" size="sm" :title="p.reviewReason || undefined">

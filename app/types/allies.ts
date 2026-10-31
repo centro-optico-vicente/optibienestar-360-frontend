@@ -182,6 +182,15 @@ export interface AllyProductDto {
   priceAmount_Display?: string | null
   discountPct?: number | string | null
   discountPct_Display?: string | null
+  /** FLAT (amount in the price currency) or PERCENTAGE (V210, hub ADR 0031 §8). */
+  discountType?: DiscountType | string | null
+  discountType_Display?: string | null
+  /** Amount off in the price currency; only for FLAT. */
+  discountAmount?: number | string | null
+  discountAmount_Display?: string | null
+  /** The discount as a percentage whatever its type (display only). */
+  effectiveDiscountPct?: number | string | null
+  effectiveDiscountPct_Display?: string | null
   finalPrice?: number | string | null
   finalPrice_Display?: string | null
   /** Where the preferential rate does not apply (V179), free text. */
@@ -224,6 +233,9 @@ export interface AllyProductCreateRequest {
   requiresAppointment?: boolean
   priceAmount?: string
   discountPct?: string
+  /** Omitted = PERCENTAGE. FLAT takes `discountAmount` instead of `discountPct`. */
+  discountType?: DiscountType
+  discountAmount?: string
   /** Free text; an empty string clears it on update. */
   exclusions?: string
 }
@@ -241,6 +253,9 @@ export interface AllyProductUpdateRequest {
   requiresAppointment?: boolean
   priceAmount?: string
   discountPct?: string
+  /** Omitted = PERCENTAGE. FLAT takes `discountAmount` instead of `discountPct`. */
+  discountType?: DiscountType
+  discountAmount?: string
   exclusions?: string
   published?: boolean
   active?: boolean
@@ -401,6 +416,9 @@ export interface MyAllyDto {
 }
 
 /** Roles allowed to write at the counter (validate + register usage). VIEWER is read-only. */
+/** How an offer's preferential rate is expressed (backend `AllyProduct.DiscountType`, V210). */
+export type DiscountType = 'FLAT' | 'PERCENTAGE'
+
 export function canOperateAtCounter(role?: AllyRole | string | null): boolean {
   return role === 'OWNER' || role === 'STAFF'
 }
@@ -471,6 +489,9 @@ export interface PublicAllyProductDto {
   description?: string | null
   priceAmount?: number | string | null
   discountPct?: number | string | null
+  discountType?: DiscountType | string | null
+  discountAmount?: number | string | null
+  effectiveDiscountPct?: number | string | null
   finalPrice?: number | string | null
   exclusions?: string | null
   requiresAppointment?: boolean

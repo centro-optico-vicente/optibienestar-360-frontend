@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { offerDiscountPct } from '~/utils/offerDiscount'
 import type { PublicProductListItemDto } from '~/types/products'
 
 // PUBLIC cross-ally catalog of products and services (no login — hub ADR 0026).
@@ -281,12 +282,12 @@ onMounted(() => {
                 <p v-if="item.finalPrice != null && item.finalPrice !== ''" class="text-lg font-extrabold text-prohealth-900">
                   {{ money(item.finalPrice) }}
                 </p>
-                <p v-if="hasDiscount(item.discountPct) && item.priceAmount != null" class="text-xs text-prohealth-400 line-through">
+                <p v-if="hasDiscount(offerDiscountPct(item)) && item.priceAmount != null" class="text-xs text-prohealth-400 line-through">
                   {{ money(item.priceAmount) }}
                 </p>
               </div>
-              <UBadge v-if="hasDiscount(item.discountPct)" color="success" variant="subtle">
-                {{ t('catalog.public.discount', { pct: item.discountPct }) }}
+              <UBadge v-if="hasDiscount(offerDiscountPct(item))" color="success" variant="subtle">
+                {{ t('catalog.public.discount', { pct: offerDiscountPct(item) }) }}
               </UBadge>
             </div>
             <div v-if="item.requiresAppointment" class="flex items-center gap-1.5 mt-3 text-xs text-cyan-700">

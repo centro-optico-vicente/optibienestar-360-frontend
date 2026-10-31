@@ -6,7 +6,9 @@ import type {
   AllyProductCreateRequest,
   AllyProductDto,
   AllyProductUpdateRequest,
+  DiscountType,
 } from '~/types/allies'
+import { discountRequestFields } from '~/utils/offerDiscount'
 import { PRODUCT_TYPE_OPTIONS, type ProductType } from '~/types/products'
 
 // Create/edit an ally's offer of the products catalog (hub ADR 0026), used by
@@ -69,7 +71,9 @@ interface OfferFormState {
   description: string
   requiresAppointment: boolean
   priceAmount: string
+  discountType: DiscountType
   discountPct: string
+  discountAmount: string
   exclusions: string
   published: boolean
 }
@@ -82,7 +86,9 @@ const state = reactive<OfferFormState>({
   description: '',
   requiresAppointment: false,
   priceAmount: '',
+  discountType: 'PERCENTAGE',
   discountPct: '',
+  discountAmount: '',
   exclusions: '',
   published: false,
 })
@@ -95,7 +101,9 @@ function resetState() {
   state.description = ''
   state.requiresAppointment = false
   state.priceAmount = ''
+  state.discountType = 'PERCENTAGE'
   state.discountPct = ''
+  state.discountAmount = ''
   state.exclusions = ''
   state.published = false
 }
@@ -113,6 +121,9 @@ const schema = computed(() => {
     name: editsItemFields.value ? z.string().min(3, t('validation.minChars', { n: 3 })) : optional,
     priceAmount: z.string().regex(/^\d*(\.\d{1,2})?$/, t('validation.invalidAmount')).optional().or(z.literal('')),
     discountPct: z.string().regex(/^\d*(\.\d{1,2})?$/, t('validation.invalidPercent')).optional().or(z.literal('')),
+    discountAmount: state.discountType === 'FLAT'
+      ? z.string().regex(/^\d+(\.\d{1,2})?$/, t('validation.invalidAmount'))
+      : optional,
   })
 })
 
@@ -190,7 +201,9 @@ watch(() => props.open, async (open) => {
     state.description = full.description ?? ''
     state.requiresAppointment = full.requiresAppointment ?? false
     state.priceAmount = decimalString(full.priceAmount)
+    state.discountType = full.discountType === 'FLAT' ? 'FLAT' : 'PERCENTAGE'
     state.discountPct = decimalString(full.discountPct)
+    state.discountAmount = decimalString(full.discountAmount)
     state.exclusions = full.exclusions ?? ''
     state.published = full.published ?? false
   }
@@ -210,7 +223,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     if (props.mode === 'create') {
       const terms = {
         priceAmount: state.priceAmount || undefined,
-        discountPct: state.discountPct || undefined,
+        ...discountRequestFields(state.discountType, state.discountPct, state.discountAmount),
         exclusions: state.exclusions.trim() || undefined,
       }
       const body: AllyProductCreateRequest = source.value === 'general'
@@ -230,7 +243,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       if (!props.offerUuid) return
       const body: AllyProductUpdateRequest = {
         priceAmount: state.priceAmount || undefined,
-        discountPct: state.discountPct || undefined,
+        ...discountRequestFields(state.discountType, state.discountPct, state.discountAmount),
         // Empty string clears the exclusions.
         exclusions: state.exclusions.trim(),
         published: state.published,
@@ -377,10 +390,14 @@ function requestDelete() {
           <UFormField :label="t('allies.products.form.fields.price')" name="priceAmount">
             <UInput v-model="state.priceAmount" placeholder="100.00" class="w-full" />
           </UFormField>
-          <UFormField :label="t('allies.products.form.fields.discount')" name="discountPct">
-            <UInput v-model="state.discountPct" placeholder="10.00" class="w-full" />
-          </UFormField>
         </div>
+        <OfferDiscountFields
+          v-model:type="state.discountType"
+          v-model:pct="state.discountPct"
+          v-model:amount="state.discountAmount"
+          :price="state.priceAmount"
+          :percent-label="t('allies.products.form.fields.discount')"
+        />
 
         <UFormField
           :label="t('allies.products.form.fields.exclusions')"
