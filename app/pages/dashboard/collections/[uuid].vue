@@ -359,6 +359,24 @@ function onReviewed(updated: PaymentDto) {
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.reference') }}</dt>
             <dd class="text-prohealth-800 mt-0.5 font-mono">{{ payment.referenceNumber || t('common.empty') }}</dd>
           </div>
+          <!-- Company account (where a collection was paid into / where a payout left from) and, for a payout,
+               the advisor's payout account it went to (V206) — from the first line, like the flat fields above. -->
+          <div v-if="payment.lines?.[0]?.companyBankAccount_Display">
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">
+              {{ payment.direction === 'OUT' ? t('payments.detail.fields.originAccount') : t('payments.detail.fields.destinationAccount') }}
+            </dt>
+            <dd class="text-prohealth-800 mt-0.5">
+              {{ payment.lines[0].companyBankAccount_Display }}
+              <span v-if="payment.lines[0].companyBankAccount_Code" class="font-mono text-xs text-prohealth-500">· {{ payment.lines[0].companyBankAccount_Code }}</span>
+            </dd>
+          </div>
+          <div v-if="payment.lines?.[0]?.payoutAccount_Display">
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.payoutAccount') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">
+              {{ payment.lines[0].payoutAccount_Display }}
+              <span v-if="payment.lines[0].payoutAccount_Code" class="font-mono text-xs text-prohealth-500">· {{ payment.lines[0].payoutAccount_Code }}</span>
+            </dd>
+          </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.paymentDate') }}</dt>
             <dd class="text-prohealth-800 mt-0.5">{{ payment.paymentDate_Display ?? formatDate(payment.paymentDate, 'datetime') }}</dd>
@@ -415,6 +433,7 @@ function onReviewed(updated: PaymentDto) {
                 <th class="px-4 py-2 font-semibold">{{ t('payments.detail.linesColumns.bank') }}</th>
                 <th class="px-4 py-2 font-semibold text-right">{{ t('payments.detail.linesColumns.amount') }}</th>
                 <th class="px-4 py-2 font-semibold">{{ t('payments.detail.linesColumns.reference') }}</th>
+                <th class="px-4 py-2 font-semibold">{{ t('payments.detail.linesColumns.accounts') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-prohealth-100">
@@ -430,6 +449,11 @@ function onReviewed(updated: PaymentDto) {
                   </CurrencyConverterDisplay>
                 </td>
                 <td class="px-4 py-2 text-prohealth-800 font-mono">{{ line.referenceNumber || t('common.empty') }}</td>
+                <td class="px-4 py-2 text-prohealth-800 text-xs">
+                  <span v-if="line.companyBankAccount_Display" class="block">{{ line.companyBankAccount_Display }}<span v-if="line.companyBankAccount_Code" class="font-mono text-prohealth-500"> · {{ line.companyBankAccount_Code }}</span></span>
+                  <span v-if="line.payoutAccount_Display" class="block">→ {{ line.payoutAccount_Display }}<span v-if="line.payoutAccount_Code" class="font-mono text-prohealth-500"> · {{ line.payoutAccount_Code }}</span></span>
+                  <span v-if="!line.companyBankAccount_Display && !line.payoutAccount_Display">{{ t('common.empty') }}</span>
+                </td>
               </tr>
             </tbody>
           </table>

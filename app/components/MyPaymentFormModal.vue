@@ -427,6 +427,8 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           </UFormField>
         </div>
 
+        <CompanyBankAccountPicker v-model="state.companyBankAccountUuid" :method-uuid="state.paymentMethodUuid" :amount="state.amount" :currency="state.currency" :date="state.paymentDate ? state.paymentDate.slice(0, 10) : ''" :label="t('payments.companyAccounts.destinationLabel')" :help="t('payments.companyAccounts.destinationHelp')" />
+
         <div class="rounded-xl border border-prohealth-100 p-3 space-y-3">
           <USwitch v-model="payForOther" :label="t('payments.beneficiary.toggle')" />
           <template v-if="payForOther">
@@ -435,7 +437,6 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           </template>
         </div>
 
-        <CompanyBankAccountPicker v-model="state.companyBankAccountUuid" />
 
         <SavedOriginAccountPicker v-if="selectedMethod?.mandatoryBank || selectedMethod?.mandatoryBankAccount" v-model="savedAccountUuid" @pick="onPickSaved" />
 

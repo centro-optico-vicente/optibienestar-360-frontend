@@ -2118,7 +2118,9 @@
         "accountType": "Account type",
         "accountCode": "Account code",
         "phone": "Phone",
-        "email": "Email"
+        "email": "Email",
+        "originAccount": "Origin account (company)",
+        "payoutAccount": "Destination account (advisor)"
       },
       "searchPlaceholder": "Search by reference…",
       "empty": "No commission payouts",
@@ -2130,7 +2132,11 @@
         "reference": "Reference",
         "reviewedBy": "Reviewed by"
       },
-      "prefilledFromDossier": "Details taken from the advisor's payout account"
+      "prefilledFromDossier": "Details taken from the advisor's payout account",
+      "originAccountHelp": "The company account the payment leaves from. Only the accounts of the selected method are listed.",
+      "payoutAccountHelp": "The advisor's payout account the payment goes to; their default account is preselected.",
+      "noPayoutAccounts": "This advisor has no payout accounts.",
+      "pickPromoterFirst": "Pick the advisor first."
     },
     "movements": {
       "title": "Movements",
@@ -2221,7 +2227,10 @@
         "uuid": "UUID",
         "discount": "Discount",
         "netAmount": "Net to pay",
-        "discountReason": "Discount reason"
+        "discountReason": "Discount reason",
+        "originAccount": "Origin account (company)",
+        "destinationAccount": "Destination account (company)",
+        "payoutAccount": "Destination account (advisor)"
       },
       "proof": {
         "fileNameFallback": "Proof",
@@ -2239,7 +2248,8 @@
         "method": "Method",
         "bank": "Bank",
         "amount": "Amount",
-        "reference": "Reference"
+        "reference": "Reference",
+        "accounts": "Accounts"
       }
     },
     "form": {
@@ -2361,11 +2371,22 @@
         "holderDocument": "Holder document",
         "notes": "Notes",
         "sortOrder": "Order",
-        "publicVisible": "Show publicly"
+        "publicVisible": "Show publicly",
+        "method": "Payment method",
+        "destination": "Account / phone / email",
+        "phone": "Phone",
+        "email": "Email"
       },
       "public": "Public",
       "private": "Private",
-      "publicHelp": "Visible without logging in on the public company accounts endpoint. Otherwise only people registering a payment see it."
+      "publicHelp": "Visible without logging in on the public company accounts endpoint. Otherwise only people registering a payment see it.",
+      "destinationLabel": "Destination account (where did you pay?)",
+      "destinationHelp": "The company account you paid into. Only the accounts of the selected method are listed.",
+      "noneForMethod": "There are no company accounts for this method.",
+      "noneAtAll": "No company accounts have been registered yet.",
+      "pickMethodHint": "Pick the payment method first: it decides which details the account needs.",
+      "holderDocumentHelp": "ID or RIF, e.g. J-12345678-9.",
+      "phonePlaceholder": "04141234567"
     },
     "assignOwn": {
       "title": "Assign to a membership",
@@ -2426,6 +2447,25 @@
       "withdraw": "Withdraw the claim",
       "detailLabel": "Open claim",
       "manageLink": "Manage in Payment claims"
+    },
+    "accountCopy": {
+      "copied": "{what} copied",
+      "mobilePayment": "Pago móvil",
+      "data": "Account details",
+      "mobilePaymentButton": "Copy pago móvil",
+      "allButton": "Copy details",
+      "mobileHint": "Copies phone, ID or RIF and bank, one per line, in the order banks ask for.",
+      "mobileHintWithAmount": "Copies phone, ID or RIF, bank and the amount in bolívares, one per line, in the order banks ask for.",
+      "fields": {
+        "method": "Method",
+        "bank": "Bank",
+        "accountType": "Account type",
+        "accountNumber": "Account number",
+        "holderName": "Holder",
+        "document": "ID or RIF",
+        "phone": "Phone",
+        "email": "Email"
+      }
     }
   },
   "members": {
