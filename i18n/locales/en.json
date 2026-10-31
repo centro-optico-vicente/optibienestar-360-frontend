@@ -1486,7 +1486,8 @@
       "professions": "Professions",
       "allyTypes": "Partner types",
       "agreements": "Agreements",
-      "staff": "Staff"
+      "staff": "Staff",
+      "openingHours": "Opening hours"
     },
     "products": {
       "title": "Products and services",
@@ -1705,7 +1706,10 @@
         "clear": "Clear filters",
         "segment": "Commercial and professional",
         "segmentB2B": "Stores and companies",
-        "segmentB2P": "Professionals"
+        "segmentB2P": "Professionals",
+        "anyTime": "Any time",
+        "openNow": "Open now",
+        "openToday": "Open today"
       },
       "detail": {
         "seoTitle": "{name} — OptiBienestar 360 partner network",
@@ -1725,7 +1729,8 @@
         "exclusions": "Does not apply to: {exclusions}"
       },
       "office": "Office {number}",
-      "appointments": "Appointments"
+      "appointments": "Appointments",
+      "openingHours": "Opening hours"
     },
     "portal": {
       "seoTitle": "My partner space — OptiBienestar 360",
@@ -1780,6 +1785,35 @@
     "segments": {
       "B2B": "Commercial (B2B)",
       "B2P": "Professional (B2P)"
+    },
+    "openingHours": {
+      "title": "Opening hours",
+      "hint": "Days and time ranges the ally is open (Caracas time). Shown on its public page and in the agreement.",
+      "portalHint": "Days and time ranges you are open. Shown on your public page.",
+      "portalReadonlyHint": "Only the owner of the ally can change the opening hours.",
+      "loading": "Loading opening hours…",
+      "empty": "No opening hours yet.",
+      "closed": "Closed",
+      "opensAt": "Opens",
+      "closesAt": "Closes",
+      "addRange": "Add range",
+      "removeRange": "Remove range",
+      "copyMonday": "Copy Monday to Tuesday–Friday",
+      "save": "Save opening hours",
+      "savedToast": "Opening hours saved",
+      "errors": {
+        "invalidRange": "Each range must close after it opens.",
+        "overlap": "Ranges of the same day cannot overlap."
+      },
+      "days": {
+        "1": "Monday",
+        "2": "Tuesday",
+        "3": "Wednesday",
+        "4": "Thursday",
+        "5": "Friday",
+        "6": "Saturday",
+        "7": "Sunday"
+      }
     }
   },
   "catalog": {

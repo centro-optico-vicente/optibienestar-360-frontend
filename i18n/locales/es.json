@@ -1486,7 +1486,8 @@
       "professions": "Profesiones",
       "allyTypes": "Tipos de aliado",
       "agreements": "Acuerdos",
-      "staff": "Personal"
+      "staff": "Personal",
+      "openingHours": "Horario"
     },
     "products": {
       "title": "Productos y servicios",
@@ -1705,7 +1706,10 @@
         "clear": "Limpiar filtros",
         "segment": "Comerciales y profesionales",
         "segmentB2B": "Comercios y empresas",
-        "segmentB2P": "Profesionales"
+        "segmentB2P": "Profesionales",
+        "anyTime": "Cualquier horario",
+        "openNow": "Abierto ahora",
+        "openToday": "Atiende hoy"
       },
       "detail": {
         "seoTitle": "{name} — Red de aliados OptiBienestar 360",
@@ -1725,7 +1729,8 @@
         "exclusions": "No aplica en: {exclusions}"
       },
       "office": "Consultorio {number}",
-      "appointments": "Citas"
+      "appointments": "Citas",
+      "openingHours": "Horario de atención"
     },
     "portal": {
       "seoTitle": "Mi espacio de aliado — OptiBienestar 360",
@@ -1780,6 +1785,35 @@
     "segments": {
       "B2B": "Comercial (B2B)",
       "B2P": "Profesional (B2P)"
+    },
+    "openingHours": {
+      "title": "Horario de atención",
+      "hint": "Días y tramos en que atiende el aliado (hora de Caracas). Se muestran en su ficha pública y en el convenio.",
+      "portalHint": "Días y tramos en que atiendes. Se muestran en tu ficha pública.",
+      "portalReadonlyHint": "Solo el propietario del aliado puede cambiar el horario.",
+      "loading": "Cargando horario…",
+      "empty": "Sin horario cargado.",
+      "closed": "Cerrado",
+      "opensAt": "Abre",
+      "closesAt": "Cierra",
+      "addRange": "Agregar tramo",
+      "removeRange": "Quitar tramo",
+      "copyMonday": "Copiar el lunes a martes–viernes",
+      "save": "Guardar horario",
+      "savedToast": "Horario guardado",
+      "errors": {
+        "invalidRange": "Cada tramo debe cerrar después de abrir.",
+        "overlap": "Los tramos de un mismo día no pueden solaparse."
+      },
+      "days": {
+        "1": "Lunes",
+        "2": "Martes",
+        "3": "Miércoles",
+        "4": "Jueves",
+        "5": "Viernes",
+        "6": "Sábado",
+        "7": "Domingo"
+      }
     }
   },
   "catalog": {
