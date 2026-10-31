@@ -737,7 +737,7 @@
       },
       "myPayments": {
         "label": "Mis pagos",
-        "description": "Tu historial de pagos de membresía."
+        "description": "Tu historial de pagos y tu saldo a favor."
       },
       "myPortfolio": {
         "label": "Mi cartera",
@@ -770,11 +770,24 @@
       "myAffiliationRequests": {
         "label": "Mis solicitudes de afiliación",
         "description": "Las solicitudes que llegaron por tu QR y su estado."
+      },
+      "myAdvisor": {
+        "label": "Mi asesor",
+        "description": "Tu asesor actual y los anteriores."
+      },
+      "companyBankAccounts": {
+        "label": "Cuentas de la empresa",
+        "description": "Cuentas bancarias de OptiBienestar donde se reciben los pagos."
+      },
+      "paymentClaims": {
+        "label": "Reclamos de pagos",
+        "description": "Reclamos sobre el saldo de un pago: reembolsos, errores y pagos de más."
       }
     },
     "other": {
       "changePassword": "Cambiar contraseña",
-      "myContracts": "Mis contratos"
+      "myContracts": "Mis contratos",
+      "myBankAccounts": "Mis cuentas bancarias"
     }
   },
   "layout": {
@@ -1874,7 +1887,9 @@
       "empty": "Sin pagos registrados en tu cartera",
       "form": {
         "title": "Registrar pago de afiliado",
-        "description": "Registra el pago de membresía de un afiliado de tu cartera para revisión."
+        "description": "Registra el pago de membresía de un afiliado de tu cartera para revisión.",
+        "memberHelp": "Tu cartera, o busca por nombre o documento a alguien sin asesor. ¿No existe? Regístralo con el botón de la derecha.",
+        "unassignedTag": "sin asesor"
       }
     },
     "payouts": {
@@ -1971,15 +1986,33 @@
         }
       },
       "daysOverdueValue": "{count} día | {count} días",
-      "callTooltip": "Llamar"
+      "callTooltip": "Llamar",
+      "registerPayment": "Registrar cobro"
     },
     "payoutAccounts": {
       "title": "Mis datos de cobro",
       "contactAdmin": "Si tus datos cambiaron, comunícate con administración.",
       "empty": "Todavía no tienes datos de cobro registrados. Comunícate con administración para registrarlos."
+    },
+    "newMember": {
+      "title": "Nuevo en mi cartera",
+      "description": "Registra a una persona que aún no es afiliada. Quedará en tu cartera, sin membresía, y podrás registrar su pago.",
+      "submit": "Registrar en mi cartera",
+      "createdToast": "Persona registrada en tu cartera"
     }
   },
   "payments": {
+    "assignMembership": {
+      "action": "Asignar a membresía",
+      "title": "Asignar a una membresía",
+      "description": "Este cobro quedó como saldo a favor de quien pagó. Asígnalo a la membresía que cubre; se liquidan sus cargos del período indicado.",
+      "member": "Afiliado titular",
+      "memberHelp": "Busca por nombre o documento.",
+      "membership": "Membresía",
+      "membershipPlaceholder": "Elige primero al afiliado",
+      "confirm": "Asignar",
+      "toast": "Cobro asignado a la membresía"
+    },
     "title": "Cobros",
     "subtitle": "Registro y revisión de cobros de membresía: aprobación o rechazo con comprobante.",
     "collectionsReport": {
@@ -2094,7 +2127,9 @@
         "accountType": "Tipo de cuenta",
         "accountCode": "Código de cuenta",
         "phone": "Teléfono",
-        "email": "Correo electrónico"
+        "email": "Correo electrónico",
+        "originAccount": "Cuenta de origen (empresa)",
+        "payoutAccount": "Cuenta destino (asesor)"
       },
       "searchPlaceholder": "Buscar por referencia…",
       "empty": "Sin pagos de comisión",
@@ -2106,7 +2141,11 @@
         "reference": "Referencia",
         "reviewedBy": "Revisado por"
       },
-      "prefilledFromDossier": "Datos tomados de la cuenta de cobro del asesor"
+      "prefilledFromDossier": "Datos tomados de la cuenta de cobro del asesor",
+      "originAccountHelp": "La cuenta de la empresa desde la que sale el pago. Solo se muestran las del método elegido.",
+      "payoutAccountHelp": "La cuenta de cobro del asesor a la que llega el pago; se preselecciona su cuenta predeterminada.",
+      "noPayoutAccounts": "Este asesor no tiene cuentas de cobro registradas.",
+      "pickPromoterFirst": "Elige primero al asesor."
     },
     "movements": {
       "title": "Movimientos",
@@ -2127,7 +2166,7 @@
       "empty": "Aún no tienes pagos registrados.",
       "form": {
         "title": "Registrar mi pago",
-        "description": "Registra el pago de tu membresía para revisión."
+        "description": "Registra un pago a la empresa. Si aún no tienes membresía activa, quedará como saldo a favor al ser aprobado."
       }
     },
     "columns": {
@@ -2198,7 +2237,10 @@
         "uuid": "UUID",
         "discount": "Descuento",
         "netAmount": "Neto a pagar",
-        "discountReason": "Motivo del descuento"
+        "discountReason": "Motivo del descuento",
+        "originAccount": "Cuenta de origen (empresa)",
+        "destinationAccount": "Cuenta destino (empresa)",
+        "payoutAccount": "Cuenta destino (asesor)"
       },
       "proof": {
         "fileNameFallback": "Comprobante",
@@ -2216,7 +2258,8 @@
         "method": "Método",
         "bank": "Banco",
         "amount": "Monto",
-        "reference": "Referencia"
+        "reference": "Referencia",
+        "accounts": "Cuentas"
       }
     },
     "form": {
@@ -2308,6 +2351,131 @@
       "reasonRequired": "El motivo es obligatorio",
       "apply": "Aplicar descuento",
       "appliedToast": "Descuento aplicado"
+    },
+    "credit": {
+      "title": "Saldo a favor",
+      "help": "El personal también puede asignarlo manualmente a una membresía.",
+      "autoApply": "Tu saldo se usa automáticamente para cubrir cuotas mensuales completas de tu membresía."
+    },
+    "companyAccounts": {
+      "title": "Cuentas de la empresa",
+      "subtitle": "Cuentas bancarias propias donde los afiliados depositan sus pagos.",
+      "pickerLabel": "¿En qué cuenta de la empresa pagaste?",
+      "pickerHelp": "Opcional. Indica a cuál cuenta depositaste o transferiste.",
+      "searchPlaceholder": "Buscar por número, titular o documento…",
+      "includeInactive": "Ver inactivas",
+      "empty": "No hay cuentas registradas.",
+      "createTitle": "Nueva cuenta de la empresa",
+      "editTitle": "Editar cuenta de la empresa",
+      "savedToast": "Cuenta guardada",
+      "deletedToast": "Cuenta desactivada",
+      "deleteTitle": "Desactivar cuenta",
+      "deleteConfirm": "La cuenta dejará de mostrarse a quienes pagan. Los pagos ya registrados no cambian.",
+      "sortOrderHelp": "Menor número aparece primero.",
+      "fields": {
+        "bank": "Banco",
+        "currency": "Moneda",
+        "accountType": "Tipo de cuenta",
+        "accountNumber": "Número de cuenta",
+        "holderName": "Titular",
+        "holderDocument": "Documento del titular",
+        "notes": "Notas",
+        "sortOrder": "Orden",
+        "publicVisible": "Mostrar públicamente",
+        "method": "Método de pago",
+        "destination": "Cuenta / teléfono / correo",
+        "phone": "Teléfono",
+        "email": "Correo"
+      },
+      "public": "Pública",
+      "private": "Privada",
+      "publicHelp": "Visible sin iniciar sesión en el endpoint público de cuentas. Si no, solo la ven quienes registran un pago.",
+      "destinationLabel": "Cuenta destino (¿a dónde pagaste?)",
+      "destinationHelp": "La cuenta de la empresa en la que depositaste. Solo se muestran las del método elegido.",
+      "noneForMethod": "No hay cuentas de la empresa para este método.",
+      "noneAtAll": "Todavía no hay cuentas de la empresa registradas.",
+      "pickMethodHint": "Elige primero el método de pago: de él dependen los datos que pide la cuenta.",
+      "holderDocumentHelp": "Cédula o RIF, por ejemplo J-12345678-9.",
+      "phonePlaceholder": "04141234567"
+    },
+    "assignOwn": {
+      "title": "Asignar a una membresía",
+      "description": "Si pagas por un familiar, indica a qué membresía corresponde este pago. El revisor lo verificará al aprobarlo.",
+      "search": "Buscar",
+      "confirm": "Asignar",
+      "savedToast": "Pago asignado a la membresía"
+    },
+    "beneficiary": {
+      "byContract": "Por n.º de contrato",
+      "byDocument": "Por cédula del titular",
+      "contractPlaceholder": "OB-000123",
+      "documentPlaceholder": "Número de documento",
+      "exactHelp": "Escribe el dato exacto; verás a quién corresponde antes de confirmar.",
+      "notFound": "No encontramos a nadie con ese dato. Revisa que esté bien escrito.",
+      "noMembership": "Sin membresía activa: el pago quedará como saldo a favor de esta persona.",
+      "needsMembership": "Esta persona no tiene una membresía activa a la que asignar el pago.",
+      "confirm": "Es esta persona",
+      "change": "Cambiar",
+      "contract": "Contrato",
+      "creditOnly": "Sin membresía activa: el pago será saldo a favor de esta persona.",
+      "sectionTitle": "Pago a favor de otra persona",
+      "sectionHelp": "Si pagas por un familiar, búscalo y confirma que es la persona correcta. El pago se aplica a su membresía, o queda como saldo a favor suyo si no tiene una.",
+      "toggle": "Pagar a favor de otra persona",
+      "confirmRequired": "Busca y confirma a la persona antes de registrar el pago.",
+      "detailLabel": "Beneficiario",
+      "forLabel": "A favor de {name}"
+    },
+    "savedAccounts": {
+      "label": "Mis cuentas guardadas",
+      "help": "Cuentas desde las que ya pagaste y decidiste recordar.",
+      "placeholder": "Elegir una cuenta guardada",
+      "forget": "Olvidar esta cuenta",
+      "removedToast": "Cuenta olvidada",
+      "remember": "Recordar esta cuenta para próximos pagos",
+      "rememberHelp": "Guardamos los datos de la cuenta desde la que pagas (banco, número o teléfono, según el método) para que no tengas que escribirlos otra vez."
+    },
+    "claim": {
+      "title": "Reportar un problema con este pago",
+      "description": "Si pagaste de más o por error, indícalo aquí. Mientras el reclamo esté abierto ese monto queda congelado y no se usa automáticamente; administración lo revisará contigo.",
+      "remaining": "Saldo disponible de este pago: {amount} {currency}.",
+      "reasonLabel": "Motivo",
+      "reasons": {
+        "ERROR": "Pago por error",
+        "OVERPAID": "Pagué de más",
+        "REFUND_REQUEST": "Quiero un reembolso",
+        "OTHER": "Otro motivo"
+      },
+      "amountLabel": "Monto del reclamo",
+      "amountInvalid": "Debe ser mayor que 0 y no superar el saldo disponible.",
+      "commentLabel": "Comentario",
+      "commentHelp": "Cuéntanos qué ocurrió para que administración pueda gestionarlo.",
+      "confirm": "Enviar reclamo",
+      "savedToast": "Reclamo registrado",
+      "withdrawnToast": "Reclamo retirado",
+      "badge": "En reclamo: {amount}",
+      "action": "Reportar un problema con este pago",
+      "withdraw": "Retirar el reclamo",
+      "detailLabel": "Reclamo abierto",
+      "manageLink": "Gestionar en Reclamos de pagos"
+    },
+    "accountCopy": {
+      "copied": "{what} copiado",
+      "mobilePayment": "Pago móvil",
+      "data": "Datos de la cuenta",
+      "mobilePaymentButton": "Copiar pago móvil",
+      "allButton": "Copiar datos",
+      "mobileHint": "Copia teléfono, cédula o RIF y banco, uno por línea, en el orden que piden los bancos.",
+      "mobileHintWithAmount": "Copia teléfono, cédula o RIF, banco y el monto en bolívares, uno por línea, en el orden que piden los bancos.",
+      "fields": {
+        "method": "Método",
+        "bank": "Banco",
+        "accountType": "Tipo de cuenta",
+        "accountNumber": "Número de cuenta",
+        "holderName": "Titular",
+        "document": "Cédula o RIF",
+        "phone": "Teléfono",
+        "email": "Correo"
+      }
     }
   },
   "members": {
@@ -2386,6 +2554,10 @@
       "validation": {
         "documentMin": "Mínimo 5 dígitos",
         "adult": "El titular debe ser mayor de 18 años"
+      },
+      "documentTypes": {
+        "V": "V — Venezolano",
+        "E": "E — Extranjero"
       }
     },
     "delete": {
@@ -2609,6 +2781,7 @@
       "title": "Mis consumos",
       "subtitle": "Historial de los beneficios que usaste en los aliados de la red.",
       "empty": "Todavía no tienes consumos registrados.",
+      "notAffiliatedBody": "Cuando te afilies, aquí verás los beneficios que uses en los aliados de la red.",
       "consumption": "consumo",
       "copay": "Copago",
       "rating": {
@@ -2654,7 +2827,32 @@
         "lastUsage": "Último uso: {date}",
         "uncatalogued": "Otros ({category})",
         "filterTooltip": "Ver los consumos de este servicio"
-      }
+      },
+      "copay": "Copago"
+    },
+    "advisor": {
+      "title": "Mi asesor",
+      "subtitle": "Quién te asesora hoy y quién lo hizo antes.",
+      "notEnrolled": "Aún no eres afiliado, por eso no tienes asesor asignado.",
+      "current": "Asesor actual",
+      "none": "Todavía no tienes un asesor asignado.",
+      "history": "Historial de asesores",
+      "historyEmpty": "Aún no hay cambios de asesor.",
+      "changed": "De {from} a {to}",
+      "assigned": "Asignado a {to}"
+    },
+    "creditHold": {
+      "title": "Saldo a favor",
+      "help": "Congelar el saldo detiene que se use automáticamente para cubrir cuotas (por ejemplo, ante un reembolso).",
+      "frozenTitle": "Saldo congelado",
+      "freeze": "Congelar saldo",
+      "release": "Liberar saldo",
+      "modalTitle": "Congelar el saldo a favor",
+      "modalDescription": "Mientras esté congelado no se aplica automáticamente. El personal aún puede asignarlo a mano si hay un acuerdo con la persona.",
+      "reasonLabel": "Motivo",
+      "confirm": "Congelar",
+      "frozenToast": "Saldo congelado",
+      "releasedToast": "Saldo liberado"
     }
   },
   "memberships": {
@@ -2715,13 +2913,50 @@
       "title": "Membresías",
       "description": "Las afiliaciones a planes se gestionan por titular. Busca un afiliado para ver y administrar sus membresías.",
       "searchLabel": "Afiliado",
-      "searchHelp": "Escribe nombre o documento (mín. 2 caracteres).",
+      "searchHelp": "Despliega para ver afiliados o escribe nombre o documento (mín. 1 carácter).",
       "searchPlaceholder": "Busca por nombre o documento…",
       "managingFor": "Gestionando membresías de",
       "viewFullRecord": "Ver expediente completo",
       "emptyTitle": "Selecciona un afiliado",
-      "emptyDescription": "Busca por nombre o documento para gestionar sus membresías."
-    }
+      "emptyDescription": "Busca por nombre o documento para gestionar sus membresías.",
+      "emptyList": "No hay membresías con esos filtros.",
+      "manage": "Gestionar membresías del afiliado",
+      "statusFilter": {
+        "ACTIVE": "Activas",
+        "DUE_SOON": "Por vencer",
+        "OVERDUE": "Atrasadas",
+        "SUSPENDED": "Suspendidas",
+        "EXPIRED": "Vencidas",
+        "CANCELED": "Canceladas"
+      },
+      "filters": {
+        "status": "Estado",
+        "advisor": "Asesor",
+        "plan": "Plan",
+        "planType": "Tipo de plan",
+        "any": "Todos",
+        "enrolledFrom": "Afiliación desde",
+        "enrolledTo": "Afiliación hasta",
+        "nextDueFrom": "Próximo vencimiento desde",
+        "nextDueTo": "Próximo vencimiento hasta",
+        "clear": "Quitar filtros"
+      },
+      "columns": {
+        "member": "Afiliado",
+        "advisor": "Asesor",
+        "plan": "Plan",
+        "enrolledAt": "Afiliación",
+        "nextDueDate": "Próx. vencimiento",
+        "status": "Estado",
+        "collection": "Cobro"
+      },
+      "paymentStatus": {
+        "OVERDUE": "Atrasada {days} d",
+        "DUE_SOON": "Por vencer",
+        "UP_TO_DATE": "Al día"
+      }
+    },
+    "contractNumber": "Contrato"
   },
   "validator": {
     "seoTitle": "Validador — OptiBienestar 360",
@@ -5139,5 +5374,94 @@
     "starLabel": "{n} estrella | {n} estrellas",
     "allyPrefix": "Aliado",
     "offerPrefix": "Este servicio"
+  },
+  "myBankAccounts": {
+    "title": "Mis cuentas bancarias",
+    "subtitle": "Las cuentas desde las que pagas. Al registrar un pago puedes elegir una de ellas para no escribir todos los datos otra vez.",
+    "profileLink": {
+      "title": "Mis cuentas bancarias",
+      "body": "Las cuentas desde las que pagas, para reutilizarlas en tus pagos."
+    },
+    "add": "Agregar cuenta",
+    "addTitle": "Agregar cuenta",
+    "editTitle": "Editar cuenta",
+    "formHelp": "Son tus propias cuentas de origen; solo tú las ves.",
+    "empty": "Todavía no tienes cuentas guardadas. Son las cuentas desde las que pagas; también puedes guardar una mientras registras un pago.",
+    "fields": {
+      "bank": "Banco",
+      "accountType": "Tipo de cuenta",
+      "accountCode": "Código de cuenta",
+      "accountIdentifier": "Número de cuenta",
+      "identification": "Documento del titular",
+      "alias": "Alias",
+      "paymentMethod": "Método de pago",
+      "account": "Cuenta / teléfono",
+      "phone": "Teléfono",
+      "email": "Correo"
+    },
+    "identificationHelp": "Cédula o RIF del titular de la cuenta.",
+    "aliasHelp": "Un nombre para reconocerla, por ejemplo \"Cuenta nómina\".",
+    "savedToast": "Cuenta guardada",
+    "removedToast": "Cuenta eliminada",
+    "deleteTitle": "Eliminar cuenta",
+    "deleteConfirm": "Esta cuenta dejará de aparecer entre tus cuentas guardadas. Tus pagos ya registrados no cambian."
+  },
+  "paymentClaims": {
+    "title": "Reclamos de pagos",
+    "subtitle": "Reclamos sobre el saldo de un pago. Mientras estén abiertos, ese monto no se aplica automáticamente.",
+    "allStatuses": "Todos los estados",
+    "status": {
+      "OPEN": "Abierto",
+      "KEPT_AS_CREDIT": "Dejado como saldo",
+      "REFUNDED": "Reembolsado",
+      "REJECTED": "Rechazado",
+      "WITHDRAWN": "Retirado",
+      "USED_BY_AGREEMENT": "Usado por acuerdo"
+    },
+    "columns": {
+      "payment": "Pago",
+      "person": "Persona",
+      "reason": "Motivo",
+      "amount": "Monto reclamado",
+      "openedAt": "Fecha",
+      "status": "Estado"
+    },
+    "empty": "No hay reclamos con este filtro.",
+    "viewPayment": "Ver pago",
+    "resolve": "Resolver",
+    "noPermissionResolve": "No tienes permiso para resolver reclamos.",
+    "resolveTitle": "Resolver reclamo",
+    "resolveDescription": "Decide con la persona qué hacer con el monto reclamado.",
+    "claimedSummary": "Monto reclamado: {amount} {currency}.",
+    "actionLabel": "Resolución",
+    "actions": {
+      "KEEP_AS_CREDIT": "Dejar como saldo a favor",
+      "REFUND": "Reembolsar",
+      "REJECT": "Rechazar el reclamo"
+    },
+    "actionHelp": {
+      "KEEP_AS_CREDIT": "El monto vuelve a estar disponible como saldo (monedero) y se cierra el reclamo.",
+      "REFUND": "Se descuenta del saldo y queda registrado como reembolso; la transferencia la gestiona finanzas fuera del sistema.",
+      "REJECT": "Se cierra el reclamo y el monto vuelve a estar disponible."
+    },
+    "refundedAmountLabel": "Monto a reembolsar",
+    "refundedAmountInvalid": "Debe ser mayor que 0 y no superar el monto reclamado.",
+    "noteLabel": "Nota de resolución",
+    "confirm": "Resolver",
+    "resolvedToast": "Reclamo resuelto"
+  },
+  "publicAccounts": {
+    "seoTitle": "Cuentas para pagar — OptiBienestar 360",
+    "seoDescription": "Cuentas bancarias de OptiBienestar 360 donde puedes depositar o transferir tu pago.",
+    "title": "Cuentas para pagar",
+    "subtitle": "Estas son las cuentas donde puedes depositar o transferir. Después registra tu pago indicando en cuál lo hiciste.",
+    "empty": "Por ahora no hay cuentas públicas disponibles.",
+    "loadFailed": "No pudimos cargar las cuentas. Intenta de nuevo más tarde.",
+    "copy": "Copiar número",
+    "copied": "Número copiado",
+    "copyFailed": "No se pudo copiar el número"
+  },
+  "banks": {
+    "officialNameTooltip": "Nombre oficial: {name}"
   }
 }

@@ -79,6 +79,16 @@ export interface PaymentDto {
   person_Display?: string | null
   promoter_Uuid?: string | null
   promoter_Display?: string | null
+  /** Who the payment credits when the payer is not the holder (V203), with document / contract snapshots. */
+  beneficiary_Uuid?: string | null
+  beneficiary_Display?: string | null
+  beneficiaryDocument?: string | null
+  beneficiaryContractNumber?: string | null
+  /** Open claim on this payment's remaining credit (hub ADR 0029); `null` when there is none. */
+  openClaim?: PaymentClaimDto | null
+  /** Credit of this payment not yet applied to a membership; `null` when it is not credit. */
+  creditRemaining?: number | string | null
+  creditRemaining_Display?: string | null
   // Subject (flat refs extracted by the mapper — member/membership resolve
   // to a readable `_Display` server-side, hub ADR 0014)
   membership_Uuid?: string | null
@@ -211,6 +221,15 @@ export interface PaymentLineDto {
   reviewedAt?: string | null
   reviewedAt_Display?: string | null
   reviewReason?: string | null
+  /** Company account the payer indicated (V201) — for a payout, the company account the money left from. */
+  companyBankAccount_Uuid?: string | null
+  companyBankAccount_Display?: string | null
+  /** Account number / phone / email of that company account. */
+  companyBankAccount_Code?: string | null
+  /** Payout only: the advisor's payout account the money went to (V206). */
+  payoutAccount_Uuid?: string | null
+  payoutAccount_Display?: string | null
+  payoutAccount_Code?: string | null
 }
 
 /**
@@ -232,6 +251,8 @@ export interface PaymentLineRequest {
   phone?: string
   email?: string
   referenceNumber?: string
+  /** Company account (V201) the payer says they paid into; optional. */
+  companyBankAccountUuid?: string
 }
 
 /** Body of `PUT /{uuid}/lines` — replaces the entire lines collection of a DRAFT payment. */
@@ -306,6 +327,10 @@ export interface OutPaymentCreateRequest {
   referenceNumber?: string
   paymentDate: string
   adminNotes?: string
+  /** Company account the money leaves from (V206). */
+  companyBankAccountUuid?: string
+  /** The advisor's payout account the money goes to; must belong to the selected promoter (V206). */
+  payoutAccountUuid?: string
 }
 
 export type OutPaymentUpdateRequest = OutPaymentCreateRequest
@@ -338,6 +363,24 @@ export interface MyPaymentCreateRequest {
   adminNotes?: string
   /** See {@link PaymentCreateRequest.lines}. */
   lines?: PaymentLineRequest[]
+  /** Pay for someone else (V203): membership from a CONFIRMED lookup. */
+  beneficiaryMembershipUuid?: string
+  /** Holder with no active membership from a CONFIRMED lookup: the payment becomes their credit. */
+  beneficiaryPersonUuid?: string
+  /** Remember the first line's origin account (bank + account number) for next time (V204). */
+  rememberOriginAccount?: boolean
+}
+
+/**
+ * One match of GET /v1/me/payments/membership-lookup (V203). The name is abbreviated server-side; the
+ * membership fields are null when the holder has no active membership (payment then becomes their credit).
+ */
+export interface BeneficiaryMatchDto {
+  personUuid: string
+  membershipUuid: string | null
+  contractNumber: string | null
+  holderName: string
+  planName: string | null
 }
 
 /**
@@ -369,4 +412,148 @@ export interface PaymentSupportUrlDto {
   fileName?: string | null
   contentType?: string | null
   sizeBytes?: number | null
+}
+
+/**
+ * A bank account owned by the company (V201) — where a payer deposits, and where a commission payout leaves from.
+ * `GET /v1/me/company-bank-accounts` + admin CRUD. Since V206 it has a payment method (transfer, Pago Móvil,
+ * Zelle…) whose `mandatory*` flags decide which fields apply, same as the advisor payout accounts.
+ */
+export interface CompanyBankAccountDto {
+  uuid: string
+  paymentMethod_Uuid?: string | null
+  paymentMethod_Display?: string | null
+  paymentMethod_Code?: string | null
+  /** Catalog code of the method (BANK_TRANSFER, PAGO_MOVIL, ZELLE…). */
+  paymentMethodCode?: string | null
+  bank_Uuid?: string | null
+  /** Commercial (short) bank name, e.g. "Mercantil". */
+  bank_Display?: string | null
+  bank_Code?: string | null
+  /** SUDEBAN code of the bank (e.g. 0102) — what a Pago Móvil asks for. */
+  bankCode?: string | null
+  currency_Code: string
+  accountType?: string | null
+  accountNumber?: string | null
+  holderName: string
+  holderDocument?: string | null
+  notes?: string | null
+  phone?: string | null
+  email?: string | null
+  sortOrder: number
+  /** Shown without authentication on `GET /v1/public/company-bank-accounts` (V204). */
+  publicVisible: boolean
+  active: boolean
+}
+
+export interface CompanyBankAccountRequest {
+  /** The method decides which of the fields below are required (its `mandatory*` flags). */
+  paymentMethodUuid: string
+  bankUuid?: string | null
+  /** ISO code, e.g. `USD`. */
+  currency: string
+  accountType?: string | null
+  accountNumber?: string | null
+  holderName: string
+  holderDocument?: string | null
+  notes?: string | null
+  phone?: string | null
+  email?: string | null
+  sortOrder?: number
+  /** Show it without authentication; defaults to private on create (V204). */
+  publicVisible?: boolean
+  active?: boolean
+}
+
+/** An origin account the caller chose to remember (V204): `GET /v1/me/bank-accounts`. */
+export interface SavedOriginAccountDto {
+  uuid: string
+  /** Payment method of the account (V207): its flags decide which fields apply (Pago Móvil = phone, transfer = number). */
+  paymentMethod_Uuid?: string | null
+  paymentMethod_Display?: string | null
+  paymentMethodCode?: string | null
+  bank_Uuid?: string | null
+  bank_Code?: string | null
+  bank_Display?: string | null
+  accountType?: string | null
+  accountCode?: string | null
+  accountIdentifier?: string | null
+  identification?: string | null
+  phone?: string | null
+  email?: string | null
+  alias?: string | null
+}
+
+/**
+ * Body of `POST` / `PUT /v1/me/bank-accounts` — one of the caller's own origin accounts (V204/V207). The payment
+ * method decides which of the other fields are required (its `mandatory*` flags), same rule as the backend.
+ */
+export interface MyBankAccountRequest {
+  paymentMethodUuid: string
+  bankUuid?: string | null
+  accountType?: string | null
+  accountCode?: string | null
+  accountIdentifier?: string | null
+  identification?: string | null
+  phone?: string | null
+  email?: string | null
+  alias?: string | null
+}
+
+/** `GET /v1/me/payments/credit-balance` — the caller's credit ("saldo a favor") per currency (V201). */
+export type ClaimReason = 'ERROR' | 'OVERPAID' | 'REFUND_REQUEST' | 'OTHER'
+export const CLAIM_REASONS: readonly ClaimReason[] = ['ERROR', 'OVERPAID', 'REFUND_REQUEST', 'OTHER']
+export type ClaimStatus = 'OPEN' | 'KEPT_AS_CREDIT' | 'REFUNDED' | 'REJECTED' | 'WITHDRAWN' | 'USED_BY_AGREEMENT'
+export const CLAIM_STATUSES: readonly ClaimStatus[] = ['OPEN', 'KEPT_AS_CREDIT', 'REFUNDED', 'REJECTED', 'WITHDRAWN', 'USED_BY_AGREEMENT']
+
+/** A claim on the remaining credit of an approved payment (hub ADR 0029). While OPEN that amount is frozen. */
+export interface PaymentClaimDto {
+  uuid: string
+  paymentUuid: string
+  /** Payment reference, payer and beneficiary — present on the admin list rows. */
+  payment_Display?: string | null
+  person_Display?: string | null
+  beneficiary_Display?: string | null
+  reason: ClaimReason
+  reason_Display?: string | null
+  claimedAmount: number | string
+  claimedAmount_Display?: string | null
+  currency_Code?: string | null
+  comment?: string | null
+  status: ClaimStatus
+  status_Display?: string | null
+  openedAt?: string | null
+  openedAt_Display?: string | null
+  openedBy_Display?: string | null
+  resolvedAt?: string | null
+  resolvedAt_Display?: string | null
+  resolutionNote?: string | null
+  refundedAmount?: number | string | null
+}
+
+/** Body of `POST /v1/me/payments/{uuid}/claim` and `POST /v1/admin/payments/{uuid}/claim`. */
+export interface PaymentClaimRequest {
+  reason: ClaimReason
+  claimedAmount: number
+  comment?: string
+}
+
+/** Body of `PUT /v1/admin/payment-claims/{uuid}/resolve` — COLLECTION_CLAIM_RESOLVE. */
+export interface ResolvePaymentClaimRequest {
+  action: 'KEEP_AS_CREDIT' | 'REFUND' | 'REJECT'
+  /** Required for REFUND; at most the claimed amount. */
+  refundedAmount?: number
+  note?: string
+}
+
+export interface CreditBalanceDto {
+  balances: Array<{ currency_Code: string, amount: number | string, amount_Display?: string | null }>
+}
+
+/** Body of `POST /v1/admin/payments/{uuid}/assign-membership` — COLLECTION_ASSIGN_MEMBERSHIP (V201). */
+export interface AssignMembershipRequest {
+  membershipUuid: string
+  /** First day of the covered month (`yyyy-MM-01`); defaults to the current month server-side. */
+  appliedPeriod?: string
+  coverageThroughPeriod?: string
 }

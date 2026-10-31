@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
-import type { MyPaymentCreateRequest, PaymentDto } from '~/types/payments'
+import type { BeneficiaryMatchDto, MyPaymentCreateRequest, PaymentDto, SavedOriginAccountDto } from '~/types/payments'
 import { BANK_ACCOUNT_TYPE_OPTIONS } from '~/types/payments'
 import type { CatalogItem } from '~/types/catalogs'
 
 // Self-service registration (POST /v1/me/payments, multipart, COLLECTION_CREATE_OWN)
 // — the affiliate's own membership, resolved server-side. Same fields as
+// — the caller's active membership is resolved server-side when they have one; without one
+// (V201) the approved payment becomes their credit ("saldo a favor"). Same fields as
 // PaymentFormModal minus the member/membership picker.
 const props = defineProps<{ open: boolean }>()
 
@@ -42,7 +44,7 @@ const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 const methodItems = ref<CatalogItem[]>([])
 const bankItems = ref<CatalogItem[]>([])
 const methodOptions = computed(() => methodItems.value.map(m => ({ label: m.name, value: m.uuid })))
-const bankOptions = computed(() => bankItems.value.map(b => ({ label: b.code ? `${b.code} — ${b.name}` : b.name, value: b.uuid })))
+const bankOptions = computed(() => bankItems.value.map(b => ({ label: bankOptionLabel(b), value: b.uuid })))
 const selectedMethod = computed(() => methodItems.value.find(m => m.uuid === state.paymentMethodUuid) ?? null)
 const selectedBank = computed(() => bankItems.value.find(b => b.uuid === state.bankUuid) ?? null)
 const loadingMethods = ref(false)
@@ -118,6 +120,7 @@ interface FormState {
   phone: string
   email: string
   referenceNumber: string
+  companyBankAccountUuid: string
   paymentDate: string
   inscription: boolean
   appliedPeriod: string
@@ -137,6 +140,7 @@ const state = reactive<FormState>({
   phone: '',
   email: '',
   referenceNumber: '',
+  companyBankAccountUuid: '',
   paymentDate: '',
   inscription: false,
   appliedPeriod: '',
@@ -209,7 +213,76 @@ const schema = computed(() => z.object({
   adminNotes: z.string().optional(),
 }))
 
+// ---- Saved origin accounts (V204) ----
+// Picking one fills the origin fields (still editable); the picker only lists accounts of the selected method.
+// The "remember" box saves THIS account for next time (by method, V207); it makes no sense when the account is
+// the saved one, unchanged, or when the line lacks what its method needs to identify the account.
+const savedAccountUuid = ref('')
+const savedAccount = ref<SavedOriginAccountDto | null>(null)
+const rememberOrigin = ref(false)
+
+function onPickSaved(account: SavedOriginAccountDto | null) {
+  savedAccount.value = account
+  if (!account) return
+  state.bankUuid = account.bank_Uuid ?? ''
+  state.bankAccountType = account.accountType ?? ''
+  state.bankAccountCode = account.accountCode ?? ''
+  state.bankAccountIdentifier = account.accountIdentifier ?? ''
+  state.identification = account.identification ?? ''
+  state.phone = account.phone ?? ''
+  state.email = account.email ?? ''
+  rememberOrigin.value = false
+}
+
+const originUnchangedFromSaved = computed(() => {
+  const a = savedAccount.value
+  return !!a
+    && (a.bank_Uuid ?? '') === state.bankUuid
+    && (a.accountType ?? '') === state.bankAccountType
+    && (a.accountCode ?? '') === state.bankAccountCode
+    && (a.accountIdentifier ?? '') === state.bankAccountIdentifier.trim()
+    && (a.identification ?? '') === state.identification
+    && (a.phone ?? '') === state.phone.trim()
+    && (a.email ?? '') === state.email.trim()
+})
+
+// Same rule as the backend: the method's flags decide what must be there, and something must identify the
+// account (number, phone or email) — cash, for instance, has nothing to remember.
+const hasOriginFields = computed(() => {
+  const m = selectedMethod.value
+  return !!m && Boolean(m.mandatoryBank || m.mandatoryBankAccount || m.mandatoryAccountCode
+    || m.mandatoryAccountType || m.mandatoryIdentification || m.mandatoryPhone || m.mandatoryEmail)
+})
+const canRemember = computed(() => {
+  const m = selectedMethod.value
+  if (!m || originUnchangedFromSaved.value) return false
+  const filled = (v: string) => v.trim() !== ''
+  if (m.mandatoryBank && !state.bankUuid) return false
+  if (m.mandatoryIdentification && !filled(state.identification)) return false
+  if (m.mandatoryAccountType && !filled(state.bankAccountType)) return false
+  if ((m.mandatoryBankAccount || m.mandatoryAccountCode) && !filled(state.bankAccountIdentifier)) return false
+  if (m.mandatoryPhone && !filled(state.phone)) return false
+  if (m.mandatoryEmail && !filled(state.email)) return false
+  return filled(state.bankAccountIdentifier) || filled(state.phone) || filled(state.email)
+})
+watch(canRemember, (ok) => {
+  if (!ok) rememberOrigin.value = false
+})
+
+// Pay on behalf of someone else (V203): only a holder CONFIRMED in the lookup is ever sent.
+const payForOther = ref(false)
+const beneficiary = ref<BeneficiaryMatchDto | null>(null)
+
+watch(payForOther, (on) => {
+  if (!on) beneficiary.value = null
+})
+
 function resetForm() {
+  savedAccountUuid.value = ''
+  savedAccount.value = null
+  rememberOrigin.value = false
+  payForOther.value = false
+  beneficiary.value = null
   state.amount = ''
   state.currency = 'USD'
   state.paymentMethodUuid = ''
@@ -221,6 +294,7 @@ function resetForm() {
   state.phone = ''
   state.email = ''
   state.referenceNumber = ''
+  state.companyBankAccountUuid = ''
   state.paymentDate = ''
   state.inscription = false
   state.appliedPeriod = ''
@@ -250,6 +324,10 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     })
     return
   }
+  if (payForOther.value && !beneficiary.value) {
+    toast.add({ title: t('payments.beneficiary.confirmRequired'), color: 'error', icon: 'i-lucide-circle-alert' })
+    return
+  }
   isSubmitting.value = true
   try {
     const payload: MyPaymentCreateRequest = {
@@ -274,12 +352,15 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         : (state.coverageThroughPeriod ? `${state.coverageThroughPeriod}-01` : undefined),
       adminNotes: state.adminNotes.trim() || undefined,
     }
-    if (linesEditor.lines.value.length > 0) {
+    // The company account travels on the line (the flat fields have no slot for it), so picking one
+    // sends the first line explicitly even when there are no extra lines.
+    if (linesEditor.lines.value.length > 0 || state.companyBankAccountUuid) {
       payload.lines = [
         {
           paymentMethodUuid: payload.paymentMethodUuid,
           bankUuid: payload.bankUuid,
-          amount: firstLineAmount.value.toFixed(2),
+          companyBankAccountUuid: state.companyBankAccountUuid || undefined,
+          amount: linesEditor.lines.value.length > 0 ? firstLineAmount.value.toFixed(2) : state.amount.trim(),
           identification: payload.identification,
           bankAccountType: payload.bankAccountType,
           bankAccountCode: payload.bankAccountCode,
@@ -291,6 +372,9 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         ...linesEditor.toRequests(),
       ]
     }
+    if (rememberOrigin.value && canRemember.value) payload.rememberOriginAccount = true
+    if (beneficiary.value?.membershipUuid) payload.beneficiaryMembershipUuid = beneficiary.value.membershipUuid
+    else if (beneficiary.value) payload.beneficiaryPersonUuid = beneficiary.value.personUuid
     const result = await payments.registerOwn(payload, supportFile.value)
     toast.add({ title: t('payments.form.registeredToast'), description: t('payments.form.registeredToastDescription'), color: 'success', icon: 'i-lucide-check-circle' })
     emit('saved', result)
@@ -367,6 +451,19 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           </UFormField>
         </div>
 
+        <CompanyBankAccountPicker v-model="state.companyBankAccountUuid" :method-uuid="state.paymentMethodUuid" :amount="state.amount" :currency="state.currency" :date="state.paymentDate ? state.paymentDate.slice(0, 10) : ''" :label="t('payments.companyAccounts.destinationLabel')" :help="t('payments.companyAccounts.destinationHelp')" />
+
+        <div class="rounded-xl border border-prohealth-100 p-3 space-y-3">
+          <USwitch v-model="payForOther" :label="t('payments.beneficiary.toggle')" />
+          <template v-if="payForOther">
+            <p class="text-xs text-prohealth-600">{{ t('payments.beneficiary.sectionHelp') }}</p>
+            <BeneficiaryLookup v-model="beneficiary" />
+          </template>
+        </div>
+
+
+        <SavedOriginAccountPicker v-if="hasOriginFields" v-model="savedAccountUuid" :method-uuid="state.paymentMethodUuid" @pick="onPickSaved" />
+
         <div v-if="selectedMethod?.mandatoryIdentification || selectedMethod?.mandatoryBank || selectedMethod?.mandatoryBankAccount || selectedMethod?.mandatoryAccountType || selectedMethod?.mandatoryAccountCode || selectedMethod?.mandatoryPhone || selectedMethod?.mandatoryEmail" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField v-if="selectedMethod?.mandatoryIdentification" :label="t('payments.payouts.fields.identification')" name="identification" required><UInput class="w-full" v-model="state.identification" /></UFormField>
           <UFormField v-if="selectedMethod?.mandatoryBank" :label="t('payments.payouts.fields.bank')" name="bankUuid" required>
@@ -381,6 +478,14 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           <UFormField v-if="selectedMethod?.mandatoryPhone" :label="t('payments.payouts.fields.phone')" name="phone" required><UInput class="w-full" v-model="state.phone" /></UFormField>
           <UFormField v-if="selectedMethod?.mandatoryEmail" :label="t('payments.payouts.fields.email')" name="email" required><UInput class="w-full" v-model="state.email" type="email" /></UFormField>
         </div>
+
+        <UCheckbox
+          v-if="hasOriginFields"
+          v-model="rememberOrigin"
+          :disabled="!canRemember"
+          :label="t('payments.savedAccounts.remember')"
+          :description="t('payments.savedAccounts.rememberHelp')"
+        />
 
         <!-- Additional payment lines (V117 lines feature) — split this payment across
              several methods. The block above stays the first line; each row here is

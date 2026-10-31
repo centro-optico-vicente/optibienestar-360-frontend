@@ -1,10 +1,15 @@
 import type { Page } from '~/types/admin'
 import type {
+  AssignMembershipRequest,
+  BeneficiaryMatchDto,
+  CreditBalanceDto,
   DiscountAuthorityDto,
   DownlinePaymentCreateRequest,
   PaymentDiscountRequest,
   MyPaymentCreateRequest,
   PaymentApproveRequest,
+  PaymentClaimDto,
+  PaymentClaimRequest,
   PaymentCreateRequest,
   PaymentDto,
   PaymentLinesUpdateRequest,
@@ -169,6 +174,38 @@ export const usePayments = () => {
       },
     })
 
+  /** My credit ("saldo a favor") per currency (COLLECTION_VIEW_OWN) — I may hold some without any membership. */
+  const creditBalance = () =>
+    useApi<CreditBalanceDto>('/v1/me/payments/credit-balance', { silent: true })
+
+  /** Flags the remaining credit of my own approved payment as wrong / overpaid / a refund request (COLLECTION_CLAIM_CREATE_OWN). */
+  const claimOwn = (uuid: string, body: PaymentClaimRequest) =>
+    useApi<PaymentClaimDto>(`/v1/me/payments/${uuid}/claim`, { method: 'POST', body })
+
+  /** Withdraws my own open claim on a payment. */
+  const withdrawClaimOwn = (uuid: string) =>
+    useApi<void>(`/v1/me/payments/${uuid}/claim`, { method: 'DELETE' })
+
+  /** Staff opens a claim on somebody's payment (COLLECTION_CLAIM_CREATE). */
+  const claimAsStaff = (uuid: string, body: PaymentClaimRequest) =>
+    useApi<PaymentClaimDto>(`/v1/admin/payments/${uuid}/claim`, { method: 'POST', body })
+
+  /** Points my own DRAFT/PENDING payment at a membership, e.g. paying a relative-holder's plan (COLLECTION_CREATE_OWN). */
+  const assignOwnMembership = (uuid: string, membershipUuid: string) =>
+    useApi<PaymentDto>(`/v1/me/payments/${uuid}/membership`, { method: 'PUT', body: { membershipUuid } })
+
+  /**
+   * Confirms the holder I pay for by exact document number OR exact contract number
+   * (GET /v1/me/payments/membership-lookup, COLLECTION_CREATE_OWN). The holder's name comes back abbreviated;
+   * membership fields are null when they have no active membership.
+   */
+  const lookupMembership = (params: { documentNumber?: string, contractNumber?: string }) =>
+    useApi<BeneficiaryMatchDto[]>('/v1/me/payments/membership-lookup', { query: params })
+
+  /** Staff: assigns an APPROVED membership-less collection (credit) to a membership (COLLECTION_ASSIGN_MEMBERSHIP). */
+  const assignMembership = (uuid: string, body: AssignMembershipRequest) =>
+    useApi<PaymentDto>(`/v1/admin/payments/${uuid}/assign-membership`, { method: 'POST', body })
+
   // ---- Promoter self-service (hub plan payments-unification, "Mis portales") ----
   /**
    * `direction=IN` -> "Cobros de mis afiliados" (collections from the
@@ -241,6 +278,7 @@ export const usePayments = () => {
     useApi<void>(`/v1/advisors/me/payments/${uuid}`, { method: 'DELETE' })
 
   return {
+    creditBalance, claimOwn, withdrawClaimOwn, claimAsStaff, assignOwnMembership, lookupMembership, assignMembership,
     list, get, register, registerOut, updateOut, removeOut, processOut, approveOut, rejectOut, approve, reject, applyDiscount, discountAuthority, remove, supportUrl, mine, mineForPromoter,
     updateLines, submit, reactivateToDraft,
     registerOwn, removeOwn, updateLinesOwn, submitOwn, reactivateToDraftOwn,

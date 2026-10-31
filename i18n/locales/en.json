@@ -737,7 +737,7 @@
       },
       "myPayments": {
         "label": "My payments",
-        "description": "Your membership payment history."
+        "description": "Your payment history and your credit balance."
       },
       "myPortfolio": {
         "label": "My portfolio",
@@ -770,11 +770,24 @@
       "myAffiliationRequests": {
         "label": "My affiliation requests",
         "description": "The requests that came through your QR and their status."
+      },
+      "myAdvisor": {
+        "label": "My advisor",
+        "description": "Your current advisor and previous ones."
+      },
+      "companyBankAccounts": {
+        "label": "Company accounts",
+        "description": "OptiBienestar bank accounts where payments are received."
+      },
+      "paymentClaims": {
+        "label": "Payment claims",
+        "description": "Claims on a payment's balance: refunds, mistakes and overpayments."
       }
     },
     "other": {
       "changePassword": "Change password",
-      "myContracts": "My contracts"
+      "myContracts": "My contracts",
+      "myBankAccounts": "My bank accounts"
     }
   },
   "layout": {
@@ -1874,7 +1887,9 @@
       "empty": "No payments in your portfolio yet",
       "form": {
         "title": "Register an affiliate payment",
-        "description": "Register a membership payment for an affiliate in your portfolio for review."
+        "description": "Register a membership payment for an affiliate in your portfolio for review.",
+        "memberHelp": "Your portfolio, or search by name or document for someone with no advisor. Not there? Register them with the button on the right.",
+        "unassignedTag": "no advisor"
       }
     },
     "payouts": {
@@ -1971,15 +1986,33 @@
         }
       },
       "daysOverdueValue": "{count} day | {count} days",
-      "callTooltip": "Call"
+      "callTooltip": "Call",
+      "registerPayment": "Register payment"
     },
     "payoutAccounts": {
       "title": "My payout details",
       "contactAdmin": "If your details changed, contact the administration.",
       "empty": "You have no payout details registered yet. Contact the administration to register them."
+    },
+    "newMember": {
+      "title": "New in my portfolio",
+      "description": "Register someone who is not an affiliate yet. They join your portfolio with no membership and you can register their payment.",
+      "submit": "Register in my portfolio",
+      "createdToast": "Person registered in your portfolio"
     }
   },
   "payments": {
+    "assignMembership": {
+      "action": "Assign to membership",
+      "title": "Assign to a membership",
+      "description": "This collection was left as credit for whoever paid. Assign it to the membership it covers; its charges for the given period are settled.",
+      "member": "Holder",
+      "memberHelp": "Search by name or document.",
+      "membership": "Membership",
+      "membershipPlaceholder": "Pick the affiliate first",
+      "confirm": "Assign",
+      "toast": "Collection assigned to the membership"
+    },
     "title": "Collections",
     "subtitle": "Register and review membership fee collections: approval or rejection with proof.",
     "collectionsReport": {
@@ -2094,7 +2127,9 @@
         "accountType": "Account type",
         "accountCode": "Account code",
         "phone": "Phone",
-        "email": "Email"
+        "email": "Email",
+        "originAccount": "Origin account (company)",
+        "payoutAccount": "Destination account (advisor)"
       },
       "searchPlaceholder": "Search by reference…",
       "empty": "No commission payouts",
@@ -2106,7 +2141,11 @@
         "reference": "Reference",
         "reviewedBy": "Reviewed by"
       },
-      "prefilledFromDossier": "Details taken from the advisor's payout account"
+      "prefilledFromDossier": "Details taken from the advisor's payout account",
+      "originAccountHelp": "The company account the payment leaves from. Only the accounts of the selected method are listed.",
+      "payoutAccountHelp": "The advisor's payout account the payment goes to; their default account is preselected.",
+      "noPayoutAccounts": "This advisor has no payout accounts.",
+      "pickPromoterFirst": "Pick the advisor first."
     },
     "movements": {
       "title": "Movements",
@@ -2127,7 +2166,7 @@
       "empty": "You don't have any registered payments yet.",
       "form": {
         "title": "Register my payment",
-        "description": "Register your membership payment for review."
+        "description": "Register a payment to the company. Without an active membership it becomes credit once approved."
       }
     },
     "columns": {
@@ -2198,7 +2237,10 @@
         "uuid": "UUID",
         "discount": "Discount",
         "netAmount": "Net to pay",
-        "discountReason": "Discount reason"
+        "discountReason": "Discount reason",
+        "originAccount": "Origin account (company)",
+        "destinationAccount": "Destination account (company)",
+        "payoutAccount": "Destination account (advisor)"
       },
       "proof": {
         "fileNameFallback": "Proof",
@@ -2216,7 +2258,8 @@
         "method": "Method",
         "bank": "Bank",
         "amount": "Amount",
-        "reference": "Reference"
+        "reference": "Reference",
+        "accounts": "Accounts"
       }
     },
     "form": {
@@ -2308,6 +2351,131 @@
       "reasonRequired": "The reason is required",
       "apply": "Apply discount",
       "appliedToast": "Discount applied"
+    },
+    "credit": {
+      "title": "Credit balance",
+      "help": "Staff can also assign it to a membership by hand.",
+      "autoApply": "Your balance is used automatically to cover full monthly fees of your membership."
+    },
+    "companyAccounts": {
+      "title": "Company accounts",
+      "subtitle": "The company's own bank accounts where affiliates deposit their payments.",
+      "pickerLabel": "Which company account did you pay into?",
+      "pickerHelp": "Optional. Tells us which account you deposited or transferred to.",
+      "searchPlaceholder": "Search by number, holder or document…",
+      "includeInactive": "Show inactive",
+      "empty": "No accounts registered.",
+      "createTitle": "New company account",
+      "editTitle": "Edit company account",
+      "savedToast": "Account saved",
+      "deletedToast": "Account deactivated",
+      "deleteTitle": "Deactivate account",
+      "deleteConfirm": "The account will stop showing to payers. Payments already registered are unchanged.",
+      "sortOrderHelp": "Lower numbers show first.",
+      "fields": {
+        "bank": "Bank",
+        "currency": "Currency",
+        "accountType": "Account type",
+        "accountNumber": "Account number",
+        "holderName": "Holder",
+        "holderDocument": "Holder document",
+        "notes": "Notes",
+        "sortOrder": "Order",
+        "publicVisible": "Show publicly",
+        "method": "Payment method",
+        "destination": "Account / phone / email",
+        "phone": "Phone",
+        "email": "Email"
+      },
+      "public": "Public",
+      "private": "Private",
+      "publicHelp": "Visible without logging in on the public company accounts endpoint. Otherwise only people registering a payment see it.",
+      "destinationLabel": "Destination account (where did you pay?)",
+      "destinationHelp": "The company account you paid into. Only the accounts of the selected method are listed.",
+      "noneForMethod": "There are no company accounts for this method.",
+      "noneAtAll": "No company accounts have been registered yet.",
+      "pickMethodHint": "Pick the payment method first: it decides which details the account needs.",
+      "holderDocumentHelp": "ID or RIF, e.g. J-12345678-9.",
+      "phonePlaceholder": "04141234567"
+    },
+    "assignOwn": {
+      "title": "Assign to a membership",
+      "description": "If you are paying for a relative, say which membership this payment is for. The reviewer will verify it on approval.",
+      "search": "Search",
+      "confirm": "Assign",
+      "savedToast": "Payment assigned to the membership"
+    },
+    "beneficiary": {
+      "byContract": "By contract number",
+      "byDocument": "By holder's document",
+      "contractPlaceholder": "OB-000123",
+      "documentPlaceholder": "Document number",
+      "exactHelp": "Type the exact value; you will see who it belongs to before confirming.",
+      "notFound": "We could not find anyone with that value. Check it is spelled correctly.",
+      "noMembership": "No active membership: the payment will become this person's credit.",
+      "needsMembership": "This person has no active membership to assign the payment to.",
+      "confirm": "This is the person",
+      "change": "Change",
+      "contract": "Contract",
+      "creditOnly": "No active membership: the payment will be this person's credit.",
+      "sectionTitle": "Pay on behalf of someone else",
+      "sectionHelp": "If you are paying for a relative, find them and confirm it is the right person. The payment settles their membership, or becomes their credit if they have none.",
+      "toggle": "Pay on behalf of someone else",
+      "confirmRequired": "Find and confirm the person before registering the payment.",
+      "detailLabel": "Beneficiary",
+      "forLabel": "For {name}"
+    },
+    "savedAccounts": {
+      "label": "My saved accounts",
+      "help": "Accounts you already paid from and chose to remember.",
+      "placeholder": "Pick a saved account",
+      "forget": "Forget this account",
+      "removedToast": "Account forgotten",
+      "remember": "Remember this account for future payments",
+      "rememberHelp": "We keep the details of the account you pay from (bank, number or phone, depending on the method) so you do not have to type them again."
+    },
+    "claim": {
+      "title": "Report a problem with this payment",
+      "description": "If you paid too much or by mistake, say so here. While the claim is open that amount is frozen and not used automatically; administration will review it with you.",
+      "remaining": "Available balance of this payment: {amount} {currency}.",
+      "reasonLabel": "Reason",
+      "reasons": {
+        "ERROR": "Paid by mistake",
+        "OVERPAID": "I overpaid",
+        "REFUND_REQUEST": "I want a refund",
+        "OTHER": "Other reason"
+      },
+      "amountLabel": "Claimed amount",
+      "amountInvalid": "Must be greater than 0 and not exceed the available balance.",
+      "commentLabel": "Comment",
+      "commentHelp": "Tell us what happened so administration can handle it.",
+      "confirm": "Send claim",
+      "savedToast": "Claim registered",
+      "withdrawnToast": "Claim withdrawn",
+      "badge": "Claimed: {amount}",
+      "action": "Report a problem with this payment",
+      "withdraw": "Withdraw the claim",
+      "detailLabel": "Open claim",
+      "manageLink": "Manage in Payment claims"
+    },
+    "accountCopy": {
+      "copied": "{what} copied",
+      "mobilePayment": "Pago móvil",
+      "data": "Account details",
+      "mobilePaymentButton": "Copy pago móvil",
+      "allButton": "Copy details",
+      "mobileHint": "Copies phone, ID or RIF and bank, one per line, in the order banks ask for.",
+      "mobileHintWithAmount": "Copies phone, ID or RIF, bank and the amount in bolívares, one per line, in the order banks ask for.",
+      "fields": {
+        "method": "Method",
+        "bank": "Bank",
+        "accountType": "Account type",
+        "accountNumber": "Account number",
+        "holderName": "Holder",
+        "document": "ID or RIF",
+        "phone": "Phone",
+        "email": "Email"
+      }
     }
   },
   "members": {
@@ -2386,6 +2554,10 @@
       "validation": {
         "documentMin": "At least 5 digits",
         "adult": "The holder must be 18 or older"
+      },
+      "documentTypes": {
+        "V": "V — Venezuelan",
+        "E": "E — Foreigner"
       }
     },
     "delete": {
@@ -2609,52 +2781,33 @@
       "title": "My usage",
       "subtitle": "History of the benefits you used at network allies.",
       "empty": "You have no recorded usage yet.",
+      "notAffiliatedBody": "Once you join, you will see here the benefits you use at the network allies.",
       "consumption": "consumption",
-      "copay": "Co-pay",
-      "rating": {
-        "rateButton": "Rate",
-        "editButton": "Edit rating",
-        "title": "Rate usage",
-        "editTitle": "Edit rating",
-        "allyLabel": "How did {name} treat you?",
-        "allyShort": "Partner",
-        "productLabel": "What did you think of {name}?",
-        "productFallback": "Product or service",
-        "optional": "Optional",
-        "allyRequired": "Rate the partner with at least one star.",
-        "commentLabel": "Comment (optional)",
-        "commentPlaceholder": "Tell us about your experience…",
-        "submit": "Save rating",
-        "savedToast": "Thanks for your rating!",
-        "updatedToast": "Rating updated",
-        "errorToast": "The rating could not be saved",
-        "errors": {
-          "notRatable": "This usage can no longer be rated (it was reversed or is disputed).",
-          "productNotApplicable": "This usage has no catalog product or service to rate.",
-          "notFound": "We could not find this usage. Refresh the page and try again."
-        }
-      },
-      "who": {
-        "label": "Who?",
-        "all": "Everyone",
-        "holder": "Holder"
-      },
-      "consumedBy": "Used by",
-      "holderTag": "Holder",
-      "emptyFiltered": "No usage matches this filter.",
-      "filters": {
-        "service": "Service: {name}",
-        "clear": "Clear filter"
-      },
-      "summary": {
-        "title": "By service",
-        "subtitle": "Tap a service to see only its usage.",
-        "empty": "No usage to summarize.",
-        "times": "{count} time | {count} times",
-        "lastUsage": "Last used: {date}",
-        "uncatalogued": "Other ({category})",
-        "filterTooltip": "See this service’s usage"
-      }
+      "copay": "Co-pay"
+    },
+    "advisor": {
+      "title": "My advisor",
+      "subtitle": "Who advises you today and who did before.",
+      "notEnrolled": "You are not an affiliate yet, so you have no advisor assigned.",
+      "current": "Current advisor",
+      "none": "You do not have an advisor assigned yet.",
+      "history": "Advisor history",
+      "historyEmpty": "No advisor changes yet.",
+      "changed": "From {from} to {to}",
+      "assigned": "Assigned to {to}"
+    },
+    "creditHold": {
+      "title": "Credit balance",
+      "help": "Freezing the balance stops it from being used automatically to cover fees (for example, during a refund).",
+      "frozenTitle": "Balance frozen",
+      "freeze": "Freeze balance",
+      "release": "Release balance",
+      "modalTitle": "Freeze the credit balance",
+      "modalDescription": "While frozen it is not applied automatically. Staff can still assign it by hand when there is an agreement with the person.",
+      "reasonLabel": "Reason",
+      "confirm": "Freeze",
+      "frozenToast": "Balance frozen",
+      "releasedToast": "Balance released"
     }
   },
   "memberships": {
@@ -2715,13 +2868,50 @@
       "title": "Memberships",
       "description": "Plan enrollments are managed per holder. Search for a member to view and manage their memberships.",
       "searchLabel": "Member",
-      "searchHelp": "Type a name or document number (min. 2 characters).",
+      "searchHelp": "Open to list affiliates or type name or document (min. 1 character).",
       "searchPlaceholder": "Search by name or document…",
       "managingFor": "Managing memberships for",
       "viewFullRecord": "View full record",
       "emptyTitle": "Select a member",
-      "emptyDescription": "Search by name or document to manage their memberships."
-    }
+      "emptyDescription": "Search by name or document to manage their memberships.",
+      "emptyList": "No memberships match those filters.",
+      "manage": "Manage the affiliate's memberships",
+      "statusFilter": {
+        "ACTIVE": "Active",
+        "DUE_SOON": "Due soon",
+        "OVERDUE": "Overdue",
+        "SUSPENDED": "Suspended",
+        "EXPIRED": "Expired",
+        "CANCELED": "Canceled"
+      },
+      "filters": {
+        "status": "Status",
+        "advisor": "Advisor",
+        "plan": "Plan",
+        "planType": "Plan type",
+        "any": "All",
+        "enrolledFrom": "Enrolled from",
+        "enrolledTo": "Enrolled to",
+        "nextDueFrom": "Next due from",
+        "nextDueTo": "Next due to",
+        "clear": "Clear filters"
+      },
+      "columns": {
+        "member": "Affiliate",
+        "advisor": "Advisor",
+        "plan": "Plan",
+        "enrolledAt": "Enrolled",
+        "nextDueDate": "Next due",
+        "status": "Status",
+        "collection": "Collection"
+      },
+      "paymentStatus": {
+        "OVERDUE": "Overdue {days} d",
+        "DUE_SOON": "Due soon",
+        "UP_TO_DATE": "Up to date"
+      }
+    },
+    "contractNumber": "Contract"
   },
   "validator": {
     "seoTitle": "Validator — OptiBienestar 360",
@@ -5138,6 +5328,95 @@
     "ariaValue": "{value} out of 5 stars",
     "starLabel": "{n} star | {n} stars",
     "allyPrefix": "Partner",
-    "offerPrefix": "This service"
+    "offerPrefix": "This service",
+    "myBankAccounts": {
+      "title": "My bank accounts",
+      "subtitle": "The accounts you pay from. When you register a payment you can pick one so you do not retype every detail.",
+      "profileLink": {
+        "title": "My bank accounts",
+        "body": "The accounts you pay from, to reuse in your payments."
+      },
+      "add": "Add account",
+      "addTitle": "Add account",
+      "editTitle": "Edit account",
+      "formHelp": "These are your own origin accounts; only you can see them.",
+      "empty": "You have no saved accounts yet. These are the accounts you pay from; you can also save one while registering a payment.",
+      "fields": {
+        "bank": "Bank",
+        "accountType": "Account type",
+        "accountCode": "Account code",
+        "accountIdentifier": "Account number",
+        "identification": "Holder's document",
+        "alias": "Alias",
+        "paymentMethod": "Payment method",
+        "account": "Account / phone",
+        "phone": "Phone",
+        "email": "Email"
+      },
+      "identificationHelp": "ID or tax number of the account holder.",
+      "aliasHelp": "A name to recognise it, for example \"Payroll account\".",
+      "savedToast": "Account saved",
+      "removedToast": "Account removed",
+      "deleteTitle": "Delete account",
+      "deleteConfirm": "This account will stop showing among your saved accounts. Payments you already registered do not change."
+    },
+    "paymentClaims": {
+      "title": "Payment claims",
+      "subtitle": "Claims on a payment's balance. While open, that amount is not applied automatically.",
+      "allStatuses": "All statuses",
+      "status": {
+        "OPEN": "Open",
+        "KEPT_AS_CREDIT": "Kept as credit",
+        "REFUNDED": "Refunded",
+        "REJECTED": "Rejected",
+        "WITHDRAWN": "Withdrawn",
+        "USED_BY_AGREEMENT": "Used by agreement"
+      },
+      "columns": {
+        "payment": "Payment",
+        "person": "Person",
+        "reason": "Reason",
+        "amount": "Claimed amount",
+        "openedAt": "Date",
+        "status": "Status"
+      },
+      "empty": "No claims match this filter.",
+      "viewPayment": "View payment",
+      "resolve": "Resolve",
+      "noPermissionResolve": "You do not have permission to resolve claims.",
+      "resolveTitle": "Resolve claim",
+      "resolveDescription": "Decide with the person what to do with the claimed amount.",
+      "claimedSummary": "Claimed amount: {amount} {currency}.",
+      "actionLabel": "Resolution",
+      "actions": {
+        "KEEP_AS_CREDIT": "Keep as credit",
+        "REFUND": "Refund",
+        "REJECT": "Reject the claim"
+      },
+      "actionHelp": {
+        "KEEP_AS_CREDIT": "The amount becomes available again as credit (wallet) and the claim is closed.",
+        "REFUND": "It is deducted from the balance and recorded as a refund; finance handles the transfer outside the system.",
+        "REJECT": "The claim is closed and the amount becomes available again."
+      },
+      "refundedAmountLabel": "Amount to refund",
+      "refundedAmountInvalid": "Must be greater than 0 and not exceed the claimed amount.",
+      "noteLabel": "Resolution note",
+      "confirm": "Resolve",
+      "resolvedToast": "Claim resolved"
+    },
+    "publicAccounts": {
+      "seoTitle": "Accounts to pay into — OptiBienestar 360",
+      "seoDescription": "OptiBienestar 360 bank accounts where you can deposit or transfer your payment.",
+      "title": "Accounts to pay into",
+      "subtitle": "These are the accounts where you can deposit or transfer. Then register your payment saying which one you used.",
+      "empty": "There are no public accounts available right now.",
+      "loadFailed": "We could not load the accounts. Please try again later.",
+      "copy": "Copy number",
+      "copied": "Number copied",
+      "copyFailed": "Could not copy the number"
+    },
+    "banks": {
+      "officialNameTooltip": "Official name: {name}"
+    }
   }
 }

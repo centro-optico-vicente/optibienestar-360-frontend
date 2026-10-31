@@ -55,7 +55,7 @@ onMounted(load)
             <UBadge v-if="a.isDefault" color="primary" variant="soft" size="sm">{{ t('promoters.payoutAccounts.defaultBadge') }}</UBadge>
           </div>
           <p v-if="a.label || a.bank_Display" class="text-xs text-prohealth-500 mt-0.5">
-            {{ [a.label, a.bank_Display].filter(Boolean).join(' · ') }}
+            <span v-if="a.label">{{ a.label }}</span><span v-if="a.label && a.bank_Display"> · </span><BankName v-if="a.bank_Display" :uuid="a.bank_Uuid" :code="a.bank_Code" :name="a.bank_Display" />
           </p>
         </div>
         <div class="text-right">

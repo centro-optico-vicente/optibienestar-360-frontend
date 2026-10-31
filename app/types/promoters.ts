@@ -225,6 +225,8 @@ export interface PromoterPayoutAccountDto {
   label?: string | null
   bank_Uuid?: string | null
   bank_Display?: string | null
+  /** SUDEBAN code of the bank (e.g. 0102). */
+  bank_Code?: string | null
   accountType?: 'CORRIENTE' | 'AHORRO' | null
   /** 20 digits for national accounts. */
   accountNumber?: string | null

@@ -152,6 +152,11 @@ export interface MemberDto {
   createdAt?: string
   /** Fecha de confirmación (primer pago aprobado, o manual para afiliados con subsidio). null/undefined = pendiente. */
   confirmedAt?: string
+  /** `false` = the person's credit is frozen: it is not applied automatically to monthly fees (hub ADR 0029). */
+  creditAutoApply?: boolean
+  creditHoldReason?: string | null
+  creditHoldAt?: string | null
+  creditHoldAt_Display?: string | null
 }
 
 /** Fila del histórico de reasignaciones de promotor de un afiliado (GET .../advisor-history). @JsonInclude(NON_NULL) en el backend. */
@@ -259,3 +264,17 @@ export interface MedicalRecordDto {
 
 /** Body of PUT /medical-record (upsert with PATCH semantics). */
 export type UpsertMedicalRecordRequest = Omit<MedicalRecordDto, 'uuid' | 'updatedAt'>
+
+/** `GET /v1/me/member/advisor` — the caller's advisor and previous ones ("Mi asesor"). `exists=false` when they have no member record. */
+export interface MyAdvisorDto {
+  exists: boolean
+  advisorUuid?: string | null
+  advisorName?: string | null
+  /** Newest first; `fromName` is absent for the first assignment. */
+  history: Array<{
+    fromName?: string | null
+    toName: string
+    assignedAt: string
+    assignedAt_Display?: string | null
+  }>
+}

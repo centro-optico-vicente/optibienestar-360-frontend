@@ -387,8 +387,8 @@ const initials = computed(() => (displayName.value || '').split(/\s+/).filter(Bo
           <!-- My active promotion (self-gated by MEMBER_VIEW_OWN; hidden when none) -->
           <MyPromotionCard />
 
-          <!-- My payments (self-gated by COLLECTION_VIEW_OWN) -->
-          <MyPaymentsCard />
+      <!-- My payments (self-gated by COLLECTION_VIEW_OWN) -->
+      <MyPaymentsCard />
 
           <!-- My referrals (self-gated by REFERRAL_CODE_VIEW_OWN) -->
           <MyReferralsCard />

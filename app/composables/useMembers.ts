@@ -11,6 +11,7 @@ import type {
   MemberDto,
   MemberListItemDto,
   MemberPromoterAssignmentDto,
+  MyAdvisorDto,
   PortfolioToSupervisorRequest,
   UpdateBeneficiaryRequest,
   UpdateMemberRequest,
@@ -130,6 +131,9 @@ export const useMembers = () => {
   /** Deactivate the beneficiary's login; granting again reactivates it (BENEFICIARY_ACCESS_REVOKE_OWN). */
   const revokeBeneficiaryAccess = (uuid: string) =>
     useApi<BeneficiaryDto>(`/v1/me/family/${uuid}/access`, { method: 'DELETE' })
+  /** My current advisor and previous advisors (MEMBER_ADVISOR_VIEW_OWN). `exists=false` when I have no member record (advisors/allies). */
+  const myAdvisor = () =>
+    useApi<MyAdvisorDto>('/v1/me/member/advisor', { silent: true })
 
   // ---- Enlace permanente promotor (MEMBER_ASSIGN_PROMOTER) ----
   /** Reasigna o vincula (si el afiliado no tenía) el promotor. `body` trae promoterUuid XOR referralCode. */
@@ -153,6 +157,11 @@ export const useMembers = () => {
   const confirm = (memberUuid: string) =>
     useApi<MemberConfirmationDto>(`/v1/admin/members/${memberUuid}/confirm`, { method: 'POST' })
 
+  // ---- Congelar el saldo a favor (PERSON_CREDIT_HOLD_UPDATE, hub ADR 0029) ----
+  /** Freezes (`hold = true`, reason required) or releases the automatic use of a person's credit. */
+  const setCreditHold = (memberUuid: string, hold: boolean, reason?: string) =>
+    useApi<void>(`/v1/admin/members/${memberUuid}/credit-hold`, { method: 'PUT', body: { hold, ...(reason ? { reason } : {}) } })
+
   return {
     list,
     options,
@@ -173,10 +182,12 @@ export const useMembers = () => {
     addMyBeneficiary,
     grantBeneficiaryAccess,
     revokeBeneficiaryAccess,
+    myAdvisor,
     assignPromoter,
     bulkAssignPromoter,
     portfolioToSupervisor,
     promoterHistory,
     confirm,
+    setCreditHold,
   }
 }

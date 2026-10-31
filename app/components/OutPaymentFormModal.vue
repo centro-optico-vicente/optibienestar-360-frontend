@@ -63,6 +63,10 @@ interface FormState {
   referenceNumber: string
   paymentDate: string
   adminNotes: string
+  /** Company account the money leaves from (V206). */
+  companyBankAccountUuid: string
+  /** The advisor's payout account the money goes to (V206). */
+  payoutAccountUuid: string
 }
 
 const state = reactive<FormState>({
@@ -82,6 +86,8 @@ const state = reactive<FormState>({
   referenceNumber: '',
   paymentDate: new Date().toISOString().slice(0, 16),
   adminNotes: '',
+  companyBankAccountUuid: '',
+  payoutAccountUuid: '',
 })
 
 const methodOptions = ref<{ label: string, value: string }[]>([])
@@ -171,7 +177,7 @@ async function loadOptions() {
       .map((method: CatalogItem) => ({ label: method.name, value: method.uuid }))
     const activeBanks = banks.filter((bank: CatalogItem) => bank.active)
     bankOptions.value = activeBanks
-      .map((bank: CatalogItem) => ({ label: bank.code ? `${bank.code} — ${bank.name}` : bank.name, value: bank.uuid }))
+      .map((bank: CatalogItem) => ({ label: bankOptionLabel(bank), value: bank.uuid }))
     banksByUuid.value = Object.fromEntries(activeBanks.map((bank: CatalogItem) => [bank.uuid, bank]))
   }
   catch {
@@ -196,6 +202,9 @@ function reset() {
   state.referenceNumber = props.payment?.referenceNumber ?? ''
   state.paymentDate = props.payment?.paymentDate ? isoToDatetimeLocal(props.payment.paymentDate) : isoToDatetimeLocal(new Date().toISOString())
   state.adminNotes = props.payment?.adminNotes ?? ''
+  const firstLine = props.payment?.lines?.[0]
+  state.companyBankAccountUuid = firstLine?.companyBankAccount_Uuid ?? ''
+  state.payoutAccountUuid = firstLine?.payoutAccount_Uuid ?? ''
   clearFile()
 }
 
@@ -208,9 +217,11 @@ watch(() => state.paymentMethodUuid, async (uuid) => {
   selectedMethod.value = uuid ? await useApi<CatalogItem>(`/v1/admin/payment-methods/${uuid}`) : null
 })
 
-watch(() => state.promoterUuid, (uuid) => {
+watch(() => state.promoterUuid, (uuid, previous) => {
   const promoter = promoterOptions.value.find(option => option.value === uuid)
   if (promoter?.personUuid) state.personUuid = promoter.personUuid
+  // Another advisor's payout account can never be the destination (the backend rejects it).
+  if (previous) state.payoutAccountUuid = ''
   loadPayoutAccounts(uuid)
 })
 
@@ -221,25 +232,39 @@ watch(() => state.promoterUuid, (uuid) => {
 // selected method, the default one first (the API already sorts default
 // first, re-sorted here so the rule does not depend on it).
 const payoutAccounts = ref<PromoterPayoutAccountDto[]>([])
+const loadingPayoutAccounts = ref(false)
 const prefilledFromDossier = ref(false)
 
 async function loadPayoutAccounts(promoterUuid: string) {
   payoutAccounts.value = []
   prefilledFromDossier.value = false
   if (!promoterUuid || !canViewPayoutAccounts.value) return
+  loadingPayoutAccounts.value = true
   try {
     const accounts = await promoters.listPayoutAccounts(promoterUuid, { silent: true })
     // Ignore a late answer for a promoter that is no longer selected.
     if (state.promoterUuid !== promoterUuid) return
     payoutAccounts.value = accounts
+    // Destination preselected: the account of the selected method, else the advisor's default one.
+    if (!state.payoutAccountUuid || !accounts.some(a => a.uuid === state.payoutAccountUuid)) {
+      const preferred = matchingPayoutAccount() ?? accounts.find(a => a.isDefault) ?? accounts[0]
+      state.payoutAccountUuid = preferred?.uuid ?? ''
+    }
     applyPayoutAccount()
   }
   catch {
     // Silent: prefill is a convenience, the form works without it.
   }
+  finally {
+    loadingPayoutAccounts.value = false
+  }
 }
 
 type PrefillField = 'identification' | 'bankUuid' | 'bankAccountType' | 'bankAccountCode' | 'bankAccountIdentifier' | 'phone' | 'email'
+
+function selectedPayoutAccount(): PromoterPayoutAccountDto | null {
+  return payoutAccounts.value.find(account => account.uuid === state.payoutAccountUuid) ?? null
+}
 
 function matchingPayoutAccount(): PromoterPayoutAccountDto | null {
   const methodUuid = state.paymentMethodUuid
@@ -250,7 +275,11 @@ function matchingPayoutAccount(): PromoterPayoutAccountDto | null {
 }
 
 function applyPayoutAccount() {
-  const account = matchingPayoutAccount()
+  // The account the operator picked as destination wins; otherwise the one matching the method.
+  const picked = selectedPayoutAccount()
+  const account = picked && (!state.paymentMethodUuid || picked.paymentMethod_Uuid === state.paymentMethodUuid)
+    ? picked
+    : matchingPayoutAccount()
   if (!account) return
   let filled = false
   const fill = (field: PrefillField, value?: string | null, isPlaceholder?: (current: string) => boolean) => {
@@ -280,6 +309,14 @@ function applyPayoutAccount() {
 
 // The method decides which account applies — re-apply when it changes.
 watch(selectedMethod, () => applyPayoutAccount())
+
+// Picking the destination account fills the method when there is none yet, then prefills the empty fields.
+watch(() => state.payoutAccountUuid, () => {
+  const picked = selectedPayoutAccount()
+  if (!picked) return
+  if (!state.paymentMethodUuid && picked.paymentMethod_Uuid) state.paymentMethodUuid = picked.paymentMethod_Uuid
+  applyPayoutAccount()
+})
 
 // When a bank is picked and the method requires an account code, prefix
 // bankAccountCode with the bank's SUDEBAN code so the user only fills in
@@ -319,6 +356,8 @@ async function onSubmit() {
       referenceNumber: state.referenceNumber || undefined,
       paymentDate: datetimeLocalToIso(state.paymentDate),
       adminNotes: state.adminNotes || undefined,
+      companyBankAccountUuid: state.companyBankAccountUuid || undefined,
+      payoutAccountUuid: state.payoutAccountUuid || undefined,
     }
 
     const saved = editing.value
@@ -352,6 +391,21 @@ function submitForm() {
         <UFormField :label="t('payments.payouts.fields.person')" name="personUuid" required>
           <UInput class="w-full" :model-value="personDisplayName" readonly :placeholder="t('payments.payouts.personPlaceholder')" />
         </UFormField>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <CompanyBankAccountPicker
+            v-model="state.companyBankAccountUuid"
+            :method-uuid="state.paymentMethodUuid"
+            :label="t('payments.payouts.fields.originAccount')"
+            :help="t('payments.payouts.originAccountHelp')"
+          />
+          <PayoutAccountPicker
+            v-if="canViewPayoutAccounts"
+            v-model="state.payoutAccountUuid"
+            :accounts="payoutAccounts"
+            :promoter-uuid="state.promoterUuid"
+            :loading="loadingPayoutAccounts"
+          />
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <UFormField class="sm:col-span-1" :label="t('payments.columns.date')" name="paymentDate" required><AppDateTimePicker v-model="state.paymentDate" /></UFormField>

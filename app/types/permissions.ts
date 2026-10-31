@@ -321,6 +321,18 @@ export const PERMISSIONS = [
   'PAYMENT_METHOD_VIEW_ALL', 'PAYMENT_METHOD_CREATE', 'PAYMENT_METHOD_UPDATE', 'PAYMENT_METHOD_DELETE',
   'PAYMENT_METHOD_RECORD_AUDIT_VIEW', 'PAYMENT_METHOD_REPORT_AUDIT_VIEW',
 
+  // Payments without a membership (V201, hub ADR 0028) — company bank accounts,
+  // credit assignment, "my advisor" and registering a new person in one's portfolio.
+  'COMPANY_BANK_ACCOUNT_VIEW', 'COMPANY_BANK_ACCOUNT_CREATE', 'COMPANY_BANK_ACCOUNT_UPDATE', 'COMPANY_BANK_ACCOUNT_DELETE',
+  'COLLECTION_ASSIGN_MEMBERSHIP',
+  'MEMBER_ADVISOR_VIEW_OWN',
+  'PROMOTER_PORTFOLIO_CREATE',
+
+  // Payment claims and credit hold (hub ADR 0029) — a payer or staff flags a payment's remaining credit
+  // as wrong / overpaid / refund request; staff resolve it and can freeze a person's credit.
+  'COLLECTION_CLAIM_CREATE_OWN', 'COLLECTION_CLAIM_VIEW_ALL', 'COLLECTION_CLAIM_CREATE', 'COLLECTION_CLAIM_RESOLVE',
+  'PERSON_CREDIT_HOLD_UPDATE',
+
   // TERMS & CONDITIONS (V139) — versioned T&C per role (AFILIADO/ASESOR/ALIADO).
   'TERMS_VIEW_ALL',
   'TERMS_CREATE',

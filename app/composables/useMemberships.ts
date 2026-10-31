@@ -1,4 +1,5 @@
-import type { MembershipCreateRequest, MembershipDto } from '~/types/memberships'
+import type { Page } from '~/types/admin'
+import type { MembershipCreateRequest, MembershipDto, MembershipListItemDto, MembershipSearchParams } from '~/types/memberships'
 
 /**
  * Access to the Memberships vertical. Memberships are a sub-resource of a member
@@ -8,6 +9,20 @@ import type { MembershipCreateRequest, MembershipDto } from '~/types/memberships
  * cancel -> MEMBERSHIP_CANCEL · reactivate -> MEMBERSHIP_REACTIVATE.
  */
 export const useMemberships = () => {
+  /**
+   * Cross-member list with filters (`GET /v1/admin/memberships`, MEMBERSHIP_VIEW_ALL). Empty params are
+   * omitted; `status` accepts the lifecycle values plus the derived OVERDUE / DUE_SOON.
+   */
+  const search = (params: MembershipSearchParams = {}) => {
+    const { page, size, sort, ...filters } = params
+    const query: Record<string, unknown> = { page: page ?? 0, size: size ?? 20 }
+    if (sort?.length) query.sort = sort
+    for (const [key, value] of Object.entries(filters)) {
+      if (value !== undefined && value !== null && value !== '') query[key] = value
+    }
+    return useApi<Page<MembershipListItemDto>>('/v1/admin/memberships', { query })
+  }
+
   /** A member's memberships (flat array, not paginated). */
   const listForMember = (memberUuid: string) =>
     useApi<MembershipDto[]>(`/v1/admin/members/${memberUuid}/memberships`)
@@ -33,5 +48,5 @@ export const useMemberships = () => {
       body: reason ? { reason } : {},
     })
 
-  return { listForMember, get, enroll, cancel, reactivate }
+  return { search, listForMember, get, enroll, cancel, reactivate }
 }
