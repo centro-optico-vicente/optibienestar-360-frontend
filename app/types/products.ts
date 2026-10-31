@@ -109,6 +109,9 @@ export interface PublicProductListItemDto {
   description?: string | null
   priceAmount?: number | string | null
   discountPct?: number | string | null
+  discountType?: 'FLAT' | 'PERCENTAGE' | string | null
+  discountAmount?: number | string | null
+  effectiveDiscountPct?: number | string | null
   finalPrice?: number | string | null
   exclusions?: string | null
   requiresAppointment?: boolean
@@ -126,6 +129,9 @@ export interface PublicProductOfferDto {
   offerUuid: string
   priceAmount?: number | string | null
   discountPct?: number | string | null
+  discountType?: 'FLAT' | 'PERCENTAGE' | string | null
+  discountAmount?: number | string | null
+  effectiveDiscountPct?: number | string | null
   finalPrice?: number | string | null
   exclusions?: string | null
   allyUuid: string

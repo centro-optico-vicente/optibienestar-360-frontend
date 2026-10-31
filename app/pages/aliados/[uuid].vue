@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { offerDiscountPct } from '~/utils/offerDiscount'
 import type { ApiError } from '~/types/auth'
 import type { PublicAllyDetailDto } from '~/types/allies'
 
@@ -210,11 +211,11 @@ function money(v?: number | string | null): string {
                     </span>
                   </CurrencyConverterDisplay>
                 </p>
-                <p v-if="hasDiscount(s.discountPct) && s.priceAmount != null" class="text-xs text-prohealth-400 line-through">
+                <p v-if="hasDiscount(offerDiscountPct(s)) && s.priceAmount != null" class="text-xs text-prohealth-400 line-through">
                   {{ money(s.priceAmount) }}
                 </p>
-                <p v-if="hasDiscount(s.discountPct)" class="text-xs font-semibold text-lime-700">
-                  {{ t('allies.public.detail.discountAffiliates', { pct: s.discountPct }) }}
+                <p v-if="hasDiscount(offerDiscountPct(s))" class="text-xs font-semibold text-lime-700">
+                  {{ t('allies.public.detail.discountAffiliates', { pct: offerDiscountPct(s) }) }}
                 </p>
               </div>
             </div>

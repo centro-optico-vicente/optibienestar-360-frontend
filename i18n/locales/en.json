@@ -1524,6 +1524,17 @@
       "delete": {
         "title": "Delete offer",
         "confirm": "Are you sure you want to delete the offer {name}? (soft-delete)"
+      },
+      "discount": {
+        "typeLabel": "Preferential rate type",
+        "types": {
+          "PERCENTAGE": "Percentage",
+          "FLAT": "Fixed amount"
+        },
+        "amountLabel": "Amount off (USD)",
+        "exceedsPrice": "The discount cannot be greater than the price",
+        "preview": "The member pays {price} (equals a {pct} % discount)",
+        "flatNeedsPrice": "A fixed-amount discount needs the price"
       }
     },
     "professions": {
