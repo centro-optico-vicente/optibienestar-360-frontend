@@ -468,23 +468,35 @@ export interface CompanyBankAccountRequest {
 /** An origin account the caller chose to remember (V204): `GET /v1/me/bank-accounts`. */
 export interface SavedOriginAccountDto {
   uuid: string
+  /** Payment method of the account (V207): its flags decide which fields apply (Pago Móvil = phone, transfer = number). */
+  paymentMethod_Uuid?: string | null
+  paymentMethod_Display?: string | null
+  paymentMethodCode?: string | null
   bank_Uuid?: string | null
   bank_Code?: string | null
   bank_Display?: string | null
   accountType?: string | null
   accountCode?: string | null
-  accountIdentifier: string
+  accountIdentifier?: string | null
   identification?: string | null
+  phone?: string | null
+  email?: string | null
   alias?: string | null
 }
 
-/** Body of `POST` / `PUT /v1/me/bank-accounts` — one of the caller's own origin accounts (V204). */
+/**
+ * Body of `POST` / `PUT /v1/me/bank-accounts` — one of the caller's own origin accounts (V204/V207). The payment
+ * method decides which of the other fields are required (its `mandatory*` flags), same rule as the backend.
+ */
 export interface MyBankAccountRequest {
-  bankUuid: string
+  paymentMethodUuid: string
+  bankUuid?: string | null
   accountType?: string | null
   accountCode?: string | null
-  accountIdentifier: string
+  accountIdentifier?: string | null
   identification?: string | null
+  phone?: string | null
+  email?: string | null
   alias?: string | null
 }
 
