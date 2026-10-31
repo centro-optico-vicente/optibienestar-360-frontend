@@ -5318,5 +5318,8 @@
     "copy": "Copiar número",
     "copied": "Número copiado",
     "copyFailed": "No se pudo copiar el número"
+  },
+  "banks": {
+    "officialNameTooltip": "Nombre oficial: {name}"
   }
 }

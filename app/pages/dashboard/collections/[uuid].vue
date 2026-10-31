@@ -439,7 +439,10 @@ function onReviewed(updated: PaymentDto) {
             <tbody class="divide-y divide-prohealth-100">
               <tr v-for="line in payment.lines" :key="line.uuid">
                 <td class="px-4 py-2 text-prohealth-800">{{ line.method_Display || t('common.empty') }}</td>
-                <td class="px-4 py-2 text-prohealth-800">{{ line.bank_Display || t('common.empty') }}</td>
+                <td class="px-4 py-2 text-prohealth-800">
+                  <BankName v-if="line.bank_Display" :uuid="line.bank_Uuid" :name="line.bank_Display" :show-code="false" />
+                  <template v-else>{{ t('common.empty') }}</template>
+                </td>
                 <td class="px-4 py-2 text-prohealth-800 text-right">
                   <CurrencyConverterDisplay :amount="line.amount" :currency="payment.currency_Code" :date="payment.paymentDate" v-slot="{ result }">
                     <span class="inline-flex items-center justify-end gap-1">

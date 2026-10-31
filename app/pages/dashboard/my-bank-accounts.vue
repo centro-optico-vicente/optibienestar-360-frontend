@@ -68,13 +68,6 @@ function accountKey(a: SavedOriginAccountDto): string {
   return a.accountIdentifier || a.phone || a.email || t('common.empty')
 }
 
-/** Bank as "code name" (the backend sends the commercial name), or an empty mark for methods without a bank. */
-function bankLabel(a: SavedOriginAccountDto): string {
-  const name = a.bank_Display
-  if (!name && !a.bank_Code) return t('common.empty')
-  return [a.bank_Code, name].filter(Boolean).join(' ')
-}
-
 function typeLabel(value?: string | null): string {
   return BANK_ACCOUNT_TYPE_OPTIONS.find(o => o.value === value)?.label ?? value ?? t('common.empty')
 }
@@ -249,7 +242,8 @@ async function confirmDelete() {
           <tr v-for="a in accounts" :key="a.uuid" class="hover:bg-prohealth-50/50">
             <td class="px-5 py-3 text-prohealth-900">{{ a.paymentMethod_Display ?? a.paymentMethodCode ?? t('common.empty') }}</td>
             <td class="px-5 py-3 text-prohealth-900">
-              {{ bankLabel(a) }}
+              <BankName v-if="a.bank_Display || a.bank_Code" :uuid="a.bank_Uuid" :code="a.bank_Code" :name="a.bank_Display" />
+              <template v-else>{{ t('common.empty') }}</template>
             </td>
             <td class="px-5 py-3 text-prohealth-800">
               <span class="font-mono">{{ accountKey(a) }}</span>

@@ -11,6 +11,8 @@ export const MOBILE_PAYMENT_METHOD = 'PAGO_MOVIL'
 export interface CopyableAccount {
   methodCode?: string | null
   methodName?: string | null
+  /** Catalog uuid of the bank — only to look up its official name for the tooltip (hub ADR 0030). */
+  bankUuid?: string | null
   /** SUDEBAN code of the bank, e.g. "0105". */
   bankCode?: string | null
   bankName?: string | null
@@ -27,6 +29,7 @@ export function fromCompanyAccount(a: CompanyBankAccountDto): CopyableAccount {
   return {
     methodCode: a.paymentMethodCode ?? a.paymentMethod_Code,
     methodName: a.paymentMethod_Display,
+    bankUuid: a.bank_Uuid,
     bankCode: a.bankCode ?? a.bank_Code,
     bankName: a.bank_Display,
     accountType: a.accountType,
@@ -42,6 +45,7 @@ export function fromPayoutAccount(a: PromoterPayoutAccountDto): CopyableAccount 
   return {
     methodCode: a.paymentMethodCode,
     methodName: a.paymentMethod_Display,
+    bankUuid: a.bank_Uuid,
     bankCode: a.bank_Code,
     bankName: a.bank_Display,
     accountType: a.accountType,
