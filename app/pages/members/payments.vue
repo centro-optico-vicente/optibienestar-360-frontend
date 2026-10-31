@@ -24,6 +24,7 @@ const toast = useToast()
 
 const canRegister = computed(() => can('COLLECTION_CREATE_OWN'))
 const canDelete = computed(() => can('COLLECTION_DELETE_OWN'))
+const canClaim = computed(() => can('COLLECTION_CLAIM_CREATE_OWN'))
 
 // Credit ("saldo a favor") per currency — empty list = nothing to show, never an error (ADR 0012 empty state).
 const credit = ref<CreditBalanceDto['balances']>([])
@@ -87,6 +88,38 @@ const formOpen = ref(false)
 async function onSaved() {
   page.value = 1
   await Promise.all([load(), loadCredit()])
+}
+
+// ---- Claim on the remaining credit of an approved payment (hub ADR 0029) ----
+// Only an approved collection with credit left and no open claim can be claimed.
+function canClaimPayment(p: PaymentDto): boolean {
+  return canClaim.value && p.direction !== 'OUT' && p.status === 'APPROVED'
+    && Number(p.creditRemaining ?? 0) > 0 && !p.openClaim
+}
+
+const claimOpen = ref(false)
+const claimTarget = ref<PaymentDto | null>(null)
+
+function openClaim(p: PaymentDto) {
+  claimTarget.value = p
+  claimOpen.value = true
+}
+
+const withdrawing = ref<string | null>(null)
+
+async function withdrawClaim(p: PaymentDto) {
+  withdrawing.value = p.uuid
+  try {
+    await payments.withdrawClaimOwn(p.uuid)
+    toast.add({ title: t('payments.claim.withdrawnToast'), color: 'success', icon: 'i-lucide-check-circle' })
+    await Promise.all([load(), loadCredit()])
+  }
+  catch {
+    // useApi already notified the error
+  }
+  finally {
+    withdrawing.value = null
+  }
 }
 
 // ---- Assign to a membership (DRAFT / PENDING) ----
@@ -153,6 +186,7 @@ async function confirmDelete() {
         <span class="font-semibold">{{ b.amount_Display ?? b.amount }}</span> {{ b.currency_Code }}
       </p>
       <p class="text-xs text-green-700">{{ t('payments.credit.help') }}</p>
+      <p class="text-xs text-green-700">{{ t('payments.credit.autoApply') }}</p>
     </div>
 
     <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-16rem)] min-h-[24rem]">
@@ -200,8 +234,24 @@ async function confirmDelete() {
                 <UBadge :color="paymentStatusColor(p.status)" variant="subtle" size="sm">
                   {{ p.status_Display ?? statusLabel(p.status) }}
                 </UBadge>
+                <UBadge v-if="p.openClaim" color="warning" variant="subtle" size="sm" class="ml-1">
+                  {{ t('payments.claim.badge', { amount: p.openClaim.claimedAmount_Display ?? p.openClaim.claimedAmount }) }}
+                </UBadge>
               </td>
               <td class="px-5 py-3 text-right">
+                <UTooltip v-if="canClaimPayment(p)" :text="t('payments.claim.action')">
+                  <UButton color="warning" variant="ghost" icon="i-lucide-message-square-warning" size="sm" @click="openClaim(p)" />
+                </UTooltip>
+                <UTooltip v-if="p.openClaim && canClaim" :text="t('payments.claim.withdraw')">
+                  <UButton
+                    color="neutral"
+                    variant="ghost"
+                    icon="i-lucide-undo-2"
+                    size="sm"
+                    :loading="withdrawing === p.uuid"
+                    @click="withdrawClaim(p)"
+                  />
+                </UTooltip>
                 <UTooltip v-if="canAssign(p)" :text="t('payments.assignOwn.title')">
                   <UButton color="neutral" variant="ghost" icon="i-lucide-link" size="sm" @click="openAssign(p)" />
                 </UTooltip>
@@ -228,6 +278,8 @@ async function confirmDelete() {
 
     <!-- Register modal -->
     <MyPaymentFormModal v-model:open="formOpen" @saved="onSaved" />
+
+    <PaymentClaimModal v-model:open="claimOpen" :payment="claimTarget" @claimed="onSaved" />
 
     <PaymentAssignOwnMembershipModal v-model:open="assignOpen" :payment="assignTarget" @assigned="load" />
 

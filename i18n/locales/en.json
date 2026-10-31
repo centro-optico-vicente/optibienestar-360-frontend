@@ -778,6 +778,10 @@
       "companyBankAccounts": {
         "label": "Company accounts",
         "description": "OptiBienestar bank accounts where payments are received."
+      },
+      "paymentClaims": {
+        "label": "Payment claims",
+        "description": "Claims on a payment's balance: refunds, mistakes and overpayments."
       }
     },
     "other": {
@@ -2330,7 +2334,8 @@
     },
     "credit": {
       "title": "Credit balance",
-      "help": "It is applied to a membership when staff assign it."
+      "help": "Staff can also assign it to a membership by hand.",
+      "autoApply": "Your balance is used automatically to cover full monthly fees of your membership."
     },
     "companyAccounts": {
       "title": "Company accounts",
@@ -2397,6 +2402,30 @@
       "removedToast": "Account forgotten",
       "remember": "Remember this account for future payments",
       "rememberHelp": "We store the origin bank and account number so you do not have to type them again."
+    },
+    "claim": {
+      "title": "Report a problem with this payment",
+      "description": "If you paid too much or by mistake, say so here. While the claim is open that amount is frozen and not used automatically; administration will review it with you.",
+      "remaining": "Available balance of this payment: {amount} {currency}.",
+      "reasonLabel": "Reason",
+      "reasons": {
+        "ERROR": "Paid by mistake",
+        "OVERPAID": "I overpaid",
+        "REFUND_REQUEST": "I want a refund",
+        "OTHER": "Other reason"
+      },
+      "amountLabel": "Claimed amount",
+      "amountInvalid": "Must be greater than 0 and not exceed the available balance.",
+      "commentLabel": "Comment",
+      "commentHelp": "Tell us what happened so administration can handle it.",
+      "confirm": "Send claim",
+      "savedToast": "Claim registered",
+      "withdrawnToast": "Claim withdrawn",
+      "badge": "Claimed: {amount}",
+      "action": "Report a problem with this payment",
+      "withdraw": "Withdraw the claim",
+      "detailLabel": "Open claim",
+      "manageLink": "Manage in Payment claims"
     }
   },
   "members": {
@@ -2690,6 +2719,19 @@
       "historyEmpty": "No advisor changes yet.",
       "changed": "From {from} to {to}",
       "assigned": "Assigned to {to}"
+    },
+    "creditHold": {
+      "title": "Credit balance",
+      "help": "Freezing the balance stops it from being used automatically to cover fees (for example, during a refund).",
+      "frozenTitle": "Balance frozen",
+      "freeze": "Freeze balance",
+      "release": "Release balance",
+      "modalTitle": "Freeze the credit balance",
+      "modalDescription": "While frozen it is not applied automatically. Staff can still assign it by hand when there is an agreement with the person.",
+      "reasonLabel": "Reason",
+      "confirm": "Freeze",
+      "frozenToast": "Balance frozen",
+      "releasedToast": "Balance released"
     }
   },
   "memberships": {
@@ -5177,5 +5219,49 @@
     "removedToast": "Account removed",
     "deleteTitle": "Delete account",
     "deleteConfirm": "This account will stop showing among your saved accounts. Payments you already registered do not change."
+  },
+  "paymentClaims": {
+    "title": "Payment claims",
+    "subtitle": "Claims on a payment's balance. While open, that amount is not applied automatically.",
+    "allStatuses": "All statuses",
+    "status": {
+      "OPEN": "Open",
+      "KEPT_AS_CREDIT": "Kept as credit",
+      "REFUNDED": "Refunded",
+      "REJECTED": "Rejected",
+      "WITHDRAWN": "Withdrawn",
+      "USED_BY_AGREEMENT": "Used by agreement"
+    },
+    "columns": {
+      "payment": "Payment",
+      "person": "Person",
+      "reason": "Reason",
+      "amount": "Claimed amount",
+      "openedAt": "Date",
+      "status": "Status"
+    },
+    "empty": "No claims match this filter.",
+    "viewPayment": "View payment",
+    "resolve": "Resolve",
+    "noPermissionResolve": "You do not have permission to resolve claims.",
+    "resolveTitle": "Resolve claim",
+    "resolveDescription": "Decide with the person what to do with the claimed amount.",
+    "claimedSummary": "Claimed amount: {amount} {currency}.",
+    "actionLabel": "Resolution",
+    "actions": {
+      "KEEP_AS_CREDIT": "Keep as credit",
+      "REFUND": "Refund",
+      "REJECT": "Reject the claim"
+    },
+    "actionHelp": {
+      "KEEP_AS_CREDIT": "The amount becomes available again as credit (wallet) and the claim is closed.",
+      "REFUND": "It is deducted from the balance and recorded as a refund; finance handles the transfer outside the system.",
+      "REJECT": "The claim is closed and the amount becomes available again."
+    },
+    "refundedAmountLabel": "Amount to refund",
+    "refundedAmountInvalid": "Must be greater than 0 and not exceed the claimed amount.",
+    "noteLabel": "Resolution note",
+    "confirm": "Resolve",
+    "resolvedToast": "Claim resolved"
   }
 }

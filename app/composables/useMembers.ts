@@ -146,6 +146,11 @@ export const useMembers = () => {
   const confirm = (memberUuid: string) =>
     useApi<MemberConfirmationDto>(`/v1/admin/members/${memberUuid}/confirm`, { method: 'POST' })
 
+  // ---- Congelar el saldo a favor (PERSON_CREDIT_HOLD_UPDATE, hub ADR 0029) ----
+  /** Freezes (`hold = true`, reason required) or releases the automatic use of a person's credit. */
+  const setCreditHold = (memberUuid: string, hold: boolean, reason?: string) =>
+    useApi<void>(`/v1/admin/members/${memberUuid}/credit-hold`, { method: 'PUT', body: { hold, ...(reason ? { reason } : {}) } })
+
   return {
     list,
     options,
@@ -169,5 +174,6 @@ export const useMembers = () => {
     portfolioToSupervisor,
     promoterHistory,
     confirm,
+    setCreditHold,
   }
 }
