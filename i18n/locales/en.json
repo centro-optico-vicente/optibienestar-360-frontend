@@ -5314,5 +5314,8 @@
     "copy": "Copy number",
     "copied": "Number copied",
     "copyFailed": "Could not copy the number"
+  },
+  "banks": {
+    "officialNameTooltip": "Official name: {name}"
   }
 }

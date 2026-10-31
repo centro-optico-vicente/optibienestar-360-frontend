@@ -304,7 +304,8 @@ async function confirmDelete() {
               <p v-if="a.label" class="text-xs text-prohealth-500 mt-0.5">{{ a.label }}</p>
             </td>
             <td class="px-6 py-3 text-prohealth-700">
-              {{ a.bank_Display || t('common.empty') }}
+              <BankName v-if="a.bank_Display || a.bank_Code" :uuid="a.bank_Uuid" :code="a.bank_Code" :name="a.bank_Display" />
+              <template v-else>{{ t('common.empty') }}</template>
               <span v-if="a.accountType" class="block text-xs text-prohealth-500">{{ accountTypeLabel(a.accountType) }}</span>
             </td>
             <td class="px-6 py-3 text-prohealth-700 font-mono">{{ payoutDestination(a) || t('common.empty') }}</td>
