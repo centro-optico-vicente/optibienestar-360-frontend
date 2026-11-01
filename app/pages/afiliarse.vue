@@ -135,6 +135,8 @@ async function refreshPreview(): Promise<void> {
         documentNumber: state.documentNumber.trim() || undefined,
         birthDate: state.birthDate || undefined,
         planUuid: state.planUuid || undefined,
+        // The advisor of the QR/link shows in the contract preview (same code as the request).
+        referralCode: referralCode.value || undefined,
       },
     })
     if (seq !== previewSeq) return
@@ -152,7 +154,7 @@ async function refreshPreview(): Promise<void> {
 }
 const debouncedPreview = useSearchDebounce(refreshPreview)
 watch(
-  () => [state.firstName, state.lastName, state.documentType, state.documentNumber, state.birthDate, state.planUuid],
+  () => [state.firstName, state.lastName, state.documentType, state.documentNumber, state.birthDate, state.planUuid, referralCode.value],
   () => { debouncedPreview() },
 )
 
