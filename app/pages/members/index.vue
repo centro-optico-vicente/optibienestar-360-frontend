@@ -30,6 +30,9 @@ interface DigitalCard {
   membershipStatus_Display?: string | null
   nextDueDate?: string | null
   nextDueDate_Display?: string | null
+  expiresAt?: string | null
+  expiresAt_Display?: string | null
+  inscriptionDue?: boolean
   qrCodeDataUri?: string | null
 }
 
@@ -177,6 +180,11 @@ function relationshipLabel(r?: string | null): string {
               <div v-if="card?.nextDueDate">
                 <p class="text-[11px] uppercase tracking-widest text-prohealth-100/70">{{ t('members.portal.card.nextDue') }}</p>
                 <p class="text-sm font-semibold mt-0.5">{{ card.nextDueDate_Display || formatDate(card.nextDueDate, 'short') }}</p>
+              </div>
+              <div v-if="card?.expiresAt">
+                <p class="text-[11px] uppercase tracking-widest text-prohealth-100/70">{{ t('members.portal.card.expiresAt') }}</p>
+                <p class="text-sm font-semibold mt-0.5">{{ card.expiresAt_Display || formatDate(card.expiresAt, 'short') }}</p>
+                <p v-if="card.inscriptionDue" class="text-[11px] text-amber-200 mt-0.5">{{ t('members.portal.card.inscriptionDue') }}</p>
               </div>
             </div>
             <img

@@ -324,6 +324,7 @@ function contactTypeIcon(type: PromoterContactType): string {
               <th class="px-5 py-3 font-semibold">{{ t('promoterSelf.portfolio.columns.member') }}</th>
               <th class="px-5 py-3 font-semibold">{{ t('promoterSelf.portfolio.columns.status') }}</th>
               <th class="px-5 py-3 font-semibold">{{ t('promoterSelf.portfolio.columns.nextDueDate') }}</th>
+              <th class="px-5 py-3 font-semibold">{{ t('memberships.columns.expiresAt') }}</th>
               <th class="px-5 py-3 font-semibold">{{ t('promoterSelf.portfolio.columns.monthlyFee') }}</th>
               <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
             </tr>
@@ -331,7 +332,7 @@ function contactTypeIcon(type: PromoterContactType): string {
           <tbody class="divide-y divide-prohealth-100">
             <TableSkeleton v-if="loading" :rows="8" :cols="5" />
             <tr v-else-if="loadFailed">
-              <td colspan="5" class="px-5 py-12 text-center text-prohealth-500">
+              <td colspan="6" class="px-5 py-12 text-center text-prohealth-500">
                 <UIcon name="i-lucide-circle-alert" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
                 <p>{{ t('promoterSelf.portfolio.loadError') }}</p>
                 <UButton class="mt-3" size="sm" variant="soft" icon="i-lucide-refresh-cw" @click="load">
@@ -340,7 +341,7 @@ function contactTypeIcon(type: PromoterContactType): string {
               </td>
             </tr>
             <tr v-else-if="filteredRows.length === 0">
-              <td colspan="5" class="px-5 py-12 text-center text-prohealth-500">
+              <td colspan="6" class="px-5 py-12 text-center text-prohealth-500">
                 <UIcon name="i-lucide-users" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
                 {{ rows.length === 0 ? t('promoterSelf.portfolio.empty') : t('promoterSelf.portfolio.noMatches') }}
               </td>
@@ -353,6 +354,13 @@ function contactTypeIcon(type: PromoterContactType): string {
                 </UBadge>
               </td>
               <td class="px-5 py-3 text-prohealth-600">{{ r.nextDueDate_Display ?? formatDate(r.nextDueDate, 'short') }}</td>
+              <td class="px-5 py-3 text-prohealth-600">
+                <template v-if="r.expiresAt">{{ r.expiresAt_Display ?? formatDate(r.expiresAt, 'short') }}</template>
+                <span v-else class="text-prohealth-400">{{ t('memberships.term.noExpiry') }}</span>
+                <UBadge v-if="r.inscriptionDue" color="warning" variant="outline" size="sm" class="ml-1" icon="i-lucide-file-pen-line">
+                  {{ t('memberships.term.inscriptionDue') }}
+                </UBadge>
+              </td>
               <td class="px-5 py-3 text-prohealth-700">
                 <CurrencyConverterDisplay v-if="r.monthlyFee != null" :amount="r.monthlyFee" currency="USD" v-slot="{ result }">
                   <span class="inline-flex items-center gap-1">

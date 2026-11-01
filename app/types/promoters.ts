@@ -277,6 +277,10 @@ export interface PromoterMemberRow {
   nextDueDate: string | null
   nextDueDate_Display?: string | null
   monthlyFee: number | null
+  /** End of the current term (hub ADR 0034); null/absent = open-ended or no membership. */
+  expiresAt?: string | null
+  expiresAt_Display?: string | null
+  inscriptionDue?: boolean | null
 }
 
 /**

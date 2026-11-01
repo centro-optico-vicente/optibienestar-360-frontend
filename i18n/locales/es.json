@@ -2937,6 +2937,8 @@
       "errorBody": "Intenta de nuevo en unos minutos.",
       "card": {
         "holder": "Titular",
+        "expiresAt": "Vence",
+        "inscriptionDue": "Reinscripción pendiente",
         "memberSince": "Afiliado desde",
         "statusActive": "Activo",
         "plan": "Plan",
