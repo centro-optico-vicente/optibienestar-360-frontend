@@ -2937,6 +2937,8 @@
       "errorBody": "Try again in a few minutes.",
       "card": {
         "holder": "Holder",
+        "expiresAt": "Expires",
+        "inscriptionDue": "Re-inscription pending",
         "memberSince": "Member since",
         "statusActive": "Active",
         "plan": "Plan",
