@@ -1357,7 +1357,7 @@
       "extraBeneficiaryHint": "One-time charge per additional beneficiary.",
       "notAllowed": "Not allowed"
     },
-     "beneficiaries": {
+    "beneficiaries": {
       "included": "Included beneficiaries",
       "max": "Maximum beneficiaries",
       "noLimit": "No limit",
@@ -1387,7 +1387,7 @@
       "maxHelp": "Empty = no limit.",
       "minMembersHelp": "Only for corporate plans (e.g. 20). Empty = no minimum.",
       "minMembersInvalid": "Must be a whole number greater than or equal to 1",
-       "graceHelp": "Defaults to 7.",
+      "graceHelp": "Defaults to 7.",
       "publishedHelp": "Visible in the public plans directory.",
       "activeHelp": "Deactivates the plan (soft delete) without removing it.",
       "submitCreate": "Create plan",
@@ -1400,6 +1400,34 @@
         "monthly": "Monthly (USD)",
         "extraBeneficiary": "Extra beneficiary enrollment (USD)",
         "active": "Active"
+      },
+      "reinscriptionHelp": "If required, memberships expire and renew automatically; the inscription must be paid again on renewal.",
+      "termMode": "How it expires",
+      "termModeRequired": "Choose how the membership expires",
+      "termMonth": "Month",
+      "termMonthHelp": "1 to 12",
+      "termMonthInvalid": "The month must be between 1 and 12",
+      "termDay": "Day",
+      "termDayHelp": "1 to 28",
+      "termDayInvalid": "The day must be between 1 and 28",
+      "termPeriod": "Months after enrollment",
+      "termPeriodHelp": "For example, 12 for a year or 6 for a semester",
+      "termPeriodInvalid": "Enter a number of months greater than zero"
+    },
+    "deactivatedToast": "Plan deactivated",
+    "deletedPermanentToast": "Plan permanently deleted",
+    "deleteConfirmPermanent": "This plan is not in use — it will be permanently deleted.",
+    "deleteConfirmDeactivate": "This plan is in use ({count}) — it will be deactivated instead of deleted.",
+    "term": {
+      "title": "Membership term",
+      "reinscription": "Requires re-inscription",
+      "rule": "Expiry",
+      "none": "No term: memberships of this plan do not expire.",
+      "fixedDateLabel": "Expires every {month} {day}",
+      "periodLabel": "{n} months after enrollment",
+      "modes": {
+        "FIXED_DATE": "Fixed annual date",
+        "PERIOD": "Period in months"
       }
     }
   },
@@ -3003,7 +3031,7 @@
       "EXPIRED": "Expired",
       "CANCELED": "Canceled"
     },
-     "enrollForm": {
+    "enrollForm": {
       "title": "Enroll in a plan",
       "description": "Create a new membership. Pricing is copied from the plan at enrollment time.",
       "plan": "Plan",
@@ -3080,7 +3108,26 @@
       }
     },
     "contractNumber": "Contract",
-    "paymentMode": "Payment mode"
+    "paymentMode": "Payment mode",
+    "term": {
+      "inherit": "Per plan",
+      "inscriptionDue": "Re-inscription pending",
+      "inscriptionDueSince": "Since {date}",
+      "noExpiry": "No expiry",
+      "editTooltip": "Edit term",
+      "noPermissionEdit": "You do not have permission to edit the term",
+      "editTitle": "Membership term",
+      "editDescription": "Change the expiry date or whether this membership requires re-inscription.",
+      "snapshotRule": "Rule copied from the plan: {rule}",
+      "reinscriptionLabel": "Requires re-inscription",
+      "reinscriptionHelp": "On expiry the membership renews and stays suspended until the inscription is paid.",
+      "expiresAt": "Expiry date",
+      "expiresAtHelp": "First expiry of this membership; it must be after the enrollment date.",
+      "expiresAtOpenHelp": "Optional. Without re-inscription it is just an end date: the membership does not renew.",
+      "expiresRequired": "Enter the expiry date: the plan defines no term.",
+      "clearsPendingNotice": "Removing re-inscription also clears this membership's pending re-inscription.",
+      "savedToast": "Term updated"
+    }
   },
   "validator": {
     "seoTitle": "Validator — OptiBienestar 360",

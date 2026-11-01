@@ -1357,7 +1357,7 @@
       "extraBeneficiaryHint": "Cargo único por beneficiario adicional.",
       "notAllowed": "No admite"
     },
-     "beneficiaries": {
+    "beneficiaries": {
       "included": "Beneficiarios incluidos",
       "max": "Beneficiarios máximos",
       "noLimit": "Sin tope",
@@ -1387,7 +1387,7 @@
       "maxHelp": "Vacío = sin tope.",
       "minMembersHelp": "Solo para planes corporativos (p. ej. 20). Vacío = sin mínimo.",
       "minMembersInvalid": "Debe ser un entero mayor o igual a 1",
-       "graceHelp": "Por defecto 7.",
+      "graceHelp": "Por defecto 7.",
       "publishedHelp": "Visible en el directorio público de planes.",
       "activeHelp": "Desactiva el plan (borrado lógico) sin eliminarlo.",
       "submitCreate": "Crear plan",
@@ -1400,6 +1400,34 @@
         "monthly": "Mensualidad (USD)",
         "extraBeneficiary": "Inscripción por beneficiario extra (USD)",
         "active": "Activo"
+      },
+      "reinscriptionHelp": "Si se exige, las membresías vencen y se renuevan solas; al renovar deben pagar la inscripción de nuevo.",
+      "termMode": "Cómo vence",
+      "termModeRequired": "Elige cómo vence la membresía",
+      "termMonth": "Mes",
+      "termMonthHelp": "De 1 a 12",
+      "termMonthInvalid": "El mes debe estar entre 1 y 12",
+      "termDay": "Día",
+      "termDayHelp": "De 1 a 28",
+      "termDayInvalid": "El día debe estar entre 1 y 28",
+      "termPeriod": "Meses desde la inscripción",
+      "termPeriodHelp": "Por ejemplo, 12 para un año o 6 para un semestre",
+      "termPeriodInvalid": "Indica un número de meses mayor a cero"
+    },
+    "deactivatedToast": "Plan desactivado",
+    "deletedPermanentToast": "Plan eliminado definitivamente",
+    "deleteConfirmPermanent": "Este plan no está en uso: se eliminará definitivamente.",
+    "deleteConfirmDeactivate": "Este plan está en uso ({count}): se desactivará en lugar de eliminarse.",
+    "term": {
+      "title": "Vigencia de las membresías",
+      "reinscription": "Exige reinscripción",
+      "rule": "Vencimiento",
+      "none": "Sin vigencia: las membresías de este plan no vencen.",
+      "fixedDateLabel": "Vence cada {day} de {month}",
+      "periodLabel": "{n} meses después de la inscripción",
+      "modes": {
+        "FIXED_DATE": "Fecha fija anual",
+        "PERIOD": "Período en meses"
       }
     }
   },
@@ -3003,7 +3031,7 @@
       "EXPIRED": "Vencida",
       "CANCELED": "Cancelada"
     },
-     "enrollForm": {
+    "enrollForm": {
       "title": "Afiliar a un plan",
       "description": "Crea una nueva membresía. El pricing se copia del plan al momento de afiliar.",
       "plan": "Plan",
@@ -3080,7 +3108,26 @@
       }
     },
     "contractNumber": "Contrato",
-    "paymentMode": "Modalidad de pago"
+    "paymentMode": "Modalidad de pago",
+    "term": {
+      "inherit": "Según el plan",
+      "inscriptionDue": "Reinscripción pendiente",
+      "inscriptionDueSince": "Desde {date}",
+      "noExpiry": "Sin vencimiento",
+      "editTooltip": "Editar vigencia",
+      "noPermissionEdit": "No tienes permiso para editar la vigencia",
+      "editTitle": "Vigencia de la membresía",
+      "editDescription": "Cambia la fecha de vencimiento o si esta membresía exige reinscripción.",
+      "snapshotRule": "Regla copiada del plan: {rule}",
+      "reinscriptionLabel": "Exige reinscripción",
+      "reinscriptionHelp": "Al vencer, la membresía se renueva y queda suspendida hasta que se pague la inscripción.",
+      "expiresAt": "Fecha de vencimiento",
+      "expiresAtHelp": "Primer vencimiento de esta membresía; debe ser posterior a la fecha de afiliación.",
+      "expiresAtOpenHelp": "Opcional. Sin reinscripción es solo una fecha de fin: la membresía no se renueva.",
+      "expiresRequired": "Indica la fecha de vencimiento: el plan no define vigencia.",
+      "clearsPendingNotice": "Al quitar la reinscripción también se limpia la reinscripción pendiente de esta membresía.",
+      "savedToast": "Vigencia actualizada"
+    }
   },
   "validator": {
     "seoTitle": "Validador — OptiBienestar 360",
