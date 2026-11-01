@@ -24,6 +24,7 @@ const canUpdate = computed(() => can('PLAN_UPDATE'))
 const canDelete = computed(() => can('PLAN_DELETE'))
 const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('PLAN_RECORD_AUDIT_VIEW'))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('PLAN_REPORT_AUDIT_VIEW'))
+const canViewTermCompliance = computed(() => can('MEMBERSHIP_TERM_VIEW_ALL'))
 const canViewCurrency = computed(() => can('CURRENCY_VIEW_ALL'))
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
 const auditOpen = ref(false)
@@ -314,6 +315,9 @@ async function confirmDelete() {
           <p v-else class="text-prohealth-500 sm:col-span-2 self-center">{{ t('plans.term.none') }}</p>
         </dl>
       </div>
+
+      <!-- Term compliance of the existing memberships (hub ADR 0034) -->
+      <PlanTermCompliance v-if="canViewTermCompliance" :plan-uuid="planUuid" />
 
       <!-- Beneficiaries and validity -->
       <div class="bg-white rounded-2xl border border-prohealth-100 p-6">
