@@ -39,6 +39,14 @@ export interface OrganizationDto {
   email: string | null
   /** Contact phones as printed in the contracts — `{{org.phones}}`. */
   phones: string | null
+  /** Authorized signatory of the company — `{{org.signatoryName}}` in the contracts (V219). */
+  signatoryName: string | null
+  /** Document type of the signatory: J, V, E, G or P. */
+  signatoryDocumentType: string | null
+  /** Document number of the signatory; with the type forms `{{org.signatoryDocument}}`. */
+  signatoryDocumentNumber: string | null
+  /** Position of the signatory — `{{org.signatoryPosition}}`. */
+  signatoryPosition: string | null
 }
 
 /** A currency stripped to what an unprivileged caller needs — no uuid, no active flag. */
@@ -77,4 +85,8 @@ export interface OrganizationUpdateRequest {
   address?: string
   email?: string
   phones?: string
+  signatoryName?: string
+  signatoryDocumentType?: string
+  signatoryDocumentNumber?: string
+  signatoryPosition?: string
 }

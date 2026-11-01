@@ -4713,7 +4713,15 @@
       "emailPlaceholder": "contact{'@'}company.com",
       "phones": "Phones",
       "phonesHelp": "As printed in the contracts; separate several numbers with commas.",
-      "phonesPlaceholder": "(+58)414-5738530, (+58)424-5984590"
+      "phonesPlaceholder": "(+58)414-5738530, (+58)424-5984590",
+      "signatoryName": "Full name",
+      "signatoryNamePlaceholder": "Ana María Gómez",
+      "signatoryDocument": "ID document",
+      "signatoryDocumentType": "Type",
+      "signatoryDocumentNumberPlaceholder": "Number",
+      "signatoryPosition": "Position",
+      "signatoryPositionPlaceholder": "General manager",
+      "signatoryDocumentIncomplete": "The document must include both type and number"
     },
     "sections": {
       "general": "General information",
@@ -4723,7 +4731,9 @@
       "socialLinksHelp": "Global links shown across the public site (footer, contact).",
       "terms": "Terms and conditions",
       "contact": "Institutional contact",
-      "contactHelp": "Address, email and phones printed at the foot of the contracts and terms."
+      "contactHelp": "Address, email and phones printed at the foot of the contracts and terms.",
+      "signatory": "Authorized signatory",
+      "signatoryHelp": "Person who signs for the company in the contracts (name, ID and position). Printed in the signature block."
     },
     "terms": {
       "help": "Three contract kinds. Each user must accept the current versions that apply to them on their next login, and again when a new version takes effect.",

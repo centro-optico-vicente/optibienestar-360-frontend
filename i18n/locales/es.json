@@ -4713,7 +4713,15 @@
       "emailPlaceholder": "contacto{'@'}empresa.com",
       "phones": "Teléfonos",
       "phonesHelp": "Tal como se imprimen en los contratos; separe varios números con comas.",
-      "phonesPlaceholder": "(+58)414-5738530, (+58)424-5984590"
+      "phonesPlaceholder": "(+58)414-5738530, (+58)424-5984590",
+      "signatoryName": "Nombre completo",
+      "signatoryNamePlaceholder": "Ana María Gómez",
+      "signatoryDocument": "Documento",
+      "signatoryDocumentType": "Tipo",
+      "signatoryDocumentNumberPlaceholder": "Número",
+      "signatoryPosition": "Cargo",
+      "signatoryPositionPlaceholder": "Gerente general",
+      "signatoryDocumentIncomplete": "El documento debe indicar tipo y número"
     },
     "sections": {
       "general": "Datos generales",
@@ -4723,7 +4731,9 @@
       "socialLinksHelp": "Enlaces globales mostrados en el sitio público (pie de página, contacto).",
       "terms": "Términos y condiciones",
       "contact": "Contacto institucional",
-      "contactHelp": "Dirección, correo y teléfonos que se imprimen al pie de los contratos y términos."
+      "contactHelp": "Dirección, correo y teléfonos que se imprimen al pie de los contratos y términos.",
+      "signatory": "Firmante autorizado",
+      "signatoryHelp": "Persona que firma por la empresa en los contratos (nombre, cédula y cargo). Se imprime en el bloque de firmas."
     },
     "terms": {
       "help": "Tres tipos de contrato. Cada usuario debe aceptar en su próximo inicio de sesión las versiones vigentes que le correspondan, y de nuevo cuando entre en vigencia una versión nueva.",
