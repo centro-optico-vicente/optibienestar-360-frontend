@@ -74,6 +74,11 @@ export interface AffiliationRequestDetailDto {
   advisor_Uuid?: string | null
   advisor_Display?: string | null
   referralCode?: string | null
+  /** Override of the first expiry set by the advisor / reviewer (hub ADR 0034); null = inherit from the plan. */
+  expiresAtOverride?: string | null
+  expiresAtOverride_Display?: string | null
+  /** Override of the plan's re-inscription flag; null = inherit. */
+  reinscriptionRequiredOverride?: boolean | null
   termsVersion_Uuid?: string | null
   termsVersion_Display?: string | null
   /** Contract exactly as the applicant accepted it (markdown). */
@@ -111,4 +116,16 @@ export interface AffiliationRequestUpdateRequest {
   phone?: string
   planUuid: string
   comment?: string
+  /** Full replace: always send the current values, an omitted one clears the override (hub ADR 0034). */
+  expiresAt?: string | null
+  reinscriptionRequired?: boolean | null
+}
+
+/**
+ * Body of POST /v1/me/advisor/affiliation-requests (assisted affiliation). The term overrides are
+ * optional: `expiresAt` (future date) and `reinscriptionRequired`; omitted = the plan decides.
+ */
+export interface AssistedAffiliationOverrides {
+  expiresAt?: string
+  reinscriptionRequired?: boolean
 }

@@ -1310,7 +1310,7 @@
       "extraBeneficiaryHint": "One-time charge per additional beneficiary.",
       "notAllowed": "Not allowed"
     },
-    "beneficiaries": {
+     "beneficiaries": {
       "included": "Included beneficiaries",
       "max": "Maximum beneficiaries",
       "noLimit": "No limit",
@@ -1340,7 +1340,7 @@
       "maxHelp": "Empty = no limit.",
       "minMembersHelp": "Only for corporate plans (e.g. 20). Empty = no minimum.",
       "minMembersInvalid": "Must be a whole number greater than or equal to 1",
-      "graceHelp": "Defaults to 7.",
+       "graceHelp": "Defaults to 7.",
       "publishedHelp": "Visible in the public plans directory.",
       "activeHelp": "Deactivates the plan (soft delete) without removing it.",
       "submitCreate": "Create plan",
@@ -2947,7 +2947,8 @@
       "monthly": "Monthly",
       "status": "Status",
       "enrolledAt": "Member since",
-      "nextDue": "Next due"
+      "nextDue": "Next due",
+      "expiresAt": "Term expires"
     },
     "status": {
       "ACTIVE": "Active",
@@ -2955,7 +2956,7 @@
       "EXPIRED": "Expired",
       "CANCELED": "Canceled"
     },
-    "enrollForm": {
+     "enrollForm": {
       "title": "Enroll in a plan",
       "description": "Create a new membership. Pricing is copied from the plan at enrollment time.",
       "plan": "Plan",
@@ -2964,7 +2965,9 @@
       "enrolledAt": "Member since",
       "enrolledAtHelp": "Empty = today.",
       "expiresAt": "Expires (optional)",
-      "expiresAtHelp": "Forced expiry date.",
+      "expiresAtHelp": "Overrides the first expiry; must be after the enrollment date. Empty = the plan decides.",
+      "reinscription": "Re-inscription",
+      "reinscriptionHelp": "Override of the plan's rule. Turning it on for a plan without a term rule requires an expiry date and renews every 12 months.",
       "submit": "Enroll"
     },
     "lifecycle": {
@@ -5288,9 +5291,13 @@
       "phone": "Phone",
       "plan": "Plan",
       "referralCode": "Referral code",
-      "advisor": "Advisor"
+      "advisor": "Advisor",
+      "expiresAt": "Expiry override",
+      "reinscriptionRequired": "Re-inscription"
     },
     "detail": {
+      "expiresAtHelp": "Optional: replaces the first expiry the plan would set.",
+      "reinscriptionHelp": "Optional: replaces the plan's re-inscription rule.",
       "seoPage": "Affiliation request",
       "notFoundTitle": "Request not found",
       "receivedAt": "Received on {date}",

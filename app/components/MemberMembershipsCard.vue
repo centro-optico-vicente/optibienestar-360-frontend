@@ -18,7 +18,7 @@ const props = defineProps<{ memberUuid: string }>()
 
 const emit = defineEmits<{ changed: [] }>()
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const { formatCurrency, formatDate } = useFormatters()
 const memberships = useMemberships()
 const plans = usePlans()
@@ -31,6 +31,7 @@ const canViewPlan = computed(() => can('PLAN_VIEW_ALL'))
 const canEnroll = computed(() => can('MEMBERSHIP_CREATE'))
 const canCancel = computed(() => can('MEMBERSHIP_CANCEL'))
 const canReactivate = computed(() => can('MEMBERSHIP_REACTIVATE'))
+const canEditTerm = computed(() => can('MEMBERSHIP_TERM_UPDATE'))
 const canExceptionCreate = computed(() => can('CAMPAIGN_EXCEPTION_CREATE'))
 const canAssignPromotion = computed(() => can('PROMOTION_ASSIGN'))
 
@@ -203,6 +204,8 @@ interface EnrollState {
   planUuid: string | undefined
   enrolledAt: string
   expiresAt: string
+  /** Re-inscription override: 'inherit' = the plan decides (hub ADR 0034). */
+  reinscription: 'inherit' | 'yes' | 'no'
   promotionUuid: string | undefined
   promotionCode: string
 }
@@ -211,9 +214,16 @@ const enrollState = reactive<EnrollState>({
   planUuid: undefined,
   enrolledAt: '',
   expiresAt: '',
+  reinscription: 'inherit',
   promotionUuid: undefined,
   promotionCode: '',
 })
+
+const reinscriptionItems = computed(() => [
+  { value: 'inherit', label: t('memberships.term.inherit') },
+  { value: 'yes', label: t('common.yes') },
+  { value: 'no', label: t('common.no') },
+])
 
 // Promotions offered for the chosen plan (ACQUISITION, campaign running, cap available).
 const enrollPromotions = ref<PromotionDto[]>([])
@@ -246,6 +256,7 @@ async function openEnroll() {
   enrollState.planUuid = undefined
   enrollState.enrolledAt = ''
   enrollState.expiresAt = ''
+  enrollState.reinscription = 'inherit'
   enrollState.promotionUuid = undefined
   enrollState.promotionCode = ''
   enrollOpen.value = true
@@ -259,6 +270,7 @@ async function onEnrollSubmit(_event: FormSubmitEvent<Record<string, unknown>>) 
       planUuid: enrollState.planUuid!,
       enrolledAt: enrollState.enrolledAt || undefined,
       expiresAt: enrollState.expiresAt || undefined,
+      reinscriptionRequired: enrollState.reinscription === 'inherit' ? undefined : enrollState.reinscription === 'yes',
       promotionUuid: enrollState.promotionUuid || undefined,
       promotionCode: enrollState.promotionCode.trim() || undefined,
     }
@@ -274,6 +286,18 @@ async function onEnrollSubmit(_event: FormSubmitEvent<Record<string, unknown>>) 
   finally {
     enrollSubmitting.value = false
   }
+}
+
+// ---- Edit term (hub ADR 0034) ----
+const termOpen = ref(false)
+const termTarget = ref<MembershipDto | null>(null)
+function openTerm(m: MembershipDto) {
+  termTarget.value = m
+  termOpen.value = true
+}
+async function onTermSaved() {
+  await load()
+  emit('changed')
 }
 
 // ---- Cancel / reactivate (shared modal) ----
@@ -354,13 +378,14 @@ async function confirmLifecycle() {
             <th class="px-6 py-3 font-semibold">{{ t('memberships.columns.status') }}</th>
             <th class="px-6 py-3 font-semibold">{{ t('memberships.columns.enrolledAt') }}</th>
             <th class="px-6 py-3 font-semibold">{{ t('memberships.columns.nextDue') }}</th>
+            <th class="px-6 py-3 font-semibold">{{ t('memberships.columns.expiresAt') }}</th>
             <th class="px-6 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-prohealth-100">
-          <TableSkeleton v-if="loading" :rows="2" :cols="6" />
+          <TableSkeleton v-if="loading" :rows="2" :cols="7" />
           <tr v-else-if="data.length === 0">
-            <td colspan="6" class="px-6 py-10 text-center text-prohealth-500">
+            <td colspan="7" class="px-6 py-10 text-center text-prohealth-500">
               <UIcon name="i-lucide-badge-check" class="w-7 h-7 mx-auto mb-2 text-prohealth-300" />
               {{ t('memberships.empty') }}
             </td>
@@ -401,9 +426,22 @@ async function confirmLifecycle() {
               <UBadge :color="membershipStatusColor(m.status)" variant="subtle" size="sm">
                 {{ m.status_Display ?? statusLabel(m.status) }}
               </UBadge>
+              <UBadge v-if="m.inscriptionDue" color="warning" variant="outline" size="sm" class="ml-1" icon="i-lucide-file-pen-line">
+                {{ t('memberships.term.inscriptionDue') }}
+              </UBadge>
+              <p v-if="m.inscriptionDue && m.inscriptionDueSince" class="text-xs text-prohealth-500 mt-1">
+                {{ t('memberships.term.inscriptionDueSince', { date: m.inscriptionDueSince_Display ?? formatDate(m.inscriptionDueSince, 'short') }) }}
+              </p>
             </td>
             <td class="px-6 py-3 text-prohealth-600">{{ m.enrolledAt_Display ?? formatDate(m.enrolledAt, 'short') }}</td>
             <td class="px-6 py-3 text-prohealth-600">{{ m.nextDueDate_Display ?? formatDate(m.nextDueDate, 'short') }}</td>
+            <td class="px-6 py-3 text-prohealth-600">
+              <template v-if="m.expiresAt">{{ m.expiresAt_Display ?? formatDate(m.expiresAt, 'short') }}</template>
+              <span v-else class="text-prohealth-400">{{ t('memberships.term.noExpiry') }}</span>
+              <p v-if="m.reinscriptionRequired && describeTermRule(m, t, locale)" class="text-xs text-prohealth-400">
+                {{ describeTermRule(m, t, locale) }}
+              </p>
+            </td>
             <td class="px-6 py-3">
               <div class="flex items-center justify-end gap-1">
                 <UTooltip
@@ -432,6 +470,16 @@ async function confirmLifecycle() {
                     @click="openLifecycle(m, 'reactivate')"
                   />
                 </UTooltip>
+                <UTooltip v-if="m.status !== 'CANCELED'" :text="canEditTerm ? t('memberships.term.editTooltip') : t('memberships.term.noPermissionEdit')">
+                  <UButton
+                    color="neutral"
+                    variant="ghost"
+                    icon="i-lucide-calendar-clock"
+                    size="sm"
+                    :disabled="!canEditTerm"
+                    @click="openTerm(m)"
+                  />
+                </UTooltip>
                 <template v-if="canAssignPromotion && m.status !== 'CANCELED'">
                   <UTooltip v-if="promotionByMembership[m.uuid]" :text="t('promotions.membership.cancelTooltip')">
                     <UButton color="warning" variant="ghost" icon="i-lucide-badge-x" size="sm" @click="openCancelPromotion(m)" />
@@ -449,6 +497,8 @@ async function confirmLifecycle() {
         </tbody>
       </table>
     </div>
+
+    <MembershipTermModal v-model:open="termOpen" :membership="termTarget" @saved="onTermSaved" />
 
     <CampaignExceptionFormModal
       v-model:open="exceptionOpen"
@@ -484,6 +534,10 @@ async function confirmLifecycle() {
               <UInput v-model="enrollState.expiresAt" type="date" class="w-full" />
             </UFormField>
           </div>
+
+          <UFormField :label="t('memberships.enrollForm.reinscription')" name="reinscription" :help="t('memberships.enrollForm.reinscriptionHelp')">
+            <USelect v-model="enrollState.reinscription" :items="reinscriptionItems" class="w-full" />
+          </UFormField>
 
           <UFormField
             v-if="enrollPromotions.length"

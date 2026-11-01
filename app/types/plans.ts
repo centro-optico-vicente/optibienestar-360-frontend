@@ -26,6 +26,21 @@ export const PLAN_TYPE_OPTIONS: { label: string, value: PlanType, labelKey: stri
   { label: 'Corporativo', value: PLAN_TYPES.CORPORATE, labelKey: `plans.types.${PLAN_TYPES.CORPORATE}` },
 ]
 
+// ---- Term (hub ADR 0034) ----
+// A term only exists when the plan requires re-inscription. The expiry is either a fixed
+// annual date (month 1-12 + day 1-28) or a period of N months after enrollment.
+export const TERM_MODES = {
+  FIXED_DATE: 'FIXED_DATE',
+  PERIOD: 'PERIOD',
+} as const
+
+export type TermMode = typeof TERM_MODES[keyof typeof TERM_MODES]
+
+export const TERM_MODE_OPTIONS: { label: string, value: TermMode, labelKey: string }[] = [
+  { label: 'Fecha fija anual', value: TERM_MODES.FIXED_DATE, labelKey: 'plans.term.modes.FIXED_DATE' },
+  { label: 'Período en meses', value: TERM_MODES.PERIOD, labelKey: 'plans.term.modes.PERIOD' },
+]
+
 // ---- Plan ----
 
 /**
@@ -64,6 +79,16 @@ export interface PlanDto {
   extraBeneficiaryInscriptionFee?: number | string | null
   /** Minimum number of people the plan requires (V177); null = no minimum. */
   minMembers?: number | null
+  /** The plan requires re-inscription each term (V220); only then does the term rule apply. */
+  reinscriptionRequired?: boolean
+  reinscriptionRequired_Display?: string | null
+  termMode?: TermMode | null
+  termMode_Display?: string | null
+  /** FIXED_DATE: month (1-12) and day (1-28). */
+  termFixedMonth?: number | null
+  termFixedDay?: number | null
+  /** PERIOD: months after enrollment. */
+  termPeriodMonths?: number | null
   gracePeriodDays: number
   published: boolean
   publishedAt?: string | null
@@ -94,6 +119,12 @@ export interface CreatePlanRequest {
   minMembers?: number | null
   gracePeriodDays?: number
   published?: boolean
+  /** Term (hub ADR 0034). On update, `false` clears the rule; sending a mode clears the other mode's fields. */
+  reinscriptionRequired?: boolean
+  termMode?: TermMode
+  termFixedMonth?: number
+  termFixedDay?: number
+  termPeriodMonths?: number
 }
 
 /** PUT with PATCH semantics: only the fields present are applied. */

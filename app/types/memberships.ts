@@ -13,6 +13,9 @@
 // - POST /v1/admin/members/{memberUuid}/memberships          (enroll, MEMBERSHIP_CREATE)
 // - PUT  /v1/admin/memberships/{uuid}/cancel                 (MEMBERSHIP_CANCEL)
 // - PUT  /v1/admin/memberships/{uuid}/reactivate             (MEMBERSHIP_REACTIVATE)
+// - PUT  /v1/admin/memberships/{uuid}/term                   (MEMBERSHIP_TERM_UPDATE, hub ADR 0034)
+
+import type { TermMode } from '~/types/plans'
 
 // ---- Lifecycle status (mirror of Membership.LifecycleStatus) ----
 export type MembershipStatus = 'ACTIVE' | 'SUSPENDED' | 'EXPIRED' | 'CANCELED'
@@ -76,6 +79,20 @@ export interface MembershipDto {
   nextDueDate_Display?: string | null
   lastPaidThrough?: string | null
   lastPaidThrough_Display?: string | null
+  // Term (V220, hub ADR 0034): snapshot of the plan's rule; `expiresAt` is the end of the current term
+  reinscriptionRequired?: boolean
+  reinscriptionRequired_Display?: string | null
+  termMode?: TermMode | null
+  termMode_Display?: string | null
+  termFixedMonth?: number | null
+  termFixedDay?: number | null
+  termPeriodMonths?: number | null
+  termStartedAt?: string | null
+  termStartedAt_Display?: string | null
+  /** Set while a re-inscription is pending: the membership stays SUSPENDED until an inscription payment is approved. */
+  inscriptionDueSince?: string | null
+  inscriptionDueSince_Display?: string | null
+  inscriptionDue?: boolean
   // Pricing snapshot (ADR 0015 — currency/exchange-rate conversion; conversion
   // fields cover `monthlyFee` ONLY, and are null together when no rate is
   // available — degrade gracefully, never assume presence)
@@ -120,12 +137,24 @@ export interface MembershipCreateRequest {
   planUuid: string
   /** ISO date (yyyy-MM-dd). Defaults to today server-side when omitted. */
   enrolledAt?: string
-  /** ISO date (yyyy-MM-dd). Optional hard expiry. */
+  /** ISO date (yyyy-MM-dd). Optional override of the first expiry (must be after `enrolledAt`); empty = the plan decides. */
   expiresAt?: string
+  /** Optional override of the plan's re-inscription flag (hub ADR 0034); omitted = inherit. */
+  reinscriptionRequired?: boolean
   /** Promotion applied in the same transaction (hub ADR 0018); invalid → the enrollment fails. */
   promotionUuid?: string
   /** Promoter / referring member / ally code, when the promotion takes one. */
   promotionCode?: string
+}
+
+/**
+ * Body of PUT /v1/admin/memberships/{uuid}/term. `reinscriptionRequired` omitted keeps it; `false` makes the
+ * membership open-ended (`expiresAt` then is a plain end date, empty = none); `true` without a plan rule
+ * needs `expiresAt` and renews every 12 months.
+ */
+export interface MembershipTermUpdateRequest {
+  reinscriptionRequired?: boolean
+  expiresAt?: string
 }
 
 /** Optional body of the cancel/reactivate lifecycle transitions. */

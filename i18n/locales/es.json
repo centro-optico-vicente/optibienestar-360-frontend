@@ -1310,7 +1310,7 @@
       "extraBeneficiaryHint": "Cargo único por beneficiario adicional.",
       "notAllowed": "No admite"
     },
-    "beneficiaries": {
+     "beneficiaries": {
       "included": "Beneficiarios incluidos",
       "max": "Beneficiarios máximos",
       "noLimit": "Sin tope",
@@ -1340,7 +1340,7 @@
       "maxHelp": "Vacío = sin tope.",
       "minMembersHelp": "Solo para planes corporativos (p. ej. 20). Vacío = sin mínimo.",
       "minMembersInvalid": "Debe ser un entero mayor o igual a 1",
-      "graceHelp": "Por defecto 7.",
+       "graceHelp": "Por defecto 7.",
       "publishedHelp": "Visible en el directorio público de planes.",
       "activeHelp": "Desactiva el plan (borrado lógico) sin eliminarlo.",
       "submitCreate": "Crear plan",
@@ -2947,7 +2947,8 @@
       "monthly": "Mensualidad",
       "status": "Estado",
       "enrolledAt": "Afiliado desde",
-      "nextDue": "Próx. pago"
+      "nextDue": "Próx. pago",
+      "expiresAt": "Vence"
     },
     "status": {
       "ACTIVE": "Activa",
@@ -2955,7 +2956,7 @@
       "EXPIRED": "Vencida",
       "CANCELED": "Cancelada"
     },
-    "enrollForm": {
+     "enrollForm": {
       "title": "Afiliar a un plan",
       "description": "Crea una nueva membresía. El pricing se copia del plan al momento de afiliar.",
       "plan": "Plan",
@@ -2964,7 +2965,9 @@
       "enrolledAt": "Afiliado desde",
       "enrolledAtHelp": "Vacío = hoy.",
       "expiresAt": "Vence (opcional)",
-      "expiresAtHelp": "Fecha de expiración forzada.",
+      "expiresAtHelp": "Reemplaza el primer vencimiento; debe ser posterior a la fecha de afiliación. Vacío = lo define el plan.",
+      "reinscription": "Reinscripción",
+      "reinscriptionHelp": "Reemplaza la regla del plan. Activarla en un plan sin vigencia exige una fecha de vencimiento y se renueva cada 12 meses.",
       "submit": "Afiliar"
     },
     "lifecycle": {
@@ -5288,9 +5291,13 @@
       "phone": "Teléfono",
       "plan": "Plan",
       "referralCode": "Código de referido",
-      "advisor": "Asesor"
+      "advisor": "Asesor",
+      "expiresAt": "Vencimiento especial",
+      "reinscriptionRequired": "Reinscripción"
     },
     "detail": {
+      "expiresAtHelp": "Opcional: reemplaza el primer vencimiento que fijaría el plan.",
+      "reinscriptionHelp": "Opcional: reemplaza la regla de reinscripción del plan.",
       "seoPage": "Solicitud de afiliación",
       "notFoundTitle": "Solicitud no encontrada",
       "receivedAt": "Recibida el {date}",

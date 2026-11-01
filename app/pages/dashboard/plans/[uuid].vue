@@ -8,7 +8,7 @@ definePageMeta({
   permission: 'PLAN_VIEW_ALL',
 })
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const { formatCurrency, formatDate } = useFormatters()
 
 useSeoMeta({ title: () => t('common.seoTitle', { page: t('plans.detail.seoPage') }) })
@@ -30,6 +30,7 @@ const auditOpen = ref(false)
 
 // ---- Plan load ----
 const plan = ref<PlanDto | null>(null)
+const termRuleLabel = computed(() => (plan.value ? describeTermRule(plan.value, t, locale.value) : null) ?? '—')
 const loading = ref(true)
 const notFound = ref(false)
 
@@ -294,6 +295,24 @@ async function confirmDelete() {
         <p v-if="plan.description" class="text-sm text-prohealth-700 mt-4 max-w-3xl">
           {{ plan.description }}
         </p>
+      </div>
+
+      <!-- Term (hub ADR 0034) -->
+      <div class="bg-white rounded-2xl border border-prohealth-100 p-6">
+        <h2 class="font-bold text-prohealth-900 mb-4">{{ t('plans.term.title') }}</h2>
+        <dl class="grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-4 text-sm">
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('plans.term.reinscription') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ plan.reinscriptionRequired ? t('common.yes') : t('common.no') }}</dd>
+          </div>
+          <template v-if="plan.reinscriptionRequired">
+            <div>
+              <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('plans.term.rule') }}</dt>
+              <dd class="text-prohealth-800 mt-0.5">{{ termRuleLabel }}</dd>
+            </div>
+          </template>
+          <p v-else class="text-prohealth-500 sm:col-span-2 self-center">{{ t('plans.term.none') }}</p>
+        </dl>
       </div>
 
       <!-- Beneficiaries and validity -->
