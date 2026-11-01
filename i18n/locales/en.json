@@ -1244,6 +1244,53 @@
     }
   },
   "plans": {
+    "termCompliance": {
+      "title": "Membership terms",
+      "subtitle": "Shows which live memberships of the plan comply with the plan's current term rule and lets you apply it to those that do not, choosing the first expiry date.",
+      "apply": "Apply term",
+      "applyTooltip": "Applies the plan's rule to the selected memberships (or to all that do not comply)",
+      "requiresReinscription": "Turn on re-inscription for the plan to apply a term",
+      "requiresReinscriptionHelp": "While the plan does not require re-inscription, memberships stay open-ended and there is no term to apply.",
+      "counts": {
+        "total": "Live memberships",
+        "complies": "Comply",
+        "differs": "Do not comply"
+      },
+      "filter": {
+        "all": "All",
+        "DIFFERS": "Do not comply",
+        "COMPLIES": "Comply"
+      },
+      "searchPlaceholder": "Search by name or document",
+      "selectedCount": "{count} selected",
+      "clearSelection": "Clear selection",
+      "selectPage": "Select the page",
+      "columns": {
+        "member": "Member",
+        "contract": "Contract",
+        "status": "Status",
+        "enrolledAt": "Enrolled",
+        "expiresAt": "Expires",
+        "rule": "Current rule",
+        "complies": "Complies"
+      },
+      "complies": "Complies",
+      "differs": "Differs",
+      "noExpiry": "No expiry",
+      "empty": "No memberships for this filter.",
+      "ruleOpenEnded": "No term (open-ended)",
+      "ruleFixedDate": "Expires every {month} {day}",
+      "rulePeriod": "{n} month(s) after enrollment",
+      "applyTitle": "Apply term",
+      "applyDescription": "Copies the plan's current term rule to the memberships and sets their first expiry.",
+      "affectedSelected": "The term of {count} selected membership(s) will be updated. Canceled ones are skipped.",
+      "affectedAllDiffer": "Nothing selected: the {count} membership(s) that do not comply with the plan's rule will be updated.",
+      "expiresAt": "First expiry",
+      "expiresAtHelp": "One date for all of them; it must be after today. The date the plan's rule yields is suggested.",
+      "expiresInvalid": "The date must be after today.",
+      "confirm": "I confirm applying the term to {count} membership(s)",
+      "appliedToast": "Term applied: {applied} updated, {skipped} skipped"
+    },
     "title": "Plans",
     "subtitle": "Coverage plans: pricing, beneficiaries and grace period.",
     "new": "New plan",

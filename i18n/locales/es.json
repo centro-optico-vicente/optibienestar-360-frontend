@@ -1244,6 +1244,53 @@
     }
   },
   "plans": {
+    "termCompliance": {
+      "title": "Vigencia de las membresías",
+      "subtitle": "Muestra qué membresías vigentes del plan cumplen la regla de vigencia actual del plan y permite aplicarla a las que no la cumplen, eligiendo la primera fecha de vencimiento.",
+      "apply": "Aplicar vigencia",
+      "applyTooltip": "Aplica la regla del plan a las membresías seleccionadas (o a todas las que no cumplen)",
+      "requiresReinscription": "Activa la reinscripción del plan para aplicar una vigencia",
+      "requiresReinscriptionHelp": "Mientras el plan no exija reinscripción, las membresías quedan sin vencimiento y no hay una vigencia que aplicar.",
+      "counts": {
+        "total": "Membresías vigentes",
+        "complies": "Cumplen",
+        "differs": "No cumplen"
+      },
+      "filter": {
+        "all": "Todas",
+        "DIFFERS": "No cumplen",
+        "COMPLIES": "Cumplen"
+      },
+      "searchPlaceholder": "Buscar por nombre o documento",
+      "selectedCount": "{count} seleccionada(s)",
+      "clearSelection": "Limpiar selección",
+      "selectPage": "Seleccionar la página",
+      "columns": {
+        "member": "Afiliado",
+        "contract": "Contrato",
+        "status": "Estado",
+        "enrolledAt": "Afiliado desde",
+        "expiresAt": "Vence",
+        "rule": "Regla actual",
+        "complies": "Cumple"
+      },
+      "complies": "Cumple",
+      "differs": "No cumple",
+      "noExpiry": "Sin vencimiento",
+      "empty": "No hay membresías para este filtro.",
+      "ruleOpenEnded": "Sin vigencia (abierta)",
+      "ruleFixedDate": "Vence cada {day} de {month}",
+      "rulePeriod": "{n} mes(es) desde la afiliación",
+      "applyTitle": "Aplicar vigencia",
+      "applyDescription": "Copia la regla de vigencia actual del plan a las membresías y fija su primer vencimiento.",
+      "affectedSelected": "Se actualizará la vigencia de {count} membresía(s) seleccionada(s). Las canceladas se omiten.",
+      "affectedAllDiffer": "No hay selección: se actualizarán las {count} membresía(s) que no cumplen la regla del plan.",
+      "expiresAt": "Primer vencimiento",
+      "expiresAtHelp": "Una sola fecha para todas; debe ser posterior a hoy. Se sugiere la que resulta de la regla del plan.",
+      "expiresInvalid": "La fecha debe ser posterior a hoy.",
+      "confirm": "Confirmo aplicar la vigencia a {count} membresía(s)",
+      "appliedToast": "Vigencia aplicada: {applied} actualizada(s), {skipped} omitida(s)"
+    },
     "title": "Planes",
     "subtitle": "Planes de cobertura: pricing, beneficiarios y periodo de gracia.",
     "new": "Nuevo plan",
