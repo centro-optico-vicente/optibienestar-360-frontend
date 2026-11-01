@@ -33,6 +33,12 @@ export interface OrganizationDto {
   signingCity: string | null
   /** Coverage area of the allies network — `{{org.serviceArea}}`. */
   serviceArea: string | null
+  /** Institutional address — `{{org.address}}`, footer of the contracts (V217). */
+  address: string | null
+  /** Contact email — `{{org.email}}`. */
+  email: string | null
+  /** Contact phones as printed in the contracts — `{{org.phones}}`. */
+  phones: string | null
 }
 
 /** A currency stripped to what an unprivileged caller needs — no uuid, no active flag. */
@@ -68,4 +74,7 @@ export interface OrganizationUpdateRequest {
   registryState?: string
   signingCity?: string
   serviceArea?: string
+  address?: string
+  email?: string
+  phones?: string
 }
