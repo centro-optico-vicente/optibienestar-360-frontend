@@ -51,7 +51,7 @@ onMounted(async () => {
         <!-- Same card and copy buttons as the payment forms: method-driven fields (Pago Móvil shows the phone,
              a transfer the account number) and, for Pago Móvil, the 4-line text bank apps accept (no amount here). -->
         <div class="flex items-start justify-between gap-2">
-          <h2 class="font-bold text-prohealth-900">{{ a.paymentMethod_Display ?? a.paymentMethodCode }}</h2>
+          <h2 class="font-bold text-prohealth-900">{{ a.holderName }}</h2>
           <UBadge color="neutral" variant="subtle" size="sm">{{ a.currency_Code }}</UBadge>
         </div>
         <AccountCopyCard :account="fromCompanyAccount(a)" :amount-ves="null" />

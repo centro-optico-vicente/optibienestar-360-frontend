@@ -6,6 +6,8 @@
 // ReferralStatus) — se modelan aquí como uniones TS. Los listados son Page<T> con RSQL
 // + `q`; las actualizaciones usan PATCH semantics (solo se aplican los campos enviados).
 
+import type { AccountMethodDto } from '~/types/payments'
+
 /** Estado de un promotor. */
 export type PromoterStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED'
 
@@ -218,10 +220,10 @@ export interface PromoterReferenceRequest {
 export interface PromoterPayoutAccountDto {
   uuid: string
   promoterUuid: string
-  paymentMethod_Uuid?: string | null
-  paymentMethod_Display?: string | null
-  /** Catalog code (BANK_TRANSFER, PAGO_MOVIL, UBII, ZELLE…). */
-  paymentMethodCode: string
+  /** Methods the account accepts (V217). */
+  paymentMethods: AccountMethodDto[]
+  /** Catalog codes (BANK_TRANSFER, PAGO_MOVIL, UBII, ZELLE…). */
+  paymentMethodCodes: string[]
   label?: string | null
   bank_Uuid?: string | null
   bank_Display?: string | null
@@ -245,7 +247,7 @@ export interface PromoterPayoutAccountDto {
 
 /** Body of POST / PUT .../payout-accounts[/{uuid}] — full replace: blank fields are cleared. */
 export interface PromoterPayoutAccountRequest {
-  paymentMethodUuid: string
+  paymentMethodUuids: string[]
   label?: string | null
   bankUuid?: string | null
   accountType?: string | null

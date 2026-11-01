@@ -2516,7 +2516,8 @@
         "method": "Payment method",
         "destination": "Account / phone / email",
         "phone": "Phone",
-        "email": "Email"
+        "email": "Email",
+        "methods": "Accepted methods"
       },
       "public": "Public",
       "private": "Private",
@@ -2605,7 +2606,8 @@
         "holderName": "Holder",
         "document": "ID or RIF",
         "phone": "Phone",
-        "email": "Email"
+        "email": "Email",
+        "accepts": "Accepts"
       }
     }
   },
@@ -3413,7 +3415,8 @@
         "holderName": "Holder name",
         "holderDocumentType": "Type",
         "holderDocumentNumber": "Holder ID/RIF",
-        "isDefault": "Set as default"
+        "isDefault": "Set as default",
+        "methods": "Accepted methods"
       },
       "placeholders": {
         "phone": "E.g.: 0414-5550101"
@@ -5422,7 +5425,8 @@
       "paymentMethod": "Payment method",
       "account": "Account / phone",
       "phone": "Phone",
-      "email": "Email"
+      "email": "Email",
+      "paymentMethods": "Accepted methods"
     },
     "identificationHelp": "ID or tax number of the account holder.",
     "aliasHelp": "A name to recognise it, for example \"Payroll account\".",
