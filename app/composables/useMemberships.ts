@@ -1,12 +1,12 @@
 import type { Page } from '~/types/admin'
-import type { MembershipCreateRequest, MembershipDto, MembershipListItemDto, MembershipSearchParams } from '~/types/memberships'
+import type { MembershipCreateRequest, MembershipDto, MembershipListItemDto, MembershipSearchParams, MembershipTermUpdateRequest } from '~/types/memberships'
 
 /**
  * Access to the Memberships vertical. Memberships are a sub-resource of a member
  * (enroll/list/detail live under the member), while the lifecycle transitions
  * (cancel/reactivate) hang off the flat `/v1/admin/memberships/{uuid}` root.
  * Permissions: view -> MEMBERSHIP_VIEW_ALL · enroll -> MEMBERSHIP_CREATE ·
- * cancel -> MEMBERSHIP_CANCEL · reactivate -> MEMBERSHIP_REACTIVATE.
+ * cancel -> MEMBERSHIP_CANCEL · reactivate -> MEMBERSHIP_REACTIVATE · edit term -> MEMBERSHIP_TERM_UPDATE.
  */
 export const useMemberships = () => {
   /**
@@ -48,5 +48,9 @@ export const useMemberships = () => {
       body: reason ? { reason } : {},
     })
 
-  return { search, listForMember, get, enroll, cancel, reactivate }
+  /** Edit the term (expiry / re-inscription flag) of a membership (hub ADR 0034). */
+  const updateTerm = (uuid: string, body: MembershipTermUpdateRequest) =>
+    useApi<MembershipDto>(`/v1/admin/memberships/${uuid}/term`, { method: 'PUT', body })
+
+  return { search, listForMember, get, enroll, cancel, reactivate, updateTerm }
 }
