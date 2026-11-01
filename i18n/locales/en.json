@@ -4703,7 +4703,14 @@
       "signingCity": "Signing city",
       "signingCityHelp": "City where contracts are signed.",
       "serviceArea": "Coverage area",
-      "serviceAreaHelp": "Area where the allies network operates (e.g. eje Acarigua-Araure)."
+      "serviceAreaHelp": "Area where the allies network operates (e.g. eje Acarigua-Araure).",
+      "address": "Address",
+      "addressPlaceholder": "Av. 30 con Calle 21, C.C. Ciudad Cristal, Local N° 23, Acarigua",
+      "email": "Contact email",
+      "emailPlaceholder": "contact{'@'}company.com",
+      "phones": "Phones",
+      "phonesHelp": "As printed in the contracts; separate several numbers with commas.",
+      "phonesPlaceholder": "(+58)414-5738530, (+58)424-5984590"
     },
     "sections": {
       "general": "General information",
@@ -4711,7 +4718,9 @@
       "commissions": "Commissions",
       "socialLinks": "Social links",
       "socialLinksHelp": "Global links shown across the public site (footer, contact).",
-      "terms": "Terms and conditions"
+      "terms": "Terms and conditions",
+      "contact": "Institutional contact",
+      "contactHelp": "Address, email and phones printed at the foot of the contracts and terms."
     },
     "terms": {
       "help": "Three contract kinds. Each user must accept the current versions that apply to them on their next login, and again when a new version takes effect.",

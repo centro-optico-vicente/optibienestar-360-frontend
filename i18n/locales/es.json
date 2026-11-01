@@ -4703,7 +4703,14 @@
       "signingCity": "Ciudad de firma",
       "signingCityHelp": "Ciudad en la que se firman los contratos.",
       "serviceArea": "Zona de cobertura",
-      "serviceAreaHelp": "Zona donde opera la red de aliados (ej.: eje Acarigua-Araure)."
+      "serviceAreaHelp": "Zona donde opera la red de aliados (ej.: eje Acarigua-Araure).",
+      "address": "Dirección",
+      "addressPlaceholder": "Av. 30 con Calle 21, C.C. Ciudad Cristal, Local N° 23, Acarigua",
+      "email": "Correo de contacto",
+      "emailPlaceholder": "contacto{'@'}empresa.com",
+      "phones": "Teléfonos",
+      "phonesHelp": "Tal como se imprimen en los contratos; separe varios números con comas.",
+      "phonesPlaceholder": "(+58)414-5738530, (+58)424-5984590"
     },
     "sections": {
       "general": "Datos generales",
@@ -4711,7 +4718,9 @@
       "commissions": "Comisiones",
       "socialLinks": "Redes sociales",
       "socialLinksHelp": "Enlaces globales mostrados en el sitio público (pie de página, contacto).",
-      "terms": "Términos y condiciones"
+      "terms": "Términos y condiciones",
+      "contact": "Contacto institucional",
+      "contactHelp": "Dirección, correo y teléfonos que se imprimen al pie de los contratos y términos."
     },
     "terms": {
       "help": "Tres tipos de contrato. Cada usuario debe aceptar en su próximo inicio de sesión las versiones vigentes que le correspondan, y de nuevo cuando entre en vigencia una versión nueva.",

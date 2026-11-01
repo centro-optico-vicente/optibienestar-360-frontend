@@ -47,6 +47,9 @@ const state = reactive({
   registryState: '',
   signingCity: '',
   serviceArea: '',
+  address: '',
+  email: '',
+  phones: '',
 })
 
 const schema = computed(() =>
@@ -85,6 +88,22 @@ const schema = computed(() =>
     serviceArea: z
       .string()
       .max(150, t('validation.maxChars', { n: 150 }))
+      .optional()
+      .or(z.literal('')),
+    address: z
+      .string()
+      .max(500, t('validation.maxChars', { n: 500 }))
+      .optional()
+      .or(z.literal('')),
+    email: z
+      .string()
+      .email(t('validation.emailInvalid'))
+      .max(254, t('validation.maxChars', { n: 254 }))
+      .optional()
+      .or(z.literal('')),
+    phones: z
+      .string()
+      .max(100, t('validation.maxChars', { n: 100 }))
       .optional()
       .or(z.literal('')),
   })
@@ -128,6 +147,9 @@ async function load() {
       state.registryState = org.registryState ?? ''
       state.signingCity = org.signingCity ?? ''
       state.serviceArea = org.serviceArea ?? ''
+      state.address = org.address ?? ''
+      state.email = org.email ?? ''
+      state.phones = org.phones ?? ''
     }
     else {
       toast.add({ title: t('organization.loadError'), color: 'error', icon: 'i-lucide-alert-triangle' })
@@ -167,6 +189,9 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       registryState: state.registryState || undefined,
       signingCity: state.signingCity || undefined,
       serviceArea: state.serviceArea || undefined,
+      address: state.address || undefined,
+      email: state.email || undefined,
+      phones: state.phones || undefined,
     })
     state.name = updated.name
     state.legalName = updated.legalName ?? ''
@@ -181,6 +206,9 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     state.registryState = updated.registryState ?? ''
     state.signingCity = updated.signingCity ?? ''
     state.serviceArea = updated.serviceArea ?? ''
+    state.address = updated.address ?? ''
+    state.email = updated.email ?? ''
+    state.phones = updated.phones ?? ''
     snapshot.value = snapshotState()
     // Served T&C resolve {{org.*}} from these fields, so the previews are now stale.
     for (const type of TERM_TYPE_TABS) termTabs[type].loaded = false
@@ -727,6 +755,48 @@ onMounted(() => {
               :disabled="!canUpdate || isSubmitting"
             />
           </UFormField>
+        </div>
+
+        <!-- Contacto institucional (pie de los contratos) -->
+        <div class="bg-white rounded-2xl border border-prohealth-100 p-6 shadow-sm space-y-4 lg:col-span-2">
+          <div>
+            <h2 class="text-base font-bold text-prohealth-900">{{ t('organization.sections.contact') }}</h2>
+            <p class="text-xs text-prohealth-700/70 mt-0.5">{{ t('organization.sections.contactHelp') }}</p>
+          </div>
+          <UFormField :label="t('organization.fields.address')" name="address">
+            <UTextarea
+              v-model="state.address"
+              :rows="2"
+              :placeholder="t('organization.fields.addressPlaceholder')"
+              class="w-full"
+              :disabled="!canUpdate || isSubmitting"
+            />
+          </UFormField>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <UFormField :label="t('organization.fields.email')" name="email">
+              <UInput
+                v-model="state.email"
+                type="email"
+                icon="i-lucide-mail"
+                :placeholder="t('organization.fields.emailPlaceholder')"
+                class="w-full"
+                :disabled="!canUpdate || isSubmitting"
+              />
+            </UFormField>
+            <UFormField
+              :label="t('organization.fields.phones')"
+              :help="t('organization.fields.phonesHelp')"
+              name="phones"
+            >
+              <UInput
+                v-model="state.phones"
+                icon="i-lucide-phone"
+                :placeholder="t('organization.fields.phonesPlaceholder')"
+                class="w-full"
+                :disabled="!canUpdate || isSubmitting"
+              />
+            </UFormField>
+          </div>
         </div>
       </div>
     </UForm>
