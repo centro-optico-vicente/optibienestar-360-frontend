@@ -21,7 +21,11 @@ const { t } = useI18n()
 const toast = useToast()
 const { copy } = useClipboardCopy()
 
-const mobile = computed(() => isMobilePayment(props.account.methodCode))
+// With a method (payment line) it is that method; without one, whether the account accepts Pago Móvil at all.
+const mobile = computed(() => props.account.methodCode
+  ? isMobilePayment(props.account.methodCode)
+  : (props.account.acceptedMethods ?? []).some(m => isMobilePayment(m.code)))
+const acceptedNames = computed(() => (props.account.acceptedMethods ?? []).map(m => m.name).join(', '))
 const bank = computed(() => bankCodeAndName(props.account))
 
 async function copyText(text: string, what: string) {
@@ -50,6 +54,7 @@ function copyAll() {
   <div class="space-y-2 rounded-lg bg-prohealth-50/60 p-3 text-xs text-prohealth-700">
     <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1">
       <div v-if="account.methodName"><dt class="inline font-semibold">{{ t('payments.accountCopy.fields.method') }}: </dt><dd class="inline">{{ account.methodName }}</dd></div>
+      <div v-else-if="acceptedNames"><dt class="inline font-semibold">{{ t('payments.accountCopy.fields.accepts') }}: </dt><dd class="inline">{{ acceptedNames }}</dd></div>
       <div v-if="bank"><dt class="inline font-semibold">{{ t('payments.accountCopy.fields.bank') }}: </dt><dd class="inline"><BankName :uuid="account.bankUuid" :code="account.bankCode" :name="account.bankName" /></dd></div>
       <div v-if="account.accountType"><dt class="inline font-semibold">{{ t('payments.accountCopy.fields.accountType') }}: </dt><dd class="inline">{{ account.accountType }}</dd></div>
       <div v-if="account.accountNumber" class="flex items-center gap-1">

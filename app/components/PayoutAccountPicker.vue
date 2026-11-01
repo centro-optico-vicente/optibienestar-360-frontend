@@ -9,6 +9,8 @@ import { payoutDestination } from '~/utils/payout-accounts'
 const props = defineProps<{
   accounts: PromoterPayoutAccountDto[]
   promoterUuid?: string | null
+  /** Payment method of the payout line; the card then shows and copies only that method's fields. */
+  methodUuid?: string | null
   loading?: boolean
 }>()
 
@@ -19,13 +21,14 @@ const { can } = usePermissions()
 const canViewAdvisor = computed(() => can('PROMOTER_VIEW_ALL'))
 
 function optionLabel(a: PromoterPayoutAccountDto): string {
-  const head = a.label || a.paymentMethod_Display || a.paymentMethodCode
+  const head = a.label || a.paymentMethods.map(m => m.name).join(' / ')
   const parts = [head, a.bank_Display, payoutDestination(a)].filter(Boolean)
   return parts.join(' · ') + (a.isDefault ? ` (${t('promoters.payoutAccounts.defaultBadge')})` : '')
 }
 
 const options = computed(() => props.accounts.map(a => ({ label: optionLabel(a), value: a.uuid })))
 const selected = computed(() => props.accounts.find(a => a.uuid === model.value) ?? null)
+const selectedMethodCode = computed(() => selected.value?.paymentMethods.find(m => m.uuid === props.methodUuid)?.code ?? null)
 
 function openAdvisor(to: string) {
   window.open(to, '_blank', 'noopener')
@@ -53,6 +56,6 @@ function openAdvisor(to: string) {
         <CommonEntityQuickLinkButton :to="promoterUuid ? `/dashboard/advisors/${promoterUuid}` : null" :can="canViewAdvisor" @navigate="openAdvisor" />
       </div>
     </UFormField>
-    <AccountCopyCard v-if="selected" :account="fromPayoutAccount(selected)" />
+    <AccountCopyCard v-if="selected" :account="fromPayoutAccount(selected, selectedMethodCode)" />
   </div>
 </template>

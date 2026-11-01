@@ -4,12 +4,13 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 import type { CatalogItem } from '~/types/catalogs'
 import type { CompanyBankAccountDto, CompanyBankAccountRequest } from '~/types/payments'
 import { BANK_ACCOUNT_TYPE_OPTIONS } from '~/types/payments'
+import { requiredFields } from '~/utils/paymentMethodRequirements'
 
 // The company's own bank accounts (V201) — what payers see to know where to deposit, and what they
-// pick on each payment line; also where a commission payout leaves from. Since V206 each account has a
-// payment method and the form is method-first, like the advisor payout accounts: the method's `mandatory*`
-// flags decide which fields show and are required (Pago Móvil = bank + document + phone; a transfer =
-// account type + number; Zelle = email). Granular permissions per action; delete only deactivates.
+// pick on each payment line; also where a commission payout leaves from. Since V217 one account accepts several
+// payment methods: the form asks which ones, and the sum of their `mandatory*` checks decides which fields show
+// and are required (Pago Móvil = bank + document + phone; a transfer = account type + number; Zelle = email).
+// Granular permissions per action; delete only deactivates.
 definePageMeta({
   layout: 'dashboard',
   middleware: 'can',
@@ -106,7 +107,7 @@ const saving = ref(false)
 const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 
 interface FormState {
-  paymentMethodUuid: string
+  paymentMethodUuids: string[]
   bankUuid: string | undefined
   currency: string
   accountType: string
@@ -123,7 +124,7 @@ interface FormState {
 
 function emptyState(): FormState {
   return {
-    paymentMethodUuid: '',
+    paymentMethodUuids: [],
     bankUuid: undefined,
     currency: 'USD',
     accountType: '',
@@ -141,29 +142,29 @@ function emptyState(): FormState {
 
 const state = reactive<FormState>(emptyState())
 
-const selectedMethod = computed(() => methodItems.value.find(m => m.uuid === state.paymentMethodUuid) ?? null)
-// A transfer's account number may come from either flag (same rule as the backend).
-const needsAccountNumber = computed(() => Boolean(selectedMethod.value?.mandatoryAccountCode || selectedMethod.value?.mandatoryBankAccount))
+const selectedMethods = computed(() => methodItems.value.filter(m => state.paymentMethodUuids.includes(m.uuid)))
+// What the account must hold: the sum of the checks of every accepted method (same rule as the backend).
+const required = computed(() => requiredFields(selectedMethods.value))
 
 const requiredMsg = computed(() => t('validation.required'))
 const schema = computed(() => {
-  const m = selectedMethod.value
+  const req = required.value
   const optional = (max: number) => z.string().max(max, t('validation.maxChars', { n: max })).optional()
-  const required = (flag: boolean | undefined, max: number) => (flag
+  const mandatory = (flag: boolean, max: number) => (flag
     ? z.string().min(1, requiredMsg.value).max(max, t('validation.maxChars', { n: max }))
     : optional(max))
   return z.object({
-    paymentMethodUuid: z.string().min(1, requiredMsg.value),
+    paymentMethodUuids: z.array(z.string()).min(1, requiredMsg.value),
     currency: z.string().min(1, requiredMsg.value),
-    accountType: required(m?.mandatoryAccountType, 40),
-    accountNumber: required(needsAccountNumber.value, 40),
+    accountType: mandatory(req.accountType, 40),
+    accountNumber: mandatory(req.accountNumber, 40),
     holderName: z.string().min(1, requiredMsg.value).max(160, t('validation.maxChars', { n: 160 })),
-    holderDocument: required(m?.mandatoryIdentification, 30),
-    phone: required(m?.mandatoryPhone, 30),
-    email: m?.mandatoryEmail ? z.string().email(t('validation.emailInvalid')).max(160) : optional(160),
+    holderDocument: mandatory(req.identification, 30),
+    phone: mandatory(req.phone, 30),
+    email: req.email ? z.string().email(t('validation.emailInvalid')).max(160) : optional(160),
     notes: optional(255),
     sortOrder: z.string().regex(/^\d+$/, requiredMsg.value),
-  }).refine(() => !m?.mandatoryBank || Boolean(state.bankUuid), { message: requiredMsg.value, path: ['bankUuid'] })
+  }).refine(() => !req.bank || Boolean(state.bankUuid), { message: requiredMsg.value, path: ['bankUuid'] })
 })
 
 function openCreate() {
@@ -175,7 +176,7 @@ function openCreate() {
 function openEdit(a: CompanyBankAccountDto) {
   editingUuid.value = a.uuid
   Object.assign(state, {
-    paymentMethodUuid: a.paymentMethod_Uuid ?? '',
+    paymentMethodUuids: a.paymentMethods.map(m => m.uuid),
     bankUuid: a.bank_Uuid ?? undefined,
     currency: a.currency_Code,
     accountType: a.accountType ?? '',
@@ -193,22 +194,22 @@ function openEdit(a: CompanyBankAccountDto) {
 }
 
 async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
-  const m = selectedMethod.value
+  const req = required.value
   saving.value = true
   try {
-    // Fields the selected method does not use are sent as null, so switching the method does not leave the
-    // previous method's data behind (same full-replace rule as the advisor payout accounts).
-    const keep = (flag: boolean | undefined, value: string) => (flag && value.trim() ? value.trim() : null)
+    // Fields none of the accepted methods uses are sent as null, so changing the methods does not leave the
+    // previous methods' data behind (same full-replace rule as the advisor payout accounts).
+    const keep = (flag: boolean, value: string) => (flag && value.trim() ? value.trim() : null)
     const body: CompanyBankAccountRequest = {
-      paymentMethodUuid: state.paymentMethodUuid,
-      bankUuid: m?.mandatoryBank ? (state.bankUuid || null) : null,
+      paymentMethodUuids: state.paymentMethodUuids,
+      bankUuid: req.bank ? (state.bankUuid || null) : null,
       currency: state.currency,
-      accountType: keep(m?.mandatoryAccountType, state.accountType),
-      accountNumber: keep(needsAccountNumber.value, state.accountNumber),
+      accountType: keep(req.accountType, state.accountType),
+      accountNumber: keep(req.accountNumber, state.accountNumber),
       holderName: state.holderName.trim(),
       holderDocument: state.holderDocument.trim() || null,
-      phone: keep(m?.mandatoryPhone, state.phone),
-      email: keep(m?.mandatoryEmail, state.email),
+      phone: keep(req.phone, state.phone),
+      email: keep(req.email, state.email),
       notes: state.notes.trim() || null,
       sortOrder: Number(state.sortOrder),
       publicVisible: state.publicVisible,
@@ -306,7 +307,11 @@ async function confirmDelete() {
               </td>
             </tr>
             <tr v-for="a in data" v-else :key="a.uuid" class="hover:bg-prohealth-50/50">
-              <td class="px-5 py-3 font-semibold text-prohealth-900">{{ a.paymentMethod_Display || a.paymentMethodCode || t('common.empty') }}</td>
+              <td class="px-5 py-3">
+                <div class="flex flex-wrap gap-1">
+                  <UBadge v-for="m in a.paymentMethods" :key="m.uuid" color="primary" variant="subtle" size="sm">{{ m.name }}</UBadge>
+                </div>
+              </td>
               <td class="px-5 py-3 text-prohealth-800">
                 <BankName v-if="a.bank_Display || a.bankCode || a.bank_Code" :uuid="a.bank_Uuid" :code="a.bankCode ?? a.bank_Code" :name="a.bank_Display" />
                 <template v-else>{{ t('common.empty') }}</template>
@@ -348,28 +353,28 @@ async function confirmDelete() {
       <template #body>
         <UForm ref="formRef" :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField :label="t('payments.companyAccounts.fields.method')" name="paymentMethodUuid" required>
-              <USelectMenu v-model="state.paymentMethodUuid" :items="methodOptions" label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" />
+            <UFormField :label="t('payments.companyAccounts.fields.methods')" name="paymentMethodUuids" required>
+              <USelectMenu v-model="state.paymentMethodUuids" multiple :items="methodOptions" label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" />
             </UFormField>
             <UFormField :label="t('payments.companyAccounts.fields.currency')" name="currency" required>
               <USelectMenu v-model="state.currency" :items="currencyOptions" label-key="label" value-key="value" class="w-full font-mono" />
             </UFormField>
           </div>
-          <template v-if="selectedMethod">
+          <template v-if="selectedMethods.length">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <UFormField v-if="selectedMethod.mandatoryBank" :label="t('payments.companyAccounts.fields.bank')" name="bankUuid" required>
+              <UFormField v-if="required.bank" :label="t('payments.companyAccounts.fields.bank')" name="bankUuid" required>
                 <USelectMenu v-model="state.bankUuid" :items="bankOptions" label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" />
               </UFormField>
-              <UFormField v-if="selectedMethod.mandatoryAccountType" :label="t('payments.companyAccounts.fields.accountType')" name="accountType" required>
+              <UFormField v-if="required.accountType" :label="t('payments.companyAccounts.fields.accountType')" name="accountType" required>
                 <USelectMenu v-model="state.accountType" :items="BANK_ACCOUNT_TYPE_OPTIONS" label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" />
               </UFormField>
-              <UFormField v-if="needsAccountNumber" :label="t('payments.companyAccounts.fields.accountNumber')" name="accountNumber" required>
+              <UFormField v-if="required.accountNumber" :label="t('payments.companyAccounts.fields.accountNumber')" name="accountNumber" required>
                 <UInput v-model="state.accountNumber" class="w-full font-mono" maxlength="40" />
               </UFormField>
-              <UFormField v-if="selectedMethod.mandatoryPhone" :label="t('payments.companyAccounts.fields.phone')" name="phone" required>
+              <UFormField v-if="required.phone" :label="t('payments.companyAccounts.fields.phone')" name="phone" required>
                 <UInput v-model="state.phone" class="w-full font-mono" inputmode="tel" maxlength="30" :placeholder="t('payments.companyAccounts.phonePlaceholder')" />
               </UFormField>
-              <UFormField v-if="selectedMethod.mandatoryEmail" :label="t('payments.companyAccounts.fields.email')" name="email" required>
+              <UFormField v-if="required.email" :label="t('payments.companyAccounts.fields.email')" name="email" required>
                 <UInput v-model="state.email" type="email" class="w-full" maxlength="160" />
               </UFormField>
             </div>
@@ -377,7 +382,7 @@ async function confirmDelete() {
               <UFormField :label="t('payments.companyAccounts.fields.holderName')" name="holderName" required>
                 <UInput v-model="state.holderName" class="w-full" maxlength="160" />
               </UFormField>
-              <UFormField :label="t('payments.companyAccounts.fields.holderDocument')" name="holderDocument" :required="Boolean(selectedMethod.mandatoryIdentification)" :help="t('payments.companyAccounts.holderDocumentHelp')">
+              <UFormField :label="t('payments.companyAccounts.fields.holderDocument')" name="holderDocument" :required="required.identification" :help="t('payments.companyAccounts.holderDocumentHelp')">
                 <UInput v-model="state.holderDocument" class="w-full" maxlength="30" />
               </UFormField>
             </div>

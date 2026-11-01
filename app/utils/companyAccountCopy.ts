@@ -9,8 +9,11 @@ export const MOBILE_PAYMENT_METHOD = 'PAGO_MOVIL'
 
 /** The fields a copy needs, whatever kind of account they come from. */
 export interface CopyableAccount {
+  /** The method this copy is for (the payment line's method); empty = no particular method (public page, admin views). */
   methodCode?: string | null
   methodName?: string | null
+  /** Every method the account accepts (V217), for the "Acepta: …" line and to know if it takes Pago Móvil. */
+  acceptedMethods?: { code: string, name: string }[]
   /** Catalog uuid of the bank — only to look up its official name for the tooltip (hub ADR 0030). */
   bankUuid?: string | null
   /** SUDEBAN code of the bank, e.g. "0105". */
@@ -25,10 +28,28 @@ export interface CopyableAccount {
   email?: string | null
 }
 
-export function fromCompanyAccount(a: CompanyBankAccountDto): CopyableAccount {
+/**
+ * With a method (the payment line's), only the fields of that method are kept for display and copy: a Pago Móvil
+ * shows the phone and no account number / type, any other method shows the account and no phone. This is display
+ * only — what an account must hold is validated by the backend from the methods' `mandatory*` checks.
+ */
+function restrictToMethod(account: CopyableAccount, methodCode?: string | null): CopyableAccount {
+  const method = methodCode ? account.acceptedMethods?.find(m => m.code === methodCode) : undefined
+  if (!methodCode) return account
+  const mobile = isMobilePayment(methodCode)
   return {
-    methodCode: a.paymentMethodCode ?? a.paymentMethod_Code,
-    methodName: a.paymentMethod_Display,
+    ...account,
+    methodCode,
+    methodName: method?.name ?? account.methodName,
+    accountType: mobile ? null : account.accountType,
+    accountNumber: mobile ? null : account.accountNumber,
+    phone: mobile ? account.phone : null,
+  }
+}
+
+export function fromCompanyAccount(a: CompanyBankAccountDto, methodCode?: string | null): CopyableAccount {
+  return restrictToMethod({
+    acceptedMethods: (a.paymentMethods ?? []).map(m => ({ code: m.code, name: m.name })),
     bankUuid: a.bank_Uuid,
     bankCode: a.bankCode ?? a.bank_Code,
     bankName: a.bank_Display,
@@ -38,13 +59,12 @@ export function fromCompanyAccount(a: CompanyBankAccountDto): CopyableAccount {
     document: a.holderDocument,
     phone: a.phone,
     email: a.email,
-  }
+  }, methodCode)
 }
 
-export function fromPayoutAccount(a: PromoterPayoutAccountDto): CopyableAccount {
-  return {
-    methodCode: a.paymentMethodCode,
-    methodName: a.paymentMethod_Display,
+export function fromPayoutAccount(a: PromoterPayoutAccountDto, methodCode?: string | null): CopyableAccount {
+  return restrictToMethod({
+    acceptedMethods: (a.paymentMethods ?? []).map(m => ({ code: m.code, name: m.name })),
     bankUuid: a.bank_Uuid,
     bankCode: a.bank_Code,
     bankName: a.bank_Display,
@@ -54,7 +74,7 @@ export function fromPayoutAccount(a: PromoterPayoutAccountDto): CopyableAccount 
     document: a.holderDocumentType && a.holderDocumentNumber ? `${a.holderDocumentType}${a.holderDocumentNumber}` : null,
     phone: a.phone,
     email: a.email,
-  }
+  }, methodCode)
 }
 
 export function isMobilePayment(methodCode?: string | null): boolean {

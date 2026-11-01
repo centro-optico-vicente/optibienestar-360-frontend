@@ -2516,7 +2516,8 @@
         "method": "Método de pago",
         "destination": "Cuenta / teléfono / correo",
         "phone": "Teléfono",
-        "email": "Correo"
+        "email": "Correo",
+        "methods": "Métodos que acepta"
       },
       "public": "Pública",
       "private": "Privada",
@@ -2605,7 +2606,8 @@
         "holderName": "Titular",
         "document": "Cédula o RIF",
         "phone": "Teléfono",
-        "email": "Correo"
+        "email": "Correo",
+        "accepts": "Acepta"
       }
     }
   },
@@ -3413,7 +3415,8 @@
         "holderName": "Nombre del titular",
         "holderDocumentType": "Tipo",
         "holderDocumentNumber": "Cédula/RIF del titular",
-        "isDefault": "Marcar como predeterminada"
+        "isDefault": "Marcar como predeterminada",
+        "methods": "Métodos que acepta"
       },
       "placeholders": {
         "phone": "Ej.: 0414-5550101"
@@ -5422,7 +5425,8 @@
       "paymentMethod": "Método de pago",
       "account": "Cuenta / teléfono",
       "phone": "Teléfono",
-      "email": "Correo"
+      "email": "Correo",
+      "paymentMethods": "Métodos que acepta"
     },
     "identificationHelp": "Cédula o RIF del titular de la cuenta.",
     "aliasHelp": "Un nombre para reconocerla, por ejemplo \"Cuenta nómina\".",
