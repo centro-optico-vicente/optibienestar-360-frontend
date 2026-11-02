@@ -135,6 +135,12 @@ const router = useRouter()
 
 onMounted(async () => {
   await load()
+  // `?new=1` (home dashboard "Nuevo afiliado") opens the create modal right away.
+  if (route.query.new !== undefined) {
+    await router.replace({ query: {} })
+    if (canCreate.value) openCreate()
+    return
+  }
   const editUuid = route.query.edit as string | undefined
   const deleteUuid = route.query.delete as string | undefined
   const targetUuid = editUuid || deleteUuid
