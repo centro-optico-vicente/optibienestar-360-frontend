@@ -247,6 +247,7 @@ function paymentStatusColor(s?: string | null): 'error' | 'warning' | 'success' 
               <th class="px-5 py-3 font-semibold">{{ t('memberships.page.columns.plan') }}</th>
               <th class="px-5 py-3 font-semibold">{{ t('memberships.page.columns.enrolledAt') }}</th>
               <th class="px-5 py-3 font-semibold">{{ t('memberships.page.columns.nextDueDate') }}</th>
+              <th class="px-5 py-3 font-semibold">{{ t('memberships.columns.expiresAt') }}</th>
               <th class="px-5 py-3 font-semibold">{{ t('memberships.page.columns.status') }}</th>
               <th class="px-5 py-3 font-semibold">{{ t('memberships.page.columns.collection') }}</th>
               <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
@@ -255,7 +256,7 @@ function paymentStatusColor(s?: string | null): 'error' | 'warning' | 'success' 
           <tbody class="divide-y divide-prohealth-100">
             <TableSkeleton v-if="loading" :rows="8" :cols="8" />
             <tr v-else-if="data.length === 0">
-              <td colspan="8" class="px-5 py-12 text-center text-prohealth-500">
+              <td colspan="9" class="px-5 py-12 text-center text-prohealth-500">
                 <UIcon name="i-lucide-badge-check" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
                 {{ t('memberships.page.emptyList') }}
               </td>
@@ -272,6 +273,13 @@ function paymentStatusColor(s?: string | null): 'error' | 'warning' | 'success' 
               </td>
               <td class="px-5 py-3 text-prohealth-600">{{ m.enrolledAt_Display ?? formatDate(m.enrolledAt, 'short') }}</td>
               <td class="px-5 py-3 text-prohealth-600">{{ m.nextDueDate_Display ?? formatDate(m.nextDueDate, 'short') }}</td>
+              <td class="px-5 py-3 text-prohealth-600">
+                <template v-if="m.expiresAt">{{ m.expiresAt_Display ?? formatDate(m.expiresAt, 'short') }}</template>
+                <span v-else class="text-prohealth-400">{{ t('memberships.term.noExpiry') }}</span>
+                <UBadge v-if="m.inscriptionDue" color="warning" variant="outline" size="sm" class="ml-1" icon="i-lucide-file-pen-line">
+                  {{ t('memberships.term.inscriptionDue') }}
+                </UBadge>
+              </td>
               <td class="px-5 py-3">
                 <UBadge :color="membershipStatusColor(m.status)" variant="subtle" size="sm">
                   {{ m.status_Display ?? t(`memberships.status.${m.status}`, m.status) }}

@@ -184,6 +184,11 @@ export interface MembershipListItemDto {
   nextDueDate_Display?: string | null
   lastPaidThrough?: string | null
   lastPaidThrough_Display?: string | null
+  /** End of the current term (hub ADR 0034); null = open-ended. */
+  expiresAt?: string | null
+  expiresAt_Display?: string | null
+  /** A re-inscription is pending: suspended until an inscription payment is approved. */
+  inscriptionDue?: boolean
   monthlyFee: number | string
   monthlyFee_Display?: string | null
   currency_Code: string
