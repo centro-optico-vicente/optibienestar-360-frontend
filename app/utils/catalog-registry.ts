@@ -179,6 +179,10 @@ export const CATALOGS: CatalogDef[] = [
     labelSingularKey: 'catalogs.registry.professions.labelSingular',
     icon: 'i-lucide-stethoscope',
     codeField: 'code',
+    // V213: a sub-specialty is a child profession (two levels at most, the backend
+    // rejects deeper trees). The "parent" column shows the general profession.
+    parentDisplayField: 'parent_Code',
+    parentDisplayLabelField: 'parent_Display',
     auditEntityKey: 'profession',
     auditPermission: 'PROFESSION_RECORD_AUDIT_VIEW',
     auditReportPermission: 'PROFESSION_REPORT_AUDIT_VIEW',
@@ -186,6 +190,31 @@ export const CATALOGS: CatalogDef[] = [
       { name: 'code', label: 'Código', labelKey: 'catalogs.fields.code', type: 'text', required: true, onlyCreate: true, regex: CODE_40, regexMsg: codeMsg(40), regexMsgKey: 'catalogs.validation.codeMax', max: 40, placeholder: 'OFTALMOLOGIA' },
       { name: 'name', label: 'Nombre', labelKey: 'catalogs.fields.name', type: 'text', required: true, max: 100 },
       { name: 'description', label: 'Descripción', labelKey: 'catalogs.fields.description', type: 'textarea', max: 200 },
+      { name: 'parentUuid', label: 'Profesión general (si es sub-especialidad)', labelKey: 'catalogs.fields.parentProfession', type: 'parent', parentKey: 'professions' },
+    ],
+  },
+  {
+    key: 'licensing-bodies',
+    basePath: '/v1/admin/catalogs/licensing-bodies',
+    viewPermission: 'LICENSING_BODY_VIEW_ALL',
+    createPermission: 'LICENSING_BODY_CREATE',
+    updatePermission: 'LICENSING_BODY_UPDATE',
+    deletePermission: 'LICENSING_BODY_DELETE',
+    label: 'Entes emisores de colegiaturas',
+    labelSingular: 'Ente emisor',
+    labelKey: 'catalogs.registry.licensing-bodies.label',
+    labelSingularKey: 'catalogs.registry.licensing-bodies.labelSingular',
+    icon: 'i-lucide-badge-check',
+    codeField: 'code',
+    auditEntityKey: 'licensing_body',
+    auditPermission: 'LICENSING_BODY_RECORD_AUDIT_VIEW',
+    auditReportPermission: 'LICENSING_BODY_REPORT_AUDIT_VIEW',
+    fields: [
+      { name: 'code', label: 'Código', labelKey: 'catalogs.fields.code', type: 'text', required: true, onlyCreate: true, regex: CODE_40, regexMsg: codeMsg(40), regexMsgKey: 'catalogs.validation.codeMax', max: 40, placeholder: 'MPPS' },
+      { name: 'name', label: 'Nombre', labelKey: 'catalogs.fields.name', type: 'text', required: true, max: 150 },
+      { name: 'description', label: 'Descripción', labelKey: 'catalogs.fields.description', type: 'textarea', max: 200 },
+      // V213: optional hint of the B2P area that usually needs this license.
+      { name: 'professionalArea', label: 'Área profesional', labelKey: 'catalogs.fields.professionalAreaOptional', type: 'select', options: [{ label: 'Área Médica', value: 'MEDICAL' }, { label: 'Bienestar Integral', value: 'WELLNESS' }] },
     ],
   },
   {

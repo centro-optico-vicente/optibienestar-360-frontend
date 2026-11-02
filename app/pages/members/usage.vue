@@ -3,7 +3,6 @@ import { RATABLE_USAGE_STATUS, type BenefitUsageDto, type MyUsageScope, type Usa
 import type { BeneficiaryDto } from '~/types/members'
 import type { Page } from '~/types/admin'
 import type { ApiError } from '~/types/auth'
-// import type { BenefitUsageDto } from '~/types/benefits'
 
 // The member's own benefit usage at allies (GET /v1/me/usage-history,
 // MEMBER_VIEW_OWN). Scope comes from the JWT; newest first. Covers the whole
@@ -27,7 +26,7 @@ const members = useMembers()
 useSeoMeta({ title: () => t('common.seoTitle', { page: t('members.usage.title') }) })
 
 // Personal screen: advisors and allies see it too, and they may not be affiliates (GET /v1/me/member -> 404).
-const members = useMembers()
+// A beneficiary with portal access also gets that 404, but their digital card names the holder.
 const notAffiliated = ref(false)
 
 const data = ref<BenefitUsageDto[]>([])
@@ -144,7 +143,21 @@ watch([who, () => productFilter.value?.uuid], reloadFromFirstPage)
 
 const hasFilters = computed(() => who.value !== 'all' || !!productFilter.value)
 
-onMounted(() => {
+onMounted(async () => {
+  loading.value = true
+  try {
+    await members.me()
+  }
+  catch (err) {
+    if ((err as ApiError).status === 404) {
+      const card = await useApi<{ holderName?: string | null }>('/v1/me/digital-card', { silent: true }).catch(() => null)
+      if (!card?.holderName) {
+        notAffiliated.value = true
+        loading.value = false
+        return
+      }
+    }
+  }
   load()
   loadSummary()
   loadFamily()
@@ -169,20 +182,6 @@ function onRated(updated: BenefitUsageDto) {
   const i = data.value.findIndex(u => u.uuid === updated.uuid)
   if (i >= 0) data.value[i] = { ...data.value[i], ...updated }
 }
-onMounted(async () => {
-  loading.value = true
-  try {
-    await members.me()
-  }
-  catch (err) {
-    if ((err as ApiError).status === 404) {
-      notAffiliated.value = true
-      loading.value = false
-      return
-    }
-  }
-  await load()
-})
 
 function money(v?: number | string | null, currency?: string | null): string | null {
   if (v === null || v === undefined || v === '') return null

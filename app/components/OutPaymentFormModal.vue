@@ -270,14 +270,14 @@ function matchingPayoutAccount(): PromoterPayoutAccountDto | null {
   const methodUuid = state.paymentMethodUuid
   if (!methodUuid) return null
   return payoutAccounts.value
-    .filter(account => account.paymentMethod_Uuid === methodUuid)
+    .filter(account => account.paymentMethods.some(m => m.uuid === methodUuid))
     .sort((a, b) => Number(b.isDefault) - Number(a.isDefault))[0] ?? null
 }
 
 function applyPayoutAccount() {
   // The account the operator picked as destination wins; otherwise the one matching the method.
   const picked = selectedPayoutAccount()
-  const account = picked && (!state.paymentMethodUuid || picked.paymentMethod_Uuid === state.paymentMethodUuid)
+  const account = picked && (!state.paymentMethodUuid || picked.paymentMethods.some(m => m.uuid === state.paymentMethodUuid))
     ? picked
     : matchingPayoutAccount()
   if (!account) return
@@ -314,7 +314,8 @@ watch(selectedMethod, () => applyPayoutAccount())
 watch(() => state.payoutAccountUuid, () => {
   const picked = selectedPayoutAccount()
   if (!picked) return
-  if (!state.paymentMethodUuid && picked.paymentMethod_Uuid) state.paymentMethodUuid = picked.paymentMethod_Uuid
+  // An account may accept several methods: the first one is the suggestion, the operator can change it.
+  if (!state.paymentMethodUuid && picked.paymentMethods[0]) state.paymentMethodUuid = picked.paymentMethods[0].uuid
   applyPayoutAccount()
 })
 
@@ -402,6 +403,7 @@ function submitForm() {
           <PayoutAccountPicker
             v-if="canViewPayoutAccounts"
             v-model="state.payoutAccountUuid"
+            :method-uuid="state.paymentMethodUuid"
             :accounts="payoutAccounts"
             :promoter-uuid="state.promoterUuid"
             :loading="loadingPayoutAccounts"

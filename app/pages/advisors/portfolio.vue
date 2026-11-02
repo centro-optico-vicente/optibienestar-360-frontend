@@ -244,6 +244,15 @@ async function submitPromise() {
 
 // ---- Contact history (on demand, per affiliate) ----
 const historyOpen = ref(false)
+
+// Titular's emergency contact (V212): the advisor loads it for members of their own portfolio.
+const canEmergency = computed(() => can('MEMBER_EMERGENCY_CONTACT_UPDATE_DOWNLINE'))
+const emergencyOpen = ref(false)
+const emergencyTarget = ref<{ memberUuid: string, memberName: string } | null>(null)
+function openEmergency(row: { memberUuid: string, memberName: string }) {
+  emergencyTarget.value = { memberUuid: row.memberUuid, memberName: row.memberName }
+  emergencyOpen.value = true
+}
 const historyLoading = ref(false)
 const historyTarget = ref<PromoterMemberRow | null>(null)
 const history = ref<PromoterMemberContactDto[]>([])
@@ -357,15 +366,16 @@ function contactTypeIcon(type: PromoterContactType): string {
               <th class="px-5 py-3 font-semibold whitespace-nowrap">{{ t('promoterSelf.portfolio.columns.enrolledAt') }}</th>
               <th class="px-5 py-3 font-semibold whitespace-nowrap">{{ t('promoterSelf.portfolio.columns.nextDueDate') }}</th>
               <th class="px-5 py-3 font-semibold whitespace-nowrap">{{ t('promoterSelf.portfolio.columns.lastPaidThrough') }}</th>
+              <th class="px-5 py-3 font-semibold whitespace-nowrap">{{ t('memberships.columns.expiresAt') }}</th>
               <th class="px-5 py-3 font-semibold">{{ t('promoterSelf.portfolio.columns.monthlyFee') }}</th>
               <th class="px-5 py-3 font-semibold">{{ t('promoterSelf.portfolio.columns.phone') }}</th>
               <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-prohealth-100">
-            <TableSkeleton v-if="loading" :rows="8" :cols="10" />
+            <TableSkeleton v-if="loading" :rows="8" :cols="11" />
             <tr v-else-if="loadFailed">
-              <td colspan="10" class="px-5 py-12 text-center text-prohealth-500">
+              <td colspan="11" class="px-5 py-12 text-center text-prohealth-500">
                 <UIcon name="i-lucide-circle-alert" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
                 <p>{{ t('promoterSelf.portfolio.loadError') }}</p>
                 <UButton class="mt-3" size="sm" variant="soft" icon="i-lucide-refresh-cw" @click="load">
@@ -374,7 +384,7 @@ function contactTypeIcon(type: PromoterContactType): string {
               </td>
             </tr>
             <tr v-else-if="filteredRows.length === 0">
-              <td colspan="10" class="px-5 py-12 text-center text-prohealth-500">
+              <td colspan="11" class="px-5 py-12 text-center text-prohealth-500">
                 <UIcon name="i-lucide-users" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
                 {{ rows.length === 0 ? t('promoterSelf.portfolio.empty') : t('promoterSelf.portfolio.noMatches') }}
               </td>
@@ -401,6 +411,13 @@ function contactTypeIcon(type: PromoterContactType): string {
               <td class="px-5 py-3 text-prohealth-600 whitespace-nowrap">{{ dateCell(r.enrolledAt, r.enrolledAt_Display) }}</td>
               <td class="px-5 py-3 whitespace-nowrap" :class="(r.daysOverdue ?? 0) > 0 ? 'text-error font-medium' : 'text-prohealth-600'">{{ dateCell(r.nextDueDate, r.nextDueDate_Display) }}</td>
               <td class="px-5 py-3 text-prohealth-600 whitespace-nowrap">{{ dateCell(r.lastPaidThrough, r.lastPaidThrough_Display) }}</td>
+              <td class="px-5 py-3 text-prohealth-600 whitespace-nowrap">
+                <template v-if="r.expiresAt">{{ dateCell(r.expiresAt, r.expiresAt_Display) }}</template>
+                <span v-else class="text-prohealth-400">{{ t('memberships.term.noExpiry') }}</span>
+                <UBadge v-if="r.inscriptionDue" color="warning" variant="outline" size="sm" class="ml-1" icon="i-lucide-file-pen-line">
+                  {{ t('memberships.term.inscriptionDue') }}
+                </UBadge>
+              </td>
               <td class="px-5 py-3 text-prohealth-700">
                 <CurrencyConverterDisplay v-if="r.monthlyFee != null" :amount="r.monthlyFee" currency="USD" v-slot="{ result }">
                   <span class="inline-flex items-center gap-1">
@@ -421,6 +438,16 @@ function contactTypeIcon(type: PromoterContactType): string {
               </td>
               <td class="px-5 py-3">
                 <div class="flex items-center justify-end gap-1">
+                  <UTooltip v-if="canEmergency" :text="t('members.emergencyContact.title')">
+                    <UButton
+                      color="neutral"
+                      variant="ghost"
+                      icon="i-lucide-phone-call"
+                      size="sm"
+                      :aria-label="t('members.emergencyContact.title')"
+                      @click="openEmergency(r)"
+                    />
+                  </UTooltip>
                   <UTooltip :text="t('promoterSelf.portfolio.history.action')">
                     <UButton
                       color="neutral"
@@ -565,6 +592,16 @@ function contactTypeIcon(type: PromoterContactType): string {
     </UModal>
 
     <PortfolioNewMemberModal v-model:open="newMemberOpen" @created="load" />
+    <UModal
+      v-model:open="emergencyOpen"
+      :title="t('members.emergencyContact.title')"
+      :description="emergencyTarget?.memberName"
+      :ui="{ content: 'max-w-xl' }"
+    >
+      <template #body>
+        <MemberEmergencyContactCard v-if="emergencyTarget" scope="advisor" :member-uuid="emergencyTarget.memberUuid" />
+      </template>
+    </UModal>
     <DownlinePaymentFormModal v-model:open="paymentOpen" @saved="load" />
   </div>
 </template>

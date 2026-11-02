@@ -2,6 +2,7 @@
 import { z } from 'zod'
 import type { CatalogItem } from '~/types/catalogs'
 import { BANK_ACCOUNT_TYPE_OPTIONS } from '~/types/payments'
+import { requiredFields } from '~/utils/paymentMethodRequirements'
 import type { PromoterPayoutAccountDto, PromoterPayoutAccountRequest } from '~/types/promoters'
 
 // "Cuentas de cobro" tab of the advisor detail (backend V184, dossier section V):
@@ -77,7 +78,7 @@ const editingUuid = ref<string | null>(null)
 const saving = ref(false)
 
 interface FormState {
-  paymentMethodUuid: string
+  paymentMethodUuids: string[]
   label: string
   bankUuid: string | undefined
   accountType: string
@@ -93,7 +94,7 @@ interface FormState {
 
 function emptyState(): FormState {
   return {
-    paymentMethodUuid: '',
+    paymentMethodUuids: [],
     label: '',
     bankUuid: undefined,
     accountType: '',
@@ -110,40 +111,45 @@ function emptyState(): FormState {
 
 const state = reactive<FormState>(emptyState())
 
-// Method detail (the list projection may not carry the `mandatory*` flags).
-const selectedMethod = ref<CatalogItem | null>(null)
-watch(() => state.paymentMethodUuid, async (uuid) => {
-  selectedMethod.value = null
-  if (!uuid) return
+// Detail of every accepted method (the list projection may not carry the `mandatory*` flags); the account must
+// hold the sum of their checks (V217).
+const selectedMethods = ref<CatalogItem[]>([])
+const methodDetails = new Map<string, CatalogItem>()
+watch(() => [...state.paymentMethodUuids], async (uuids) => {
   try {
-    const method = await useApi<CatalogItem>(`/v1/admin/payment-methods/${uuid}`)
-    if (state.paymentMethodUuid === uuid) selectedMethod.value = method
+    await Promise.all(uuids.filter(uuid => !methodDetails.has(uuid)).map(async (uuid) => {
+      methodDetails.set(uuid, await useApi<CatalogItem>(`/v1/admin/payment-methods/${uuid}`))
+    }))
   }
   catch {
     // useApi already reported the API error.
   }
+  if (uuids.join() === state.paymentMethodUuids.join()) {
+    selectedMethods.value = uuids.map(uuid => methodDetails.get(uuid)).filter((m): m is CatalogItem => Boolean(m))
+  }
 })
+const required = computed(() => requiredFields(selectedMethods.value))
 
 const requiredMsg = computed(() => t('validation.required'))
 const schema = computed(() => {
-  const m = selectedMethod.value
-  const required = (flag?: boolean) => (flag ? z.string().min(1, requiredMsg.value) : z.string().optional())
+  const req = required.value
+  const mandatory = (flag?: boolean) => (flag ? z.string().min(1, requiredMsg.value) : z.string().optional())
   return z.object({
-    paymentMethodUuid: z.string().min(1, requiredMsg.value),
+    paymentMethodUuids: z.array(z.string()).min(1, requiredMsg.value),
     label: z.string().max(60, t('validation.maxChars', { n: 60 })).optional(),
-    accountType: required(m?.mandatoryAccountType),
-    accountNumber: m?.mandatoryAccountCode
+    accountType: mandatory(req.accountType),
+    accountNumber: req.accountCode
       ? z.string().regex(/^\d{20}$/, t('promoters.payoutAccounts.validation.accountNumber'))
       : z.string().optional(),
-    accountIdentifier: required(m?.mandatoryBankAccount),
+    accountIdentifier: mandatory(req.bankAccount),
     holderName: z.string().max(150, t('validation.maxChars', { n: 150 })).optional(),
-    holderDocumentNumber: m?.mandatoryIdentification
+    holderDocumentNumber: req.identification
       ? z.string().regex(/^\d{1,10}$/, t('validation.digitsOnly'))
       : z.string().regex(/^(\d{1,10})?$/, t('validation.digitsOnly')).optional(),
-    phone: m?.mandatoryPhone ? z.string().min(1, requiredMsg.value).max(30) : z.string().max(30).optional(),
-    email: m?.mandatoryEmail ? z.string().email(t('validation.emailInvalid')) : z.string().optional(),
+    phone: req.phone ? z.string().min(1, requiredMsg.value).max(30) : z.string().max(30).optional(),
+    email: req.email ? z.string().email(t('validation.emailInvalid')) : z.string().optional(),
   })
-    .refine(() => !m?.mandatoryBank || Boolean(state.bankUuid), { message: requiredMsg.value, path: ['bankUuid'] })
+    .refine(() => !req.bank || Boolean(state.bankUuid), { message: requiredMsg.value, path: ['bankUuid'] })
     .refine(v => Boolean(state.holderDocumentType) === Boolean(v.holderDocumentNumber?.trim()), {
       message: t('promoters.payoutAccounts.validation.holderPair'),
       path: ['holderDocumentNumber'],
@@ -160,7 +166,7 @@ function openCreate() {
 function openEdit(a: PromoterPayoutAccountDto) {
   editingUuid.value = a.uuid
   Object.assign(state, {
-    paymentMethodUuid: a.paymentMethod_Uuid ?? '',
+    paymentMethodUuids: a.paymentMethods.map(m => m.uuid),
     label: a.label ?? '',
     bankUuid: a.bank_Uuid ?? undefined,
     accountType: a.accountType ?? '',
@@ -178,24 +184,24 @@ function openEdit(a: PromoterPayoutAccountDto) {
 }
 
 async function onSubmit() {
-  const m = selectedMethod.value
+  const req = required.value
   saving.value = true
   try {
-    // Full replace: fields the selected method does not use are sent as null,
-    // so switching the method does not leave the previous method's data behind.
-    const keep = (flag: boolean | undefined, value: string) => (flag && value.trim() ? value.trim() : null)
+    // Full replace: fields none of the accepted methods uses are sent as null,
+    // so changing the methods does not leave the previous methods' data behind.
+    const keep = (flag: boolean, value: string) => (flag && value.trim() ? value.trim() : null)
     const body: PromoterPayoutAccountRequest = {
-      paymentMethodUuid: state.paymentMethodUuid,
+      paymentMethodUuids: state.paymentMethodUuids,
       label: state.label.trim() || null,
-      bankUuid: m?.mandatoryBank ? (state.bankUuid || null) : null,
-      accountType: keep(m?.mandatoryAccountType, state.accountType),
-      accountNumber: keep(m?.mandatoryAccountCode, state.accountNumber),
-      accountIdentifier: keep(m?.mandatoryBankAccount, state.accountIdentifier),
+      bankUuid: req.bank ? (state.bankUuid || null) : null,
+      accountType: keep(req.accountType, state.accountType),
+      accountNumber: keep(req.accountCode, state.accountNumber),
+      accountIdentifier: keep(req.bankAccount, state.accountIdentifier),
       holderName: state.holderName.trim() || null,
       holderDocumentType: state.holderDocumentType || null,
       holderDocumentNumber: state.holderDocumentNumber.trim() || null,
-      phone: keep(m?.mandatoryPhone, state.phone),
-      email: keep(m?.mandatoryEmail, state.email),
+      phone: keep(req.phone, state.phone),
+      email: keep(req.email, state.email),
       isDefault: editingUuid.value ? null : state.isDefault,
     }
     if (editingUuid.value) {
@@ -298,7 +304,7 @@ async function confirmDelete() {
           <tr v-for="a in accounts" v-else :key="a.uuid" class="hover:bg-prohealth-50/50">
             <td class="px-6 py-3">
               <div class="flex flex-wrap items-center gap-2">
-                <span class="font-semibold text-prohealth-900">{{ a.paymentMethod_Display || a.paymentMethodCode }}</span>
+                <UBadge v-for="m in a.paymentMethods" :key="m.uuid" color="primary" variant="subtle" size="sm">{{ m.name }}</UBadge>
                 <UBadge v-if="a.isDefault" color="primary" variant="soft" size="sm">{{ t('promoters.payoutAccounts.defaultBadge') }}</UBadge>
               </div>
               <p v-if="a.label" class="text-xs text-prohealth-500 mt-0.5">{{ a.label }}</p>
@@ -330,41 +336,41 @@ async function confirmDelete() {
       <template #body>
         <UForm data-promoter-payout-account-form :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField :label="t('promoters.payoutAccounts.fields.method')" name="paymentMethodUuid" required>
-              <USelectMenu v-model="state.paymentMethodUuid" class="w-full" :items="methodOptions" label-key="label" value-key="value" :placeholder="t('common.select')" />
+            <UFormField :label="t('promoters.payoutAccounts.fields.methods')" name="paymentMethodUuids" required>
+              <USelectMenu v-model="state.paymentMethodUuids" multiple class="w-full" :items="methodOptions" label-key="label" value-key="value" :placeholder="t('common.select')" />
             </UFormField>
             <UFormField :label="t('promoters.payoutAccounts.fields.label')" name="label" :help="t('promoters.payoutAccounts.labelHelp')">
               <UInput v-model="state.label" class="w-full" maxlength="60" />
             </UFormField>
           </div>
 
-          <div v-if="selectedMethod" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <UFormField v-if="selectedMethod.mandatoryBank" :label="t('promoters.payoutAccounts.fields.bank')" name="bankUuid" required>
+          <div v-if="selectedMethods.length" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <UFormField v-if="required.bank" :label="t('promoters.payoutAccounts.fields.bank')" name="bankUuid" required>
               <CommonEntityReferenceSelect v-model="state.bankUuid" :items="bankOptions" :placeholder="t('common.select')" />
             </UFormField>
-            <UFormField v-if="selectedMethod.mandatoryAccountType" :label="t('promoters.payoutAccounts.fields.accountType')" name="accountType" required>
+            <UFormField v-if="required.accountType" :label="t('promoters.payoutAccounts.fields.accountType')" name="accountType" required>
               <USelectMenu v-model="state.accountType" class="w-full" :items="BANK_ACCOUNT_TYPE_OPTIONS" label-key="label" value-key="value" :placeholder="t('common.select')" />
             </UFormField>
-            <UFormField v-if="selectedMethod.mandatoryAccountCode" :label="t('promoters.payoutAccounts.fields.accountNumber')" name="accountNumber" :help="t('promoters.payoutAccounts.accountNumberHelp')" required>
+            <UFormField v-if="required.accountCode" :label="t('promoters.payoutAccounts.fields.accountNumber')" name="accountNumber" :help="t('promoters.payoutAccounts.accountNumberHelp')" required>
               <UInput v-model="state.accountNumber" inputmode="numeric" maxlength="20" class="w-full font-mono" />
             </UFormField>
-            <UFormField v-if="selectedMethod.mandatoryBankAccount" :label="t('promoters.payoutAccounts.fields.accountIdentifier')" name="accountIdentifier" required>
+            <UFormField v-if="required.bankAccount" :label="t('promoters.payoutAccounts.fields.accountIdentifier')" name="accountIdentifier" required>
               <UInput v-model="state.accountIdentifier" class="w-full" maxlength="120" />
             </UFormField>
-            <UFormField v-if="selectedMethod.mandatoryPhone" :label="t('promoters.payoutAccounts.fields.phone')" name="phone" required>
+            <UFormField v-if="required.phone" :label="t('promoters.payoutAccounts.fields.phone')" name="phone" required>
               <UInput v-model="state.phone" class="w-full" maxlength="30" :placeholder="t('promoters.payoutAccounts.placeholders.phone')" />
             </UFormField>
-            <UFormField v-if="selectedMethod.mandatoryEmail" :label="t('promoters.payoutAccounts.fields.email')" name="email" required>
+            <UFormField v-if="required.email" :label="t('promoters.payoutAccounts.fields.email')" name="email" required>
               <UInput v-model="state.email" type="email" class="w-full" maxlength="160" />
             </UFormField>
             <UFormField :label="t('promoters.payoutAccounts.fields.holderName')" name="holderName">
               <UInput v-model="state.holderName" class="w-full" maxlength="150" />
             </UFormField>
             <div class="grid grid-cols-[6rem_1fr] gap-2">
-              <UFormField :label="t('promoters.payoutAccounts.fields.holderDocumentType')" name="holderDocumentType" :required="Boolean(selectedMethod.mandatoryIdentification)">
+              <UFormField :label="t('promoters.payoutAccounts.fields.holderDocumentType')" name="holderDocumentType" :required="required.identification">
                 <USelect v-model="state.holderDocumentType" :items="holderDocumentTypeOptions" class="w-full" :placeholder="t('common.select')" />
               </UFormField>
-              <UFormField :label="t('promoters.payoutAccounts.fields.holderDocumentNumber')" name="holderDocumentNumber" :required="Boolean(selectedMethod.mandatoryIdentification)">
+              <UFormField :label="t('promoters.payoutAccounts.fields.holderDocumentNumber')" name="holderDocumentNumber" :required="required.identification">
                 <UInput v-model="state.holderDocumentNumber" inputmode="numeric" class="w-full" />
               </UFormField>
             </div>
@@ -380,7 +386,7 @@ async function confirmDelete() {
           <p class="text-xs text-prohealth-500">{{ t('common.requiredFieldsHint') }}</p>
           <div class="flex items-center justify-end gap-3">
             <UButton color="neutral" variant="ghost" :disabled="saving" @click="formOpen = false">{{ t('common.cancel') }}</UButton>
-            <UButton color="primary" variant="outline" icon="i-lucide-save" :loading="saving" :disabled="!selectedMethod" @click="submitForm">{{ t('common.save') }}</UButton>
+            <UButton color="primary" variant="outline" icon="i-lucide-save" :loading="saving" :disabled="!selectedMethods.length" @click="submitForm">{{ t('common.save') }}</UButton>
           </div>
         </div>
       </template>
@@ -390,7 +396,7 @@ async function confirmDelete() {
     <UModal :open="Boolean(deleteTarget)" :title="t('promoters.payoutAccounts.deleteTitle')" @update:open="v => { if (!v) deleteTarget = null }">
       <template #body>
         <p class="text-sm text-prohealth-700">
-          {{ t('promoters.payoutAccounts.deleteConfirm', { method: deleteTarget ? (deleteTarget.paymentMethod_Display || deleteTarget.paymentMethodCode) : '' }) }}
+          {{ t('promoters.payoutAccounts.deleteConfirm', { method: deleteTarget ? deleteTarget.paymentMethods.map(m => m.name).join(', ') : '' }) }}
         </p>
         <p v-if="deleteTarget?.isDefault" class="text-xs text-amber-700 mt-2">{{ t('promoters.payoutAccounts.deleteDefaultWarning') }}</p>
         <div class="flex items-center justify-end gap-3 pt-5">

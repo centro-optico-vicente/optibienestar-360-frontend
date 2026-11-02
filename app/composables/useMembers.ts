@@ -131,6 +131,7 @@ export const useMembers = () => {
   /** Deactivate the beneficiary's login; granting again reactivates it (BENEFICIARY_ACCESS_REVOKE_OWN). */
   const revokeBeneficiaryAccess = (uuid: string) =>
     useApi<BeneficiaryDto>(`/v1/me/family/${uuid}/access`, { method: 'DELETE' })
+
   /** My current advisor and previous advisors (MEMBER_ADVISOR_VIEW_OWN). `exists=false` when I have no member record (advisors/allies). */
   const myAdvisor = () =>
     useApi<MyAdvisorDto>('/v1/me/member/advisor', { silent: true })

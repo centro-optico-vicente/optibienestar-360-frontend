@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { SavedOriginAccountDto } from '~/types/payments'
 
-// "Mis cuentas guardadas" (V204/V207): the origin accounts the payer chose to remember. Only the accounts of the
+// "Mis cuentas guardadas" (V204/V217): the origin accounts the payer chose to remember. Only the accounts that accept the
 // payment method selected in the form are offered (a Pago Móvil account makes no sense for a transfer), so the
 // picker hides itself when none match. Picking one asks the parent to fill the origin fields of the payment
 // line (it stays editable); a trash button forgets an account.
@@ -19,7 +19,7 @@ const api = useMyBankAccounts()
 const accounts = ref<SavedOriginAccountDto[]>([])
 const loading = ref(false)
 
-const matching = computed(() => accounts.value.filter(a => !props.methodUuid || a.paymentMethod_Uuid === props.methodUuid))
+const matching = computed(() => accounts.value.filter(a => !props.methodUuid || a.paymentMethods.some(m => m.uuid === props.methodUuid)))
 
 /** What identifies the account: its number (transfers), phone (Pago Móvil) or email (Zelle and similar). */
 function keyOf(a: SavedOriginAccountDto): string {

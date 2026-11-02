@@ -672,8 +672,8 @@
         "description": "Tu Credencial Digital de afiliado."
       },
       "myAllyCompany": {
-        "label": "Mi empresa aliada",
-        "description": "Panel de tu empresa aliada."
+        "label": "Mi espacio de aliado",
+        "description": "Panel de tu espacio como aliado, comercial o profesional."
       },
       "validator": {
         "label": "Validador",
@@ -782,6 +782,18 @@
       "paymentClaims": {
         "label": "Reclamos de pagos",
         "description": "Reclamos sobre el saldo de un pago: reembolsos, errores y pagos de más."
+      },
+      "licensingBodies": {
+        "label": "Entes emisores de colegiaturas",
+        "description": "Organismos que emiten colegiaturas (M.P.P.S., Colegio de Médicos…)."
+      },
+      "myPatients": {
+        "label": "Mis pacientes",
+        "description": "Pacientes cuya historia médica puedes consultar."
+      },
+      "myMedicalAccess": {
+        "label": "Quién vio mi historia",
+        "description": "Médicos aliados con acceso a tu historia médica."
       }
     },
     "other": {
@@ -1066,7 +1078,9 @@
       "requiresApproval": "Requiere aprobación",
       "maxDiscountPct": "Descuento máximo (%)",
       "segment": "Segmento",
-      "professionalArea": "Área profesional (solo B2P)"
+      "professionalArea": "Área profesional (solo B2P)",
+      "parentProfession": "Profesión general (si es sub-especialidad)",
+      "professionalAreaOptional": "Área profesional"
     },
     "promoterRanksTree": {
       "title": "Árbol de cargos",
@@ -1147,6 +1161,10 @@
       "payment-methods": {
         "label": "Métodos de pago",
         "labelSingular": "Método de pago"
+      },
+      "licensing-bodies": {
+        "label": "Entes emisores de colegiaturas",
+        "labelSingular": "Ente emisor"
       }
     }
   },
@@ -1218,6 +1236,7 @@
       "marital_status": "Estado civil",
       "occupation": "Ocupación",
       "profession": "Profesión",
+      "licensing_body": "Ente emisor de colegiaturas",
       "product_category": "Categoría de producto o servicio",
       "product": "Producto o servicio",
       "ally_product": "Oferta de aliado",
@@ -1225,6 +1244,53 @@
     }
   },
   "plans": {
+    "termCompliance": {
+      "title": "Vigencia de las membresías",
+      "subtitle": "Muestra qué membresías vigentes del plan cumplen la regla de vigencia actual del plan y permite aplicarla a las que no la cumplen, eligiendo la primera fecha de vencimiento.",
+      "apply": "Aplicar vigencia",
+      "applyTooltip": "Aplica la regla del plan a las membresías seleccionadas (o a todas las que no cumplen)",
+      "requiresReinscription": "Activa la reinscripción del plan para aplicar una vigencia",
+      "requiresReinscriptionHelp": "Mientras el plan no exija reinscripción, las membresías quedan sin vencimiento y no hay una vigencia que aplicar.",
+      "counts": {
+        "total": "Membresías vigentes",
+        "complies": "Cumplen",
+        "differs": "No cumplen"
+      },
+      "filter": {
+        "all": "Todas",
+        "DIFFERS": "No cumplen",
+        "COMPLIES": "Cumplen"
+      },
+      "searchPlaceholder": "Buscar por nombre o documento",
+      "selectedCount": "{count} seleccionada(s)",
+      "clearSelection": "Limpiar selección",
+      "selectPage": "Seleccionar la página",
+      "columns": {
+        "member": "Afiliado",
+        "contract": "Contrato",
+        "status": "Estado",
+        "enrolledAt": "Afiliado desde",
+        "expiresAt": "Vence",
+        "rule": "Regla actual",
+        "complies": "Cumple"
+      },
+      "complies": "Cumple",
+      "differs": "No cumple",
+      "noExpiry": "Sin vencimiento",
+      "empty": "No hay membresías para este filtro.",
+      "ruleOpenEnded": "Sin vigencia (abierta)",
+      "ruleFixedDate": "Vence cada {day} de {month}",
+      "rulePeriod": "{n} mes(es) desde la afiliación",
+      "applyTitle": "Aplicar vigencia",
+      "applyDescription": "Copia la regla de vigencia actual del plan a las membresías y fija su primer vencimiento.",
+      "affectedSelected": "Se actualizará la vigencia de {count} membresía(s) seleccionada(s). Las canceladas se omiten.",
+      "affectedAllDiffer": "No hay selección: se actualizarán las {count} membresía(s) que no cumplen la regla del plan.",
+      "expiresAt": "Primer vencimiento",
+      "expiresAtHelp": "Una sola fecha para todas; debe ser posterior a hoy. Se sugiere la que resulta de la regla del plan.",
+      "expiresInvalid": "La fecha debe ser posterior a hoy.",
+      "confirm": "Confirmo aplicar la vigencia a {count} membresía(s)",
+      "appliedToast": "Vigencia aplicada: {applied} actualizada(s), {skipped} omitida(s)"
+    },
     "title": "Planes",
     "subtitle": "Planes de cobertura: pricing, beneficiarios y periodo de gracia.",
     "new": "Nuevo plan",
@@ -1334,6 +1400,34 @@
         "monthly": "Mensualidad (USD)",
         "extraBeneficiary": "Inscripción por beneficiario extra (USD)",
         "active": "Activo"
+      },
+      "reinscriptionHelp": "Si se exige, las membresías vencen y se renuevan solas; al renovar deben pagar la inscripción de nuevo.",
+      "termMode": "Cómo vence",
+      "termModeRequired": "Elige cómo vence la membresía",
+      "termMonth": "Mes",
+      "termMonthHelp": "De 1 a 12",
+      "termMonthInvalid": "El mes debe estar entre 1 y 12",
+      "termDay": "Día",
+      "termDayHelp": "De 1 a 28",
+      "termDayInvalid": "El día debe estar entre 1 y 28",
+      "termPeriod": "Meses desde la inscripción",
+      "termPeriodHelp": "Por ejemplo, 12 para un año o 6 para un semestre",
+      "termPeriodInvalid": "Indica un número de meses mayor a cero"
+    },
+    "deactivatedToast": "Plan desactivado",
+    "deletedPermanentToast": "Plan eliminado definitivamente",
+    "deleteConfirmPermanent": "Este plan no está en uso: se eliminará definitivamente.",
+    "deleteConfirmDeactivate": "Este plan está en uso ({count}): se desactivará en lugar de eliminarse.",
+    "term": {
+      "title": "Vigencia de las membresías",
+      "reinscription": "Exige reinscripción",
+      "rule": "Vencimiento",
+      "none": "Sin vigencia: las membresías de este plan no vencen.",
+      "fixedDateLabel": "Vence cada {day} de {month}",
+      "periodLabel": "{n} meses después de la inscripción",
+      "modes": {
+        "FIXED_DATE": "Fecha fija anual",
+        "PERIOD": "Período en meses"
       }
     }
   },
@@ -1407,14 +1501,52 @@
         "capturedByPromoter": "Asesor que lo captó",
         "representativeName": "Representante / médico firmante",
         "representativeDocumentType": "Tipo de documento del representante",
-        "representativeDocumentNumber": "C.I. / RIF del representante"
+        "representativeDocumentNumber": "C.I. / RIF del representante",
+        "segment": "Tipo de aliado",
+        "nameProfessional": "Nombre a mostrar (consulta)",
+        "holderDocumentType": "Tipo",
+        "holderDocumentNumber": "Cédula de identidad",
+        "holderFirstName": "Nombres",
+        "holderLastName": "Apellidos",
+        "holderBirthDate": "Fecha de nacimiento",
+        "holderPhone": "Teléfono celular",
+        "holderEmail": "Correo electrónico",
+        "representativePosition": "Cargo",
+        "hostAlly": "Centro clínico (aliado)",
+        "hostName": "Centro clínico principal",
+        "officeNumber": "Número de consultorio",
+        "appointmentPhone": "Teléfono para citas",
+        "assistantName": "Nombre del asistente",
+        "tradeName": "Nombre comercial",
+        "commercialZone": "Región / zona comercial",
+        "foundedYear": "Año de fundación",
+        "cashRegistersCount": "Nº de cajas",
+        "branchesCount": "Nº de sucursales",
+        "hasPos": "¿Maneja sistema POS?"
       },
       "referralCodeFormat": "El código debe tener entre 4 y 20 letras, números o guiones",
       "referralCodeHelp": "Código que el aliado entrega a sus clientes para usar una promoción. Solo atribuye, no genera comisión.",
       "fileNumberHelp": "Formato [CÓDIGO DE ASESOR]-[Nº DE ALIADO]; lo asigna el sistema.",
       "representativeHelp": "Persona que firma el Convenio de Alianza Estratégica en nombre del aliado.",
       "capturedByPromoterHelp": "Su código de asesor encabeza el número de expediente del convenio.",
-      "publishedHelp": "El aliado aparece en el directorio público de aliados."
+      "publishedHelp": "El aliado aparece en el directorio público de aliados.",
+      "segmentHelp": "Comercial: una empresa o comercio. Profesional: un médico, psicólogo, abogado u otro profesional; cada lugar donde atiende es un aliado aparte.",
+      "foundedYearFormat": "Indica un año de 4 dígitos",
+      "representativePositionPlaceholder": "Ej.: Gerente, Socio",
+      "holder": {
+        "professionalTitle": "Profesional",
+        "representativeTitle": "Representante legal (firma el convenio)",
+        "help": "Se busca por cédula: si la persona ya existe en el sistema (afiliado, asesor u otra sede), se enlaza esa misma persona.",
+        "legacy": "Representante cargado antes como texto: {name}. Indica su cédula para enlazarlo como persona.",
+        "linkedHint": "Persona ya enlazada: sus datos se editan en su propia ficha. Cambia la cédula para enlazar a otra persona."
+      },
+      "site": {
+        "title": "Coordenadas de consulta",
+        "hostAllyHelp": "Si la clínica también es aliada, selecciónala; si no, escribe su nombre."
+      },
+      "commercial": {
+        "title": "Estructura operativa"
+      }
     },
     "delete": {
       "title": "Eliminar aliado",
@@ -1436,17 +1568,21 @@
         "city": "Ciudad",
         "address": "Dirección",
         "googleMapsUrl": "Enlace de Google Maps",
-        "description": "Descripción"
+        "description": "Descripción",
+        "operation": "Estructura operativa"
       },
       "fileNumber": "Expediente {number}",
-      "fileNumberHint": "Nº de expediente del Convenio de Alianza Estratégica: [CÓDIGO DE ASESOR]-[Nº DE ALIADO]"
+      "fileNumberHint": "Nº de expediente del Convenio de Alianza Estratégica: [CÓDIGO DE ASESOR]-[Nº DE ALIADO]",
+      "operationSummary": "Fundada en {founded} · {registers} cajas · {branches} sucursales · POS: {pos}"
     },
     "tabs": {
       "products": "Productos y servicios",
       "professions": "Profesiones",
       "allyTypes": "Tipos de aliado",
       "agreements": "Acuerdos",
-      "staff": "Personal"
+      "staff": "Personal",
+      "licenses": "Colegiaturas",
+      "openingHours": "Horario"
     },
     "products": {
       "title": "Productos y servicios",
@@ -1524,6 +1660,17 @@
       "delete": {
         "title": "Eliminar oferta",
         "confirm": "¿Seguro que deseas eliminar la oferta {name}? (soft-delete)"
+      },
+      "discount": {
+        "typeLabel": "Tipo de tarifa preferencial",
+        "types": {
+          "PERCENTAGE": "Porcentaje",
+          "FLAT": "Monto fijo"
+        },
+        "amountLabel": "Descuento en monto (USD)",
+        "exceedsPrice": "El descuento no puede ser mayor que el precio",
+        "preview": "El afiliado paga {price} (equivale a {pct} % de descuento)",
+        "flatNeedsPrice": "El descuento en monto necesita el precio"
       }
     },
     "professions": {
@@ -1651,7 +1798,13 @@
         "search": "Nombre, RIF, número de aliado o ciudad…",
         "cityOrState": "Ciudad o estado",
         "category": "Rubro",
-        "clear": "Limpiar filtros"
+        "clear": "Limpiar filtros",
+        "segment": "Comerciales y profesionales",
+        "segmentB2B": "Comercios y empresas",
+        "segmentB2P": "Profesionales",
+        "anyTime": "Cualquier horario",
+        "openNow": "Abierto ahora",
+        "openToday": "Atiende hoy"
       },
       "detail": {
         "seoTitle": "{name} — Red de aliados OptiBienestar 360",
@@ -1669,12 +1822,16 @@
         "ctaBody": "Únete a OptiBienestar 360 y accede a la Tarifa Preferencial en toda la red.",
         "ctaButton": "Quiero afiliarme",
         "exclusions": "No aplica en: {exclusions}"
-      }
+      },
+      "office": "Consultorio {number}",
+      "appointments": "Citas",
+      "licensesTitle": "Colegiaturas verificadas",
+      "openingHours": "Horario de atención"
     },
     "portal": {
-      "seoTitle": "Mi empresa aliada — OptiBienestar 360",
-      "title": "Mi empresa aliada",
-      "subtitle": "Propón productos y servicios para tu empresa. Quedan en revisión hasta que OptiBienestar 360 los apruebe.",
+      "seoTitle": "Mi espacio de aliado — OptiBienestar 360",
+      "title": "Mi espacio de aliado",
+      "subtitle": "Propón productos y servicios para tu negocio o consulta. Quedan en revisión hasta que OptiBienestar 360 los apruebe.",
       "lastProposedTitle": "«{name}» enviado a revisión",
       "lastProposedDescription": "Te notificaremos cuando sea aprobado y publicado en el directorio.",
       "formTitle": "Proponer un producto o servicio",
@@ -1724,6 +1881,65 @@
     "segments": {
       "B2B": "Comercial (B2B)",
       "B2P": "Profesional (B2P)"
+    },
+    "licenses": {
+      "title": "Colegiaturas",
+      "hint": "Registros profesionales de la persona titular. Valen para todas sus sedes.",
+      "addButton": "Añadir",
+      "noHolder": "Registra primero a la persona titular del aliado para cargar sus colegiaturas.",
+      "empty": "Sin colegiaturas registradas.",
+      "reviewedAt": "Revisada el {date}",
+      "verify": "Verificar",
+      "reject": "Rechazar",
+      "createdToast": "Colegiatura registrada",
+      "updatedToast": "Colegiatura actualizada",
+      "verifiedToast": "Colegiatura verificada",
+      "rejectedToast": "Colegiatura rechazada",
+      "deletedToast": "Colegiatura eliminada",
+      "deleteTitle": "Eliminar colegiatura",
+      "deleteBody": "¿Eliminar la colegiatura {body} · {number}?",
+      "status": {
+        "PENDING": "Pendiente",
+        "VERIFIED": "Verificada",
+        "REJECTED": "Rechazada"
+      },
+      "form": {
+        "createTitle": "Nueva colegiatura",
+        "editTitle": "Editar colegiatura",
+        "createDescription": "Queda pendiente hasta que alguien la verifique.",
+        "editDescription": "Si cambias el ente o el número, vuelve a quedar pendiente de verificación.",
+        "body": "Ente emisor",
+        "number": "Número"
+      }
+    },
+    "openingHours": {
+      "title": "Horario de atención",
+      "hint": "Días y tramos en que atiende el aliado (hora de Caracas). Se muestran en su ficha pública y en el convenio.",
+      "portalHint": "Días y tramos en que atiendes. Se muestran en tu ficha pública.",
+      "portalReadonlyHint": "Solo el propietario del aliado puede cambiar el horario.",
+      "loading": "Cargando horario…",
+      "empty": "Sin horario cargado.",
+      "closed": "Cerrado",
+      "opensAt": "Abre",
+      "closesAt": "Cierra",
+      "addRange": "Agregar tramo",
+      "removeRange": "Quitar tramo",
+      "copyMonday": "Copiar el lunes a martes–viernes",
+      "save": "Guardar horario",
+      "savedToast": "Horario guardado",
+      "errors": {
+        "invalidRange": "Cada tramo debe cerrar después de abrir.",
+        "overlap": "Los tramos de un mismo día no pueden solaparse."
+      },
+      "days": {
+        "1": "Lunes",
+        "2": "Martes",
+        "3": "Miércoles",
+        "4": "Jueves",
+        "5": "Viernes",
+        "6": "Sábado",
+        "7": "Domingo"
+      }
     }
   },
   "catalog": {
@@ -1929,9 +2145,9 @@
       "filters": {
         "all": "Todos",
         "upToDate": "Al día",
-        "due": "Pendiente de pago",
         "overdue": "Morosos",
-        "withoutMembership": "Sin membresía"
+        "withoutMembership": "Sin membresía",
+        "due": "Pendiente de pago"
       },
       "status": {
         "UP_TO_DATE": "Al día",
@@ -1942,12 +2158,12 @@
       "columns": {
         "member": "Afiliado",
         "status": "Estado de pago",
+        "nextDueDate": "Próximo vencimiento",
+        "monthlyFee": "Cuota de Mantenimiento",
         "plan": "Plan",
         "enrolledAt": "Fecha de venta",
-        "nextDueDate": "Próximo vencimiento",
         "lastPaidThrough": "Pagado hasta",
         "daysOverdue": "Días de atraso",
-        "monthlyFee": "Cuota de Mantenimiento",
         "phone": "Teléfono"
       },
       "fields": {
@@ -1985,9 +2201,9 @@
           "NOTE": "Nota"
         }
       },
+      "registerPayment": "Registrar cobro",
       "daysOverdueValue": "{count} día | {count} días",
-      "callTooltip": "Llamar",
-      "registerPayment": "Registrar cobro"
+      "callTooltip": "Llamar"
     },
     "payoutAccounts": {
       "title": "Mis datos de cobro",
@@ -2385,7 +2601,8 @@
         "method": "Método de pago",
         "destination": "Cuenta / teléfono / correo",
         "phone": "Teléfono",
-        "email": "Correo"
+        "email": "Correo",
+        "methods": "Métodos que acepta"
       },
       "public": "Pública",
       "private": "Privada",
@@ -2474,7 +2691,8 @@
         "holderName": "Titular",
         "document": "Cédula o RIF",
         "phone": "Teléfono",
-        "email": "Correo"
+        "email": "Correo",
+        "accepts": "Acepta"
       }
     }
   },
@@ -2508,7 +2726,18 @@
       "SPOUSE": "Cónyuge",
       "PARENT": "Padre/Madre",
       "SIBLING": "Hermano/a",
-      "OTHER": "Otro"
+      "OTHER": "Otro",
+      "FRIEND": "Amigo/a"
+    },
+    "emergencyContact": {
+      "title": "Contacto de emergencia",
+      "empty": "Aún no se cargó un contacto de emergencia.",
+      "savedToast": "Contacto de emergencia guardado",
+      "fields": {
+        "name": "Nombre del contacto",
+        "phone": "Teléfono de emergencia",
+        "relationship": "Parentesco"
+      }
     },
     "status": {
       "ACTIVE": "Activo",
@@ -2718,6 +2947,8 @@
       "errorBody": "Intenta de nuevo en unos minutos.",
       "card": {
         "holder": "Titular",
+        "expiresAt": "Vence",
+        "inscriptionDue": "Reinscripción pendiente",
         "memberSince": "Afiliado desde",
         "statusActive": "Activo",
         "plan": "Plan",
@@ -2827,8 +3058,7 @@
         "lastUsage": "Último uso: {date}",
         "uncatalogued": "Otros ({category})",
         "filterTooltip": "Ver los consumos de este servicio"
-      },
-      "copay": "Copago"
+      }
     },
     "advisor": {
       "title": "Mi asesor",
@@ -2874,7 +3104,8 @@
       "monthly": "Mensualidad",
       "status": "Estado",
       "enrolledAt": "Afiliado desde",
-      "nextDue": "Próx. pago"
+      "nextDue": "Próx. pago",
+      "expiresAt": "Vence"
     },
     "status": {
       "ACTIVE": "Activa",
@@ -2891,7 +3122,9 @@
       "enrolledAt": "Afiliado desde",
       "enrolledAtHelp": "Vacío = hoy.",
       "expiresAt": "Vence (opcional)",
-      "expiresAtHelp": "Fecha de expiración forzada.",
+      "expiresAtHelp": "Reemplaza el primer vencimiento; debe ser posterior a la fecha de afiliación. Vacío = lo define el plan.",
+      "reinscription": "Reinscripción",
+      "reinscriptionHelp": "Reemplaza la regla del plan. Activarla en un plan sin vigencia exige una fecha de vencimiento y se renueva cada 12 meses.",
       "submit": "Afiliar"
     },
     "lifecycle": {
@@ -2956,7 +3189,27 @@
         "UP_TO_DATE": "Al día"
       }
     },
-    "contractNumber": "Contrato"
+    "contractNumber": "Contrato",
+    "paymentMode": "Modalidad de pago",
+    "term": {
+      "inherit": "Según el plan",
+      "inscriptionDue": "Reinscripción pendiente",
+      "inscriptionDueSince": "Desde {date}",
+      "noExpiry": "Sin vencimiento",
+      "editTooltip": "Editar vigencia",
+      "noPermissionEdit": "No tienes permiso para editar la vigencia",
+      "editTitle": "Vigencia de la membresía",
+      "editDescription": "Cambia la fecha de vencimiento o si esta membresía exige reinscripción.",
+      "snapshotRule": "Regla copiada del plan: {rule}",
+      "reinscriptionLabel": "Exige reinscripción",
+      "reinscriptionHelp": "Al vencer, la membresía se renueva y queda suspendida hasta que se pague la inscripción.",
+      "expiresAt": "Fecha de vencimiento",
+      "expiresAtHelp": "Primer vencimiento de esta membresía; debe ser posterior a la fecha de afiliación.",
+      "expiresAtOpenHelp": "Opcional. Sin reinscripción es solo una fecha de fin: la membresía no se renueva.",
+      "expiresRequired": "Indica la fecha de vencimiento: el plan no define vigencia.",
+      "clearsPendingNotice": "Al quitar la reinscripción también se limpia la reinscripción pendiente de esta membresía.",
+      "savedToast": "Vigencia actualizada"
+    }
   },
   "validator": {
     "seoTitle": "Validador — OptiBienestar 360",
@@ -3346,7 +3599,8 @@
         "holderName": "Nombre del titular",
         "holderDocumentType": "Tipo",
         "holderDocumentNumber": "Cédula/RIF del titular",
-        "isDefault": "Marcar como predeterminada"
+        "isDefault": "Marcar como predeterminada",
+        "methods": "Métodos que acepta"
       },
       "placeholders": {
         "phone": "Ej.: 0414-5550101"
@@ -4636,7 +4890,22 @@
       "signingCity": "Ciudad de firma",
       "signingCityHelp": "Ciudad en la que se firman los contratos.",
       "serviceArea": "Zona de cobertura",
-      "serviceAreaHelp": "Zona donde opera la red de aliados (ej.: eje Acarigua-Araure)."
+      "serviceAreaHelp": "Zona donde opera la red de aliados (ej.: eje Acarigua-Araure).",
+      "address": "Dirección",
+      "addressPlaceholder": "Av. 30 con Calle 21, C.C. Ciudad Cristal, Local N° 23, Acarigua",
+      "email": "Correo de contacto",
+      "emailPlaceholder": "contacto{'@'}empresa.com",
+      "phones": "Teléfonos",
+      "phonesHelp": "Tal como se imprimen en los contratos; separe varios números con comas.",
+      "phonesPlaceholder": "(+58)414-5738530, (+58)424-5984590",
+      "signatoryName": "Nombre completo",
+      "signatoryNamePlaceholder": "Ana María Gómez",
+      "signatoryDocument": "Documento",
+      "signatoryDocumentType": "Tipo",
+      "signatoryDocumentNumberPlaceholder": "Número",
+      "signatoryPosition": "Cargo",
+      "signatoryPositionPlaceholder": "Gerente general",
+      "signatoryDocumentIncomplete": "El documento debe indicar tipo y número"
     },
     "sections": {
       "general": "Datos generales",
@@ -4644,7 +4913,11 @@
       "commissions": "Comisiones",
       "socialLinks": "Redes sociales",
       "socialLinksHelp": "Enlaces globales mostrados en el sitio público (pie de página, contacto).",
-      "terms": "Términos y condiciones"
+      "terms": "Términos y condiciones",
+      "contact": "Contacto institucional",
+      "contactHelp": "Dirección, correo y teléfonos que se imprimen al pie de los contratos y términos.",
+      "signatory": "Firmante autorizado",
+      "signatoryHelp": "Persona que firma por la empresa en los contratos (nombre, cédula y cargo). Se imprime en el bloque de firmas."
     },
     "terms": {
       "help": "Tres tipos de contrato. Cada usuario debe aceptar en su próximo inicio de sesión las versiones vigentes que le correspondan, y de nuevo cuando entre en vigencia una versión nueva.",
@@ -4729,7 +5002,8 @@
       "reports": "Reportes",
       "dataChangeAudit": "Auditoría de cambios de datos",
       "reportAudit": "Auditoría de reportes",
-      "sessions": "Sesión y uso del sistema"
+      "sessions": "Sesión y uso del sistema",
+      "patientAccess": "Historia médica para aliados médicos"
     },
     "audit": {
       "sectionTitle": "Auditoría",
@@ -4772,7 +5046,11 @@
       }
     },
     "updatedToast": "Configuración actualizada correctamente",
-    "saveButton": "Guardar cambios"
+    "saveButton": "Guardar cambios",
+    "patientAccess": {
+      "enabled": "Permitir que los médicos aliados vean la historia de sus pacientes",
+      "enabledHelp": "Al escanear el QR de la credencial, el médico de un aliado profesional del área médica puede consultar la historia médica de ese paciente. Mantener apagado hasta que legal confirme la cláusula del Acuerdo de Membresía."
+    }
   },
   "markdownEditor": {
     "source": "Markdown",
@@ -5226,9 +5504,13 @@
       "phone": "Teléfono",
       "plan": "Plan",
       "referralCode": "Código de referido",
-      "advisor": "Asesor"
+      "advisor": "Asesor",
+      "expiresAt": "Vencimiento especial",
+      "reinscriptionRequired": "Reinscripción"
     },
     "detail": {
+      "expiresAtHelp": "Opcional: reemplaza el primer vencimiento que fijaría el plan.",
+      "reinscriptionHelp": "Opcional: reemplaza la regla de reinscripción del plan.",
       "seoPage": "Solicitud de afiliación",
       "notFoundTitle": "Solicitud no encontrada",
       "receivedAt": "Recibida el {date}",
@@ -5367,14 +5649,6 @@
     "next": "Imagen siguiente",
     "showImage": "Ver imagen {n}"
   },
-  "rating": {
-    "none": "Sin calificaciones todavía",
-    "count": "{n} calificación | {n} calificaciones",
-    "ariaValue": "{value} de 5 estrellas",
-    "starLabel": "{n} estrella | {n} estrellas",
-    "allyPrefix": "Aliado",
-    "offerPrefix": "Este servicio"
-  },
   "myBankAccounts": {
     "title": "Mis cuentas bancarias",
     "subtitle": "Las cuentas desde las que pagas. Al registrar un pago puedes elegir una de ellas para no escribir todos los datos otra vez.",
@@ -5397,7 +5671,8 @@
       "paymentMethod": "Método de pago",
       "account": "Cuenta / teléfono",
       "phone": "Teléfono",
-      "email": "Correo"
+      "email": "Correo",
+      "paymentMethods": "Métodos que acepta"
     },
     "identificationHelp": "Cédula o RIF del titular de la cuenta.",
     "aliasHelp": "Un nombre para reconocerla, por ejemplo \"Cuenta nómina\".",
@@ -5463,5 +5738,50 @@
   },
   "banks": {
     "officialNameTooltip": "Nombre oficial: {name}"
+  },
+  "patientAccess": {
+    "viewRecord": "Ver historia médica",
+    "record": {
+      "title": "Historia médica",
+      "loggedNotice": "Esta consulta queda registrada y el paciente puede verla.",
+      "failed": "No se pudo cargar la historia médica.",
+      "empty": "El paciente aún no tiene historia médica registrada."
+    },
+    "patients": {
+      "seoTitle": "Mis pacientes — OptiBienestar 360",
+      "title": "Mis pacientes",
+      "subtitle": "Pacientes cuya credencial escaneaste. Puedes consultar su historia médica mientras no revoquen el acceso.",
+      "scanCta": "Escanear credencial",
+      "disabledTitle": "Función no activada",
+      "disabledDescription": "La consulta de historia médica por aliados todavía no está activada.",
+      "notEligibleTitle": "No disponible para este aliado",
+      "notEligibleDescription": "Solo el médico o un operador médico de un aliado profesional del área médica puede consultar la historia de sus pacientes.",
+      "empty": "Todavía no tienes pacientes. Escanea el QR de la credencial de un afiliado en el validador.",
+      "since": "Desde {date}"
+    },
+    "mine": {
+      "title": "Quién vio mi historia",
+      "subtitle": "Médicos aliados que pueden consultar tu historia médica porque escanearon tu credencial, y cada vez que la consultaron.",
+      "activeTitle": "Con acceso",
+      "noActive": "Ningún médico tiene acceso a tu historia médica.",
+      "since": "desde {date}",
+      "revoke": "Revocar acceso",
+      "readsTitle": "Consultas",
+      "noReads": "Nadie ha consultado tu historia médica.",
+      "revokedTitle": "Accesos revocados",
+      "revokedOn": "revocado el {date}",
+      "revokeTitle": "Revocar acceso",
+      "revokeDescription": "{doctor} dejará de ver tu historia médica. Si vuelve a escanear tu credencial, recuperará el acceso.",
+      "cancel": "Cancelar",
+      "revokedToast": "Acceso revocado"
+    }
+  },
+  "rating": {
+    "none": "Sin calificaciones todavía",
+    "count": "{n} calificación | {n} calificaciones",
+    "ariaValue": "{value} de 5 estrellas",
+    "starLabel": "{n} estrella | {n} estrellas",
+    "allyPrefix": "Aliado",
+    "offerPrefix": "Este servicio"
   }
 }

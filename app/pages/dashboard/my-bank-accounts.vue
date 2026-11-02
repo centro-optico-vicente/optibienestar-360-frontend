@@ -2,12 +2,13 @@
 import type { CatalogItem } from '~/types/catalogs'
 import type { MyBankAccountRequest, SavedOriginAccountDto } from '~/types/payments'
 import { BANK_ACCOUNT_TYPE_OPTIONS } from '~/types/payments'
+import { requiredFields } from '~/utils/paymentMethodRequirements'
 
 // "Mis cuentas bancarias" — the origin accounts the caller pays FROM, which a payment form offers to reuse.
 // Own data, so any logged-in user may manage them (no permission gate): the backend scopes every call to the
-// caller's person (GET/POST/PUT/DELETE /v1/me/bank-accounts, V204). Since V207 each account has a payment
-// method and the form is method-first, like the company accounts and the advisor payout accounts: the method's
-// `mandatory*` flags decide which fields show and are required (Pago Móvil = bank + document + phone; a
+// caller's person (GET/POST/PUT/DELETE /v1/me/bank-accounts, V204). Since V217 an account accepts several payment
+// methods, like the company accounts and the advisor payout accounts: the sum of the accepted methods'
+// `mandatory*` checks decides which fields show and are required (Pago Móvil = bank + document + phone; a
 // transfer = account type + number; Zelle = email). Banks and methods come from the authenticated
 // /v1/me/banks and /v1/me/payment-methods catalogs, the same ones the payment form uses.
 definePageMeta({ layout: 'dashboard' })
@@ -74,7 +75,7 @@ function typeLabel(value?: string | null): string {
 
 // ---- Create / edit ----
 interface FormState {
-  paymentMethodUuid: string
+  paymentMethodUuids: string[]
   bankUuid: string
   accountType: string
   accountCode: string
@@ -86,7 +87,7 @@ interface FormState {
 }
 
 const emptyForm = (): FormState => ({
-  paymentMethodUuid: '', bankUuid: '', accountType: '', accountCode: '', accountIdentifier: '',
+  paymentMethodUuids: [], bankUuid: '', accountType: '', accountCode: '', accountIdentifier: '',
   identification: '', phone: '', email: '', alias: '',
 })
 
@@ -96,21 +97,21 @@ const state = reactive<FormState>(emptyForm())
 const saving = ref(false)
 const submitted = ref(false)
 
-const selectedMethod = computed(() => methodItems.value.find(m => m.uuid === state.paymentMethodUuid) ?? null)
-const needsAccountNumber = computed(() => Boolean(selectedMethod.value?.mandatoryAccountCode || selectedMethod.value?.mandatoryBankAccount))
+const selectedMethods = computed(() => methodItems.value.filter(m => state.paymentMethodUuids.includes(m.uuid)))
+// Same rule as the backend: the sum of the checks of every accepted method decides what is required.
+const required = computed(() => requiredFields(selectedMethods.value))
 
-// Same rule as the backend: the method's flags decide what is required.
 const errors = computed(() => {
-  const m = selectedMethod.value
+  const req = required.value
   const empty = (v: string) => !v.trim()
   return {
-    method: !m,
-    bank: Boolean(m?.mandatoryBank) && !state.bankUuid,
-    accountType: Boolean(m?.mandatoryAccountType) && empty(state.accountType),
-    accountNumber: needsAccountNumber.value && empty(state.accountIdentifier),
-    identification: Boolean(m?.mandatoryIdentification) && empty(state.identification),
-    phone: Boolean(m?.mandatoryPhone) && empty(state.phone),
-    email: Boolean(m?.mandatoryEmail) && empty(state.email),
+    method: selectedMethods.value.length === 0,
+    bank: req.bank && !state.bankUuid,
+    accountType: req.accountType && empty(state.accountType),
+    accountNumber: req.accountNumber && empty(state.accountIdentifier),
+    identification: req.identification && empty(state.identification),
+    phone: req.phone && empty(state.phone),
+    email: req.email && empty(state.email),
   }
 })
 const hasErrors = computed(() => Object.values(errors.value).some(Boolean))
@@ -126,7 +127,7 @@ function openCreate() {
 function openEdit(account: SavedOriginAccountDto) {
   editing.value = account
   Object.assign(state, {
-    paymentMethodUuid: account.paymentMethod_Uuid ?? '',
+    paymentMethodUuids: account.paymentMethods.map(m => m.uuid),
     bankUuid: account.bank_Uuid ?? '',
     accountType: account.accountType ?? '',
     accountCode: account.accountCode ?? '',
@@ -144,18 +145,18 @@ async function save() {
   submitted.value = true
   if (hasErrors.value) return
   saving.value = true
-  // Only what the method asks for travels; a field left over from a previously picked method is dropped.
-  const m = selectedMethod.value!
-  const keep = (applies: boolean | undefined, value: string) => (applies && value.trim() ? value.trim() : null)
+  // Only what the accepted methods ask for travels; a field left over from a previously picked method is dropped.
+  const req = required.value
+  const keep = (applies: boolean, value: string) => (applies && value.trim() ? value.trim() : null)
   const body: MyBankAccountRequest = {
-    paymentMethodUuid: m.uuid,
-    bankUuid: m.mandatoryBank ? (state.bankUuid || null) : null,
-    accountType: keep(m.mandatoryAccountType, state.accountType),
-    accountCode: keep(m.mandatoryAccountCode, state.accountCode),
-    accountIdentifier: keep(needsAccountNumber.value, state.accountIdentifier),
-    identification: keep(m.mandatoryIdentification, state.identification),
-    phone: keep(m.mandatoryPhone, state.phone),
-    email: keep(m.mandatoryEmail, state.email),
+    paymentMethodUuids: state.paymentMethodUuids,
+    bankUuid: req.bank ? (state.bankUuid || null) : null,
+    accountType: keep(req.accountType, state.accountType),
+    accountCode: keep(req.accountCode, state.accountCode),
+    accountIdentifier: keep(req.accountNumber, state.accountIdentifier),
+    identification: keep(req.identification, state.identification),
+    phone: keep(req.phone, state.phone),
+    email: keep(req.email, state.email),
     alias: state.alias.trim() || null,
   }
   try {
@@ -240,7 +241,11 @@ async function confirmDelete() {
         </thead>
         <tbody class="divide-y divide-prohealth-100">
           <tr v-for="a in accounts" :key="a.uuid" class="hover:bg-prohealth-50/50">
-            <td class="px-5 py-3 text-prohealth-900">{{ a.paymentMethod_Display ?? a.paymentMethodCode ?? t('common.empty') }}</td>
+            <td class="px-5 py-3">
+              <div class="flex flex-wrap gap-1">
+                <UBadge v-for="m in a.paymentMethods" :key="m.uuid" color="primary" variant="subtle" size="sm">{{ m.name }}</UBadge>
+              </div>
+            </td>
             <td class="px-5 py-3 text-prohealth-900">
               <BankName v-if="a.bank_Display || a.bank_Code" :uuid="a.bank_Uuid" :code="a.bank_Code" :name="a.bank_Display" />
               <template v-else>{{ t('common.empty') }}</template>
@@ -268,32 +273,32 @@ async function confirmDelete() {
     >
       <template #body>
         <div class="space-y-4">
-          <UFormField :label="t('myBankAccounts.fields.paymentMethod')" required :error="showError('method')">
-            <USelectMenu v-model="state.paymentMethodUuid" :items="methodOptions" label-key="label" value-key="value" class="w-full" :placeholder="t('common.select')" />
+          <UFormField :label="t('myBankAccounts.fields.paymentMethods')" required :error="showError('method')">
+            <USelectMenu v-model="state.paymentMethodUuids" multiple :items="methodOptions" label-key="label" value-key="value" class="w-full" :placeholder="t('common.select')" />
           </UFormField>
 
-          <template v-if="selectedMethod">
+          <template v-if="selectedMethods.length">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <UFormField v-if="selectedMethod.mandatoryBank" :label="t('myBankAccounts.fields.bank')" required :error="showError('bank')">
+              <UFormField v-if="required.bank" :label="t('myBankAccounts.fields.bank')" required :error="showError('bank')">
                 <USelectMenu v-model="state.bankUuid" :items="bankOptions" label-key="label" value-key="value" class="w-full" :placeholder="t('common.select')" />
               </UFormField>
-              <UFormField v-if="selectedMethod.mandatoryAccountType" :label="t('myBankAccounts.fields.accountType')" required :error="showError('accountType')">
+              <UFormField v-if="required.accountType" :label="t('myBankAccounts.fields.accountType')" required :error="showError('accountType')">
                 <USelectMenu v-model="state.accountType" :items="BANK_ACCOUNT_TYPE_OPTIONS" label-key="label" value-key="value" class="w-full" :placeholder="t('common.select')" />
               </UFormField>
-              <UFormField v-if="selectedMethod.mandatoryAccountCode" :label="t('myBankAccounts.fields.accountCode')">
+              <UFormField v-if="required.accountCode" :label="t('myBankAccounts.fields.accountCode')">
                 <UInput v-model="state.accountCode" class="w-full" maxlength="40" />
               </UFormField>
-              <UFormField v-if="needsAccountNumber" :label="t('myBankAccounts.fields.accountIdentifier')" required :error="showError('accountNumber')">
+              <UFormField v-if="required.accountNumber" :label="t('myBankAccounts.fields.accountIdentifier')" required :error="showError('accountNumber')">
                 <UInput v-model="state.accountIdentifier" class="w-full" maxlength="120" inputmode="numeric" />
               </UFormField>
-              <UFormField v-if="selectedMethod.mandatoryPhone" :label="t('myBankAccounts.fields.phone')" required :error="showError('phone')">
+              <UFormField v-if="required.phone" :label="t('myBankAccounts.fields.phone')" required :error="showError('phone')">
                 <UInput v-model="state.phone" class="w-full" maxlength="30" inputmode="tel" />
               </UFormField>
-              <UFormField v-if="selectedMethod.mandatoryEmail" :label="t('myBankAccounts.fields.email')" required :error="showError('email')">
+              <UFormField v-if="required.email" :label="t('myBankAccounts.fields.email')" required :error="showError('email')">
                 <UInput v-model="state.email" class="w-full" maxlength="160" type="email" />
               </UFormField>
               <UFormField
-                v-if="selectedMethod.mandatoryIdentification"
+                v-if="required.identification"
                 :label="t('myBankAccounts.fields.identification')"
                 required
                 :error="showError('identification')"

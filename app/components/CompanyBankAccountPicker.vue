@@ -4,7 +4,7 @@ import { fromCompanyAccount } from '~/utils/companyAccountCopy'
 
 // Picks one of the company's bank accounts (V201) for a payment: where the payer deposited (destination of a
 // collection) or where a commission payout leaves from (origin). The list is filtered to the selected payment
-// method (V206: every company account has one), so Pago Móvil shows the Pago Móvil accounts, a transfer the
+// method (V217: an account accepts several), so Pago Móvil shows the Pago Móvil accounts, a transfer the
 // transfer ones. The selected account is shown with copy buttons (AccountCopyCard); for Pago Móvil the copied
 // text carries the amount in bolívares when it can be known. Loads the active list once, on mount.
 const props = withDefaults(defineProps<{
@@ -37,7 +37,7 @@ const accounts = ref<CompanyBankAccountDto[]>([])
 const loading = ref(false)
 
 const forMethod = computed(() => props.methodUuid
-  ? accounts.value.filter(a => a.paymentMethod_Uuid === props.methodUuid)
+  ? accounts.value.filter(a => a.paymentMethods.some(m => m.uuid === props.methodUuid))
   : accounts.value)
 
 function optionLabel(a: CompanyBankAccountDto): string {
@@ -48,6 +48,8 @@ function optionLabel(a: CompanyBankAccountDto): string {
 
 const options = computed(() => forMethod.value.map(a => ({ label: optionLabel(a), value: a.uuid })))
 const selected = computed(() => forMethod.value.find(a => a.uuid === model.value) ?? null)
+// The code of the selected payment method, so the card shows and copies only that method's fields.
+const selectedMethodCode = computed(() => selected.value?.paymentMethods.find(m => m.uuid === props.methodUuid)?.code ?? null)
 
 // A different method makes the previous pick meaningless; a method with a single account preselects it.
 watch([() => props.methodUuid, accounts, loading], () => {
@@ -113,6 +115,6 @@ onMounted(async () => {
         <CommonEntityQuickLinkButton to="/dashboard/company-bank-accounts" :can="canViewAccounts" @navigate="openAdmin" />
       </div>
     </UFormField>
-    <AccountCopyCard v-if="selected" :account="fromCompanyAccount(selected)" :amount-ves="amountVes" />
+    <AccountCopyCard v-if="selected" :account="fromCompanyAccount(selected, selectedMethodCode)" :amount-ves="amountVes" />
   </div>
 </template>

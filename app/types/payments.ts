@@ -414,6 +414,14 @@ export interface PaymentSupportUrlDto {
   sizeBytes?: number | null
 }
 
+/** A payment method an account accepts (V217). */
+export interface AccountMethodDto {
+  uuid: string
+  /** Catalog code (BANK_TRANSFER, PAGO_MOVIL, ZELLE…). */
+  code: string
+  name: string
+}
+
 /**
  * A bank account owned by the company (V201) — where a payer deposits, and where a commission payout leaves from.
  * `GET /v1/me/company-bank-accounts` + admin CRUD. Since V206 it has a payment method (transfer, Pago Móvil,
@@ -421,11 +429,9 @@ export interface PaymentSupportUrlDto {
  */
 export interface CompanyBankAccountDto {
   uuid: string
-  paymentMethod_Uuid?: string | null
-  paymentMethod_Display?: string | null
-  paymentMethod_Code?: string | null
-  /** Catalog code of the method (BANK_TRANSFER, PAGO_MOVIL, ZELLE…). */
-  paymentMethodCode?: string | null
+  /** Methods the account accepts (V217); its required fields are the sum of their `mandatory*` checks. */
+  paymentMethods: AccountMethodDto[]
+  paymentMethodCodes: string[]
   bank_Uuid?: string | null
   /** Commercial (short) bank name, e.g. "Mercantil". */
   bank_Display?: string | null
@@ -447,8 +453,8 @@ export interface CompanyBankAccountDto {
 }
 
 export interface CompanyBankAccountRequest {
-  /** The method decides which of the fields below are required (its `mandatory*` flags). */
-  paymentMethodUuid: string
+  /** Methods the account accepts (at least one); the fields below are required as the sum of their `mandatory*` flags. */
+  paymentMethodUuids: string[]
   bankUuid?: string | null
   /** ISO code, e.g. `USD`. */
   currency: string
@@ -468,10 +474,9 @@ export interface CompanyBankAccountRequest {
 /** An origin account the caller chose to remember (V204): `GET /v1/me/bank-accounts`. */
 export interface SavedOriginAccountDto {
   uuid: string
-  /** Payment method of the account (V207): its flags decide which fields apply (Pago Móvil = phone, transfer = number). */
-  paymentMethod_Uuid?: string | null
-  paymentMethod_Display?: string | null
-  paymentMethodCode?: string | null
+  /** Methods the account accepts (V217): their flags decide which fields apply (Pago Móvil = phone, transfer = number). */
+  paymentMethods: AccountMethodDto[]
+  paymentMethodCodes: string[]
   bank_Uuid?: string | null
   bank_Code?: string | null
   bank_Display?: string | null
@@ -489,7 +494,7 @@ export interface SavedOriginAccountDto {
  * method decides which of the other fields are required (its `mandatory*` flags), same rule as the backend.
  */
 export interface MyBankAccountRequest {
-  paymentMethodUuid: string
+  paymentMethodUuids: string[]
   bankUuid?: string | null
   accountType?: string | null
   accountCode?: string | null

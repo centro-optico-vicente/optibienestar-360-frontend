@@ -5,9 +5,10 @@ import type {
   CreatePlanRequest,
   PlanDto,
   PlanType,
+  TermMode,
   UpdatePlanRequest,
 } from '~/types/plans'
-import { PLAN_TYPE_OPTIONS } from '~/types/plans'
+import { PLAN_TYPE_OPTIONS, TERM_MODE_OPTIONS, TERM_MODES } from '~/types/plans'
 
 // Plan create/edit form, shared by the list (/dashboard/plans) and the detail
 // (/dashboard/plans/[uuid]) so the 11 fields + validation aren't duplicated.
@@ -45,6 +46,10 @@ const typeOptions = computed(() =>
   PLAN_TYPE_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })),
 )
 
+const termModeOptions = computed(() =>
+  TERM_MODE_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })),
+)
+
 interface FormState {
   code: string
   name: string
@@ -58,6 +63,12 @@ interface FormState {
   minMembers: string
   gracePeriodDays: string
   published: boolean
+  // Term (hub ADR 0034): only sent when the plan requires re-inscription
+  reinscriptionRequired: boolean
+  termMode: TermMode | undefined
+  termFixedMonth: string
+  termFixedDay: string
+  termPeriodMonths: string
 }
 
 const state = reactive<FormState>({
@@ -73,6 +84,11 @@ const state = reactive<FormState>({
   minMembers: '',
   gracePeriodDays: '',
   published: false,
+  reinscriptionRequired: false,
+  termMode: undefined,
+  termFixedMonth: '',
+  termFixedDay: '',
+  termPeriodMonths: '',
 })
 // Kept outside `state` (a string-only-friendly form-state map) so the boolean isn't coerced.
 const isActive = ref(true)
@@ -96,6 +112,30 @@ const schema = computed(() => {
     // Optional; when present must be ≥ 1 (backend @Min(1)).
     minMembers: z.string().regex(/^([1-9]\d*)?$/, t('plans.form.minMembersInvalid')).optional().or(z.literal('')),
     gracePeriodDays: optionalInt,
+    termMode: z.string().optional(),
+    termFixedMonth: z.string().optional(),
+    termFixedDay: z.string().optional(),
+    termPeriodMonths: z.string().optional(),
+  }).superRefine((v, ctx) => {
+    // Term rule (hub ADR 0034): the mode's own fields are required; day limited to 1-28 so it exists every month.
+    if (!state.reinscriptionRequired) return
+    if (!state.termMode) {
+      ctx.addIssue({ code: 'custom', path: ['termMode'], message: t('plans.form.termModeRequired') })
+      return
+    }
+    if (state.termMode === TERM_MODES.FIXED_DATE) {
+      const month = Number(state.termFixedMonth)
+      const day = Number(state.termFixedDay)
+      if (!/^\d+$/.test(state.termFixedMonth.trim()) || month < 1 || month > 12) {
+        ctx.addIssue({ code: 'custom', path: ['termFixedMonth'], message: t('plans.form.termMonthInvalid') })
+      }
+      if (!/^\d+$/.test(state.termFixedDay.trim()) || day < 1 || day > 28) {
+        ctx.addIssue({ code: 'custom', path: ['termFixedDay'], message: t('plans.form.termDayInvalid') })
+      }
+    }
+    else if (!/^[1-9]\d*$/.test(state.termPeriodMonths.trim())) {
+      ctx.addIssue({ code: 'custom', path: ['termPeriodMonths'], message: t('plans.form.termPeriodInvalid') })
+    }
   })
 })
 
@@ -130,6 +170,11 @@ function populateFrom(p: PlanDto | null) {
     state.minMembers = ''
     state.gracePeriodDays = ''
     state.published = false
+    state.reinscriptionRequired = false
+    state.termMode = undefined
+    state.termFixedMonth = ''
+    state.termFixedDay = ''
+    state.termPeriodMonths = ''
     isActive.value = true
     return
   }
@@ -145,6 +190,11 @@ function populateFrom(p: PlanDto | null) {
   state.minMembers = p.minMembers != null ? String(p.minMembers) : ''
   state.gracePeriodDays = p.gracePeriodDays != null ? String(p.gracePeriodDays) : ''
   state.published = p.published ?? false
+  state.reinscriptionRequired = p.reinscriptionRequired ?? false
+  state.termMode = p.termMode ?? undefined
+  state.termFixedMonth = p.termFixedMonth != null ? String(p.termFixedMonth) : ''
+  state.termFixedDay = p.termFixedDay != null ? String(p.termFixedDay) : ''
+  state.termPeriodMonths = p.termPeriodMonths != null ? String(p.termPeriodMonths) : ''
   isActive.value = p.active ?? true
   editSnapshot.value = snapEditState()
 }
@@ -196,6 +246,23 @@ function toMoney(v: string): string | undefined {
   return trimmed === '' ? undefined : trimmed
 }
 
+/**
+ * Term fields of the request. Without re-inscription: create sends nothing, update sends `false` so the
+ * backend clears a previous rule. With it: the mode and only that mode's fields (the backend clears the other's).
+ */
+function termFields(forUpdate: boolean): Partial<CreatePlanRequest> {
+  if (!state.reinscriptionRequired) return forUpdate ? { reinscriptionRequired: false } : {}
+  if (state.termMode === TERM_MODES.FIXED_DATE) {
+    return {
+      reinscriptionRequired: true,
+      termMode: TERM_MODES.FIXED_DATE,
+      termFixedMonth: Number(state.termFixedMonth),
+      termFixedDay: Number(state.termFixedDay),
+    }
+  }
+  return { reinscriptionRequired: true, termMode: TERM_MODES.PERIOD, termPeriodMonths: Number(state.termPeriodMonths) }
+}
+
 async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
   isSubmitting.value = true
   try {
@@ -214,6 +281,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         minMembers: toInt(state.minMembers),
         gracePeriodDays: toInt(state.gracePeriodDays),
         published: state.published,
+        ...termFields(false),
       }
       result = await plans.create(body)
       toast.add({ title: t('plans.createdToast'), color: 'success', icon: 'i-lucide-check-circle' })
@@ -232,6 +300,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         minMembers: toInt(state.minMembers),
         gracePeriodDays: toInt(state.gracePeriodDays),
         published: state.published,
+        ...termFields(true),
       }
       body.active = isActive.value
       result = await plans.update(props.plan!.uuid, body)
@@ -354,6 +423,36 @@ function openDeleteFromEdit() {
           <UFormField :label="t('plans.published')" name="published" :help="t('plans.form.publishedHelp')">
             <USwitch v-model="state.published" />
           </UFormField>
+        </div>
+
+        <!-- Term (hub ADR 0034): only makes sense when the plan requires re-inscription -->
+        <div class="rounded-xl border border-prohealth-100 p-4 space-y-4">
+          <UFormField :label="t('plans.term.reinscription')" name="reinscriptionRequired" :help="t('plans.form.reinscriptionHelp')">
+            <USwitch v-model="state.reinscriptionRequired" />
+          </UFormField>
+          <template v-if="state.reinscriptionRequired">
+            <UFormField :label="t('plans.form.termMode')" name="termMode" required>
+              <USelectMenu
+                v-model="state.termMode"
+                :items="termModeOptions"
+                label-key="label"
+                value-key="value"
+                :placeholder="t('common.select')"
+                class="w-full"
+              />
+            </UFormField>
+            <div v-if="state.termMode === TERM_MODES.FIXED_DATE" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <UFormField :label="t('plans.form.termMonth')" name="termFixedMonth" required :help="t('plans.form.termMonthHelp')">
+                <UInput v-model="state.termFixedMonth" inputmode="numeric" placeholder="12" class="w-full" />
+              </UFormField>
+              <UFormField :label="t('plans.form.termDay')" name="termFixedDay" required :help="t('plans.form.termDayHelp')">
+                <UInput v-model="state.termFixedDay" inputmode="numeric" placeholder="1" class="w-full" />
+              </UFormField>
+            </div>
+            <UFormField v-else-if="state.termMode === TERM_MODES.PERIOD" :label="t('plans.form.termPeriod')" name="termPeriodMonths" required :help="t('plans.form.termPeriodHelp')">
+              <UInput v-model="state.termPeriodMonths" inputmode="numeric" placeholder="12" class="w-full" />
+            </UFormField>
+          </template>
         </div>
 
         <UFormField v-if="mode === 'edit'" :label="t('plans.form.fields.active')" :help="t('plans.form.activeHelp')">

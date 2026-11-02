@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { offerDiscountPct } from '~/utils/offerDiscount'
 import type { ApiError } from '~/types/auth'
 import type { PublicAllyDetailDto } from '~/types/allies'
 
@@ -37,6 +38,17 @@ useSeoMeta({
 
 // `products` replaces the deprecated `services` (hub ADR 0026).
 const offers = computed(() => ally.value?.products ?? [])
+
+// Weekly opening hours (V214, hub ADR 0031 §7): one line per day with its ranges.
+const schedule = computed(() => {
+  const byDay = new Map<number, string[]>()
+  for (const h of ally.value?.openingHours ?? []) {
+    const ranges = byDay.get(h.dayOfWeek) ?? []
+    ranges.push(`${h.opensAt.slice(0, 5)}–${h.closesAt.slice(0, 5)}`)
+    byDay.set(h.dayOfWeek, ranges)
+  }
+  return [...byDay.entries()].sort(([a], [b]) => a - b).map(([day, ranges]) => ({ day, ranges: ranges.join(', ') }))
+})
 
 /** "Ver todo lo que ofrece" → the general catalog filtered by this ally's name. */
 const catalogLink = computed(() =>
@@ -145,8 +157,28 @@ function money(v?: number | string | null): string {
           </UBadge>
         </div>
 
+        <PublicAllyLicenses v-if="ally.segment === 'B2P'" :ally-uuid="allyUuid" />
+
         <!-- Contact data -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6 pt-6 border-t border-prohealth-100 text-sm">
+          <!-- B2P practice site: host clinic, office and appointment phone (hub ADR 0031). -->
+          <div v-if="ally.hostName" class="flex items-start gap-2.5">
+            <UIcon name="i-lucide-hospital" class="w-4.5 h-4.5 text-cyan-600 shrink-0 mt-0.5" />
+            <span class="text-prohealth-700">
+              {{ ally.hostName }}<template v-if="ally.officeNumber"> · {{ t('allies.public.office', { number: ally.officeNumber }) }}</template>
+            </span>
+          </div>
+          <div v-else-if="ally.officeNumber" class="flex items-start gap-2.5">
+            <UIcon name="i-lucide-door-open" class="w-4.5 h-4.5 text-cyan-600 shrink-0 mt-0.5" />
+            <span class="text-prohealth-700">{{ t('allies.public.office', { number: ally.officeNumber }) }}</span>
+          </div>
+          <div v-if="ally.appointmentPhone" class="flex items-center gap-2.5">
+            <UIcon name="i-lucide-calendar-clock" class="w-4.5 h-4.5 text-cyan-600 shrink-0" />
+            <span class="text-prohealth-700">
+              {{ t('allies.public.appointments') }}:
+              <a :href="`tel:${ally.appointmentPhone}`" class="hover:text-cyan-700">{{ ally.appointmentPhone }}</a>
+            </span>
+          </div>
           <div v-if="ally.address" class="flex items-start gap-2.5">
             <UIcon name="i-lucide-map-pin" class="w-4.5 h-4.5 text-cyan-600 mt-0.5 shrink-0" />
             <span class="text-prohealth-700">{{ ally.address }}</span>
@@ -165,6 +197,20 @@ function money(v?: number | string | null): string {
               {{ ally.website }}
             </a>
           </div>
+        </div>
+
+        <!-- Opening hours -->
+        <div v-if="schedule.length" class="mt-6 pt-6 border-t border-prohealth-100 text-sm">
+          <h2 class="flex items-center gap-2 font-semibold text-prohealth-900 mb-3">
+            <UIcon name="i-lucide-clock" class="w-4.5 h-4.5 text-cyan-600" />
+            {{ t('allies.public.openingHours') }}
+          </h2>
+          <dl class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1.5">
+            <template v-for="row in schedule" :key="row.day">
+              <dt class="text-prohealth-500">{{ t(`allies.openingHours.days.${row.day}`) }}</dt>
+              <dd class="text-prohealth-700">{{ row.ranges }}</dd>
+            </template>
+          </dl>
         </div>
       </div>
 
@@ -212,11 +258,11 @@ function money(v?: number | string | null): string {
                     </span>
                   </CurrencyConverterDisplay>
                 </p>
-                <p v-if="hasDiscount(s.discountPct) && s.priceAmount != null" class="text-xs text-prohealth-400 line-through">
+                <p v-if="hasDiscount(offerDiscountPct(s)) && s.priceAmount != null" class="text-xs text-prohealth-400 line-through">
                   {{ money(s.priceAmount) }}
                 </p>
-                <p v-if="hasDiscount(s.discountPct)" class="text-xs font-semibold text-lime-700">
-                  {{ t('allies.public.detail.discountAffiliates', { pct: s.discountPct }) }}
+                <p v-if="hasDiscount(offerDiscountPct(s))" class="text-xs font-semibold text-lime-700">
+                  {{ t('allies.public.detail.discountAffiliates', { pct: offerDiscountPct(s) }) }}
                 </p>
               </div>
             </div>

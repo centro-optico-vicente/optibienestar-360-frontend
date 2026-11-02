@@ -6,7 +6,6 @@ import { BANK_ACCOUNT_TYPE_OPTIONS } from '~/types/payments'
 import type { CatalogItem } from '~/types/catalogs'
 
 // Self-service registration (POST /v1/me/payments, multipart, COLLECTION_CREATE_OWN)
-// — the affiliate's own membership, resolved server-side. Same fields as
 // — the caller's active membership is resolved server-side when they have one; without one
 // (V201) the approved payment becomes their credit ("saldo a favor"). Same fields as
 // PaymentFormModal minus the member/membership picker.

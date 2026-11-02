@@ -89,7 +89,18 @@ const docTypes = [{ value: 'V', label: 'V' }, { value: 'E', label: 'E' }]
 const form = reactive({
   firstName: '', lastName: '', documentType: 'V', documentNumber: '', birthDate: '',
   email: '', phone: '', planUuid: '', comment: '',
+  // Term overrides (hub ADR 0034): empty / 'inherit' = the plan decides
+  expiresAt: '', reinscription: 'inherit' as 'inherit' | 'yes' | 'no',
 })
+
+const reinscriptionItems = computed(() => [
+  { value: 'inherit', label: t('memberships.term.inherit') },
+  { value: 'yes', label: t('common.yes') },
+  { value: 'no', label: t('common.no') },
+])
+function reinscriptionOf(v: boolean | null | undefined): 'inherit' | 'yes' | 'no' {
+  return v == null ? 'inherit' : v ? 'yes' : 'no'
+}
 
 function resetForm() {
   const r = request.value
@@ -104,6 +115,8 @@ function resetForm() {
     phone: r.phone ?? '',
     planUuid: r.plan_Uuid ?? '',
     comment: '',
+    expiresAt: r.expiresAtOverride ?? '',
+    reinscription: reinscriptionOf(r.reinscriptionRequiredOverride),
   })
 }
 
@@ -118,6 +131,8 @@ const dirty = computed(() => {
     || form.email.trim().toLowerCase() !== r.email
     || (form.phone.trim() || null) !== (r.phone ?? null)
     || form.planUuid !== (r.plan_Uuid ?? '')
+    || form.expiresAt !== (r.expiresAtOverride ?? '')
+    || form.reinscription !== reinscriptionOf(r.reinscriptionRequiredOverride)
 })
 
 const saving = ref(false)
@@ -139,6 +154,9 @@ async function save() {
       phone: form.phone.trim() || undefined,
       planUuid: form.planUuid,
       comment: form.comment.trim() || undefined,
+      // Full replace on the backend: always send the current override values.
+      expiresAt: form.expiresAt || null,
+      reinscriptionRequired: form.reinscription === 'inherit' ? null : form.reinscription === 'yes',
     })
     resetForm()
     toast.add({ title: t('affiliationRequests.detail.savedToast'), color: 'success', icon: 'i-lucide-check-circle' })
@@ -336,6 +354,12 @@ function statusLabel(r: AffiliationRequestDetailDto): string {
             </UFormField>
             <UFormField :label="t('affiliationRequests.fields.plan')" required class="sm:col-span-2">
               <USelect v-model="form.planUuid" :items="planItems" class="w-full" :disabled="!editable" />
+            </UFormField>
+            <UFormField :label="t('affiliationRequests.fields.expiresAt')" :help="t('affiliationRequests.detail.expiresAtHelp')">
+              <UInput v-model="form.expiresAt" type="date" class="w-full" :disabled="!editable" />
+            </UFormField>
+            <UFormField :label="t('affiliationRequests.fields.reinscriptionRequired')" :help="t('affiliationRequests.detail.reinscriptionHelp')">
+              <USelect v-model="form.reinscription" :items="reinscriptionItems" class="w-full" :disabled="!editable" />
             </UFormField>
             <template v-if="editable">
               <UFormField :label="t('affiliationRequests.detail.comment')" class="sm:col-span-2">
