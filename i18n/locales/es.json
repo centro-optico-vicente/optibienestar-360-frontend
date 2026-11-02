@@ -672,8 +672,8 @@
         "description": "Tu Credencial Digital de afiliado."
       },
       "myAllyCompany": {
-        "label": "Mi empresa aliada",
-        "description": "Panel de tu empresa aliada."
+        "label": "Mi espacio de aliado",
+        "description": "Panel de tu espacio como aliado, comercial o profesional."
       },
       "validator": {
         "label": "Validador",
@@ -737,7 +737,7 @@
       },
       "myPayments": {
         "label": "Mis pagos",
-        "description": "Tu historial de pagos de membresía."
+        "description": "Tu historial de pagos y tu saldo a favor."
       },
       "myPortfolio": {
         "label": "Mi cartera",
@@ -770,11 +770,36 @@
       "myAffiliationRequests": {
         "label": "Mis solicitudes de afiliación",
         "description": "Las solicitudes que llegaron por tu QR y su estado."
+      },
+      "myAdvisor": {
+        "label": "Mi asesor",
+        "description": "Tu asesor actual y los anteriores."
+      },
+      "companyBankAccounts": {
+        "label": "Cuentas de la empresa",
+        "description": "Cuentas bancarias de OptiBienestar donde se reciben los pagos."
+      },
+      "paymentClaims": {
+        "label": "Reclamos de pagos",
+        "description": "Reclamos sobre el saldo de un pago: reembolsos, errores y pagos de más."
+      },
+      "licensingBodies": {
+        "label": "Entes emisores de colegiaturas",
+        "description": "Organismos que emiten colegiaturas (M.P.P.S., Colegio de Médicos…)."
+      },
+      "myPatients": {
+        "label": "Mis pacientes",
+        "description": "Pacientes cuya historia médica puedes consultar."
+      },
+      "myMedicalAccess": {
+        "label": "Quién vio mi historia",
+        "description": "Médicos aliados con acceso a tu historia médica."
       }
     },
     "other": {
       "changePassword": "Cambiar contraseña",
-      "myContracts": "Mis contratos"
+      "myContracts": "Mis contratos",
+      "myBankAccounts": "Mis cuentas bancarias"
     }
   },
   "layout": {
@@ -1053,7 +1078,9 @@
       "requiresApproval": "Requiere aprobación",
       "maxDiscountPct": "Descuento máximo (%)",
       "segment": "Segmento",
-      "professionalArea": "Área profesional (solo B2P)"
+      "professionalArea": "Área profesional (solo B2P)",
+      "parentProfession": "Profesión general (si es sub-especialidad)",
+      "professionalAreaOptional": "Área profesional"
     },
     "promoterRanksTree": {
       "title": "Árbol de cargos",
@@ -1134,6 +1161,10 @@
       "payment-methods": {
         "label": "Métodos de pago",
         "labelSingular": "Método de pago"
+      },
+      "licensing-bodies": {
+        "label": "Entes emisores de colegiaturas",
+        "labelSingular": "Ente emisor"
       }
     }
   },
@@ -1205,6 +1236,7 @@
       "marital_status": "Estado civil",
       "occupation": "Ocupación",
       "profession": "Profesión",
+      "licensing_body": "Ente emisor de colegiaturas",
       "product_category": "Categoría de producto o servicio",
       "product": "Producto o servicio",
       "ally_product": "Oferta de aliado",
@@ -1212,6 +1244,53 @@
     }
   },
   "plans": {
+    "termCompliance": {
+      "title": "Vigencia de las membresías",
+      "subtitle": "Muestra qué membresías vigentes del plan cumplen la regla de vigencia actual del plan y permite aplicarla a las que no la cumplen, eligiendo la primera fecha de vencimiento.",
+      "apply": "Aplicar vigencia",
+      "applyTooltip": "Aplica la regla del plan a las membresías seleccionadas (o a todas las que no cumplen)",
+      "requiresReinscription": "Activa la reinscripción del plan para aplicar una vigencia",
+      "requiresReinscriptionHelp": "Mientras el plan no exija reinscripción, las membresías quedan sin vencimiento y no hay una vigencia que aplicar.",
+      "counts": {
+        "total": "Membresías vigentes",
+        "complies": "Cumplen",
+        "differs": "No cumplen"
+      },
+      "filter": {
+        "all": "Todas",
+        "DIFFERS": "No cumplen",
+        "COMPLIES": "Cumplen"
+      },
+      "searchPlaceholder": "Buscar por nombre o documento",
+      "selectedCount": "{count} seleccionada(s)",
+      "clearSelection": "Limpiar selección",
+      "selectPage": "Seleccionar la página",
+      "columns": {
+        "member": "Afiliado",
+        "contract": "Contrato",
+        "status": "Estado",
+        "enrolledAt": "Afiliado desde",
+        "expiresAt": "Vence",
+        "rule": "Regla actual",
+        "complies": "Cumple"
+      },
+      "complies": "Cumple",
+      "differs": "No cumple",
+      "noExpiry": "Sin vencimiento",
+      "empty": "No hay membresías para este filtro.",
+      "ruleOpenEnded": "Sin vigencia (abierta)",
+      "ruleFixedDate": "Vence cada {day} de {month}",
+      "rulePeriod": "{n} mes(es) desde la afiliación",
+      "applyTitle": "Aplicar vigencia",
+      "applyDescription": "Copia la regla de vigencia actual del plan a las membresías y fija su primer vencimiento.",
+      "affectedSelected": "Se actualizará la vigencia de {count} membresía(s) seleccionada(s). Las canceladas se omiten.",
+      "affectedAllDiffer": "No hay selección: se actualizarán las {count} membresía(s) que no cumplen la regla del plan.",
+      "expiresAt": "Primer vencimiento",
+      "expiresAtHelp": "Una sola fecha para todas; debe ser posterior a hoy. Se sugiere la que resulta de la regla del plan.",
+      "expiresInvalid": "La fecha debe ser posterior a hoy.",
+      "confirm": "Confirmo aplicar la vigencia a {count} membresía(s)",
+      "appliedToast": "Vigencia aplicada: {applied} actualizada(s), {skipped} omitida(s)"
+    },
     "title": "Planes",
     "subtitle": "Planes de cobertura: pricing, beneficiarios y periodo de gracia.",
     "new": "Nuevo plan",
@@ -1321,6 +1400,34 @@
         "monthly": "Mensualidad (USD)",
         "extraBeneficiary": "Inscripción por beneficiario extra (USD)",
         "active": "Activo"
+      },
+      "reinscriptionHelp": "Si se exige, las membresías vencen y se renuevan solas; al renovar deben pagar la inscripción de nuevo.",
+      "termMode": "Cómo vence",
+      "termModeRequired": "Elige cómo vence la membresía",
+      "termMonth": "Mes",
+      "termMonthHelp": "De 1 a 12",
+      "termMonthInvalid": "El mes debe estar entre 1 y 12",
+      "termDay": "Día",
+      "termDayHelp": "De 1 a 28",
+      "termDayInvalid": "El día debe estar entre 1 y 28",
+      "termPeriod": "Meses desde la inscripción",
+      "termPeriodHelp": "Por ejemplo, 12 para un año o 6 para un semestre",
+      "termPeriodInvalid": "Indica un número de meses mayor a cero"
+    },
+    "deactivatedToast": "Plan desactivado",
+    "deletedPermanentToast": "Plan eliminado definitivamente",
+    "deleteConfirmPermanent": "Este plan no está en uso: se eliminará definitivamente.",
+    "deleteConfirmDeactivate": "Este plan está en uso ({count}): se desactivará en lugar de eliminarse.",
+    "term": {
+      "title": "Vigencia de las membresías",
+      "reinscription": "Exige reinscripción",
+      "rule": "Vencimiento",
+      "none": "Sin vigencia: las membresías de este plan no vencen.",
+      "fixedDateLabel": "Vence cada {day} de {month}",
+      "periodLabel": "{n} meses después de la inscripción",
+      "modes": {
+        "FIXED_DATE": "Fecha fija anual",
+        "PERIOD": "Período en meses"
       }
     }
   },
@@ -1394,14 +1501,52 @@
         "capturedByPromoter": "Asesor que lo captó",
         "representativeName": "Representante / médico firmante",
         "representativeDocumentType": "Tipo de documento del representante",
-        "representativeDocumentNumber": "C.I. / RIF del representante"
+        "representativeDocumentNumber": "C.I. / RIF del representante",
+        "segment": "Tipo de aliado",
+        "nameProfessional": "Nombre a mostrar (consulta)",
+        "holderDocumentType": "Tipo",
+        "holderDocumentNumber": "Cédula de identidad",
+        "holderFirstName": "Nombres",
+        "holderLastName": "Apellidos",
+        "holderBirthDate": "Fecha de nacimiento",
+        "holderPhone": "Teléfono celular",
+        "holderEmail": "Correo electrónico",
+        "representativePosition": "Cargo",
+        "hostAlly": "Centro clínico (aliado)",
+        "hostName": "Centro clínico principal",
+        "officeNumber": "Número de consultorio",
+        "appointmentPhone": "Teléfono para citas",
+        "assistantName": "Nombre del asistente",
+        "tradeName": "Nombre comercial",
+        "commercialZone": "Región / zona comercial",
+        "foundedYear": "Año de fundación",
+        "cashRegistersCount": "Nº de cajas",
+        "branchesCount": "Nº de sucursales",
+        "hasPos": "¿Maneja sistema POS?"
       },
       "referralCodeFormat": "El código debe tener entre 4 y 20 letras, números o guiones",
       "referralCodeHelp": "Código que el aliado entrega a sus clientes para usar una promoción. Solo atribuye, no genera comisión.",
       "fileNumberHelp": "Formato [CÓDIGO DE ASESOR]-[Nº DE ALIADO]; lo asigna el sistema.",
       "representativeHelp": "Persona que firma el Convenio de Alianza Estratégica en nombre del aliado.",
       "capturedByPromoterHelp": "Su código de asesor encabeza el número de expediente del convenio.",
-      "publishedHelp": "El aliado aparece en el directorio público de aliados."
+      "publishedHelp": "El aliado aparece en el directorio público de aliados.",
+      "segmentHelp": "Comercial: una empresa o comercio. Profesional: un médico, psicólogo, abogado u otro profesional; cada lugar donde atiende es un aliado aparte.",
+      "foundedYearFormat": "Indica un año de 4 dígitos",
+      "representativePositionPlaceholder": "Ej.: Gerente, Socio",
+      "holder": {
+        "professionalTitle": "Profesional",
+        "representativeTitle": "Representante legal (firma el convenio)",
+        "help": "Se busca por cédula: si la persona ya existe en el sistema (afiliado, asesor u otra sede), se enlaza esa misma persona.",
+        "legacy": "Representante cargado antes como texto: {name}. Indica su cédula para enlazarlo como persona.",
+        "linkedHint": "Persona ya enlazada: sus datos se editan en su propia ficha. Cambia la cédula para enlazar a otra persona."
+      },
+      "site": {
+        "title": "Coordenadas de consulta",
+        "hostAllyHelp": "Si la clínica también es aliada, selecciónala; si no, escribe su nombre."
+      },
+      "commercial": {
+        "title": "Estructura operativa"
+      }
     },
     "delete": {
       "title": "Eliminar aliado",
@@ -1423,17 +1568,21 @@
         "city": "Ciudad",
         "address": "Dirección",
         "googleMapsUrl": "Enlace de Google Maps",
-        "description": "Descripción"
+        "description": "Descripción",
+        "operation": "Estructura operativa"
       },
       "fileNumber": "Expediente {number}",
-      "fileNumberHint": "Nº de expediente del Convenio de Alianza Estratégica: [CÓDIGO DE ASESOR]-[Nº DE ALIADO]"
+      "fileNumberHint": "Nº de expediente del Convenio de Alianza Estratégica: [CÓDIGO DE ASESOR]-[Nº DE ALIADO]",
+      "operationSummary": "Fundada en {founded} · {registers} cajas · {branches} sucursales · POS: {pos}"
     },
     "tabs": {
       "products": "Productos y servicios",
       "professions": "Profesiones",
       "allyTypes": "Tipos de aliado",
       "agreements": "Acuerdos",
-      "staff": "Personal"
+      "staff": "Personal",
+      "licenses": "Colegiaturas",
+      "openingHours": "Horario"
     },
     "products": {
       "title": "Productos y servicios",
@@ -1511,6 +1660,17 @@
       "delete": {
         "title": "Eliminar oferta",
         "confirm": "¿Seguro que deseas eliminar la oferta {name}? (soft-delete)"
+      },
+      "discount": {
+        "typeLabel": "Tipo de tarifa preferencial",
+        "types": {
+          "PERCENTAGE": "Porcentaje",
+          "FLAT": "Monto fijo"
+        },
+        "amountLabel": "Descuento en monto (USD)",
+        "exceedsPrice": "El descuento no puede ser mayor que el precio",
+        "preview": "El afiliado paga {price} (equivale a {pct} % de descuento)",
+        "flatNeedsPrice": "El descuento en monto necesita el precio"
       }
     },
     "professions": {
@@ -1638,7 +1798,13 @@
         "search": "Nombre, RIF, número de aliado o ciudad…",
         "cityOrState": "Ciudad o estado",
         "category": "Rubro",
-        "clear": "Limpiar filtros"
+        "clear": "Limpiar filtros",
+        "segment": "Comerciales y profesionales",
+        "segmentB2B": "Comercios y empresas",
+        "segmentB2P": "Profesionales",
+        "anyTime": "Cualquier horario",
+        "openNow": "Abierto ahora",
+        "openToday": "Atiende hoy"
       },
       "detail": {
         "seoTitle": "{name} — Red de aliados OptiBienestar 360",
@@ -1656,12 +1822,16 @@
         "ctaBody": "Únete a OptiBienestar 360 y accede a la Tarifa Preferencial en toda la red.",
         "ctaButton": "Quiero afiliarme",
         "exclusions": "No aplica en: {exclusions}"
-      }
+      },
+      "office": "Consultorio {number}",
+      "appointments": "Citas",
+      "licensesTitle": "Colegiaturas verificadas",
+      "openingHours": "Horario de atención"
     },
     "portal": {
-      "seoTitle": "Mi empresa aliada — OptiBienestar 360",
-      "title": "Mi empresa aliada",
-      "subtitle": "Propón productos y servicios para tu empresa. Quedan en revisión hasta que OptiBienestar 360 los apruebe.",
+      "seoTitle": "Mi espacio de aliado — OptiBienestar 360",
+      "title": "Mi espacio de aliado",
+      "subtitle": "Propón productos y servicios para tu negocio o consulta. Quedan en revisión hasta que OptiBienestar 360 los apruebe.",
       "lastProposedTitle": "«{name}» enviado a revisión",
       "lastProposedDescription": "Te notificaremos cuando sea aprobado y publicado en el directorio.",
       "formTitle": "Proponer un producto o servicio",
@@ -1711,6 +1881,65 @@
     "segments": {
       "B2B": "Comercial (B2B)",
       "B2P": "Profesional (B2P)"
+    },
+    "licenses": {
+      "title": "Colegiaturas",
+      "hint": "Registros profesionales de la persona titular. Valen para todas sus sedes.",
+      "addButton": "Añadir",
+      "noHolder": "Registra primero a la persona titular del aliado para cargar sus colegiaturas.",
+      "empty": "Sin colegiaturas registradas.",
+      "reviewedAt": "Revisada el {date}",
+      "verify": "Verificar",
+      "reject": "Rechazar",
+      "createdToast": "Colegiatura registrada",
+      "updatedToast": "Colegiatura actualizada",
+      "verifiedToast": "Colegiatura verificada",
+      "rejectedToast": "Colegiatura rechazada",
+      "deletedToast": "Colegiatura eliminada",
+      "deleteTitle": "Eliminar colegiatura",
+      "deleteBody": "¿Eliminar la colegiatura {body} · {number}?",
+      "status": {
+        "PENDING": "Pendiente",
+        "VERIFIED": "Verificada",
+        "REJECTED": "Rechazada"
+      },
+      "form": {
+        "createTitle": "Nueva colegiatura",
+        "editTitle": "Editar colegiatura",
+        "createDescription": "Queda pendiente hasta que alguien la verifique.",
+        "editDescription": "Si cambias el ente o el número, vuelve a quedar pendiente de verificación.",
+        "body": "Ente emisor",
+        "number": "Número"
+      }
+    },
+    "openingHours": {
+      "title": "Horario de atención",
+      "hint": "Días y tramos en que atiende el aliado (hora de Caracas). Se muestran en su ficha pública y en el convenio.",
+      "portalHint": "Días y tramos en que atiendes. Se muestran en tu ficha pública.",
+      "portalReadonlyHint": "Solo el propietario del aliado puede cambiar el horario.",
+      "loading": "Cargando horario…",
+      "empty": "Sin horario cargado.",
+      "closed": "Cerrado",
+      "opensAt": "Abre",
+      "closesAt": "Cierra",
+      "addRange": "Agregar tramo",
+      "removeRange": "Quitar tramo",
+      "copyMonday": "Copiar el lunes a martes–viernes",
+      "save": "Guardar horario",
+      "savedToast": "Horario guardado",
+      "errors": {
+        "invalidRange": "Cada tramo debe cerrar después de abrir.",
+        "overlap": "Los tramos de un mismo día no pueden solaparse."
+      },
+      "days": {
+        "1": "Lunes",
+        "2": "Martes",
+        "3": "Miércoles",
+        "4": "Jueves",
+        "5": "Viernes",
+        "6": "Sábado",
+        "7": "Domingo"
+      }
     }
   },
   "catalog": {
@@ -1874,7 +2103,9 @@
       "empty": "Sin pagos registrados en tu cartera",
       "form": {
         "title": "Registrar pago de afiliado",
-        "description": "Registra el pago de membresía de un afiliado de tu cartera para revisión."
+        "description": "Registra el pago de membresía de un afiliado de tu cartera para revisión.",
+        "memberHelp": "Tu cartera, o busca por nombre o documento a alguien sin asesor. ¿No existe? Regístralo con el botón de la derecha.",
+        "unassignedTag": "sin asesor"
       }
     },
     "payouts": {
@@ -1914,9 +2145,9 @@
       "filters": {
         "all": "Todos",
         "upToDate": "Al día",
-        "due": "Pendiente de pago",
         "overdue": "Morosos",
-        "withoutMembership": "Sin membresía"
+        "withoutMembership": "Sin membresía",
+        "due": "Pendiente de pago"
       },
       "status": {
         "UP_TO_DATE": "Al día",
@@ -1927,12 +2158,12 @@
       "columns": {
         "member": "Afiliado",
         "status": "Estado de pago",
+        "nextDueDate": "Próximo vencimiento",
+        "monthlyFee": "Cuota de Mantenimiento",
         "plan": "Plan",
         "enrolledAt": "Fecha de venta",
-        "nextDueDate": "Próximo vencimiento",
         "lastPaidThrough": "Pagado hasta",
         "daysOverdue": "Días de atraso",
-        "monthlyFee": "Cuota de Mantenimiento",
         "phone": "Teléfono"
       },
       "fields": {
@@ -1970,6 +2201,7 @@
           "NOTE": "Nota"
         }
       },
+      "registerPayment": "Registrar cobro",
       "daysOverdueValue": "{count} día | {count} días",
       "callTooltip": "Llamar"
     },
@@ -1977,9 +2209,26 @@
       "title": "Mis datos de cobro",
       "contactAdmin": "Si tus datos cambiaron, comunícate con administración.",
       "empty": "Todavía no tienes datos de cobro registrados. Comunícate con administración para registrarlos."
+    },
+    "newMember": {
+      "title": "Nuevo en mi cartera",
+      "description": "Registra a una persona que aún no es afiliada. Quedará en tu cartera, sin membresía, y podrás registrar su pago.",
+      "submit": "Registrar en mi cartera",
+      "createdToast": "Persona registrada en tu cartera"
     }
   },
   "payments": {
+    "assignMembership": {
+      "action": "Asignar a membresía",
+      "title": "Asignar a una membresía",
+      "description": "Este cobro quedó como saldo a favor de quien pagó. Asígnalo a la membresía que cubre; se liquidan sus cargos del período indicado.",
+      "member": "Afiliado titular",
+      "memberHelp": "Busca por nombre o documento.",
+      "membership": "Membresía",
+      "membershipPlaceholder": "Elige primero al afiliado",
+      "confirm": "Asignar",
+      "toast": "Cobro asignado a la membresía"
+    },
     "title": "Cobros",
     "subtitle": "Registro y revisión de cobros de membresía: aprobación o rechazo con comprobante.",
     "collectionsReport": {
@@ -2094,7 +2343,9 @@
         "accountType": "Tipo de cuenta",
         "accountCode": "Código de cuenta",
         "phone": "Teléfono",
-        "email": "Correo electrónico"
+        "email": "Correo electrónico",
+        "originAccount": "Cuenta de origen (empresa)",
+        "payoutAccount": "Cuenta destino (asesor)"
       },
       "searchPlaceholder": "Buscar por referencia…",
       "empty": "Sin pagos de comisión",
@@ -2106,7 +2357,11 @@
         "reference": "Referencia",
         "reviewedBy": "Revisado por"
       },
-      "prefilledFromDossier": "Datos tomados de la cuenta de cobro del asesor"
+      "prefilledFromDossier": "Datos tomados de la cuenta de cobro del asesor",
+      "originAccountHelp": "La cuenta de la empresa desde la que sale el pago. Solo se muestran las del método elegido.",
+      "payoutAccountHelp": "La cuenta de cobro del asesor a la que llega el pago; se preselecciona su cuenta predeterminada.",
+      "noPayoutAccounts": "Este asesor no tiene cuentas de cobro registradas.",
+      "pickPromoterFirst": "Elige primero al asesor."
     },
     "movements": {
       "title": "Movimientos",
@@ -2127,7 +2382,7 @@
       "empty": "Aún no tienes pagos registrados.",
       "form": {
         "title": "Registrar mi pago",
-        "description": "Registra el pago de tu membresía para revisión."
+        "description": "Registra un pago a la empresa. Si aún no tienes membresía activa, quedará como saldo a favor al ser aprobado."
       }
     },
     "columns": {
@@ -2198,7 +2453,10 @@
         "uuid": "UUID",
         "discount": "Descuento",
         "netAmount": "Neto a pagar",
-        "discountReason": "Motivo del descuento"
+        "discountReason": "Motivo del descuento",
+        "originAccount": "Cuenta de origen (empresa)",
+        "destinationAccount": "Cuenta destino (empresa)",
+        "payoutAccount": "Cuenta destino (asesor)"
       },
       "proof": {
         "fileNameFallback": "Comprobante",
@@ -2216,7 +2474,8 @@
         "method": "Método",
         "bank": "Banco",
         "amount": "Monto",
-        "reference": "Referencia"
+        "reference": "Referencia",
+        "accounts": "Cuentas"
       }
     },
     "form": {
@@ -2308,6 +2567,133 @@
       "reasonRequired": "El motivo es obligatorio",
       "apply": "Aplicar descuento",
       "appliedToast": "Descuento aplicado"
+    },
+    "credit": {
+      "title": "Saldo a favor",
+      "help": "El personal también puede asignarlo manualmente a una membresía.",
+      "autoApply": "Tu saldo se usa automáticamente para cubrir cuotas mensuales completas de tu membresía."
+    },
+    "companyAccounts": {
+      "title": "Cuentas de la empresa",
+      "subtitle": "Cuentas bancarias propias donde los afiliados depositan sus pagos.",
+      "pickerLabel": "¿En qué cuenta de la empresa pagaste?",
+      "pickerHelp": "Opcional. Indica a cuál cuenta depositaste o transferiste.",
+      "searchPlaceholder": "Buscar por número, titular o documento…",
+      "includeInactive": "Ver inactivas",
+      "empty": "No hay cuentas registradas.",
+      "createTitle": "Nueva cuenta de la empresa",
+      "editTitle": "Editar cuenta de la empresa",
+      "savedToast": "Cuenta guardada",
+      "deletedToast": "Cuenta desactivada",
+      "deleteTitle": "Desactivar cuenta",
+      "deleteConfirm": "La cuenta dejará de mostrarse a quienes pagan. Los pagos ya registrados no cambian.",
+      "sortOrderHelp": "Menor número aparece primero.",
+      "fields": {
+        "bank": "Banco",
+        "currency": "Moneda",
+        "accountType": "Tipo de cuenta",
+        "accountNumber": "Número de cuenta",
+        "holderName": "Titular",
+        "holderDocument": "Documento del titular",
+        "notes": "Notas",
+        "sortOrder": "Orden",
+        "publicVisible": "Mostrar públicamente",
+        "method": "Método de pago",
+        "destination": "Cuenta / teléfono / correo",
+        "phone": "Teléfono",
+        "email": "Correo",
+        "methods": "Métodos que acepta"
+      },
+      "public": "Pública",
+      "private": "Privada",
+      "publicHelp": "Visible sin iniciar sesión en el endpoint público de cuentas. Si no, solo la ven quienes registran un pago.",
+      "destinationLabel": "Cuenta destino (¿a dónde pagaste?)",
+      "destinationHelp": "La cuenta de la empresa en la que depositaste. Solo se muestran las del método elegido.",
+      "noneForMethod": "No hay cuentas de la empresa para este método.",
+      "noneAtAll": "Todavía no hay cuentas de la empresa registradas.",
+      "pickMethodHint": "Elige primero el método de pago: de él dependen los datos que pide la cuenta.",
+      "holderDocumentHelp": "Cédula o RIF, por ejemplo J-12345678-9.",
+      "phonePlaceholder": "04141234567"
+    },
+    "assignOwn": {
+      "title": "Asignar a una membresía",
+      "description": "Si pagas por un familiar, indica a qué membresía corresponde este pago. El revisor lo verificará al aprobarlo.",
+      "search": "Buscar",
+      "confirm": "Asignar",
+      "savedToast": "Pago asignado a la membresía"
+    },
+    "beneficiary": {
+      "byContract": "Por n.º de contrato",
+      "byDocument": "Por cédula del titular",
+      "contractPlaceholder": "OB-000123",
+      "documentPlaceholder": "Número de documento",
+      "exactHelp": "Escribe el dato exacto; verás a quién corresponde antes de confirmar.",
+      "notFound": "No encontramos a nadie con ese dato. Revisa que esté bien escrito.",
+      "noMembership": "Sin membresía activa: el pago quedará como saldo a favor de esta persona.",
+      "needsMembership": "Esta persona no tiene una membresía activa a la que asignar el pago.",
+      "confirm": "Es esta persona",
+      "change": "Cambiar",
+      "contract": "Contrato",
+      "creditOnly": "Sin membresía activa: el pago será saldo a favor de esta persona.",
+      "sectionTitle": "Pago a favor de otra persona",
+      "sectionHelp": "Si pagas por un familiar, búscalo y confirma que es la persona correcta. El pago se aplica a su membresía, o queda como saldo a favor suyo si no tiene una.",
+      "toggle": "Pagar a favor de otra persona",
+      "confirmRequired": "Busca y confirma a la persona antes de registrar el pago.",
+      "detailLabel": "Beneficiario",
+      "forLabel": "A favor de {name}"
+    },
+    "savedAccounts": {
+      "label": "Mis cuentas guardadas",
+      "help": "Cuentas desde las que ya pagaste y decidiste recordar.",
+      "placeholder": "Elegir una cuenta guardada",
+      "forget": "Olvidar esta cuenta",
+      "removedToast": "Cuenta olvidada",
+      "remember": "Recordar esta cuenta para próximos pagos",
+      "rememberHelp": "Guardamos los datos de la cuenta desde la que pagas (banco, número o teléfono, según el método) para que no tengas que escribirlos otra vez."
+    },
+    "claim": {
+      "title": "Reportar un problema con este pago",
+      "description": "Si pagaste de más o por error, indícalo aquí. Mientras el reclamo esté abierto ese monto queda congelado y no se usa automáticamente; administración lo revisará contigo.",
+      "remaining": "Saldo disponible de este pago: {amount} {currency}.",
+      "reasonLabel": "Motivo",
+      "reasons": {
+        "ERROR": "Pago por error",
+        "OVERPAID": "Pagué de más",
+        "REFUND_REQUEST": "Quiero un reembolso",
+        "OTHER": "Otro motivo"
+      },
+      "amountLabel": "Monto del reclamo",
+      "amountInvalid": "Debe ser mayor que 0 y no superar el saldo disponible.",
+      "commentLabel": "Comentario",
+      "commentHelp": "Cuéntanos qué ocurrió para que administración pueda gestionarlo.",
+      "confirm": "Enviar reclamo",
+      "savedToast": "Reclamo registrado",
+      "withdrawnToast": "Reclamo retirado",
+      "badge": "En reclamo: {amount}",
+      "action": "Reportar un problema con este pago",
+      "withdraw": "Retirar el reclamo",
+      "detailLabel": "Reclamo abierto",
+      "manageLink": "Gestionar en Reclamos de pagos"
+    },
+    "accountCopy": {
+      "copied": "{what} copiado",
+      "mobilePayment": "Pago móvil",
+      "data": "Datos de la cuenta",
+      "mobilePaymentButton": "Copiar pago móvil",
+      "allButton": "Copiar datos",
+      "mobileHint": "Copia teléfono, cédula o RIF y banco, uno por línea, en el orden que piden los bancos.",
+      "mobileHintWithAmount": "Copia teléfono, cédula o RIF, banco y el monto en bolívares, uno por línea, en el orden que piden los bancos.",
+      "fields": {
+        "method": "Método",
+        "bank": "Banco",
+        "accountType": "Tipo de cuenta",
+        "accountNumber": "Número de cuenta",
+        "holderName": "Titular",
+        "document": "Cédula o RIF",
+        "phone": "Teléfono",
+        "email": "Correo",
+        "accepts": "Acepta"
+      }
     }
   },
   "members": {
@@ -2340,7 +2726,18 @@
       "SPOUSE": "Cónyuge",
       "PARENT": "Padre/Madre",
       "SIBLING": "Hermano/a",
-      "OTHER": "Otro"
+      "OTHER": "Otro",
+      "FRIEND": "Amigo/a"
+    },
+    "emergencyContact": {
+      "title": "Contacto de emergencia",
+      "empty": "Aún no se cargó un contacto de emergencia.",
+      "savedToast": "Contacto de emergencia guardado",
+      "fields": {
+        "name": "Nombre del contacto",
+        "phone": "Teléfono de emergencia",
+        "relationship": "Parentesco"
+      }
     },
     "status": {
       "ACTIVE": "Activo",
@@ -2386,6 +2783,10 @@
       "validation": {
         "documentMin": "Mínimo 5 dígitos",
         "adult": "El titular debe ser mayor de 18 años"
+      },
+      "documentTypes": {
+        "V": "V — Venezolano",
+        "E": "E — Extranjero"
       }
     },
     "delete": {
@@ -2546,6 +2947,8 @@
       "errorBody": "Intenta de nuevo en unos minutos.",
       "card": {
         "holder": "Titular",
+        "expiresAt": "Vence",
+        "inscriptionDue": "Reinscripción pendiente",
         "memberSince": "Afiliado desde",
         "statusActive": "Activo",
         "plan": "Plan",
@@ -2609,6 +3012,7 @@
       "title": "Mis consumos",
       "subtitle": "Historial de los beneficios que usaste en los aliados de la red.",
       "empty": "Todavía no tienes consumos registrados.",
+      "notAffiliatedBody": "Cuando te afilies, aquí verás los beneficios que uses en los aliados de la red.",
       "consumption": "consumo",
       "copay": "Copago",
       "rating": {
@@ -2655,6 +3059,30 @@
         "uncatalogued": "Otros ({category})",
         "filterTooltip": "Ver los consumos de este servicio"
       }
+    },
+    "advisor": {
+      "title": "Mi asesor",
+      "subtitle": "Quién te asesora hoy y quién lo hizo antes.",
+      "notEnrolled": "Aún no eres afiliado, por eso no tienes asesor asignado.",
+      "current": "Asesor actual",
+      "none": "Todavía no tienes un asesor asignado.",
+      "history": "Historial de asesores",
+      "historyEmpty": "Aún no hay cambios de asesor.",
+      "changed": "De {from} a {to}",
+      "assigned": "Asignado a {to}"
+    },
+    "creditHold": {
+      "title": "Saldo a favor",
+      "help": "Congelar el saldo detiene que se use automáticamente para cubrir cuotas (por ejemplo, ante un reembolso).",
+      "frozenTitle": "Saldo congelado",
+      "freeze": "Congelar saldo",
+      "release": "Liberar saldo",
+      "modalTitle": "Congelar el saldo a favor",
+      "modalDescription": "Mientras esté congelado no se aplica automáticamente. El personal aún puede asignarlo a mano si hay un acuerdo con la persona.",
+      "reasonLabel": "Motivo",
+      "confirm": "Congelar",
+      "frozenToast": "Saldo congelado",
+      "releasedToast": "Saldo liberado"
     }
   },
   "memberships": {
@@ -2676,7 +3104,8 @@
       "monthly": "Mensualidad",
       "status": "Estado",
       "enrolledAt": "Afiliado desde",
-      "nextDue": "Próx. pago"
+      "nextDue": "Próx. pago",
+      "expiresAt": "Vence"
     },
     "status": {
       "ACTIVE": "Activa",
@@ -2693,7 +3122,9 @@
       "enrolledAt": "Afiliado desde",
       "enrolledAtHelp": "Vacío = hoy.",
       "expiresAt": "Vence (opcional)",
-      "expiresAtHelp": "Fecha de expiración forzada.",
+      "expiresAtHelp": "Reemplaza el primer vencimiento; debe ser posterior a la fecha de afiliación. Vacío = lo define el plan.",
+      "reinscription": "Reinscripción",
+      "reinscriptionHelp": "Reemplaza la regla del plan. Activarla en un plan sin vigencia exige una fecha de vencimiento y se renueva cada 12 meses.",
       "submit": "Afiliar"
     },
     "lifecycle": {
@@ -2715,12 +3146,69 @@
       "title": "Membresías",
       "description": "Las afiliaciones a planes se gestionan por titular. Busca un afiliado para ver y administrar sus membresías.",
       "searchLabel": "Afiliado",
-      "searchHelp": "Escribe nombre o documento (mín. 2 caracteres).",
+      "searchHelp": "Despliega para ver afiliados o escribe nombre o documento (mín. 1 carácter).",
       "searchPlaceholder": "Busca por nombre o documento…",
       "managingFor": "Gestionando membresías de",
       "viewFullRecord": "Ver expediente completo",
       "emptyTitle": "Selecciona un afiliado",
-      "emptyDescription": "Busca por nombre o documento para gestionar sus membresías."
+      "emptyDescription": "Busca por nombre o documento para gestionar sus membresías.",
+      "emptyList": "No hay membresías con esos filtros.",
+      "manage": "Gestionar membresías del afiliado",
+      "statusFilter": {
+        "ACTIVE": "Activas",
+        "DUE_SOON": "Por vencer",
+        "OVERDUE": "Atrasadas",
+        "SUSPENDED": "Suspendidas",
+        "EXPIRED": "Vencidas",
+        "CANCELED": "Canceladas"
+      },
+      "filters": {
+        "status": "Estado",
+        "advisor": "Asesor",
+        "plan": "Plan",
+        "planType": "Tipo de plan",
+        "any": "Todos",
+        "enrolledFrom": "Afiliación desde",
+        "enrolledTo": "Afiliación hasta",
+        "nextDueFrom": "Próximo vencimiento desde",
+        "nextDueTo": "Próximo vencimiento hasta",
+        "clear": "Quitar filtros"
+      },
+      "columns": {
+        "member": "Afiliado",
+        "advisor": "Asesor",
+        "plan": "Plan",
+        "enrolledAt": "Afiliación",
+        "nextDueDate": "Próx. vencimiento",
+        "status": "Estado",
+        "collection": "Cobro"
+      },
+      "paymentStatus": {
+        "OVERDUE": "Atrasada {days} d",
+        "DUE_SOON": "Por vencer",
+        "UP_TO_DATE": "Al día"
+      }
+    },
+    "contractNumber": "Contrato",
+    "paymentMode": "Modalidad de pago",
+    "term": {
+      "inherit": "Según el plan",
+      "inscriptionDue": "Reinscripción pendiente",
+      "inscriptionDueSince": "Desde {date}",
+      "noExpiry": "Sin vencimiento",
+      "editTooltip": "Editar vigencia",
+      "noPermissionEdit": "No tienes permiso para editar la vigencia",
+      "editTitle": "Vigencia de la membresía",
+      "editDescription": "Cambia la fecha de vencimiento o si esta membresía exige reinscripción.",
+      "snapshotRule": "Regla copiada del plan: {rule}",
+      "reinscriptionLabel": "Exige reinscripción",
+      "reinscriptionHelp": "Al vencer, la membresía se renueva y queda suspendida hasta que se pague la inscripción.",
+      "expiresAt": "Fecha de vencimiento",
+      "expiresAtHelp": "Primer vencimiento de esta membresía; debe ser posterior a la fecha de afiliación.",
+      "expiresAtOpenHelp": "Opcional. Sin reinscripción es solo una fecha de fin: la membresía no se renueva.",
+      "expiresRequired": "Indica la fecha de vencimiento: el plan no define vigencia.",
+      "clearsPendingNotice": "Al quitar la reinscripción también se limpia la reinscripción pendiente de esta membresía.",
+      "savedToast": "Vigencia actualizada"
     }
   },
   "validator": {
@@ -3111,7 +3599,8 @@
         "holderName": "Nombre del titular",
         "holderDocumentType": "Tipo",
         "holderDocumentNumber": "Cédula/RIF del titular",
-        "isDefault": "Marcar como predeterminada"
+        "isDefault": "Marcar como predeterminada",
+        "methods": "Métodos que acepta"
       },
       "placeholders": {
         "phone": "Ej.: 0414-5550101"
@@ -4401,7 +4890,22 @@
       "signingCity": "Ciudad de firma",
       "signingCityHelp": "Ciudad en la que se firman los contratos.",
       "serviceArea": "Zona de cobertura",
-      "serviceAreaHelp": "Zona donde opera la red de aliados (ej.: eje Acarigua-Araure)."
+      "serviceAreaHelp": "Zona donde opera la red de aliados (ej.: eje Acarigua-Araure).",
+      "address": "Dirección",
+      "addressPlaceholder": "Av. 30 con Calle 21, C.C. Ciudad Cristal, Local N° 23, Acarigua",
+      "email": "Correo de contacto",
+      "emailPlaceholder": "contacto{'@'}empresa.com",
+      "phones": "Teléfonos",
+      "phonesHelp": "Tal como se imprimen en los contratos; separe varios números con comas.",
+      "phonesPlaceholder": "(+58)414-5738530, (+58)424-5984590",
+      "signatoryName": "Nombre completo",
+      "signatoryNamePlaceholder": "Ana María Gómez",
+      "signatoryDocument": "Documento",
+      "signatoryDocumentType": "Tipo",
+      "signatoryDocumentNumberPlaceholder": "Número",
+      "signatoryPosition": "Cargo",
+      "signatoryPositionPlaceholder": "Gerente general",
+      "signatoryDocumentIncomplete": "El documento debe indicar tipo y número"
     },
     "sections": {
       "general": "Datos generales",
@@ -4409,7 +4913,11 @@
       "commissions": "Comisiones",
       "socialLinks": "Redes sociales",
       "socialLinksHelp": "Enlaces globales mostrados en el sitio público (pie de página, contacto).",
-      "terms": "Términos y condiciones"
+      "terms": "Términos y condiciones",
+      "contact": "Contacto institucional",
+      "contactHelp": "Dirección, correo y teléfonos que se imprimen al pie de los contratos y términos.",
+      "signatory": "Firmante autorizado",
+      "signatoryHelp": "Persona que firma por la empresa en los contratos (nombre, cédula y cargo). Se imprime en el bloque de firmas."
     },
     "terms": {
       "help": "Tres tipos de contrato. Cada usuario debe aceptar en su próximo inicio de sesión las versiones vigentes que le correspondan, y de nuevo cuando entre en vigencia una versión nueva.",
@@ -4494,7 +5002,8 @@
       "reports": "Reportes",
       "dataChangeAudit": "Auditoría de cambios de datos",
       "reportAudit": "Auditoría de reportes",
-      "sessions": "Sesión y uso del sistema"
+      "sessions": "Sesión y uso del sistema",
+      "patientAccess": "Historia médica para aliados médicos"
     },
     "audit": {
       "sectionTitle": "Auditoría",
@@ -4537,7 +5046,11 @@
       }
     },
     "updatedToast": "Configuración actualizada correctamente",
-    "saveButton": "Guardar cambios"
+    "saveButton": "Guardar cambios",
+    "patientAccess": {
+      "enabled": "Permitir que los médicos aliados vean la historia de sus pacientes",
+      "enabledHelp": "Al escanear el QR de la credencial, el médico de un aliado profesional del área médica puede consultar la historia médica de ese paciente. Mantener apagado hasta que legal confirme la cláusula del Acuerdo de Membresía."
+    }
   },
   "markdownEditor": {
     "source": "Markdown",
@@ -4991,9 +5504,13 @@
       "phone": "Teléfono",
       "plan": "Plan",
       "referralCode": "Código de referido",
-      "advisor": "Asesor"
+      "advisor": "Asesor",
+      "expiresAt": "Vencimiento especial",
+      "reinscriptionRequired": "Reinscripción"
     },
     "detail": {
+      "expiresAtHelp": "Opcional: reemplaza el primer vencimiento que fijaría el plan.",
+      "reinscriptionHelp": "Opcional: reemplaza la regla de reinscripción del plan.",
       "seoPage": "Solicitud de afiliación",
       "notFoundTitle": "Solicitud no encontrada",
       "receivedAt": "Recibida el {date}",
@@ -5131,6 +5648,133 @@
     "previous": "Imagen anterior",
     "next": "Imagen siguiente",
     "showImage": "Ver imagen {n}"
+  },
+  "myBankAccounts": {
+    "title": "Mis cuentas bancarias",
+    "subtitle": "Las cuentas desde las que pagas. Al registrar un pago puedes elegir una de ellas para no escribir todos los datos otra vez.",
+    "profileLink": {
+      "title": "Mis cuentas bancarias",
+      "body": "Las cuentas desde las que pagas, para reutilizarlas en tus pagos."
+    },
+    "add": "Agregar cuenta",
+    "addTitle": "Agregar cuenta",
+    "editTitle": "Editar cuenta",
+    "formHelp": "Son tus propias cuentas de origen; solo tú las ves.",
+    "empty": "Todavía no tienes cuentas guardadas. Son las cuentas desde las que pagas; también puedes guardar una mientras registras un pago.",
+    "fields": {
+      "bank": "Banco",
+      "accountType": "Tipo de cuenta",
+      "accountCode": "Código de cuenta",
+      "accountIdentifier": "Número de cuenta",
+      "identification": "Documento del titular",
+      "alias": "Alias",
+      "paymentMethod": "Método de pago",
+      "account": "Cuenta / teléfono",
+      "phone": "Teléfono",
+      "email": "Correo",
+      "paymentMethods": "Métodos que acepta"
+    },
+    "identificationHelp": "Cédula o RIF del titular de la cuenta.",
+    "aliasHelp": "Un nombre para reconocerla, por ejemplo \"Cuenta nómina\".",
+    "savedToast": "Cuenta guardada",
+    "removedToast": "Cuenta eliminada",
+    "deleteTitle": "Eliminar cuenta",
+    "deleteConfirm": "Esta cuenta dejará de aparecer entre tus cuentas guardadas. Tus pagos ya registrados no cambian."
+  },
+  "paymentClaims": {
+    "title": "Reclamos de pagos",
+    "subtitle": "Reclamos sobre el saldo de un pago. Mientras estén abiertos, ese monto no se aplica automáticamente.",
+    "allStatuses": "Todos los estados",
+    "status": {
+      "OPEN": "Abierto",
+      "KEPT_AS_CREDIT": "Dejado como saldo",
+      "REFUNDED": "Reembolsado",
+      "REJECTED": "Rechazado",
+      "WITHDRAWN": "Retirado",
+      "USED_BY_AGREEMENT": "Usado por acuerdo"
+    },
+    "columns": {
+      "payment": "Pago",
+      "person": "Persona",
+      "reason": "Motivo",
+      "amount": "Monto reclamado",
+      "openedAt": "Fecha",
+      "status": "Estado"
+    },
+    "empty": "No hay reclamos con este filtro.",
+    "viewPayment": "Ver pago",
+    "resolve": "Resolver",
+    "noPermissionResolve": "No tienes permiso para resolver reclamos.",
+    "resolveTitle": "Resolver reclamo",
+    "resolveDescription": "Decide con la persona qué hacer con el monto reclamado.",
+    "claimedSummary": "Monto reclamado: {amount} {currency}.",
+    "actionLabel": "Resolución",
+    "actions": {
+      "KEEP_AS_CREDIT": "Dejar como saldo a favor",
+      "REFUND": "Reembolsar",
+      "REJECT": "Rechazar el reclamo"
+    },
+    "actionHelp": {
+      "KEEP_AS_CREDIT": "El monto vuelve a estar disponible como saldo (monedero) y se cierra el reclamo.",
+      "REFUND": "Se descuenta del saldo y queda registrado como reembolso; la transferencia la gestiona finanzas fuera del sistema.",
+      "REJECT": "Se cierra el reclamo y el monto vuelve a estar disponible."
+    },
+    "refundedAmountLabel": "Monto a reembolsar",
+    "refundedAmountInvalid": "Debe ser mayor que 0 y no superar el monto reclamado.",
+    "noteLabel": "Nota de resolución",
+    "confirm": "Resolver",
+    "resolvedToast": "Reclamo resuelto"
+  },
+  "publicAccounts": {
+    "seoTitle": "Cuentas para pagar — OptiBienestar 360",
+    "seoDescription": "Cuentas bancarias de OptiBienestar 360 donde puedes depositar o transferir tu pago.",
+    "title": "Cuentas para pagar",
+    "subtitle": "Estas son las cuentas donde puedes depositar o transferir. Después registra tu pago indicando en cuál lo hiciste.",
+    "empty": "Por ahora no hay cuentas públicas disponibles.",
+    "loadFailed": "No pudimos cargar las cuentas. Intenta de nuevo más tarde.",
+    "copy": "Copiar número",
+    "copied": "Número copiado",
+    "copyFailed": "No se pudo copiar el número"
+  },
+  "banks": {
+    "officialNameTooltip": "Nombre oficial: {name}"
+  },
+  "patientAccess": {
+    "viewRecord": "Ver historia médica",
+    "record": {
+      "title": "Historia médica",
+      "loggedNotice": "Esta consulta queda registrada y el paciente puede verla.",
+      "failed": "No se pudo cargar la historia médica.",
+      "empty": "El paciente aún no tiene historia médica registrada."
+    },
+    "patients": {
+      "seoTitle": "Mis pacientes — OptiBienestar 360",
+      "title": "Mis pacientes",
+      "subtitle": "Pacientes cuya credencial escaneaste. Puedes consultar su historia médica mientras no revoquen el acceso.",
+      "scanCta": "Escanear credencial",
+      "disabledTitle": "Función no activada",
+      "disabledDescription": "La consulta de historia médica por aliados todavía no está activada.",
+      "notEligibleTitle": "No disponible para este aliado",
+      "notEligibleDescription": "Solo el médico o un operador médico de un aliado profesional del área médica puede consultar la historia de sus pacientes.",
+      "empty": "Todavía no tienes pacientes. Escanea el QR de la credencial de un afiliado en el validador.",
+      "since": "Desde {date}"
+    },
+    "mine": {
+      "title": "Quién vio mi historia",
+      "subtitle": "Médicos aliados que pueden consultar tu historia médica porque escanearon tu credencial, y cada vez que la consultaron.",
+      "activeTitle": "Con acceso",
+      "noActive": "Ningún médico tiene acceso a tu historia médica.",
+      "since": "desde {date}",
+      "revoke": "Revocar acceso",
+      "readsTitle": "Consultas",
+      "noReads": "Nadie ha consultado tu historia médica.",
+      "revokedTitle": "Accesos revocados",
+      "revokedOn": "revocado el {date}",
+      "revokeTitle": "Revocar acceso",
+      "revokeDescription": "{doctor} dejará de ver tu historia médica. Si vuelve a escanear tu credencial, recuperará el acceso.",
+      "cancel": "Cancelar",
+      "revokedToast": "Acceso revocado"
+    }
   },
   "rating": {
     "none": "Sin calificaciones todavía",

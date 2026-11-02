@@ -56,7 +56,7 @@ export function isNavGroup(entry: NavEntry): entry is NavGroup {
 // NO se repiten en Datos maestros. `currencies` se muda a Finanzas junto con
 // Tasas de cambio (mismo dominio multi-moneda, ADR 0015) — hub plan
 // payments-unification §"Reorganización de menú".
-const CATALOGS_IN_VERTICALS = new Set<string>(['ally-types', 'product-categories', 'professions', 'advisor-types', 'advisor-ranks', 'banks', 'payment-categories', 'payment-methods', 'currencies'])
+const CATALOGS_IN_VERTICALS = new Set<string>(['ally-types', 'product-categories', 'professions', 'licensing-bodies', 'advisor-types', 'advisor-ranks', 'banks', 'payment-categories', 'payment-methods', 'currencies'])
 
 // El resto de catálogos alimenta "Datos maestros": derivados del registro, así el
 // grupo y su mosaico quedan siempre sincronizados con lo que existe en el sistema.
@@ -102,6 +102,7 @@ export const MAIN_NAV: NavEntry[] = [
       { label: 'Productos y servicios', labelKey: 'nav.items.products.label', to: '/dashboard/products', icon: 'i-lucide-package-search', description: 'Catálogo maestro de productos y servicios que ofrecen los aliados.', descriptionKey: 'nav.items.products.description', requires: 'PRODUCT_VIEW_ALL' },
       { label: 'Revisión de ofertas', labelKey: 'nav.items.allyProductReview.label', to: '/dashboard/ally-products/pending', icon: 'i-lucide-clipboard-check', description: 'Ofertas de aliados pendientes de aprobar o rechazar.', descriptionKey: 'nav.items.allyProductReview.description', requires: 'ALLY_PRODUCT_APPROVE' },
       { label: 'Profesiones', labelKey: 'nav.items.professions.label', to: '/dashboard/catalogs/professions', icon: 'i-lucide-stethoscope', description: 'Profesiones de los aliados.', descriptionKey: 'nav.items.professions.description', requires: 'PROFESSION_VIEW_ALL' },
+      { label: 'Entes emisores de colegiaturas', labelKey: 'nav.items.licensingBodies.label', to: '/dashboard/catalogs/licensing-bodies', icon: 'i-lucide-badge-check', description: 'Organismos que emiten colegiaturas (M.P.P.S., Colegio de Médicos…).', descriptionKey: 'nav.items.licensingBodies.description', requires: 'LICENSING_BODY_VIEW_ALL' },
       { label: 'Aliados', labelKey: 'nav.items.allies.label', to: '/dashboard/allies', icon: 'i-lucide-handshake', description: 'Comercios y prestadores de la red.', descriptionKey: 'nav.items.allies.description', requires: 'ALLY_VIEW_ALL' },
     ],
   },
@@ -149,6 +150,10 @@ export const MAIN_NAV: NavEntry[] = [
     children: [
       { label: 'Monedas', labelKey: 'nav.items.currencies.label', to: '/dashboard/catalogs/currencies', icon: 'i-lucide-coins', description: 'Catálogo de monedas.', descriptionKey: 'nav.items.currencies.description', requires: 'CURRENCY_VIEW_ALL' },
       { label: 'Bancos', labelKey: 'nav.items.banks.label', to: '/dashboard/catalogs/banks', icon: 'i-lucide-landmark', description: 'Catálogo de bancos venezolanos (SUDEBAN).', descriptionKey: 'nav.items.banks.description', requires: 'BANK_VIEW_ALL' },
+      // Cuentas propias de la empresa (V201): las que ven los pagadores para indicar a dónde pagaron.
+      { label: 'Cuentas de la empresa', labelKey: 'nav.items.companyBankAccounts.label', to: '/dashboard/company-bank-accounts', icon: 'i-lucide-piggy-bank', description: 'Cuentas bancarias de OptiBienestar donde se reciben los pagos.', descriptionKey: 'nav.items.companyBankAccounts.description', requires: 'COMPANY_BANK_ACCOUNT_VIEW' },
+      // Reclamos sobre el saldo de un pago (ADR 0029): la persona o el personal marca un pago como erróneo, de más o con solicitud de reembolso.
+      { label: 'Reclamos de pagos', labelKey: 'nav.items.paymentClaims.label', to: '/dashboard/payment-claims', icon: 'i-lucide-message-square-warning', description: 'Reclamos sobre el saldo de un pago: reembolsos, errores y pagos de más.', descriptionKey: 'nav.items.paymentClaims.description', requires: 'COLLECTION_CLAIM_VIEW_ALL' },
       { label: 'Tasas de cambio', labelKey: 'nav.items.exchangeRates.label', to: '/dashboard/settings/exchange-rates', icon: 'i-lucide-banknote', description: 'Historial de tasas BCV/API + carga manual.', descriptionKey: 'nav.items.exchangeRates.description', requires: 'EXCHANGE_RATE_VIEW_ALL' },
       { label: 'Métodos de pago', labelKey: 'nav.items.paymentMethods.label', to: '/dashboard/catalogs/payment-methods', icon: 'i-lucide-credit-card', description: 'Formas de pago: efectivo, transferencia, Zelle, etc.', descriptionKey: 'nav.items.paymentMethods.description', requires: 'PAYMENT_METHOD_VIEW_ALL' },
       { label: 'Categorías de pago', labelKey: 'nav.items.paymentCategories.label', to: '/dashboard/catalogs/payment-categories', icon: 'i-lucide-tags', description: 'Motivos de cobro y pago (cuota, comisión, bono, etc.).', descriptionKey: 'nav.items.paymentCategories.description', requires: 'PAYMENT_CATEGORY_VIEW_ALL' },
@@ -228,14 +233,19 @@ export const MAIN_NAV: NavEntry[] = [
     children: [
       { label: 'Mi carnet', labelKey: 'nav.items.myCard.label', to: '/members', icon: 'i-lucide-id-card', description: 'Tu carnet de afiliado.', descriptionKey: 'nav.items.myCard.description', requires: 'MEMBER_VIEW_OWN' },
       { label: 'Mis consumos', labelKey: 'nav.items.myUsage.label', to: '/members/usage', icon: 'i-lucide-clipboard-list', description: 'Tus usos del beneficio en aliados.', descriptionKey: 'nav.items.myUsage.description', requires: 'MEMBER_VIEW_OWN' },
+      { label: 'Quién vio mi historia', labelKey: 'nav.items.myMedicalAccess.label', to: '/members/medical-access', icon: 'i-lucide-shield-check', description: 'Médicos aliados con acceso a tu historia médica.', descriptionKey: 'nav.items.myMedicalAccess.description', requires: 'ALLY_PATIENT_LINK_VIEW_OWN' },
       { label: 'Mi perfil', labelKey: 'nav.items.promoterProfile.label', to: '/advisors', icon: 'i-lucide-qr-code', description: 'Tu foto y tu QR de afiliación.', descriptionKey: 'nav.items.promoterProfile.description', requires: 'PROMOTER_VIEW_OWN' },
-      { label: 'Mi empresa aliada', labelKey: 'nav.items.myAllyCompany.label', to: '/allies', icon: 'i-lucide-building-2', description: 'Panel de tu empresa aliada.', descriptionKey: 'nav.items.myAllyCompany.description', roles: [ROLES.ALLY] },
+      { label: 'Mi espacio de aliado', labelKey: 'nav.items.myAllyCompany.label', to: '/allies', icon: 'i-lucide-building-2', description: 'Panel de tu espacio como aliado, comercial o profesional.', descriptionKey: 'nav.items.myAllyCompany.description', roles: [ROLES.ALLY] },
       { label: 'Validador', labelKey: 'nav.items.validator.label', to: '/allies/validator', icon: 'i-lucide-scan-line', description: 'Valida la solvencia de un afiliado.', descriptionKey: 'nav.items.validator.description', requires: 'ALLY_VALIDATE_MEMBER' },
       { label: 'Consumos', labelKey: 'nav.items.usageHistory.label', to: '/allies/history', icon: 'i-lucide-clipboard-list', description: 'Beneficios registrados en tu aliado.', descriptionKey: 'nav.items.usageHistory.description', requires: 'ALLY_VIEW_OWN' },
+      // Hub ADR 0032: the backend narrows it to the doctor / OPERADOR_MEDICO of a B2P medical ally.
+      { label: 'Mis pacientes', labelKey: 'nav.items.myPatients.label', to: '/allies/patients', icon: 'i-lucide-stethoscope', description: 'Pacientes cuya historia médica puedes consultar.', descriptionKey: 'nav.items.myPatients.description', requires: 'MEMBER_MEDICAL_RECORD_VIEW_PATIENT' },
       // Autoservicio (hub plan payments-unification, §"Pantallas requeridas") —
       // mismo endpoint/tabla que las pantallas de admin, filtrado por el
       // propio afiliado/promotor autenticado.
-      { label: 'Mis pagos', labelKey: 'nav.items.myPayments.label', to: '/members/payments', icon: 'i-lucide-receipt', description: 'Tu historial de pagos de membresía.', descriptionKey: 'nav.items.myPayments.description', requires: 'COLLECTION_VIEW_OWN' },
+      { label: 'Mis pagos', labelKey: 'nav.items.myPayments.label', to: '/members/payments', icon: 'i-lucide-receipt', description: 'Tu historial de pagos y tu saldo a favor.', descriptionKey: 'nav.items.myPayments.description', requires: 'COLLECTION_VIEW_OWN' },
+      // V201: any portal role can see who advises them (current advisor + history).
+      { label: 'Mi asesor', labelKey: 'nav.items.myAdvisor.label', to: '/members/advisor', icon: 'i-lucide-user-round-check', description: 'Tu asesor actual y los anteriores.', descriptionKey: 'nav.items.myAdvisor.description', requires: 'MEMBER_ADVISOR_VIEW_OWN' },
       // Gestión de Cartera del asesor (v2 PDF 2.b): portfolio + collection score,
       // with reminder / payment-promise actions gated by PROMOTER_CONTACT_OWN in-page.
       // Requests that came through the advisor's own QR (backend V188), read-only.
@@ -249,6 +259,8 @@ export const MAIN_NAV: NavEntry[] = [
 
 export const OTHER_NAV: NavLeaf[] = [
   { label: 'Cambiar contraseña', labelKey: 'nav.other.changePassword', to: '/dashboard/change-password', icon: 'i-lucide-key-round' },
+  // Any authenticated user: the origin bank accounts they chose to remember (GET /v1/me/bank-accounts, own data).
+  { label: 'Mis cuentas bancarias', labelKey: 'nav.other.myBankAccounts', to: '/dashboard/my-bank-accounts', icon: 'i-lucide-landmark' },
   // Any authenticated user: the contracts they accepted (GET /v1/me/terms/acceptances).
   { label: 'Mis contratos', labelKey: 'nav.other.myContracts', to: '/dashboard/contracts', icon: 'i-lucide-file-check-2' },
 ]

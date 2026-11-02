@@ -1,13 +1,28 @@
-import type { MembershipCreateRequest, MembershipDto } from '~/types/memberships'
+import type { Page } from '~/types/admin'
+import type { MembershipCreateRequest, MembershipDto, MembershipListItemDto, MembershipSearchParams, MembershipTermUpdateRequest } from '~/types/memberships'
 
 /**
  * Access to the Memberships vertical. Memberships are a sub-resource of a member
  * (enroll/list/detail live under the member), while the lifecycle transitions
  * (cancel/reactivate) hang off the flat `/v1/admin/memberships/{uuid}` root.
  * Permissions: view -> MEMBERSHIP_VIEW_ALL · enroll -> MEMBERSHIP_CREATE ·
- * cancel -> MEMBERSHIP_CANCEL · reactivate -> MEMBERSHIP_REACTIVATE.
+ * cancel -> MEMBERSHIP_CANCEL · reactivate -> MEMBERSHIP_REACTIVATE · edit term -> MEMBERSHIP_TERM_UPDATE.
  */
 export const useMemberships = () => {
+  /**
+   * Cross-member list with filters (`GET /v1/admin/memberships`, MEMBERSHIP_VIEW_ALL). Empty params are
+   * omitted; `status` accepts the lifecycle values plus the derived OVERDUE / DUE_SOON.
+   */
+  const search = (params: MembershipSearchParams = {}) => {
+    const { page, size, sort, ...filters } = params
+    const query: Record<string, unknown> = { page: page ?? 0, size: size ?? 20 }
+    if (sort?.length) query.sort = sort
+    for (const [key, value] of Object.entries(filters)) {
+      if (value !== undefined && value !== null && value !== '') query[key] = value
+    }
+    return useApi<Page<MembershipListItemDto>>('/v1/admin/memberships', { query })
+  }
+
   /** A member's memberships (flat array, not paginated). */
   const listForMember = (memberUuid: string) =>
     useApi<MembershipDto[]>(`/v1/admin/members/${memberUuid}/memberships`)
@@ -33,5 +48,9 @@ export const useMemberships = () => {
       body: reason ? { reason } : {},
     })
 
-  return { listForMember, get, enroll, cancel, reactivate }
+  /** Edit the term (expiry / re-inscription flag) of a membership (hub ADR 0034). */
+  const updateTerm = (uuid: string, body: MembershipTermUpdateRequest) =>
+    useApi<MembershipDto>(`/v1/admin/memberships/${uuid}/term`, { method: 'PUT', body })
+
+  return { search, listForMember, get, enroll, cancel, reactivate, updateTerm }
 }

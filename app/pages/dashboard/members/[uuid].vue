@@ -42,6 +42,8 @@ const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditRep
 const auditOpen = ref(false)
 const canViewMedical = computed(() => can('MEDICAL_RECORD_VIEW'))
 const canEditMedical = computed(() => can('MEDICAL_RECORD_UPDATE'))
+// Titular's emergency contact (V212): its own permissions, without the rest of the medical record.
+const canViewEmergency = computed(() => useEmergencyContact().permissions('admin').view.some(p => can(p)))
 
 // Localized enum options + resolvers.
 const relationshipOptions = computed(() => RELATIONSHIP_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
@@ -162,6 +164,9 @@ const tabs = computed(() => [
   { label: t('memberships.title'), value: 'memberships', icon: 'i-lucide-badge-check' },
   { label: t('referrals.code.title'), value: 'referral', icon: 'i-lucide-ticket' },
   { label: t('members.promoter.title'), value: 'promoter', icon: 'i-lucide-megaphone' },
+  ...(canViewEmergency.value
+    ? [{ label: t('members.emergencyContact.title'), value: 'emergency', icon: 'i-lucide-phone-call' }]
+    : []),
   ...(canViewMedical.value
     ? [{ label: t('members.medical.title'), value: 'medical', icon: 'i-lucide-heart-pulse' }]
     : []),
@@ -738,6 +743,16 @@ async function refreshAll() {
         @confirmed="loadMember"
       />
 
+      <!-- Credit hold: freezes the automatic use of this person's credit (hub ADR 0029) -->
+      <MemberCreditHoldCard
+        v-if="member"
+        :member-uuid="memberUuid"
+        :credit-auto-apply="member.creditAutoApply"
+        :hold-reason="member.creditHoldReason"
+        :hold-at-display="member.creditHoldAt_Display"
+        @changed="loadMember"
+      />
+
       <!-- Sub-resource tabs -->
       <UTabs v-model="activeTab" :items="tabs" :content="false" />
 
@@ -897,6 +912,11 @@ async function refreshAll() {
       </div>
 
       <!-- Medical record -->
+      <!-- Emergency contact (self-gated by MEMBER_EMERGENCY_CONTACT_* / MEDICAL_RECORD_VIEW) -->
+      <div v-if="canViewEmergency" v-show="activeTab === 'emergency'">
+        <MemberEmergencyContactCard scope="admin" :member-uuid="memberUuid" />
+      </div>
+
       <div v-if="canViewMedical" v-show="activeTab === 'medical'" class="bg-white rounded-2xl border border-prohealth-100">
         <div class="flex items-center justify-between px-6 py-4 border-b border-prohealth-100">
           <div>

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { offerDiscountText } from '~/utils/offerDiscount'
+import { professionLabel, professionTreeItems } from '~/utils/professionLabel'
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { ApiError } from '~/types/auth'
@@ -40,6 +42,7 @@ const { can } = usePermissions()
 const toast = useToast()
 
 const canUpdate = computed(() => can('ALLY_UPDATE'))
+const canUpdateOpeningHours = computed(() => can('ALLY_OPENING_HOURS_UPDATE'))
 const canDelete = computed(() => can('ALLY_DELETE'))
 const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('ALLY_RECORD_AUDIT_VIEW'))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('ALLY_REPORT_AUDIT_VIEW'))
@@ -51,6 +54,8 @@ const canCreateAgreements = computed(() => can('ALLY_AGREEMENT_CREATE'))
 const canUpdateAgreements = computed(() => can('ALLY_AGREEMENT_UPDATE'))
 const canDeleteAgreements = computed(() => can('ALLY_AGREEMENT_DELETE'))
 const canViewStaff = computed(() => can('ALLY_USER_VIEW_ALL'))
+// Licenses (V213) only exist for a professional (B2P) ally's holder person.
+const canViewLicenses = computed(() => can('PERSON_LICENSE_VIEW_ALL') && ally.value?.segment === 'B2P')
 const canCreateStaff = computed(() => can('ALLY_USER_CREATE'))
 const canUpdateStaff = computed(() => can('ALLY_USER_UPDATE'))
 const canDeleteStaff = computed(() => can('ALLY_USER_DELETE'))
@@ -159,6 +164,10 @@ const tabs = computed(() => [
     : []),
   { label: t('allies.tabs.professions'), value: 'professions', icon: 'i-lucide-stethoscope' },
   { label: t('allies.tabs.allyTypes'), value: 'allyTypes', icon: 'i-lucide-tags' },
+  ...(canViewLicenses.value
+    ? [{ label: t('allies.tabs.licenses'), value: 'licenses', icon: 'i-lucide-badge-check' }]
+    : []),
+  { label: t('allies.tabs.openingHours'), value: 'openingHours', icon: 'i-lucide-clock' },
   ...(canViewAgreements.value
     ? [{ label: t('allies.tabs.agreements'), value: 'agreements', icon: 'i-lucide-file-signature' }]
     : []),
@@ -362,7 +371,7 @@ function reviewStatusColor(s?: string): 'success' | 'warning' | 'error' | 'info'
 // =========================================================
 // Professions (ManyToMany)
 // =========================================================
-const professions = ref<CatalogRef[]>([])
+const professions = ref<(CatalogRef & { parent_Uuid?: string | null, parent_Display?: string | null })[]>([])
 const professionsLoading = ref(false)
 const allProfessionOptions = ref<{ label: string, value: string }[]>([])
 const professionToAdd = ref<string | undefined>(undefined)
@@ -383,8 +392,10 @@ async function loadProfessions() {
 
 async function loadAllProfessions() {
   try {
-    const items = await useCatalogOptions('professions').options({ limit: 200 })
-    allProfessionOptions.value = toSelectItems(items)
+    // Full list (not the flat options) so sub-specialties (V213) show under
+    // their general profession.
+    const items = await useCatalog('/v1/admin/catalogs/professions').listAll()
+    allProfessionOptions.value = professionTreeItems(items)
   }
   catch {
     allProfessionOptions.value = []
@@ -980,6 +991,9 @@ onMounted(async () => {
               <UBadge :color="ally.published ? 'success' : 'neutral'" variant="subtle">
                 {{ ally.published ? t('allies.published') : t('allies.draft') }}
               </UBadge>
+              <UBadge v-if="ally.segment" :color="ally.segment === 'B2P' ? 'info' : 'primary'" variant="subtle" icon="i-lucide-layers">
+                {{ ally.segment_Display || t(`allies.segments.${ally.segment}`) }}
+              </UBadge>
               <UTooltip v-if="ally.fileNumber" :text="t('allies.detail.fileNumberHint')">
                 <UBadge color="info" variant="outline" icon="i-lucide-folder-open" class="font-mono">
                   {{ t('allies.detail.fileNumber', { number: ally.fileNumber }) }}
@@ -1109,13 +1123,63 @@ onMounted(async () => {
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.form.fields.capturedByPromoter') }}</dt>
             <dd class="text-prohealth-800 mt-0.5">{{ ally.capturedByPromoter_Display || t('common.empty') }}</dd>
           </div>
+          <!-- Holder person (V209): professional (B2P) or signing representative (B2B). -->
           <div>
-            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.form.fields.representativeName') }}</dt>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">
+              {{ ally.segment === 'B2P' ? t('allies.form.holder.professionalTitle') : t('allies.form.holder.representativeTitle') }}
+            </dt>
             <dd class="text-prohealth-800 mt-0.5">
-              {{ ally.representativeName || t('common.empty') }}
-              <template v-if="ally.representativeDocumentNumber"> · {{ ally.representativeDocumentType }}-{{ ally.representativeDocumentNumber }}</template>
+              <template v-if="ally.holder">
+                {{ ally.holder.fullName || `${ally.holder.firstName} ${ally.holder.lastName}` }}
+                · {{ ally.holder.documentType }}-{{ ally.holder.documentNumber }}
+                <template v-if="ally.segment !== 'B2P' && ally.representativePosition"> · {{ ally.representativePosition }}</template>
+              </template>
+              <template v-else-if="ally.representativeName">
+                {{ ally.representativeName }}
+                <template v-if="ally.representativeDocumentNumber"> · {{ ally.representativeDocumentType }}-{{ ally.representativeDocumentNumber }}</template>
+              </template>
+              <template v-else>{{ t('common.empty') }}</template>
             </dd>
           </div>
+          <template v-if="ally.segment === 'B2P'">
+            <div>
+              <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.form.fields.hostName') }}</dt>
+              <dd class="text-prohealth-800 mt-0.5">{{ ally.hostAlly_Display || ally.hostName || t('common.empty') }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.form.fields.officeNumber') }}</dt>
+              <dd class="text-prohealth-800 mt-0.5">{{ ally.officeNumber || t('common.empty') }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.form.fields.appointmentPhone') }}</dt>
+              <dd class="text-prohealth-800 mt-0.5">{{ ally.appointmentPhone || t('common.empty') }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.form.fields.assistantName') }}</dt>
+              <dd class="text-prohealth-800 mt-0.5">{{ ally.assistantName || t('common.empty') }}</dd>
+            </div>
+          </template>
+          <template v-else>
+            <div>
+              <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.form.fields.tradeName') }}</dt>
+              <dd class="text-prohealth-800 mt-0.5">{{ ally.tradeName || t('common.empty') }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.form.fields.commercialZone') }}</dt>
+              <dd class="text-prohealth-800 mt-0.5">{{ ally.commercialZone || t('common.empty') }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.detail.fields.operation') }}</dt>
+              <dd class="text-prohealth-800 mt-0.5">
+                {{ t('allies.detail.operationSummary', {
+                  founded: ally.foundedYear ?? '—',
+                  registers: ally.cashRegistersCount ?? '—',
+                  branches: ally.branchesCount ?? '—',
+                  pos: ally.hasPos == null ? '—' : (ally.hasPos ? t('common.yes') : t('common.no')),
+                }) }}
+              </dd>
+            </div>
+          </template>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.form.fields.referralCode') }}</dt>
             <dd class="text-prohealth-800 mt-0.5 font-mono">{{ ally.referralCode || t('common.empty') }}</dd>
@@ -1281,7 +1345,7 @@ onMounted(async () => {
                   </CurrencyConverterDisplay>
                   <template v-else>{{ t('common.empty') }}</template>
                 </td>
-                <td class="px-6 py-3 text-prohealth-700">{{ p.discountPct != null && p.discountPct !== '' ? `${p.discountPct}%` : t('common.empty') }}</td>
+                <td class="px-6 py-3 text-prohealth-700">{{ offerDiscountText(p, money, t('common.empty')) }}</td>
                 <td class="px-6 py-3 font-semibold text-prohealth-900">{{ money(p.finalPrice) }}</td>
                 <td class="px-6 py-3">
                   <UBadge :color="reviewStatusColor(p.reviewStatus)" variant="subtle" size="sm" :title="p.reviewReason || undefined">
@@ -1387,7 +1451,7 @@ onMounted(async () => {
               value-key="value"
               :placeholder="t('common.select')"
               :disabled="!canUpdate"
-              class="w-48"
+              class="w-64"
             />
             <UButton
               color="primary"
@@ -1425,7 +1489,7 @@ onMounted(async () => {
               size="lg"
               class="gap-1.5"
             >
-              {{ s.name }}
+              {{ professionLabel(s) }}
               <UButton
                 v-if="canUpdate"
                 color="primary"
@@ -1438,6 +1502,23 @@ onMounted(async () => {
               />
             </UBadge>
           </div>
+        </div>
+      </div>
+
+      <!-- ============ Licenses (B2P, V213) ============ -->
+      <AllyLicensesPanel
+        v-if="canViewLicenses && activeTab === 'licenses'"
+        :ally-uuid="allyUuid"
+        :has-holder="Boolean(ally?.holder)"
+      />
+      <!-- ============ Opening hours (V214, hub ADR 0031 §7) ============ -->
+      <div v-if="activeTab === 'openingHours'" class="bg-white rounded-2xl border border-prohealth-100">
+        <div class="px-6 py-4 border-b border-prohealth-100">
+          <h2 class="font-bold text-prohealth-900">{{ t('allies.openingHours.title') }}</h2>
+          <p class="text-xs text-prohealth-500 mt-0.5">{{ t('allies.openingHours.hint') }}</p>
+        </div>
+        <div class="px-6 py-4">
+          <AllyOpeningHoursEditor :ally-uuid="allyUuid" scope="admin" :readonly="!canUpdateOpeningHours" />
         </div>
       </div>
 

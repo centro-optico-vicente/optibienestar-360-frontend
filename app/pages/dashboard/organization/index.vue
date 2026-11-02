@@ -47,7 +47,16 @@ const state = reactive({
   registryState: '',
   signingCity: '',
   serviceArea: '',
+  address: '',
+  email: '',
+  phones: '',
+  signatoryName: '',
+  signatoryDocumentType: undefined as string | undefined,
+  signatoryDocumentNumber: '',
+  signatoryPosition: '',
 })
+
+const signatoryDocumentTypeItems = ['V', 'E', 'J', 'G', 'P'].map(value => ({ label: value, value }))
 
 const schema = computed(() =>
   z.object({
@@ -87,7 +96,42 @@ const schema = computed(() =>
       .max(150, t('validation.maxChars', { n: 150 }))
       .optional()
       .or(z.literal('')),
-  })
+    address: z
+      .string()
+      .max(500, t('validation.maxChars', { n: 500 }))
+      .optional()
+      .or(z.literal('')),
+    email: z
+      .string()
+      .email(t('validation.emailInvalid'))
+      .max(254, t('validation.maxChars', { n: 254 }))
+      .optional()
+      .or(z.literal('')),
+    phones: z
+      .string()
+      .max(100, t('validation.maxChars', { n: 100 }))
+      .optional()
+      .or(z.literal('')),
+    signatoryName: z
+      .string()
+      .max(200, t('validation.maxChars', { n: 200 }))
+      .optional()
+      .or(z.literal('')),
+    signatoryDocumentType: z.string().optional(),
+    signatoryDocumentNumber: z
+      .string()
+      .max(20, t('validation.maxChars', { n: 20 }))
+      .optional()
+      .or(z.literal('')),
+    signatoryPosition: z
+      .string()
+      .max(100, t('validation.maxChars', { n: 100 }))
+      .optional()
+      .or(z.literal('')),
+  }).refine(
+    v => !!v.signatoryDocumentType === !!v.signatoryDocumentNumber?.trim(),
+    { message: t('organization.fields.signatoryDocumentIncomplete'), path: ['signatoryDocumentNumber'] },
+  )
 )
 
 // Snapshot of the last server-loaded state, used to warn before a refresh
@@ -128,6 +172,13 @@ async function load() {
       state.registryState = org.registryState ?? ''
       state.signingCity = org.signingCity ?? ''
       state.serviceArea = org.serviceArea ?? ''
+      state.address = org.address ?? ''
+      state.email = org.email ?? ''
+      state.phones = org.phones ?? ''
+      state.signatoryName = org.signatoryName ?? ''
+      state.signatoryDocumentType = org.signatoryDocumentType ?? undefined
+      state.signatoryDocumentNumber = org.signatoryDocumentNumber ?? ''
+      state.signatoryPosition = org.signatoryPosition ?? ''
     }
     else {
       toast.add({ title: t('organization.loadError'), color: 'error', icon: 'i-lucide-alert-triangle' })
@@ -167,6 +218,13 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       registryState: state.registryState || undefined,
       signingCity: state.signingCity || undefined,
       serviceArea: state.serviceArea || undefined,
+      address: state.address || undefined,
+      email: state.email || undefined,
+      phones: state.phones || undefined,
+      signatoryName: state.signatoryName || undefined,
+      signatoryDocumentType: state.signatoryDocumentType || undefined,
+      signatoryDocumentNumber: state.signatoryDocumentNumber || undefined,
+      signatoryPosition: state.signatoryPosition || undefined,
     })
     state.name = updated.name
     state.legalName = updated.legalName ?? ''
@@ -181,6 +239,13 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     state.registryState = updated.registryState ?? ''
     state.signingCity = updated.signingCity ?? ''
     state.serviceArea = updated.serviceArea ?? ''
+    state.address = updated.address ?? ''
+    state.email = updated.email ?? ''
+    state.phones = updated.phones ?? ''
+    state.signatoryName = updated.signatoryName ?? ''
+    state.signatoryDocumentType = updated.signatoryDocumentType ?? undefined
+    state.signatoryDocumentNumber = updated.signatoryDocumentNumber ?? ''
+    state.signatoryPosition = updated.signatoryPosition ?? ''
     snapshot.value = snapshotState()
     // Served T&C resolve {{org.*}} from these fields, so the previews are now stale.
     for (const type of TERM_TYPE_TABS) termTabs[type].loaded = false
@@ -727,6 +792,92 @@ onMounted(() => {
               :disabled="!canUpdate || isSubmitting"
             />
           </UFormField>
+        </div>
+
+        <!-- Contacto institucional (pie de los contratos) -->
+        <div class="bg-white rounded-2xl border border-prohealth-100 p-6 shadow-sm space-y-4 lg:col-span-2">
+          <div>
+            <h2 class="text-base font-bold text-prohealth-900">{{ t('organization.sections.contact') }}</h2>
+            <p class="text-xs text-prohealth-700/70 mt-0.5">{{ t('organization.sections.contactHelp') }}</p>
+          </div>
+          <UFormField :label="t('organization.fields.address')" name="address">
+            <UTextarea
+              v-model="state.address"
+              :rows="2"
+              :placeholder="t('organization.fields.addressPlaceholder')"
+              class="w-full"
+              :disabled="!canUpdate || isSubmitting"
+            />
+          </UFormField>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <UFormField :label="t('organization.fields.email')" name="email">
+              <UInput
+                v-model="state.email"
+                type="email"
+                icon="i-lucide-mail"
+                :placeholder="t('organization.fields.emailPlaceholder')"
+                class="w-full"
+                :disabled="!canUpdate || isSubmitting"
+              />
+            </UFormField>
+            <UFormField
+              :label="t('organization.fields.phones')"
+              :help="t('organization.fields.phonesHelp')"
+              name="phones"
+            >
+              <UInput
+                v-model="state.phones"
+                icon="i-lucide-phone"
+                :placeholder="t('organization.fields.phonesPlaceholder')"
+                class="w-full"
+                :disabled="!canUpdate || isSubmitting"
+              />
+            </UFormField>
+          </div>
+        </div>
+
+        <!-- Firmante autorizado (firma por la empresa en los contratos) -->
+        <div class="bg-white rounded-2xl border border-prohealth-100 p-6 shadow-sm space-y-4 lg:col-span-2">
+          <div>
+            <h2 class="text-base font-bold text-prohealth-900">{{ t('organization.sections.signatory') }}</h2>
+            <p class="text-xs text-prohealth-700/70 mt-0.5">{{ t('organization.sections.signatoryHelp') }}</p>
+          </div>
+          <UFormField :label="t('organization.fields.signatoryName')" name="signatoryName">
+            <UInput
+              v-model="state.signatoryName"
+              icon="i-lucide-signature"
+              :placeholder="t('organization.fields.signatoryNamePlaceholder')"
+              class="w-full"
+              :disabled="!canUpdate || isSubmitting"
+            />
+          </UFormField>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <UFormField :label="t('organization.fields.signatoryDocument')" name="signatoryDocumentNumber">
+              <div class="flex gap-2">
+                <USelect
+                  v-model="state.signatoryDocumentType"
+                  :items="signatoryDocumentTypeItems"
+                  :placeholder="t('organization.fields.signatoryDocumentType')"
+                  class="w-28"
+                  :disabled="!canUpdate || isSubmitting"
+                />
+                <UInput
+                  v-model="state.signatoryDocumentNumber"
+                  :placeholder="t('organization.fields.signatoryDocumentNumberPlaceholder')"
+                  class="flex-1"
+                  :disabled="!canUpdate || isSubmitting"
+                />
+              </div>
+            </UFormField>
+            <UFormField :label="t('organization.fields.signatoryPosition')" name="signatoryPosition">
+              <UInput
+                v-model="state.signatoryPosition"
+                :placeholder="t('organization.fields.signatoryPositionPlaceholder')"
+                class="w-full"
+                :disabled="!canUpdate || isSubmitting"
+              />
+            </UFormField>
+          </div>
         </div>
       </div>
     </UForm>

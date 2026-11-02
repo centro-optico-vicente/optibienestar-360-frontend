@@ -103,7 +103,7 @@ async function loadMethodsAndBanks() {
     methodsByUuid.value = Object.fromEntries(activeMethods.map((method: CatalogItem) => [method.uuid, method]))
     const activeBanks = banks.filter((bank: CatalogItem) => bank.active)
     bankOptions.value = activeBanks
-      .map((bank: CatalogItem) => ({ label: bank.code ? `${bank.code} — ${bank.name}` : bank.name, value: bank.uuid }))
+      .map((bank: CatalogItem) => ({ label: bankOptionLabel(bank), value: bank.uuid }))
     banksByUuid.value = Object.fromEntries(activeBanks.map((bank: CatalogItem) => [bank.uuid, bank]))
   }
   catch {
@@ -160,6 +160,7 @@ interface FormState {
   phone: string
   email: string
   referenceNumber: string
+  companyBankAccountUuid: string
   paymentDate: string
   inscription: boolean
   appliedPeriod: string
@@ -181,6 +182,7 @@ const state = reactive<FormState>({
   phone: '',
   email: '',
   referenceNumber: '',
+  companyBankAccountUuid: '',
   paymentDate: '',
   inscription: false,
   appliedPeriod: '',
@@ -309,6 +311,7 @@ function resetForm() {
   state.phone = ''
   state.email = ''
   state.referenceNumber = ''
+  state.companyBankAccountUuid = ''
   state.paymentDate = ''
   state.inscription = false
   state.appliedPeriod = ''
@@ -368,15 +371,16 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         : (state.coverageThroughPeriod ? `${state.coverageThroughPeriod}-01` : undefined),
       adminNotes: state.adminNotes.trim() || undefined,
     }
-    // V117 lines feature: only send `lines` when the user actually added an
-    // extra one — the first line stays the flat fields above (backend falls
-    // back to the legacy single-line shape when `lines` is absent).
-    if (linesEditor.lines.value.length > 0) {
+    // V117 lines feature: only send `lines` when the user added an extra one or picked the company account the
+    // money went into (it travels on the line; the flat fields have no slot for it) — the first line stays the
+    // flat fields above (backend falls back to the legacy single-line shape when `lines` is absent).
+    if (linesEditor.lines.value.length > 0 || state.companyBankAccountUuid) {
       payload.lines = [
         {
           paymentMethodUuid: payload.paymentMethodUuid,
           bankUuid: payload.bankUuid,
-          amount: firstLineAmount.value.toFixed(2),
+          companyBankAccountUuid: state.companyBankAccountUuid || undefined,
+          amount: linesEditor.lines.value.length > 0 ? firstLineAmount.value.toFixed(2) : state.amount.trim(),
           identification: payload.identification,
           bankAccountType: payload.bankAccountType,
           bankAccountCode: payload.bankAccountCode,
@@ -502,6 +506,8 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
             </div>
           </UFormField>
         </div>
+
+        <CompanyBankAccountPicker v-model="state.companyBankAccountUuid" :method-uuid="state.paymentMethodUuid" :amount="state.amount" :currency="state.currency" :date="state.paymentDate ? state.paymentDate.slice(0, 10) : ''" :label="t('payments.companyAccounts.destinationLabel')" :help="t('payments.companyAccounts.destinationHelp')" />
 
         <div v-if="selectedMethod?.mandatoryIdentification || selectedMethod?.mandatoryBank || selectedMethod?.mandatoryBankAccount || selectedMethod?.mandatoryAccountType || selectedMethod?.mandatoryAccountCode || selectedMethod?.mandatoryPhone || selectedMethod?.mandatoryEmail" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField v-if="selectedMethod?.mandatoryIdentification" :label="t('payments.payouts.fields.identification')" name="identification" required><UInput class="w-full" v-model="state.identification" /></UFormField>

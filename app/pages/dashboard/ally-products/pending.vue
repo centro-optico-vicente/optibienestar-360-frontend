@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { offerDiscountText } from '~/utils/offerDiscount'
 import type { AllyProductDto, AllyProductReviewLogDto } from '~/types/allies'
 import type { SelectItem } from '~/types/options'
 
@@ -319,7 +320,7 @@ onMounted(() => {
               </td>
               <td class="px-5 py-3 text-prohealth-700">{{ o.productCategory?.name || t('common.empty') }}</td>
               <td class="px-5 py-3 text-prohealth-700">{{ money(o.priceAmount) }}</td>
-              <td class="px-5 py-3 text-prohealth-700">{{ o.discountPct != null && o.discountPct !== '' ? `${o.discountPct}%` : t('common.empty') }}</td>
+              <td class="px-5 py-3 text-prohealth-700">{{ offerDiscountText(o, money, t('common.empty')) }}</td>
               <td class="px-5 py-3 font-semibold text-prohealth-900">{{ money(o.finalPrice) }}</td>
               <td class="px-5 py-3 text-prohealth-700">{{ o.createdAt_Display ?? t('common.empty') }}</td>
               <td class="px-5 py-3">

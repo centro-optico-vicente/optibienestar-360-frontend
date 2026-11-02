@@ -56,6 +56,18 @@ async function copyLink() {
 
     <ProfilePhotoCard />
 
+    <NuxtLink
+      to="/dashboard/my-bank-accounts"
+      class="flex items-center gap-4 bg-white rounded-2xl border border-prohealth-100 p-5 hover:border-prohealth-300 transition-colors"
+    >
+      <UIcon name="i-lucide-landmark" class="w-6 h-6 text-prohealth-500 shrink-0" />
+      <div class="min-w-0 flex-1">
+        <p class="font-semibold text-prohealth-900">{{ t('myBankAccounts.profileLink.title') }}</p>
+        <p class="text-sm text-prohealth-700/70">{{ t('myBankAccounts.profileLink.body') }}</p>
+      </div>
+      <UIcon name="i-lucide-chevron-right" class="w-4 h-4 text-prohealth-400 shrink-0" />
+    </NuxtLink>
+
     <div class="bg-white rounded-2xl border border-prohealth-100 p-6">
       <div v-if="loading" class="flex gap-6">
         <USkeleton class="w-48 h-48 rounded-xl" />

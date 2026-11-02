@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { offerDiscountText } from '~/utils/offerDiscount'
 import type { AllyProductDto } from '~/types/allies'
 import type { ProductDto } from '~/types/products'
 
@@ -220,7 +221,7 @@ function requestEdit() {
                   <span v-else class="text-prohealth-700">{{ allyLabel(o) }}</span>
                 </td>
                 <td class="px-4 py-2 text-prohealth-700">{{ money(o.priceAmount) }}</td>
-                <td class="px-4 py-2 text-prohealth-700">{{ o.discountPct != null && o.discountPct !== '' ? `${o.discountPct}%` : t('common.empty') }}</td>
+                <td class="px-4 py-2 text-prohealth-700">{{ offerDiscountText(o, money, t('common.empty')) }}</td>
                 <td class="px-4 py-2 font-semibold text-prohealth-900">{{ money(o.finalPrice) }}</td>
                 <td class="px-4 py-2">
                   <UBadge :color="reviewStatusColor(o.reviewStatus)" variant="subtle" size="sm" :title="o.reviewReason || undefined">

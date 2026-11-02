@@ -81,6 +81,23 @@ export const usePromoters = () => {
    */
   const me = () => useApi<PromoterDashboardDto>('/v1/advisors/me')
 
+  /**
+   * Registers a brand-new person straight into the caller's own portfolio, with no membership
+   * (POST /v1/advisors/me/portfolio/members, PROMOTER_PORTFOLIO_CREATE). Same body as the admin
+   * member creation; the backend attributes the person to the caller, never to a referral code.
+   */
+  const registerInPortfolio = (body: import('~/types/members').CreateMemberRequest) =>
+    useApi<import('~/types/members').MemberDto>('/v1/advisors/me/portfolio/members', { method: 'POST', body })
+
+  /**
+   * Members this advisor can collect from: own portfolio plus members nobody advises
+   * (GET /v1/advisors/me/portfolio/candidates, needs 2+ characters). `inPortfolio=false` means the
+   * member joins the portfolio on the first collection.
+   */
+  const searchCandidates = (q: string) =>
+    useApi<{ uuid: string, documentNumber: string, fullName: string, inPortfolio: boolean }[]>(
+      '/v1/advisors/me/portfolio/candidates', { query: { q, limit: 10 } })
+
   // ---- Advisor dossier (backend V180) — same PROMOTER_VIEW_ALL / PROMOTER_UPDATE permissions ----
 
   /** Personal references (1..n). */
@@ -140,7 +157,7 @@ export const usePromoters = () => {
     useApi<PromoterMemberContactDto>(`/v1/advisors/me/contacts/${memberUuid}/payment-promise`, { method: 'POST', body })
 
   return {
-    list, get, create, update, remove, usage, portfolio, commissionsSummary, me,
+    list, get, create, update, remove, usage, portfolio, commissionsSummary, me, registerInPortfolio, searchCandidates,
     listReferences, createReference, updateReference, removeReference,
     listPayoutAccounts, createPayoutAccount, updatePayoutAccount, setDefaultPayoutAccount, removePayoutAccount, myPayoutAccounts,
     myCollectionScore, myMemberContacts, registerReminder, registerPaymentPromise,

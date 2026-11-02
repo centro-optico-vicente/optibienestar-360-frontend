@@ -49,6 +49,12 @@ const size = ref(DEFAULT_PAGE_SIZE)
 const pageSizeItems = buildPageSizeItems(t)
 const search = ref('')
 const includeInactive = ref(false)
+// B2B / B2P (hub ADR 0031) — RSQL `segment==…` on the admin list.
+const segmentFilter = ref<string | undefined>(undefined)
+const segmentFilterOptions = computed(() => [
+  { label: t('allies.segments.B2B'), value: 'B2B' },
+  { label: t('allies.segments.B2P'), value: 'B2P' },
+])
 // Empty by default: no `sort=` is sent until the user clicks a column, so the
 // backend's own default-sort fallback (entity_config → system_configs →
 // createdAt DESC) applies. A pre-loaded entry here would never clear — this
@@ -67,6 +73,7 @@ async function load() {
       sort: sort.sortParam.value,
       q: search.value.trim() || undefined,
       includeInactive: includeInactive.value,
+      filter: segmentFilter.value ? `segment==${segmentFilter.value}` : undefined,
     })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
@@ -108,7 +115,7 @@ watch(search, () => {
     load()
   }, 400)
 })
-watch(includeInactive, () => { if (!resetting.value) { page.value = 1; load() } })
+watch([includeInactive, segmentFilter], () => { if (!resetting.value) { page.value = 1; load() } })
 watch(sort.orders, () => { if (!resetting.value) load() }, { deep: true })
 
 // "Limpiar filtros y actualizar" from the list refresh menu.
@@ -116,6 +123,7 @@ async function resetFilters() {
   resetting.value = true
   search.value = ''
   includeInactive.value = false
+  segmentFilter.value = undefined
   sort.reset()
   size.value = DEFAULT_PAGE_SIZE
   page.value = 1
@@ -278,6 +286,17 @@ async function confirmDelete() {
         size="lg"
         class="w-full max-w-md"
       />
+      <USelectMenu
+        v-model="segmentFilter"
+        clear
+        :items="segmentFilterOptions"
+        value-key="value"
+        label-key="label"
+        :search-input="false"
+        :placeholder="t('allies.form.fields.segment')"
+        icon="i-lucide-layers"
+        class="w-56"
+      />
       <UCheckbox v-model="includeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
       <UButton
         v-if="hasActiveSort"
@@ -342,6 +361,9 @@ async function confirmDelete() {
             >
               <td class="px-5 py-3">
                 <div class="font-semibold text-prohealth-900">{{ a.name }}</div>
+                <div v-if="a.segment" class="text-[11px] font-semibold uppercase tracking-wide text-cyan-700">
+                  {{ a.segment_Display || t(`allies.segments.${a.segment}`) }}
+                </div>
               </td>
               <td class="px-5 py-3 text-prohealth-700" @click.stop>
                 <div v-if="a.allyTypeNames?.length" class="flex flex-wrap gap-1">

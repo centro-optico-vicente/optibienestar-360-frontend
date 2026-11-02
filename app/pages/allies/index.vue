@@ -2,7 +2,8 @@
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { CatalogItem } from '~/types/catalogs'
-import { canOperateAtCounter, type AllyProductDto, type MyAllyDto } from '~/types/allies'
+import { canOperateAtCounter, type AllyProductDto, type DiscountType, type MyAllyDto } from '~/types/allies'
+import { discountRequestFields } from '~/utils/offerDiscount'
 import type { SelectItem } from '~/types/options'
 import { ROLES } from '~/types/auth'
 import { PRODUCT_TYPE_OPTIONS, type ProductType } from '~/types/products'
@@ -38,6 +39,10 @@ const allyOptions = computed(() => myAllyList.value.map(a => ({ label: a.name, v
 const selectedAlly = computed(() => myAllyList.value.find(a => a.uuid === state.allyUuid) ?? null)
 // VIEWER members only read the galleries (writes answer 403 — hub ADR 0027).
 const canEditMedia = computed(() => canOperateAtCounter(selectedAlly.value?.allyRole))
+// Opening hours: only the OWNER changes the ally's public schedule (backend checks it too).
+const { can } = usePermissions()
+const canEditOpeningHours = computed(() =>
+  selectedAlly.value?.allyRole === 'OWNER' && can('ALLY_OPENING_HOURS_UPDATE_OWN'))
 // ---- Own offers (galleries) ----
 const myOffers = ref<AllyProductDto[]>([])
 const openOffer = ref<string | null>(null)
@@ -151,7 +156,9 @@ const state = reactive({
   name: '',
   description: '',
   priceAmount: '',
+  discountType: 'PERCENTAGE' as DiscountType,
   discountPct: '',
+  discountAmount: '',
   exclusions: '',
   requiresAppointment: false,
 })
@@ -181,6 +188,9 @@ const schema = computed(() => {
     description: z.string().optional(),
     priceAmount: z.string().regex(/^\d*(\.\d{1,2})?$/, t('validation.invalidAmount')).optional().or(z.literal('')),
     discountPct: z.string().regex(/^\d*(\.\d{1,2})?$/, t('validation.invalidPercent')).optional().or(z.literal('')),
+    discountAmount: state.discountType === 'FLAT'
+      ? z.string().regex(/^\d+(\.\d{1,2})?$/, t('validation.invalidAmount'))
+      : optional,
   })
 })
 
@@ -189,7 +199,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
   try {
     const terms = {
       priceAmount: state.priceAmount || undefined,
-      discountPct: state.discountPct || undefined,
+      ...discountRequestFields(state.discountType, state.discountPct, state.discountAmount),
       exclusions: state.exclusions.trim() || undefined,
     }
     lastProposed.value = await allies.proposeProduct(source.value === 'existing'
@@ -217,7 +227,9 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     state.name = ''
     state.description = ''
     state.priceAmount = ''
+    state.discountType = 'PERCENTAGE'
     state.discountPct = ''
+    state.discountAmount = ''
     state.exclusions = ''
     state.requiresAppointment = false
   }
@@ -268,6 +280,20 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         :key="selectedAlly.uuid"
         :base="`/v1/me/allies/${selectedAlly.uuid}/media`"
         :readonly="!canEditMedia"
+      />
+    </div>
+
+    <!-- Weekly opening hours (V214, hub ADR 0031 §7) -->
+    <div v-if="selectedAlly" class="bg-white rounded-2xl border border-prohealth-100 p-6 space-y-2">
+      <h2 class="font-bold text-prohealth-900">{{ t('allies.openingHours.title') }}</h2>
+      <p class="text-xs text-prohealth-500">
+        {{ canEditOpeningHours ? t('allies.openingHours.portalHint') : t('allies.openingHours.portalReadonlyHint') }}
+      </p>
+      <AllyOpeningHoursEditor
+        :key="selectedAlly.uuid"
+        :ally-uuid="selectedAlly.uuid"
+        scope="portal"
+        :readonly="!canEditOpeningHours"
       />
     </div>
 
@@ -418,10 +444,14 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           <UFormField :label="t('allies.portal.fields.price')" name="priceAmount">
             <UInput v-model="state.priceAmount" placeholder="100.00" class="w-full" />
           </UFormField>
-          <UFormField :label="t('allies.portal.fields.discount')" name="discountPct">
-            <UInput v-model="state.discountPct" placeholder="10.00" class="w-full" />
-          </UFormField>
         </div>
+        <OfferDiscountFields
+          v-model:type="state.discountType"
+          v-model:pct="state.discountPct"
+          v-model:amount="state.discountAmount"
+          :price="state.priceAmount"
+          :percent-label="t('allies.portal.fields.discount')"
+        />
 
         <UFormField :label="t('allies.portal.fields.exclusions')" name="exclusions" :help="t('allies.products.form.exclusionsHelp')">
           <UTextarea

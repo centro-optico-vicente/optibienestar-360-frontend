@@ -6,7 +6,7 @@ import { paymentStatusColor } from '~/types/payments'
 definePageMeta({
   layout: 'dashboard',
   middleware: 'can',
-  permission: 'PAYMENT_VIEW_ALL',
+  permission: 'COLLECTION_VIEW_ALL',
 })
 
 const { t } = useI18n()
@@ -26,9 +26,11 @@ const payments = usePayments()
 const { can } = usePermissions()
 const toast = useToast()
 
-const canApprove = computed(() => can('PAYMENT_APPROVE'))
-const canReject = computed(() => can('PAYMENT_REJECT'))
+const canApprove = computed(() => can('COLLECTION_APPROVE'))
+const canReject = computed(() => can('COLLECTION_REJECT'))
 const canDiscount = computed(() => can('ALLOWS_DISCOUNT'))
+const canAssignMembership = computed(() => can('COLLECTION_ASSIGN_MEMBERSHIP'))
+const canClaimAsStaff = computed(() => can('COLLECTION_CLAIM_CREATE'))
 const canViewMember = computed(() => can('MEMBER_VIEW_ALL'))
 const canViewCurrency = computed(() => can('CURRENCY_VIEW_ALL'))
 const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('PAYMENT_RECORD_AUDIT_VIEW'))
@@ -163,6 +165,18 @@ async function viewSupport() {
 }
 
 // ---- Review (approve/reject) ----
+// An approved collection with no membership is the person's credit; staff can assign it to a membership.
+const assignOpen = ref(false)
+const canAssignCredit = computed(() =>
+  canAssignMembership.value && payment.value?.direction !== 'OUT'
+  && payment.value?.status === 'APPROVED' && !payment.value?.membership_Uuid)
+
+// Staff can open a claim on an approved collection with credit left (hub ADR 0029); an open claim shows below.
+const claimOpen = ref(false)
+const canOpenClaim = computed(() =>
+  canClaimAsStaff.value && payment.value?.direction !== 'OUT' && payment.value?.status === 'APPROVED'
+  && Number(payment.value?.creditRemaining ?? 0) > 0 && !payment.value?.openClaim)
+
 const reviewOpen = ref(false)
 const reviewAction = ref<'approve' | 'reject'>('approve')
 
@@ -287,6 +301,24 @@ function onReviewed(updated: PaymentDto) {
                 </UButton>
               </UTooltip>
             </template>
+            <UButton
+              v-if="canOpenClaim"
+              color="warning"
+              variant="soft"
+              icon="i-lucide-message-square-warning"
+              @click="claimOpen = true"
+            >
+              {{ t('payments.claim.action') }}
+            </UButton>
+            <UButton
+              v-if="canAssignCredit"
+              color="primary"
+              variant="soft"
+              icon="i-lucide-link"
+              @click="assignOpen = true"
+            >
+              {{ t('payments.assignMembership.action') }}
+            </UButton>
             <UTooltip v-if="canViewAudit" :text="t('audit.trigger')">
               <UButton color="neutral" variant="ghost" icon="i-lucide-history" @click="auditOpen = true" />
             </UTooltip>
@@ -326,6 +358,24 @@ function onReviewed(updated: PaymentDto) {
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.reference') }}</dt>
             <dd class="text-prohealth-800 mt-0.5 font-mono">{{ payment.referenceNumber || t('common.empty') }}</dd>
+          </div>
+          <!-- Company account (where a collection was paid into / where a payout left from) and, for a payout,
+               the advisor's payout account it went to (V206) — from the first line, like the flat fields above. -->
+          <div v-if="payment.lines?.[0]?.companyBankAccount_Display">
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">
+              {{ payment.direction === 'OUT' ? t('payments.detail.fields.originAccount') : t('payments.detail.fields.destinationAccount') }}
+            </dt>
+            <dd class="text-prohealth-800 mt-0.5">
+              {{ payment.lines[0].companyBankAccount_Display }}
+              <span v-if="payment.lines[0].companyBankAccount_Code" class="font-mono text-xs text-prohealth-500">· {{ payment.lines[0].companyBankAccount_Code }}</span>
+            </dd>
+          </div>
+          <div v-if="payment.lines?.[0]?.payoutAccount_Display">
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.payoutAccount') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">
+              {{ payment.lines[0].payoutAccount_Display }}
+              <span v-if="payment.lines[0].payoutAccount_Code" class="font-mono text-xs text-prohealth-500">· {{ payment.lines[0].payoutAccount_Code }}</span>
+            </dd>
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.paymentDate') }}</dt>
@@ -383,12 +433,16 @@ function onReviewed(updated: PaymentDto) {
                 <th class="px-4 py-2 font-semibold">{{ t('payments.detail.linesColumns.bank') }}</th>
                 <th class="px-4 py-2 font-semibold text-right">{{ t('payments.detail.linesColumns.amount') }}</th>
                 <th class="px-4 py-2 font-semibold">{{ t('payments.detail.linesColumns.reference') }}</th>
+                <th class="px-4 py-2 font-semibold">{{ t('payments.detail.linesColumns.accounts') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-prohealth-100">
               <tr v-for="line in payment.lines" :key="line.uuid">
                 <td class="px-4 py-2 text-prohealth-800">{{ line.method_Display || t('common.empty') }}</td>
-                <td class="px-4 py-2 text-prohealth-800">{{ line.bank_Display || t('common.empty') }}</td>
+                <td class="px-4 py-2 text-prohealth-800">
+                  <BankName v-if="line.bank_Display" :uuid="line.bank_Uuid" :name="line.bank_Display" :show-code="false" />
+                  <template v-else>{{ t('common.empty') }}</template>
+                </td>
                 <td class="px-4 py-2 text-prohealth-800 text-right">
                   <CurrencyConverterDisplay :amount="line.amount" :currency="payment.currency_Code" :date="payment.paymentDate" v-slot="{ result }">
                     <span class="inline-flex items-center justify-end gap-1">
@@ -398,6 +452,11 @@ function onReviewed(updated: PaymentDto) {
                   </CurrencyConverterDisplay>
                 </td>
                 <td class="px-4 py-2 text-prohealth-800 font-mono">{{ line.referenceNumber || t('common.empty') }}</td>
+                <td class="px-4 py-2 text-prohealth-800 text-xs">
+                  <span v-if="line.companyBankAccount_Display" class="block">{{ line.companyBankAccount_Display }}<span v-if="line.companyBankAccount_Code" class="font-mono text-prohealth-500"> · {{ line.companyBankAccount_Code }}</span></span>
+                  <span v-if="line.payoutAccount_Display" class="block">→ {{ line.payoutAccount_Display }}<span v-if="line.payoutAccount_Code" class="font-mono text-prohealth-500"> · {{ line.payoutAccount_Code }}</span></span>
+                  <span v-if="!line.companyBankAccount_Display && !line.payoutAccount_Display">{{ t('common.empty') }}</span>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -425,6 +484,26 @@ function onReviewed(updated: PaymentDto) {
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.detail.fields.membership') }}</dt>
             <dd class="text-prohealth-800 mt-0.5">{{ payment.membership_Display || t('common.empty') }}</dd>
+          </div>
+          <div v-if="payment.openClaim">
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.claim.detailLabel') }}</dt>
+            <dd class="text-sm text-prohealth-900 mt-0.5">
+              <UBadge color="warning" variant="subtle" size="sm">
+                {{ payment.openClaim.reason_Display ?? payment.openClaim.reason }} · {{ payment.openClaim.claimedAmount_Display ?? payment.openClaim.claimedAmount }}
+              </UBadge>
+              <span v-if="payment.openClaim.comment" class="block text-xs text-prohealth-600 mt-1">{{ payment.openClaim.comment }}</span>
+              <NuxtLink v-if="can('COLLECTION_CLAIM_VIEW_ALL')" to="/dashboard/payment-claims" class="block text-xs text-cyan-700 hover:underline mt-1">
+                {{ t('payments.claim.manageLink') }}
+              </NuxtLink>
+            </dd>
+          </div>
+          <div v-if="payment.beneficiary_Display">
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.beneficiary.detailLabel') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">
+              {{ payment.beneficiary_Display }}
+              <span v-if="payment.beneficiaryDocument" class="block text-xs font-mono text-prohealth-500">{{ payment.beneficiaryDocument }}</span>
+              <span v-if="payment.beneficiaryContractNumber" class="block text-xs font-mono text-prohealth-500">{{ payment.beneficiaryContractNumber }}</span>
+            </dd>
           </div>
         </dl>
       </div>
@@ -511,6 +590,16 @@ function onReviewed(updated: PaymentDto) {
         </dl>
       </div>
     </template>
+
+    <!-- Staff claim on the credit of this payment -->
+    <PaymentClaimModal v-model:open="claimOpen" :payment="payment" staff @claimed="loadPayment" />
+
+    <!-- Assign credit to a membership -->
+    <PaymentAssignMembershipModal
+      v-model:open="assignOpen"
+      :payment="payment"
+      @assigned="onReviewed"
+    />
 
     <!-- Approve/reject modal -->
     <PaymentReviewModal

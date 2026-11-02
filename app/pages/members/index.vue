@@ -51,6 +51,9 @@ interface DigitalCard {
   nextDueDate?: string | null
   nextDueDate_Display?: string | null
   memberSince?: string | null
+  expiresAt?: string | null
+  expiresAt_Display?: string | null
+  inscriptionDue?: boolean
   qrCodeDataUri?: string | null
   holderName?: string | null
   relationship?: string | null
@@ -268,6 +271,11 @@ const initials = computed(() => (displayName.value || '').split(/\s+/).filter(Bo
                   <p class="text-[11px] uppercase tracking-widest text-prohealth-100/70">{{ t('members.portal.card.nextDue') }}</p>
                   <p class="text-sm font-semibold mt-0.5">{{ card.nextDueDate_Display || formatDate(card.nextDueDate, 'short') }}</p>
                 </div>
+                <div v-if="card?.expiresAt">
+                  <p class="text-[11px] uppercase tracking-widest text-prohealth-100/70">{{ t('members.portal.card.expiresAt') }}</p>
+                  <p class="text-sm font-semibold mt-0.5">{{ card.expiresAt_Display || formatDate(card.expiresAt, 'short') }}</p>
+                  <p v-if="card.inscriptionDue" class="text-[11px] text-amber-200 mt-0.5">{{ t('members.portal.card.inscriptionDue') }}</p>
+                </div>
               </div>
               <img
                 v-if="qrDataUri"
@@ -392,6 +400,9 @@ const initials = computed(() => (displayName.value || '').split(/\s+/).filter(Bo
 
           <!-- My referrals (self-gated by REFERRAL_CODE_VIEW_OWN) -->
           <MyReferralsCard />
+
+          <!-- My emergency contact (self-gated by MEMBER_EMERGENCY_CONTACT_VIEW_OWN) -->
+          <MemberEmergencyContactCard scope="own" />
 
           <!-- Registered contact data -->
           <div class="bg-white rounded-2xl border border-prohealth-100 p-6">

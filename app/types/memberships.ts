@@ -13,6 +13,9 @@
 // - POST /v1/admin/members/{memberUuid}/memberships          (enroll, MEMBERSHIP_CREATE)
 // - PUT  /v1/admin/memberships/{uuid}/cancel                 (MEMBERSHIP_CANCEL)
 // - PUT  /v1/admin/memberships/{uuid}/reactivate             (MEMBERSHIP_REACTIVATE)
+// - PUT  /v1/admin/memberships/{uuid}/term                   (MEMBERSHIP_TERM_UPDATE, hub ADR 0034)
+
+import type { TermMode } from '~/types/plans'
 
 // ---- Lifecycle status (mirror of Membership.LifecycleStatus) ----
 export type MembershipStatus = 'ACTIVE' | 'SUSPENDED' | 'EXPIRED' | 'CANCELED'
@@ -59,6 +62,8 @@ export function isMembershipReactivatable(status?: string | null): boolean {
 export interface MembershipDto {
   uuid: string
   memberUuid: string
+  /** Human contract number (V203), e.g. OB-000123. */
+  contractNumber?: string | null
   // Plan (flat refs)
   planUuid: string
   planCode: string
@@ -74,6 +79,20 @@ export interface MembershipDto {
   nextDueDate_Display?: string | null
   lastPaidThrough?: string | null
   lastPaidThrough_Display?: string | null
+  // Term (V220, hub ADR 0034): snapshot of the plan's rule; `expiresAt` is the end of the current term
+  reinscriptionRequired?: boolean
+  reinscriptionRequired_Display?: string | null
+  termMode?: TermMode | null
+  termMode_Display?: string | null
+  termFixedMonth?: number | null
+  termFixedDay?: number | null
+  termPeriodMonths?: number | null
+  termStartedAt?: string | null
+  termStartedAt_Display?: string | null
+  /** Set while a re-inscription is pending: the membership stays SUSPENDED until an inscription payment is approved. */
+  inscriptionDueSince?: string | null
+  inscriptionDueSince_Display?: string | null
+  inscriptionDue?: boolean
   // Pricing snapshot (ADR 0015 — currency/exchange-rate conversion; conversion
   // fields cover `monthlyFee` ONLY, and are null together when no rate is
   // available — degrade gracefully, never assume presence)
@@ -88,6 +107,12 @@ export interface MembershipDto {
   exchangeRateUsed?: number | string | null
   exchangeRateDate?: string | null
   gracePeriodDays: number
+  /**
+   * "Modalidad de pago" of the B2C dossier (hub ADR 0031 §14): method of the first
+   * approved inscription payment line. Read-only, derived; null until the inscription is approved.
+   */
+  inscriptionPaymentMethod_Uuid?: string | null
+  inscriptionPaymentMethod_Display?: string | null
   // Status
   status: MembershipStatus | string
   status_Display?: string | null
@@ -112,16 +137,85 @@ export interface MembershipCreateRequest {
   planUuid: string
   /** ISO date (yyyy-MM-dd). Defaults to today server-side when omitted. */
   enrolledAt?: string
-  /** ISO date (yyyy-MM-dd). Optional hard expiry. */
+  /** ISO date (yyyy-MM-dd). Optional override of the first expiry (must be after `enrolledAt`); empty = the plan decides. */
   expiresAt?: string
+  /** Optional override of the plan's re-inscription flag (hub ADR 0034); omitted = inherit. */
+  reinscriptionRequired?: boolean
   /** Promotion applied in the same transaction (hub ADR 0018); invalid → the enrollment fails. */
   promotionUuid?: string
   /** Promoter / referring member / ally code, when the promotion takes one. */
   promotionCode?: string
 }
 
+/**
+ * Body of PUT /v1/admin/memberships/{uuid}/term. `reinscriptionRequired` omitted keeps it; `false` makes the
+ * membership open-ended (`expiresAt` then is a plain end date, empty = none); `true` without a plan rule
+ * needs `expiresAt` and renews every 12 months.
+ */
+export interface MembershipTermUpdateRequest {
+  reinscriptionRequired?: boolean
+  expiresAt?: string
+}
+
 /** Optional body of the cancel/reactivate lifecycle transitions. */
 export interface MembershipReviewRequest {
   /** Free-text reason stored in lastStatusChangeReason (max 500). */
   reason?: string
+}
+
+/** Compact row of `GET /v1/admin/memberships` (cross-member list). Edit forms must load the detail instead. */
+export interface MembershipListItemDto {
+  uuid: string
+  memberUuid: string
+  contractNumber?: string | null
+  member_Uuid?: string | null
+  member_Code?: string | null
+  member_Display?: string | null
+  advisor_Uuid?: string | null
+  advisor_Display?: string | null
+  planUuid: string
+  planCode: string
+  planName: string
+  planType: string
+  planType_Display?: string | null
+  enrolledAt: string
+  enrolledAt_Display?: string | null
+  nextDueDate: string
+  nextDueDate_Display?: string | null
+  lastPaidThrough?: string | null
+  lastPaidThrough_Display?: string | null
+  /** End of the current term (hub ADR 0034); null = open-ended. */
+  expiresAt?: string | null
+  expiresAt_Display?: string | null
+  /** A re-inscription is pending: suspended until an inscription payment is approved. */
+  inscriptionDue?: boolean
+  monthlyFee: number | string
+  monthlyFee_Display?: string | null
+  currency_Code: string
+  status: string
+  status_Display?: string | null
+  /** Derived collection state; null for CANCELED / EXPIRED. */
+  paymentStatus?: 'OVERDUE' | 'DUE_SOON' | 'UP_TO_DATE' | null
+  paymentStatus_Display?: string | null
+  daysOverdue: number
+}
+
+/** Status filter values of `GET /v1/admin/memberships` — lifecycle plus the derived `OVERDUE` / `DUE_SOON`. */
+export type MembershipStatusFilter = 'ACTIVE' | 'SUSPENDED' | 'EXPIRED' | 'CANCELED' | 'OVERDUE' | 'DUE_SOON'
+
+export interface MembershipSearchParams {
+  page?: number
+  size?: number
+  sort?: string[]
+  q?: string
+  memberUuid?: string
+  promoterUuid?: string
+  planUuid?: string
+  planType?: string
+  status?: MembershipStatusFilter
+  dueSoonDays?: number
+  enrolledFrom?: string
+  enrolledTo?: string
+  nextDueFrom?: string
+  nextDueTo?: string
 }

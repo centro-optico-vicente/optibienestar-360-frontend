@@ -5,7 +5,10 @@ import type { SelectItem } from '~/types/options'
 import { toSelectItems } from '~/types/options'
 import type {
   AllyDto,
+  AllyHolderPersonDto,
+  AllyHolderPersonRequest,
   AllyListItemDto,
+  AllySegment,
   CreateAllyRequest,
   UpdateAllyRequest,
 } from '~/types/allies'
@@ -58,7 +61,15 @@ const editLoading = ref(false)
 const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 
 // ---- Lazy-loaded catalogs, fetched only when the modal opens ----
-const allyTypeOptions = ref<SelectItem[]>([])
+// Ally types carry their segment (V179) so the select only offers the types of
+// the ally's segment (hub ADR 0031: an ally never mixes B2B and B2P types).
+interface AllyTypeItem extends SelectItem { segment?: AllySegment }
+const allyTypeItems = ref<AllyTypeItem[]>([])
+const allyTypeOptions = computed<SelectItem[]>(() =>
+  allyTypeItems.value.filter(i => !i.segment || i.segment === state.segment))
+// B2P host clinic: another commercial (B2B) ally.
+const hostAllyOptions = ref<SelectItem[]>([])
+const hostAlliesLoaded = ref(false)
 const professionOptions = ref<SelectItem[]>([])
 const stateOptions = ref<SelectItem[]>([])
 const cityOptions = ref<SelectItem[]>([])
@@ -92,16 +103,44 @@ async function loadCatalogs() {
       return []
     }
   }
+  const loadAllyTypes = async (): Promise<AllyTypeItem[]> => {
+    try {
+      const items = await useCatalog('/v1/admin/catalogs/ally-types').listAll()
+      return items.map(i => ({
+        label: i.active ? i.name : `${i.name} (${t('catalogs.status.inactive')})`,
+        value: i.uuid,
+        segment: i.segment,
+      }))
+    }
+    catch {
+      // Without the full catalog the segment is unknown: offer every type.
+      return toSelectItems(await safeOptions('ally-types'))
+    }
+  }
   const [types, professions, states] = await Promise.all([
-    safeOptions('ally-types'),
+    loadAllyTypes(),
     safeOptions('professions'),
     safeOptions('states'),
   ])
-  allyTypeOptions.value = toSelectItems(types)
+  allyTypeItems.value = types
   professionOptions.value = toSelectItems(professions)
   stateOptions.value = toSelectItems(states)
   await Promise.all([loadDocumentTypes(), loadPromoterOptions()])
   catalogsLoaded.value = true
+}
+
+async function loadHostAllies() {
+  if (hostAlliesLoaded.value) return
+  try {
+    const res = await allies.list({ size: 200, sort: ['name,asc'], filter: 'segment==B2B' })
+    hostAllyOptions.value = (res.content ?? [])
+      .filter(a => a.uuid !== props.ally?.uuid)
+      .map(a => ({ label: a.name, value: a.uuid }))
+    hostAlliesLoaded.value = true
+  }
+  catch {
+    hostAllyOptions.value = []
+  }
 }
 
 // Cities cascade based on the selected state. `pendingCityUuid` lets populateEditForm
@@ -132,8 +171,31 @@ function statusLabel(status?: string | null): string {
 const statusOptions = computed(() => STATUS_OPTIONS.map(s => ({ label: statusLabel(s), value: s })))
 
 interface FormState {
+  segment: AllySegment
   name: string
   allyTypeUuids: string[]
+  // Holder person (V209): the professional (B2P) or the signing representative (B2B)
+  holderDocumentType: string
+  holderDocumentNumber: string
+  holderFirstName: string
+  holderLastName: string
+  holderBirthDate: string
+  holderPhone: string
+  holderEmail: string
+  // B2P practice site
+  hostAllyUuid: string | undefined
+  hostName: string
+  officeNumber: string
+  appointmentPhone: string
+  assistantName: string
+  // B2B commercial data
+  commercialZone: string
+  tradeName: string
+  foundedYear: string
+  cashRegistersCount: string
+  branchesCount: string
+  hasPos: boolean
+  representativePosition: string
   taxDocumentType: string | undefined
   taxDocumentNumber: string
   email: string
@@ -152,14 +214,32 @@ interface FormState {
   status: string
   professionUuids: string[]
   capturedByPromoterUuid: string | undefined
-  representativeName: string
-  representativeDocumentType: string | undefined
-  representativeDocumentNumber: string
 }
 
 const state = reactive<FormState>({
+  segment: 'B2B',
   name: '',
   allyTypeUuids: [],
+  holderDocumentType: 'V',
+  holderDocumentNumber: '',
+  holderFirstName: '',
+  holderLastName: '',
+  holderBirthDate: '',
+  holderPhone: '',
+  holderEmail: '',
+  hostAllyUuid: undefined,
+  hostName: '',
+  officeNumber: '',
+  appointmentPhone: '',
+  assistantName: '',
+  commercialZone: '',
+  tradeName: '',
+  foundedYear: '',
+  cashRegistersCount: '',
+  branchesCount: '',
+  hasPos: false,
+  representativePosition: '',
+
   taxDocumentType: undefined,
   taxDocumentNumber: '',
   email: '',
@@ -178,9 +258,33 @@ const state = reactive<FormState>({
   status: 'ACTIVE',
   professionUuids: [],
   capturedByPromoterUuid: undefined,
-  representativeName: '',
-  representativeDocumentType: undefined,
-  representativeDocumentNumber: '',
+})
+
+// Holder loaded with the ally: while its cédula is unchanged the person is
+// already linked, so its name fields are read-only (they belong to the person,
+// which may also be a member or an advisor). A different cédula links or
+// creates another person.
+const loadedHolder = ref<AllyHolderPersonDto | null>(null)
+const holderLinked = computed(() => !!loadedHolder.value
+  && loadedHolder.value.documentType === state.holderDocumentType
+  && loadedHolder.value.documentNumber === state.holderDocumentNumber.trim())
+// Free-text representative from before V209, shown so it can be moved to a person.
+const legacyRepresentative = ref<string | null>(null)
+
+const segmentItems = computed(() => [
+  { label: t('allies.segments.B2B'), value: 'B2B' },
+  { label: t('allies.segments.B2P'), value: 'B2P' },
+])
+const personDocumentTypeItems = [
+  { label: 'V', value: 'V' },
+  { label: 'E', value: 'E' },
+]
+
+// Switching segment drops the types of the other segment (the backend rejects a mix).
+watch(() => state.segment, (segment) => {
+  const allowed = new Set(allyTypeItems.value.filter(i => !i.segment || i.segment === segment).map(i => i.value))
+  state.allyTypeUuids = state.allyTypeUuids.filter(uuid => allowed.has(uuid))
+  if (segment === 'B2P') loadHostAllies()
 })
 
 // Read-only agreement file data shown on edit (assigned by the backend).
@@ -205,13 +309,46 @@ const schema = computed(() => {
     referralCode: z.string().regex(/^[A-Za-z0-9-]{4,20}$/, t('allies.form.referralCodeFormat')).optional().or(z.literal('')),
     description: z.string().optional(),
     joinedAt: z.string().optional(),
-    representativeName: z.string().max(210).optional(),
-    representativeDocumentNumber: z.string().regex(/^\d*$/, t('validation.digitsOnly')).optional(),
+    holderDocumentNumber: z.string().regex(/^\d*$/, t('validation.digitsOnly')).optional(),
+    holderEmail: z.string().email(t('validation.emailInvalid')).optional().or(z.literal('')),
+    foundedYear: z.string().regex(/^(\d{4})?$/, t('allies.form.foundedYearFormat')).optional(),
+    cashRegistersCount: z.string().regex(/^\d*$/, t('validation.digitsOnly')).optional(),
+    branchesCount: z.string().regex(/^\d*$/, t('validation.digitsOnly')).optional(),
   }
-  return props.mode === 'create' ? z.object(base) : z.object({ ...base, status: z.string() })
+  const shape = props.mode === 'create' ? base : { ...base, status: z.string() }
+  // A professional (B2P) ally needs its professional (backend 422 ally.holder.required).
+  return z.object(shape).superRefine((_value, ctx) => {
+    if (state.segment === 'B2P' && !state.holderDocumentNumber.trim()) {
+      ctx.addIssue({ code: 'custom', path: ['holderDocumentNumber'], message: t('validation.required') })
+    }
+  })
 })
 
 function resetForm() {
+  state.segment = 'B2B'
+  Object.assign(state, {
+  holderDocumentType: 'V',
+  holderDocumentNumber: '',
+  holderFirstName: '',
+  holderLastName: '',
+  holderBirthDate: '',
+  holderPhone: '',
+  holderEmail: '',
+  hostAllyUuid: undefined,
+  hostName: '',
+  officeNumber: '',
+  appointmentPhone: '',
+  assistantName: '',
+  commercialZone: '',
+  tradeName: '',
+  foundedYear: '',
+  cashRegistersCount: '',
+  branchesCount: '',
+  hasPos: false,
+  representativePosition: '',
+  })
+  loadedHolder.value = null
+  legacyRepresentative.value = null
   state.name = ''
   state.allyTypeUuids = []
   state.taxDocumentType = undefined
@@ -232,9 +369,6 @@ function resetForm() {
   state.status = 'ACTIVE'
   state.professionUuids = []
   state.capturedByPromoterUuid = undefined
-  state.representativeName = ''
-  state.representativeDocumentType = undefined
-  state.representativeDocumentNumber = ''
   allyNumber.value = null
   fileNumber.value = null
   selectedStateUuid.value = undefined
@@ -252,6 +386,40 @@ const discardConfirmOpen = ref(false)
 
 // Maps a full AllyDto (GET /{uuid}) into the reactive form state.
 function populateEditForm(full: AllyDto) {
+  state.segment = full.segment ?? 'B2B'
+  if (state.segment === 'B2P') loadHostAllies()
+  const holder = full.holder ?? null
+  loadedHolder.value = holder
+  state.holderDocumentType = holder?.documentType ?? 'V'
+  state.holderDocumentNumber = holder?.documentNumber ?? ''
+  state.holderFirstName = holder?.firstName ?? ''
+  state.holderLastName = holder?.lastName ?? ''
+  state.holderBirthDate = holder?.birthDate ?? ''
+  state.holderPhone = holder?.phone ?? ''
+  state.holderEmail = holder?.email ?? ''
+  legacyRepresentative.value = !holder && full.representativeName
+    ? [full.representativeName, full.representativeDocumentNumber
+        ? `${full.representativeDocumentType ?? ''}-${full.representativeDocumentNumber}` : null]
+        .filter(Boolean).join(' · ')
+    : null
+  state.hostAllyUuid = full.hostAlly_Uuid ?? undefined
+  if (full.hostAlly_Uuid && !hostAllyOptions.value.some(o => o.value === full.hostAlly_Uuid)) {
+    hostAllyOptions.value = [
+      ...hostAllyOptions.value,
+      { label: full.hostAlly_Display ?? full.hostAlly_Uuid, value: full.hostAlly_Uuid },
+    ]
+  }
+  state.hostName = full.hostName ?? ''
+  state.officeNumber = full.officeNumber ?? ''
+  state.appointmentPhone = full.appointmentPhone ?? ''
+  state.assistantName = full.assistantName ?? ''
+  state.commercialZone = full.commercialZone ?? ''
+  state.tradeName = full.tradeName ?? ''
+  state.foundedYear = full.foundedYear != null ? String(full.foundedYear) : ''
+  state.cashRegistersCount = full.cashRegistersCount != null ? String(full.cashRegistersCount) : ''
+  state.branchesCount = full.branchesCount != null ? String(full.branchesCount) : ''
+  state.hasPos = full.hasPos ?? false
+  state.representativePosition = full.representativePosition ?? ''
   state.name = full.name ?? ''
   state.allyTypeUuids = (full.allyTypes ?? []).map(at => at.uuid)
   state.taxDocumentType = full.taxDocumentType || undefined
@@ -280,9 +448,6 @@ function populateEditForm(full: AllyDto) {
       { label: full.capturedByPromoter_Display ?? full.capturedByPromoter_Uuid, value: full.capturedByPromoter_Uuid },
     ]
   }
-  state.representativeName = full.representativeName ?? ''
-  state.representativeDocumentType = full.representativeDocumentType || undefined
-  state.representativeDocumentNumber = full.representativeDocumentNumber ?? ''
   allyNumber.value = full.allyNumber ?? null
   fileNumber.value = full.fileNumber ?? null
   editSnapshot.value = snapshotEditState()
@@ -331,6 +496,56 @@ function onEditRefresh() {
   else reloadEditForm()
 }
 
+function toNumber(value: string): number | undefined {
+  return value.trim() === '' ? undefined : Number(value)
+}
+
+/**
+ * Holder to send: always on create when a cédula is entered; on edit only when
+ * the cédula changed (or there was none) — an already-linked person is never
+ * overwritten from this form.
+ */
+function holderBody(): AllyHolderPersonRequest | undefined {
+  const documentNumber = state.holderDocumentNumber.trim()
+  if (!documentNumber || holderLinked.value) return undefined
+  return {
+    documentType: state.holderDocumentType,
+    documentNumber,
+    firstName: state.holderFirstName.trim() || undefined,
+    lastName: state.holderLastName.trim() || undefined,
+    birthDate: state.holderBirthDate || undefined,
+    phone: state.holderPhone.trim() || undefined,
+    email: state.holderEmail.trim() || undefined,
+  }
+}
+
+/**
+ * Only the fields of the ally's segment travel: the backend rejects (422) the
+ * other segment's fields and wipes them itself when the segment changes. On
+ * edit, blank text clears a field ('' instead of undefined).
+ */
+function segmentBody(clearBlanks: boolean): Partial<CreateAllyRequest> {
+  const text = (value: string) => value.trim() || (clearBlanks ? '' : undefined)
+  if (state.segment === 'B2P') {
+    return {
+      hostAllyUuid: state.hostAllyUuid,
+      hostName: state.hostAllyUuid ? text('') : text(state.hostName),
+      officeNumber: text(state.officeNumber),
+      appointmentPhone: text(state.appointmentPhone),
+      assistantName: text(state.assistantName),
+    }
+  }
+  return {
+    commercialZone: text(state.commercialZone),
+    tradeName: text(state.tradeName),
+    foundedYear: toNumber(state.foundedYear),
+    cashRegistersCount: toNumber(state.cashRegistersCount),
+    branchesCount: toNumber(state.branchesCount),
+    hasPos: state.hasPos,
+    representativePosition: text(state.representativePosition),
+  }
+}
+
 async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
   isSubmitting.value = true
   try {
@@ -339,6 +554,9 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       const body: CreateAllyRequest = {
         name: state.name,
         allyTypeUuids: state.allyTypeUuids,
+        segment: state.segment,
+        holder: holderBody(),
+        ...segmentBody(false),
         taxDocumentType: state.taxDocumentType || undefined,
         taxDocumentNumber: state.taxDocumentNumber || undefined,
         email: state.email || undefined,
@@ -356,9 +574,6 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         published: state.published,
         professionUuids: state.professionUuids.length ? state.professionUuids : undefined,
         capturedByPromoterUuid: state.capturedByPromoterUuid,
-        representativeName: state.representativeName.trim() || undefined,
-        representativeDocumentType: state.representativeDocumentType || undefined,
-        representativeDocumentNumber: state.representativeDocumentNumber || undefined,
       }
       saved = await allies.create(body)
       toast.add({ title: t('allies.createdToast'), color: 'success', icon: 'i-lucide-check-circle' })
@@ -368,6 +583,9 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       const body: UpdateAllyRequest = {
         name: state.name,
         allyTypeUuids: state.allyTypeUuids,
+        segment: state.segment,
+        holder: holderBody(),
+        ...segmentBody(true),
         taxDocumentType: state.taxDocumentType || undefined,
         taxDocumentNumber: state.taxDocumentNumber || undefined,
         email: state.email || undefined,
@@ -389,9 +607,6 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         professionUuids: state.professionUuids,
         // PATCH semantics: an omitted promoter keeps the current one (it can be changed, not cleared).
         capturedByPromoterUuid: state.capturedByPromoterUuid,
-        representativeName: state.representativeName.trim() || undefined,
-        representativeDocumentType: state.representativeDocumentType || undefined,
-        representativeDocumentNumber: state.representativeDocumentNumber || undefined,
       }
       saved = await allies.update(props.ally.uuid, body)
       toast.add({ title: t('allies.updatedToast'), color: 'success', icon: 'i-lucide-check-circle' })
@@ -452,7 +667,18 @@ function requestDelete() {
         class="space-y-4"
         @submit="onSubmit"
       >
-        <!-- Agreement file "[CÓDIGO DE ASESOR]-[Nº DE ALIADO]" — assigned by the backend, read-only. -->
+        <!-- Segment first: it decides which types and fields apply (hub ADR 0031). -->
+        <UFormField :label="t('allies.form.fields.segment')" name="segment" :help="t('allies.form.segmentHelp')" required>
+          <URadioGroup
+            v-model="state.segment"
+            :items="segmentItems"
+            orientation="horizontal"
+            value-key="value"
+            label-key="label"
+          />
+        </UFormField>
+
+        <!-- Agreement file number (B2B "0007" / B2P "ASE001-0007") — assigned by the backend, read-only. -->
         <div v-if="mode === 'edit' && (allyNumber || fileNumber)" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('allies.form.fields.allyNumber')" name="allyNumber">
             <UInput :model-value="String(allyNumber ?? '')" disabled class="w-full font-mono" />
@@ -463,7 +689,7 @@ function requestDelete() {
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <UFormField :label="t('allies.form.fields.name')" name="name" required>
+          <UFormField :label="state.segment === 'B2P' ? t('allies.form.fields.nameProfessional') : t('allies.form.fields.name')" name="name" required>
             <UInput v-model="state.name" class="w-full" />
           </UFormField>
           <UFormField :label="t('allies.form.fields.allyTypes')" name="allyTypeUuids" required>
@@ -496,24 +722,116 @@ function requestDelete() {
           </UFormField>
         </div>
 
-        <UFormField :label="t('allies.form.fields.representativeName')" name="representativeName" :help="t('allies.form.representativeHelp')">
-          <UInput v-model="state.representativeName" icon="i-lucide-user-pen" class="w-full" />
-        </UFormField>
+        <!-- Holder person (V209): the professional (B2P) or the signing representative (B2B). -->
+        <fieldset class="rounded-xl border border-prohealth-100 p-4 space-y-4">
+          <legend class="px-1 text-sm font-semibold text-prohealth-800">
+            {{ state.segment === 'B2P' ? t('allies.form.holder.professionalTitle') : t('allies.form.holder.representativeTitle') }}
+          </legend>
+          <p class="text-xs text-prohealth-500">{{ t('allies.form.holder.help') }}</p>
+          <p v-if="legacyRepresentative" class="text-xs text-amber-600">
+            {{ t('allies.form.holder.legacy', { name: legacyRepresentative }) }}
+          </p>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <UFormField :label="t('allies.form.fields.holderDocumentType')" name="holderDocumentType">
+              <USelect v-model="state.holderDocumentType" :items="personDocumentTypeItems" class="w-full" />
+            </UFormField>
+            <UFormField
+              class="sm:col-span-2"
+              :label="t('allies.form.fields.holderDocumentNumber')"
+              name="holderDocumentNumber"
+              :required="state.segment === 'B2P'"
+            >
+              <UInput v-model="state.holderDocumentNumber" icon="i-lucide-id-card" class="w-full" />
+            </UFormField>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <UFormField :label="t('allies.form.fields.holderFirstName')" name="holderFirstName">
+              <UInput v-model="state.holderFirstName" :disabled="holderLinked" class="w-full" />
+            </UFormField>
+            <UFormField :label="t('allies.form.fields.holderLastName')" name="holderLastName">
+              <UInput v-model="state.holderLastName" :disabled="holderLinked" class="w-full" />
+            </UFormField>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <UFormField :label="t('allies.form.fields.holderBirthDate')" name="holderBirthDate">
+              <UInput v-model="state.holderBirthDate" type="date" :disabled="holderLinked" class="w-full" />
+            </UFormField>
+            <UFormField :label="t('allies.form.fields.holderPhone')" name="holderPhone">
+              <UInput v-model="state.holderPhone" :disabled="holderLinked" class="w-full" />
+            </UFormField>
+            <UFormField :label="t('allies.form.fields.holderEmail')" name="holderEmail">
+              <UInput v-model="state.holderEmail" type="email" :disabled="holderLinked" class="w-full" />
+            </UFormField>
+          </div>
+          <p v-if="holderLinked" class="text-xs text-prohealth-500">{{ t('allies.form.holder.linkedHint') }}</p>
+          <UFormField
+            v-if="state.segment === 'B2B'"
+            :label="t('allies.form.fields.representativePosition')"
+            name="representativePosition"
+          >
+            <UInput v-model="state.representativePosition" :placeholder="t('allies.form.representativePositionPlaceholder')" class="w-full" />
+          </UFormField>
+        </fieldset>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <UFormField :label="t('allies.form.fields.representativeDocumentType')" name="representativeDocumentType">
-            <CommonEntityReferenceSelect
-              v-model="state.representativeDocumentType"
-              :items="documentTypeOptions"
-              entity="document_type"
-              :placeholder="t('common.select')"
-              @navigate="goToCatalogRecord"
-            />
-          </UFormField>
-          <UFormField :label="t('allies.form.fields.representativeDocumentNumber')" name="representativeDocumentNumber">
-            <UInput v-model="state.representativeDocumentNumber" class="w-full" />
-          </UFormField>
-        </div>
+        <!-- B2P: where the professional practices (Convenio Profesional §III). -->
+        <fieldset v-if="state.segment === 'B2P'" class="rounded-xl border border-prohealth-100 p-4 space-y-4">
+          <legend class="px-1 text-sm font-semibold text-prohealth-800">{{ t('allies.form.site.title') }}</legend>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <UFormField :label="t('allies.form.fields.hostAlly')" name="hostAllyUuid" :help="t('allies.form.site.hostAllyHelp')">
+              <USelectMenu
+                v-model="state.hostAllyUuid"
+                clear
+                :items="hostAllyOptions"
+                label-key="label"
+                value-key="value"
+                icon="i-lucide-hospital"
+                :placeholder="t('common.select')"
+                class="w-full"
+              />
+            </UFormField>
+            <UFormField :label="t('allies.form.fields.hostName')" name="hostName">
+              <UInput v-model="state.hostName" :disabled="!!state.hostAllyUuid" class="w-full" />
+            </UFormField>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <UFormField :label="t('allies.form.fields.officeNumber')" name="officeNumber">
+              <UInput v-model="state.officeNumber" class="w-full" />
+            </UFormField>
+            <UFormField :label="t('allies.form.fields.appointmentPhone')" name="appointmentPhone">
+              <UInput v-model="state.appointmentPhone" icon="i-lucide-phone" class="w-full" />
+            </UFormField>
+            <UFormField :label="t('allies.form.fields.assistantName')" name="assistantName">
+              <UInput v-model="state.assistantName" class="w-full" />
+            </UFormField>
+          </div>
+        </fieldset>
+
+        <!-- B2B: operating structure (Convenio Comercial §I–IV). -->
+        <fieldset v-else class="rounded-xl border border-prohealth-100 p-4 space-y-4">
+          <legend class="px-1 text-sm font-semibold text-prohealth-800">{{ t('allies.form.commercial.title') }}</legend>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <UFormField :label="t('allies.form.fields.tradeName')" name="tradeName">
+              <UInput v-model="state.tradeName" class="w-full" />
+            </UFormField>
+            <UFormField :label="t('allies.form.fields.commercialZone')" name="commercialZone">
+              <UInput v-model="state.commercialZone" class="w-full" />
+            </UFormField>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <UFormField :label="t('allies.form.fields.foundedYear')" name="foundedYear">
+              <UInput v-model="state.foundedYear" inputmode="numeric" class="w-full" />
+            </UFormField>
+            <UFormField :label="t('allies.form.fields.cashRegistersCount')" name="cashRegistersCount">
+              <UInput v-model="state.cashRegistersCount" inputmode="numeric" class="w-full" />
+            </UFormField>
+            <UFormField :label="t('allies.form.fields.branchesCount')" name="branchesCount">
+              <UInput v-model="state.branchesCount" inputmode="numeric" class="w-full" />
+            </UFormField>
+            <UFormField :label="t('allies.form.fields.hasPos')" name="hasPos">
+              <USwitch v-model="state.hasPos" />
+            </UFormField>
+          </div>
+        </fieldset>
 
         <UFormField :label="t('allies.form.fields.capturedByPromoter')" name="capturedByPromoterUuid" :help="t('allies.form.capturedByPromoterHelp')">
           <!-- Clearable only on create: the update is PATCH, so an omitted promoter keeps the current one. -->

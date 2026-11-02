@@ -51,11 +51,11 @@ onMounted(load)
       <li v-for="a in accounts" :key="a.uuid" class="px-5 py-3 flex flex-wrap items-start justify-between gap-3 text-sm">
         <div>
           <div class="flex flex-wrap items-center gap-2">
-            <span class="font-semibold text-prohealth-900">{{ a.paymentMethod_Display || a.paymentMethodCode }}</span>
+            <span class="font-semibold text-prohealth-900">{{ a.paymentMethods.map(m => m.name).join(' / ') }}</span>
             <UBadge v-if="a.isDefault" color="primary" variant="soft" size="sm">{{ t('promoters.payoutAccounts.defaultBadge') }}</UBadge>
           </div>
           <p v-if="a.label || a.bank_Display" class="text-xs text-prohealth-500 mt-0.5">
-            {{ [a.label, a.bank_Display].filter(Boolean).join(' · ') }}
+            <span v-if="a.label">{{ a.label }}</span><span v-if="a.label && a.bank_Display"> · </span><BankName v-if="a.bank_Display" :uuid="a.bank_Uuid" :code="a.bank_Code" :name="a.bank_Display" />
           </p>
         </div>
         <div class="text-right">
