@@ -840,19 +840,111 @@
       "afternoon": "Good afternoon",
       "evening": "Good evening"
     },
-    "subtitle": "Real-time program overview.",
-    "thisMonth": "This month",
-    "kpis": {
-      "activeMembers": "Active members",
-      "monthlyRevenue": "Monthly revenue",
-      "allyUsage": "Partner usage",
-      "pendingPayments": "Pending payments"
+    "subtitle": "Live summary of the system based on your profile.",
+    "newMember": "New member",
+    "loadError": "We could not load the dashboard.",
+    "retry": "Retry",
+    "empty": "There are no indicators available for your profile yet.",
+    "sections": {
+      "MANAGEMENT": "Program management",
+      "ADVISOR": "My portfolio",
+      "ALLY": "My ally",
+      "MEMBER": "My membership"
     },
-    "banner": {
-      "title": "We care for your vision with the best service.",
-      "description": "Eye exams, frames and lenses for all your members, backed by the OptiBienestar 360 network.",
-      "cta": "Manage members",
-      "imageAlt": "OptiBienestar 360 optical care"
+    "kpis": {
+      "activeMembers": "Members with an active membership",
+      "monthlyRevenue": "Approved collections this month",
+      "allyUsages": "Ally usages this month",
+      "pendingPayments": "Collections pending review",
+      "pendingAffiliationRequests": "Pending affiliation requests",
+      "portfolioMembers": "Members in my portfolio",
+      "portfolioUpToDate": "Up to date",
+      "portfolioDue": "Payment pending",
+      "portfolioOverdue": "Overdue",
+      "portfolioNewThisMonth": "New this month",
+      "allyMonthUsages": "Usages this month",
+      "allyMembersServed": "Members served this month",
+      "allyRating": "Average rating",
+      "membershipStatus": "Membership status",
+      "nextDueDate": "Next installment",
+      "beneficiaries": "Beneficiaries",
+      "memberMonthUsages": "Usages this month",
+      "memberTotalUsages": "Total usages"
+    },
+    "delta": {
+      "vsPrevious": "vs. previous month",
+      "new": "New",
+      "noChange": "No change"
+    },
+    "rating": {
+      "outOf": "{value} / 5",
+      "count": "No ratings | {count} rating | {count} ratings",
+      "none": "No ratings yet"
+    },
+    "noDueDate": "No installment scheduled",
+    "membershipStatus": {
+      "ACTIVE": "Active",
+      "SUSPENDED": "Suspended",
+      "EXPIRED": "Expired",
+      "CANCELED": "Canceled",
+      "NONE": "No membership"
+    },
+    "charts": {
+      "noData": "No data to show yet",
+      "total": "Total",
+      "lastMonths": "Last 6 months",
+      "table": {
+        "category": "Category",
+        "value": "Value",
+        "share": "Share"
+      },
+      "titles": {
+        "newMembersByMonth": "New affiliations per month",
+        "membershipsByStatus": "Members by membership status",
+        "revenueByMonth": "Approved collections per month (USD)",
+        "portfolioNewByMonth": "Members registered per month",
+        "portfolioPaymentStatus": "Payment status of my portfolio",
+        "allyUsagesByMonth": "Usages per month",
+        "allyUsagesByService": "Most used services",
+        "memberUsagesByPerson": "Usages per family member",
+        "memberUsagesByMonth": "Usages per month",
+        "memberUsagesByService": "My most used services"
+      },
+      "enums": {
+        "membershipsByStatus": {
+          "ACTIVE": "Active",
+          "SUSPENDED": "Suspended",
+          "EXPIRED": "Expired",
+          "CANCELED": "Canceled"
+        },
+        "portfolioPaymentStatus": {
+          "UP_TO_DATE": "Up to date",
+          "DUE": "Payment pending",
+          "OVERDUE": "Overdue",
+          "NO_MEMBERSHIP": "No membership"
+        }
+      }
+    },
+    "activity": {
+      "title": "Recent activity",
+      "subtitle": "Latest movements recorded in the system",
+      "empty": "No activity recorded yet.",
+      "status": {
+        "SUCCESS": "Completed",
+        "PENDING": "Pending",
+        "ERROR": "Rejected"
+      },
+      "types": {
+        "PAYMENT_REGISTERED": "Collection registered",
+        "PAYMENT_APPROVED": "Collection approved",
+        "PAYMENT_REJECTED": "Collection rejected",
+        "USAGE_REGISTERED": "Usage registered",
+        "USAGE_REVERSED": "Usage reversed",
+        "AFFILIATION_REQUEST_RECEIVED": "Affiliation request received",
+        "AFFILIATION_REQUEST_APPROVED": "Affiliation request approved",
+        "AFFILIATION_REQUEST_REJECTED": "Affiliation request rejected",
+        "MEMBER_ENROLLED": "New member in the portfolio"
+      }
     },
     "gallery": {
       "title": "Services gallery",
@@ -863,38 +955,6 @@
         "services": "Optical services",
         "frames": "Frame selection",
         "center": "Optical center"
-      }
-    },
-    "activity": {
-      "title": "Recent activity",
-      "subtitle": "Latest system operations",
-      "support": "Support",
-      "status": {
-        "success": "Completed",
-        "pending": "Pending",
-        "error": "Error"
-      },
-      "items": {
-        "i1": {
-          "what": "Payment confirmed — Family Plan",
-          "when": "5 min ago"
-        },
-        "i2": {
-          "what": "Usage recorded: lenses",
-          "when": "18 min ago"
-        },
-        "i3": {
-          "what": "Payment under review — Individual Plan",
-          "when": "42 min ago"
-        },
-        "i4": {
-          "what": "Plan change request",
-          "when": "1 h ago"
-        },
-        "i5": {
-          "what": "Validation retry failed",
-          "when": "2 h ago"
-        }
       }
     },
     "session": {

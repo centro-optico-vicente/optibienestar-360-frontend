@@ -840,19 +840,111 @@
       "afternoon": "Buenas tardes",
       "evening": "Buenas noches"
     },
-    "subtitle": "Resumen del programa en tiempo real.",
-    "thisMonth": "Este mes",
-    "kpis": {
-      "activeMembers": "Afiliados activos",
-      "monthlyRevenue": "Recaudación mensual",
-      "allyUsage": "Usos en aliados",
-      "pendingPayments": "Pagos pendientes"
+    "subtitle": "Resumen con datos reales del sistema según tu perfil.",
+    "newMember": "Nuevo afiliado",
+    "loadError": "No pudimos cargar el panel.",
+    "retry": "Reintentar",
+    "empty": "Todavía no hay indicadores disponibles para tu perfil.",
+    "sections": {
+      "MANAGEMENT": "Gestión del programa",
+      "ADVISOR": "Mi cartera",
+      "ALLY": "Mi aliado",
+      "MEMBER": "Mi membresía"
     },
-    "banner": {
-      "title": "Cuidamos tu visión con la mejor atención.",
-      "description": "Exámenes visuales, monturas y lentes para todos tus afiliados, respaldados por la red OptiBienestar 360.",
-      "cta": "Gestionar afiliados",
-      "imageAlt": "Atención óptica OptiBienestar 360"
+    "kpis": {
+      "activeMembers": "Afiliados con membresía activa",
+      "monthlyRevenue": "Recaudación aprobada del mes",
+      "allyUsages": "Consumos en aliados del mes",
+      "pendingPayments": "Cobros pendientes de revisión",
+      "pendingAffiliationRequests": "Solicitudes de afiliación pendientes",
+      "portfolioMembers": "Afiliados en mi cartera",
+      "portfolioUpToDate": "Al día",
+      "portfolioDue": "Con pago pendiente",
+      "portfolioOverdue": "Morosos",
+      "portfolioNewThisMonth": "Nuevos este mes",
+      "allyMonthUsages": "Consumos del mes",
+      "allyMembersServed": "Afiliados atendidos del mes",
+      "allyRating": "Calificación promedio",
+      "membershipStatus": "Estado de la membresía",
+      "nextDueDate": "Próxima cuota",
+      "beneficiaries": "Beneficiarios",
+      "memberMonthUsages": "Consumos del mes",
+      "memberTotalUsages": "Consumos totales"
+    },
+    "delta": {
+      "vsPrevious": "vs. mes anterior",
+      "new": "Nuevo",
+      "noChange": "Sin cambio"
+    },
+    "rating": {
+      "outOf": "{value} / 5",
+      "count": "Sin calificaciones | {count} calificación | {count} calificaciones",
+      "none": "Sin calificaciones"
+    },
+    "noDueDate": "Sin cuota programada",
+    "membershipStatus": {
+      "ACTIVE": "Activa",
+      "SUSPENDED": "Suspendida",
+      "EXPIRED": "Vencida",
+      "CANCELED": "Cancelada",
+      "NONE": "Sin membresía"
+    },
+    "charts": {
+      "noData": "Sin datos para mostrar todavía",
+      "total": "Total",
+      "lastMonths": "Últimos 6 meses",
+      "table": {
+        "category": "Categoría",
+        "value": "Valor",
+        "share": "Porcentaje"
+      },
+      "titles": {
+        "newMembersByMonth": "Afiliaciones nuevas por mes",
+        "membershipsByStatus": "Afiliados por estado de membresía",
+        "revenueByMonth": "Recaudación aprobada por mes (USD)",
+        "portfolioNewByMonth": "Afiliados registrados por mes",
+        "portfolioPaymentStatus": "Estado de pago de mi cartera",
+        "allyUsagesByMonth": "Consumos por mes",
+        "allyUsagesByService": "Servicios más consumidos",
+        "memberUsagesByPerson": "Consumos por persona de la familia",
+        "memberUsagesByMonth": "Consumos por mes",
+        "memberUsagesByService": "Mis servicios más usados"
+      },
+      "enums": {
+        "membershipsByStatus": {
+          "ACTIVE": "Activa",
+          "SUSPENDED": "Suspendida",
+          "EXPIRED": "Vencida",
+          "CANCELED": "Cancelada"
+        },
+        "portfolioPaymentStatus": {
+          "UP_TO_DATE": "Al día",
+          "DUE": "Pago pendiente",
+          "OVERDUE": "Moroso",
+          "NO_MEMBERSHIP": "Sin membresía"
+        }
+      }
+    },
+    "activity": {
+      "title": "Actividad reciente",
+      "subtitle": "Últimos movimientos registrados en el sistema",
+      "empty": "Todavía no hay actividad registrada.",
+      "status": {
+        "SUCCESS": "Completado",
+        "PENDING": "Pendiente",
+        "ERROR": "Rechazado"
+      },
+      "types": {
+        "PAYMENT_REGISTERED": "Cobro registrado",
+        "PAYMENT_APPROVED": "Cobro aprobado",
+        "PAYMENT_REJECTED": "Cobro rechazado",
+        "USAGE_REGISTERED": "Consumo registrado",
+        "USAGE_REVERSED": "Consumo revertido",
+        "AFFILIATION_REQUEST_RECEIVED": "Solicitud de afiliación recibida",
+        "AFFILIATION_REQUEST_APPROVED": "Solicitud de afiliación aprobada",
+        "AFFILIATION_REQUEST_REJECTED": "Solicitud de afiliación rechazada",
+        "MEMBER_ENROLLED": "Nuevo afiliado en la cartera"
+      }
     },
     "gallery": {
       "title": "Galería de servicios",
@@ -863,38 +955,6 @@
         "services": "Servicios ópticos",
         "frames": "Selección de monturas",
         "center": "Centro óptico"
-      }
-    },
-    "activity": {
-      "title": "Actividad reciente",
-      "subtitle": "Últimas operaciones del sistema",
-      "support": "Soporte",
-      "status": {
-        "success": "Completado",
-        "pending": "Pendiente",
-        "error": "Error"
-      },
-      "items": {
-        "i1": {
-          "what": "Pago confirmado — Plan Familiar",
-          "when": "hace 5 min"
-        },
-        "i2": {
-          "what": "Uso registrado: lentes",
-          "when": "hace 18 min"
-        },
-        "i3": {
-          "what": "Pago en revisión — Plan Individual",
-          "when": "hace 42 min"
-        },
-        "i4": {
-          "what": "Solicitud de cambio de plan",
-          "when": "hace 1 h"
-        },
-        "i5": {
-          "what": "Reintento de validación fallido",
-          "when": "hace 2 h"
-        }
       }
     },
     "session": {
