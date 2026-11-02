@@ -1,7 +1,7 @@
 // Bloquea el acceso a una página completa cuando falta el permiso.
 // Uso en la página:
 //   definePageMeta({ layout: 'dashboard', middleware: 'can', permission: 'USER_VIEW_ALL' })
-//   // o varios (basta cualquiera): permission: ['PAYMENT_VIEW_ALL', 'PAYMENT_VIEW_OWN']
+//   // o varios (basta cualquiera): permission: ['PAYMENT_VIEW_ALL', 'COLLECTION_VIEW_OWN']
 //
 // El menú no basta: alguien puede escribir la URL a mano. Aun así, el backend
 // es el muro real (403). Esto es la capa de UX.

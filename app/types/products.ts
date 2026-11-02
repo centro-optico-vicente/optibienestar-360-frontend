@@ -122,6 +122,12 @@ export interface PublicProductListItemDto {
   allyCityName?: string | null
   allyLogoUrl?: string | null
   allyPhone?: string | null
+  /** Average member rating of this offer (1 decimal, 1–5); null with no votes. */
+  ratingAvg?: number | null
+  ratingCount?: number
+  /** Average member rating of the offering ally (1 decimal); null with no votes. */
+  allyRatingAvg?: number | null
+  allyRatingCount?: number
 }
 
 /** One ally's public offer of a product, inside {@link PublicProductDetailDto}. */
@@ -143,6 +149,12 @@ export interface PublicProductOfferDto {
   allyWhatsapp?: string | null
   /** Offer's own gallery, else the product's (hub ADR 0027). */
   images?: PublicImageDto[]
+  /** Average member rating of this offer (1 decimal, 1–5); null with no votes. */
+  ratingAvg?: number | null
+  ratingCount?: number
+  /** Average member rating of the offering ally (1 decimal); null with no votes. */
+  allyRatingAvg?: number | null
+  allyRatingCount?: number
 }
 
 /**
@@ -164,6 +176,9 @@ export interface PublicProductDetailDto {
   offersCount: number
   minFinalPrice?: number | string | null
   maxDiscountPct?: number | string | null
+  /** Average member rating of the product across every ally (1 decimal, 1–5); null with no votes. */
+  ratingAvg?: number | null
+  ratingCount?: number
   offers: PublicProductOfferDto[]
 }
 

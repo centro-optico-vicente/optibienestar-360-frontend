@@ -12,8 +12,9 @@ const publicPath = usePublicPath()
       </div>
 
       <div class="relative z-10 flex flex-col justify-between p-12 text-white w-full">
-        <NuxtLink :to="publicPath('/')" class="self-start -ml-2">
-          <BrandLogo variant="negativo" :width="220" />
+        <!-- Full-color logo on a white plate: its dark-blue "PLAN" would vanish on the brand gradient -->
+        <NuxtLink :to="publicPath('/')" class="self-start rounded-2xl bg-white px-5 py-3 shadow-lg">
+          <BrandLogo variant="horizontal" :width="200" />
         </NuxtLink>
 
         <div>

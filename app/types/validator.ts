@@ -21,6 +21,13 @@ export type ValidationStatus =
   | 'EXPIRED'
   | 'CANCELED'
 
+/** An active beneficiary of the validated membership. */
+export interface CoveredPerson {
+  beneficiaryUuid: string
+  fullName: string | null
+  relationship: string | null
+}
+
 /**
  * Response of GET /v1/allies/me/validations/{document}. Scalars carry a localized
  * `_Display` sibling (hub ADR 0014).
@@ -49,6 +56,15 @@ export interface ValidationResultDto {
   lastPaidThrough?: string | null
   lastPaidThrough_Display?: string | null
   gracePeriodDays?: number | null
+
+  // Who is at the counter (V195): set when the document is a beneficiary's —
+  // the coverage above is then their holder's (memberFullName = the holder).
+  beneficiaryUuid?: string | null
+  beneficiaryFullName?: string | null
+  beneficiaryRelationship?: string | null
+
+  /** Everyone the membership covers besides the holder: the "who consumes" choices. */
+  beneficiaries?: CoveredPerson[] | null
 
   /** Diagnostic only: whether the answer came from Redis. Never gate UI on this. */
   cached?: boolean

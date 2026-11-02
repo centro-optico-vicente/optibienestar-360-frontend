@@ -120,6 +120,18 @@ export const useMembers = () => {
   const myFamily = () =>
     useApi<BeneficiaryDto[]>('/v1/me/family', { silent: true })
 
+  /** Add a beneficiary to my own plan (POST /v1/me/family, MEMBER_BENEFICIARY_CREATE_OWN). */
+  const addMyBeneficiary = (body: CreateBeneficiaryRequest) =>
+    useApi<BeneficiaryDto>('/v1/me/family', { method: 'POST', body })
+
+  /** Give a beneficiary their own portal login, or resend the invitation (BENEFICIARY_ACCESS_GRANT_OWN). */
+  const grantBeneficiaryAccess = (uuid: string, email?: string) =>
+    useApi<BeneficiaryDto>(`/v1/me/family/${uuid}/access`, { method: 'POST', body: { email } })
+
+  /** Deactivate the beneficiary's login; granting again reactivates it (BENEFICIARY_ACCESS_REVOKE_OWN). */
+  const revokeBeneficiaryAccess = (uuid: string) =>
+    useApi<BeneficiaryDto>(`/v1/me/family/${uuid}/access`, { method: 'DELETE' })
+
   /** My current advisor and previous advisors (MEMBER_ADVISOR_VIEW_OWN). `exists=false` when I have no member record (advisors/allies). */
   const myAdvisor = () =>
     useApi<MyAdvisorDto>('/v1/me/member/advisor', { silent: true })
@@ -168,6 +180,9 @@ export const useMembers = () => {
     removeMedicalRecord,
     me,
     myFamily,
+    addMyBeneficiary,
+    grantBeneficiaryAccess,
+    revokeBeneficiaryAccess,
     myAdvisor,
     assignPromoter,
     bulkAssignPromoter,

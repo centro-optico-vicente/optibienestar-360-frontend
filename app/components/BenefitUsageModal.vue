@@ -41,6 +41,25 @@ const notes = ref('')
 const submitting = ref(false)
 const touched = ref(false)
 
+// ---- Who consumes (V195): the holder or one of the covered beneficiaries ----
+// 'holder' or a beneficiary uuid; preset to whoever presented their document.
+const HOLDER = 'holder'
+const consumer = ref<string>(HOLDER)
+const consumerOptions = computed(() => [
+  {
+    value: HOLDER,
+    label: props.validation?.memberFullName || t('validator.usage.holder'),
+    description: t('validator.usage.holder'),
+  },
+  ...(props.validation?.beneficiaries ?? []).map(b => ({
+    value: b.beneficiaryUuid,
+    label: b.fullName || t('common.empty'),
+    description: b.relationship ? t(`members.relationships.${b.relationship}`, b.relationship) : undefined,
+  })),
+])
+const consumerName = computed(() =>
+  consumerOptions.value.find(o => o.value === consumer.value)?.label ?? props.validation?.memberFullName ?? '')
+
 /**
  * Today in the VE convention (ADR 0010). `en-CA` renders as yyyy-MM-dd, which is
  * what the backend's LocalDate expects — building it off the browser's timezone
@@ -105,6 +124,7 @@ watch(() => props.open, (open) => {
   copayCurrency.value = 'USD'
   notes.value = ''
   touched.value = false
+  consumer.value = props.validation?.beneficiaryUuid ?? HOLDER
   if (props.ally) loadProducts(props.ally.uuid)
   loadCategories()
 })
@@ -165,10 +185,11 @@ async function confirm() {
       // Both sides or neither — never one.
       ...(amount ? { copayAmount: amount, copayCurrency: copayCurrency.value.trim().toUpperCase() } : {}),
       ...(notes.value.trim() ? { notes: notes.value.trim() } : {}),
+      ...(consumer.value !== HOLDER ? { beneficiaryUuid: consumer.value } : {}),
     })
     toast.add({
       title: t('validator.usage.registeredToast'),
-      description: t('validator.usage.registeredToastDescription', { name: props.validation?.memberFullName ?? '' }),
+      description: t('validator.usage.registeredToastDescription', { name: consumerName.value }),
       color: 'success',
       icon: 'i-lucide-check-circle',
     })
@@ -204,6 +225,23 @@ async function confirm() {
             <span class="text-prohealth-800">{{ ally.name }}</span>
           </div>
         </div>
+
+        <!-- Who consumed: the holder or one of the covered beneficiaries -->
+        <UFormField
+          v-if="consumerOptions.length > 1"
+          :label="t('validator.usage.fields.consumer')"
+          :help="t('validator.usage.fields.consumerHelp')"
+          required
+        >
+          <USelectMenu
+            v-model="consumer"
+            :items="consumerOptions"
+            label-key="label"
+            value-key="value"
+            description-key="description"
+            class="w-full"
+          />
+        </UFormField>
 
         <UFormField :label="t('validator.usage.fields.product')" :help="t('validator.usage.fields.productHelp')">
           <USelectMenu

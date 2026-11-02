@@ -259,14 +259,14 @@ export const usePayments = () => {
   const reactivateToDraftForDownline = (uuid: string) =>
     useApi<PaymentDto>(`/v1/advisors/me/payments/${uuid}/reactivate`, { method: 'PUT' })
 
-  /** Approve a PENDING downline collection (PAYMENT_APPROVE_DOWNLINE, not granted by default). */
+  /** Approve a PENDING downline collection (COLLECTION_APPROVE_DOWNLINE, not granted by default). */
   const approveForDownline = (uuid: string, reason?: string) =>
     useApi<PaymentDto>(`/v1/advisors/me/payments/${uuid}/approve`, {
       method: 'PUT',
       body: (reason ? { reason } : {}) as PaymentApproveRequest,
     })
 
-  /** Reject a PENDING downline collection (PAYMENT_REJECT_DOWNLINE, not granted by default). */
+  /** Reject a PENDING downline collection (COLLECTION_REJECT_DOWNLINE, not granted by default). */
   const rejectForDownline = (uuid: string, reason: string) =>
     useApi<PaymentDto>(`/v1/advisors/me/payments/${uuid}/reject`, {
       method: 'PUT',
