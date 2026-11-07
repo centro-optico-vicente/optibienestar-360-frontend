@@ -294,6 +294,17 @@ onMounted(async () => {
           :items-per-page="size"
         />
       </div>
+
+      <!-- Become an ally (hub ADR 0036): public ally request -->
+      <div class="mt-12 rounded-3xl bg-prohealth-900 text-white p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+        <div>
+          <h2 class="text-xl font-extrabold">{{ t('allies.public.becomeAllyTitle') }}</h2>
+          <p class="text-sm text-prohealth-100 mt-1 max-w-xl">{{ t('allies.public.becomeAllyBody') }}</p>
+        </div>
+        <UButton :to="publicPath('/solicitar-alianza')" color="secondary" variant="solid" size="lg" icon="i-lucide-handshake" class="text-prohealth-950 shrink-0">
+          {{ t('allies.public.becomeAllyCta') }}
+        </UButton>
+      </div>
     </section>
   </div>
 </template>

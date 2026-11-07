@@ -140,7 +140,9 @@
       "contactPromoter": "Contact an advisor.",
       "welcomeTitle": "Welcome!",
       "welcomeDescription": "Hi {name}",
-      "errorFallback": "Unable to sign in"
+      "errorFallback": "Unable to sign in",
+      "becomeAllyPrompt": "Do you run a business or practice?",
+      "becomeAllyLink": "Become an ally"
     },
     "recover": {
       "seoTitle": "Recover password — OptiBienestar 360",
@@ -500,7 +502,8 @@
       "OPERADOR_MEDICO": "Medical operator",
       "ALIADO": "Ally",
       "AFILIADO": "Member",
-      "ASESOR": "Advisor"
+      "ASESOR": "Advisor",
+      "ALIADO_PENDIENTE": "Ally under review"
     }
   },
   "nav": {
@@ -794,6 +797,10 @@
       "myMedicalAccess": {
         "label": "Who viewed my history",
         "description": "Medical allies with access to your medical history."
+      },
+      "allyRequests": {
+        "label": "Ally requests",
+        "description": "Review and approve the allies that signed up themselves or came from the template."
       }
     },
     "other": {
@@ -1606,7 +1613,8 @@
       },
       "commercial": {
         "title": "Operating structure"
-      }
+      },
+      "publishNotApprovedHint": "It can be published once the request is approved."
     },
     "delete": {
       "title": "Delete partner",
@@ -1886,7 +1894,10 @@
       "office": "Office {number}",
       "appointments": "Appointments",
       "licensesTitle": "Verified licenses",
-      "openingHours": "Opening hours"
+      "openingHours": "Opening hours",
+      "becomeAllyTitle": "Want to become an ally?",
+      "becomeAllyBody": "If you run a business or are a professional, request your alliance and offer your benefits to OptiBienestar 360 members.",
+      "becomeAllyCta": "Become an ally"
     },
     "portal": {
       "seoTitle": "My partner space — OptiBienestar 360",
@@ -1936,6 +1947,47 @@
         "offersEmpty": "You have no offers yet.",
         "show": "Images",
         "hide": "Hide"
+      },
+      "registration": {
+        "pendingTitle": "Your request is under review",
+        "pendingBody": "Your request is under review. Once you sign the agreement and we approve it, you will be able to register your offers and appear in the directory.",
+        "rejectedTitle": "Your ally request was rejected",
+        "rejectedNoReason": "Write to us if you want to know more or try again.",
+        "reloginTitle": "Your alliance was approved!",
+        "reloginBody": "Sign out and sign in again to enable every option of your ally space.",
+        "completenessTitle": "Complete your profile",
+        "completenessHint": "Still missing:",
+        "completenessDone": "Your profile is complete.",
+        "missing": {
+          "logo": "Logo",
+          "description": "Description",
+          "address": "Address",
+          "city": "City",
+          "googleMapsUrl": "Google Maps link",
+          "contactPhone": "Contact phone",
+          "openingHours": "Opening hours",
+          "socialMedia": "Social media",
+          "practiceSite": "Clinic or office",
+          "appointmentPhone": "Appointment phone"
+        },
+        "nextSteps": {
+          "title": "Next steps",
+          "offers": "Register your offers",
+          "logo": "Upload your logo",
+          "hours": "Fill in your opening hours",
+          "go": "Go"
+        }
+      },
+      "profile": {
+        "title": "My profile",
+        "hint": "This information is shown in the directory once your alliance is approved and published.",
+        "readonlyHint": "Only the owner of the ally can edit the profile.",
+        "nameLocked": "The name can no longer be changed; ask the OptiBienestar 360 team.",
+        "nameRequired": "The name is required.",
+        "badNumber": "“{field}” must be a number.",
+        "commercialTitle": "Business data",
+        "practiceTitle": "Practice",
+        "savedToast": "Profile updated"
       }
     },
     "segments": {
@@ -5843,5 +5895,195 @@
     "starLabel": "{n} star | {n} stars",
     "allyPrefix": "Partner",
     "offerPrefix": "This service"
+  },
+  "allyRequestForm": {
+    "seoTitle": "Become an ally — OptiBienestar 360",
+    "title": "Become an ally",
+    "subtitle": "Register your business or practice. We will review your request and, meanwhile, you can complete your profile in your ally space.",
+    "referredBy": "Invited by advisor",
+    "segmentLabel": "What kind of ally are you?",
+    "segmentB2B": "Business",
+    "segmentB2BHint": "A shop or company (pharmacy, optician, clinic, store…).",
+    "segmentB2P": "Professional",
+    "segmentB2PHint": "An independent professional (physician, psychologist, lawyer…).",
+    "sections": {
+      "ally": "Ally details",
+      "contactB2B": "Contact person",
+      "contactB2P": "Your details"
+    },
+    "fields": {
+      "allyType": "Line of business",
+      "allyTypePlaceholder": "Choose the line of business",
+      "name": "Business name",
+      "nameB2P": "Display name",
+      "nameB2PHelp": "Optional. If empty we will use your first and last name.",
+      "taxDocument": "Tax ID (RIF)",
+      "profession": "Profession or specialty",
+      "professionPlaceholder": "Choose your profession",
+      "professionSearch": "Search profession…",
+      "state": "State",
+      "statePlaceholder": "Choose the state",
+      "city": "City",
+      "cityPlaceholder": "Choose the city",
+      "selectStateFirst": "Choose the state first",
+      "benefitNote": "What benefit would you offer to members?",
+      "benefitNoteHelp": "Optional. For example: 15% off consultations.",
+      "firstName": "First names",
+      "lastName": "Last names",
+      "document": "ID card",
+      "mobile": "Mobile / WhatsApp",
+      "email": "Email",
+      "emailHelp": "You will sign in to your ally space with this email.",
+      "password": "Password",
+      "passwordConfirm": "Repeat the password"
+    },
+    "termsAccept": "I agree that OptiBienestar 360 uses this information to evaluate my request and contact me.",
+    "reviewNote": "Your alliance stays under review until you sign the agreement and we approve it. Meanwhile you will not appear in the directory.",
+    "submit": "Send request",
+    "loggingIn": "Opening your space…",
+    "required": "Fill in the required fields.",
+    "badDocument": "The ID number must be digits only (up to 9).",
+    "badTaxDocument": "The tax ID number is not valid.",
+    "badEmail": "The email is not valid.",
+    "shortPassword": "The password must be at least 8 characters long.",
+    "passwordMismatch": "The passwords do not match.",
+    "termsRequired": "You must accept the use of your data to send the request.",
+    "conflictHint": "If you already have an account, sign in with it.",
+    "signIn": "Sign in",
+    "backToAllies": "See the directory",
+    "sentTitle": "Request sent",
+    "sentBody": "We received your request. Sign in with {email} to complete your profile while we review it.",
+    "sentPromoter": "Advisor: {name}",
+    "welcomeToast": "Complete your profile while we review your request."
+  },
+  "allyRequests": {
+    "title": "Ally requests",
+    "subtitle": "Allies that signed up themselves or came from the template. Approve once the agreement is signed.",
+    "searchPlaceholder": "Search by name, tax ID, ID card or email…",
+    "statusAll": "All statuses",
+    "channelAll": "All channels",
+    "pendingCount": "{count} pending",
+    "importButton": "Import from Excel/CSV",
+    "empty": "No requests match these filters.",
+    "viewDetail": "View request",
+    "status": {
+      "PENDING": "Pending",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected"
+    },
+    "channel": {
+      "SELF_SERVICE": "Public form",
+      "IMPORT": "Template",
+      "ADMIN": "Panel"
+    },
+    "columns": {
+      "name": "Ally",
+      "segment": "Segment",
+      "contact": "Contact",
+      "channel": "Channel",
+      "benefitNote": "Proposed benefit",
+      "createdAt": "Date",
+      "status": "Status"
+    },
+    "detail": {
+      "seoPage": "Ally request",
+      "notFoundTitle": "We could not find this request.",
+      "receivedAt": "Received on {date}",
+      "approvedBy": "Approved by {name} on {date}",
+      "rejectedBy": "Rejected by {name} on {date}",
+      "rejectionReason": "Rejection reason",
+      "viewAlly": "View ally profile",
+      "reopen": "Reopen",
+      "reopenToast": "The request is pending again",
+      "comment": "Comment (optional)",
+      "allyTitle": "Ally details",
+      "contactTitle": "Holder / contact",
+      "usersTitle": "Portal users",
+      "noUsers": "No portal user yet.",
+      "agreementsTitle": "Active agreements",
+      "noAgreements": "No active agreement. It is registered when approving.",
+      "noEndDate": "no end date",
+      "viewSupport": "View support",
+      "fields": {
+        "allyNumber": "Ally no.",
+        "segment": "Segment",
+        "allyTypes": "Line of business",
+        "professions": "Professions",
+        "taxDocument": "Tax ID (RIF)",
+        "channel": "Channel",
+        "city": "City",
+        "address": "Address",
+        "promoter": "Advisor who brought it",
+        "published": "Published in the directory",
+        "benefitNote": "Proposed benefit",
+        "holderName": "Name",
+        "holderDocument": "ID card",
+        "email": "Email",
+        "phone": "Phone"
+      },
+      "approve": {
+        "button": "Approve",
+        "title": "Approve ally request",
+        "notice": "On approval the ally becomes ALIADO: it can register offers and validate cards. It is notified by email.",
+        "agreementTitle": "Signed agreement",
+        "agreementType": "Agreement type",
+        "startDate": "Start date",
+        "endDate": "End date",
+        "noticeDays": "Notice days",
+        "autoRenew": "Auto-renew",
+        "hasAgreement": "It already has an active agreement; no need to register another one.",
+        "support": "Signed agreement support (optional)",
+        "supportHelp": "PDF or image. Not required to approve.",
+        "publish": "Publish in the directory",
+        "startDateRequired": "The agreement start date is required.",
+        "endBeforeStart": "The end date cannot be before the start date.",
+        "badNoticeDays": "The notice days must be a number.",
+        "doneToast": "Request approved"
+      },
+      "reject": {
+        "button": "Reject",
+        "title": "Reject ally request",
+        "notice": "The ally becomes inactive and its user disabled. We will email them the reason.",
+        "doneToast": "Request rejected"
+      },
+      "invite": {
+        "button": "Invite to the portal",
+        "title": "Invite to the portal",
+        "notice": "We will create the contact's user and email them a link to create their password.",
+        "document": "Contact's ID card",
+        "documentHelp": "The ally has no holder on record: the ID card is needed to create the user.",
+        "documentRequired": "Type the contact's ID card (digits only).",
+        "emailHelp": "If empty, the ally's email is used.",
+        "doneToast": "Invitation sent"
+      }
+    },
+    "import": {
+      "title": "Import allies",
+      "description": "Upload the ally registration template. It is validated first and, if there are no errors, you confirm the import.",
+      "templates": "Download template:",
+      "file": "File",
+      "fileHelp": "Excel (.xlsx) or text (.csv, .tsv, .txt).",
+      "delimiter": "Delimiter",
+      "delimiterHelp": "Text files only.",
+      "delimiters": {
+        "auto": "Automatic",
+        "semicolon": "Semicolon",
+        "comma": "Comma",
+        "tab": "Tab"
+      },
+      "validate": "Validate",
+      "confirm": "Confirm import",
+      "hasErrors": "The file has {count} errors. Fix them and validate again.",
+      "noErrors": "The file has no errors.",
+      "summary": "{format} format · {total} rows · {valid} valid",
+      "detectedDelimiter": "delimiter: {delimiter}",
+      "columns": {
+        "row": "Row",
+        "column": "Column",
+        "message": "Error"
+      },
+      "doneToast": "{count} allies imported",
+      "doneBody": "They are pending approval, unpublished and without a user. Invite each contact from its request."
+    }
   }
 }

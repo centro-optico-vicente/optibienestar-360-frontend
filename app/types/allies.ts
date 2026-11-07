@@ -105,6 +105,9 @@ export interface AllyDto {
   joinedAt?: string
   published?: boolean
   publishedAt?: string | null
+  /** Review state of the ally request (hub ADR 0036); only APPROVED allies can be published. */
+  registrationStatus?: AllyRegistrationStatus | null
+  registrationStatus_Display?: string | null
   status?: string
   /** Soft-delete/reactivation flag — distinct from `status` (a business workflow value). */
   active?: boolean
@@ -488,6 +491,100 @@ export interface MyAllyDto {
   allyRole: AllyRole | string
   primary: boolean
   joinedAt?: string | null
+  segment?: AllySegment | null
+  segment_Display?: string | null
+  /** Review state of the ally request (hub ADR 0036). */
+  registrationStatus?: AllyRegistrationStatus | null
+  registrationStatus_Display?: string | null
+  rejectionReason?: string | null
+  /** True once at least one offer of the ally is APPROVED. */
+  hasApprovedOffers?: boolean
+}
+
+// ---- Ally request / own profile (hub ADR 0036) ----
+
+/** Review state of an ally: self-registered and imported allies start PENDING. */
+export type AllyRegistrationStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
+
+/** Keys of `completeness.missing` in the own profile. */
+export const ALLY_PROFILE_MISSING_KEYS = [
+  'logo', 'description', 'address', 'city', 'googleMapsUrl', 'contactPhone',
+  'openingHours', 'socialMedia', 'practiceSite', 'appointmentPhone',
+] as const
+export type AllyProfileMissingKey = typeof ALLY_PROFILE_MISSING_KEYS[number]
+
+/** GET/PUT /v1/me/allies/{allyUuid}/profile — the ally's own profile. */
+export interface MyAllyProfileDto {
+  uuid: string
+  name: string
+  /** The name can be changed only while the request is under review. */
+  nameEditable: boolean
+  segment: AllySegment
+  segment_Display?: string | null
+  registrationStatus: AllyRegistrationStatus
+  registrationStatus_Display?: string | null
+  rejectionReason?: string | null
+  allyTypeNames?: string[]
+  email?: string | null
+  phone?: string | null
+  whatsapp?: string | null
+  website?: string | null
+  instagram?: string | null
+  facebook?: string | null
+  address?: string | null
+  city_Uuid?: string | null
+  city_Display?: string | null
+  state_Uuid?: string | null
+  state_Display?: string | null
+  googleMapsUrl?: string | null
+  description?: string | null
+  // B2B
+  tradeName?: string | null
+  commercialZone?: string | null
+  foundedYear?: number | null
+  cashRegistersCount?: number | null
+  branchesCount?: number | null
+  hasPos?: boolean | null
+  representativePosition?: string | null
+  // B2P
+  hostName?: string | null
+  officeNumber?: string | null
+  appointmentPhone?: string | null
+  assistantName?: string | null
+  logoUrl?: string | null
+  hasOpeningHours?: boolean
+  hasApprovedOffers?: boolean
+  completeness: { percent: number, missing: (AllyProfileMissingKey | string)[] }
+}
+
+/**
+ * PUT /v1/me/allies/{allyUuid}/profile — PATCH semantics: omitted/null keeps the
+ * value, '' clears it. Only the fields of the ally's segment are sent; `name`
+ * only while `nameEditable`.
+ */
+export interface MyAllyProfileUpdateRequest {
+  name?: string
+  email?: string
+  phone?: string
+  whatsapp?: string
+  website?: string
+  instagram?: string
+  facebook?: string
+  address?: string
+  cityUuid?: string
+  googleMapsUrl?: string
+  description?: string
+  tradeName?: string
+  commercialZone?: string
+  foundedYear?: number | null
+  cashRegistersCount?: number | null
+  branchesCount?: number | null
+  hasPos?: boolean | null
+  representativePosition?: string
+  hostName?: string
+  officeNumber?: string
+  appointmentPhone?: string
+  assistantName?: string
 }
 
 /** Roles allowed to write at the counter (validate + register usage). VIEWER is read-only. */

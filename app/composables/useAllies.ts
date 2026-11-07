@@ -13,6 +13,8 @@ import type {
   CreateAllyAgreementRequest,
   CreateAllyRequest,
   MyAllyDto,
+  MyAllyProfileDto,
+  MyAllyProfileUpdateRequest,
   OpeningHourDto,
   OpeningHoursRequest,
   ProposeAllyProductRequest,
@@ -354,5 +356,13 @@ export const useMyAllies = () => {
   const replaceOpeningHours = (allyUuid: string, body: OpeningHoursRequest) =>
     useApi<OpeningHourDto[]>(`/v1/me/allies/${allyUuid}/opening-hours`, { method: 'PUT', body })
 
-  return { list, listProducts, getOpeningHours, replaceOpeningHours }
+  /** The ally's own profile + completeness (hub ADR 0036; any active member may read). */
+  const getProfile = (allyUuid: string) =>
+    useApi<MyAllyProfileDto>(`/v1/me/allies/${allyUuid}/profile`)
+
+  /** PATCH-like update of the own profile — only the OWNER (ALLY_UPDATE_OWN). */
+  const updateProfile = (allyUuid: string, body: MyAllyProfileUpdateRequest) =>
+    useApi<MyAllyProfileDto>(`/v1/me/allies/${allyUuid}/profile`, { method: 'PUT', body })
+
+  return { list, listProducts, getOpeningHours, replaceOpeningHours, getProfile, updateProfile }
 }

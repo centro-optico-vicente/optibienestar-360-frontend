@@ -13,6 +13,8 @@ export const ROLES = {
   OPERATOR: 'OPERADOR',
   ALLY_MEDICAL_OPERATOR: 'OPERADOR_MEDICO',
   ALLY: 'ALIADO',
+  /** Self-registered ally under review (hub ADR 0036): sees and edits only its own profile. */
+  ALLY_PENDING: 'ALIADO_PENDIENTE',
   MEMBER: 'AFILIADO',
   ADVISOR: 'ASESOR',
 } as const

@@ -102,6 +102,15 @@ export const PERMISSIONS = [
   'ALLY_DELETE',
   'ALLY_VIEW_ALL',
   'ALLY_VIEW_OWN',
+  // Own ally profile edited from the ally portal (hub ADR 0036): the OWNER of the ally.
+  'ALLY_UPDATE_OWN',
+  'ALLY_OPENING_HOURS_UPDATE_OWN',
+  // Ally requests (hub ADR 0036): review of self-registered / imported allies.
+  'ALLY_REGISTRATION_VIEW_ALL',
+  'ALLY_REGISTRATION_APPROVE',
+  'ALLY_REGISTRATION_REJECT',
+  'ALLY_REGISTRATION_INVITE',
+  'ALLY_IMPORT',
   // Contracts with the ally (V79) — even reads stay off ALLY_VIEW_ALL, since
   // agreements include commercial terms not every ally-viewer role should see.
   'ALLY_AGREEMENT_VIEW_ALL',

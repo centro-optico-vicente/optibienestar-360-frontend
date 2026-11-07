@@ -1,0 +1,276 @@
+<script setup lang="ts">
+import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
+import type { SortDirection } from '~/composables/useTableSort'
+import type { AllyRegistrationStatus } from '~/types/allies'
+import type { AllyRegistrationChannel, AllyRequestListItemDto } from '~/types/allyRequests'
+import { ALLY_REGISTRATION_CHANNELS, ALLY_REGISTRATION_STATUSES, allyRegistrationStatusColor } from '~/types/allyRequests'
+
+// Review queue of the ally requests (hub ADR 0036, GET /v1/admin/ally-requests):
+// self-registered (/solicitar-alianza) and imported allies. Defaults to PENDING.
+// "Importar" opens the template importer (ALLY_IMPORT).
+definePageMeta({
+  layout: 'dashboard',
+  middleware: 'can',
+  permission: 'ALLY_REGISTRATION_VIEW_ALL',
+})
+
+const { t } = useI18n()
+const { formatDate } = useFormatters()
+
+useSeoMeta({ title: () => t('common.seoTitle', { page: t('nav.items.allyRequests.label') }) })
+
+const api = useAllyRequests()
+
+const items = ref<AllyRequestListItemDto[]>([])
+const total = ref(0)
+const loading = ref(false)
+const search = ref('')
+const DEFAULT_STATUS: AllyRegistrationStatus = 'PENDING'
+// 'ALL' = no filter.
+const status = ref<string>(DEFAULT_STATUS)
+const channel = ref<string>('ALL')
+const page = ref(1)
+const pageSize = ref(DEFAULT_PAGE_SIZE)
+const pageSizeItems = buildPageSizeItems(t)
+const pendingCount = ref<number | null>(null)
+const importOpen = ref(false)
+
+const statusItems = computed(() => [
+  { value: 'ALL', label: t('allyRequests.statusAll') },
+  ...ALLY_REGISTRATION_STATUSES.map(s => ({ value: s, label: t(`allyRequests.status.${s}`) })),
+])
+const channelItems = computed(() => [
+  { value: 'ALL', label: t('allyRequests.channelAll') },
+  ...ALLY_REGISTRATION_CHANNELS.map(c => ({ value: c, label: t(`allyRequests.channel.${c}`) })),
+])
+
+const sort = useTableSort([])
+const hasActiveSort = computed(() => sort.hasActiveSort.value)
+const isMultiSort = computed(() => sort.orders.value.length > 1)
+
+const resetting = ref(false)
+
+async function loadPendingCount() {
+  try {
+    pendingCount.value = (await api.count('PENDING')).count
+  }
+  catch {
+    pendingCount.value = null
+  }
+}
+
+async function load() {
+  loading.value = true
+  loadPendingCount()
+  try {
+    const res = await api.list({
+      page: page.value - 1,
+      size: pageSize.value,
+      sort: sort.sortParam.value,
+      q: search.value.trim() || undefined,
+      status: status.value === 'ALL' ? undefined : status.value as AllyRegistrationStatus,
+      channel: channel.value === 'ALL' ? undefined : channel.value as AllyRegistrationChannel,
+    })
+    items.value = res.content ?? []
+    total.value = res.totalElements ?? 0
+    if (sort.orders.value.length === 0 && res.appliedSort?.length) {
+      resetting.value = true
+      sort.seedServerDefault(res.appliedSort.map(o => ({ field: o.field, direction: o.direction.toLowerCase() as SortDirection })))
+      await nextTick()
+      resetting.value = false
+    }
+  }
+  catch {
+    items.value = []
+    total.value = 0
+  }
+  finally {
+    loading.value = false
+  }
+}
+
+const debouncedSearch = useTableFilterDebounce(() => {
+  page.value = 1
+  load()
+})
+
+watch(pageSize, () => { if (!resetting.value) page.value = 1 })
+watch([page, pageSize], () => { if (!resetting.value) load() })
+watch(search, () => { if (!resetting.value) debouncedSearch() })
+watch([status, channel], () => { if (!resetting.value) { page.value = 1; load() } })
+watch(sort.orders, () => { if (!resetting.value) load() }, { deep: true })
+
+async function resetFilters() {
+  resetting.value = true
+  search.value = ''
+  status.value = DEFAULT_STATUS
+  channel.value = 'ALL'
+  sort.reset()
+  pageSize.value = DEFAULT_PAGE_SIZE
+  page.value = 1
+  await nextTick()
+  resetting.value = false
+  load()
+}
+
+function statusLabel(r: AllyRequestListItemDto): string {
+  return r.registrationStatus_Display ?? t(`allyRequests.status.${r.registrationStatus}`, r.registrationStatus)
+}
+function channelLabel(r: AllyRequestListItemDto): string {
+  return r.registrationChannel_Display ?? t(`allyRequests.channel.${r.registrationChannel}`, String(r.registrationChannel))
+}
+function segmentLabel(r: AllyRequestListItemDto): string {
+  return r.segment_Display ?? t(`allies.segments.${r.segment}`, r.segment)
+}
+
+function detailPath(r: AllyRequestListItemDto): string {
+  return `/dashboard/ally-requests/${r.uuid}`
+}
+
+function onImported() {
+  status.value = DEFAULT_STATUS
+  load()
+}
+
+onMounted(load)
+</script>
+
+<template>
+  <div class="space-y-5">
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-3">
+          <h1 class="text-2xl font-extrabold text-prohealth-900">{{ t('allyRequests.title') }}</h1>
+          <UBadge v-if="pendingCount" color="warning" variant="subtle">{{ t('allyRequests.pendingCount', { count: pendingCount }) }}</UBadge>
+        </div>
+        <p class="text-sm text-prohealth-700/70 mt-1">{{ t('allyRequests.subtitle') }}</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <UButton v-can="'ALLY_IMPORT'" color="primary" variant="outline" icon="i-lucide-file-spreadsheet" @click="importOpen = true">
+          {{ t('allyRequests.importButton') }}
+        </UButton>
+        <ListRefreshMenu :loading="loading" variant="ghost" @refresh="load" @reset="resetFilters" />
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
+      <UInput
+        v-model="search"
+        :placeholder="t('allyRequests.searchPlaceholder')"
+        icon="i-lucide-search"
+        size="lg"
+        class="w-full max-w-md"
+      />
+      <USelect v-model="status" :items="statusItems" :aria-label="t('allyRequests.columns.status')" size="lg" class="w-44" />
+      <USelect v-model="channel" :items="channelItems" :aria-label="t('allyRequests.columns.channel')" size="lg" class="w-48" />
+      <UButton
+        v-if="hasActiveSort"
+        variant="link"
+        color="neutral"
+        size="sm"
+        icon="i-lucide-list-restart"
+        :title="t('common.clearSortHint')"
+        @click="sort.reset()"
+      >
+        {{ t('common.clearSort') }}
+      </UButton>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-19rem)] min-h-[20rem]">
+      <div class="overflow-auto flex-1">
+        <table class="w-full text-sm">
+          <thead class="bg-prohealth-50/60">
+            <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('name')">
+                {{ t('allyRequests.columns.name') }}
+                <SortIndicator :state="sort.stateOf('name')" :multi-active="isMultiSort" @clear="sort.remove('name')" />
+              </th>
+              <th class="px-5 py-3 font-semibold">{{ t('allyRequests.columns.segment') }}</th>
+              <th class="px-5 py-3 font-semibold">{{ t('allyRequests.columns.contact') }}</th>
+              <th class="px-5 py-3 font-semibold">{{ t('allyRequests.columns.channel') }}</th>
+              <th class="px-5 py-3 font-semibold">{{ t('allyRequests.columns.benefitNote') }}</th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('createdAt')">
+                {{ t('allyRequests.columns.createdAt') }}
+                <SortIndicator :state="sort.stateOf('createdAt')" :multi-active="isMultiSort" @clear="sort.remove('createdAt')" />
+              </th>
+              <th class="px-5 py-3 font-semibold">{{ t('allyRequests.columns.status') }}</th>
+              <th class="px-5 py-3 font-semibold text-right">{{ t('common.actions') }}</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-prohealth-100">
+            <TableSkeleton v-if="loading" :rows="4" :cols="8" />
+            <tr v-else-if="items.length === 0">
+              <td colspan="8" class="px-5 py-10 text-center text-prohealth-500">
+                <UIcon name="i-lucide-handshake" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
+                {{ t('allyRequests.empty') }}
+              </td>
+            </tr>
+            <tr
+              v-for="r in items"
+              v-else
+              :key="r.uuid"
+              class="hover:bg-prohealth-50/50 align-top"
+              @dblclick="(e: MouseEvent) => { if (!(e.target as HTMLElement).closest('button, a')) navigateTo(detailPath(r)) }"
+            >
+              <td class="px-5 py-3">
+                <NuxtLink :to="detailPath(r)" class="font-medium text-prohealth-900 hover:underline">{{ r.name }}</NuxtLink>
+                <p class="text-xs text-prohealth-500">
+                  {{ r.allyTypeNames?.length ? r.allyTypeNames.join(', ') : t('common.empty') }}
+                  <template v-if="r.city_Display"> · {{ r.city_Display }}</template>
+                </p>
+              </td>
+              <td class="px-5 py-3">
+                <UBadge :color="r.segment === 'B2P' ? 'info' : 'primary'" variant="subtle" size="sm">{{ segmentLabel(r) }}</UBadge>
+              </td>
+              <td class="px-5 py-3 text-prohealth-700">
+                <p>{{ r.contactName || t('common.empty') }}</p>
+                <p v-if="r.contactEmail" class="text-xs text-prohealth-500">{{ r.contactEmail }}</p>
+                <p v-if="r.contactPhone" class="text-xs text-prohealth-500">{{ r.contactPhone }}</p>
+              </td>
+              <td class="px-5 py-3 text-prohealth-600">{{ channelLabel(r) }}</td>
+              <td class="px-5 py-3 text-prohealth-600 max-w-xs">
+                <p class="line-clamp-2" :title="r.registrationNote || undefined">{{ r.registrationNote || t('common.empty') }}</p>
+              </td>
+              <td class="px-5 py-3 text-prohealth-600 whitespace-nowrap">{{ r.createdAt_Display ?? formatDate(r.createdAt, 'datetime') }}</td>
+              <td class="px-5 py-3">
+                <UBadge :color="allyRegistrationStatusColor(r.registrationStatus)" variant="subtle" size="sm">{{ statusLabel(r) }}</UBadge>
+              </td>
+              <td class="px-5 py-3">
+                <div class="flex items-center justify-end gap-1">
+                  <UTooltip :text="t('allyRequests.viewDetail')">
+                    <UButton color="neutral" variant="ghost" icon="i-lucide-eye" size="sm" :to="detailPath(r)" />
+                  </UTooltip>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="flex items-center flex-wrap justify-between gap-3 px-5 py-3 border-t border-prohealth-100 shrink-0">
+        <p class="text-xs text-prohealth-500">{{ t('catalogs.recordCount', { count: total }) }}</p>
+        <div class="flex items-center gap-3">
+          <UPagination
+            v-if="pageSize !== UNPAGED_PAGE_SIZE"
+            v-model:page="page"
+            :total="total"
+            :items-per-page="pageSize"
+          />
+          <UTooltip :text="t('catalogs.pageSizeLabel')">
+            <USelectMenu
+              v-model="pageSize"
+              :items="pageSizeItems"
+              label-key="label"
+              value-key="value"
+              icon="i-lucide-list"
+              :search-input="false"
+              :aria-label="t('catalogs.pageSizeLabel')"
+              class="w-40"
+            />
+          </UTooltip>
+        </div>
+      </div>
+    </div>
+
+    <AllyImportModal v-model:open="importOpen" @imported="onImported" />
+  </div>
+</template>

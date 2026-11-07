@@ -8,10 +8,12 @@ import type {
   AllyHolderPersonDto,
   AllyHolderPersonRequest,
   AllyListItemDto,
+  AllyRegistrationStatus,
   AllySegment,
   CreateAllyRequest,
   UpdateAllyRequest,
 } from '~/types/allies'
+import { allyRegistrationStatusColor } from '~/types/allyRequests'
 
 // The admin table renders AllyListItemDto rows; the detail page passes a full AllyDto.
 type AllyRow = AllyListItemDto | AllyDto
@@ -370,6 +372,8 @@ function resetForm() {
   state.professionUuids = []
   state.capturedByPromoterUuid = undefined
   allyNumber.value = null
+  registrationStatus.value = null
+  registrationStatusDisplay.value = null
   fileNumber.value = null
   selectedStateUuid.value = undefined
   pendingCityUuid.value = undefined
@@ -381,6 +385,14 @@ const editSnapshot = ref('')
 function snapshotEditState() {
   return JSON.stringify({ ...state, selectedStateUuid: selectedStateUuid.value })
 }
+// Review state of the ally request (hub ADR 0036): only an APPROVED ally can be
+// published (the backend answers ally.publish.not_approved otherwise). A new ally
+// created from the panel is approved by the backend, so create mode is unrestricted.
+const registrationStatus = ref<AllyRegistrationStatus | null>(null)
+const registrationStatusDisplay = ref<string | null>(null)
+const publishLocked = computed(() =>
+  props.mode === 'edit' && registrationStatus.value != null && registrationStatus.value !== 'APPROVED')
+
 const isEditDirty = computed(() => editSnapshot.value !== '' && snapshotEditState() !== editSnapshot.value)
 const discardConfirmOpen = ref(false)
 
@@ -438,6 +450,8 @@ function populateEditForm(full: AllyDto) {
   state.description = full.description ?? ''
   state.joinedAt = full.joinedAt ?? ''
   state.published = full.published ?? false
+  registrationStatus.value = full.registrationStatus ?? null
+  registrationStatusDisplay.value = full.registrationStatus_Display ?? null
   state.status = full.status || 'ACTIVE'
   state.professionUuids = (full.professions ?? []).map(s => s.uuid)
   state.capturedByPromoterUuid = full.capturedByPromoter_Uuid ?? undefined
@@ -928,8 +942,22 @@ function requestDelete() {
           <UFormField :label="t('allies.form.fields.joinedAt')" name="joinedAt">
             <UInput v-model="state.joinedAt" type="date" class="w-full" />
           </UFormField>
-          <UFormField :label="t('allies.form.fields.published')" name="published" :help="t('allies.form.publishedHelp')">
-            <USwitch v-model="state.published" />
+          <UFormField
+            :label="t('allies.form.fields.published')"
+            name="published"
+            :help="publishLocked ? t('allies.form.publishNotApprovedHint') : t('allies.form.publishedHelp')"
+          >
+            <div class="flex items-center gap-2">
+              <USwitch v-model="state.published" :disabled="publishLocked && !state.published" />
+              <UBadge
+                v-if="registrationStatus"
+                :color="allyRegistrationStatusColor(registrationStatus)"
+                variant="subtle"
+                size="sm"
+              >
+                {{ registrationStatusDisplay || t(`allyRequests.status.${registrationStatus}`) }}
+              </UBadge>
+            </div>
           </UFormField>
           <UFormField v-if="mode === 'edit'" :label="t('allies.form.fields.status')" name="status">
             <USelectMenu
