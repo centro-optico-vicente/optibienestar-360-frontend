@@ -3333,6 +3333,8 @@
         "categoryHelp": "Required when no catalog product or service is picked.",
         "usageDate": "Service date",
         "usageDateHelp": "Cannot be in the future.",
+        "consumptionAmount": "Consumed value",
+        "consumptionHelp": "Optional. List price of what was consumed; converted with the rate of the usage date.",
         "copayAmount": "Co-pay",
         "copayHelp": "Optional. What the affiliate paid out of pocket.",
         "copayCurrency": "Currency",
@@ -3349,6 +3351,7 @@
       "empty": "You have not registered any usage yet",
       "emptySearch": "No usage matches the search",
       "searchPlaceholder": "Search by member ID or name...",
+      "consumptionLabel": "Consumed value",
       "copayLabel": "Co-pay",
       "validateCta": "Validate affiliate"
     },

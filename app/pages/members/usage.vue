@@ -338,21 +338,26 @@ function money(v?: number | string | null, currency?: string | null): string | n
           </div>
           <div class="text-right shrink-0 space-y-0.5">
             <p v-if="money(u.consumptionAmount, u.consumptionCurrency)" class="text-sm font-semibold text-prohealth-800">
-              <CurrencyConverterDisplay :amount="u.consumptionAmount" :currency="u.consumptionCurrency" :date="u.usageDate" v-slot="{ result }">
-                <span class="inline-flex items-center justify-end gap-1">
-                  {{ money(u.consumptionAmount, u.consumptionCurrency) }}
-                  <CurrencyConverterTrigger :result="result" />
-                </span>
-              </CurrencyConverterDisplay>
-              <span class="text-xs font-normal text-prohealth-400">{{ t('members.usage.consumption') }}</span>
+              <AmountWithConversion
+                :amount="u.consumptionAmount"
+                :currency="u.consumptionCurrency"
+                :date="u.usageDate"
+                :converted-display="u.consumptionAmountConverted_Display"
+                :converted-currency="u.convertedCurrency"
+                :rate-date="u.exchangeRateDate"
+              />
+              <span class="block text-xs font-normal text-prohealth-400">{{ t('members.usage.consumption') }}</span>
             </p>
             <p v-if="money(u.copayAmount, u.copayCurrency)" class="text-xs text-prohealth-500">
-              <CurrencyConverterDisplay :amount="u.copayAmount" :currency="u.copayCurrency" :date="u.usageDate" v-slot="{ result }">
-                <span class="inline-flex items-center justify-end gap-1">
-                  {{ t('members.usage.copay') }}: {{ money(u.copayAmount, u.copayCurrency) }}
-                  <CurrencyConverterTrigger :result="result" />
-                </span>
-              </CurrencyConverterDisplay>
+              <span class="block">{{ t('members.usage.copay') }}</span>
+              <AmountWithConversion
+                :amount="u.copayAmount"
+                :currency="u.copayCurrency"
+                :date="u.usageDate"
+                :converted-display="u.copayAmountConverted_Display"
+                :converted-currency="u.convertedCurrency"
+                :rate-date="u.exchangeRateDate"
+              />
             </p>
           </div>
         </li>

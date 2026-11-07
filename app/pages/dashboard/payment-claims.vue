@@ -159,7 +159,12 @@ async function confirmResolve() {
                 <span v-if="c.comment" class="block text-xs text-prohealth-500 max-w-xs">{{ c.comment }}</span>
               </td>
               <td class="px-5 py-3 font-medium text-prohealth-900">
-                {{ c.claimedAmount_Display ?? c.claimedAmount }} <span class="text-xs text-prohealth-500">{{ c.currency_Code }}</span>
+                <CurrencyConverterDisplay :amount="c.claimedAmount" :currency="c.currency_Code" :date="c.openedAt" v-slot="{ result }">
+                  <span class="inline-flex items-center gap-1">
+                    {{ c.claimedAmount_Display ?? c.claimedAmount }} <span class="text-xs text-prohealth-500">{{ c.currency_Code }}</span>
+                    <CurrencyConverterTrigger :result="result" />
+                  </span>
+                </CurrencyConverterDisplay>
               </td>
               <td class="px-5 py-3 text-prohealth-600">{{ c.openedAt_Display ?? c.openedAt }}</td>
               <td class="px-5 py-3">

@@ -488,9 +488,14 @@ function onReviewed(updated: PaymentDto) {
           <div v-if="payment.openClaim">
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('payments.claim.detailLabel') }}</dt>
             <dd class="text-sm text-prohealth-900 mt-0.5">
-              <UBadge color="warning" variant="subtle" size="sm">
-                {{ payment.openClaim.reason_Display ?? payment.openClaim.reason }} · {{ payment.openClaim.claimedAmount_Display ?? payment.openClaim.claimedAmount }}
-              </UBadge>
+              <CurrencyConverterDisplay :amount="payment.openClaim.claimedAmount" :currency="payment.currency_Code" :date="payment.paymentDate" v-slot="{ result }">
+                <span class="inline-flex items-center gap-1">
+                  <UBadge color="warning" variant="subtle" size="sm">
+                    {{ payment.openClaim.reason_Display ?? payment.openClaim.reason }} · {{ payment.openClaim.claimedAmount_Display ?? payment.openClaim.claimedAmount }}
+                  </UBadge>
+                  <CurrencyConverterTrigger :result="result" />
+                </span>
+              </CurrencyConverterDisplay>
               <span v-if="payment.openClaim.comment" class="block text-xs text-prohealth-600 mt-1">{{ payment.openClaim.comment }}</span>
               <NuxtLink v-if="can('COLLECTION_CLAIM_VIEW_ALL')" to="/dashboard/payment-claims" class="block text-xs text-cyan-700 hover:underline mt-1">
                 {{ t('payments.claim.manageLink') }}

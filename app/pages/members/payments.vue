@@ -197,7 +197,12 @@ async function confirmDelete() {
     <div v-if="credit.length > 0" class="rounded-2xl border border-green-200 bg-green-50 px-5 py-3 flex flex-wrap items-center gap-x-6 gap-y-1">
       <p class="text-sm font-semibold text-green-800">{{ t('payments.credit.title') }}</p>
       <p v-for="b in credit" :key="b.currency_Code" class="text-sm text-green-900">
-        <span class="font-semibold">{{ b.amount_Display ?? b.amount }}</span> {{ b.currency_Code }}
+        <CurrencyConverterDisplay :amount="b.amount" :currency="b.currency_Code" v-slot="{ result }">
+          <span class="inline-flex items-center gap-1">
+            <span class="font-semibold">{{ b.amount_Display ?? b.amount }}</span> {{ b.currency_Code }}
+            <CurrencyConverterTrigger :result="result" />
+          </span>
+        </CurrencyConverterDisplay>
       </p>
       <p class="text-xs text-green-700">{{ t('payments.credit.help') }}</p>
       <p class="text-xs text-green-700">{{ t('payments.credit.autoApply') }}</p>

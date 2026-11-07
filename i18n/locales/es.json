@@ -3333,6 +3333,8 @@
         "categoryHelp": "Obligatoria cuando no eliges un producto o servicio del catálogo.",
         "usageDate": "Fecha de atención",
         "usageDateHelp": "No puede ser futura.",
+        "consumptionAmount": "Valor consumido",
+        "consumptionHelp": "Opcional. Precio de lista de lo consumido; la conversión usa la tasa de la fecha del consumo.",
         "copayAmount": "Copago",
         "copayHelp": "Opcional. Lo que pagó el afiliado de su bolsillo.",
         "copayCurrency": "Moneda",
@@ -3349,6 +3351,7 @@
       "empty": "Aún no has registrado consumos",
       "emptySearch": "Ningún consumo coincide con la búsqueda",
       "searchPlaceholder": "Buscar por cédula o nombre del afiliado...",
+      "consumptionLabel": "Valor consumido",
       "copayLabel": "Copago",
       "validateCta": "Validar afiliado"
     },
