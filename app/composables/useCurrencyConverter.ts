@@ -1,6 +1,6 @@
 import { useDebounceFn } from '@vueuse/core'
 import type { CatalogItem } from '~/types/catalogs'
-import { nowTimeInCaracas, withCaracasOffset } from '~/utils/date'
+import { withCaracasOffset } from '~/utils/date'
 
 export type CurrencyConverterState = 'idle' | 'loading' | 'ok' | 'unavailable'
 
@@ -71,18 +71,20 @@ function isValidAmount(raw: string | number | null | undefined): number | null {
  *   the backend resolve it as midnight Caracas (`LocalDate.atStartOfDay`),
  *   earlier than same-day rate changes that take effect later (BCV typically
  *   publishes for 08:00 a.m.), silently picking a stale rate.
- * - A bare `yyyy-MM-dd` (a date without a time — some master data screen
- *   that only captures a date) is combined with the CURRENT time of day
- *   instead of midnight, for the same reason: midnight would miss any rate
- *   that became vigente later that same day.
+ * - A bare `yyyy-MM-dd` (a document that only carries a date, e.g. a
+ *   consumption's `usageDate`) is sent as-is: the backend resolves it to the
+ *   rate in force THAT day (end of the day in Caracas, capped at now — the same
+ *   rule it uses when it freezes the conversion of a date-only document).
+ *   Appending the current time instead picked the previous day's rate for a
+ *   past date whenever "now" was before the 08:00 vigency.
  *
- * `withCaracasOffset`/`nowTimeInCaracas` (ADR 0010, fixed UTC-4, no DST) turn
- * either case into a proper ISO instant with an explicit offset.
+ * `withCaracasOffset` (ADR 0010, fixed UTC-4, no DST) turns a datetime into a
+ * proper ISO instant with an explicit offset.
  */
 function asOfKey(date?: string | null): string {
   if (!date) return ''
   if (date.length > 10) return withCaracasOffset(date)
-  return withCaracasOffset(`${date}T${nowTimeInCaracas()}`)
+  return date
 }
 
 /**

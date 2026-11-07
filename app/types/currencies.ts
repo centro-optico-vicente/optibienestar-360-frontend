@@ -91,7 +91,7 @@ export interface ExchangeRateUpdateRequest {
 }
 
 /** Per-currency outcome of one ingestion run (job or the "actualizar ahora" quick action). */
-export type IngestionStatus = 'FETCHED' | 'ALREADY_HAD_TODAY' | 'FETCH_FAILED' | 'PARSE_FAILED'
+export type IngestionStatus = 'FETCHED' | 'ALREADY_HAD_TODAY' | 'UP_TO_DATE' | 'FETCH_FAILED' | 'PARSE_FAILED'
 
 export interface IngestionCurrencyResult {
   currencyCode: string

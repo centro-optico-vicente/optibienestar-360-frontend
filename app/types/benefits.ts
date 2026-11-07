@@ -44,16 +44,29 @@ export interface BenefitUsageDto {
   usageDatetime?: string | null
   usageDatetime_Display?: string | null
 
-  // Co-pay — both sides set or both null (mirrors the V24 CHECK). `copayAmount`
-  // intentionally has NO `_Display` consumed anywhere — the backend's MONEY
-  // formatter is hardcoded to VES, but the frontend's `money()` helper already
-  // renders it in the record's own `copayCurrency`.
+  // Co-pay — both sides set or both null (mirrors the V24 CHECK). `_Display`
+  // is formatted in the record's own `copayCurrency` (backend V229).
   copayAmount?: number | string | null
+  copayAmount_Display?: string | null
   copayCurrency?: string | null
 
   // Consumption amount (V171) — same pairing rule as the co-pay.
   consumptionAmount?: number | string | null
+  consumptionAmount_Display?: string | null
   consumptionCurrency?: string | null
+
+  // Conversion snapshot to the official currency (V229): frozen at registration
+  // with the rate in force on `usageDate`. Null when no rate was available.
+  convertedCurrency?: string | null
+  copayAmountConverted?: number | string | null
+  copayAmountConverted_Display?: string | null
+  copayExchangeRate?: number | string | null
+  consumptionAmountConverted?: number | string | null
+  consumptionAmountConverted_Display?: string | null
+  consumptionExchangeRate?: number | string | null
+  /** Publish date of the rate used; null when no conversion was needed. */
+  exchangeRateDate?: string | null
+  exchangeRateDate_Display?: string | null
   productCategoryUuid?: string | null
   productCategoryName?: string | null
 
@@ -102,6 +115,10 @@ export interface BenefitUsageRegisterRequest {
   copayAmount?: string
   /** ISO 4217 (3 uppercase letters). */
   copayCurrency?: string
+  /** Value of what was consumed (list price), paired with its currency like the co-pay. */
+  consumptionAmount?: string
+  /** ISO 4217 (3 uppercase letters). */
+  consumptionCurrency?: string
   metadata?: Record<string, unknown>
   notes?: string
   /** Who consumed (V195): one of the membership's beneficiaries; omitted = the holder. */

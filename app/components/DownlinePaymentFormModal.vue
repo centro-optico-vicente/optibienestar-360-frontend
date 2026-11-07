@@ -413,11 +413,13 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
             <AppDateTimePicker v-model="state.paymentDate" />
           </UFormField>
           <UFormField class="sm:col-span-1" :label="t('payments.form.fields.amount')" name="amount" required>
-            <UInput v-model="state.amount" placeholder="10.00" class="w-full text-right">
-              <template #leading>
-                <span class="text-prohealth-400 text-sm">$</span>
-              </template>
-            </UInput>
+            <CurrencyConverterDisplay :amount="state.amount" :currency="state.currency" :date="state.paymentDate" v-slot="{ result }">
+              <UInput v-model="state.amount" placeholder="10.00" class="w-full text-right">
+                <template #trailing>
+                  <CurrencyConverterTrigger :result="result" />
+                </template>
+              </UInput>
+            </CurrencyConverterDisplay>
           </UFormField>
           <UFormField class="sm:col-span-1" :label="t('payments.form.fields.currency')" name="currency" required>
             <div class="flex items-center gap-1">
