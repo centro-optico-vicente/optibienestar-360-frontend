@@ -8,21 +8,34 @@ import { z } from 'zod'
 import type { AllyLicenseDto } from '~/types/licenses'
 import { toSelectItems } from '~/types/options'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   allyUuid: string
   /** False when the ally still has no holder person: nothing to license yet. */
   hasHolder: boolean
-}>()
+  /** `portal`: the professional ally's own licenses (hub ADR 0036) — add / remove only, no verification. */
+  scope?: 'admin' | 'portal'
+  /** Portal: the caller is the ally OWNER. */
+  owner?: boolean
+  readonly?: boolean
+}>(), { scope: 'admin', owner: false, readonly: false })
+
+const emit = defineEmits<{ changed: [] }>()
+const isPortal = computed(() => props.scope === 'portal')
 
 const { t } = useI18n()
 const toast = useToast()
 const { can } = usePermissions()
-const licensesApi = useAllyLicenses()
+const licensesApi = useAllyLicenses(props.scope)
 
-const canCreate = computed(() => can('PERSON_LICENSE_CREATE'))
-const canUpdate = computed(() => can('PERSON_LICENSE_UPDATE'))
-const canDelete = computed(() => can('PERSON_LICENSE_DELETE'))
-const canVerify = computed(() => can('PERSON_LICENSE_VERIFY'))
+const canEditOwn = computed(() => isPortal.value && props.owner && !props.readonly && can('ALLY_LICENSE_UPDATE_OWN'))
+const canCreate = computed(() => isPortal.value ? canEditOwn.value : can('PERSON_LICENSE_CREATE'))
+const canUpdate = computed(() => !isPortal.value && can('PERSON_LICENSE_UPDATE'))
+const canDelete = computed(() => isPortal.value ? canEditOwn.value : can('PERSON_LICENSE_DELETE'))
+const canVerify = computed(() => !isPortal.value && can('PERSON_LICENSE_VERIFY'))
+/** In the portal a license staff already verified can only be removed by staff. */
+function canDeleteRow(license: AllyLicenseDto): boolean {
+  return canDelete.value && !(isPortal.value && license.verificationStatus === 'VERIFIED')
+}
 
 const licenses = ref<AllyLicenseDto[]>([])
 const loading = ref(false)
@@ -43,7 +56,9 @@ async function load() {
 
 async function loadBodies() {
   try {
-    bodyOptions.value = toSelectItems(await useCatalogOptions('licensing-bodies').options({ limit: 200 }))
+    bodyOptions.value = isPortal.value
+      ? (await licensesApi.bodies(props.allyUuid)).map(b => ({ label: b.name ?? b.code ?? '', value: b.uuid }))
+      : toSelectItems(await useCatalogOptions('licensing-bodies').options({ limit: 200 }))
   }
   catch {
     bodyOptions.value = []
@@ -101,6 +116,7 @@ async function onSubmit() {
     }
     formOpen.value = false
     await load()
+    emit('changed')
   }
   catch {
     // toast handled by useApi
@@ -147,6 +163,7 @@ async function confirmDelete() {
     toast.add({ title: t('allies.licenses.deletedToast'), color: 'success', icon: 'i-lucide-check-circle' })
     deleteTarget.value = null
     await load()
+    emit('changed')
   }
   catch {
     // toast handled by useApi
@@ -233,7 +250,7 @@ async function confirmDelete() {
               @click="openEdit(l)"
             />
             <UButton
-              v-if="canDelete"
+              v-if="canDeleteRow(l)"
               color="error"
               variant="ghost"
               size="xs"

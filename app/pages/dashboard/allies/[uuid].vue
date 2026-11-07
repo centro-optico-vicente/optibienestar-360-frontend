@@ -17,6 +17,7 @@ import type {
   UpdateAllyAgreementRequest,
 } from '~/types/allies'
 import { PRODUCT_TYPE_OPTIONS, type ProductType } from '~/types/products'
+import { allyRegistrationStatusColor } from '~/types/allyRequests'
 import {
   AGREEMENT_TYPE_OPTIONS,
   ALLY_ROLE_OPTIONS,
@@ -990,6 +991,15 @@ onMounted(async () => {
               </UBadge>
               <UBadge :color="ally.published ? 'success' : 'neutral'" variant="subtle">
                 {{ ally.published ? t('allies.published') : t('allies.draft') }}
+              </UBadge>
+              <!-- Review state of the ally request (hub ADR 0036); only APPROVED can be published. -->
+              <UBadge
+                v-if="ally.registrationStatus"
+                :color="allyRegistrationStatusColor(ally.registrationStatus)"
+                variant="subtle"
+                icon="i-lucide-clipboard-check"
+              >
+                {{ ally.registrationStatus_Display || t(`allyRequests.status.${ally.registrationStatus}`) }}
               </UBadge>
               <UBadge v-if="ally.segment" :color="ally.segment === 'B2P' ? 'info' : 'primary'" variant="subtle" icon="i-lucide-layers">
                 {{ ally.segment_Display || t(`allies.segments.${ally.segment}`) }}

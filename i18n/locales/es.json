@@ -140,7 +140,9 @@
       "contactPromoter": "Contacta a un asesor.",
       "welcomeTitle": "¡Bienvenido!",
       "welcomeDescription": "Hola {name}",
-      "errorFallback": "No fue posible iniciar sesión"
+      "errorFallback": "No fue posible iniciar sesión",
+      "becomeAllyPrompt": "¿Tienes un negocio o eres profesional?",
+      "becomeAllyLink": "Solicita tu alianza"
     },
     "recover": {
       "seoTitle": "Recuperar contraseña — OptiBienestar 360",
@@ -500,7 +502,8 @@
       "OPERADOR_MEDICO": "Operador médico",
       "ALIADO": "Aliado",
       "AFILIADO": "Afiliado",
-      "ASESOR": "Asesor"
+      "ASESOR": "Asesor",
+      "ALIADO_PENDIENTE": "Aliado en revisión"
     }
   },
   "nav": {
@@ -794,6 +797,10 @@
       "myMedicalAccess": {
         "label": "Quién vio mi historia",
         "description": "Médicos aliados con acceso a tu historia médica."
+      },
+      "allyRequests": {
+        "label": "Solicitudes de alianza",
+        "description": "Revisar y aprobar los aliados que se registraron solos o por la plantilla."
       }
     },
     "other": {
@@ -1606,7 +1613,8 @@
       },
       "commercial": {
         "title": "Estructura operativa"
-      }
+      },
+      "publishNotApprovedHint": "Se puede publicar cuando la solicitud esté aprobada."
     },
     "delete": {
       "title": "Eliminar aliado",
@@ -1886,7 +1894,10 @@
       "office": "Consultorio {number}",
       "appointments": "Citas",
       "licensesTitle": "Colegiaturas verificadas",
-      "openingHours": "Horario de atención"
+      "openingHours": "Horario de atención",
+      "becomeAllyTitle": "¿Quieres ser aliado?",
+      "becomeAllyBody": "Si tienes un negocio o eres profesional, solicita tu alianza y ofrece tus beneficios a los afiliados de OptiBienestar 360.",
+      "becomeAllyCta": "Solicita tu alianza"
     },
     "portal": {
       "seoTitle": "Mi espacio de aliado — OptiBienestar 360",
@@ -1936,6 +1947,48 @@
         "offersEmpty": "Aún no tienes ofertas.",
         "show": "Imágenes",
         "hide": "Ocultar"
+      },
+      "registration": {
+        "pendingTitle": "Tu solicitud está en revisión",
+        "pendingBody": "Tu solicitud está en revisión. Cuando firmes el convenio y la aprobemos, podrás registrar tus ofertas y aparecer en el directorio.",
+        "rejectedTitle": "Tu solicitud de alianza fue rechazada",
+        "rejectedNoReason": "Escríbenos si quieres saber más o volver a intentarlo.",
+        "reloginTitle": "¡Tu alianza fue aprobada!",
+        "reloginBody": "Cierra sesión y vuelve a entrar para activar todas las opciones de tu espacio de aliado.",
+        "completenessTitle": "Completa tu ficha",
+        "completenessHint": "Te falta:",
+        "completenessDone": "Tu ficha está completa.",
+        "missing": {
+          "logo": "Logo",
+          "description": "Descripción",
+          "address": "Dirección",
+          "city": "Ciudad",
+          "googleMapsUrl": "Enlace de Google Maps",
+          "contactPhone": "Teléfono de contacto",
+          "openingHours": "Horario",
+          "socialMedia": "Redes sociales",
+          "practiceSite": "Centro clínico o consultorio",
+          "appointmentPhone": "Teléfono para citas",
+          "licenses": "Colegiaturas"
+        },
+        "nextSteps": {
+          "title": "Próximos pasos",
+          "offers": "Registra tus ofertas",
+          "logo": "Sube tu logo",
+          "hours": "Completa tu horario",
+          "go": "Ir"
+        }
+      },
+      "profile": {
+        "title": "Mi ficha",
+        "hint": "Estos datos se muestran en el directorio cuando tu alianza esté aprobada y publicada.",
+        "readonlyHint": "Solo el propietario del aliado puede editar la ficha.",
+        "nameLocked": "El nombre ya no se puede cambiar; pídelo al equipo de OptiBienestar 360.",
+        "nameRequired": "El nombre es obligatorio.",
+        "badNumber": "«{field}» debe ser un número.",
+        "commercialTitle": "Datos comerciales",
+        "practiceTitle": "Consultorio",
+        "savedToast": "Ficha actualizada"
       }
     },
     "segments": {
@@ -5846,5 +5899,195 @@
     "starLabel": "{n} estrella | {n} estrellas",
     "allyPrefix": "Aliado",
     "offerPrefix": "Este servicio"
+  },
+  "allyRequestForm": {
+    "seoTitle": "Solicita tu alianza — OptiBienestar 360",
+    "title": "Solicita tu alianza",
+    "subtitle": "Registra tu negocio o tu consulta. Revisaremos tu solicitud y, mientras tanto, podrás completar tu ficha en tu espacio de aliado.",
+    "referredBy": "Te invitó el asesor",
+    "segmentLabel": "¿Qué tipo de aliado eres?",
+    "segmentB2B": "Comercial",
+    "segmentB2BHint": "Un comercio o empresa (farmacia, óptica, clínica, tienda…).",
+    "segmentB2P": "Profesional",
+    "segmentB2PHint": "Un profesional independiente (médico, psicólogo, abogado…).",
+    "sections": {
+      "ally": "Datos del aliado",
+      "contactB2B": "Persona de contacto",
+      "contactB2P": "Tus datos"
+    },
+    "fields": {
+      "allyType": "Rubro",
+      "allyTypePlaceholder": "Elige el rubro",
+      "name": "Nombre del negocio",
+      "nameB2P": "Nombre a mostrar",
+      "nameB2PHelp": "Opcional. Si lo dejas vacío usaremos tu nombre y apellido.",
+      "taxDocument": "RIF",
+      "profession": "Profesión o especialidad",
+      "professionPlaceholder": "Elige tu profesión",
+      "professionSearch": "Buscar profesión…",
+      "state": "Estado",
+      "statePlaceholder": "Elige el estado",
+      "city": "Ciudad",
+      "cityPlaceholder": "Elige la ciudad",
+      "selectStateFirst": "Primero elige el estado",
+      "benefitNote": "¿Qué beneficio ofrecerías a los afiliados?",
+      "benefitNoteHelp": "Opcional. Por ejemplo: 15% de descuento en consultas.",
+      "firstName": "Nombres",
+      "lastName": "Apellidos",
+      "document": "Cédula de identidad",
+      "mobile": "Celular / WhatsApp",
+      "email": "Correo electrónico",
+      "emailHelp": "Con este correo entrarás a tu espacio de aliado.",
+      "password": "Contraseña",
+      "passwordConfirm": "Repite la contraseña"
+    },
+    "termsAccept": "Acepto que OptiBienestar 360 use estos datos para evaluar mi solicitud y contactarme.",
+    "reviewNote": "Tu alianza queda en revisión hasta que firmes el convenio y la aprobemos. Mientras tanto no aparecerás en el directorio.",
+    "submit": "Enviar solicitud",
+    "loggingIn": "Entrando a tu espacio…",
+    "required": "Completa los campos obligatorios.",
+    "badDocument": "La cédula debe tener solo números (hasta 9 dígitos).",
+    "badTaxDocument": "El número de RIF no es válido.",
+    "badEmail": "El correo no es válido.",
+    "shortPassword": "La contraseña debe tener al menos 8 caracteres.",
+    "passwordMismatch": "Las contraseñas no coinciden.",
+    "termsRequired": "Debes aceptar el uso de tus datos para enviar la solicitud.",
+    "conflictHint": "Si ya tienes una cuenta, inicia sesión con ella.",
+    "signIn": "Iniciar sesión",
+    "backToAllies": "Ver el directorio",
+    "sentTitle": "Solicitud enviada",
+    "sentBody": "Recibimos tu solicitud. Inicia sesión con {email} para completar tu ficha mientras la revisamos.",
+    "sentPromoter": "Asesor: {name}",
+    "welcomeToast": "Completa tu ficha mientras revisamos tu solicitud."
+  },
+  "allyRequests": {
+    "title": "Solicitudes de alianza",
+    "subtitle": "Aliados que se registraron solos o que vinieron por la plantilla. Aprueba cuando el convenio esté firmado.",
+    "searchPlaceholder": "Buscar por nombre, RIF, cédula o correo…",
+    "statusAll": "Todos los estados",
+    "channelAll": "Todos los canales",
+    "pendingCount": "{count} pendientes",
+    "importButton": "Importar desde Excel/CSV",
+    "empty": "No hay solicitudes con estos filtros.",
+    "viewDetail": "Ver solicitud",
+    "status": {
+      "PENDING": "Pendiente",
+      "APPROVED": "Aprobada",
+      "REJECTED": "Rechazada"
+    },
+    "channel": {
+      "SELF_SERVICE": "Formulario público",
+      "IMPORT": "Plantilla",
+      "ADMIN": "Panel"
+    },
+    "columns": {
+      "name": "Aliado",
+      "segment": "Segmento",
+      "contact": "Contacto",
+      "channel": "Canal",
+      "benefitNote": "Beneficio propuesto",
+      "createdAt": "Fecha",
+      "status": "Estado"
+    },
+    "detail": {
+      "seoPage": "Solicitud de alianza",
+      "notFoundTitle": "No encontramos esta solicitud.",
+      "receivedAt": "Recibida el {date}",
+      "approvedBy": "Aprobada por {name} el {date}",
+      "rejectedBy": "Rechazada por {name} el {date}",
+      "rejectionReason": "Motivo del rechazo",
+      "viewAlly": "Ver ficha del aliado",
+      "reopen": "Reabrir",
+      "reopenToast": "La solicitud volvió a pendiente",
+      "comment": "Comentario (opcional)",
+      "allyTitle": "Datos del aliado",
+      "contactTitle": "Titular / contacto",
+      "usersTitle": "Usuarios del portal",
+      "noUsers": "Todavía no tiene usuario en el portal.",
+      "agreementsTitle": "Convenios activos",
+      "noAgreements": "No tiene convenio activo. Se registra al aprobar.",
+      "noEndDate": "sin fecha de fin",
+      "viewSupport": "Ver soporte",
+      "fields": {
+        "allyNumber": "Nº de aliado",
+        "segment": "Segmento",
+        "allyTypes": "Rubro",
+        "professions": "Profesiones",
+        "taxDocument": "RIF",
+        "channel": "Canal",
+        "city": "Ciudad",
+        "address": "Dirección",
+        "promoter": "Asesor que lo captó",
+        "published": "Publicado en el directorio",
+        "benefitNote": "Beneficio propuesto",
+        "holderName": "Nombre",
+        "holderDocument": "Cédula",
+        "email": "Correo",
+        "phone": "Teléfono"
+      },
+      "approve": {
+        "button": "Aprobar",
+        "title": "Aprobar solicitud de alianza",
+        "notice": "Al aprobar, el aliado pasa a ALIADO: podrá registrar ofertas y validar carnés. Se le avisa por correo.",
+        "agreementTitle": "Convenio firmado",
+        "agreementType": "Tipo de convenio",
+        "startDate": "Fecha de inicio",
+        "endDate": "Fecha de fin",
+        "noticeDays": "Días de preaviso",
+        "autoRenew": "Renovación automática",
+        "hasAgreement": "Ya tiene un convenio activo; no hace falta registrar otro.",
+        "support": "Soporte del convenio firmado (opcional)",
+        "supportHelp": "PDF o imagen. No es obligatorio para aprobar.",
+        "publish": "Publicar en el directorio",
+        "startDateRequired": "La fecha de inicio del convenio es obligatoria.",
+        "endBeforeStart": "La fecha de fin no puede ser anterior a la de inicio.",
+        "badNoticeDays": "Los días de preaviso deben ser un número.",
+        "doneToast": "Solicitud aprobada"
+      },
+      "reject": {
+        "button": "Rechazar",
+        "title": "Rechazar solicitud de alianza",
+        "notice": "El aliado queda inactivo y su usuario deshabilitado. Le enviaremos el motivo por correo.",
+        "doneToast": "Solicitud rechazada"
+      },
+      "invite": {
+        "button": "Invitar al portal",
+        "title": "Invitar al portal",
+        "notice": "Crearemos el usuario del contacto y le enviaremos un enlace para que cree su contraseña.",
+        "document": "Cédula del contacto",
+        "documentHelp": "El aliado no tiene titular registrado: la cédula es necesaria para crear el usuario.",
+        "documentRequired": "Escribe la cédula del contacto (solo números).",
+        "emailHelp": "Si lo dejas vacío se usa el correo del aliado.",
+        "doneToast": "Invitación enviada"
+      }
+    },
+    "import": {
+      "title": "Importar aliados",
+      "description": "Sube la plantilla de registro de aliados. Primero se valida y, si no hay errores, confirmas la importación.",
+      "templates": "Descargar plantilla:",
+      "file": "Archivo",
+      "fileHelp": "Excel (.xlsx) o texto (.csv, .tsv, .txt).",
+      "delimiter": "Separador",
+      "delimiterHelp": "Solo para archivos de texto.",
+      "delimiters": {
+        "auto": "Automático",
+        "semicolon": "Punto y coma",
+        "comma": "Coma",
+        "tab": "Tabulación"
+      },
+      "validate": "Validar",
+      "confirm": "Confirmar importación",
+      "hasErrors": "El archivo tiene {count} errores. Corrígelos y vuelve a validar.",
+      "noErrors": "El archivo no tiene errores.",
+      "summary": "Formato {format} · {total} filas · {valid} válidas",
+      "detectedDelimiter": "separador: {delimiter}",
+      "columns": {
+        "row": "Fila",
+        "column": "Columna",
+        "message": "Error"
+      },
+      "doneToast": "Se importaron {count} aliados",
+      "doneBody": "Quedaron pendientes de aprobación, sin publicar y sin usuario. Invita a cada contacto desde su solicitud."
+    }
   }
 }

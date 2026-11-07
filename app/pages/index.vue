@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
-import type { ApiError } from '~/types/auth'
+import { ROLES, type ApiError } from '~/types/auth'
 
 // English pair of this public screen (hub URL convention): same page, rendered
 // in English by middleware/public-locale.global.ts. The fixed `key` keeps the
@@ -57,7 +57,9 @@ const onSubmit = async (event: FormSubmitEvent<LoginSchema>): Promise<void> => {
       icon: 'i-lucide-check-circle',
     })
 
-    const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/dashboard'
+    // A pending ally (hub ADR 0036) has only its own profile: land it on the ally portal.
+    const home = useAuthStore().activeRole === ROLES.ALLY_PENDING ? '/allies' : '/dashboard'
+    const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : home
     await router.push(redirect)
   }
   catch (err: unknown) {
@@ -154,6 +156,10 @@ const onSubmit = async (event: FormSubmitEvent<LoginSchema>): Promise<void> => {
       <p class="text-center text-sm text-prohealth-700/70 pt-2">
         {{ $t('auth.login.noAccount') }}
         <span class="text-prohealth-900 font-medium">{{ $t('auth.login.contactPromoter') }}</span>
+      </p>
+      <p class="text-center text-sm text-prohealth-700/70">
+        {{ $t('auth.login.becomeAllyPrompt') }}
+        <NuxtLink :to="publicPath('/solicitar-alianza')" class="text-cyan-700 font-medium hover:underline">{{ $t('auth.login.becomeAllyLink') }}</NuxtLink>
       </p>
     </UForm>
   </div>

@@ -2,7 +2,7 @@
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { CatalogItem } from '~/types/catalogs'
-import { canOperateAtCounter, type AllyProductDto, type DiscountType, type MyAllyDto } from '~/types/allies'
+import { canOperateAtCounter, type AllyProductDto, type DiscountType, type MyAllyDto, type MyAllyProfileDto } from '~/types/allies'
 import { discountRequestFields } from '~/utils/offerDiscount'
 import type { SelectItem } from '~/types/options'
 import { ROLES } from '~/types/auth'
@@ -15,10 +15,16 @@ import { PRODUCT_TYPE_OPTIONS, type ProductType } from '~/types/products'
 //
 // The ally is resolved from GET /v1/me/allies — never typed. One ally (the common
 // case) needs no picker; a user spanning several gets one.
+//
+// Ally request (hub ADR 0036): a self-registered ally lands here with role
+// ALIADO_PENDIENTE while its request is PENDING — banner + completeness meter +
+// own profile editor + galleries + opening hours, no offers. REJECTED shows the
+// reason and a read-only profile. Once APPROVED and without approved offers, a
+// "next steps" card points to the offers form, the logo and the opening hours.
 definePageMeta({
   layout: 'dashboard',
   middleware: 'role',
-  roles: [ROLES.ALLY],
+  roles: [ROLES.ALLY, ROLES.ALLY_PENDING],
 })
 
 const { t } = useI18n()
@@ -38,11 +44,69 @@ const alliesLoading = ref(true)
 const allyOptions = computed(() => myAllyList.value.map(a => ({ label: a.name, value: a.uuid })))
 const selectedAlly = computed(() => myAllyList.value.find(a => a.uuid === state.allyUuid) ?? null)
 // VIEWER members only read the galleries (writes answer 403 — hub ADR 0027).
-const canEditMedia = computed(() => canOperateAtCounter(selectedAlly.value?.allyRole))
+const canEditMedia = computed(() => canOperateAtCounter(selectedAlly.value?.allyRole) && registrationStatus.value !== 'REJECTED')
 // Opening hours: only the OWNER changes the ally's public schedule (backend checks it too).
 const { can } = usePermissions()
+const auth = useAuthStore()
+
+// ---- Request state + own profile (hub ADR 0036) ----
+const profile = ref<MyAllyProfileDto | null>(null)
+const profileLoading = ref(false)
+
+async function loadProfile() {
+  const uuid = selectedAlly.value?.uuid
+  profile.value = null
+  if (!uuid) return
+  profileLoading.value = true
+  try {
+    profile.value = await myAllies.getProfile(uuid)
+  }
+  catch {
+    profile.value = null
+  }
+  finally {
+    profileLoading.value = false
+  }
+}
+
+// Allies created before the request flow have no status in old payloads: approved.
+const registrationStatus = computed(() =>
+  profile.value?.registrationStatus ?? selectedAlly.value?.registrationStatus ?? 'APPROVED')
+const isPending = computed(() => registrationStatus.value === 'PENDING')
+const isRejected = computed(() => registrationStatus.value === 'REJECTED')
+const isApproved = computed(() => registrationStatus.value === 'APPROVED')
+const rejectionReason = computed(() => profile.value?.rejectionReason ?? selectedAlly.value?.rejectionReason ?? null)
+const hasApprovedOffers = computed(() =>
+  profile.value?.hasApprovedOffers ?? selectedAlly.value?.hasApprovedOffers ?? true)
+const missing = computed(() => profile.value?.completeness?.missing ?? [])
+const completenessPercent = computed(() => Math.max(0, Math.min(100, Math.round(profile.value?.completeness?.percent ?? 0))))
+// Approved while the session still carries the pending role: new permissions need a new login.
+const needsRelogin = computed(() => isApproved.value && auth.activeRole === ROLES.ALLY_PENDING)
+
+const canEditProfile = computed(() =>
+  !isRejected.value && selectedAlly.value?.allyRole === 'OWNER' && can('ALLY_UPDATE_OWN'))
+
+function onProfileSaved(saved: MyAllyProfileDto) {
+  profile.value = saved
+}
+
+interface NextStep { key: string, done: boolean, anchor: string }
+const nextSteps = computed<NextStep[]>(() => [
+  { key: 'offers', done: hasApprovedOffers.value, anchor: '#propose-offer' },
+  { key: 'logo', done: !missing.value.includes('logo'), anchor: '#ally-gallery' },
+  { key: 'hours', done: !missing.value.includes('openingHours'), anchor: '#ally-opening-hours' },
+])
+
+function scrollTo(anchor: string) {
+  document.querySelector(anchor)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+function missingLabel(key: string): string {
+  return t(`allies.portal.registration.missing.${key}`, key)
+}
+
 const canEditOpeningHours = computed(() =>
-  selectedAlly.value?.allyRole === 'OWNER' && can('ALLY_OPENING_HOURS_UPDATE_OWN'))
+  !isRejected.value && selectedAlly.value?.allyRole === 'OWNER' && can('ALLY_OPENING_HOURS_UPDATE_OWN'))
 // ---- Own offers (galleries) ----
 const myOffers = ref<AllyProductDto[]>([])
 const openOffer = ref<string | null>(null)
@@ -134,7 +198,8 @@ watch(productSearchTerm, (q) => {
 onMounted(async () => {
   loadCategories()
   await loadMyAllies()
-  searchProducts()
+  // Offers are for approved allies only (ally_product.propose.not_approved otherwise).
+  if ((selectedAlly.value?.registrationStatus ?? 'APPROVED') === 'APPROVED') searchProducts()
 })
 
 // ---- Proposal form ----
@@ -164,7 +229,10 @@ const state = reactive({
 })
 
 // `state` must exist before this watcher reads `selectedAlly`.
-watch(() => selectedAlly.value?.uuid, loadMyOffers)
+watch(() => selectedAlly.value?.uuid, () => {
+  loadProfile()
+  loadMyOffers()
+})
 
 // The offerable list depends on the ally: switching it resets the pick.
 watch(() => state.allyUuid, (uuid, previous) => {
@@ -262,6 +330,100 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       :description="t('allies.portal.noAllyDescription')"
     />
 
+    <!-- Ally request state (hub ADR 0036) -->
+    <template v-if="selectedAlly">
+      <!-- The ally picker lives in the offers form; without that form (not approved) it shows here. -->
+      <USelectMenu
+        v-if="!isApproved && allyOptions.length > 1"
+        v-model="state.allyUuid"
+        :items="allyOptions"
+        label-key="label"
+        value-key="value"
+        icon="i-lucide-building-2"
+        :aria-label="t('allies.portal.fields.ally')"
+        class="w-full max-w-sm"
+      />
+      <UAlert
+        v-if="isPending"
+        color="warning"
+        variant="subtle"
+        icon="i-lucide-hourglass"
+        :title="t('allies.portal.registration.pendingTitle')"
+        :description="t('allies.portal.registration.pendingBody')"
+      />
+      <UAlert
+        v-else-if="isRejected"
+        color="error"
+        variant="subtle"
+        icon="i-lucide-circle-x"
+        :title="t('allies.portal.registration.rejectedTitle')"
+        :description="rejectionReason || t('allies.portal.registration.rejectedNoReason')"
+      />
+      <UAlert
+        v-else-if="needsRelogin"
+        color="info"
+        variant="subtle"
+        icon="i-lucide-log-in"
+        :title="t('allies.portal.registration.reloginTitle')"
+        :description="t('allies.portal.registration.reloginBody')"
+      />
+
+      <!-- Completeness of the profile -->
+      <div v-if="profile && !isRejected && (isPending || missing.length)" class="bg-white rounded-2xl border border-prohealth-100 p-6 space-y-3">
+        <div class="flex items-center justify-between gap-3">
+          <h2 class="font-bold text-prohealth-900">{{ t('allies.portal.registration.completenessTitle') }}</h2>
+          <span class="text-sm font-bold text-prohealth-700">{{ completenessPercent }}%</span>
+        </div>
+        <UProgress :model-value="completenessPercent" :max="100" :color="completenessPercent >= 100 ? 'success' : 'primary'" />
+        <p v-if="!missing.length" class="text-xs text-prohealth-500">{{ t('allies.portal.registration.completenessDone') }}</p>
+        <template v-else>
+          <p class="text-xs text-prohealth-500">{{ t('allies.portal.registration.completenessHint') }}</p>
+          <ul class="flex flex-wrap gap-2">
+            <li v-for="key in missing" :key="key">
+              <UBadge color="neutral" variant="outline" icon="i-lucide-circle-dashed">{{ missingLabel(key) }}</UBadge>
+            </li>
+          </ul>
+        </template>
+      </div>
+
+      <!-- Next steps right after the approval -->
+      <div v-if="isApproved && !hasApprovedOffers" class="bg-white rounded-2xl border border-lime-200 p-6 space-y-3">
+        <h2 class="font-bold text-prohealth-900">{{ t('allies.portal.registration.nextSteps.title') }}</h2>
+        <ul class="space-y-2">
+          <li v-for="step in nextSteps" :key="step.key" class="flex items-center justify-between gap-3">
+            <span class="flex items-center gap-2 text-sm" :class="step.done ? 'text-prohealth-400 line-through' : 'text-prohealth-800'">
+              <UIcon :name="step.done ? 'i-lucide-circle-check' : 'i-lucide-circle'" class="w-4 h-4" :class="step.done ? 'text-green-500' : 'text-prohealth-300'" />
+              {{ t(`allies.portal.registration.nextSteps.${step.key}`) }}
+            </span>
+            <UButton v-if="!step.done" size="xs" color="primary" variant="soft" icon="i-lucide-arrow-down" @click="scrollTo(step.anchor)">
+              {{ t('allies.portal.registration.nextSteps.go') }}
+            </UButton>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Own profile -->
+      <div v-if="profile" class="bg-white rounded-2xl border border-prohealth-100 p-6 space-y-3">
+        <div>
+          <h2 class="font-bold text-prohealth-900">{{ t('allies.portal.profile.title') }}</h2>
+          <p class="text-xs text-prohealth-500">
+            {{ canEditProfile ? t('allies.portal.profile.hint') : t('allies.portal.profile.readonlyHint') }}
+          </p>
+        </div>
+        <AllyProfileForm
+          :key="profile.uuid"
+          :ally-uuid="selectedAlly.uuid"
+          :profile="profile"
+          :readonly="!canEditProfile"
+          @saved="onProfileSaved"
+        />
+      </div>
+      <div v-else-if="profileLoading" class="bg-white rounded-2xl border border-prohealth-100 p-6 space-y-3">
+        <USkeleton class="h-5 w-48 rounded" />
+        <USkeleton class="h-4 w-full rounded" />
+      </div>
+    </template>
+
     <!-- Last proposal -->
     <UAlert
       v-if="lastProposed"
@@ -273,7 +435,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     />
 
     <!-- Own gallery (hub ADR 0027): published immediately -->
-    <div v-if="selectedAlly" class="bg-white rounded-2xl border border-prohealth-100 p-6 space-y-2">
+    <div v-if="selectedAlly" id="ally-gallery" class="bg-white rounded-2xl border border-prohealth-100 p-6 space-y-2 scroll-mt-20">
       <h2 class="font-bold text-prohealth-900">{{ t('allies.portal.gallery.title') }}</h2>
       <p class="text-xs text-prohealth-500">{{ t('allies.portal.gallery.hint') }}</p>
       <MediaGalleryEditor
@@ -284,7 +446,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     </div>
 
     <!-- Weekly opening hours (V214, hub ADR 0031 §7) -->
-    <div v-if="selectedAlly" class="bg-white rounded-2xl border border-prohealth-100 p-6 space-y-2">
+    <div v-if="selectedAlly" id="ally-opening-hours" class="bg-white rounded-2xl border border-prohealth-100 p-6 space-y-2 scroll-mt-20">
       <h2 class="font-bold text-prohealth-900">{{ t('allies.openingHours.title') }}</h2>
       <p class="text-xs text-prohealth-500">
         {{ canEditOpeningHours ? t('allies.openingHours.portalHint') : t('allies.openingHours.portalReadonlyHint') }}
@@ -297,8 +459,21 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       />
     </div>
 
+    <!-- Professional's own licenses (hub ADR 0031 §5 / 0036): add or remove; staff verify -->
+    <div v-if="selectedAlly && profile?.segment === 'B2P'" id="ally-licenses" class="scroll-mt-20">
+      <AllyLicensesPanel
+        :key="selectedAlly.uuid"
+        :ally-uuid="selectedAlly.uuid"
+        :has-holder="true"
+        scope="portal"
+        :owner="selectedAlly.allyRole === 'OWNER'"
+        :readonly="isRejected"
+        @changed="loadProfile"
+      />
+    </div>
+
     <!-- Own offers (any review state), each with its gallery (hub ADR 0027) -->
-    <div v-if="selectedAlly" class="bg-white rounded-2xl border border-prohealth-100 p-6 space-y-3">
+    <div v-if="selectedAlly && isApproved" class="bg-white rounded-2xl border border-prohealth-100 p-6 space-y-3">
       <div>
         <h2 class="font-bold text-prohealth-900">{{ t('allies.portal.gallery.offersTitle') }}</h2>
         <p class="text-xs text-prohealth-500">{{ t('allies.portal.gallery.offersHint') }}</p>
@@ -336,7 +511,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     </div>
 
     <!-- Form -->
-    <div v-if="!hasNoAlly" class="bg-white rounded-2xl border border-prohealth-100 p-6">
+    <div v-if="!hasNoAlly && isApproved" id="propose-offer" class="bg-white rounded-2xl border border-prohealth-100 p-6 scroll-mt-20">
       <h2 class="font-bold text-prohealth-900 mb-1">{{ t('allies.portal.formTitle') }}</h2>
       <p class="text-xs text-prohealth-500 mb-5">
         {{ t('allies.portal.formHint') }}
@@ -472,7 +647,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     </div>
 
     <!-- Help -->
-    <div class="rounded-2xl border border-cyan-200 bg-cyan-50/60 p-5 text-sm text-prohealth-800 space-y-2">
+    <div v-if="isApproved" class="rounded-2xl border border-cyan-200 bg-cyan-50/60 p-5 text-sm text-prohealth-800 space-y-2">
       <p class="font-semibold flex items-center gap-2">
         <UIcon name="i-lucide-info" class="w-4 h-4 text-cyan-600" />
         {{ t('allies.portal.help.title') }}

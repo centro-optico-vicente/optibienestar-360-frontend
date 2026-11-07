@@ -1,5 +1,7 @@
+import { ROLES } from '~/types/auth'
+
 // Public screens (hub URL convention): the canonical Spanish paths (`/`,
-// `/aliados`, `/aliados/{uuid}`, `/catalogo`, `/catalogo/{uuid}`, `/afiliarse`, `/cuentas`, `/recuperar-clave`,
+// `/aliados`, `/aliados/{uuid}`, `/catalogo`, `/catalogo/{uuid}`, `/afiliarse`, `/solicitar-alianza`, `/cuentas`, `/recuperar-clave`,
 // `/restablecer-clave`) and their English pairs under `/en` (see
 // utils/publicRoutes.ts). The old /recover-password and /reset-password 301 to the
 // Spanish ones (nuxt.config.ts routeRules + docker/default.conf). Matching is exact
@@ -17,7 +19,13 @@ export default defineNuxtRouteMiddleware(async (to) => {
   }
 
   // The login screen (`/` or `/en`) sends an open session straight to the panel.
+  // A pending ally (hub ADR 0036, role ALIADO_PENDIENTE) only has its own profile,
+  // so its home is the ally portal instead of the panel.
+  const home = auth.activeRole === ROLES.ALLY_PENDING ? '/allies' : '/dashboard'
   if (isAuthed && isPublic && localizePublicPath(to.path, 'es') === '/') {
-    return navigateTo('/dashboard')
+    return navigateTo(home)
+  }
+  if (isAuthed && to.path === '/dashboard' && home !== '/dashboard') {
+    return navigateTo(home)
   }
 })
