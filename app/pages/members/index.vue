@@ -13,6 +13,10 @@ definePageMeta({
 })
 
 const { t } = useI18n()
+
+// Hub ADR 0037: hide the self-registration entry point while it is switched off.
+const { load: loadOnboardingPolicy, memberSelfRegistrationEnabled } = usePublicOnboardingPolicy()
+onMounted(() => { void loadOnboardingPolicy() })
 // The public directory link follows the UI language (/aliados or /en/allies).
 const publicPath = usePublicPath()
 const { formatDate } = useFormatters()
@@ -193,7 +197,7 @@ const initials = computed(() => (displayName.value || '').split(/\s+/).filter(Bo
       <p class="text-sm text-prohealth-500 mt-1">
         {{ t('members.portal.notAffiliatedBody') }}
       </p>
-      <UButton to="/afiliarse" color="primary" variant="soft" size="sm" class="mt-4">
+      <UButton v-if="memberSelfRegistrationEnabled" to="/afiliarse" color="primary" variant="soft" size="sm" class="mt-4">
         {{ t('members.portal.joinCta') }}
       </UButton>
     </div>

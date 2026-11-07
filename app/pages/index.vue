@@ -21,6 +21,15 @@ const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 
+// Onboarding policy (hub ADR 0037): a closed self-registration lands here with
+// `?registration=member|ally`, and the "become an ally" link hides while closed.
+const { load: loadOnboardingPolicy, allySelfRegistrationEnabled } = usePublicOnboardingPolicy()
+const closedRegistration = computed<'member' | 'ally' | null>(() => {
+  const value = route.query.registration
+  return value === 'member' || value === 'ally' ? value : null
+})
+onMounted(() => { void loadOnboardingPolicy() })
+
 const schema = computed(() => z.object({
   email: z.string().email(t('validation.emailInvalid')),
   password: z.string().min(8, t('validation.minChars', { n: 8 })),
@@ -85,6 +94,15 @@ const onSubmit = async (event: FormSubmitEvent<LoginSchema>): Promise<void> => {
         {{ $t('auth.login.subheading') }}
       </p>
     </div>
+
+    <UAlert
+      v-if="closedRegistration"
+      class="mb-5"
+      color="info"
+      variant="subtle"
+      icon="i-lucide-info"
+      :title="$t(`auth.login.registrationClosed.${closedRegistration}`)"
+    />
 
     <UForm
       :schema="schema"
@@ -157,7 +175,7 @@ const onSubmit = async (event: FormSubmitEvent<LoginSchema>): Promise<void> => {
         {{ $t('auth.login.noAccount') }}
         <span class="text-prohealth-900 font-medium">{{ $t('auth.login.contactPromoter') }}</span>
       </p>
-      <p class="text-center text-sm text-prohealth-700/70">
+      <p v-if="allySelfRegistrationEnabled" class="text-center text-sm text-prohealth-700/70">
         {{ $t('auth.login.becomeAllyPrompt') }}
         <NuxtLink :to="publicPath('/solicitar-alianza')" class="text-cyan-700 font-medium hover:underline">{{ $t('auth.login.becomeAllyLink') }}</NuxtLink>
       </p>

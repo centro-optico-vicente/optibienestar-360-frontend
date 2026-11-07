@@ -142,7 +142,11 @@
       "welcomeDescription": "Hi {name}",
       "errorFallback": "Unable to sign in",
       "becomeAllyPrompt": "Do you run a business or practice?",
-      "becomeAllyLink": "Become an ally"
+      "becomeAllyLink": "Become an ally",
+      "registrationClosed": {
+        "member": "Online affiliation is not available right now. If you already have an account, sign in; otherwise contact your advisor or the company.",
+        "ally": "Online ally registration is not available right now. If you already have an account, sign in; otherwise contact the company."
+      }
     },
     "recover": {
       "seoTitle": "Recover password — OptiBienestar 360",
@@ -801,6 +805,10 @@
       "allyRequests": {
         "label": "Ally requests",
         "description": "Review and approve the allies that signed up themselves or came from the template."
+      },
+      "onboardingPolicy": {
+        "label": "Registration policy",
+        "description": "Affiliate and ally self-registration, approval and activation."
       }
     },
     "other": {
@@ -5566,7 +5574,9 @@
       "errorDate": "Enter the payment date",
       "errorDateFuture": "The payment date can't be in the future",
       "sentNote": "We will review your payment together with the request."
-    }
+    },
+    "approvedBody": "Your account is ready. Sign in with {email} and the password you chose.",
+    "signIn": "Sign in"
   },
   "myContracts": {
     "title": "My contracts",
@@ -6088,6 +6098,107 @@
       },
       "doneToast": "{count} allies imported",
       "doneBody": "They are pending approval, unpublished and without a user. Invite each contact from its request."
+    }
+  },
+  "onboardingPolicy": {
+    "title": "Registration policy",
+    "subtitle": "Decide whether people can sign up on their own and how their registrations are approved and activated.",
+    "seoTitle": "Registration policy — OptiBienestar 360",
+    "updatedToast": "Registration policy updated",
+    "readOnly": "Read only: you do not have permission to change the registration policy.",
+    "lockedHelp": "Self-registration is off: these options are read-only and keep their value.",
+    "member": {
+      "title": "Affiliates",
+      "subtitle": "Public /afiliarse form and the advisor's QR.",
+      "allow": "Allow affiliate self-registration",
+      "approval": "Request approval",
+      "activation": "Membership activation",
+      "closedTitle": "The /afiliarse form will send people to sign in",
+      "closedBody": "The advisor's QR also opens that form: while it is off, the advisor must register the person from their portal. Creating members from the dashboard still works."
+    },
+    "ally": {
+      "title": "Allies",
+      "subtitle": "Public /solicitar-alianza form.",
+      "allow": "Allow ally self-registration",
+      "approval": "Ally approval",
+      "publish": "Publishing in the directory",
+      "closedTitle": "The /solicitar-alianza form will send people to sign in",
+      "closedBody": "Allies can still be registered from the dashboard or with the import template."
+    },
+    "modes": {
+      "memberApproval": {
+        "MANUAL": {
+          "label": "Always requires approval",
+          "help": "A team member reviews and approves every request."
+        },
+        "AUTO_IF_PAYMENT_REPORTED": {
+          "label": "Automatic if the payment is reported",
+          "help": "If the person reports the enrollment payment it is approved automatically; otherwise it waits for approval."
+        },
+        "AUTO_ON_SUBMIT": {
+          "label": "Automatic on submit",
+          "help": "The account and the membership are created as soon as the person submits the form."
+        }
+      },
+      "memberActivation": {
+        "ON_PAYMENT_APPROVED": {
+          "label": "When the payment is confirmed",
+          "help": "The membership stays suspended until the team approves the payment."
+        },
+        "ON_PAYMENT_REPORTED": {
+          "label": "When the payment is reported",
+          "help": "Active as soon as the person reports the payment; if the payment is rejected it is suspended again."
+        },
+        "IMMEDIATE": {
+          "label": "Immediately",
+          "help": "Active as soon as the request is approved, without waiting for the payment."
+        }
+      },
+      "allyApproval": {
+        "MANUAL_WITH_AGREEMENT": {
+          "label": "Requires approval with an agreement",
+          "help": "An operator approves the ally and registers its agreement."
+        },
+        "AUTO_ON_SUBMIT": {
+          "label": "Automatic on submit",
+          "help": "Approved automatically with a default agreement the team can edit later."
+        }
+      },
+      "allyPublish": {
+        "MANUAL": {
+          "label": "Manual",
+          "help": "An operator decides when it appears in the public directory."
+        },
+        "ON_APPROVAL": {
+          "label": "On approval",
+          "help": "Appears in the public directory as soon as it is approved."
+        }
+      }
+    },
+    "flow": {
+      "title": "Resulting flow",
+      "memberClosed": "Self-registration off: /afiliarse sends people to sign in",
+      "memberSubmit": "The person submits the form",
+      "memberApproval": {
+        "MANUAL": "The team approves the request",
+        "AUTO_IF_PAYMENT_REPORTED": "Approved automatically if the payment was reported",
+        "AUTO_ON_SUBMIT": "Approved automatically"
+      },
+      "memberActivation": {
+        "ON_PAYMENT_APPROVED": "Active when the payment is confirmed",
+        "ON_PAYMENT_REPORTED": "Active when the payment is reported",
+        "IMMEDIATE": "Active immediately"
+      },
+      "allyClosed": "Self-registration off: /solicitar-alianza sends people to sign in",
+      "allySubmit": "The ally submits the form",
+      "allyApproval": {
+        "MANUAL_WITH_AGREEMENT": "An operator approves it with an agreement",
+        "AUTO_ON_SUBMIT": "Approved automatically"
+      },
+      "allyPublish": {
+        "MANUAL": "Published by hand",
+        "ON_APPROVAL": "Published on approval"
+      }
     }
   }
 }

@@ -142,7 +142,11 @@
       "welcomeDescription": "Hola {name}",
       "errorFallback": "No fue posible iniciar sesión",
       "becomeAllyPrompt": "¿Tienes un negocio o eres profesional?",
-      "becomeAllyLink": "Solicita tu alianza"
+      "becomeAllyLink": "Solicita tu alianza",
+      "registrationClosed": {
+        "member": "La afiliación en línea no está disponible por ahora. Si ya tienes cuenta, inicia sesión; si no, contacta a tu asesor o a la empresa.",
+        "ally": "El registro de aliados en línea no está disponible por ahora. Si ya tienes cuenta, inicia sesión; si no, contacta a la empresa."
+      }
     },
     "recover": {
       "seoTitle": "Recuperar contraseña — OptiBienestar 360",
@@ -801,6 +805,10 @@
       "allyRequests": {
         "label": "Solicitudes de alianza",
         "description": "Revisar y aprobar los aliados que se registraron solos o por la plantilla."
+      },
+      "onboardingPolicy": {
+        "label": "Política de registro",
+        "description": "Auto-registro de afiliados y aliados, aprobación y activación."
       }
     },
     "other": {
@@ -5566,7 +5574,9 @@
       "errorDate": "Indica la fecha del pago",
       "errorDateFuture": "La fecha del pago no puede ser futura",
       "sentNote": "Revisaremos tu pago junto con la solicitud."
-    }
+    },
+    "approvedBody": "Tu cuenta ya está creada. Inicia sesión con {email} y la contraseña que elegiste.",
+    "signIn": "Iniciar sesión"
   },
   "myContracts": {
     "title": "Mis contratos",
@@ -6088,6 +6098,107 @@
       },
       "doneToast": "Se importaron {count} aliados",
       "doneBody": "Quedaron pendientes de aprobación, sin publicar y sin usuario. Invita a cada contacto desde su solicitud."
+    }
+  },
+  "onboardingPolicy": {
+    "title": "Política de registro",
+    "subtitle": "Decide si las personas pueden registrarse solas y cómo se aprueban y activan sus registros.",
+    "seoTitle": "Política de registro — OptiBienestar 360",
+    "updatedToast": "Política de registro actualizada",
+    "readOnly": "Solo lectura: no tienes permiso para modificar la política de registro.",
+    "lockedHelp": "El auto-registro está apagado: estas opciones quedan de solo lectura y conservan su valor.",
+    "member": {
+      "title": "Afiliados",
+      "subtitle": "Formulario público /afiliarse y QR del asesor.",
+      "allow": "Permitir auto-registro de afiliados",
+      "approval": "Aprobación de la solicitud",
+      "activation": "Activación de la membresía",
+      "closedTitle": "El formulario /afiliarse llevará al inicio de sesión",
+      "closedBody": "El QR del asesor también lleva a ese formulario: mientras esté apagado, el asesor debe registrar a la persona desde su portal. El alta desde el panel sigue funcionando."
+    },
+    "ally": {
+      "title": "Aliados",
+      "subtitle": "Formulario público /solicitar-alianza.",
+      "allow": "Permitir auto-registro de aliados",
+      "approval": "Aprobación del aliado",
+      "publish": "Publicación en el directorio",
+      "closedTitle": "El formulario /solicitar-alianza llevará al inicio de sesión",
+      "closedBody": "Los aliados se siguen registrando desde el panel o con la plantilla de importación."
+    },
+    "modes": {
+      "memberApproval": {
+        "MANUAL": {
+          "label": "Requiere aprobación siempre",
+          "help": "Una persona del equipo revisa y aprueba cada solicitud."
+        },
+        "AUTO_IF_PAYMENT_REPORTED": {
+          "label": "Automática si reporta el pago",
+          "help": "Si la persona reporta el pago de inscripción, se aprueba sola; si no, espera aprobación."
+        },
+        "AUTO_ON_SUBMIT": {
+          "label": "Automática al enviar",
+          "help": "La cuenta y la membresía se crean apenas la persona envía el formulario."
+        }
+      },
+      "memberActivation": {
+        "ON_PAYMENT_APPROVED": {
+          "label": "Al confirmar el pago",
+          "help": "La membresía queda suspendida hasta que el equipo aprueba el pago."
+        },
+        "ON_PAYMENT_REPORTED": {
+          "label": "Al registrar el pago",
+          "help": "Queda activa en cuanto la persona reporta el pago; si el pago se rechaza, vuelve a suspenderse."
+        },
+        "IMMEDIATE": {
+          "label": "De inmediato",
+          "help": "Queda activa en cuanto se aprueba la solicitud, sin esperar el pago."
+        }
+      },
+      "allyApproval": {
+        "MANUAL_WITH_AGREEMENT": {
+          "label": "Requiere aprobación con convenio",
+          "help": "Un operador aprueba al aliado y registra su convenio."
+        },
+        "AUTO_ON_SUBMIT": {
+          "label": "Automática al enviar",
+          "help": "Se aprueba solo con un convenio por defecto, que el equipo puede editar después."
+        }
+      },
+      "allyPublish": {
+        "MANUAL": {
+          "label": "Manual",
+          "help": "Un operador decide cuándo aparece en el directorio público."
+        },
+        "ON_APPROVAL": {
+          "label": "Al aprobarse",
+          "help": "Aparece en el directorio público en cuanto se aprueba."
+        }
+      }
+    },
+    "flow": {
+      "title": "Así queda el flujo",
+      "memberClosed": "Auto-registro apagado: /afiliarse lleva al inicio de sesión",
+      "memberSubmit": "La persona envía el formulario",
+      "memberApproval": {
+        "MANUAL": "El equipo aprueba la solicitud",
+        "AUTO_IF_PAYMENT_REPORTED": "Se aprueba sola si reportó el pago",
+        "AUTO_ON_SUBMIT": "Se aprueba sola"
+      },
+      "memberActivation": {
+        "ON_PAYMENT_APPROVED": "Activa al confirmar el pago",
+        "ON_PAYMENT_REPORTED": "Activa al registrar el pago",
+        "IMMEDIATE": "Activa de inmediato"
+      },
+      "allyClosed": "Auto-registro apagado: /solicitar-alianza lleva al inicio de sesión",
+      "allySubmit": "El aliado envía el formulario",
+      "allyApproval": {
+        "MANUAL_WITH_AGREEMENT": "Un operador lo aprueba con convenio",
+        "AUTO_ON_SUBMIT": "Se aprueba solo"
+      },
+      "allyPublish": {
+        "MANUAL": "Se publica a mano",
+        "ON_APPROVAL": "Se publica al aprobarse"
+      }
     }
   }
 }

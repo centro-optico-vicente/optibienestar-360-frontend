@@ -18,6 +18,10 @@ definePageMeta({
 })
 
 const { t } = useI18n()
+
+// Hub ADR 0037: hide the self-registration entry point while it is switched off.
+const { load: loadOnboardingPolicy, memberSelfRegistrationEnabled } = usePublicOnboardingPolicy()
+onMounted(() => { void loadOnboardingPolicy() })
 const { formatCurrency, formatDate } = useFormatters()
 const { can } = usePermissions()
 const { myHistory, mySummary } = useBenefitUsage()
@@ -279,7 +283,7 @@ function money(v?: number | string | null, currency?: string | null): string | n
         <UIcon name="i-lucide-clipboard-list" class="w-7 h-7 mx-auto mb-2 text-prohealth-300" />
         <p class="text-sm font-semibold text-prohealth-700">{{ t('members.portal.notAffiliatedTitle') }}</p>
         <p class="text-sm mt-1">{{ t('members.usage.notAffiliatedBody') }}</p>
-        <UButton to="/afiliarse" color="primary" variant="soft" size="sm" class="mt-4">
+        <UButton v-if="memberSelfRegistrationEnabled" to="/afiliarse" color="primary" variant="soft" size="sm" class="mt-4">
           {{ t('members.portal.joinCta') }}
         </UButton>
       </div>

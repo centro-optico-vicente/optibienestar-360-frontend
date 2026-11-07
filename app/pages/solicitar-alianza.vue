@@ -17,7 +17,7 @@ import { professionTreeItems } from '~/utils/professionLabel'
 
 // English pair of this public screen (hub URL convention); the fixed `key`
 // keeps the half-filled form when the switcher jumps between the two URLs.
-definePageMeta({ layout: 'default', alias: ['/en/become-an-ally'], key: 'public-become-ally' })
+definePageMeta({ layout: 'default', alias: ['/en/become-an-ally'], key: 'public-become-ally', middleware: 'self-registration', selfRegistration: 'ally' })
 
 // CatalogItem already carries the ally type's `segment` (B2B / B2P).
 type AllyTypeItem = CatalogItem
@@ -184,6 +184,11 @@ async function submit() {
   }
   catch (err) {
     const e = err as ApiError
+    // Switched off while the form was open (hub ADR 0037): the toast explains it; go to login.
+    if (await redirectIfSelfRegistrationClosed(err, 'ally')) {
+      sending.value = false
+      return
+    }
     // useApi already toasts 409/422; 400 (field validation) is left to the page.
     if (e.status === 400) toast.add({ title: e.message, color: 'error', icon: 'i-lucide-circle-alert' })
     // Existing email / cédula: 422 with problem.code — offer the sign-in.

@@ -16,6 +16,10 @@ definePageMeta({
 })
 
 const { t } = useI18n()
+
+// Hub ADR 0037: hide the self-registration entry point while it is switched off.
+const { load: loadOnboardingPolicy, memberSelfRegistrationEnabled } = usePublicOnboardingPolicy()
+onMounted(() => { void loadOnboardingPolicy() })
 const publicPath = usePublicPath()
 const { formatCurrency } = useFormatters()
 const route = useRoute()
@@ -295,7 +299,7 @@ onMounted(load)
           <h3 class="font-bold text-lg">{{ t('allies.public.detail.ctaTitle') }}</h3>
           <p class="text-sm text-prohealth-100/90 mt-1">{{ t('allies.public.detail.ctaBody') }}</p>
         </div>
-        <UButton :to="publicPath('/afiliarse')" color="secondary" variant="solid" class="text-prohealth-950">
+        <UButton v-if="memberSelfRegistrationEnabled" :to="publicPath('/afiliarse')" color="secondary" variant="solid" class="text-prohealth-950">
           {{ t('allies.public.detail.ctaButton') }}
         </UButton>
       </div>

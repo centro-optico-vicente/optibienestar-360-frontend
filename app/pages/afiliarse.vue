@@ -25,7 +25,7 @@ import type { AffiliationRequestPaymentRequest } from '~/types/affiliationReques
 // in English by middleware/public-locale.global.ts. The printed QRs keep
 // /afiliarse?ref=CODE; /en/join?ref=CODE reads the same query. The fixed `key`
 // keeps the half-filled form when the switcher jumps between the two URLs.
-definePageMeta({ layout: 'default', alias: ['/en/join'], key: 'public-join' })
+definePageMeta({ layout: 'default', alias: ['/en/join'], key: 'public-join', middleware: 'self-registration', selfRegistration: 'member' })
 
 interface PublicPlan {
   uuid: string
@@ -127,7 +127,7 @@ const state = reactive({
   email: '', phone: '', password: '', passwordConfirm: '', planUuid: '',
 })
 const sending = ref(false)
-const done = ref<{ email: string, advisorName?: string | null, paymentReported?: boolean } | null>(null)
+const done = ref<{ email: string, status?: string, advisorName?: string | null, paymentReported?: boolean } | null>(null)
 
 // ---- Inscription payment (optional) ----
 // Same method-dependent fields as MyPaymentFormModal, driven by the method's
@@ -337,7 +337,9 @@ async function submit() {
     })
     done.value = { ...res, paymentReported: withPayment }
   }
-  catch {
+  catch (err) {
+    // Switched off while the form was open (hub ADR 0037): the toast explains it; go to login.
+    if (await redirectIfSelfRegistrationClosed(err, 'member')) return
     // useApi already shows the backend's localized error toast. A newer terms
     // version published meanwhile is rejected: reload so the user re-accepts it.
     await loadTerms()
@@ -355,10 +357,13 @@ async function submit() {
         <div class="text-center space-y-3">
           <UIcon name="i-lucide-mail-check" class="w-12 h-12 mx-auto text-green-500" />
           <h1 class="text-2xl font-extrabold text-prohealth-900">{{ t('affiliationRequest.sentTitle') }}</h1>
-          <p class="text-sm text-prohealth-600">{{ t('affiliationRequest.sentBody', { email: done.email }) }}</p>
+          <!-- Approved on submit by the onboarding policy (hub ADR 0037): the account already exists. -->
+          <p v-if="done.status === 'APPROVED'" class="text-sm text-prohealth-600">{{ t('affiliationRequest.approvedBody', { email: done.email }) }}</p>
+          <p v-else class="text-sm text-prohealth-600">{{ t('affiliationRequest.sentBody', { email: done.email }) }}</p>
           <p v-if="done.paymentReported" class="text-sm text-prohealth-600">{{ t('affiliationRequest.payment.sentNote') }}</p>
           <p v-if="done.advisorName" class="text-xs text-prohealth-500">{{ t('affiliationRequest.sentPromoter', { name: done.advisorName }) }}</p>
-          <UButton :to="publicPath('/')" color="primary" variant="outline" icon="i-lucide-house" class="mt-2">{{ t('affiliationRequest.backHome') }}</UButton>
+          <UButton v-if="done.status === 'APPROVED'" :to="publicPath('/')" color="primary" icon="i-lucide-log-in" class="mt-2">{{ t('affiliationRequest.signIn') }}</UButton>
+          <UButton v-else :to="publicPath('/')" color="primary" variant="outline" icon="i-lucide-house" class="mt-2">{{ t('affiliationRequest.backHome') }}</UButton>
         </div>
       </template>
 
