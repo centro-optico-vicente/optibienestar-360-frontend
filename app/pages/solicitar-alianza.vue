@@ -19,7 +19,8 @@ import { professionTreeItems } from '~/utils/professionLabel'
 // keeps the half-filled form when the switcher jumps between the two URLs.
 definePageMeta({ layout: 'default', alias: ['/en/become-an-ally'], key: 'public-become-ally' })
 
-interface AllyTypeItem extends CatalogItem { segment?: AllySegment | null }
+// CatalogItem already carries the ally type's `segment` (B2B / B2P).
+type AllyTypeItem = CatalogItem
 
 const { t } = useI18n()
 const publicPath = usePublicPath()
@@ -81,7 +82,7 @@ const docTypes = [{ value: 'V', label: 'V' }, { value: 'E', label: 'E' }]
 const state = reactive({
   allyTypeUuid: '',
   name: '',
-  taxDocumentType: 'J',
+  taxDocumentType: 'J' as (typeof TAX_DOCUMENT_TYPES)[number],
   taxDocumentNumber: '',
   professionUuid: '',
   firstName: '',
