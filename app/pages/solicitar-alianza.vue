@@ -159,7 +159,9 @@ function buildRequest(): AllyRequestCreateRequest {
 
 const sending = ref(false)
 const loggingIn = ref(false)
-/** A 409 (e.g. ally_request.document.has_account): offer the sign-in next to the message. */
+/** Backend codes that mean "you already have an account": offer the sign-in next to the message. */
+const SIGN_IN_CODES = ['ally_request.email.taken', 'ally_request.document.has_account']
+/** Existing account (409, or 422 with one of SIGN_IN_CODES): offer the sign-in next to the message. */
 const conflictMessage = ref<string | null>(null)
 const done = ref<AllyRequestCreatedDto | null>(null)
 
@@ -183,7 +185,8 @@ async function submit() {
     const e = err as ApiError
     // useApi already toasts 409/422; 400 (field validation) is left to the page.
     if (e.status === 400) toast.add({ title: e.message, color: 'error', icon: 'i-lucide-circle-alert' })
-    if (e.status === 409) conflictMessage.value = e.message
+    // Existing email / cédula: 422 with problem.code — offer the sign-in.
+    if (e.status === 409 || SIGN_IN_CODES.includes(String(e.problem?.code ?? ''))) conflictMessage.value = e.message
     sending.value = false
     return
   }
