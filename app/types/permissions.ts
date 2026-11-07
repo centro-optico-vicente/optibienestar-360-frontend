@@ -104,6 +104,7 @@ export const PERMISSIONS = [
   'ALLY_VIEW_OWN',
   // Own ally profile edited from the ally portal (hub ADR 0036): the OWNER of the ally.
   'ALLY_UPDATE_OWN',
+  'ALLY_LICENSE_UPDATE_OWN',
   'ALLY_OPENING_HOURS_UPDATE_OWN',
   // Ally requests (hub ADR 0036): review of self-registered / imported allies.
   'ALLY_REGISTRATION_VIEW_ALL',

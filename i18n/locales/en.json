@@ -1968,7 +1968,8 @@
           "openingHours": "Opening hours",
           "socialMedia": "Social media",
           "practiceSite": "Clinic or office",
-          "appointmentPhone": "Appointment phone"
+          "appointmentPhone": "Appointment phone",
+          "licenses": "Professional licenses"
         },
         "nextSteps": {
           "title": "Next steps",

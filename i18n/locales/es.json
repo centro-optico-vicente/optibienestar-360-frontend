@@ -1968,7 +1968,8 @@
           "openingHours": "Horario",
           "socialMedia": "Redes sociales",
           "practiceSite": "Centro clínico o consultorio",
-          "appointmentPhone": "Teléfono para citas"
+          "appointmentPhone": "Teléfono para citas",
+          "licenses": "Colegiaturas"
         },
         "nextSteps": {
           "title": "Próximos pasos",

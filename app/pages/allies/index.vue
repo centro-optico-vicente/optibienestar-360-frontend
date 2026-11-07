@@ -459,6 +459,19 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       />
     </div>
 
+    <!-- Professional's own licenses (hub ADR 0031 §5 / 0036): add or remove; staff verify -->
+    <div v-if="selectedAlly && profile?.segment === 'B2P'" id="ally-licenses" class="scroll-mt-20">
+      <AllyLicensesPanel
+        :key="selectedAlly.uuid"
+        :ally-uuid="selectedAlly.uuid"
+        :has-holder="true"
+        scope="portal"
+        :owner="selectedAlly.allyRole === 'OWNER'"
+        :readonly="isRejected"
+        @changed="loadProfile"
+      />
+    </div>
+
     <!-- Own offers (any review state), each with its gallery (hub ADR 0027) -->
     <div v-if="selectedAlly && isApproved" class="bg-white rounded-2xl border border-prohealth-100 p-6 space-y-3">
       <div>
