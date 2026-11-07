@@ -258,8 +258,13 @@ function money(v?: number | string | null): string {
                     </span>
                   </CurrencyConverterDisplay>
                 </p>
-                <p v-if="hasDiscount(offerDiscountPct(s)) && s.priceAmount != null" class="text-xs text-prohealth-400 line-through">
-                  {{ money(s.priceAmount) }}
+                <p v-if="hasDiscount(offerDiscountPct(s)) && s.priceAmount != null" class="text-xs text-prohealth-400">
+                  <CurrencyConverterDisplay :amount="s.priceAmount" currency="USD" v-slot="{ result }">
+                    <span class="inline-flex items-center justify-end gap-1">
+                      <span class="line-through">{{ money(s.priceAmount) }}</span>
+                      <CurrencyConverterTrigger :result="result" />
+                    </span>
+                  </CurrencyConverterDisplay>
                 </p>
                 <p v-if="hasDiscount(offerDiscountPct(s))" class="text-xs font-semibold text-lime-700">
                   {{ t('allies.public.detail.discountAffiliates', { pct: offerDiscountPct(s) }) }}

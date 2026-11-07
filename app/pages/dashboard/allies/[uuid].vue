@@ -1356,7 +1356,15 @@ onMounted(async () => {
                   <template v-else>{{ t('common.empty') }}</template>
                 </td>
                 <td class="px-6 py-3 text-prohealth-700">{{ offerDiscountText(p, money, t('common.empty')) }}</td>
-                <td class="px-6 py-3 font-semibold text-prohealth-900">{{ money(p.finalPrice) }}</td>
+                <td class="px-6 py-3 font-semibold text-prohealth-900">
+                  <CurrencyConverterDisplay v-if="p.finalPrice != null && p.finalPrice !== ''" :amount="p.finalPrice" currency="USD" v-slot="{ result }">
+                    <span class="inline-flex items-center gap-1">
+                      {{ money(p.finalPrice) }}
+                      <CurrencyConverterTrigger :result="result" />
+                    </span>
+                  </CurrencyConverterDisplay>
+                  <template v-else>{{ t('common.empty') }}</template>
+                </td>
                 <td class="px-6 py-3">
                   <UBadge :color="reviewStatusColor(p.reviewStatus)" variant="subtle" size="sm" :title="p.reviewReason || undefined">
                     {{ p.reviewStatus_Display ?? (p.reviewStatus ? reviewStatusLabel(p.reviewStatus) : t('common.empty')) }}

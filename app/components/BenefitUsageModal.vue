@@ -3,6 +3,7 @@ import type { MyAllyDto } from '~/types/allies'
 import type { BenefitUsageDto } from '~/types/benefits'
 import type { ValidationResultDto } from '~/types/validator'
 import { appTimeZone } from '~/utils/timezone'
+import { loadConvertibleCurrencies } from '~/composables/useCurrencyConverter'
 
 // Registers a consumed benefit at the counter. Opened from the validator page only
 // after an ACTIVE result, so `membershipUuid` is always the one the backend just
@@ -19,7 +20,6 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const { formatCurrency } = useFormatters()
 const benefitUsage = useBenefitUsage()
 const publicAllies = usePublicAllies()
 const toast = useToast()
@@ -37,6 +37,10 @@ const productCategoryUuid = ref<string | undefined>(undefined)
 const usageDate = ref('')
 const copayAmount = ref('')
 const copayCurrency = ref('USD')
+// Value of what was consumed (list price) — feeds the consumption report and the
+// loyalty thresholds; the co-pay only says what the affiliate paid out of pocket.
+const consumptionAmount = ref('')
+const consumptionCurrency = ref('USD')
 const notes = ref('')
 const submitting = ref(false)
 const touched = ref(false)
@@ -99,6 +103,20 @@ async function loadProducts(allyUuid: string) {
   }
 }
 
+// Currencies the caller may convert between (GET /v1/me/currencies — open to
+// the ally portal, unlike the admin catalog). "USD ($)" label, ISO code value.
+const currencyOptions = ref<{ label: string, value: string }[]>([])
+
+async function loadCurrencyOptions() {
+  if (currencyOptions.value.length) return
+  const currencies = await loadConvertibleCurrencies()
+  currencyOptions.value = currencies.map(c => ({
+    label: c.symbol ? `${c.code} (${c.symbol})` : c.code!,
+    value: c.code!,
+  }))
+  if (!currencyOptions.value.length) currencyOptions.value = [{ label: 'USD ($)', value: 'USD' }]
+}
+
 // Category fallback for a non-catalogued usage (public catalog: no admin key needed).
 const categoryOptions = ref<{ label: string, value: string }[]>([])
 
@@ -122,11 +140,14 @@ watch(() => props.open, (open) => {
   usageDate.value = todayInCaracas()
   copayAmount.value = ''
   copayCurrency.value = 'USD'
+  consumptionAmount.value = ''
+  consumptionCurrency.value = 'USD'
   notes.value = ''
   touched.value = false
   consumer.value = props.validation?.beneficiaryUuid ?? HOLDER
   if (props.ally) loadProducts(props.ally.uuid)
   loadCategories()
+  loadCurrencyOptions()
 })
 
 // ---- Validation ----
@@ -135,19 +156,26 @@ watch(() => props.open, (open) => {
 // but a cleared currency must still be caught here rather than as a backend 422.
 const amountPattern = /^\d{1,8}(\.\d{1,2})?$/
 
-const amountError = computed(() => {
+function amountErrorOf(raw: string): string | undefined {
   if (!touched.value) return undefined
-  const raw = copayAmount.value.trim()
-  if (!raw) return undefined
-  if (!amountPattern.test(raw)) return t('validation.invalidAmount')
+  const v = raw.trim()
+  if (!v) return undefined
+  if (!amountPattern.test(v)) return t('validation.invalidAmount')
   return undefined
-})
+}
 
-const currencyError = computed(() => {
+function currencyErrorOf(amount: string, currency: string): string | undefined {
   if (!touched.value) return undefined
-  if (copayAmount.value.trim() && !copayCurrency.value.trim()) return t('validation.required')
+  if (amount.trim() && !currency?.trim()) return t('validation.required')
   return undefined
-})
+}
+
+const amountError = computed(() => amountErrorOf(copayAmount.value))
+const currencyError = computed(() => currencyErrorOf(copayAmount.value, copayCurrency.value))
+const consumptionAmountError = computed(() => amountErrorOf(consumptionAmount.value))
+const consumptionCurrencyError = computed(() => currencyErrorOf(consumptionAmount.value, consumptionCurrency.value))
+const hasMoneyError = computed(() =>
+  !!(amountError.value || currencyError.value || consumptionAmountError.value || consumptionCurrencyError.value))
 
 // Without a catalogued offer the backend needs the category to file the usage under.
 const categoryError = computed(() => {
@@ -157,24 +185,19 @@ const categoryError = computed(() => {
 })
 
 const canSubmit = computed(() =>
-  !!props.ally && !!props.validation?.membershipUuid && !amountError.value && !currencyError.value)
-
-// ---- Display helpers ----
-function money(v?: number | string | null, currency?: string | null): string {
-  if (v === null || v === undefined || v === '') return t('common.empty')
-  return formatCurrency(Number(v), currency || 'USD')
-}
+  !!props.ally && !!props.validation?.membershipUuid && !hasMoneyError.value)
 
 async function confirm() {
   touched.value = true
   const ally = props.ally
   const membershipUuid = props.validation?.membershipUuid
   if (!ally || !membershipUuid) return
-  if (amountError.value || currencyError.value || categoryError.value) return
+  if (hasMoneyError.value || categoryError.value) return
 
   submitting.value = true
   try {
     const amount = copayAmount.value.trim()
+    const consumed = consumptionAmount.value.trim()
     const usage = await benefitUsage.register({
       membershipUuid,
       allyUuid: ally.uuid,
@@ -184,6 +207,7 @@ async function confirm() {
       ...(usageDate.value ? { usageDate: usageDate.value } : {}),
       // Both sides or neither — never one.
       ...(amount ? { copayAmount: amount, copayCurrency: copayCurrency.value.trim().toUpperCase() } : {}),
+      ...(consumed ? { consumptionAmount: consumed, consumptionCurrency: consumptionCurrency.value.trim().toUpperCase() } : {}),
       ...(notes.value.trim() ? { notes: notes.value.trim() } : {}),
       ...(consumer.value !== HOLDER ? { beneficiaryUuid: consumer.value } : {}),
     })
@@ -278,6 +302,34 @@ async function confirm() {
           <UInput v-model="usageDate" type="date" :max="todayInCaracas()" class="w-full" />
         </UFormField>
 
+        <!-- Money: every amount carries its currency, and the preview converts it
+             with the rate in force on the usage date (not today's). -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <UFormField
+            :label="t('validator.usage.fields.consumptionAmount')"
+            :help="t('validator.usage.fields.consumptionHelp')"
+            :error="consumptionAmountError"
+            class="sm:col-span-2"
+          >
+            <CurrencyConverterDisplay :amount="consumptionAmount" :currency="consumptionCurrency" :date="usageDate" v-slot="{ result }">
+              <UInput v-model="consumptionAmount" placeholder="0.00" inputmode="decimal" class="w-full">
+                <template #trailing>
+                  <CurrencyConverterTrigger :result="result" />
+                </template>
+              </UInput>
+            </CurrencyConverterDisplay>
+          </UFormField>
+          <UFormField :label="t('validator.usage.fields.copayCurrency')" :error="consumptionCurrencyError">
+            <USelectMenu
+              v-model="consumptionCurrency"
+              :items="currencyOptions"
+              label-key="label"
+              value-key="value"
+              class="w-full"
+            />
+          </UFormField>
+        </div>
+
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <UFormField
             :label="t('validator.usage.fields.copayAmount')"
@@ -285,7 +337,7 @@ async function confirm() {
             :error="amountError"
             class="sm:col-span-2"
           >
-            <CurrencyConverterDisplay :amount="copayAmount" :currency="copayCurrency" v-slot="{ result }">
+            <CurrencyConverterDisplay :amount="copayAmount" :currency="copayCurrency" :date="usageDate" v-slot="{ result }">
               <UInput v-model="copayAmount" placeholder="0.00" inputmode="decimal" class="w-full">
                 <template #trailing>
                   <CurrencyConverterTrigger :result="result" />
@@ -294,13 +346,15 @@ async function confirm() {
             </CurrencyConverterDisplay>
           </UFormField>
           <UFormField :label="t('validator.usage.fields.copayCurrency')" :error="currencyError">
-            <UInput v-model="copayCurrency" maxlength="3" class="w-full font-mono uppercase" />
+            <USelectMenu
+              v-model="copayCurrency"
+              :items="currencyOptions"
+              label-key="label"
+              value-key="value"
+              class="w-full"
+            />
           </UFormField>
         </div>
-
-        <p v-if="copayAmount.trim() && !amountError" class="text-xs text-prohealth-500 -mt-2">
-          {{ t('validator.usage.copayPreview', { amount: money(copayAmount, copayCurrency) }) }}
-        </p>
 
         <UFormField :label="t('validator.usage.fields.notes')">
           <UTextarea v-model="notes" :rows="2" :maxlength="500" class="w-full" />

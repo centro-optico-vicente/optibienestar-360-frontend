@@ -12,7 +12,7 @@ definePageMeta({
 })
 
 const { t } = useI18n()
-const { formatCurrency, formatDate } = useFormatters()
+const { formatDate } = useFormatters()
 const benefitUsage = useBenefitUsage()
 
 useSeoMeta({ title: () => t('validator.history.seoTitle') })
@@ -49,12 +49,6 @@ const debouncedSearch = useDebounceFn(() => {
 }, 350)
 watch(search, debouncedSearch)
 onMounted(load)
-
-// Co-pay in its own currency, formatted in the VE convention. Absent → '—'.
-function money(v?: number | string | null, currency?: string | null): string {
-  if (v === null || v === undefined || v === '') return t('common.empty')
-  return formatCurrency(Number(v), currency || 'USD')
-}
 </script>
 
 <template>
@@ -110,15 +104,28 @@ function money(v?: number | string | null, currency?: string | null): string {
             <p v-if="u.notes" class="text-xs text-prohealth-400 truncate mt-0.5">{{ u.notes }}</p>
           </div>
           <div class="text-right shrink-0">
-            <p v-if="u.copayAmount" class="text-sm font-semibold text-prohealth-800">
-              <CurrencyConverterDisplay :amount="u.copayAmount" :currency="u.copayCurrency" :date="u.usageDate" v-slot="{ result }">
-                <span class="inline-flex items-center justify-end gap-1">
-                  {{ money(u.copayAmount, u.copayCurrency) }}
-                  <CurrencyConverterTrigger :result="result" />
-                </span>
-              </CurrencyConverterDisplay>
+            <p v-if="u.consumptionAmount" class="text-sm font-semibold text-prohealth-800">
+              <AmountWithConversion
+                :amount="u.consumptionAmount"
+                :currency="u.consumptionCurrency"
+                :date="u.usageDate"
+                :converted-display="u.consumptionAmountConverted_Display"
+                :converted-currency="u.convertedCurrency"
+                :rate-date="u.exchangeRateDate"
+              />
+              <span class="block text-xs font-normal text-prohealth-400">{{ t('validator.history.consumptionLabel') }}</span>
             </p>
-            <p class="text-xs text-prohealth-400">{{ t('validator.history.copayLabel') }}</p>
+            <p v-if="u.copayAmount" class="text-sm font-semibold text-prohealth-800">
+              <AmountWithConversion
+                :amount="u.copayAmount"
+                :currency="u.copayCurrency"
+                :date="u.usageDate"
+                :converted-display="u.copayAmountConverted_Display"
+                :converted-currency="u.convertedCurrency"
+                :rate-date="u.exchangeRateDate"
+              />
+            </p>
+            <p v-if="u.copayAmount" class="text-xs text-prohealth-400">{{ t('validator.history.copayLabel') }}</p>
           </div>
         </li>
       </ul>
