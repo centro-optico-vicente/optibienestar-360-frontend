@@ -325,6 +325,9 @@ export const PERMISSIONS = [
   // SECURITY_POLICY (V191) — single active auth policy, read/update only.
   'SECURITY_POLICY_VIEW',
   'SECURITY_POLICY_UPDATE',
+  // ONBOARDING_POLICY (V231, hub ADR 0037) — single active onboarding policy, read/update only.
+  'ONBOARDING_POLICY_VIEW',
+  'ONBOARDING_POLICY_UPDATE',
 
   // ENTITY_CONFIG (V81) — SYSTEM-only for now
   'ENTITY_CONFIG_VIEW',

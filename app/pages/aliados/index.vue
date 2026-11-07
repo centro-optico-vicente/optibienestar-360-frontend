@@ -12,6 +12,10 @@ import type { PublicAllyListItemDto } from '~/types/allies'
 definePageMeta({ layout: 'default', alias: ['/en/allies'], key: 'public-allies' })
 
 const { t } = useI18n()
+
+// Hub ADR 0037: hide the self-registration entry point while it is switched off.
+const { load: loadOnboardingPolicy, allySelfRegistrationEnabled } = usePublicOnboardingPolicy()
+onMounted(() => { void loadOnboardingPolicy() })
 const publicPath = usePublicPath()
 const route = useRoute()
 const router = useRouter()
@@ -296,7 +300,7 @@ onMounted(async () => {
       </div>
 
       <!-- Become an ally (hub ADR 0036): public ally request -->
-      <div class="mt-12 rounded-3xl bg-prohealth-900 text-white p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+      <div v-if="allySelfRegistrationEnabled" class="mt-12 rounded-3xl bg-prohealth-900 text-white p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
         <div>
           <h2 class="text-xl font-extrabold">{{ t('allies.public.becomeAllyTitle') }}</h2>
           <p class="text-sm text-prohealth-100 mt-1 max-w-xl">{{ t('allies.public.becomeAllyBody') }}</p>
