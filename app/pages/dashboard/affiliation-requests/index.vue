@@ -32,7 +32,7 @@ const pageSizeItems = buildPageSizeItems(t)
 
 const statusItems = computed(() => [
   { value: 'ALL', label: t('affiliationRequests.statusAll') },
-  ...AFFILIATION_REQUEST_STATUSES.map(s => ({ value: s, label: t(`affiliationRequests.status.${s}`) })),
+  ...AFFILIATION_REQUEST_STATUSES.filter(s => s !== 'DRAFT').map(s => ({ value: s, label: t(`affiliationRequests.status.${s}`) })),
 ])
 
 const sort = useTableSort([])

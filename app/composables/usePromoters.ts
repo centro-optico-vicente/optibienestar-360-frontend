@@ -3,6 +3,7 @@ import type {
   CollectionScoreDto,
   CommissionPeriodSummaryDto,
   PromoterCreateRequest,
+  PromoterWithUserCreateRequest,
   PromoterDashboardDto,
   PromoterDossierUpdateRequest,
   PromoterDto,
@@ -50,6 +51,10 @@ export const usePromoters = () => {
 
   const get = (uuid: string) =>
     useApi<PromoterDto>(`/v1/admin/advisors/${uuid}`)
+
+  /** User (role ASESOR) + advisor profile in one call; no password = invitation by email. */
+  const createWithUser = (body: PromoterWithUserCreateRequest) =>
+    useApi<PromoterDto>('/v1/admin/advisors/with-user', { method: 'POST', body })
 
   const create = (body: PromoterCreateRequest) =>
     useApi<PromoterDto>('/v1/admin/advisors', { method: 'POST', body })
@@ -157,7 +162,7 @@ export const usePromoters = () => {
     useApi<PromoterMemberContactDto>(`/v1/advisors/me/contacts/${memberUuid}/payment-promise`, { method: 'POST', body })
 
   return {
-    list, get, create, update, remove, usage, portfolio, commissionsSummary, me, registerInPortfolio, searchCandidates,
+    list, get, create, createWithUser, update, remove, usage, portfolio, commissionsSummary, me, registerInPortfolio, searchCandidates,
     listReferences, createReference, updateReference, removeReference,
     listPayoutAccounts, createPayoutAccount, updatePayoutAccount, setDefaultPayoutAccount, removePayoutAccount, myPayoutAccounts,
     myCollectionScore, myMemberContacts, registerReminder, registerPaymentPromise,

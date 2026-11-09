@@ -71,7 +71,7 @@ async function submit() {
       homepage: '',
     })
     draft.clear()
-    const next = await openSession(res, { identifier: state.email.trim(), password: state.password || undefined })
+    const next = await openSession(res.session, { identifier: state.email.trim(), password: state.password || undefined })
     if (next) {
       const plan = typeof route.query.plan === 'string' && route.query.plan ? { plan: route.query.plan } : undefined
       await router.push({ path: next, query: plan })
