@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { MyAffiliationFamilyMember, MyAffiliationRequestDto } from '~/types/affiliationRequests'
 import type { StepExit } from '~/types/registration'
-import { RELATIONSHIP_OPTIONS } from '~/types/members'
+import { RELATIONSHIP_OPTIONS, type BeneficiaryRelationship } from '~/types/members'
 
 // Wizard step "Familia" (affiliate, not essential): beneficiaries added with the request. The seat limits of the
 // plan are validated by the backend (same rules as the portal).
@@ -16,10 +16,13 @@ const MAX_ROWS = 10
 const relationshipOptions = computed(() => RELATIONSHIP_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
 const docTypes = [{ value: 'V', label: 'V' }, { value: 'E', label: 'E' }]
 
-interface Row extends MyAffiliationFamilyMember { key: number }
+interface Row extends Omit<MyAffiliationFamilyMember, 'relationship'> {
+  key: number
+  relationship: BeneficiaryRelationship | undefined
+}
 let seq = 0
-const blank = (): Row => ({ key: ++seq, firstName: '', lastName: '', documentType: 'V', documentNumber: '', birthDate: '', relationship: '' })
-const rows = ref<Row[]>((props.request.family ?? []).map(m => ({ ...m, key: ++seq })))
+const blank = (): Row => ({ key: ++seq, firstName: '', lastName: '', documentType: 'V', documentNumber: '', birthDate: '', relationship: undefined })
+const rows = ref<Row[]>((props.request.family ?? []).map(m => ({ ...m, key: ++seq, relationship: m.relationship as BeneficiaryRelationship })))
 const saving = ref(false)
 
 function add() {
@@ -56,7 +59,7 @@ async function finish(mode: StepExit) {
       documentType: r.documentNumber ? r.documentType : undefined,
       documentNumber: r.documentNumber?.trim() || undefined,
       birthDate: r.birthDate || undefined,
-      relationship: r.relationship,
+      relationship: r.relationship!,
     }))
     emit('done', await api.saveFamily({ members }), mode)
   }

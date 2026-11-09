@@ -26,7 +26,7 @@ export function useRegistrationDraft<T extends object>(key: string, state: T, ex
 
   const persist = useDebounceFn(() => {
     try {
-      const copy: Record<string, unknown> = { ...state }
+      const copy: Record<string, unknown> = { ...(state as unknown as Record<string, unknown>) }
       for (const field of exclude) delete copy[field as string]
       localStorage.setItem(storageKey, JSON.stringify(copy))
     }

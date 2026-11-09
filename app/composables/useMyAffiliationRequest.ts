@@ -32,7 +32,10 @@ export const useMyAffiliationRequest = () => {
 
   const get = () => useApi<MyAffiliationRequestDto>(BASE)
 
-  const patchStep = (step: MemberRegistrationStep, body: unknown) =>
+  const patchStep = (
+    step: MemberRegistrationStep,
+    body: MyAffiliationPersonalStep | MyAffiliationPlanStep | MyAffiliationFamilyStep | AffiliationRequestPaymentRequest | FormData,
+  ) =>
     useApi<MyAffiliationRequestDto>(`${BASE}/${step}`, { method: 'PATCH', body })
 
   const savePersonal = (body: MyAffiliationPersonalStep) => patchStep('personal', body)
