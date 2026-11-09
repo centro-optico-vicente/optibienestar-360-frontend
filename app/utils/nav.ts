@@ -255,6 +255,8 @@ export const MAIN_NAV: NavEntry[] = [
       // Gestión de Cartera del asesor (v2 PDF 2.b): portfolio + collection score,
       // with reminder / payment-promise actions gated by PROMOTER_CONTACT_OWN in-page.
       // Requests that came through the advisor's own QR (backend V188), read-only.
+      // Assisted affiliation (hub ADR 0037 §5): the advisor enrolls a person on their own device.
+      { label: 'Afiliar persona', labelKey: 'nav.items.affiliatePerson.label', to: '/advisors/affiliate', icon: 'i-lucide-user-plus', description: 'Afilia a una persona o familia desde tu dispositivo.', descriptionKey: 'nav.items.affiliatePerson.description', requires: 'AFFILIATION_REQUEST_CREATE_ASSISTED' },
       { label: 'Mis solicitudes de afiliación', labelKey: 'nav.items.myAffiliationRequests.label', to: '/advisors/affiliation-requests', icon: 'i-lucide-user-plus', description: 'Las solicitudes que llegaron por tu QR y su estado.', descriptionKey: 'nav.items.myAffiliationRequests.description', requires: 'AFFILIATION_REQUEST_VIEW_OWN' },
       { label: 'Mi cartera', labelKey: 'nav.items.myPortfolio.label', to: '/advisors/portfolio', icon: 'i-lucide-briefcase', description: 'Gestión de Cartera: tus afiliados y su Cuota de Mantenimiento al día.', descriptionKey: 'nav.items.myPortfolio.description', requires: 'PROMOTER_VIEW_OWN' },
       { label: 'Cobros de mis afiliados', labelKey: 'nav.items.myNetworkCollections.label', to: '/advisors/collections', icon: 'i-lucide-users', description: 'Pagos de membresía de los afiliados de tu red.', descriptionKey: 'nav.items.myNetworkCollections.description', requires: 'PROMOTER_VIEW_OWN' },

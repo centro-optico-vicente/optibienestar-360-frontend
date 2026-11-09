@@ -29,6 +29,12 @@ const { t } = useI18n()
 const usersApi = useUsers()
 const roles = useRoles()
 const toast = useToast()
+const promotersApi = usePromoters()
+const promoterTypeOptions = useCatalogOptions('advisor-types')
+const { can } = usePermissions()
+// "Create the advisor profile too" (hub ADR 0037 §5): only for who may create advisors.
+const canCreateAdvisor = computed(() => props.mode === 'create' && can('PROMOTER_CREATE'))
+const promoterTypeItems = ref<{ label: string, value: string }[]>([])
 
 const isOpen = computed({
   get: () => props.open,
@@ -52,6 +58,14 @@ const catalogsLoaded = ref(false)
 
 async function loadCatalogs() {
   if (catalogsLoaded.value) return
+  if (canCreateAdvisor.value) {
+    try {
+      promoterTypeItems.value = (await promoterTypeOptions.options({ limit: 100 })).map(o => ({ label: o.label, value: o.uuid }))
+    }
+    catch {
+      promoterTypeItems.value = []
+    }
+  }
   try {
     const res = await roles.options({ limit: 200 })
     roleOptions.value = res.map(o => ({ label: o.label, value: o.uuid }))
@@ -92,6 +106,11 @@ interface FormState {
   status: string
   active: boolean
   roleIds: string[]
+  /** Create only: email the setup link instead of typing a password. */
+  sendInvitation: boolean
+  /** Create only: also create the advisor profile of the new user. */
+  alsoAdvisor: boolean
+  promoterTypeUuid: string | undefined
 }
 
 const state = reactive<FormState>({
@@ -108,6 +127,9 @@ const state = reactive<FormState>({
   status: 'ACTIVE',
   active: true,
   roleIds: [],
+  sendInvitation: true,
+  alsoAdvisor: false,
+  promoterTypeUuid: undefined,
 })
 
 const createSchema = computed(() => z.object({
@@ -116,13 +138,16 @@ const createSchema = computed(() => z.object({
   middleName: z.string().max(50, t('validation.maxChars', { n: 50 })).optional(),
   lastName: z.string().min(1, t('validation.required')).max(50, t('validation.maxChars', { n: 50 })),
   secondLastName: z.string().max(50, t('validation.maxChars', { n: 50 })).optional(),
-  password: z
-    .string()
-    .min(10, t('validation.minChars', { n: 10 }))
-    .regex(/[A-Z]/, t('validation.passwordUppercase'))
-    .regex(/[a-z]/, t('validation.passwordLowercase'))
-    .regex(/[0-9]/, t('validation.passwordNumber'))
-    .regex(/[^A-Za-z0-9]/, t('validation.passwordSymbol')),
+  // With the invitation the person sets the password from the emailed link.
+  password: state.sendInvitation
+    ? z.string().optional()
+    : z
+        .string()
+        .min(10, t('validation.minChars', { n: 10 }))
+        .regex(/[A-Z]/, t('validation.passwordUppercase'))
+        .regex(/[a-z]/, t('validation.passwordLowercase'))
+        .regex(/[0-9]/, t('validation.passwordNumber'))
+        .regex(/[^A-Za-z0-9]/, t('validation.passwordSymbol')),
   documentType: z.string().min(1, t('validation.required')),
   documentNumber: z.string().min(1, t('validation.required')),
   phone: z.string().optional(),
@@ -159,6 +184,9 @@ function resetForm() {
   state.status = 'ACTIVE'
   state.active = true
   state.roleIds = []
+  state.sendInvitation = true
+  state.alsoAdvisor = false
+  state.promoterTypeUuid = undefined
 }
 
 // Snapshot of the last-loaded edit state, used to warn before a refresh
@@ -222,14 +250,19 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         middleName: state.middleName || undefined,
         lastName: state.lastName,
         secondLastName: state.secondLastName || undefined,
-        password: state.password,
+        ...(state.sendInvitation ? { sendInvitation: true } : { password: state.password }),
         documentType: state.documentType!,
         documentNumber: state.documentNumber,
         phone: state.phone || undefined,
         roleIds: state.roleIds,
       }
       saved = await usersApi.create(body)
-      toast.add({ title: t('security.users.createdToast'), color: 'success', icon: 'i-lucide-check-circle' })
+      toast.add({
+        title: t(state.sendInvitation ? 'security.users.invitedToast' : 'security.users.createdToast'),
+        color: 'success',
+        icon: 'i-lucide-check-circle',
+      })
+      if (state.alsoAdvisor) await createAdvisorFor(saved)
     }
     else {
       if (!props.user) return
@@ -257,6 +290,30 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
   }
   finally {
     isSubmitting.value = false
+  }
+}
+
+/** Referral code `^[A-Z0-9-]{4,20}$` from the person's name plus a random suffix (editable later by staff). */
+function referralCodeFor(u: UserDto): string {
+  const base = `${u.firstName ?? ''}${u.lastName ?? ''}`.normalize('NFD').replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 12) || 'ASESOR'
+  return `${base}${Math.floor(1000 + Math.random() * 9000)}`.slice(0, 20)
+}
+
+/** Second step of "user + advisor in one go": the user is already created, so a failure here keeps it. */
+async function createAdvisorFor(u: UserDto) {
+  try {
+    await promotersApi.create({
+      displayName: `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim() || u.email,
+      referralCode: referralCodeFor(u),
+      userUuid: u.uuid,
+      email: u.email,
+      phone: u.phone || undefined,
+      promoterTypeUuid: state.promoterTypeUuid,
+    })
+    toast.add({ title: t('security.users.advisorCreatedToast'), color: 'success', icon: 'i-lucide-check-circle' })
+  }
+  catch {
+    toast.add({ title: t('security.users.advisorCreateFailedToast'), color: 'warning', icon: 'i-lucide-triangle-alert' })
   }
 }
 
@@ -325,7 +382,10 @@ function requestDelete() {
           </UFormField>
         </div>
 
-        <UFormField v-if="mode === 'create'" :label="t('security.users.fields.password')" name="password" required>
+        <UFormField v-if="mode === 'create'" :help="t('security.users.fields.sendInvitationHelp')" name="sendInvitation">
+          <USwitch v-model="state.sendInvitation" :label="t('security.users.fields.sendInvitation')" />
+        </UFormField>
+        <UFormField v-if="mode === 'create' && !state.sendInvitation" :label="t('security.users.fields.password')" name="password" required>
           <UInput v-model="state.password" type="password" autocomplete="new-password" class="w-full" />
         </UFormField>
 
@@ -395,6 +455,13 @@ function requestDelete() {
           />
         </UFormField>
 
+        <div v-if="canCreateAdvisor" class="space-y-3 rounded-xl border border-prohealth-100 p-3">
+          <USwitch v-model="state.alsoAdvisor" :label="t('security.users.fields.alsoAdvisor')" />
+          <p class="text-xs text-prohealth-500">{{ t('security.users.fields.alsoAdvisorHelp') }}</p>
+          <UFormField v-if="state.alsoAdvisor" :label="t('security.users.fields.advisorType')" name="promoterTypeUuid">
+            <USelectMenu v-model="state.promoterTypeUuid" :items="promoterTypeItems" label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" />
+          </UFormField>
+        </div>
       </UForm>
 
       <!-- Discard unsaved changes before refreshing -->

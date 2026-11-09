@@ -247,3 +247,22 @@ export interface MyAffiliationPlanStep {
 export interface MyAffiliationFamilyStep {
   members: MyAffiliationFamilyMember[]
 }
+
+/**
+ * POST /v1/advisors/me/affiliation-requests (assisted affiliation, backend V188): the advisor fills the
+ * person's data on their own device. `contractAccepted` confirms the person read the contract shown on screen.
+ */
+export interface AssistedAffiliationRequest extends AssistedAffiliationOverrides {
+  firstName: string
+  lastName: string
+  documentType: string
+  documentNumber: string
+  /** yyyy-MM-dd */
+  birthDate: string
+  email: string
+  phone?: string
+  password?: string
+  planUuid: string
+  termsVersionUuid: string
+  contractAccepted: true
+}

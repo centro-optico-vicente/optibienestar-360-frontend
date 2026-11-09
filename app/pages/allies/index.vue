@@ -83,6 +83,21 @@ const completenessPercent = computed(() => Math.max(0, Math.min(100, Math.round(
 // Approved while the session still carries the pending role: new permissions need a new login.
 const needsRelogin = computed(() => isApproved.value && auth.activeRole === ROLES.ALLY_PENDING)
 
+// Approved while the session still carries the pending role: refresh the tokens instead of asking
+// for a new login (hub ADR 0037 §5). The banner below stays only if the refresh did not change the role.
+const { refreshSession } = useAuth()
+const refreshingRole = ref(false)
+watch(needsRelogin, async (stale) => {
+  if (!stale || refreshingRole.value) return
+  refreshingRole.value = true
+  try {
+    await refreshSession()
+  }
+  finally {
+    refreshingRole.value = false
+  }
+}, { immediate: true })
+
 const canEditProfile = computed(() =>
   !isRejected.value && selectedAlly.value?.allyRole === 'OWNER' && can('ALLY_UPDATE_OWN'))
 

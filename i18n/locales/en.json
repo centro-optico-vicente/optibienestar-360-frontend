@@ -242,7 +242,12 @@
         "localeHint": "Language of their emails and of the messages the system returns to them.",
         "status": "Status",
         "active": "Account active",
-        "roles": "Roles"
+        "roles": "Roles",
+        "sendInvitation": "Send invitation by email",
+        "sendInvitationHelp": "The person sets their own password from the link. Without the invitation, you type the password.",
+        "alsoAdvisor": "Also create the advisor profile",
+        "alsoAdvisorHelp": "Creates the user and the advisor profile in one step. The referral code is generated and can be changed later.",
+        "advisorType": "Advisor type"
       },
       "locales": {
         "es": "Español",
@@ -303,7 +308,10 @@
             "confirm": "Are you sure you want to unlink this user from {name}?"
           }
         }
-      }
+      },
+      "invitedToast": "User created. We emailed an invitation to set their password.",
+      "advisorCreatedToast": "Advisor profile created",
+      "advisorCreateFailedToast": "The user was created, but the advisor profile could not be. Create it from Advisors."
     },
     "roles": {
       "seoTitle": "Roles — OptiBienestar 360",
@@ -829,6 +837,10 @@
       "completeRegistration": {
         "label": "Complete registration",
         "description": "Finish your registration step by step."
+      },
+      "affiliatePerson": {
+        "label": "Enroll a person",
+        "description": "Enroll a person or family from your device."
       }
     },
     "other": {
@@ -2265,7 +2277,11 @@
       "copied": "Link copied",
       "copyFailed": "Could not copy the link",
       "qrUnavailable": "We could not find your advisor profile.",
-      "qrAlt": "Affiliation QR"
+      "qrAlt": "Affiliation QR",
+      "shareText": "Join OptiBienestar 360 with my link: {url}",
+      "shareTitle": "Join OptiBienestar 360",
+      "shareWhatsapp": "Share on WhatsApp",
+      "share": "Share"
     },
     "portfolio": {
       "title": "My portfolio",
@@ -2344,7 +2360,8 @@
       },
       "registerPayment": "Register payment",
       "daysOverdueValue": "{count} day | {count} days",
-      "callTooltip": "Call"
+      "callTooltip": "Call",
+      "registerPaymentRow": "Register a payment for this person"
     },
     "payoutAccounts": {
       "title": "My payout details",
@@ -6328,5 +6345,18 @@
       "later": "Remind me later",
       "now": "Complete now"
     }
+  },
+  "assistedAffiliation": {
+    "title": "Enroll a person",
+    "subtitle": "Fill in the person's data on your device. They read and accept the contract on screen.",
+    "emailHelp": "The access link will be emailed here once it is approved.",
+    "contractHint": "Show the contract to the person: it is filled in with the data you type.",
+    "accept": "The person read and accepted the {title}",
+    "acceptRequired": "The person must read and accept the contract.",
+    "submit": "Send enrollment request",
+    "doneTitle": "Request sent",
+    "doneBody": "Once approved, {email} will receive the link to sign in to their portal.",
+    "another": "Enroll another person",
+    "seeRequests": "See my requests"
   }
 }

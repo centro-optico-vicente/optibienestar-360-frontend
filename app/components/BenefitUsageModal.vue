@@ -322,6 +322,7 @@ async function confirm() {
           <UFormField :label="t('validator.usage.fields.copayCurrency')" :error="consumptionCurrencyError">
             <USelectMenu
               v-model="consumptionCurrency"
+              :search-input="false"
               :items="currencyOptions"
               label-key="label"
               value-key="value"
@@ -348,6 +349,7 @@ async function confirm() {
           <UFormField :label="t('validator.usage.fields.copayCurrency')" :error="currencyError">
             <USelectMenu
               v-model="copayCurrency"
+              :search-input="false"
               :items="currencyOptions"
               label-key="label"
               value-key="value"

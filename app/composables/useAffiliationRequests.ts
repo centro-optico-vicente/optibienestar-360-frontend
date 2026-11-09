@@ -4,6 +4,7 @@ import type {
   AffiliationRequestListItemDto,
   AffiliationRequestStatus,
   AffiliationRequestUpdateRequest,
+  AssistedAffiliationRequest,
 } from '~/types/affiliationRequests'
 import type { PaymentSupportUrlDto } from '~/types/payments'
 
@@ -67,5 +68,12 @@ export const useAffiliationRequests = () => {
       },
     })
 
-  return { list, get, update, approve, reject, paymentSupportUrl, mine }
+  /** Assisted affiliation: the advisor creates the request for a person (approval emails them the access link). */
+  const createAssisted = (body: AssistedAffiliationRequest) =>
+    useApi<{ uuid: string, status: AffiliationRequestStatus, email: string }>('/v1/advisors/me/affiliation-requests', {
+      method: 'POST',
+      body,
+    })
+
+  return { list, get, update, approve, reject, paymentSupportUrl, mine, createAssisted }
 }

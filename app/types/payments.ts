@@ -562,3 +562,15 @@ export interface AssignMembershipRequest {
   appliedPeriod?: string
   coverageThroughPeriod?: string
 }
+
+/**
+ * Values a payment form opens with (hub ADR 0037 §5): the pending amount and, for the advisor's form, the member
+ * of the row it was opened from. The payer's own data (identification, phone, email) is prefilled by the form.
+ */
+export interface PaymentFormPrefill {
+  /** Decimal string, e.g. the pending monthly fee. */
+  amount?: string
+  currency?: string
+  /** Advisor form only: the member of the portfolio row. */
+  memberUuid?: string
+}

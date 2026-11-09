@@ -2,14 +2,14 @@
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { BeneficiaryMatchDto, MyPaymentCreateRequest, PaymentDto, SavedOriginAccountDto } from '~/types/payments'
-import { BANK_ACCOUNT_TYPE_OPTIONS } from '~/types/payments'
+import { BANK_ACCOUNT_TYPE_OPTIONS, type PaymentFormPrefill } from '~/types/payments'
 import type { CatalogItem } from '~/types/catalogs'
 
 // Self-service registration (POST /v1/me/payments, multipart, COLLECTION_CREATE_OWN)
 // — the caller's active membership is resolved server-side when they have one; without one
 // (V201) the approved payment becomes their credit ("saldo a favor"). Same fields as
 // PaymentFormModal minus the member/membership picker.
-const props = defineProps<{ open: boolean }>()
+const props = defineProps<{ open: boolean, prefill?: PaymentFormPrefill }>()
 
 const emit = defineEmits<{
   'update:open': [value: boolean]
@@ -303,9 +303,21 @@ function resetForm() {
   clearFile()
 }
 
+// The payer is the signed-in person: their identification, phone and email come prefilled (hub ADR 0037 §5); the
+// pending amount comes from the caller. Only the fields the chosen method asks for are shown, and all stay editable.
+function applyPrefill() {
+  const user = useAuthStore().user
+  if (user?.documentNumber) state.identification = `${user.documentType ?? ''}${user.documentNumber}`
+  state.phone = user?.phone ?? ''
+  state.email = user?.email ?? ''
+  if (props.prefill?.amount) state.amount = props.prefill.amount
+  if (props.prefill?.currency) state.currency = props.prefill.currency
+}
+
 watch(() => props.open, (open) => {
   if (open) {
     resetForm()
+    applyPrefill()
     loadMethodsAndBanks()
     loadCurrencies()
   }

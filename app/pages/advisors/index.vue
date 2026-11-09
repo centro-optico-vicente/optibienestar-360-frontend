@@ -35,6 +35,22 @@ onMounted(async () => {
   }
 })
 
+// Share the affiliation link (hub ADR 0037 §5): WhatsApp (wa.me, free) and the device's native share sheet.
+const shareText = computed(() => qr.value ? t('promoterSelf.profile.shareText', { url: qr.value.affiliationUrl }) : '')
+const whatsappUrl = computed(() => `https://wa.me/?text=${encodeURIComponent(shareText.value)}`)
+const canNativeShare = ref(false)
+onMounted(() => { canNativeShare.value = typeof navigator !== 'undefined' && typeof navigator.share === 'function' })
+
+async function nativeShare() {
+  if (!qr.value) return
+  try {
+    await navigator.share({ title: t('promoterSelf.profile.shareTitle'), text: shareText.value, url: qr.value.affiliationUrl })
+  }
+  catch {
+    // The person closed the share sheet: nothing to report.
+  }
+}
+
 async function copyLink() {
   if (!qr.value) return
   try {
@@ -98,6 +114,12 @@ async function copyLink() {
             </UButton>
             <UButton color="neutral" variant="outline" size="sm" icon="i-lucide-copy" @click="copyLink">
               {{ t('promoterSelf.profile.copy') }}
+            </UButton>
+            <UButton :href="whatsappUrl" target="_blank" rel="noopener" color="success" variant="soft" size="sm" icon="i-lucide-message-circle">
+              {{ t('promoterSelf.profile.shareWhatsapp') }}
+            </UButton>
+            <UButton v-if="canNativeShare" color="neutral" variant="outline" size="sm" icon="i-lucide-share-2" @click="nativeShare">
+              {{ t('promoterSelf.profile.share') }}
             </UButton>
           </div>
         </div>
