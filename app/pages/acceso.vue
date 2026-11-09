@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ApiError } from '~/types/auth'
-import { ROLES } from '~/types/auth'
 
 // Landing of the emailed login link (hub ADR 0037 §3). English pair: `/en/access`.
 definePageMeta({ layout: 'auth', alias: ['/en/access'], key: 'public-access' })
@@ -39,10 +38,7 @@ onMounted(async () => {
       color: 'success',
       icon: 'i-lucide-check-circle',
     })
-    // Pending roles land on their own portal; the role home resolver in
-    // middleware/auth.global.ts handles everyone else from `/dashboard`.
-    const pending = useAuthStore().activeRole === ROLES.ALLY_PENDING ? '/allies' : '/dashboard'
-    await router.replace(pending)
+    await router.replace(roleHome(useAuthStore().activeRole))
   }
   catch (err: unknown) {
     failed.value = true

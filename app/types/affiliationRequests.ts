@@ -4,14 +4,16 @@
 // /v1/advisors/me/affiliation-requests. Public submit:
 // POST /v1/public/affiliation-requests.
 
-export const AFFILIATION_REQUEST_STATUSES = ['PENDING', 'APPROVED', 'REJECTED'] as const
+// DRAFT = self-registration in progress (hub ADR 0037): the staff list hides it unless filtered.
+export const AFFILIATION_REQUEST_STATUSES = ['PENDING', 'APPROVED', 'REJECTED', 'DRAFT'] as const
 export type AffiliationRequestStatus = typeof AFFILIATION_REQUEST_STATUSES[number]
 
-export function affiliationRequestStatusColor(value?: string | null): 'warning' | 'success' | 'error' | 'neutral' {
+export function affiliationRequestStatusColor(value?: string | null): 'warning' | 'success' | 'error' | 'info' | 'neutral' {
   switch (value) {
     case 'PENDING': return 'warning'
     case 'APPROVED': return 'success'
     case 'REJECTED': return 'error'
+    case 'DRAFT': return 'info'
     default: return 'neutral'
   }
 }
@@ -168,4 +170,80 @@ export interface AffiliationRequestUpdateRequest {
 export interface AssistedAffiliationOverrides {
   expiresAt?: string
   reinscriptionRequired?: boolean
+}
+
+// ---- Stepwise self-registration (hub ADR 0037 §2, plan phase 3) ----
+
+/** Code of the 422 answered when the national ID or the email already has an account. */
+export const ACCOUNT_EXISTS_CODE = 'ACCOUNT_EXISTS'
+
+/** Steps of PATCH /v1/me/affiliation-request/{step}. */
+export const MEMBER_REGISTRATION_STEPS = ['personal', 'plan', 'payment', 'family'] as const
+export type MemberRegistrationStep = typeof MEMBER_REGISTRATION_STEPS[number]
+
+/** Step 1, public: POST /v1/public/affiliation-requests. `homepage` is a honeypot (always ''). */
+export interface AffiliationRequestStartRequest {
+  firstName: string
+  lastName: string
+  documentType: string
+  documentNumber: string
+  phone: string
+  email: string
+  /** Optional: without it the person signs in with the emailed access link. */
+  password?: string
+  referralCode?: string
+  acceptedPortalTerms: true
+  homepage: ''
+}
+
+/** One family member of the `family` step (same fields as the portal's beneficiary form). */
+export interface MyAffiliationFamilyMember {
+  firstName: string
+  lastName: string
+  documentType?: string
+  documentNumber?: string
+  birthDate?: string
+  relationship: string
+}
+
+/** GET /v1/me/affiliation-request — the caller's own request, DRAFT or later. */
+export interface MyAffiliationRequestDto {
+  uuid: string
+  status: AffiliationRequestStatus
+  status_Display?: string | null
+  firstName: string
+  lastName: string
+  documentType: string
+  documentNumber: string
+  email: string
+  phone?: string | null
+  /** yyyy-MM-dd */
+  birthDate?: string | null
+  plan_Uuid?: string | null
+  plan_Display?: string | null
+  referralCode?: string | null
+  advisor_Display?: string | null
+  termsVersion_Uuid?: string | null
+  termsAcceptedAt?: string | null
+  /** Contract data changed after it was accepted: it must be accepted again before sending. */
+  termsChanged?: boolean
+  payment?: AffiliationRequestPaymentDto | null
+  family?: MyAffiliationFamilyMember[]
+  rejectionReason?: string | null
+}
+
+export interface MyAffiliationPersonalStep {
+  firstName: string
+  lastName: string
+  birthDate: string
+  phone?: string
+}
+
+export interface MyAffiliationPlanStep {
+  planUuid: string
+  termsVersionUuid: string
+}
+
+export interface MyAffiliationFamilyStep {
+  members: MyAffiliationFamilyMember[]
 }

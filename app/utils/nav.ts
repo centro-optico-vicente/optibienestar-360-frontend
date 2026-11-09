@@ -26,6 +26,8 @@ export interface NavLeaf {
   exact?: boolean
   requires?: Permission | Permission[]
   roles?: UserRole[]
+  /** Shown only while the registration progress says `showCompletionPortal` (hub ADR 0037 §3). */
+  registrationPortal?: boolean
 }
 
 /** Un módulo/vertical: agrupa vistas bajo un encabezado colapsable. */
@@ -233,6 +235,7 @@ export const MAIN_NAV: NavEntry[] = [
     description: 'Accesos a tus portales personales.',
     descriptionKey: 'nav.groups.misPortales.description',
     children: [
+      { label: 'Completar registro', labelKey: 'nav.items.completeRegistration.label', to: '/completar-registro', icon: 'i-lucide-clipboard-check', description: 'Termina tu registro paso a paso.', descriptionKey: 'nav.items.completeRegistration.description', registrationPortal: true },
       { label: 'Mi carnet', labelKey: 'nav.items.myCard.label', to: '/members', icon: 'i-lucide-id-card', description: 'Tu carnet de afiliado.', descriptionKey: 'nav.items.myCard.description', requires: 'MEMBER_VIEW_OWN' },
       { label: 'Mis consumos', labelKey: 'nav.items.myUsage.label', to: '/members/usage', icon: 'i-lucide-clipboard-list', description: 'Tus usos del beneficio en aliados.', descriptionKey: 'nav.items.myUsage.description', requires: 'MEMBER_VIEW_OWN' },
       { label: 'Quién vio mi historia', labelKey: 'nav.items.myMedicalAccess.label', to: '/members/medical-access', icon: 'i-lucide-shield-check', description: 'Médicos aliados con acceso a tu historia médica.', descriptionKey: 'nav.items.myMedicalAccess.description', requires: 'ALLY_PATIENT_LINK_VIEW_OWN' },

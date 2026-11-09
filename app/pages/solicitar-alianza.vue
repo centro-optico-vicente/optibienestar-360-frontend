@@ -1,33 +1,25 @@
 <script setup lang="ts">
-// Public ally request — "¿Quieres ser aliado?" (hub ADR 0036).
-// POST /v1/public/ally-requests creates the REAL ally in registration_status
-// PENDING plus its portal user (role ALIADO_PENDIENTE) with the password typed
-// here. Right after the 201 the applicant is logged in with the same email and
-// password and sent to the ally portal (/allies), where they complete the
-// profile while staff review the request; if that login fails, a success screen
-// offers the sign-in button instead.
-// One step: the segment selector (Comercial / Profesional) shows or hides the
-// 3–4 fields that depend on it. ?ref=<advisor code> preselects the advisor who
-// brought the ally (same as /afiliarse). `homepage` is a honeypot.
+// Public ally request, step 1 of the stepwise registration (hub ADR 0036 / 0037 §2).
+// POST /v1/public/ally-requests creates the REAL ally in PENDING plus its portal user (role ALIADO_PENDIENTE) and
+// returns the session; the person lands on /completar-registro (location, fiscal or professional data, profile,
+// send). Only the minimum is asked here: segment, business name, contact, phone, email, optional password and the
+// terms. The draft lives in localStorage until it is sent. ?ref=<advisor code> preselects the advisor.
+// `homepage` is a honeypot.
 import type { ApiError } from '~/types/auth'
 import type { AllySegment } from '~/types/allies'
-import type { CatalogItem } from '~/types/catalogs'
-import { TAX_DOCUMENT_TYPES, type AllyRequestCreateRequest, type AllyRequestCreatedDto } from '~/types/allyRequests'
-import { professionTreeItems } from '~/utils/professionLabel'
+import type { AllyRequestCreateRequest } from '~/types/allyRequests'
+import { ALLY_WIZARD_STEPS } from '~/types/registration'
 
 // English pair of this public screen (hub URL convention); the fixed `key`
 // keeps the half-filled form when the switcher jumps between the two URLs.
 definePageMeta({ layout: 'default', alias: ['/en/become-an-ally'], key: 'public-become-ally', middleware: 'self-registration', selfRegistration: 'ally' })
-
-// CatalogItem already carries the ally type's `segment` (B2B / B2P).
-type AllyTypeItem = CatalogItem
 
 const { t } = useI18n()
 const publicPath = usePublicPath()
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()
-const { login } = useAuth()
+const { isAccountExists, openSession } = useRegistrationStart()
 
 useSeoMeta({
   title: () => t('allyRequestForm.seoTitle'),
@@ -36,179 +28,95 @@ useSeoMeta({
 
 const referralCode = computed(() => String(route.query.ref ?? '').trim().toUpperCase().slice(0, 20))
 
-// ---- Catalogs (public, no login) ----
-const allyTypes = ref<AllyTypeItem[]>([])
-const professions = ref<CatalogItem[]>([])
-const states = ref<CatalogItem[]>([])
-const cities = ref<CatalogItem[]>([])
-const loadingCities = ref(false)
-
-async function safeList(resource: string, query?: Record<string, string | undefined>): Promise<CatalogItem[]> {
-  try {
-    return (await usePublicCatalog(resource).list(query)).filter(i => i.active !== false)
-  }
-  catch {
-    return []
-  }
-}
-
-onMounted(async () => {
-  const [types, profs, sts] = await Promise.all([
-    safeList('ally-types'),
-    safeList('professions'),
-    safeList('states'),
-  ])
-  allyTypes.value = types as AllyTypeItem[]
-  professions.value = profs
-  states.value = sts.sort((a, b) => a.name.localeCompare(b.name, 'es'))
-})
-
 const segment = ref<AllySegment>('B2B')
 const segmentItems = computed(() => [
   { value: 'B2B', label: t('allyRequestForm.segmentB2B'), description: t('allyRequestForm.segmentB2BHint') },
   { value: 'B2P', label: t('allyRequestForm.segmentB2P'), description: t('allyRequestForm.segmentB2PHint') },
 ])
-
-// A type without segment fits both (same rule as the admin ally form).
-const allyTypeItems = computed(() => allyTypes.value
-  .filter(i => !i.segment || i.segment === segment.value)
-  .map(i => ({ value: i.uuid, label: i.name })))
-const professionItems = computed(() => professionTreeItems(professions.value))
-const stateItems = computed(() => states.value.map(s => ({ value: s.uuid, label: s.name })))
-const cityItems = computed(() => cities.value.map(c => ({ value: c.uuid, label: c.name })))
-const taxDocTypes = TAX_DOCUMENT_TYPES.map(v => ({ value: v, label: v }))
 const docTypes = [{ value: 'V', label: 'V' }, { value: 'E', label: 'E' }]
 
 const state = reactive({
-  allyTypeUuid: '',
+  segment: 'B2B' as AllySegment,
   name: '',
-  taxDocumentType: 'J' as (typeof TAX_DOCUMENT_TYPES)[number],
-  taxDocumentNumber: '',
-  professionUuid: '',
   firstName: '',
   lastName: '',
   documentType: 'V' as 'V' | 'E',
   documentNumber: '',
   mobile: '',
   email: '',
-  stateUuid: '',
-  cityUuid: '',
   password: '',
-  passwordConfirm: '',
-  benefitNote: '',
   acceptedPortalTerms: false,
   // Honeypot: hidden from people, bots fill it. Always sent as ''.
   homepage: '',
 })
-
-// The rubro must belong to the chosen segment: switching drops a foreign pick.
-watch(segment, () => {
-  if (state.allyTypeUuid && !allyTypeItems.value.some(i => i.value === state.allyTypeUuid)) state.allyTypeUuid = ''
-})
-
-watch(() => state.stateUuid, async (stateUuid) => {
-  state.cityUuid = ''
-  cities.value = []
-  if (!stateUuid) return
-  loadingCities.value = true
-  cities.value = (await safeList('cities', { stateUuid })).sort((a, b) => a.name.localeCompare(b.name, 'es'))
-  loadingCities.value = false
-})
+// The segment radio and the draft share the same value.
+watch(segment, (v) => { state.segment = v })
+watch(() => state.segment, (v) => { segment.value = v })
+const draft = useRegistrationDraft('ally', state, ['password', 'homepage', 'acceptedPortalTerms'])
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 function invalid(): string | null {
   const isB2B = segment.value === 'B2B'
-  const missing = !state.allyTypeUuid || !state.firstName.trim() || !state.lastName.trim()
-    || !state.documentNumber.trim() || !state.mobile.trim() || !state.email.trim() || !state.cityUuid
-    || (isB2B && (!state.name.trim() || !state.taxDocumentNumber.trim()))
-    || (!isB2B && !state.professionUuid)
+  const missing = !state.firstName.trim() || !state.lastName.trim() || !state.documentNumber.trim()
+    || !state.mobile.trim() || !state.email.trim() || (isB2B && !state.name.trim())
   if (missing) return t('allyRequestForm.required')
   if (!/^\d{1,9}$/.test(state.documentNumber.trim())) return t('allyRequestForm.badDocument')
-  if (isB2B && !/^[\d-]{5,15}$/.test(state.taxDocumentNumber.trim())) return t('allyRequestForm.badTaxDocument')
   if (!EMAIL_RE.test(state.email.trim())) return t('allyRequestForm.badEmail')
-  if (state.password.length < 8) return t('allyRequestForm.shortPassword')
-  if (state.password !== state.passwordConfirm) return t('allyRequestForm.passwordMismatch')
+  if (state.password && state.password.length < 8) return t('allyRequestForm.shortPassword')
   if (!state.acceptedPortalTerms) return t('allyRequestForm.termsRequired')
   return null
 }
 
 function buildRequest(): AllyRequestCreateRequest {
-  const isB2B = segment.value === 'B2B'
   return {
     segment: segment.value,
-    allyTypeUuid: state.allyTypeUuid,
     // B2P: the name is optional (the backend derives "firstName lastName").
     name: state.name.trim() || undefined,
-    taxDocumentType: isB2B ? state.taxDocumentType : undefined,
-    taxDocumentNumber: isB2B ? state.taxDocumentNumber.trim() : undefined,
-    professionUuid: isB2B ? undefined : state.professionUuid,
     firstName: state.firstName.trim(),
     lastName: state.lastName.trim(),
     documentType: state.documentType,
     documentNumber: state.documentNumber.trim(),
     mobile: state.mobile.trim(),
     email: state.email.trim(),
-    cityUuid: state.cityUuid,
-    password: state.password,
+    password: state.password || undefined,
     referralCode: referralCode.value || undefined,
-    benefitNote: state.benefitNote.trim() || undefined,
     acceptedPortalTerms: true,
     homepage: '',
   }
 }
 
 const sending = ref(false)
-const loggingIn = ref(false)
-/** Backend codes that mean "you already have an account": offer the sign-in next to the message. */
-const SIGN_IN_CODES = ['ally_request.email.taken', 'ally_request.document.has_account']
-/** Existing account (409, or 422 with one of SIGN_IN_CODES): offer the sign-in next to the message. */
-const conflictMessage = ref<string | null>(null)
-const done = ref<AllyRequestCreatedDto | null>(null)
+const accountExists = ref<string | null>(null)
+const checkEmail = ref<string | null>(null)
 
 async function submit() {
-  conflictMessage.value = null
+  accountExists.value = null
   const error = invalid()
   if (error) {
     toast.add({ title: error, color: 'error' })
     return
   }
   sending.value = true
-  let created: AllyRequestCreatedDto
   try {
-    created = await useApi<AllyRequestCreatedDto>('/v1/public/ally-requests', {
+    const res = await useApi<Parameters<typeof openSession>[0]>('/v1/public/ally-requests', {
       method: 'POST',
       skipAuth: true,
+      silent: true,
       body: buildRequest(),
     })
+    draft.clear()
+    const next = await openSession(res, { identifier: state.email.trim(), password: state.password || undefined })
+    if (next) await router.push(next)
+    else checkEmail.value = state.email.trim()
   }
   catch (err) {
-    const e = err as ApiError
-    // Switched off while the form was open (hub ADR 0037): the toast explains it; go to login.
-    if (await redirectIfSelfRegistrationClosed(err, 'ally')) {
-      sending.value = false
-      return
-    }
-    // useApi already toasts 409/422; 400 (field validation) is left to the page.
-    if (e.status === 400) toast.add({ title: e.message, color: 'error', icon: 'i-lucide-circle-alert' })
-    // Existing email / cédula: 422 with problem.code — offer the sign-in.
-    if (e.status === 409 || SIGN_IN_CODES.includes(String(e.problem?.code ?? ''))) conflictMessage.value = e.message
-    sending.value = false
-    return
-  }
-
-  // Straight into the ally portal with the credentials just chosen.
-  loggingIn.value = true
-  try {
-    await login({ identifier: state.email.trim(), password: state.password })
-    toast.add({ title: t('allyRequestForm.sentTitle'), description: t('allyRequestForm.welcomeToast'), color: 'success', icon: 'i-lucide-check-circle' })
-    await router.push('/allies')
-  }
-  catch {
-    done.value = created
+    // Switched off while the form was open (hub ADR 0037): go to the login with the notice.
+    if (await redirectIfSelfRegistrationClosed(err, 'ally')) return
+    if (isAccountExists(err) || (err as ApiError)?.status === 409) accountExists.value = (err as ApiError).message
+    else toast.add({ title: (err as ApiError)?.message || t('allyRequestForm.errorFallback'), color: 'error', icon: 'i-lucide-circle-alert' })
   }
   finally {
-    loggingIn.value = false
     sending.value = false
   }
 }
@@ -217,37 +125,25 @@ async function submit() {
 <template>
   <div class="min-h-[70vh] flex items-center justify-center px-4 py-12">
     <div class="w-full max-w-2xl bg-white rounded-3xl border border-prohealth-100 shadow-sm p-8">
-      <template v-if="done">
+      <template v-if="checkEmail">
         <div class="text-center space-y-3">
           <UIcon name="i-lucide-mail-check" class="w-12 h-12 mx-auto text-green-500" />
-          <h1 class="text-2xl font-extrabold text-prohealth-900">{{ t('allyRequestForm.sentTitle') }}</h1>
-          <p class="text-sm text-prohealth-600">{{ t('allyRequestForm.sentBody', { email: done.email }) }}</p>
-          <p v-if="done.promoterName" class="text-xs text-prohealth-500">{{ t('allyRequestForm.sentPromoter', { name: done.promoterName }) }}</p>
-          <div class="flex flex-wrap justify-center gap-2 pt-2">
-            <UButton :to="publicPath('/')" color="primary" icon="i-lucide-log-in">{{ t('allyRequestForm.signIn') }}</UButton>
-            <UButton :to="publicPath('/aliados')" color="primary" variant="outline" icon="i-lucide-handshake">{{ t('allyRequestForm.backToAllies') }}</UButton>
-          </div>
+          <h1 class="text-2xl font-extrabold text-prohealth-900">{{ t('registration.step1.checkEmailTitle') }}</h1>
+          <p class="text-sm text-prohealth-600">{{ t('registration.step1.checkEmailBody', { email: checkEmail }) }}</p>
+          <UButton :to="publicPath('/aliados')" color="primary" variant="outline" icon="i-lucide-handshake" class="mt-2">{{ t('allyRequestForm.backToAllies') }}</UButton>
         </div>
       </template>
 
       <template v-else>
+        <RegistrationProgressBar :current="1" :total="ALLY_WIZARD_STEPS.length + 1" :label="t('registration.step1.label')" class="mb-5" />
         <h1 class="text-2xl font-extrabold text-prohealth-900">{{ t('allyRequestForm.title') }}</h1>
-        <p class="text-sm text-prohealth-600 mt-1">{{ t('allyRequestForm.subtitle') }}</p>
+        <p class="text-sm text-prohealth-600 mt-1">{{ t('registration.step1.allySubtitle') }}</p>
 
         <div v-if="referralCode" class="mt-4 rounded-xl bg-cyan-50 border border-cyan-200 px-4 py-3 text-sm text-prohealth-800">
           {{ t('allyRequestForm.referredBy') }} <span class="font-mono font-bold">{{ referralCode }}</span>
         </div>
 
-        <UAlert
-          v-if="conflictMessage"
-          class="mt-4"
-          color="warning"
-          variant="subtle"
-          icon="i-lucide-user-check"
-          :title="conflictMessage"
-          :description="t('allyRequestForm.conflictHint')"
-          :actions="[{ label: t('allyRequestForm.signIn'), color: 'primary', to: publicPath('/') }]"
-        />
+        <RegistrationAccountExists v-if="accountExists" class="mt-4" :message="accountExists" />
 
         <form class="mt-6 space-y-6" novalidate @submit.prevent="submit">
           <!-- Honeypot: off-screen, out of the tab order, never autofilled. -->
@@ -260,19 +156,8 @@ async function submit() {
             <URadioGroup v-model="segment" :items="segmentItems" orientation="horizontal" />
           </UFormField>
 
-          <!-- Ally -->
           <fieldset class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <legend class="text-sm font-semibold text-prohealth-900 mb-2">{{ t('allyRequestForm.sections.ally') }}</legend>
-            <UFormField :label="t('allyRequestForm.fields.allyType')" required class="sm:col-span-2">
-              <USelectMenu
-                v-model="state.allyTypeUuid"
-                :items="allyTypeItems"
-                label-key="label"
-                value-key="value"
-                :placeholder="t('allyRequestForm.fields.allyTypePlaceholder')"
-                class="w-full"
-              />
-            </UFormField>
             <UFormField
               :label="segment === 'B2B' ? t('allyRequestForm.fields.name') : t('allyRequestForm.fields.nameB2P')"
               :help="segment === 'B2P' ? t('allyRequestForm.fields.nameB2PHelp') : undefined"
@@ -281,52 +166,8 @@ async function submit() {
             >
               <UInput v-model="state.name" class="w-full" maxlength="150" autocomplete="organization" />
             </UFormField>
-            <UFormField v-if="segment === 'B2B'" :label="t('allyRequestForm.fields.taxDocument')" required class="sm:col-span-2">
-              <div class="flex gap-2">
-                <USelect v-model="state.taxDocumentType" :items="taxDocTypes" class="w-20" />
-                <UInput v-model="state.taxDocumentNumber" class="flex-1" maxlength="15" placeholder="12345678-9" />
-              </div>
-            </UFormField>
-            <UFormField v-else :label="t('allyRequestForm.fields.profession')" required class="sm:col-span-2">
-              <USelectMenu
-                v-model="state.professionUuid"
-                :items="professionItems"
-                label-key="label"
-                value-key="value"
-                icon="i-lucide-search"
-                :placeholder="t('allyRequestForm.fields.professionPlaceholder')"
-                :search-input="{ placeholder: t('allyRequestForm.fields.professionSearch') }"
-                class="w-full"
-              />
-            </UFormField>
-            <UFormField :label="t('allyRequestForm.fields.state')" required>
-              <USelectMenu
-                v-model="state.stateUuid"
-                :items="stateItems"
-                label-key="label"
-                value-key="value"
-                :placeholder="t('allyRequestForm.fields.statePlaceholder')"
-                class="w-full"
-              />
-            </UFormField>
-            <UFormField :label="t('allyRequestForm.fields.city')" required>
-              <USelectMenu
-                v-model="state.cityUuid"
-                :items="cityItems"
-                label-key="label"
-                value-key="value"
-                :loading="loadingCities"
-                :disabled="!state.stateUuid"
-                :placeholder="state.stateUuid ? t('allyRequestForm.fields.cityPlaceholder') : t('allyRequestForm.fields.selectStateFirst')"
-                class="w-full"
-              />
-            </UFormField>
-            <UFormField :label="t('allyRequestForm.fields.benefitNote')" :help="t('allyRequestForm.fields.benefitNoteHelp')" class="sm:col-span-2">
-              <UTextarea v-model="state.benefitNote" :rows="3" :maxlength="1000" class="w-full" />
-            </UFormField>
           </fieldset>
 
-          <!-- Contact / holder -->
           <fieldset class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <legend class="text-sm font-semibold text-prohealth-900 mb-2">
               {{ segment === 'B2B' ? t('allyRequestForm.sections.contactB2B') : t('allyRequestForm.sections.contactB2P') }}
@@ -349,19 +190,16 @@ async function submit() {
             <UFormField :label="t('allyRequestForm.fields.email')" :help="t('allyRequestForm.fields.emailHelp')" required class="sm:col-span-2">
               <UInput v-model="state.email" type="email" class="w-full" maxlength="254" autocomplete="email" />
             </UFormField>
-            <UFormField :label="t('allyRequestForm.fields.password')" required>
+            <UFormField :label="t('registration.step1.password')" :help="t('registration.step1.passwordHelp')" class="sm:col-span-2">
               <UInput v-model="state.password" type="password" class="w-full" maxlength="128" autocomplete="new-password" />
-            </UFormField>
-            <UFormField :label="t('allyRequestForm.fields.passwordConfirm')" required>
-              <UInput v-model="state.passwordConfirm" type="password" class="w-full" maxlength="128" autocomplete="new-password" />
             </UFormField>
           </fieldset>
 
           <UCheckbox v-model="state.acceptedPortalTerms" :label="t('allyRequestForm.termsAccept')" />
           <p class="text-xs text-prohealth-500">{{ t('allyRequestForm.reviewNote') }}</p>
 
-          <UButton type="submit" block color="primary" :loading="sending" :disabled="!state.acceptedPortalTerms" icon="i-lucide-handshake">
-            {{ loggingIn ? t('allyRequestForm.loggingIn') : t('allyRequestForm.submit') }}
+          <UButton type="submit" block color="primary" :loading="sending" :disabled="!state.acceptedPortalTerms" icon="i-lucide-arrow-right" trailing>
+            {{ t('registration.step1.submit') }}
           </UButton>
         </form>
       </template>

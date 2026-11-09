@@ -21,24 +21,22 @@ export function allyRegistrationStatusColor(value?: string | null): 'warning' | 
 /** Fiscal document types accepted for a B2B ally (RIF prefix). */
 export const TAX_DOCUMENT_TYPES = ['J', 'V', 'E', 'G', 'P'] as const
 
-/** POST /v1/public/ally-requests. `homepage` is a honeypot: always ''. */
+/**
+ * POST /v1/public/ally-requests — step 1 of the stepwise registration (hub ADR 0037 §2): only the minimum.
+ * The rubro, RIF or profession, state and city come later through the own profile. `homepage` is a honeypot.
+ */
 export interface AllyRequestCreateRequest {
   segment: AllySegment
-  allyTypeUuid: string
   name?: string
-  taxDocumentType?: string
-  taxDocumentNumber?: string
-  professionUuid?: string
   firstName: string
   lastName: string
   documentType: 'V' | 'E'
   documentNumber: string
   mobile: string
   email: string
-  cityUuid: string
-  password: string
+  /** Optional: without it the person signs in with the emailed access link. */
+  password?: string
   referralCode?: string
-  benefitNote?: string
   acceptedPortalTerms: true
   homepage: ''
 }

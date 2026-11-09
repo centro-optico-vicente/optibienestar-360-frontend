@@ -1,5 +1,3 @@
-import { ROLES } from '~/types/auth'
-
 // Public screens (hub URL convention): the canonical Spanish paths (`/`,
 // `/aliados`, `/aliados/{uuid}`, `/catalogo`, `/catalogo/{uuid}`, `/afiliarse`, `/solicitar-alianza`, `/cuentas`, `/recuperar-clave`,
 // `/restablecer-clave`) and their English pairs under `/en` (see
@@ -21,7 +19,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   // The login screen (`/` or `/en`) sends an open session straight to the panel.
   // A pending ally (hub ADR 0036, role ALIADO_PENDIENTE) only has its own profile,
   // so its home is the ally portal instead of the panel.
-  const home = auth.activeRole === ROLES.ALLY_PENDING ? '/allies' : '/dashboard'
+  const home = roleHome(auth.activeRole)
   if (isAuthed && isPublic && localizePublicPath(to.path, 'es') === '/') {
     return navigateTo(home)
   }
