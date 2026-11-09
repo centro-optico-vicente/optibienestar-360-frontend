@@ -17,7 +17,7 @@ const myAllies = useMyAllies()
 const isB2B = computed(() => props.profile.segment === 'B2B')
 const state = reactive({
   allyTypeUuid: props.profile.allyType_Uuid ?? '',
-  taxDocumentType: props.profile.taxDocumentType ?? 'J',
+  taxDocumentType: (props.profile.taxDocumentType ?? 'J') as (typeof TAX_DOCUMENT_TYPES)[number],
   taxDocumentNumber: props.profile.taxDocumentNumber ?? '',
   professionUuid: props.profile.profession_Uuid ?? '',
 })
