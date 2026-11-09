@@ -25,8 +25,7 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()
-const auth = useAuthStore()
-const { fetchMe, logout } = useAuth()
+const { refreshSession, logout } = useAuth()
 const registration = useRegistrationProgress()
 const memberApi = useMyAffiliationRequest()
 const myAllies = useMyAllies()
@@ -112,8 +111,7 @@ async function onDone(saved: MyAffiliationRequestDto | MyAllyProfileDto | null, 
 /** After sending: the role may have changed (approved on the spot), so renew the tokens and the profile. */
 async function onSubmitted(sent?: MyAffiliationRequestDto) {
   if (sent) request.value = sent
-  await auth.tryRefresh()
-  await fetchMe()
+  await refreshSession()
   await registration.load(true)
   submittedResult.value = sent?.status === 'APPROVED' ? 'APPROVED' : 'PENDING'
   toast.add({ title: t('registration.wizard.submittedToast'), color: 'success', icon: 'i-lucide-check-circle' })

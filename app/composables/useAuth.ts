@@ -80,6 +80,17 @@ export const useAuth = () => {
   }
 
   /**
+   * Renews the token pair and the profile so a role change made on the server (a pending ally
+   * approved, a pending member confirmed) reaches the permissions and the menu without signing
+   * in again (hub ADR 0037 §5). Returns whether the refresh worked.
+   */
+  const refreshSession = async (): Promise<boolean> => {
+    const ok = await store.tryRefresh()
+    if (ok) await fetchMe()
+    return ok
+  }
+
+  /**
    * Persists the user's preferred locale (es | es-VE | en). The backend reissues
    * an access token with the new `locale` claim and blacklists the old one, so we
    * swap the token in immediately; the refresh token is left untouched (a
@@ -167,6 +178,7 @@ export const useAuth = () => {
     logout,
     changePassword,
     fetchMe,
+    refreshSession,
     updateLocale,
     fetchMyRoles,
     switchActiveRole,

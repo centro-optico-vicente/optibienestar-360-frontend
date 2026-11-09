@@ -242,7 +242,12 @@
         "localeHint": "Idioma de sus correos y de los mensajes que le devuelve el sistema.",
         "status": "Estado",
         "active": "Cuenta activa",
-        "roles": "Roles"
+        "roles": "Roles",
+        "sendInvitation": "Enviar invitación por correo",
+        "sendInvitationHelp": "La persona crea su propia contraseña desde el enlace. Sin invitación, tú escribes la contraseña.",
+        "alsoAdvisor": "Crear también la ficha de asesor",
+        "alsoAdvisorHelp": "Crea el usuario y su ficha de asesor en un solo paso. El código de referido se genera y se puede cambiar después.",
+        "advisorType": "Tipo de asesor"
       },
       "locales": {
         "es": "Español",
@@ -303,7 +308,10 @@
             "confirm": "¿Seguro que deseas desvincular a este usuario de {name}?"
           }
         }
-      }
+      },
+      "invitedToast": "Usuario creado. Le enviamos una invitación para crear su contraseña.",
+      "advisorCreatedToast": "Ficha de asesor creada",
+      "advisorCreateFailedToast": "El usuario se creó, pero no se pudo crear la ficha de asesor. Créala desde Asesores."
     },
     "roles": {
       "seoTitle": "Roles — OptiBienestar 360",
@@ -829,6 +837,10 @@
       "completeRegistration": {
         "label": "Completar registro",
         "description": "Termina tu registro paso a paso."
+      },
+      "affiliatePerson": {
+        "label": "Afiliar persona",
+        "description": "Afilia a una persona o familia desde tu dispositivo."
       }
     },
     "other": {
@@ -2265,7 +2277,11 @@
       "copied": "Enlace copiado",
       "copyFailed": "No se pudo copiar el enlace",
       "qrUnavailable": "No encontramos tu perfil de asesor.",
-      "qrAlt": "QR de afiliación"
+      "qrAlt": "QR de afiliación",
+      "shareText": "Afíliate a OptiBienestar 360 con mi enlace: {url}",
+      "shareTitle": "Afíliate a OptiBienestar 360",
+      "shareWhatsapp": "Compartir por WhatsApp",
+      "share": "Compartir"
     },
     "portfolio": {
       "title": "Mi cartera",
@@ -2344,7 +2360,8 @@
       },
       "registerPayment": "Registrar cobro",
       "daysOverdueValue": "{count} día | {count} días",
-      "callTooltip": "Llamar"
+      "callTooltip": "Llamar",
+      "registerPaymentRow": "Registrar pago de esta persona"
     },
     "payoutAccounts": {
       "title": "Mis datos de cobro",
@@ -6328,5 +6345,18 @@
       "later": "Recordar luego",
       "now": "Completar ahora"
     }
+  },
+  "assistedAffiliation": {
+    "title": "Afiliar persona",
+    "subtitle": "Llena los datos de la persona en tu dispositivo. Ella lee y acepta el contrato en pantalla.",
+    "emailHelp": "A este correo le llegará el enlace para entrar cuando se apruebe.",
+    "contractHint": "Muéstrale el contrato a la persona: se completa con los datos que escribes.",
+    "accept": "La persona leyó y aceptó el {title}",
+    "acceptRequired": "La persona debe leer y aceptar el contrato.",
+    "submit": "Enviar solicitud de afiliación",
+    "doneTitle": "Solicitud enviada",
+    "doneBody": "Cuando se apruebe, {email} recibirá el enlace para entrar a su portal.",
+    "another": "Afiliar a otra persona",
+    "seeRequests": "Ver mis solicitudes"
   }
 }

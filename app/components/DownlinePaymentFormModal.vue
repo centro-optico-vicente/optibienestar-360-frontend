@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
-import type { DownlinePaymentCreateRequest, PaymentDto } from '~/types/payments'
+import type { DownlinePaymentCreateRequest, PaymentDto, PaymentFormPrefill } from '~/types/payments'
 import { BANK_ACCOUNT_TYPE_OPTIONS } from '~/types/payments'
 import type { CatalogItem } from '~/types/catalogs'
 import type { MemberDto } from '~/types/members'
@@ -12,7 +12,7 @@ import type { MemberDto } from '~/types/members'
 // than a global member search, and the backend re-verifies ownership regardless.
 // No active membership is needed (V201): without one the approved payment is the
 // person's credit. A new person can be registered into the portfolio on the spot.
-const props = defineProps<{ open: boolean }>()
+const props = defineProps<{ open: boolean, prefill?: PaymentFormPrefill }>()
 
 const emit = defineEmits<{
   'update:open': [value: boolean]
@@ -300,9 +300,17 @@ function resetForm() {
   clearFile()
 }
 
+// The member of the row the form was opened from and the pending amount arrive prefilled (hub ADR 0037 §5).
+function applyPrefill() {
+  if (props.prefill?.memberUuid) state.memberUuid = props.prefill.memberUuid
+  if (props.prefill?.amount) state.amount = props.prefill.amount
+  if (props.prefill?.currency) state.currency = props.prefill.currency
+}
+
 watch(() => props.open, (open) => {
   if (open) {
     resetForm()
+    applyPrefill()
     loadPortfolio()
     loadMethodsAndBanks()
     loadCurrencies()

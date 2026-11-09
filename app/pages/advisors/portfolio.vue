@@ -9,6 +9,7 @@ import type {
   PromoterPaymentStatus,
 } from '~/types/promoters'
 import { todayInCaracas } from '~/utils/date'
+import type { PaymentFormPrefill } from '~/types/payments'
 
 // "Mi cartera" — portfolio management self-service of the logged-in advisor
 // (v2 PDF 2.b). Rows come from the dashboard aggregate (GET /v1/advisors/me,
@@ -41,6 +42,14 @@ const canCreatePerson = computed(() => can('PROMOTER_PORTFOLIO_CREATE'))
 const canRegisterPayment = computed(() => can('COLLECTION_CREATE_DOWNLINE'))
 const newMemberOpen = ref(false)
 const paymentOpen = ref(false)
+// Opened from a row: the member and the monthly fee arrive prefilled (hub ADR 0037 §5).
+const paymentPrefill = ref<PaymentFormPrefill | undefined>(undefined)
+function openPayment(row?: { memberUuid: string, monthlyFee?: number | null }) {
+  paymentPrefill.value = row
+    ? { memberUuid: row.memberUuid, amount: row.monthlyFee != null ? Number(row.monthlyFee).toFixed(2) : undefined, currency: 'USD' }
+    : undefined
+  paymentOpen.value = true
+}
 
 const dashboard = ref<PromoterDashboardDto | null>(null)
 const score = ref<CollectionScoreDto | null>(null)
@@ -295,7 +304,7 @@ function contactTypeIcon(type: PromoterContactType): string {
         <UButton v-if="canCreatePerson" color="primary" variant="outline" icon="i-lucide-user-plus" @click="newMemberOpen = true">
           {{ t('promoterSelf.newMember.title') }}
         </UButton>
-        <UButton v-if="canRegisterPayment" color="primary" variant="outline" icon="i-lucide-receipt" @click="paymentOpen = true">
+        <UButton v-if="canRegisterPayment" color="primary" variant="outline" icon="i-lucide-receipt" @click="openPayment()">
           {{ t('promoterSelf.portfolio.registerPayment') }}
         </UButton>
         <RefreshButton :loading="loading" @refresh="load" />
@@ -438,6 +447,16 @@ function contactTypeIcon(type: PromoterContactType): string {
               </td>
               <td class="px-5 py-3">
                 <div class="flex items-center justify-end gap-1">
+                  <UTooltip v-if="canRegisterPayment" :text="t('promoterSelf.portfolio.registerPaymentRow')">
+                    <UButton
+                      color="primary"
+                      variant="ghost"
+                      icon="i-lucide-receipt"
+                      size="sm"
+                      :aria-label="t('promoterSelf.portfolio.registerPaymentRow')"
+                      @click="openPayment(r)"
+                    />
+                  </UTooltip>
                   <UTooltip v-if="canEmergency" :text="t('members.emergencyContact.title')">
                     <UButton
                       color="neutral"
@@ -602,6 +621,6 @@ function contactTypeIcon(type: PromoterContactType): string {
         <MemberEmergencyContactCard v-if="emergencyTarget" scope="advisor" :member-uuid="emergencyTarget.memberUuid" />
       </template>
     </UModal>
-    <DownlinePaymentFormModal v-model:open="paymentOpen" @saved="load" />
+    <DownlinePaymentFormModal v-model:open="paymentOpen" :prefill="paymentPrefill" @saved="load" />
   </div>
 </template>
