@@ -25,6 +25,7 @@ export const PUBLIC_ROUTE_PAIRS: readonly PublicRoutePair[] = [
   { es: '/cuentas', en: '/en/accounts' },
   { es: '/recuperar-clave', en: '/en/forgot-password' },
   { es: '/restablecer-clave', en: '/en/reset-password' },
+  { es: '/acceso', en: '/en/access' },
 ]
 
 interface PublicRouteMatch {

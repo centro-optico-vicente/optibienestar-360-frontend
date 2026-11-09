@@ -123,7 +123,10 @@
       "confirmPassword": "Confirmar contraseña",
       "currentPassword": "Contraseña actual",
       "confirmNewPassword": "Confirmar nueva contraseña",
-      "resetToken": "Código de recuperación"
+      "resetToken": "Código de recuperación",
+      "identifier": "Cédula o correo",
+      "identifierPlaceholder": "V12345678 o tu{'@'}correo.com",
+      "identifierHelp": "Puedes escribir tu cédula (con o sin la letra) o tu correo."
     },
     "backToLogin": "← Volver a iniciar sesión",
     "logout": "Cerrar sesión",
@@ -132,7 +135,7 @@
       "seoTitle": "Ingresar — OptiBienestar 360",
       "seoDescription": "Accede al portal OptiBienestar 360",
       "heading": "Bienvenido de nuevo",
-      "subheading": "Ingresa con tus credenciales para acceder al portal.",
+      "subheading": "Ingresa con tu cédula o correo para acceder al portal.",
       "rememberMe": "Recordarme",
       "forgotPassword": "¿Olvidaste tu contraseña?",
       "submit": "Ingresar",
@@ -146,15 +149,21 @@
       "registrationClosed": {
         "member": "La afiliación en línea no está disponible por ahora. Si ya tienes cuenta, inicia sesión; si no, contacta a tu asesor o a la empresa.",
         "ally": "El registro de aliados en línea no está disponible por ahora. Si ya tienes cuenta, inicia sesión; si no, contacta a la empresa."
+      },
+      "magicLink": {
+        "submit": "Enviarme un enlace de acceso",
+        "sentTitle": "Revisa tu correo",
+        "sentDescription": "Si la cuenta existe, te enviamos un enlace para entrar sin contraseña. Vence en 15 minutos y solo se puede usar una vez.",
+        "errorFallback": "No fue posible enviar el enlace"
       }
     },
     "recover": {
       "seoTitle": "Recuperar contraseña — OptiBienestar 360",
       "heading": "Recuperar contraseña",
-      "subheading": "Te enviaremos un correo con un enlace y un código para restablecer tu contraseña.",
+      "subheading": "Escribe tu cédula o tu correo y te enviaremos un enlace y un código para restablecer tu contraseña.",
       "submit": "Enviar correo",
       "sentTitle": "Revisa tu correo",
-      "sentDescription": "Si el correo existe, recibirás un enlace y un código para restablecer tu contraseña. Ambos expiran en 1 hora.",
+      "sentDescription": "Si la cuenta existe, recibirás un enlace y un código en tu correo para restablecer tu contraseña. Ambos expiran en 1 hora.",
       "errorFallback": "No fue posible procesar la solicitud"
     },
     "reset": {
@@ -176,6 +185,13 @@
       "successTitle": "Contraseña actualizada",
       "successDescription": "Vuelve a iniciar sesión con tu nueva contraseña.",
       "errorFallback": "No fue posible actualizar la contraseña"
+    },
+    "access": {
+      "seoTitle": "Acceso — OptiBienestar 360",
+      "heading": "Acceso con enlace",
+      "signingIn": "Estamos validando tu enlace…",
+      "invalidTitle": "El enlace no es válido o ya venció",
+      "invalidDescription": "Los enlaces de acceso duran 15 minutos y solo se pueden usar una vez. Pide uno nuevo desde la pantalla de ingreso."
     }
   },
   "security": {

@@ -16,7 +16,7 @@ useSeoMeta({
   description: () => t('auth.login.seoDescription'),
 })
 
-const { login } = useAuth()
+const { login, requestMagicLink } = useAuth()
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()
@@ -30,18 +30,21 @@ const closedRegistration = computed<'member' | 'ally' | null>(() => {
 })
 onMounted(() => { void loadOnboardingPolicy() })
 
+// "Cédula o correo" (hub ADR 0037 §3): the backend resolves the account from either.
+const identifierSchema = computed(() => z.string().trim().min(3, t('validation.minChars', { n: 3 })))
+
 const schema = computed(() => z.object({
-  email: z.string().email(t('validation.emailInvalid')),
+  identifier: identifierSchema.value,
   password: z.string().min(8, t('validation.minChars', { n: 8 })),
 }))
 
 interface LoginSchema {
-  email: string
+  identifier: string
   password: string
 }
 
 const state = reactive<Partial<LoginSchema>>({
-  email: '',
+  identifier: '',
   password: '',
 })
 
@@ -49,6 +52,9 @@ const isSubmitting = ref<boolean>(false)
 const showPassword = ref<boolean>(false)
 const apiError = ref<string | null>(null)
 const lockedUntil = ref<Date | null>(null)
+const isSendingLink = ref<boolean>(false)
+const linkSentTo = ref<string | null>(null)
+const identifierError = ref<string | null>(null)
 
 // Mientras la cuenta esté bloqueada (HTTP 423) deshabilitamos el botón.
 const isLocked = computed<boolean>(() => !!lockedUntil.value && lockedUntil.value > new Date())
@@ -57,7 +63,7 @@ const onSubmit = async (event: FormSubmitEvent<LoginSchema>): Promise<void> => {
   isSubmitting.value = true
   apiError.value = null
   try {
-    const result = await login(event.data)
+    const result = await login({ identifier: event.data.identifier.trim(), password: event.data.password })
 
     toast.add({
       title: t('auth.login.welcomeTitle'),
@@ -80,6 +86,26 @@ const onSubmit = async (event: FormSubmitEvent<LoginSchema>): Promise<void> => {
   }
   finally {
     isSubmitting.value = false
+  }
+}
+
+// Passwordless entry: the backend always answers 200, so the confirmation is the
+// same whether or not the account exists (nothing about it is revealed).
+const onSendLink = async (): Promise<void> => {
+  const parsed = identifierSchema.value.safeParse(state.identifier ?? '')
+  identifierError.value = parsed.success ? null : (parsed.error.issues[0]?.message ?? t('validation.required'))
+  if (!parsed.success) return
+  isSendingLink.value = true
+  apiError.value = null
+  try {
+    await requestMagicLink(parsed.data)
+    linkSentTo.value = parsed.data
+  }
+  catch (err: unknown) {
+    apiError.value = (err as ApiError)?.message || t('auth.login.magicLink.errorFallback')
+  }
+  finally {
+    isSendingLink.value = false
   }
 }
 </script>
@@ -110,15 +136,23 @@ const onSubmit = async (event: FormSubmitEvent<LoginSchema>): Promise<void> => {
       class="space-y-5"
       @submit="onSubmit"
     >
-      <UFormField :label="$t('auth.fields.email')" name="email" required>
+      <UFormField
+        :label="$t('auth.fields.identifier')"
+        :help="$t('auth.fields.identifierHelp')"
+        :error="identifierError ?? undefined"
+        name="identifier"
+        required
+      >
         <UInput
-          v-model="state.email"
-          type="email"
-          autocomplete="email"
-          :placeholder="$t('auth.fields.emailPlaceholder')"
-          icon="i-lucide-mail"
+          v-model="state.identifier"
+          type="text"
+          autocomplete="username"
+          autocapitalize="off"
+          :placeholder="$t('auth.fields.identifierPlaceholder')"
+          icon="i-lucide-user"
           size="lg"
           class="w-full"
+          @update:model-value="identifierError = null"
         />
       </UFormField>
 
@@ -169,6 +203,28 @@ const onSubmit = async (event: FormSubmitEvent<LoginSchema>): Promise<void> => {
         icon="i-lucide-log-in"
       >
         {{ $t('auth.login.submit') }}
+      </UButton>
+
+      <UAlert
+        v-if="linkSentTo"
+        color="success"
+        variant="subtle"
+        icon="i-lucide-mail-check"
+        :title="$t('auth.login.magicLink.sentTitle')"
+        :description="$t('auth.login.magicLink.sentDescription')"
+      />
+
+      <UButton
+        type="button"
+        block
+        size="lg"
+        color="neutral"
+        variant="outline"
+        :loading="isSendingLink"
+        icon="i-lucide-mail"
+        @click="onSendLink"
+      >
+        {{ $t('auth.login.magicLink.submit') }}
       </UButton>
 
       <p class="text-center text-sm text-prohealth-700/70 pt-2">

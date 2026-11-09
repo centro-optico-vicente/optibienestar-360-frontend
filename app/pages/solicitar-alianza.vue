@@ -200,7 +200,7 @@ async function submit() {
   // Straight into the ally portal with the credentials just chosen.
   loggingIn.value = true
   try {
-    await login({ email: state.email.trim(), password: state.password })
+    await login({ identifier: state.email.trim(), password: state.password })
     toast.add({ title: t('allyRequestForm.sentTitle'), description: t('allyRequestForm.welcomeToast'), color: 'success', icon: 'i-lucide-check-circle' })
     await router.push('/allies')
   }
