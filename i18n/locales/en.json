@@ -5649,7 +5649,8 @@
       "PENDING": "Pending",
       "APPROVED": "Approved",
       "REJECTED": "Rejected",
-      "DRAFT": "In progress"
+      "DRAFT": "In progress",
+      "IN_PROGRESS": "In progress"
     },
     "columns": {
       "applicant": "Applicant",
@@ -6274,8 +6275,8 @@
       "family": "Family",
       "submit": "Submit",
       "location": "Location",
-      "legal": "Tax or professional data",
-      "profile": "Profile"
+      "profile": "Profile",
+      "fiscal": "Tax or professional data"
     },
     "plan": {
       "choosePlan": "Choose a plan.",

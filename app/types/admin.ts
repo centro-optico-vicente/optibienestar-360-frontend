@@ -68,10 +68,8 @@ export interface AdminCreateUserRequest {
   middleName?: string
   lastName: string
   secondLastName?: string
-  /** Omitted with `sendInvitation`: the person sets it from the emailed setup link (hub ADR 0037 §5). */
+  /** Omitted: the backend emails an invitation and the person sets it from the setup link (hub ADR 0037 §5). */
   password?: string
-  /** Sends an invitation with the password setup link instead of the admin typing a password. */
-  sendInvitation?: boolean
   documentType: string
   documentNumber: string
   taxDocumentType?: string

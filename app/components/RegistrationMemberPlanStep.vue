@@ -57,10 +57,9 @@ async function loadTerms(): Promise<void> {
     terms.value = await useApi<PublicTerms>(`/v1/public/terms/${TERM_TYPES.MEMBER}`, { skipAuth: true, silent: true })
     termsUnavailable.value = false
     termsAccepted.value = Boolean(
-      props.request.termsVersion_Uuid
-      && props.request.termsVersion_Uuid === terms.value.uuid
-      && props.request.plan_Uuid === planUuid.value
-      && !props.request.termsChanged,
+      props.request.contractAccepted
+      && props.request.termsVersionUuid === terms.value.uuid
+      && props.request.plan_Uuid === planUuid.value,
     )
     void refreshPreview()
   }
@@ -131,7 +130,7 @@ async function finish(mode: StepExit) {
   }
   saving.value = true
   try {
-    const saved = await api.savePlan({ planUuid: planUuid.value, termsVersionUuid: terms.value!.uuid })
+    const saved = await api.savePlan(planUuid.value, terms.value!.uuid)
     emit('done', saved, mode)
   }
   catch {
@@ -185,7 +184,7 @@ async function finish(mode: StepExit) {
           v-html="termsHtml"
         />
         <UCheckbox v-model="termsAccepted" :label="t('affiliationRequest.termsAccept', { title: terms.title })" />
-        <p v-if="request.termsChanged && !termsAccepted" class="text-xs text-amber-700">{{ t('registration.plan.termsChanged') }}</p>
+        <p v-if="request.plan_Uuid && !termsAccepted" class="text-xs text-amber-700">{{ t('registration.plan.termsChanged') }}</p>
       </template>
     </div>
 

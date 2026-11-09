@@ -151,7 +151,8 @@ const createSchema = computed(() => z.object({
   documentType: z.string().min(1, t('validation.required')),
   documentNumber: z.string().min(1, t('validation.required')),
   phone: z.string().optional(),
-  roleIds: z.array(z.string()).min(1, t('security.users.selectAtLeastOneRole')),
+  // With the advisor profile the backend assigns the ASESOR role itself.
+  roleIds: state.alsoAdvisor ? z.array(z.string()) : z.array(z.string()).min(1, t('security.users.selectAtLeastOneRole')),
 }))
 
 const editSchema = computed(() => z.object({
@@ -250,19 +251,36 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         middleName: state.middleName || undefined,
         lastName: state.lastName,
         secondLastName: state.secondLastName || undefined,
-        ...(state.sendInvitation ? { sendInvitation: true } : { password: state.password }),
+        // No password = the backend emails an invitation with the setup link (hub ADR 0037 §5).
+        ...(state.sendInvitation ? {} : { password: state.password }),
         documentType: state.documentType!,
         documentNumber: state.documentNumber,
         phone: state.phone || undefined,
         roleIds: state.roleIds,
       }
-      saved = await usersApi.create(body)
+      if (state.alsoAdvisor) {
+        // One call creates the login (role ASESOR) and the advisor profile (needs USER_CREATE + PROMOTER_CREATE).
+        const advisor = await promotersApi.createWithUser({
+          email: state.email,
+          firstName: state.firstName,
+          lastName: state.lastName,
+          documentType: state.documentType!,
+          documentNumber: state.documentNumber,
+          phone: state.phone || undefined,
+          password: state.sendInvitation ? undefined : state.password,
+          promoterTypeUuid: state.promoterTypeUuid,
+        })
+        saved = await usersApi.get(advisor.user_Uuid!)
+        toast.add({ title: t('security.users.advisorCreatedToast'), color: 'success', icon: 'i-lucide-check-circle' })
+      }
+      else {
+        saved = await usersApi.create(body)
+      }
       toast.add({
         title: t(state.sendInvitation ? 'security.users.invitedToast' : 'security.users.createdToast'),
         color: 'success',
         icon: 'i-lucide-check-circle',
       })
-      if (state.alsoAdvisor) await createAdvisorFor(saved)
     }
     else {
       if (!props.user) return
@@ -290,30 +308,6 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
   }
   finally {
     isSubmitting.value = false
-  }
-}
-
-/** Referral code `^[A-Z0-9-]{4,20}$` from the person's name plus a random suffix (editable later by staff). */
-function referralCodeFor(u: UserDto): string {
-  const base = `${u.firstName ?? ''}${u.lastName ?? ''}`.normalize('NFD').replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 12) || 'ASESOR'
-  return `${base}${Math.floor(1000 + Math.random() * 9000)}`.slice(0, 20)
-}
-
-/** Second step of "user + advisor in one go": the user is already created, so a failure here keeps it. */
-async function createAdvisorFor(u: UserDto) {
-  try {
-    await promotersApi.create({
-      displayName: `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim() || u.email,
-      referralCode: referralCodeFor(u),
-      userUuid: u.uuid,
-      email: u.email,
-      phone: u.phone || undefined,
-      promoterTypeUuid: state.promoterTypeUuid,
-    })
-    toast.add({ title: t('security.users.advisorCreatedToast'), color: 'success', icon: 'i-lucide-check-circle' })
-  }
-  catch {
-    toast.add({ title: t('security.users.advisorCreateFailedToast'), color: 'warning', icon: 'i-lucide-triangle-alert' })
   }
 }
 

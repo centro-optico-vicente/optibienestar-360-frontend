@@ -34,8 +34,8 @@ function remove(key: number) {
 
 function invalid(): string | null {
   for (const r of rows.value) {
-    if (!r.firstName.trim() || !r.lastName.trim() || !r.relationship || !r.birthDate) return t('registration.family.incomplete')
-    if (r.documentNumber && !/^\d{1,9}$/.test(r.documentNumber.trim())) return t('affiliationRequest.badDocument')
+    if (!r.firstName.trim() || !r.lastName.trim() || !r.relationship || !r.birthDate || !r.documentNumber.trim()) return t('registration.family.incomplete')
+    if (!/^\d{1,9}$/.test(r.documentNumber.trim())) return t('affiliationRequest.badDocument')
   }
   return null
 }
@@ -56,12 +56,12 @@ async function finish(mode: StepExit) {
     const members = rows.value.map(r => ({
       firstName: r.firstName.trim(),
       lastName: r.lastName.trim(),
-      documentType: r.documentNumber ? r.documentType : undefined,
-      documentNumber: r.documentNumber?.trim() || undefined,
+      documentType: r.documentType,
+      documentNumber: r.documentNumber.trim(),
       birthDate: r.birthDate || undefined,
       relationship: r.relationship!,
     }))
-    emit('done', await api.saveFamily({ members }), mode)
+    emit('done', await api.saveFamily(members), mode)
   }
   catch {
     // useApi toasted the reason (e.g. the plan's seat limit).
@@ -90,7 +90,7 @@ async function finish(mode: StepExit) {
         <UFormField :label="t('registration.family.relationship')" required>
           <USelectMenu v-model="r.relationship" :items="relationshipOptions" label-key="label" value-key="value" class="w-full" />
         </UFormField>
-        <UFormField :label="t('affiliationRequest.document')">
+        <UFormField :label="t('affiliationRequest.document')" required>
           <div class="flex gap-2">
             <USelect v-model="r.documentType" :items="docTypes" class="w-20" />
             <UInput v-model="r.documentNumber" class="flex-1" maxlength="9" inputmode="numeric" />
