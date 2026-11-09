@@ -2,15 +2,11 @@ import type {
   AffiliationRequestPaymentRequest,
   AffiliationRequestStartRequest,
   MemberRegistrationStep,
-  MyAffiliationFamilyStep,
-  MyAffiliationPersonalStep,
-  MyAffiliationPlanStep,
+  MyAffiliationFamilyMember,
   MyAffiliationRequestDto,
+  MyAffiliationStepRequest,
+  RegistrationStartResponse,
 } from '~/types/affiliationRequests'
-import type { LoginResponse } from '~/types/auth'
-
-/** Response of the public step 1: the session of the account just created (+ the request). */
-export type RegistrationStartResponse = Partial<LoginResponse> & { uuid?: string, status?: string }
 
 /**
  * The caller's own affiliation request, filled in steps (hub ADR 0037 §2):
@@ -32,22 +28,23 @@ export const useMyAffiliationRequest = () => {
 
   const get = () => useApi<MyAffiliationRequestDto>(BASE)
 
-  const patchStep = (
-    step: MemberRegistrationStep,
-    body: MyAffiliationPersonalStep | MyAffiliationPlanStep | MyAffiliationFamilyStep | AffiliationRequestPaymentRequest | FormData,
-  ) =>
+  const patchStep = (step: MemberRegistrationStep, body: MyAffiliationStepRequest | FormData) =>
     useApi<MyAffiliationRequestDto>(`${BASE}/${step}`, { method: 'PATCH', body })
 
-  const savePersonal = (body: MyAffiliationPersonalStep) => patchStep('personal', body)
-  const savePlan = (body: MyAffiliationPlanStep) => patchStep('plan', body)
-  const saveFamily = (body: MyAffiliationFamilyStep) => patchStep('family', body)
+  const savePersonal = (body: Pick<MyAffiliationStepRequest, 'firstName' | 'lastName' | 'birthDate' | 'phone'>) =>
+    patchStep('personal', body)
+  /** Accepting the contract is part of the plan step. */
+  const savePlan = (planUuid: string, termsVersionUuid: string) =>
+    patchStep('plan', { planUuid, termsVersionUuid, contractAccepted: true })
+  const saveFamily = (family: MyAffiliationFamilyMember[]) => patchStep('family', { family })
 
   /** The reported inscription payment; with a proof it goes as multipart (`request` JSON + `support`). */
   const savePayment = (body: AffiliationRequestPaymentRequest, support?: File | null) => {
-    let payload: AffiliationRequestPaymentRequest | FormData = body
+    const request: MyAffiliationStepRequest = { payment: body }
+    let payload: MyAffiliationStepRequest | FormData = request
     if (support) {
       const form = new FormData()
-      form.append('request', new Blob([JSON.stringify(body)], { type: 'application/json' }))
+      form.append('request', new Blob([JSON.stringify(request)], { type: 'application/json' }))
       form.append('support', support)
       payload = form
     }

@@ -1,11 +1,14 @@
+import type { LoginResponse } from '~/types/auth'
+
 // Affiliation requests (backend V188): the public self-affiliation
 // (/afiliarse) is stored as a request that staff correct, approve or reject.
 // Admin: /v1/admin/affiliation-requests. Advisor portal:
 // /v1/advisors/me/affiliation-requests. Public submit:
 // POST /v1/public/affiliation-requests.
 
-// DRAFT = self-registration in progress (hub ADR 0037): the staff list hides it unless filtered.
-export const AFFILIATION_REQUEST_STATUSES = ['PENDING', 'APPROVED', 'REJECTED', 'DRAFT'] as const
+// DRAFT = self-registration in progress (hub ADR 0037): the staff list hides it unless filtered with
+// `status=IN_PROGRESS` (alias of DRAFT; DRAFT is also accepted).
+export const AFFILIATION_REQUEST_STATUSES = ['PENDING', 'APPROVED', 'REJECTED', 'DRAFT', 'IN_PROGRESS'] as const
 export type AffiliationRequestStatus = typeof AFFILIATION_REQUEST_STATUSES[number]
 
 export function affiliationRequestStatusColor(value?: string | null): 'warning' | 'success' | 'error' | 'info' | 'neutral' {
@@ -13,7 +16,8 @@ export function affiliationRequestStatusColor(value?: string | null): 'warning' 
     case 'PENDING': return 'warning'
     case 'APPROVED': return 'success'
     case 'REJECTED': return 'error'
-    case 'DRAFT': return 'info'
+    case 'DRAFT':
+    case 'IN_PROGRESS': return 'info'
     default: return 'neutral'
   }
 }
@@ -196,17 +200,20 @@ export interface AffiliationRequestStartRequest {
   homepage: ''
 }
 
-/** One family member of the `family` step (same fields as the portal's beneficiary form). */
+/** One relative of the `family` step (backend BeneficiaryCreateRequest: national ID is required). */
 export interface MyAffiliationFamilyMember {
   firstName: string
   lastName: string
-  documentType?: string
-  documentNumber?: string
+  documentType: string
+  documentNumber: string
+  /** yyyy-MM-dd */
   birthDate?: string
   relationship: string
+  phone?: string
+  email?: string
 }
 
-/** GET /v1/me/affiliation-request — the caller's own request, DRAFT or later. */
+/** GET /v1/me/affiliation-request and the answer of every step (backend AffiliationRegistrationDto). */
 export interface MyAffiliationRequestDto {
   uuid: string
   status: AffiliationRequestStatus
@@ -221,31 +228,40 @@ export interface MyAffiliationRequestDto {
   birthDate?: string | null
   plan_Uuid?: string | null
   plan_Display?: string | null
-  referralCode?: string | null
-  advisor_Display?: string | null
-  termsVersion_Uuid?: string | null
-  termsAcceptedAt?: string | null
-  /** Contract data changed after it was accepted: it must be accepted again before sending. */
-  termsChanged?: boolean
+  termsVersionUuid?: string | null
+  /** The contract was accepted (for `termsVersionUuid`); a change in the contract data voids it server-side. */
+  contractAccepted?: boolean
   payment?: AffiliationRequestPaymentDto | null
   family?: MyAffiliationFamilyMember[]
+  advisorName?: string | null
+  referralCode?: string | null
+  submittedAt?: string | null
   rejectionReason?: string | null
 }
 
-export interface MyAffiliationPersonalStep {
-  firstName: string
-  lastName: string
-  birthDate: string
+/**
+ * Body of PATCH /v1/me/affiliation-request/{personal|plan|payment|family}: one body for every step, all fields
+ * optional (the step decides which ones it reads). With a proof it goes as multipart (`request` + `support`).
+ */
+export interface MyAffiliationStepRequest {
+  firstName?: string
+  lastName?: string
+  birthDate?: string
   phone?: string
+  planUuid?: string
+  termsVersionUuid?: string
+  contractAccepted?: boolean
+  payment?: AffiliationRequestPaymentRequest
+  family?: MyAffiliationFamilyMember[]
 }
 
-export interface MyAffiliationPlanStep {
-  planUuid: string
-  termsVersionUuid: string
-}
-
-export interface MyAffiliationFamilyStep {
-  members: MyAffiliationFamilyMember[]
+/** Step 1 answer: the request plus the login session of the account just created. */
+export interface RegistrationStartResponse {
+  uuid?: string
+  status?: string
+  email?: string
+  advisorName?: string
+  session?: LoginResponse | null
 }
 
 /**

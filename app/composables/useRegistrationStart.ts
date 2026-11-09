@@ -18,15 +18,15 @@ export const useRegistrationStart = () => {
   }
 
   /**
-   * Opens the session and returns where to go next: the wizard, or `null` when no session could be
+   * Opens the session and returns where to go next (the answer of step 1 carries the login session in `session`): the wizard, or `null` when no session could be
    * opened (no password and no tokens in the response): then the access link was requested instead.
    */
   async function openSession(
-    res: Partial<LoginResponse>,
+    session: Partial<LoginResponse> | null | undefined,
     credentials: { identifier: string, password?: string },
   ): Promise<string | null> {
-    if (res.accessToken && res.refreshToken && res.user) {
-      auth.setSession(res as LoginResponse)
+    if (session?.accessToken && session.refreshToken && session.user) {
+      auth.setSession(session as LoginResponse)
       return COMPLETE_REGISTRATION_PATH
     }
     if (credentials.password) {

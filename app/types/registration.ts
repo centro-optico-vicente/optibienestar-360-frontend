@@ -28,7 +28,7 @@ export function isAllyRegistration(kind: string | null | undefined): boolean {
 
 /** Wizard steps per variant, in order. The last one is always the review/send step. */
 export const MEMBER_WIZARD_STEPS = ['personal', 'plan', 'payment', 'family', 'submit'] as const
-export const ALLY_WIZARD_STEPS = ['location', 'legal', 'profile', 'submit'] as const
+export const ALLY_WIZARD_STEPS = ['location', 'fiscal', 'profile', 'submit'] as const
 
 /** Default "essential" flags, used while the progress endpoint does not say otherwise. */
 export const DEFAULT_ESSENTIAL_STEPS: Readonly<Record<string, boolean>> = {
@@ -38,7 +38,7 @@ export const DEFAULT_ESSENTIAL_STEPS: Readonly<Record<string, boolean>> = {
   family: false,
   submit: true,
   location: true,
-  legal: true,
+  fiscal: true,
   profile: false,
 }
 

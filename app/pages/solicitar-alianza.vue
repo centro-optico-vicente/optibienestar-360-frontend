@@ -8,6 +8,7 @@
 import type { ApiError } from '~/types/auth'
 import type { AllySegment } from '~/types/allies'
 import type { AllyRequestCreateRequest } from '~/types/allyRequests'
+import type { RegistrationStartResponse } from '~/types/affiliationRequests'
 import { ALLY_WIZARD_STEPS } from '~/types/registration'
 
 // English pair of this public screen (hub URL convention); the fixed `key`
@@ -99,14 +100,14 @@ async function submit() {
   }
   sending.value = true
   try {
-    const res = await useApi<Parameters<typeof openSession>[0]>('/v1/public/ally-requests', {
+    const res = await useApi<RegistrationStartResponse>('/v1/public/ally-requests', {
       method: 'POST',
       skipAuth: true,
       silent: true,
       body: buildRequest(),
     })
     draft.clear()
-    const next = await openSession(res, { identifier: state.email.trim(), password: state.password || undefined })
+    const next = await openSession(res.session, { identifier: state.email.trim(), password: state.password || undefined })
     if (next) await router.push(next)
     else checkEmail.value = state.email.trim()
   }

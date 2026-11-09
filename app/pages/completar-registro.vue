@@ -167,7 +167,7 @@ function goHome() {
 
         <template v-else-if="isAlly && ally && profile">
           <RegistrationAllyLocationStep v-if="currentKey === 'location'" :key="'location'" :ally-uuid="ally.uuid" :profile="profile" :essential="essentialOf('location')" @done="onDone" />
-          <RegistrationAllyLegalStep v-else-if="currentKey === 'legal'" :key="'legal'" :ally-uuid="ally.uuid" :profile="profile" :essential="essentialOf('legal')" @done="onDone" />
+          <RegistrationAllyLegalStep v-else-if="currentKey === 'fiscal'" :key="'fiscal'" :ally-uuid="ally.uuid" :profile="profile" :essential="essentialOf('fiscal')" @done="onDone" />
           <RegistrationAllyProfileStep v-else-if="currentKey === 'profile'" :key="'profile'" :ally-uuid="ally.uuid" :profile="profile" :essential="essentialOf('profile')" @saved="profile = $event" @done="onDone" />
           <RegistrationAllySubmitStep v-else :ally-uuid="ally.uuid" :profile="profile" :progress="registration.progress.value" @submitted="onSubmitted()" @back="onDone(null, 'back')" @later="onDone(null, 'later')" />
         </template>
