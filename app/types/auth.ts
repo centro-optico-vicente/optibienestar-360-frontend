@@ -52,9 +52,25 @@ export interface AuthUser {
   roles: Role[]
 }
 
+/**
+ * POST /v1/auth/login. `identifier` is the email or the national ID (cédula, with or
+ * without the V/E letter) — hub ADR 0037 §3. `email` is also sent when the identifier
+ * is an email, for backends that still read the legacy field.
+ */
 export interface LoginRequest {
-  email: string
+  identifier: string
+  email?: string
   password: string
+}
+
+/** POST /v1/auth/magic-link — always answers 200, whether or not the account exists. */
+export interface MagicLinkRequest {
+  identifier: string
+}
+
+/** POST /v1/auth/magic-link/consume — one-use token from the emailed link (15 min). */
+export interface MagicLinkConsumeRequest {
+  token: string
 }
 
 export interface LoginResponse {

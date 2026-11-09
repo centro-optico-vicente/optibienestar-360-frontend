@@ -123,7 +123,10 @@
       "confirmPassword": "Confirm password",
       "currentPassword": "Current password",
       "confirmNewPassword": "Confirm new password",
-      "resetToken": "Recovery code"
+      "resetToken": "Recovery code",
+      "identifier": "National ID or email",
+      "identifierPlaceholder": "V12345678 or you{'@'}email.com",
+      "identifierHelp": "Enter your national ID (with or without the letter) or your email."
     },
     "backToLogin": "← Back to sign in",
     "logout": "Sign out",
@@ -132,7 +135,7 @@
       "seoTitle": "Sign in — OptiBienestar 360",
       "seoDescription": "Access the OptiBienestar 360 portal",
       "heading": "Welcome back",
-      "subheading": "Sign in with your credentials to access the portal.",
+      "subheading": "Sign in with your national ID or email to access the portal.",
       "rememberMe": "Remember me",
       "forgotPassword": "Forgot your password?",
       "submit": "Sign in",
@@ -146,15 +149,21 @@
       "registrationClosed": {
         "member": "Online affiliation is not available right now. If you already have an account, sign in; otherwise contact your advisor or the company.",
         "ally": "Online ally registration is not available right now. If you already have an account, sign in; otherwise contact the company."
+      },
+      "magicLink": {
+        "submit": "Email me a sign-in link",
+        "sentTitle": "Check your email",
+        "sentDescription": "If the account exists, we sent you a link to sign in without a password. It expires in 15 minutes and can be used only once.",
+        "errorFallback": "Unable to send the link"
       }
     },
     "recover": {
       "seoTitle": "Recover password — OptiBienestar 360",
       "heading": "Recover password",
-      "subheading": "We'll email you a link and a code to reset your password.",
+      "subheading": "Enter your national ID or email and we'll send you a link and a code to reset your password.",
       "submit": "Send email",
       "sentTitle": "Check your email",
-      "sentDescription": "If the email exists, you'll receive a link and a code to reset your password. Both expire in 1 hour.",
+      "sentDescription": "If the account exists, you'll receive a link and a code by email to reset your password. Both expire in 1 hour.",
       "errorFallback": "Unable to process the request"
     },
     "reset": {
@@ -176,6 +185,13 @@
       "successTitle": "Password updated",
       "successDescription": "Sign in again with your new password.",
       "errorFallback": "Unable to update the password"
+    },
+    "access": {
+      "seoTitle": "Access — OptiBienestar 360",
+      "heading": "Sign in with a link",
+      "signingIn": "Validating your link…",
+      "invalidTitle": "The link is invalid or has expired",
+      "invalidDescription": "Sign-in links last 15 minutes and can be used only once. Request a new one from the sign-in screen."
     }
   },
   "security": {

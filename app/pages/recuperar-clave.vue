@@ -15,15 +15,16 @@ useSeoMeta({ title: () => t('auth.recover.seoTitle') })
 
 const { recoverPassword } = useAuth()
 
+// Accepts the email or the national ID (cédula), hub ADR 0037 §3.
 const schema = computed(() => z.object({
-  email: z.string().email(t('validation.emailInvalid')),
+  identifier: z.string().trim().min(3, t('validation.minChars', { n: 3 })),
 }))
 
 interface Schema {
-  email: string
+  identifier: string
 }
 
-const state = reactive<Partial<Schema>>({ email: '' })
+const state = reactive<Partial<Schema>>({ identifier: '' })
 const isSubmitting = ref(false)
 const sent = ref(false)
 const apiError = ref<string | null>(null)
@@ -32,7 +33,7 @@ const onSubmit = async (event: FormSubmitEvent<Schema>): Promise<void> => {
   isSubmitting.value = true
   apiError.value = null
   try {
-    await recoverPassword(event.data.email)
+    await recoverPassword(event.data.identifier.trim())
     sent.value = true
   }
   catch (err: unknown) {
@@ -71,13 +72,19 @@ const onSubmit = async (event: FormSubmitEvent<Schema>): Promise<void> => {
       class="space-y-5"
       @submit="onSubmit"
     >
-      <UFormField :label="$t('auth.fields.email')" name="email" required>
+      <UFormField
+        :label="$t('auth.fields.identifier')"
+        :help="$t('auth.fields.identifierHelp')"
+        name="identifier"
+        required
+      >
         <UInput
-          v-model="state.email"
-          type="email"
-          autocomplete="email"
-          :placeholder="$t('auth.fields.emailPlaceholder')"
-          icon="i-lucide-mail"
+          v-model="state.identifier"
+          type="text"
+          autocomplete="username"
+          autocapitalize="off"
+          :placeholder="$t('auth.fields.identifierPlaceholder')"
+          icon="i-lucide-user"
           size="lg"
           class="w-full"
         />

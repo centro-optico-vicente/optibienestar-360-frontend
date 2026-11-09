@@ -4,8 +4,13 @@ import type {
   ChangePasswordRequest,
   LoginRequest,
   LoginResponse,
+  MagicLinkConsumeRequest,
+  MagicLinkRequest,
   MyRole,
 } from '~/types/auth'
+
+/** True when the login identifier looks like an email (otherwise it is a national ID). */
+const isEmailLike = (value: string): boolean => value.includes('@')
 
 /**
  * Composable de autenticación. Encapsula login, logout y change-password
@@ -19,7 +24,7 @@ export const useAuth = () => {
     // silent: el componente login maneja 423 (bloqueo) y errores por campo.
     const data = await useApi<LoginResponse>('/v1/auth/login', {
       method: 'POST',
-      body: payload,
+      body: { ...payload, ...(isEmailLike(payload.identifier) ? { email: payload.identifier } : {}) },
       skipAuth: true,
       silent: true,
     })
@@ -112,14 +117,39 @@ export const useAuth = () => {
     store.setSession(data)
   }
 
-  /** Solicita el correo de recuperación de contraseña. */
-  const recoverPassword = async (email: string): Promise<void> => {
+  /** Solicita el correo de recuperación de contraseña (correo o cédula). */
+  const recoverPassword = async (identifier: string): Promise<void> => {
     await useApi('/v1/auth/recover-password', {
       method: 'POST',
-      body: { email },
+      body: { identifier, ...(isEmailLike(identifier) ? { email: identifier } : {}) },
       skipAuth: true,
       silent: true,
     })
+  }
+
+  /**
+   * Asks for a one-use login link by email (hub ADR 0037 §3). The backend always
+   * answers 200, so the caller shows the same neutral message either way.
+   */
+  const requestMagicLink = async (identifier: string): Promise<void> => {
+    await useApi('/v1/auth/magic-link', {
+      method: 'POST',
+      body: { identifier } satisfies MagicLinkRequest,
+      skipAuth: true,
+      silent: true,
+    })
+  }
+
+  /** Exchanges the token of the emailed link for a session. */
+  const consumeMagicLink = async (token: string): Promise<LoginResponse> => {
+    const data = await useApi<LoginResponse>('/v1/auth/magic-link/consume', {
+      method: 'POST',
+      body: { token } satisfies MagicLinkConsumeRequest,
+      skipAuth: true,
+      silent: true,
+    })
+    store.setSession(data)
+    return data
   }
 
   /** Establece una nueva contraseña usando el token recibido por correo. */
@@ -142,6 +172,8 @@ export const useAuth = () => {
     switchActiveRole,
     recoverPassword,
     resetPassword,
+    requestMagicLink,
+    consumeMagicLink,
     isAuthenticated: computed<boolean>(() => store.isAuthenticated),
     user: computed(() => store.user),
     roleNames: computed(() => store.roleNames),
