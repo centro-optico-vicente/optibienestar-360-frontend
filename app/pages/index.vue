@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
-import { ROLES, type ApiError } from '~/types/auth'
+import type { ApiError } from '~/types/auth'
 
 // English pair of this public screen (hub URL convention): same page, rendered
 // in English by middleware/public-locale.global.ts. The fixed `key` keeps the
@@ -72,8 +72,8 @@ const onSubmit = async (event: FormSubmitEvent<LoginSchema>): Promise<void> => {
       icon: 'i-lucide-check-circle',
     })
 
-    // A pending ally (hub ADR 0036) has only its own profile: land it on the ally portal.
-    const home = useAuthStore().activeRole === ROLES.ALLY_PENDING ? '/allies' : '/dashboard'
+    // A pending member or ally (hub ADR 0036 / 0037) lands on the registration wizard.
+    const home = roleHome(useAuthStore().activeRole)
     const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : home
     await router.push(redirect)
   }

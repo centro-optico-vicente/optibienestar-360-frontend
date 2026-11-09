@@ -552,6 +552,13 @@ export interface MyAllyProfileDto {
   appointmentPhone?: string | null
   assistantName?: string | null
   logoUrl?: string | null
+  /** Registration steps (hub ADR 0037): current values of the rubro, RIF and profession. */
+  allyType_Uuid?: string | null
+  taxDocumentType?: string | null
+  taxDocumentNumber?: string | null
+  profession_Uuid?: string | null
+  /** Set when the ally sent the registration to review. */
+  registrationSubmittedAt?: string | null
   hasOpeningHours?: boolean
   hasApprovedOffers?: boolean
   completeness: { percent: number, missing: (AllyProfileMissingKey | string)[] }
@@ -574,6 +581,11 @@ export interface MyAllyProfileUpdateRequest {
   cityUuid?: string
   googleMapsUrl?: string
   description?: string
+  // Registration steps (hub ADR 0037 §2): what the ADR 0036 single-step form used to ask.
+  allyTypeUuid?: string
+  taxDocumentType?: string
+  taxDocumentNumber?: string
+  professionUuid?: string
   tradeName?: string
   commercialZone?: string
   foundedYear?: number | null

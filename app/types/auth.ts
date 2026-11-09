@@ -16,6 +16,8 @@ export const ROLES = {
   /** Self-registered ally under review (hub ADR 0036): sees and edits only its own profile. */
   ALLY_PENDING: 'ALIADO_PENDIENTE',
   MEMBER: 'AFILIADO',
+  /** Self-registered member whose request is still a draft or under review (hub ADR 0037): only "Completar registro". */
+  MEMBER_PENDING: 'AFILIADO_PENDIENTE',
   ADVISOR: 'ASESOR',
 } as const
 

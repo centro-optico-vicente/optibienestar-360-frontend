@@ -101,10 +101,6 @@ function scrollTo(anchor: string) {
   document.querySelector(anchor)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
-function missingLabel(key: string): string {
-  return t(`allies.portal.registration.missing.${key}`, key)
-}
-
 const canEditOpeningHours = computed(() =>
   !isRejected.value && selectedAlly.value?.allyRole === 'OWNER' && can('ALLY_OPENING_HOURS_UPDATE_OWN'))
 // ---- Own offers (galleries) ----
@@ -369,22 +365,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       />
 
       <!-- Completeness of the profile -->
-      <div v-if="profile && !isRejected && (isPending || missing.length)" class="bg-white rounded-2xl border border-prohealth-100 p-6 space-y-3">
-        <div class="flex items-center justify-between gap-3">
-          <h2 class="font-bold text-prohealth-900">{{ t('allies.portal.registration.completenessTitle') }}</h2>
-          <span class="text-sm font-bold text-prohealth-700">{{ completenessPercent }}%</span>
-        </div>
-        <UProgress :model-value="completenessPercent" :max="100" :color="completenessPercent >= 100 ? 'success' : 'primary'" />
-        <p v-if="!missing.length" class="text-xs text-prohealth-500">{{ t('allies.portal.registration.completenessDone') }}</p>
-        <template v-else>
-          <p class="text-xs text-prohealth-500">{{ t('allies.portal.registration.completenessHint') }}</p>
-          <ul class="flex flex-wrap gap-2">
-            <li v-for="key in missing" :key="key">
-              <UBadge color="neutral" variant="outline" icon="i-lucide-circle-dashed">{{ missingLabel(key) }}</UBadge>
-            </li>
-          </ul>
-        </template>
-      </div>
+      <AllyCompletenessCard v-if="profile && !isRejected && (isPending || missing.length)" :percent="completenessPercent" :missing="missing" />
 
       <!-- Next steps right after the approval -->
       <div v-if="isApproved && !hasApprovedOffers" class="bg-white rounded-2xl border border-lime-200 p-6 space-y-3">
@@ -435,29 +416,10 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     />
 
     <!-- Own gallery (hub ADR 0027): published immediately -->
-    <div v-if="selectedAlly" id="ally-gallery" class="bg-white rounded-2xl border border-prohealth-100 p-6 space-y-2 scroll-mt-20">
-      <h2 class="font-bold text-prohealth-900">{{ t('allies.portal.gallery.title') }}</h2>
-      <p class="text-xs text-prohealth-500">{{ t('allies.portal.gallery.hint') }}</p>
-      <MediaGalleryEditor
-        :key="selectedAlly.uuid"
-        :base="`/v1/me/allies/${selectedAlly.uuid}/media`"
-        :readonly="!canEditMedia"
-      />
-    </div>
+    <AllyGalleryCard v-if="selectedAlly" :ally-uuid="selectedAlly.uuid" :readonly="!canEditMedia" />
 
     <!-- Weekly opening hours (V214, hub ADR 0031 §7) -->
-    <div v-if="selectedAlly" id="ally-opening-hours" class="bg-white rounded-2xl border border-prohealth-100 p-6 space-y-2 scroll-mt-20">
-      <h2 class="font-bold text-prohealth-900">{{ t('allies.openingHours.title') }}</h2>
-      <p class="text-xs text-prohealth-500">
-        {{ canEditOpeningHours ? t('allies.openingHours.portalHint') : t('allies.openingHours.portalReadonlyHint') }}
-      </p>
-      <AllyOpeningHoursEditor
-        :key="selectedAlly.uuid"
-        :ally-uuid="selectedAlly.uuid"
-        scope="portal"
-        :readonly="!canEditOpeningHours"
-      />
-    </div>
+    <AllyOpeningHoursCard v-if="selectedAlly" :ally-uuid="selectedAlly.uuid" :readonly="!canEditOpeningHours" />
 
     <!-- Professional's own licenses (hub ADR 0031 §5 / 0036): add or remove; staff verify -->
     <div v-if="selectedAlly && profile?.segment === 'B2P'" id="ally-licenses" class="scroll-mt-20">

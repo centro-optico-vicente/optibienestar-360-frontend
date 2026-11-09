@@ -825,6 +825,10 @@
       "onboardingPolicy": {
         "label": "Política de registro",
         "description": "Auto-registro de afiliados y aliados, aprobación y activación."
+      },
+      "completeRegistration": {
+        "label": "Completar registro",
+        "description": "Termina tu registro paso a paso."
       }
     },
     "other": {
@@ -5592,7 +5596,8 @@
       "sentNote": "Revisaremos tu pago junto con la solicitud."
     },
     "approvedBody": "Tu cuenta ya está creada. Inicia sesión con {email} y la contraseña que elegiste.",
-    "signIn": "Iniciar sesión"
+    "signIn": "Iniciar sesión",
+    "errorFallback": "No fue posible crear tu cuenta."
   },
   "myContracts": {
     "title": "Mis contratos",
@@ -5626,7 +5631,8 @@
     "status": {
       "PENDING": "Pendiente",
       "APPROVED": "Aprobada",
-      "REJECTED": "Rechazada"
+      "REJECTED": "Rechazada",
+      "DRAFT": "En progreso"
     },
     "columns": {
       "applicant": "Solicitante",
@@ -5984,7 +5990,8 @@
     "sentTitle": "Solicitud enviada",
     "sentBody": "Recibimos tu solicitud. Inicia sesión con {email} para completar tu ficha mientras la revisamos.",
     "sentPromoter": "Asesor: {name}",
-    "welcomeToast": "Completa tu ficha mientras revisamos tu solicitud."
+    "welcomeToast": "Completa tu ficha mientras revisamos tu solicitud.",
+    "errorFallback": "No fue posible enviar la solicitud."
   },
   "allyRequests": {
     "title": "Solicitudes de alianza",
@@ -6215,6 +6222,111 @@
         "MANUAL": "Se publica a mano",
         "ON_APPROVAL": "Se publica al aprobarse"
       }
+    }
+  },
+  "registration": {
+    "required": "Completa los campos obligatorios.",
+    "progress": {
+      "aria": "Avance del registro",
+      "step": "Paso {current} de {total}"
+    },
+    "accountExists": {
+      "title": "Ya existe una cuenta con esa cédula o ese correo",
+      "description": "Inicia sesión o recupera tu acceso; también puedes pedir un enlace de acceso por correo.",
+      "signIn": "Iniciar sesión",
+      "recover": "Recuperar mi acceso"
+    },
+    "birthDate": {
+      "day": "Día",
+      "month": "Mes",
+      "year": "Año",
+      "invalid": "Esa fecha no existe.",
+      "future": "La fecha de nacimiento no puede ser futura."
+    },
+    "actions": {
+      "back": "Atrás",
+      "later": "Guardar y seguir después",
+      "skip": "Omitir",
+      "next": "Siguiente",
+      "submit": "Enviar registro"
+    },
+    "steps": {
+      "personal": "Datos personales",
+      "plan": "Plan y contrato",
+      "payment": "Pago de inscripción",
+      "family": "Familia",
+      "submit": "Enviar",
+      "location": "Ubicación",
+      "legal": "Datos fiscales o profesionales",
+      "profile": "Perfil"
+    },
+    "plan": {
+      "choosePlan": "Elige un plan.",
+      "termsLiveNote": "El acuerdo se completa con tus datos.",
+      "termsChanged": "Cambió un dato que sale en el contrato: acéptalo de nuevo."
+    },
+    "payment": {
+      "reported": "Ya reportaste el pago de la inscripción. Lo revisaremos junto con tu registro.",
+      "amountDue": "Monto de la inscripción: {amount}. Paga a la cuenta de la empresa y reporta el pago aquí."
+    },
+    "family": {
+      "hint": "Agrega a quienes quieres afiliar contigo. Puedes omitir este paso y hacerlo después.",
+      "member": "Familiar {n}",
+      "remove": "Quitar familiar",
+      "relationship": "Parentesco",
+      "incomplete": "Completa los datos de cada familiar.",
+      "add": "Agregar familiar"
+    },
+    "review": {
+      "name": "Nombre",
+      "payment": "Pago de inscripción",
+      "paymentReported": "Reportado",
+      "paymentLater": "Lo harás después",
+      "family": "Familiares",
+      "missing": "Falta completar:",
+      "note": "Al enviar, revisaremos tu registro. Podrás seguir completando datos opcionales después."
+    },
+    "ally": {
+      "address": "Dirección",
+      "profileHint": "Cuéntanos más de tu negocio o consulta. Es opcional y puedes completarlo después."
+    },
+    "wizard": {
+      "seoTitle": "Completar registro — OptiBienestar 360",
+      "titleMember": "Completa tu afiliación",
+      "titleAlly": "Completa tu registro de aliado",
+      "subtitle": "Cada paso se guarda. Puedes salir y seguir cuando quieras.",
+      "savedLater": "Avance guardado",
+      "savedLaterBody": "Entra de nuevo con tu cédula o correo para seguir donde quedaste.",
+      "loadFailed": "No pudimos cargar tu registro.",
+      "retry": "Reintentar",
+      "submittedToast": "Registro enviado",
+      "submittedTitle": "¡Listo!",
+      "submittedApproved": "Tu registro fue aprobado. Ya puedes usar tu portal.",
+      "submittedPending": "Recibimos tu registro y lo estamos revisando. Te avisaremos por correo.",
+      "continue": "Continuar",
+      "alreadySubmittedTitle": "Tu registro ya fue enviado",
+      "alreadySubmittedBody": "Está en revisión. Te avisaremos por correo cuando tengamos novedades."
+    },
+    "step1": {
+      "label": "Tus datos",
+      "subtitle": "Solo 5 datos para empezar. El resto lo completas después, paso a paso.",
+      "allySubtitle": "Registra tu negocio o consulta con los datos mínimos. El resto lo completas después, paso a paso.",
+      "mobile": "Celular",
+      "password": "Contraseña (opcional)",
+      "passwordHelp": "Si no la pones, entrarás con un enlace que te enviamos al correo.",
+      "termsAccept": "Acepto los términos de uso del portal y el tratamiento de mis datos.",
+      "termsRequired": "Debes aceptar los términos de uso y el tratamiento de datos.",
+      "badEmail": "El correo no es válido.",
+      "nextNote": "En el siguiente paso eliges tu plan y aceptas el contrato.",
+      "submit": "Continuar",
+      "checkEmailTitle": "Revisa tu correo",
+      "checkEmailBody": "Creamos tu cuenta. Te enviamos un enlace de acceso a {email} para que sigas con tu registro."
+    },
+    "notice": {
+      "title": "Termina tu registro",
+      "body": "Tu registro está al {percent}%. Completa lo que falta para terminar.",
+      "later": "Recordar luego",
+      "now": "Completar ahora"
     }
   }
 }

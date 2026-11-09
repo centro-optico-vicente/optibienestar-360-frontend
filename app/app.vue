@@ -6,6 +6,7 @@ const { fetchMe } = useAuth()
 const { locale } = useI18n()
 const { applyHint, syncFromUser } = useAppLocale()
 const { checkPending, now: termsNow } = usePendingTerms()
+const registration = useRegistrationProgress()
 // Lets postponed contracts ("Recordar más tarde") come back once the snooze runs out.
 useIntervalFn(() => { termsNow.value = Date.now() }, 30_000)
 
@@ -15,6 +16,13 @@ useIntervalFn(() => { termsNow.value = Date.now() }, 30_000)
 // resolves against whatever is vigente right now.
 watch(() => auth.isAuthenticated, (isAuthenticated) => {
   if (isAuthenticated) checkPending()
+}, { immediate: true })
+
+// Registration progress (hub ADR 0037 §3) feeds the login notice and the "Completar registro" menu entry.
+// Reloaded when the session or the active role changes (e.g. an approval swaps AFILIADO_PENDIENTE for AFILIADO).
+watch(() => [auth.isAuthenticated, auth.activeRole], ([isAuthenticated]) => {
+  if (isAuthenticated) void registration.load(true)
+  else registration.reset(auth.isHydrated)
 }, { immediate: true })
 
 // Keep <html lang> in sync with the active UI locale (a11y/SEO).
@@ -47,5 +55,6 @@ const nuxtUiLocale = computed(() => (locale.value === 'en' ? en : es))
       <NuxtPage />
     </NuxtLayout>
     <TermsAcceptanceModal />
+    <RegistrationNoticeModal />
   </UApp>
 </template>

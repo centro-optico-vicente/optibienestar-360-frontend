@@ -825,6 +825,10 @@
       "onboardingPolicy": {
         "label": "Registration policy",
         "description": "Affiliate and ally self-registration, approval and activation."
+      },
+      "completeRegistration": {
+        "label": "Complete registration",
+        "description": "Finish your registration step by step."
       }
     },
     "other": {
@@ -5592,7 +5596,8 @@
       "sentNote": "We will review your payment together with the request."
     },
     "approvedBody": "Your account is ready. Sign in with {email} and the password you chose.",
-    "signIn": "Sign in"
+    "signIn": "Sign in",
+    "errorFallback": "We could not create your account."
   },
   "myContracts": {
     "title": "My contracts",
@@ -5626,7 +5631,8 @@
     "status": {
       "PENDING": "Pending",
       "APPROVED": "Approved",
-      "REJECTED": "Rejected"
+      "REJECTED": "Rejected",
+      "DRAFT": "In progress"
     },
     "columns": {
       "applicant": "Applicant",
@@ -5984,7 +5990,8 @@
     "sentTitle": "Request sent",
     "sentBody": "We received your request. Sign in with {email} to complete your profile while we review it.",
     "sentPromoter": "Advisor: {name}",
-    "welcomeToast": "Complete your profile while we review your request."
+    "welcomeToast": "Complete your profile while we review your request.",
+    "errorFallback": "We could not submit the request."
   },
   "allyRequests": {
     "title": "Ally requests",
@@ -6215,6 +6222,111 @@
         "MANUAL": "Published by hand",
         "ON_APPROVAL": "Published on approval"
       }
+    }
+  },
+  "registration": {
+    "required": "Fill in the required fields.",
+    "progress": {
+      "aria": "Registration progress",
+      "step": "Step {current} of {total}"
+    },
+    "accountExists": {
+      "title": "An account with that national ID or email already exists",
+      "description": "Sign in or recover your access; you can also ask for an access link by email.",
+      "signIn": "Sign in",
+      "recover": "Recover my access"
+    },
+    "birthDate": {
+      "day": "Day",
+      "month": "Month",
+      "year": "Year",
+      "invalid": "That date does not exist.",
+      "future": "The birth date cannot be in the future."
+    },
+    "actions": {
+      "back": "Back",
+      "later": "Save and continue later",
+      "skip": "Skip",
+      "next": "Next",
+      "submit": "Submit registration"
+    },
+    "steps": {
+      "personal": "Personal data",
+      "plan": "Plan and contract",
+      "payment": "Inscription payment",
+      "family": "Family",
+      "submit": "Submit",
+      "location": "Location",
+      "legal": "Tax or professional data",
+      "profile": "Profile"
+    },
+    "plan": {
+      "choosePlan": "Choose a plan.",
+      "termsLiveNote": "The agreement is filled in with your data.",
+      "termsChanged": "Something that appears in the contract changed: accept it again."
+    },
+    "payment": {
+      "reported": "You already reported the inscription payment. We will review it with your registration.",
+      "amountDue": "Inscription amount: {amount}. Pay into the company account and report the payment here."
+    },
+    "family": {
+      "hint": "Add the people you want to enroll with you. You can skip this step and do it later.",
+      "member": "Family member {n}",
+      "remove": "Remove family member",
+      "relationship": "Relationship",
+      "incomplete": "Complete the data of each family member.",
+      "add": "Add family member"
+    },
+    "review": {
+      "name": "Name",
+      "payment": "Inscription payment",
+      "paymentReported": "Reported",
+      "paymentLater": "You will do it later",
+      "family": "Family members",
+      "missing": "Still missing:",
+      "note": "When you submit, we will review your registration. You can keep completing optional data afterwards."
+    },
+    "ally": {
+      "address": "Address",
+      "profileHint": "Tell us more about your business or practice. It is optional and you can finish it later."
+    },
+    "wizard": {
+      "seoTitle": "Complete registration — OptiBienestar 360",
+      "titleMember": "Complete your enrollment",
+      "titleAlly": "Complete your ally registration",
+      "subtitle": "Every step is saved. You can leave and continue whenever you want.",
+      "savedLater": "Progress saved",
+      "savedLaterBody": "Sign in again with your national ID or email to continue where you left off.",
+      "loadFailed": "We could not load your registration.",
+      "retry": "Retry",
+      "submittedToast": "Registration submitted",
+      "submittedTitle": "All set!",
+      "submittedApproved": "Your registration was approved. You can use your portal now.",
+      "submittedPending": "We received your registration and are reviewing it. We will let you know by email.",
+      "continue": "Continue",
+      "alreadySubmittedTitle": "Your registration was already submitted",
+      "alreadySubmittedBody": "It is under review. We will email you when there is news."
+    },
+    "step1": {
+      "label": "Your details",
+      "subtitle": "Just 5 details to start. You complete the rest later, step by step.",
+      "allySubtitle": "Register your business or practice with the minimum details. You complete the rest later, step by step.",
+      "mobile": "Mobile phone",
+      "password": "Password (optional)",
+      "passwordHelp": "If you leave it empty, you will sign in with a link we email you.",
+      "termsAccept": "I accept the portal terms of use and the processing of my data.",
+      "termsRequired": "You must accept the terms of use and the data processing.",
+      "badEmail": "The email is not valid.",
+      "nextNote": "In the next step you choose your plan and accept the contract.",
+      "submit": "Continue",
+      "checkEmailTitle": "Check your email",
+      "checkEmailBody": "We created your account. We sent an access link to {email} so you can continue your registration."
+    },
+    "notice": {
+      "title": "Finish your registration",
+      "body": "Your registration is {percent}% done. Complete what is missing to finish.",
+      "later": "Remind me later",
+      "now": "Complete now"
     }
   }
 }
