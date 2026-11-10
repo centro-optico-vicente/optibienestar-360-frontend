@@ -20,6 +20,7 @@ const { formatDate } = useFormatters()
 useSeoMeta({ title: () => t('common.seoTitle', { page: t('nav.items.allyRequests.label') }) })
 
 const api = useAllyRequests()
+const advisors = useAdvisorOptions()
 
 const items = ref<AllyRequestListItemDto[]>([])
 const total = ref(0)
@@ -29,6 +30,8 @@ const DEFAULT_STATUS: AllyRegistrationStatus = 'PENDING'
 // 'ALL' = no filter.
 const status = ref<string>(DEFAULT_STATUS)
 const channel = ref<string>('ALL')
+// Advisor who brought the ally in (promoter uuid); only offered with PROMOTER_VIEW_ALL.
+const promoterUuid = ref<string | undefined>(undefined)
 const page = ref(1)
 const pageSize = ref(DEFAULT_PAGE_SIZE)
 const pageSizeItems = buildPageSizeItems(t)
@@ -71,6 +74,7 @@ async function load() {
       q: search.value.trim() || undefined,
       status: status.value === 'ALL' ? undefined : status.value as AllyRequestStatusFilter,
       channel: channel.value === 'ALL' ? undefined : channel.value as AllyRegistrationChannel,
+      promoterUuid: promoterUuid.value,
     })
     items.value = res.content ?? []
     total.value = res.totalElements ?? 0
@@ -98,7 +102,7 @@ const debouncedSearch = useTableFilterDebounce(() => {
 watch(pageSize, () => { if (!resetting.value) page.value = 1 })
 watch([page, pageSize], () => { if (!resetting.value) load() })
 watch(search, () => { if (!resetting.value) debouncedSearch() })
-watch([status, channel], () => { if (!resetting.value) { page.value = 1; load() } })
+watch([status, channel, promoterUuid], () => { if (!resetting.value) { page.value = 1; load() } })
 watch(sort.orders, () => { if (!resetting.value) load() }, { deep: true })
 
 async function resetFilters() {
@@ -106,6 +110,7 @@ async function resetFilters() {
   search.value = ''
   status.value = DEFAULT_STATUS
   channel.value = 'ALL'
+  promoterUuid.value = undefined
   sort.reset()
   pageSize.value = DEFAULT_PAGE_SIZE
   page.value = 1
@@ -135,7 +140,10 @@ function onImported() {
   load()
 }
 
-onMounted(load)
+onMounted(() => {
+  void advisors.load()
+  load()
+})
 </script>
 
 <template>
@@ -166,6 +174,18 @@ onMounted(load)
       />
       <USelect v-model="status" :items="statusItems" :aria-label="t('allyRequests.columns.status')" size="lg" class="w-44" />
       <USelect v-model="channel" :items="channelItems" :aria-label="t('allyRequests.columns.channel')" size="lg" class="w-48" />
+      <USelectMenu
+        v-if="advisors.available.value"
+        v-model="promoterUuid"
+        clear
+        :items="advisors.options.value"
+        value-key="value"
+        label-key="label"
+        :placeholder="t('allyRequests.advisorFilter')"
+        icon="i-lucide-user-check"
+        size="lg"
+        class="w-64"
+      />
       <UButton
         v-if="hasActiveSort"
         variant="link"
@@ -191,6 +211,7 @@ onMounted(load)
               <th class="px-5 py-3 font-semibold">{{ t('allyRequests.columns.segment') }}</th>
               <th class="px-5 py-3 font-semibold">{{ t('allyRequests.columns.contact') }}</th>
               <th class="px-5 py-3 font-semibold">{{ t('allyRequests.columns.channel') }}</th>
+              <th class="px-5 py-3 font-semibold">{{ t('allyRequests.columns.advisor') }}</th>
               <th class="px-5 py-3 font-semibold">{{ t('allyRequests.columns.benefitNote') }}</th>
               <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('createdAt')">
                 {{ t('allyRequests.columns.createdAt') }}
@@ -201,9 +222,9 @@ onMounted(load)
             </tr>
           </thead>
           <tbody class="divide-y divide-prohealth-100">
-            <TableSkeleton v-if="loading" :rows="4" :cols="8" />
+            <TableSkeleton v-if="loading" :rows="4" :cols="9" />
             <tr v-else-if="items.length === 0">
-              <td colspan="8" class="px-5 py-10 text-center text-prohealth-500">
+              <td colspan="9" class="px-5 py-10 text-center text-prohealth-500">
                 <UIcon name="i-lucide-handshake" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
                 {{ t('allyRequests.empty') }}
               </td>
@@ -231,6 +252,7 @@ onMounted(load)
                 <p v-if="r.contactPhone" class="text-xs text-prohealth-500">{{ r.contactPhone }}</p>
               </td>
               <td class="px-5 py-3 text-prohealth-600">{{ channelLabel(r) }}</td>
+              <td class="px-5 py-3 text-prohealth-600">{{ r.promoter_Display || t('common.empty') }}</td>
               <td class="px-5 py-3 text-prohealth-600 max-w-xs">
                 <p class="line-clamp-2" :title="r.registrationNote || undefined">{{ r.registrationNote || t('common.empty') }}</p>
               </td>

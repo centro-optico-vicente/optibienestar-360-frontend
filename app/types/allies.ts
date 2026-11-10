@@ -144,6 +144,10 @@ export interface AllyListItemDto {
   allyTypeNames?: string[]
   city_Uuid: string | null
   city_Display: string | null
+  /** Advisor who brought the ally in (`capturedByPromoter`, `_Display` convention); null = none. */
+  capturedByPromoter_Uuid?: string | null
+  capturedByPromoter_Code?: string | null
+  capturedByPromoter_Display?: string | null
 
   taxDocumentType?: string | null
   taxDocumentNumber?: string | null
@@ -735,4 +739,27 @@ export interface PublicAllyDetailDto extends PublicAllyListItemDto {
   products?: PublicAllyProductDto[]
   /** @deprecated Use `products` (hub ADR 0026); still sent during the transition. */
   services?: PublicAllyServiceDto[]
+}
+
+/**
+ * Row of GET /v1/me/advisor/allies (backend AdvisorAllyListItemDto): the allies the advisor brought in, read-only.
+ * Nothing fiscal or contact-related.
+ */
+export interface AdvisorAllyListItemDto {
+  uuid: string
+  allyNumber?: number | null
+  name: string
+  segment?: AllySegment
+  segment_Display?: string | null
+  allyTypeNames?: string[]
+  city_Uuid?: string | null
+  city_Display?: string | null
+  registrationStatus: AllyRegistrationStatus
+  registrationStatus_Display?: string | null
+  published: boolean
+  published_Display?: string | null
+  active: boolean
+  active_Display?: string | null
+  createdAt?: string | null
+  createdAt_Display?: string | null
 }

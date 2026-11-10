@@ -1,16 +1,10 @@
 <script setup lang="ts">
-import MarkdownIt from 'markdown-it'
-import DOMPurify from 'dompurify'
-import type { ApiError } from '~/types/auth'
-import type { PublicPlan, PublicTerms } from '~/types/registration'
-import { PLAN_TYPES } from '~/types/plans'
-import { TERM_TYPES } from '~/types/terms'
+import type { AffiliationRequestListItemDto, MyAffiliationRequestDto } from '~/types/affiliationRequests'
 
-// "Afiliar persona" (hub ADR 0037 §5): assisted affiliation on the advisor's own device. It reuses the steps of the
-// self-registration wizard in one screen: personal data (birth date as 3 selects), plan and the contract rendered
-// with the typed data, which the person reads and accepts on screen. POST /v1/advisors/me/affiliation-requests,
-// AFFILIATION_REQUEST_CREATE_ASSISTED. The payment is reported later from the person's portal or the advisor's
-// collections screen.
+// "Afiliar persona" (hub ADR 0037 §5): assisted affiliation on the advisor's own device, saved as a DRAFT step by
+// step (backend V234). Without `?draft=` it shows the form that starts one (who the person is) and the advisor's
+// own drafts to resume; with `?draft=<uuid>` it shows the wizard, which reuses the step components of
+// `/completar-registro`. The draft has no login: the person is created on approval and gets the access link.
 definePageMeta({
   layout: 'dashboard',
   middleware: 'can',
@@ -18,143 +12,97 @@ definePageMeta({
 })
 
 const { t } = useI18n()
+const route = useRoute()
+const router = useRouter()
 const toast = useToast()
-const { formatCurrency } = useFormatters()
-const api = useAffiliationRequests()
-const { isAccountExists } = useRegistrationStart()
+const { formatDate } = useFormatters()
+const api = useAdvisorAffiliationDrafts()
 
 useSeoMeta({ title: () => t('common.seoTitle', { page: t('assistedAffiliation.title') }) })
 
+const draftUuid = computed(() => typeof route.query.draft === 'string' ? route.query.draft : '')
+const done = ref<{ email: string, approved: boolean } | null>(null)
+
+// ---- Start a new draft ----
 const docTypes = [{ value: 'V', label: 'V' }, { value: 'E', label: 'E' }]
-const state = reactive({
-  firstName: '', lastName: '', documentType: 'V', documentNumber: '', birthDate: '',
-  email: '', phone: '', planUuid: '',
-})
-const accepted = ref(false)
-const sending = ref(false)
-const accountExists = ref<string | null>(null)
-const done = ref<{ email: string } | null>(null)
-
-// ---- Plans ----
-const plans = ref<PublicPlan[]>([])
-onMounted(async () => {
-  try {
-    const res = await useApi<PublicPlan[] | { content: PublicPlan[] }>('/v1/public/plans', { skipAuth: true, silent: true })
-    plans.value = (Array.isArray(res) ? res : res.content ?? [])
-      .filter(p => p.type !== PLAN_TYPES.CORPORATE && (p.minMembers == null || p.minMembers <= 1))
-  }
-  catch {
-    plans.value = []
-  }
-  await loadTerms()
-})
-const planItems = computed(() => plans.value.map(p => ({
-  value: p.uuid,
-  label: [p.name, p.monthlyFee != null ? `${formatCurrency(Number(p.monthlyFee), p.currency_Code || 'USD')} / ${t('affiliationRequest.month')}` : ''].filter(Boolean).join(' · '),
-})))
-
-// ---- Contract: re-rendered with the typed data, accepted on screen ----
-const md = new MarkdownIt({ html: false, linkify: true, breaks: true })
-const terms = ref<PublicTerms | null>(null)
-const previewMarkdown = ref<string | null>(null)
-const termsHtml = computed(() => DOMPurify.sanitize(md.render(previewMarkdown.value ?? terms.value?.contentMarkdown ?? '')))
-
-async function loadTerms() {
-  try {
-    terms.value = await useApi<PublicTerms>(`/v1/public/terms/${TERM_TYPES.MEMBER}`, { skipAuth: true, silent: true })
-  }
-  catch {
-    terms.value = null
-  }
-}
-
-let previewSeq = 0
-async function refreshPreview() {
-  if (!terms.value) return
-  const seq = ++previewSeq
-  try {
-    const res = await useApi<PublicTerms>(`/v1/public/terms/${TERM_TYPES.MEMBER}/preview`, {
-      method: 'POST',
-      skipAuth: true,
-      silent: true,
-      body: {
-        firstName: state.firstName.trim() || undefined,
-        lastName: state.lastName.trim() || undefined,
-        documentType: state.documentType || undefined,
-        documentNumber: state.documentNumber.trim() || undefined,
-        birthDate: state.birthDate || undefined,
-        planUuid: state.planUuid || undefined,
-      },
-    })
-    if (seq !== previewSeq) return
-    if (terms.value && res.uuid !== terms.value.uuid) {
-      terms.value = res
-      accepted.value = false
-    }
-    previewMarkdown.value = res.contentMarkdown
-  }
-  catch {
-    if (seq === previewSeq) previewMarkdown.value = null
-  }
-}
-const debouncedPreview = useSearchDebounce(refreshPreview)
-watch(() => [state.firstName, state.lastName, state.documentType, state.documentNumber, state.birthDate, state.planUuid], () => {
-  // A change in the data makes the previous acceptance void: the person reads it again.
-  accepted.value = false
-  debouncedPreview()
-})
-
+const state = reactive({ firstName: '', lastName: '', documentType: 'V', documentNumber: '', email: '', phone: '' })
+const starting = ref(false)
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 function invalid(): string | null {
-  if (!state.firstName.trim() || !state.lastName.trim() || !state.documentNumber.trim() || !state.birthDate || !state.email.trim() || !state.planUuid) {
+  if (!state.firstName.trim() || !state.lastName.trim() || !state.documentNumber.trim() || !state.email.trim()) {
     return t('affiliationRequest.required')
   }
   if (!/^\d{1,9}$/.test(state.documentNumber.trim())) return t('affiliationRequest.badDocument')
   if (!EMAIL_RE.test(state.email.trim())) return t('registration.step1.badEmail')
-  if (!terms.value) return t('affiliationRequest.termsUnavailable')
-  if (!accepted.value) return t('assistedAffiliation.acceptRequired')
   return null
 }
 
-async function submit() {
-  accountExists.value = null
+async function startDraft() {
   const error = invalid()
   if (error) {
     toast.add({ title: error, color: 'error' })
     return
   }
-  sending.value = true
+  starting.value = true
   try {
-    const res = await api.createAssisted({
+    const created = await api.start({
       firstName: state.firstName.trim(),
       lastName: state.lastName.trim(),
       documentType: state.documentType,
       documentNumber: state.documentNumber.trim(),
-      birthDate: state.birthDate,
       email: state.email.trim(),
       phone: state.phone.trim() || undefined,
-      planUuid: state.planUuid,
-      termsVersionUuid: terms.value!.uuid,
-      contractAccepted: true,
     })
-    done.value = { email: res.email ?? state.email.trim() }
+    Object.assign(state, { firstName: '', lastName: '', documentType: 'V', documentNumber: '', email: '', phone: '' })
+    await router.push({ query: { draft: created.uuid } })
   }
-  catch (err) {
-    if (isAccountExists(err)) accountExists.value = (err as ApiError).message
-    // Otherwise useApi already showed the backend's reason; a newer contract published meanwhile is rejected.
-    else await loadTerms()
+  catch {
+    // useApi already showed the backend's reason (cédula or email already registered, another draft open, …).
   }
   finally {
-    sending.value = false
+    starting.value = false
   }
 }
 
+// ---- The advisor's own drafts ----
+const drafts = ref<AffiliationRequestListItemDto[]>([])
+const draftsLoading = ref(false)
+
+async function loadDrafts() {
+  draftsLoading.value = true
+  try {
+    drafts.value = (await api.list({ size: 50 })).content ?? []
+  }
+  catch {
+    drafts.value = []
+  }
+  finally {
+    draftsLoading.value = false
+  }
+}
+onMounted(loadDrafts)
+// Back from the wizard: the list changed.
+watch(draftUuid, (uuid) => {
+  if (!uuid) void loadDrafts()
+})
+
+function resume(uuid: string) {
+  void router.push({ query: { draft: uuid } })
+}
+
+function onLater() {
+  toast.add({ title: t('assistedAffiliation.savedLater'), description: t('assistedAffiliation.savedLaterBody'), color: 'success', icon: 'i-lucide-check-circle' })
+  void router.push({ query: {} })
+}
+
+function onSubmitted(sent: MyAffiliationRequestDto) {
+  done.value = { email: sent.email, approved: sent.status === 'APPROVED' }
+  void router.push({ query: {} })
+}
+
 function another() {
-  Object.assign(state, { firstName: '', lastName: '', documentType: 'V', documentNumber: '', birthDate: '', email: '', phone: '', planUuid: '' })
-  accepted.value = false
   done.value = null
-  previewMarkdown.value = null
 }
 </script>
 
@@ -165,64 +113,75 @@ function another() {
       <p class="text-sm text-prohealth-700/70 mt-1">{{ t('assistedAffiliation.subtitle') }}</p>
     </div>
 
+    <!-- Sent -->
     <div v-if="done" class="bg-white rounded-2xl border border-prohealth-100 p-6 text-center space-y-3">
       <UIcon name="i-lucide-circle-check" class="w-12 h-12 mx-auto text-green-500" />
       <h2 class="text-xl font-extrabold text-prohealth-900">{{ t('assistedAffiliation.doneTitle') }}</h2>
-      <p class="text-sm text-prohealth-600">{{ t('assistedAffiliation.doneBody', { email: done.email }) }}</p>
+      <p class="text-sm text-prohealth-600">{{ done.approved ? t('assistedAffiliation.doneApproved', { email: done.email }) : t('assistedAffiliation.doneBody', { email: done.email }) }}</p>
       <div class="flex flex-wrap justify-center gap-2">
         <UButton color="primary" icon="i-lucide-user-plus" @click="another">{{ t('assistedAffiliation.another') }}</UButton>
         <UButton to="/advisors/affiliation-requests" color="neutral" variant="outline" icon="i-lucide-list">{{ t('assistedAffiliation.seeRequests') }}</UButton>
       </div>
     </div>
 
-    <form v-else class="bg-white rounded-2xl border border-prohealth-100 p-6 grid grid-cols-1 sm:grid-cols-2 gap-4" novalidate @submit.prevent="submit">
-      <RegistrationAccountExists v-if="accountExists" class="sm:col-span-2" :message="accountExists" />
-      <UFormField :label="t('affiliationRequest.firstName')" required>
-        <UInput v-model="state.firstName" class="w-full" maxlength="50" />
-      </UFormField>
-      <UFormField :label="t('affiliationRequest.lastName')" required>
-        <UInput v-model="state.lastName" class="w-full" maxlength="50" />
-      </UFormField>
-      <UFormField :label="t('affiliationRequest.document')" required>
-        <div class="flex gap-2">
-          <USelect v-model="state.documentType" :items="docTypes" class="w-20" />
-          <UInput v-model="state.documentNumber" class="flex-1" maxlength="9" inputmode="numeric" placeholder="12345678" />
+    <!-- Wizard of one draft -->
+    <template v-else-if="draftUuid">
+      <UButton color="neutral" variant="ghost" icon="i-lucide-arrow-left" size="sm" @click="router.push({ query: {} })">{{ t('assistedAffiliation.backToDrafts') }}</UButton>
+      <AdvisorAffiliationWizard :key="draftUuid" :draft-uuid="draftUuid" @later="onLater" @submitted="onSubmitted" @failed="router.replace({ query: {} })" />
+    </template>
+
+    <!-- Start + drafts to resume -->
+    <template v-else>
+      <form class="bg-white rounded-2xl border border-prohealth-100 p-6 grid grid-cols-1 sm:grid-cols-2 gap-4" novalidate @submit.prevent="startDraft">
+        <div class="sm:col-span-2">
+          <h2 class="font-bold text-prohealth-900">{{ t('assistedAffiliation.startTitle') }}</h2>
+          <p class="text-xs text-prohealth-500 mt-1">{{ t('assistedAffiliation.startHint') }}</p>
         </div>
-      </UFormField>
-      <UFormField :label="t('affiliationRequest.birthDate')" required>
-        <BirthDateSelects v-model="state.birthDate" />
-      </UFormField>
-      <UFormField :label="t('affiliationRequest.email')" :help="t('assistedAffiliation.emailHelp')" required>
-        <UInput v-model="state.email" type="email" class="w-full" maxlength="254" />
-      </UFormField>
-      <UFormField :label="t('affiliationRequest.phone')">
-        <UInput v-model="state.phone" class="w-full" maxlength="30" />
-      </UFormField>
-      <UFormField :label="t('affiliationRequest.plan')" required class="sm:col-span-2">
-        <USelect v-model="state.planUuid" :items="planItems" :placeholder="t('affiliationRequest.planPlaceholder')" class="w-full" />
-      </UFormField>
+        <UFormField :label="t('affiliationRequest.firstName')" required>
+          <UInput v-model="state.firstName" class="w-full" maxlength="50" />
+        </UFormField>
+        <UFormField :label="t('affiliationRequest.lastName')" required>
+          <UInput v-model="state.lastName" class="w-full" maxlength="50" />
+        </UFormField>
+        <UFormField :label="t('affiliationRequest.document')" required>
+          <div class="flex gap-2">
+            <USelect v-model="state.documentType" :items="docTypes" class="w-20" />
+            <UInput v-model="state.documentNumber" class="flex-1" maxlength="9" inputmode="numeric" placeholder="12345678" />
+          </div>
+        </UFormField>
+        <UFormField :label="t('affiliationRequest.phone')">
+          <UInput v-model="state.phone" class="w-full" maxlength="30" />
+        </UFormField>
+        <UFormField :label="t('affiliationRequest.email')" :help="t('assistedAffiliation.emailHelp')" required class="sm:col-span-2">
+          <UInput v-model="state.email" type="email" class="w-full" maxlength="254" />
+        </UFormField>
+        <UButton type="submit" block color="primary" :loading="starting" icon="i-lucide-user-plus" class="sm:col-span-2">
+          {{ t('assistedAffiliation.startSubmit') }}
+        </UButton>
+      </form>
 
-      <div class="sm:col-span-2 rounded-xl border border-prohealth-100 p-4 space-y-3">
-        <p class="text-sm font-semibold text-prohealth-900">{{ t('affiliationRequest.termsTitle') }}</p>
-        <p v-if="!terms" class="text-sm text-red-600">{{ t('affiliationRequest.termsUnavailable') }}</p>
-        <template v-else>
-          <p class="text-xs text-prohealth-500">{{ t('assistedAffiliation.contractHint') }}</p>
-          <div class="terms-content max-h-72 overflow-y-auto rounded-lg border border-prohealth-100 bg-prohealth-50/40 p-4 text-sm text-prohealth-800" v-html="termsHtml" />
-          <UCheckbox v-model="accepted" :label="t('assistedAffiliation.accept', { title: terms.title })" />
-        </template>
-      </div>
-
-      <UButton type="submit" block color="primary" :loading="sending" :disabled="!terms || !accepted" icon="i-lucide-user-plus" class="sm:col-span-2">
-        {{ t('assistedAffiliation.submit') }}
-      </UButton>
-    </form>
+      <section class="bg-white rounded-2xl border border-prohealth-100 p-6 space-y-3">
+        <div>
+          <h2 class="font-bold text-prohealth-900">{{ t('assistedAffiliation.draftsTitle') }}</h2>
+          <p class="text-xs text-prohealth-500 mt-1">{{ t('assistedAffiliation.draftsHint') }}</p>
+        </div>
+        <div v-if="draftsLoading" class="space-y-2">
+          <USkeleton class="h-12 w-full rounded-xl" />
+          <USkeleton class="h-12 w-full rounded-xl" />
+        </div>
+        <p v-else-if="drafts.length === 0" class="text-sm text-prohealth-500 py-4 text-center">{{ t('assistedAffiliation.draftsEmpty') }}</p>
+        <ul v-else class="divide-y divide-prohealth-100">
+          <li v-for="d in drafts" :key="d.uuid" class="flex items-center justify-between gap-3 py-3">
+            <div class="min-w-0">
+              <p class="font-medium text-prohealth-900 truncate">{{ d.fullName }}</p>
+              <p class="text-xs text-prohealth-500 truncate">
+                {{ d.documentType }}-{{ d.documentNumber }} · {{ d.plan_Display ?? t('assistedAffiliation.noPlanYet') }} · {{ d.createdAt_Display ?? formatDate(d.createdAt, 'datetime') }}
+              </p>
+            </div>
+            <UButton color="primary" variant="soft" size="sm" trailing-icon="i-lucide-arrow-right" @click="resume(d.uuid)">{{ t('assistedAffiliation.resume') }}</UButton>
+          </li>
+        </ul>
+      </section>
+    </template>
   </div>
 </template>
-
-<style scoped>
-.terms-content :deep(h1) { font-size: 1.2rem; font-weight: 800; margin: 0.6em 0 0.4em; }
-.terms-content :deep(h2) { font-size: 1.05rem; font-weight: 700; margin: 0.6em 0 0.4em; }
-.terms-content :deep(p) { margin: 0.5em 0; line-height: 1.6; }
-.terms-content :deep(ul), .terms-content :deep(ol) { margin: 0.4em 0 0.4em 1.3em; }
-.terms-content :deep(li) { margin: 0.2em 0; }
-</style>

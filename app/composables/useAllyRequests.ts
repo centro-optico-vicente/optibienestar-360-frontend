@@ -18,6 +18,8 @@ interface ListParams {
   q?: string
   status?: AllyRequestStatusFilter
   channel?: AllyRegistrationChannel
+  /** Only the requests this advisor (promoter uuid) brought in. */
+  promoterUuid?: string
 }
 
 const BASE = '/v1/admin/ally-requests'
@@ -37,6 +39,7 @@ export const useAllyRequests = () => {
         ...(params.q ? { q: params.q } : {}),
         ...(params.status ? { status: params.status } : {}),
         ...(params.channel ? { channel: params.channel } : {}),
+        ...(params.promoterUuid ? { promoterUuid: params.promoterUuid } : {}),
       },
     })
 

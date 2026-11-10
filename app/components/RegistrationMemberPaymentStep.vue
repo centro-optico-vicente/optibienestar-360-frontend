@@ -13,7 +13,7 @@ const emit = defineEmits<{ done: [request: MyAffiliationRequestDto | null, mode:
 const { t } = useI18n()
 const toast = useToast()
 const { formatCurrency } = useFormatters()
-const api = useMyAffiliationRequest()
+const api = useMemberRegistrationApi()
 
 const plan = computed(() => props.plans.find(p => p.uuid === props.request.plan_Uuid) ?? null)
 const inscriptionDue = computed(() => Number(plan.value?.inscriptionFee ?? 0) > 0)

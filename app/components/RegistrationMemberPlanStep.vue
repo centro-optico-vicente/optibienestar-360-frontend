@@ -21,7 +21,7 @@ const emit = defineEmits<{ done: [request: MyAffiliationRequestDto | null, mode:
 const { t } = useI18n()
 const toast = useToast()
 const { formatCurrency } = useFormatters()
-const api = useMyAffiliationRequest()
+const api = useMemberRegistrationApi()
 
 const planUuid = ref<string>(props.request.plan_Uuid ?? '')
 if (!planUuid.value) {
