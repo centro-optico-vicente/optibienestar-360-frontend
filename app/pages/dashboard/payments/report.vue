@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { PAYMENT_METHOD_OPTIONS, PAYMENT_STATUS_OPTIONS } from '~/types/payments'
-import type { PromoterDto } from '~/types/promoters'
 import type { PlanDto } from '~/types/plans'
 
 definePageMeta({
@@ -27,7 +26,6 @@ const canViewCurrency = computed(() => can('CURRENCY_VIEW_ALL'))
 const generatingPdf = ref(false)
 const generatingXlsx = ref(false)
 
-const promoters = ref<PromoterDto[]>([])
 const plans = ref<PlanDto[]>([])
 const loadingCatalogs = ref(false)
 
@@ -47,18 +45,10 @@ const dynamicPaymentMethods = ref<Array<{ label: string; value: string }>>([])
 async function loadCatalogs() {
   loadingCatalogs.value = true
   try {
-    const [promotersRes, plansRes] = await Promise.allSettled([
-      promotersApi.list({ size: 100, sort: ['displayName,asc'] }),
-      plansApi.list({ size: 100, sort: ['name,asc'] }),
-    ])
-    if (promotersRes.status === 'fulfilled') {
-      promoters.value = promotersRes.value.content ?? []
-    }
-    if (plansRes.status === 'fulfilled') {
-      plans.value = plansRes.value.content ?? []
-    }
+    const plansRes = await plansApi.list({ size: 100, sort: ['name,asc'] })
+    plans.value = plansRes.content ?? []
   } catch (err: any) {
-    console.error('Failed to load promoters/plans:', err)
+    console.error('Failed to load plans:', err)
   }
 
   try {
@@ -97,14 +87,6 @@ onMounted(loadCatalogs)
 
 const ALL_VALUE = 'ALL'
 
-const promoterOptions = computed(() => [
-  { label: t('payments.collectionsReport.promoterAll'), value: ALL_VALUE },
-  ...promoters.value.map(p => ({
-    label: `${p.displayName} (${p.referralCode || t('common.noCode')})`,
-    value: p.uuid,
-  })),
-])
-
 const planOptions = computed(() => [
   { label: t('payments.collectionsReport.planAll'), value: ALL_VALUE },
   ...plans.value.map(pl => ({
@@ -119,7 +101,7 @@ const payFilters = reactive({
   status: ALL_VALUE,
   paymentMethod: ALL_VALUE,
   plan: ALL_VALUE,
-  promoter: ALL_VALUE,
+  promoter: '',
   targetCurrency: 'USD',
 })
 
@@ -197,7 +179,7 @@ function resetPayFilters() {
   payFilters.status = ALL_VALUE
   payFilters.paymentMethod = ALL_VALUE
   payFilters.plan = ALL_VALUE
-  payFilters.promoter = ALL_VALUE
+  payFilters.promoter = ''
   payFilters.targetCurrency = 'USD'
 }
 
@@ -424,15 +406,11 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             {{ t('payments.collectionsReport.promoter') }}
           </label>
           <div class="flex items-center gap-2">
-            <USelectMenu
-              clear
+            <CommonEntityReferenceSelect
               v-model="payFilters.promoter"
-              :items="promoterOptions"
-              label-key="label"
-              value-key="value"
+              :search="promotersApi.searchOptions"
               icon="i-lucide-user"
               :placeholder="t('payments.collectionsReport.promoterAll')"
-              :ui="{ content: 'z-[100]' }"
               class="w-full"
             />
             <CommonEntityQuickLinkButton

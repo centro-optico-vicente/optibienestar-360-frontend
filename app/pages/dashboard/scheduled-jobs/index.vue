@@ -46,6 +46,9 @@ const size = ref(DEFAULT_PAGE_SIZE)
 const pageSizeItems = buildPageSizeItems(t)
 const search = ref('')
 const includeInactive = ref(false)
+// Last-run date range (dateFrom/dateTo).
+const dateFrom = ref('')
+const dateTo = ref('')
 // Empty by default: no `sort=` is sent until the user clicks a column, so
 // the backend's own default-sort fallback (entity_config → system_configs
 // → code ASC) applies.
@@ -62,6 +65,8 @@ async function load() {
       sort: sort.sortParam.value,
       q: search.value.trim() || undefined,
       includeInactive: includeInactive.value,
+      dateFrom: dateFrom.value || undefined,
+      dateTo: dateTo.value || undefined,
     })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
@@ -96,13 +101,15 @@ watch(search, () => {
   if (resetting.value) return
   debouncedSearchLoad()
 })
-watch(includeInactive, () => { if (!resetting.value) { page.value = 1; load() } })
+watch([includeInactive, dateFrom, dateTo], () => { if (!resetting.value) { page.value = 1; load() } })
 watch(sort.orders, () => { if (!resetting.value) load() }, { deep: true })
 
 async function resetFilters() {
   resetting.value = true
   search.value = ''
   includeInactive.value = false
+  dateFrom.value = ''
+  dateTo.value = ''
   sort.reset()
   size.value = DEFAULT_PAGE_SIZE
   page.value = 1
@@ -287,6 +294,7 @@ async function confirmDelete() {
         size="lg"
         class="w-full max-w-md"
       />
+      <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('scheduledJobs.filters.lastRunFrom')" :to-label="t('scheduledJobs.filters.lastRunTo')" />
       <UCheckbox v-model="includeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
       <UButton
         v-if="hasActiveSort"

@@ -54,7 +54,6 @@ const includeInactive = ref(false)
 const promotersApi = usePromoters()
 const genderOptions = ref<SelectItem[]>([])
 const occupationOptions = ref<SelectItem[]>([])
-const promoterOptions = ref<SelectItem[]>([])
 
 async function searchCities(q: string): Promise<SelectItem[]> {
   const res = await useCatalogOptions('cities').options({ ...(q ? { q } : {}), limit: 15 })
@@ -62,7 +61,8 @@ async function searchCities(q: string): Promise<SelectItem[]> {
 }
 
 const filterFields = computed<ListFilterField[]>(() => [
-  { key: 'promoterUuid', label: t('members.filters.advisor'), icon: 'i-lucide-users', items: promoterOptions.value },
+  // The advisor list needs PROMOTER_VIEW_ALL; without it the filter is not offered.
+  ...(canViewPromoter.value ? [{ key: 'promoterUuid', label: t('members.filters.advisor'), icon: 'i-lucide-users', search: promotersApi.searchOptions }] : []),
   { key: 'genderUuid', label: t('members.filters.gender'), icon: 'i-lucide-venus-and-mars', items: genderOptions.value, class: 'w-40' },
   { key: 'cityUuid', label: t('members.filters.city'), icon: 'i-lucide-map-pin', search: searchCities },
   { key: 'occupationUuid', label: t('members.filters.occupation'), icon: 'i-lucide-briefcase', items: occupationOptions.value },
@@ -83,14 +83,12 @@ const masterFilters = ref(emptyListFilters(filterFields.value))
 
 onMounted(async () => {
   try {
-    const [genders, occupations, advisors] = await Promise.all([
+    const [genders, occupations] = await Promise.all([
       useCatalogOptions('genders').options({ limit: 100 }),
       useCatalogOptions('occupations').options({ limit: 200 }),
-      canViewPromoter.value ? promotersApi.list({ size: 100, sort: ['displayName,asc'] }) : Promise.resolve(null),
     ])
     genderOptions.value = genders.map(o => ({ label: o.label, value: o.uuid }))
     occupationOptions.value = occupations.map(o => ({ label: o.label, value: o.uuid }))
-    promoterOptions.value = (advisors?.content ?? []).map(a => ({ label: a.displayName, value: a.uuid }))
   }
   catch {
     // useApi already notified; the dropdowns just stay empty

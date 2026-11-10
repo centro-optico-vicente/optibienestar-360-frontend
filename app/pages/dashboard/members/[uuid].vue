@@ -11,6 +11,7 @@ import type {
   UpdateBeneficiaryRequest,
 } from '~/types/members'
 import { RELATIONSHIP_OPTIONS } from '~/types/members'
+import { matchesText } from '~/utils/textSearch'
 
 definePageMeta({
   layout: 'dashboard',
@@ -182,6 +183,10 @@ const displayName = computed(() => {
 // ---- Beneficiaries ----
 const beneficiaries = ref<BeneficiaryDto[]>([])
 const beneficiariesLoading = ref(false)
+// Client-side search: the tab loads the member's whole (small, unpaginated) list in one call.
+const benSearch = ref('')
+const shownBeneficiaries = computed(() => beneficiaries.value.filter(b =>
+  matchesText(benSearch.value, b.fullName, b.firstName, b.lastName, b.documentNumber, relationshipLabel(b.relationship))))
 const beneficiariesSort = useTableSort([])
 const beneficiariesHasActiveSort = computed(() => beneficiariesSort.hasActiveSort.value)
 const beneficiariesIsMultiSort = computed(() => beneficiariesSort.orders.value.length > 1)
@@ -765,6 +770,7 @@ async function refreshAll() {
             <p v-if="slotSummary" class="text-xs font-semibold text-prohealth-700 mt-1">{{ slotSummary }}</p>
           </div>
           <div class="flex items-center gap-2">
+            <UInput v-if="beneficiaries.length > 0" v-model="benSearch" icon="i-lucide-search" size="sm" :placeholder="t('members.beneficiaries.searchPlaceholder')" class="w-48" />
             <UTooltip :text="canUpdate ? t('members.beneficiaries.addTooltip') : t('members.noPermission')">
               <UButton
                 color="primary"
@@ -829,7 +835,10 @@ async function refreshAll() {
                   {{ t('members.beneficiaries.empty') }}
                 </td>
               </tr>
-              <tr v-for="b in beneficiaries" v-else :key="b.uuid" class="hover:bg-prohealth-50/50">
+              <tr v-else-if="shownBeneficiaries.length === 0">
+                <td colspan="8" class="px-6 py-8 text-center text-prohealth-500">{{ t('members.beneficiaries.noMatches') }}</td>
+              </tr>
+              <tr v-for="b in shownBeneficiaries" v-else :key="b.uuid" class="hover:bg-prohealth-50/50">
                 <td class="px-6 py-3 font-semibold text-prohealth-900">{{ benDisplayName(b) }}</td>
                 <td class="px-6 py-3 text-prohealth-700">
                   <span v-if="b.documentNumber">{{ b.documentType }} {{ b.documentNumber }}</span>

@@ -17,6 +17,9 @@ interface ListParams {
   filter?: string
   q?: string
   includeInactive?: boolean
+  /** Last-run date range, `yyyy-MM-dd`, inclusive. */
+  dateFrom?: string
+  dateTo?: string
 }
 
 interface RunListParams {
@@ -51,6 +54,8 @@ export const useScheduledJobs = () => {
         ...(params.filter ? { filter: params.filter } : {}),
         ...(params.q ? { q: params.q } : {}),
         ...(params.includeInactive ? { includeInactive: 'true' } : {}),
+        ...(params.dateFrom ? { dateFrom: params.dateFrom } : {}),
+        ...(params.dateTo ? { dateTo: params.dateTo } : {}),
       },
     })
 

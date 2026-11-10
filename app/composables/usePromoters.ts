@@ -1,4 +1,5 @@
 import type { Page } from '~/types/admin'
+import type { Option, SelectItem } from '~/types/options'
 import type {
   CollectionScoreDto,
   CommissionPeriodSummaryDto,
@@ -48,6 +49,22 @@ export const usePromoters = () => {
         ...(params.includeInactive ? { includeInactive: 'true' } : {}),
       },
     })
+
+  /** Lightweight projection for selects/typeahead (`GET /v1/admin/advisors/options`), not paginated. */
+  const options = (params: { q?: string, limit?: number, currentValues?: string[] } = {}) =>
+    useApi<Option[]>('/v1/admin/advisors/options', {
+      query: {
+        ...(params.q ? { q: params.q } : {}),
+        ...(params.limit ? { limit: params.limit } : {}),
+        ...(params.currentValues?.length ? { currentValues: params.currentValues } : {}),
+      },
+    })
+
+  /** Server-side search function for `CommonEntityReferenceSelect :search` (debounced by the select itself). */
+  const searchOptions = async (q: string): Promise<SelectItem[]> => {
+    const res = await options({ ...(q ? { q } : {}), limit: 20 })
+    return res.map(o => ({ label: o.label, value: o.uuid }))
+  }
 
   const get = (uuid: string) =>
     useApi<PromoterDto>(`/v1/admin/advisors/${uuid}`)
@@ -162,7 +179,7 @@ export const usePromoters = () => {
     useApi<PromoterMemberContactDto>(`/v1/advisors/me/contacts/${memberUuid}/payment-promise`, { method: 'POST', body })
 
   return {
-    list, get, create, createWithUser, update, remove, usage, portfolio, commissionsSummary, me, registerInPortfolio, searchCandidates,
+    list, options, searchOptions, get, create, createWithUser, update, remove, usage, portfolio, commissionsSummary, me, registerInPortfolio, searchCandidates,
     listReferences, createReference, updateReference, removeReference,
     listPayoutAccounts, createPayoutAccount, updatePayoutAccount, setDefaultPayoutAccount, removePayoutAccount, myPayoutAccounts,
     myCollectionScore, myMemberContacts, registerReminder, registerPaymentPromise,

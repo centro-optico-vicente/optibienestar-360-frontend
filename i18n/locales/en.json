@@ -318,7 +318,9 @@
       "advisorCreatedToast": "Advisor profile created",
       "advisorCreateFailedToast": "The user was created, but the advisor profile could not be. Create it from Advisors.",
       "filters": {
-        "role": "Role"
+        "role": "Role",
+        "createdFrom": "Created from",
+        "createdTo": "Created to"
       }
     },
     "roles": {
@@ -2131,7 +2133,8 @@
     "filters": {
       "allyType": "Ally type",
       "profession": "Profession",
-      "state": "State / Department"
+      "state": "State / Department",
+      "city": "City"
     }
   },
   "catalog": {
@@ -3062,7 +3065,9 @@
       "delete": {
         "title": "Delete beneficiary",
         "confirm": "Are you sure you want to delete {name}? This deactivates their coverage (soft-delete)."
-      }
+      },
+      "searchPlaceholder": "Search beneficiary…",
+      "noMatches": "No beneficiary matches the search."
     },
     "medical": {
       "title": "Medical record",
@@ -3121,7 +3126,10 @@
           "date": "Date",
           "actor": "Performed by",
           "reason": "Reason"
-        }
+        },
+        "dateFrom": "From",
+        "dateTo": "To",
+        "noMatches": "No change in that date range."
       },
       "form": {
         "changeTitle": "Change advisor",
@@ -3396,7 +3404,8 @@
         "enrolledTo": "Enrolled to",
         "nextDueFrom": "Next due from",
         "nextDueTo": "Next due to",
-        "clear": "Clear filters"
+        "clear": "Clear filters",
+        "searchPlaceholder": "Search by affiliate, ID, email, phone or contract…"
       },
       "columns": {
         "member": "Affiliate",
@@ -3433,7 +3442,13 @@
       "expiresRequired": "Enter the expiry date: the plan defines no term.",
       "clearsPendingNotice": "Removing re-inscription also clears this membership's pending re-inscription.",
       "savedToast": "Term updated"
-    }
+    },
+    "tabSearchPlaceholder": "Search by plan, contract or status…",
+    "filters": {
+      "enrolledFrom": "Enrolled from",
+      "enrolledTo": "Enrolled to"
+    },
+    "noMatches": "No membership matches the filter."
   },
   "validator": {
     "seoTitle": "Validator — OptiBienestar 360",
@@ -3670,7 +3685,10 @@
           "period": "Period",
           "count": "Count",
           "total": "Total"
-        }
+        },
+        "dateFrom": "Period from",
+        "dateTo": "Period to",
+        "noMatches": "No period in that date range."
       }
     },
     "form": {
@@ -4353,6 +4371,10 @@
         "addRow": "+ Add parameter",
         "invalidJson": "Parameters JSON is invalid"
       }
+    },
+    "filters": {
+      "lastRunFrom": "Last run from",
+      "lastRunTo": "Last run to"
     }
   },
   "referrals": {
