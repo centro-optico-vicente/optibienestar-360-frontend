@@ -66,6 +66,9 @@ export interface AllyRequestListItemDto {
   contactEmail?: string | null
   contactPhone?: string | null
   city_Display?: string | null
+  /** Advisor who brought the ally in; null = none. */
+  promoter_Uuid?: string | null
+  promoter_Display?: string | null
   /** What the applicant said they would offer to the members. */
   registrationNote?: string | null
   createdAt: string

@@ -43,6 +43,7 @@ const { can } = usePermissions()
 const toast = useToast()
 
 const canUpdate = computed(() => can('ALLY_UPDATE'))
+const canAssignAdvisor = computed(() => can('ALLY_ASSIGN_PROMOTER'))
 const canUpdateOpeningHours = computed(() => can('ALLY_OPENING_HOURS_UPDATE'))
 const canDelete = computed(() => can('ALLY_DELETE'))
 const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('ALLY_RECORD_AUDIT_VIEW'))
@@ -102,6 +103,14 @@ async function restoreAlly() {
   }
   finally {
     restoring.value = false
+  }
+}
+
+// ---- Assigned advisor (who brought the ally in; ALLY_ASSIGN_PROMOTER) ----
+const advisorModalOpen = ref(false)
+function onAdvisorSaved(updated: AllyDto) {
+  if (ally.value) {
+    ally.value = { ...ally.value, capturedByPromoter_Uuid: updated.capturedByPromoter_Uuid, capturedByPromoter_Display: updated.capturedByPromoter_Display }
   }
 }
 
@@ -1131,7 +1140,10 @@ onMounted(async () => {
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('allies.form.fields.capturedByPromoter') }}</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ ally.capturedByPromoter_Display || t('common.empty') }}</dd>
+            <dd class="text-prohealth-800 mt-0.5 flex items-center gap-2">
+              <span>{{ ally.capturedByPromoter_Display || t('common.empty') }}</span>
+              <UButton v-if="canAssignAdvisor" color="neutral" variant="ghost" size="xs" icon="i-lucide-user-pen" :aria-label="t('allies.advisor.change')" :title="t('allies.advisor.change')" @click="advisorModalOpen = true" />
+            </dd>
           </div>
           <!-- Holder person (V209): professional (B2P) or signing representative (B2B). -->
           <div>
@@ -2190,6 +2202,8 @@ onMounted(async () => {
       :can-view-changes="canViewAuditChanges"
       :can-view-reports="canViewAuditReports"
     />
+
+    <AllyAdvisorModal v-model:open="advisorModalOpen" :ally="ally" @saved="onAdvisorSaved" />
 
     <!-- Edit modal (in place, no navigation away from this page) -->
     <AllyFormModal

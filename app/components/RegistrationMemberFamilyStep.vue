@@ -10,7 +10,7 @@ const emit = defineEmits<{ done: [request: MyAffiliationRequestDto | null, mode:
 
 const { t } = useI18n()
 const toast = useToast()
-const api = useMyAffiliationRequest()
+const api = useMemberRegistrationApi()
 
 const MAX_ROWS = 10
 const relationshipOptions = computed(() => RELATIONSHIP_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))

@@ -3,26 +3,36 @@ import type { MyAffiliationRequestDto } from '~/types/affiliationRequests'
 import type { StepExit } from '~/types/registration'
 
 // Wizard step "Datos personales" (affiliate): birth date as three selects. National ID and email come from
-// step 1 and are shown read-only (they identify the account).
+// step 1 and are shown read-only (they identify the account). An advisor's assisted draft has no account yet, so
+// there (`api.editableIdentity`) they are editable to fix a typo.
 const props = defineProps<{ request: MyAffiliationRequestDto, essential: boolean }>()
 const emit = defineEmits<{ done: [request: MyAffiliationRequestDto | null, mode: StepExit] }>()
 
 const { t } = useI18n()
 const toast = useToast()
-const api = useMyAffiliationRequest()
+const api = useMemberRegistrationApi()
 
 const state = reactive({
   firstName: props.request.firstName ?? '',
   lastName: props.request.lastName ?? '',
   birthDate: props.request.birthDate ?? '',
   phone: props.request.phone ?? '',
+  documentType: props.request.documentType || 'V',
+  documentNumber: props.request.documentNumber ?? '',
+  email: props.request.email ?? '',
 })
+const docTypes = [{ value: 'V', label: 'V' }, { value: 'E', label: 'E' }]
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const saving = ref(false)
 
 function invalid(): string | null {
   if (!state.firstName.trim() || !state.lastName.trim() || !state.birthDate) return t('registration.required')
   const birth = new Date(`${state.birthDate}T12:00:00`)
   if (birth.getTime() > Date.now()) return t('registration.birthDate.future')
+  if (api.editableIdentity) {
+    if (!/^\d{1,9}$/.test(state.documentNumber.trim())) return t('affiliationRequest.badDocument')
+    if (!EMAIL_RE.test(state.email.trim())) return t('registration.step1.badEmail')
+  }
   return null
 }
 
@@ -42,6 +52,9 @@ async function finish(mode: StepExit) {
       lastName: state.lastName.trim(),
       birthDate: state.birthDate,
       phone: state.phone.trim() || undefined,
+      ...(api.editableIdentity
+        ? { documentType: state.documentType, documentNumber: state.documentNumber.trim(), email: state.email.trim() }
+        : {}),
     })
     emit('done', saved, mode)
   }
@@ -63,11 +76,16 @@ async function finish(mode: StepExit) {
       <UFormField :label="t('affiliationRequest.lastName')" required>
         <UInput v-model="state.lastName" class="w-full" maxlength="50" autocomplete="family-name" />
       </UFormField>
-      <UFormField :label="t('affiliationRequest.document')">
-        <UInput :model-value="`${request.documentType}${request.documentNumber}`" class="w-full" disabled />
+      <UFormField :label="t('affiliationRequest.document')" :required="api.editableIdentity">
+        <div v-if="api.editableIdentity" class="flex gap-2">
+          <USelect v-model="state.documentType" :items="docTypes" class="w-20" />
+          <UInput v-model="state.documentNumber" class="flex-1" maxlength="9" inputmode="numeric" />
+        </div>
+        <UInput v-else :model-value="`${request.documentType}${request.documentNumber}`" class="w-full" disabled />
       </UFormField>
-      <UFormField :label="t('affiliationRequest.email')">
-        <UInput :model-value="request.email" class="w-full" disabled />
+      <UFormField :label="t('affiliationRequest.email')" :required="api.editableIdentity">
+        <UInput v-if="api.editableIdentity" v-model="state.email" type="email" class="w-full" maxlength="254" />
+        <UInput v-else :model-value="request.email" class="w-full" disabled />
       </UFormField>
       <UFormField :label="t('affiliationRequest.phone')">
         <UInput v-model="state.phone" class="w-full" maxlength="30" autocomplete="tel" />

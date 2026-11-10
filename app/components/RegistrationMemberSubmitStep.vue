@@ -8,7 +8,7 @@ const props = defineProps<{ request: MyAffiliationRequestDto, plans: PublicPlan[
 const emit = defineEmits<{ submitted: [request: MyAffiliationRequestDto], back: [], later: [] }>()
 
 const { t } = useI18n()
-const api = useMyAffiliationRequest()
+const api = useMemberRegistrationApi()
 
 const plan = computed(() => props.plans.find(p => p.uuid === props.request.plan_Uuid) ?? null)
 const missing = computed(() => (props.progress?.steps ?? []).filter(s => s.essential && !s.done && s.key !== 'submit'))

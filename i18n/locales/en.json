@@ -841,6 +841,10 @@
       "affiliatePerson": {
         "label": "Enroll a person",
         "description": "Enroll a person or family from your device."
+      },
+      "myAllies": {
+        "label": "My allies",
+        "description": "The allies you brought in and their registration status."
       }
     },
     "other": {
@@ -1564,7 +1568,8 @@
       "taxId": "Tax ID",
       "city": "City",
       "published": "Published",
-      "status": "Status"
+      "status": "Status",
+      "advisor": "Advisor"
     },
     "status": {
       "ACTIVE": "Active",
@@ -2093,6 +2098,14 @@
         "6": "Saturday",
         "7": "Sunday"
       }
+    },
+    "advisor": {
+      "filter": "Filter by advisor",
+      "change": "Change advisor",
+      "modalTitle": "Ally advisor",
+      "modalHelp": "The advisor who brought the ally into OptiBienestar 360. The change is recorded in the ally change log.",
+      "none": "No advisor",
+      "savedToast": "Advisor updated"
     }
   },
   "catalog": {
@@ -6039,7 +6052,8 @@
       "channel": "Channel",
       "benefitNote": "Proposed benefit",
       "createdAt": "Date",
-      "status": "Status"
+      "status": "Status",
+      "advisor": "Advisor"
     },
     "detail": {
       "seoPage": "Ally request",
@@ -6140,7 +6154,8 @@
       },
       "doneToast": "{count} allies imported",
       "doneBody": "They are pending approval, unpublished and without a user. Invite each contact from its request."
-    }
+    },
+    "advisorFilter": "Filter by advisor"
   },
   "onboardingPolicy": {
     "title": "Registration policy",
@@ -6359,6 +6374,33 @@
     "doneTitle": "Request sent",
     "doneBody": "Once approved, {email} will receive the link to sign in to their portal.",
     "another": "Enroll another person",
-    "seeRequests": "See my requests"
+    "seeRequests": "See my requests",
+    "startTitle": "New enrollment",
+    "startHint": "Start with who the person is. The rest (birth date, plan and contract, payment, family) is saved step by step and you can resume it later.",
+    "startSubmit": "Start",
+    "draftsTitle": "My drafts",
+    "draftsHint": "Enrollments you started and have not sent yet. Tap one to pick up where you left off.",
+    "draftsEmpty": "You have no drafts.",
+    "noPlanYet": "No plan yet",
+    "resume": "Resume",
+    "backToDrafts": "Back to my drafts",
+    "draftFor": "Enrollment of {name} ({document})",
+    "loadFailed": "We could not load the draft.",
+    "savedLater": "Draft saved",
+    "savedLaterBody": "You will find it under “My drafts” to continue whenever you want.",
+    "doneApproved": "The enrollment was approved. {email} will receive the link to sign in to their portal."
+  },
+  "advisorAllies": {
+    "title": "My allies",
+    "subtitle": "The allies you brought into OptiBienestar 360 and where their registration stands.",
+    "searchPlaceholder": "Search by name…",
+    "empty": "You have no allies assigned yet.",
+    "columns": {
+      "ally": "Ally",
+      "city": "City",
+      "createdAt": "Date",
+      "registration": "Registration",
+      "published": "Publication"
+    }
   }
 }

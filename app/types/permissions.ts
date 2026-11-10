@@ -69,6 +69,9 @@ export const PERMISSIONS = [
   'AFFILIATION_REQUEST_VIEW_ALL',
   'AFFILIATION_REQUEST_VIEW_OWN',
   'AFFILIATION_REQUEST_CREATE_ASSISTED',
+  // Assisted affiliation saved as a DRAFT step by step (backend V234): save a step / send it to review.
+  'AFFILIATION_REQUEST_DRAFT_UPDATE_ASSISTED',
+  'AFFILIATION_REQUEST_DRAFT_SUBMIT_ASSISTED',
   'AFFILIATION_REQUEST_UPDATE',
   'AFFILIATION_REQUEST_APPROVE',
   'AFFILIATION_REQUEST_REJECT',
@@ -103,6 +106,9 @@ export const PERMISSIONS = [
   'ALLY_DELETE',
   'ALLY_VIEW_ALL',
   'ALLY_VIEW_OWN',
+  // Assigned advisor of an ally (backend V235): staff assign it, the advisor reads their own allies.
+  'ALLY_ASSIGN_PROMOTER',
+  'PROMOTER_ALLY_VIEW_OWN',
   // Own ally profile edited from the ally portal (hub ADR 0036): the OWNER of the ally.
   'ALLY_UPDATE_OWN',
   'ALLY_LICENSE_UPDATE_OWN',

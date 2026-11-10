@@ -841,6 +841,10 @@
       "affiliatePerson": {
         "label": "Afiliar persona",
         "description": "Afilia a una persona o familia desde tu dispositivo."
+      },
+      "myAllies": {
+        "label": "Mis aliados",
+        "description": "Los aliados que trajiste y su estado de registro."
       }
     },
     "other": {
@@ -1564,7 +1568,8 @@
       "taxId": "RIF",
       "city": "Ciudad",
       "published": "Publicado",
-      "status": "Estado"
+      "status": "Estado",
+      "advisor": "Asesor"
     },
     "status": {
       "ACTIVE": "Activo",
@@ -2093,6 +2098,14 @@
         "6": "Sábado",
         "7": "Domingo"
       }
+    },
+    "advisor": {
+      "filter": "Filtrar por asesor",
+      "change": "Cambiar asesor",
+      "modalTitle": "Asesor del aliado",
+      "modalHelp": "El asesor que trajo al aliado a OptiBienestar 360. El cambio queda en la bitácora del aliado.",
+      "none": "Sin asesor",
+      "savedToast": "Asesor actualizado"
     }
   },
   "catalog": {
@@ -6039,7 +6052,8 @@
       "channel": "Canal",
       "benefitNote": "Beneficio propuesto",
       "createdAt": "Fecha",
-      "status": "Estado"
+      "status": "Estado",
+      "advisor": "Asesor"
     },
     "detail": {
       "seoPage": "Solicitud de alianza",
@@ -6140,7 +6154,8 @@
       },
       "doneToast": "Se importaron {count} aliados",
       "doneBody": "Quedaron pendientes de aprobación, sin publicar y sin usuario. Invita a cada contacto desde su solicitud."
-    }
+    },
+    "advisorFilter": "Filtrar por asesor"
   },
   "onboardingPolicy": {
     "title": "Política de registro",
@@ -6359,6 +6374,33 @@
     "doneTitle": "Solicitud enviada",
     "doneBody": "Cuando se apruebe, {email} recibirá el enlace para entrar a su portal.",
     "another": "Afiliar a otra persona",
-    "seeRequests": "Ver mis solicitudes"
+    "seeRequests": "Ver mis solicitudes",
+    "startTitle": "Nueva afiliación",
+    "startHint": "Empieza con quién es la persona. El resto (nacimiento, plan y contrato, pago, familia) se guarda paso a paso y puedes retomarlo después.",
+    "startSubmit": "Empezar",
+    "draftsTitle": "Mis borradores",
+    "draftsHint": "Afiliaciones que empezaste y aún no envías. Toca una para seguir donde quedaste.",
+    "draftsEmpty": "No tienes borradores.",
+    "noPlanYet": "Sin plan aún",
+    "resume": "Continuar",
+    "backToDrafts": "Volver a mis borradores",
+    "draftFor": "Afiliación de {name} ({document})",
+    "loadFailed": "No pudimos cargar el borrador.",
+    "savedLater": "Borrador guardado",
+    "savedLaterBody": "Lo encuentras en “Mis borradores” para seguir cuando quieras.",
+    "doneApproved": "La afiliación fue aprobada. {email} recibirá el enlace para entrar a su portal."
+  },
+  "advisorAllies": {
+    "title": "Mis aliados",
+    "subtitle": "Los aliados que trajiste a OptiBienestar 360 y en qué estado está su registro.",
+    "searchPlaceholder": "Buscar por nombre…",
+    "empty": "Todavía no tienes aliados asignados.",
+    "columns": {
+      "ally": "Aliado",
+      "city": "Ciudad",
+      "createdAt": "Fecha",
+      "registration": "Registro",
+      "published": "Publicación"
+    }
   }
 }

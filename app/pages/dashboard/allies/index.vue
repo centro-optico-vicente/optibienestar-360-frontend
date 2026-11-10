@@ -49,6 +49,9 @@ const size = ref(DEFAULT_PAGE_SIZE)
 const pageSizeItems = buildPageSizeItems(t)
 const search = ref('')
 const includeInactive = ref(false)
+const advisors = useAdvisorOptions()
+// Advisor who brought the ally in (promoter uuid); only offered with PROMOTER_VIEW_ALL.
+const promoterUuid = ref<string | undefined>(undefined)
 // B2B / B2P (hub ADR 0031) — RSQL `segment==…` on the admin list.
 const segmentFilter = ref<string | undefined>(undefined)
 const segmentFilterOptions = computed(() => [
@@ -74,6 +77,7 @@ async function load() {
       q: search.value.trim() || undefined,
       includeInactive: includeInactive.value,
       filter: segmentFilter.value ? `segment==${segmentFilter.value}` : undefined,
+      promoterUuid: promoterUuid.value,
     })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
@@ -115,7 +119,7 @@ watch(search, () => {
     load()
   }, 400)
 })
-watch([includeInactive, segmentFilter], () => { if (!resetting.value) { page.value = 1; load() } })
+watch([includeInactive, segmentFilter, promoterUuid], () => { if (!resetting.value) { page.value = 1; load() } })
 watch(sort.orders, () => { if (!resetting.value) load() }, { deep: true })
 
 // "Limpiar filtros y actualizar" from the list refresh menu.
@@ -124,6 +128,7 @@ async function resetFilters() {
   search.value = ''
   includeInactive.value = false
   segmentFilter.value = undefined
+  promoterUuid.value = undefined
   sort.reset()
   size.value = DEFAULT_PAGE_SIZE
   page.value = 1
@@ -149,6 +154,7 @@ function effectiveStatusLabel(a: AllyRow): string {
 }
 
 onMounted(async () => {
+  void advisors.load()
   await load()
   await openFromQuery()
 })
@@ -297,6 +303,17 @@ async function confirmDelete() {
         icon="i-lucide-layers"
         class="w-56"
       />
+      <USelectMenu
+        v-if="advisors.available.value"
+        v-model="promoterUuid"
+        clear
+        :items="advisors.options.value"
+        value-key="value"
+        label-key="label"
+        :placeholder="t('allies.advisor.filter')"
+        icon="i-lucide-user-check"
+        class="w-64"
+      />
       <UCheckbox v-model="includeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
       <UButton
         v-if="hasActiveSort"
@@ -332,6 +349,10 @@ async function confirmDelete() {
                 {{ t('allies.columns.city') }}
                 <SortIndicator :state="sort.stateOf('city_Display')" :multi-active="isMultiSort" @clear="sort.remove('city_Display')" />
               </th>
+              <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('capturedByPromoter_Display')">
+                {{ t('allies.columns.advisor') }}
+                <SortIndicator :state="sort.stateOf('capturedByPromoter_Display')" :multi-active="isMultiSort" @clear="sort.remove('capturedByPromoter_Display')" />
+              </th>
               <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('published')">
                 {{ t('allies.columns.published') }}
                 <SortIndicator :state="sort.stateOf('published')" :multi-active="isMultiSort" @clear="sort.remove('published')" />
@@ -344,9 +365,9 @@ async function confirmDelete() {
             </tr>
           </thead>
           <tbody class="divide-y divide-prohealth-100">
-            <TableSkeleton v-if="loading" :rows="8" :cols="7" />
+            <TableSkeleton v-if="loading" :rows="8" :cols="8" />
             <tr v-else-if="data.length === 0">
-              <td colspan="7" class="px-5 py-12 text-center text-prohealth-500">
+              <td colspan="8" class="px-5 py-12 text-center text-prohealth-500">
                 <UIcon name="i-lucide-handshake" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
                 {{ t('allies.empty') }}
               </td>
@@ -389,6 +410,10 @@ async function confirmDelete() {
                   :label="a.city_Display"
                   :can="canViewCity"
                 />
+              </td>
+              <td class="px-5 py-3 text-prohealth-700">
+                <span v-if="a.capturedByPromoter_Display">{{ a.capturedByPromoter_Display }}</span>
+                <span v-else class="text-prohealth-400">{{ t('common.empty') }}</span>
               </td>
               <td class="px-5 py-3">
                 <UBadge :color="a.published ? 'success' : 'neutral'" variant="subtle" size="sm">

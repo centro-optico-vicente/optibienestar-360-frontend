@@ -619,8 +619,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         status: state.status,
         // Replaces the full professions set.
         professionUuids: state.professionUuids,
-        // PATCH semantics: an omitted promoter keeps the current one (it can be changed, not cleared).
-        capturedByPromoterUuid: state.capturedByPromoterUuid,
+        // The advisor is not part of the edit: it changes from the detail page with ALLY_ASSIGN_PROMOTER.
       }
       saved = await allies.update(props.ally.uuid, body)
       toast.add({ title: t('allies.updatedToast'), color: 'success', icon: 'i-lucide-check-circle' })
@@ -847,11 +846,11 @@ function requestDelete() {
           </div>
         </fieldset>
 
-        <UFormField :label="t('allies.form.fields.capturedByPromoter')" name="capturedByPromoterUuid" :help="t('allies.form.capturedByPromoterHelp')">
-          <!-- Clearable only on create: the update is PATCH, so an omitted promoter keeps the current one. -->
+        <UFormField v-if="mode === 'create'" :label="t('allies.form.fields.capturedByPromoter')" name="capturedByPromoterUuid" :help="t('allies.form.capturedByPromoterHelp')">
+          <!-- Only on create: afterwards the advisor changes from the ally detail (ALLY_ASSIGN_PROMOTER). -->
           <USelectMenu
             v-model="state.capturedByPromoterUuid"
-            :clear="mode === 'create'"
+            clear
             :items="promoterOptions"
             label-key="label"
             value-key="value"

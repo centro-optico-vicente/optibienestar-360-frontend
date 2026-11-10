@@ -34,6 +34,9 @@ export interface AffiliationRequestListItemDto {
   plan_Display?: string | null
   advisor_Uuid?: string | null
   advisor_Display?: string | null
+  /** `SELF_SERVICE` (public form / registration wizard) or `ASSISTED` (filled by the advisor). */
+  channel?: string | null
+  channel_Display?: string | null
   status: AffiliationRequestStatus
   status_Display?: string | null
   createdAt: string
@@ -248,6 +251,10 @@ export interface MyAffiliationStepRequest {
   lastName?: string
   birthDate?: string
   phone?: string
+  /** Only read by an advisor's assisted draft without login (to fix a typo); the person's own flow ignores them. */
+  documentType?: string
+  documentNumber?: string
+  email?: string
   planUuid?: string
   termsVersionUuid?: string
   contractAccepted?: boolean
@@ -281,4 +288,17 @@ export interface AssistedAffiliationRequest extends AssistedAffiliationOverrides
   planUuid: string
   termsVersionUuid: string
   contractAccepted: true
+}
+
+/**
+ * POST /v1/me/advisor/affiliation-requests/drafts (backend AssistedAffiliationDraftStartRequest): who the person
+ * is. Birth date, plan + contract, payment and family follow with PATCH /drafts/{uuid}/{step}.
+ */
+export interface AssistedDraftStartRequest {
+  firstName: string
+  lastName: string
+  documentType: string
+  documentNumber: string
+  email: string
+  phone?: string
 }

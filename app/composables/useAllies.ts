@@ -36,6 +36,8 @@ interface ListParams {
   filter?: string
   q?: string
   includeInactive?: boolean
+  /** Only the allies this advisor (promoter uuid) brought in. */
+  promoterUuid?: string
 }
 
 /**
@@ -62,6 +64,7 @@ export const useAllies = () => {
         ...(params.filter ? { filter: params.filter } : {}),
         ...(params.q ? { q: params.q } : {}),
         ...(params.includeInactive ? { includeInactive: 'true' } : {}),
+        ...(params.promoterUuid ? { promoterUuid: params.promoterUuid } : {}),
       },
     })
 
@@ -73,6 +76,10 @@ export const useAllies = () => {
 
   const update = (uuid: string, body: UpdateAllyRequest) =>
     useApi<AllyDto>(`/v1/admin/allies/${uuid}`, { method: 'PUT', body })
+
+  /** Assigns, changes or clears (`null`) the advisor who brought the ally in — ALLY_ASSIGN_PROMOTER. */
+  const assignAdvisor = (uuid: string, promoterUuid: string | null) =>
+    useApi<AllyDto>(`/v1/admin/allies/${uuid}/advisor`, { method: 'PUT', body: { promoterUuid } })
 
   const remove = (uuid: string, physical = false) =>
     useApi<null>(`/v1/admin/allies/${uuid}`, { method: 'DELETE', query: physical ? { physical: true } : {} })
@@ -238,6 +245,7 @@ export const useAllies = () => {
     get,
     create,
     update,
+    assignAdvisor,
     remove,
     restore,
     usage,
