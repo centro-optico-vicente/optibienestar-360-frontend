@@ -8,7 +8,7 @@ import type { AgreementType, AllyRegistrationStatus, AllySegment } from '~/types
 export const ALLY_REGISTRATION_STATUSES = ['PENDING', 'APPROVED', 'REJECTED'] as const
 /** Inbox filter: the real statuses plus IN_PROGRESS (self-registered, steps not yet sent to review; hub ADR 0037). */
 export type AllyRequestStatusFilter = AllyRegistrationStatus | 'IN_PROGRESS'
-export const ALLY_REGISTRATION_CHANNELS = ['SELF_SERVICE', 'IMPORT', 'ADMIN'] as const
+export const ALLY_REGISTRATION_CHANNELS = ['SELF_SERVICE', 'IMPORT', 'ADMIN', 'ADVISOR'] as const
 export type AllyRegistrationChannel = typeof ALLY_REGISTRATION_CHANNELS[number]
 
 export function allyRegistrationStatusColor(value?: string | null): 'warning' | 'success' | 'error' | 'neutral' {
@@ -41,6 +41,26 @@ export interface AllyRequestCreateRequest {
   referralCode?: string
   acceptedPortalTerms: true
   homepage: ''
+}
+
+/**
+ * Body of POST /v1/me/advisor/ally-requests/drafts (hub ADR 0037 §5): who the business or professional is and the
+ * contact person. B2B needs `name`; B2P uses the person's name. The email is required: the contact person's
+ * "create your password" link goes there when the advisor submits.
+ */
+export interface AssistedAllyDraftStartRequest {
+  segment: AllySegment
+  allyTypeUuid?: string
+  name?: string
+  professionUuid?: string
+  firstName: string
+  lastName: string
+  documentType: string
+  documentNumber: string
+  mobile: string
+  email: string
+  cityUuid?: string
+  benefitNote?: string
 }
 
 export interface AllyRequestCreatedDto {

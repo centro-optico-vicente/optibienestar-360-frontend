@@ -119,6 +119,37 @@ async function onSubmitted(sent?: MyAffiliationRequestDto) {
 
 const alreadySubmitted = computed(() => registration.progress.value?.submitted === true && submittedResult.value === null)
 
+/** Jumps to the step that holds something the submit said was missing (hub ADR 0037). */
+function goToStep(step: string) {
+  const idx = stepKeys.value.indexOf(step)
+  if (idx !== -1) current.value = idx
+}
+
+// Discard the registration in progress (AFFILIATION_REGISTRATION_DISCARD_OWN / ALLY_REGISTRATION_DISCARD_OWN): it is
+// deleted and the login closed (its national ID and email are free again), so the person leaves the portal.
+const { can } = usePermissions()
+const canDiscard = computed(() => !alreadySubmitted.value && !submittedResult.value
+  && can(isAlly.value ? 'ALLY_REGISTRATION_DISCARD_OWN' : 'AFFILIATION_REGISTRATION_DISCARD_OWN'))
+const discardOpen = ref(false)
+const discarding = ref(false)
+
+async function discardRegistration() {
+  discarding.value = true
+  try {
+    if (isAlly.value && ally.value) await myAllies.discardRegistration(ally.value.uuid)
+    else await memberApi.discard()
+    discardOpen.value = false
+    toast.add({ title: t('registration.discard.done'), description: t('registration.discard.doneBody'), color: 'success', icon: 'i-lucide-check-circle' })
+    await logout()
+  }
+  catch {
+    // useApi toasted the reason (e.g. it was already sent to review).
+  }
+  finally {
+    discarding.value = false
+  }
+}
+
 function goHome() {
   void router.push(isAlly.value ? '/allies' : '/members')
 }
@@ -162,16 +193,21 @@ function goHome() {
           <RegistrationMemberPlanStep v-else-if="currentKey === 'plan'" :key="'plan'" :request="request" :plans="plans" :essential="essentialOf('plan')" :preselected-plan="typeof route.query.plan === 'string' ? route.query.plan : undefined" @done="onDone" />
           <RegistrationMemberPaymentStep v-else-if="currentKey === 'payment'" :key="'payment'" :request="request" :plans="plans" :essential="essentialOf('payment')" @done="onDone" />
           <RegistrationMemberFamilyStep v-else-if="currentKey === 'family'" :key="'family'" :request="request" :essential="essentialOf('family')" @done="onDone" />
-          <RegistrationMemberSubmitStep v-else :request="request" :plans="plans" :progress="registration.progress.value" @submitted="onSubmitted" @back="onDone(null, 'back')" @later="onDone(null, 'later')" />
+          <RegistrationMemberSubmitStep v-else :request="request" :plans="plans" :progress="registration.progress.value" @submitted="onSubmitted" @goto="goToStep" @back="onDone(null, 'back')" @later="onDone(null, 'later')" />
         </template>
 
         <template v-else-if="isAlly && ally && profile">
           <RegistrationAllyLocationStep v-if="currentKey === 'location'" :key="'location'" :ally-uuid="ally.uuid" :profile="profile" :essential="essentialOf('location')" @done="onDone" />
           <RegistrationAllyLegalStep v-else-if="currentKey === 'fiscal'" :key="'fiscal'" :ally-uuid="ally.uuid" :profile="profile" :essential="essentialOf('fiscal')" @done="onDone" />
           <RegistrationAllyProfileStep v-else-if="currentKey === 'profile'" :key="'profile'" :ally-uuid="ally.uuid" :profile="profile" :essential="essentialOf('profile')" @saved="profile = $event" @done="onDone" />
-          <RegistrationAllySubmitStep v-else :ally-uuid="ally.uuid" :profile="profile" :progress="registration.progress.value" @submitted="onSubmitted()" @back="onDone(null, 'back')" @later="onDone(null, 'later')" />
+          <RegistrationAllySubmitStep v-else :ally-uuid="ally.uuid" :profile="profile" :progress="registration.progress.value" @submitted="onSubmitted()" @goto="goToStep" @back="onDone(null, 'back')" @later="onDone(null, 'later')" />
         </template>
       </div>
+
+      <div v-if="canDiscard" class="text-right">
+        <UButton type="button" color="error" variant="link" size="sm" icon="i-lucide-trash-2" @click="discardOpen = true">{{ t('registration.discard.action') }}</UButton>
+      </div>
+      <DiscardDraftModal v-model:open="discardOpen" :description="isAlly ? t('registration.discard.bodyAlly') : t('registration.discard.bodyMember')" :loading="discarding" @confirm="discardRegistration" />
     </template>
   </div>
 </template>

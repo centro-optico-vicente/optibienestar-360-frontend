@@ -84,6 +84,12 @@ async function load() {
 }
 onMounted(load)
 
+/** Jumps to the step that holds something the submit said was missing (hub ADR 0037). */
+function goToStep(step: string) {
+  const idx = stepKeys.indexOf(step)
+  if (idx !== -1) current.value = idx
+}
+
 function onDone(saved: MyAffiliationRequestDto | null, mode: StepExit) {
   if (saved) request.value = saved
   if (mode === 'later') return emit('later')
@@ -113,7 +119,7 @@ function onDone(saved: MyAffiliationRequestDto | null, mode: StepExit) {
         <RegistrationMemberPlanStep v-else-if="currentKey === 'plan'" :key="'plan'" :request="request" :plans="plans" :essential="DEFAULT_ESSENTIAL_STEPS.plan ?? true" @done="onDone" />
         <RegistrationMemberPaymentStep v-else-if="currentKey === 'payment'" :key="'payment'" :request="request" :plans="plans" :essential="DEFAULT_ESSENTIAL_STEPS.payment ?? false" @done="onDone" />
         <RegistrationMemberFamilyStep v-else-if="currentKey === 'family'" :key="'family'" :request="request" :essential="DEFAULT_ESSENTIAL_STEPS.family ?? false" @done="onDone" />
-        <RegistrationMemberSubmitStep v-else :request="request" :plans="plans" :progress="progress" @submitted="emit('submitted', $event)" @back="onDone(null, 'back')" @later="onDone(null, 'later')" />
+        <RegistrationMemberSubmitStep v-else :request="request" :plans="plans" :progress="progress" @submitted="emit('submitted', $event)" @goto="goToStep" @back="onDone(null, 'back')" @later="onDone(null, 'later')" />
       </div>
     </template>
   </div>

@@ -72,6 +72,9 @@ export const PERMISSIONS = [
   // Assisted affiliation saved as a DRAFT step by step (backend V234): save a step / send it to review.
   'AFFILIATION_REQUEST_DRAFT_UPDATE_ASSISTED',
   'AFFILIATION_REQUEST_DRAFT_SUBMIT_ASSISTED',
+  // Discard a registration in progress (backend V236): the person's own DRAFT, the advisor's assisted DRAFT.
+  'AFFILIATION_REGISTRATION_DISCARD_OWN',
+  'AFFILIATION_REQUEST_DRAFT_DISCARD_ASSISTED',
   'AFFILIATION_REQUEST_UPDATE',
   'AFFILIATION_REQUEST_APPROVE',
   'AFFILIATION_REQUEST_REJECT',
@@ -112,6 +115,13 @@ export const PERMISSIONS = [
   // Own ally profile edited from the ally portal (hub ADR 0036): the OWNER of the ally.
   'ALLY_UPDATE_OWN',
   'ALLY_LICENSE_UPDATE_OWN',
+  // Discard an ally registration in progress (backend V236) and the advisor's ally capture (hub ADR 0037 §5).
+  'ALLY_REGISTRATION_DISCARD_OWN',
+  'ALLY_CREATE_ASSISTED',
+  'ALLY_DRAFT_VIEW_ASSISTED',
+  'ALLY_DRAFT_UPDATE_ASSISTED',
+  'ALLY_DRAFT_SUBMIT_ASSISTED',
+  'ALLY_DRAFT_DISCARD_ASSISTED',
   'ALLY_OPENING_HOURS_UPDATE_OWN',
   // Ally requests (hub ADR 0036): review of self-registered / imported allies.
   'ALLY_REGISTRATION_VIEW_ALL',

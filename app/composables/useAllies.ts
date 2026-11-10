@@ -372,5 +372,12 @@ export const useMyAllies = () => {
   const updateProfile = (allyUuid: string, body: MyAllyProfileUpdateRequest) =>
     useApi<MyAllyProfileDto>(`/v1/me/allies/${allyUuid}/profile`, { method: 'PUT', body })
 
-  return { list, listProducts, getOpeningHours, replaceOpeningHours, getProfile, updateProfile }
+  /**
+   * Discards the ally registration still in progress (ALLY_REGISTRATION_DISCARD_OWN, OWNER only): the ally is
+   * deleted and the login closed. 422 once it was sent to review.
+   */
+  const discardRegistration = (allyUuid: string) =>
+    useApi<void>(`/v1/me/allies/${allyUuid}/registration`, { method: 'DELETE' })
+
+  return { list, listProducts, getOpeningHours, replaceOpeningHours, getProfile, updateProfile, discardRegistration }
 }

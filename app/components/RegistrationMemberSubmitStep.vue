@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import type { MyAffiliationRequestDto } from '~/types/affiliationRequests'
 import type { PublicPlan, RegistrationProgressDto } from '~/types/registration'
+import { missingFromError } from '~/utils/registrationMissing'
 
 // Last wizard step (affiliate): review and send. Sending moves the DRAFT to PENDING and applies the onboarding
 // policy (it may be approved on the spot).
 const props = defineProps<{ request: MyAffiliationRequestDto, plans: PublicPlan[], progress: RegistrationProgressDto | null }>()
-const emit = defineEmits<{ submitted: [request: MyAffiliationRequestDto], back: [], later: [] }>()
+const emit = defineEmits<{ submitted: [request: MyAffiliationRequestDto], back: [], later: [], goto: [step: string] }>()
 
 const { t } = useI18n()
 const api = useMemberRegistrationApi()
@@ -13,14 +14,18 @@ const api = useMemberRegistrationApi()
 const plan = computed(() => props.plans.find(p => p.uuid === props.request.plan_Uuid) ?? null)
 const missing = computed(() => (props.progress?.steps ?? []).filter(s => s.essential && !s.done && s.key !== 'submit'))
 const sending = ref(false)
+// The 422 of a submit with essentials missing: shown as a list with a jump to each step (hub ADR 0037).
+const missingKeys = ref<string[]>([])
 
 async function send() {
   sending.value = true
+  missingKeys.value = []
   try {
     emit('submitted', await api.submit())
   }
-  catch {
-    // useApi toasted what is missing.
+  catch (error) {
+    // useApi toasted the reason; when it is "incomplete" the list says what and where.
+    missingKeys.value = missingFromError(error) ?? []
   }
   finally {
     sending.value = false
@@ -37,6 +42,7 @@ async function send() {
       <div class="flex justify-between gap-3 p-3"><dt class="text-prohealth-500">{{ t('registration.review.payment') }}</dt><dd class="font-medium">{{ request.payment ? t('registration.review.paymentReported') : t('registration.review.paymentLater') }}</dd></div>
       <div class="flex justify-between gap-3 p-3"><dt class="text-prohealth-500">{{ t('registration.review.family') }}</dt><dd class="font-medium">{{ request.family?.length ?? 0 }}</dd></div>
     </dl>
+    <RegistrationMissingAlert v-if="missingKeys.length" kind="MEMBER" :missing="missingKeys" @goto="emit('goto', $event)" />
     <UAlert v-if="missing.length" color="warning" variant="subtle" icon="i-lucide-circle-alert" :title="t('registration.review.missing')" :description="missing.map(s => t(`registration.steps.${s.key}`)).join(', ')" />
     <p class="text-xs text-prohealth-500">{{ t('registration.review.note') }}</p>
     <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 pt-2">

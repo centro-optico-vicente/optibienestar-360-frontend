@@ -845,6 +845,10 @@
       "myAllies": {
         "label": "Mis aliados",
         "description": "Los aliados que trajiste y su estado de registro."
+      },
+      "captureAlly": {
+        "label": "Captar aliado",
+        "description": "Registra un negocio o profesional como aliado desde tu dispositivo."
       }
     },
     "other": {
@@ -6043,7 +6047,8 @@
     "channel": {
       "SELF_SERVICE": "Formulario público",
       "IMPORT": "Plantilla",
-      "ADMIN": "Panel"
+      "ADMIN": "Panel",
+      "ADVISOR": "Captado por un asesor"
     },
     "columns": {
       "name": "Aliado",
@@ -6361,6 +6366,30 @@
       "body": "Tu registro está al {percent}%. Completa lo que falta para terminar.",
       "later": "Recordar luego",
       "now": "Completar ahora"
+    },
+    "missing": {
+      "title": "Falta esto para enviar tu registro",
+      "hint": "Completa lo siguiente y vuelve a enviar:",
+      "goTo": "Ir a {step}",
+      "items": {
+        "birthDate": "Fecha de nacimiento",
+        "plan": "Plan elegido",
+        "contract": "Contrato aceptado",
+        "allyType": "Rubro del aliado",
+        "city": "Ciudad",
+        "taxDocument": "RIF",
+        "profession": "Profesión o especialidad"
+      }
+    },
+    "discard": {
+      "action": "Descartar borrador",
+      "title": "¿Descartar este borrador?",
+      "confirm": "Descartar",
+      "done": "Borrador descartado",
+      "doneBody": "Cuando quieras, puedes empezar un registro nuevo con los mismos datos.",
+      "bodyMember": "Se borra lo que llevas de tu registro y se cierra tu sesión. Tu cédula y tu correo quedan libres para registrarte de nuevo. Esta acción no se puede deshacer.",
+      "bodyAlly": "Se borra lo que llevas de la solicitud y se cierra tu sesión. Tu cédula, el RIF y tu correo quedan libres para registrarte de nuevo. Esta acción no se puede deshacer.",
+      "bodyAssisted": "Se borra este borrador. La cédula y el correo de la persona quedan libres para empezar de nuevo. Esta acción no se puede deshacer."
     }
   },
   "assistedAffiliation": {
@@ -6402,5 +6431,29 @@
       "registration": "Registro",
       "published": "Publicación"
     }
+  },
+  "assistedAlly": {
+    "title": "Captar aliado",
+    "subtitle": "Registra un negocio o a un profesional como aliado desde tu dispositivo. Lo guardas por pasos y lo retomas cuando quieras.",
+    "startTitle": "Nuevo aliado",
+    "startHint": "Empieza con quién es el aliado y su persona de contacto. El resto (rubro, RIF o profesión, ciudad, perfil y horario) se guarda paso a paso.",
+    "contactB2P": "Datos del profesional",
+    "emailHelp": "Al enviar el registro, a este correo le llegará el enlace para crear su contraseña y entrar a su espacio de aliado.",
+    "startSubmit": "Empezar",
+    "draftsTitle": "Mis borradores de aliados",
+    "draftsHint": "Aliados que empezaste y aún no envías. Toca uno para seguir donde quedaste.",
+    "draftsEmpty": "No tienes borradores.",
+    "resume": "Continuar",
+    "backToDrafts": "Volver a mis borradores",
+    "draftFor": "Aliado: {name}",
+    "loadFailed": "No pudimos cargar el borrador.",
+    "savedLater": "Borrador guardado",
+    "savedLaterBody": "Lo encuentras en “Mis borradores de aliados” para seguir cuando quieras.",
+    "doneTitle": "Solicitud enviada",
+    "doneBody": "La solicitud quedó en revisión. {email} recibirá el enlace para crear su contraseña y entrar a su espacio de aliado.",
+    "doneBodyNoEmail": "La solicitud quedó en revisión. La persona de contacto recibirá el enlace para crear su contraseña.",
+    "another": "Captar otro aliado",
+    "seeAllies": "Ver mis aliados",
+    "discardBody": "Se borra este borrador de aliado. La cédula, el RIF y el correo del contacto quedan libres para empezar de nuevo. Esta acción no se puede deshacer."
   }
 }

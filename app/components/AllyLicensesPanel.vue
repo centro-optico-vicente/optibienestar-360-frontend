@@ -27,7 +27,9 @@ const toast = useToast()
 const { can } = usePermissions()
 const licensesApi = useAllyLicenses(props.scope)
 
-const canEditOwn = computed(() => isPortal.value && props.owner && !props.readonly && can('ALLY_LICENSE_UPDATE_OWN'))
+// The advisor that captured the ally edits the draft's licenses with ALLY_DRAFT_UPDATE_ASSISTED (hub ADR 0037 §5).
+const canEditOwn = computed(() => isPortal.value && props.owner && !props.readonly
+  && (can('ALLY_LICENSE_UPDATE_OWN') || can('ALLY_DRAFT_UPDATE_ASSISTED')))
 const canCreate = computed(() => isPortal.value ? canEditOwn.value : can('PERSON_LICENSE_CREATE'))
 const canUpdate = computed(() => !isPortal.value && can('PERSON_LICENSE_UPDATE'))
 const canDelete = computed(() => isPortal.value ? canEditOwn.value : can('PERSON_LICENSE_DELETE'))
