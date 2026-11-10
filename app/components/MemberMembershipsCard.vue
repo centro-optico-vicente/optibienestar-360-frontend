@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { z } from 'zod'
+import { matchesText } from '~/utils/textSearch'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { MembershipCreateRequest, MembershipDto } from '~/types/memberships'
 import type { MembershipPromotionDto, PromotionDto } from '~/types/promotions'
@@ -45,6 +46,17 @@ function openExceptionModal(m: MembershipDto) {
 
 // ---- Listing ----
 const data = ref<MembershipDto[]>([])
+// Client-side filters: this tab loads the member's whole (small) list in one call.
+const tabSearch = ref('')
+const enrolledFrom = ref('')
+const enrolledTo = ref('')
+const shown = computed(() => data.value.filter((m) => {
+  if (!matchesText(tabSearch.value, m.planName, m.planCode, m.contractNumber, m.status)) return false
+  const day = (m.enrolledAt ?? '').slice(0, 10)
+  if (enrolledFrom.value && (!day || day < enrolledFrom.value)) return false
+  if (enrolledTo.value && (!day || day > enrolledTo.value)) return false
+  return true
+}))
 const loading = ref(false)
 
 async function load() {
@@ -369,6 +381,11 @@ async function confirmLifecycle() {
       </div>
     </div>
 
+    <div v-if="data.length > 0" class="flex flex-wrap items-center gap-3 px-6 py-3 border-b border-prohealth-100">
+      <UInput v-model="tabSearch" icon="i-lucide-search" :placeholder="t('memberships.tabSearchPlaceholder')" class="w-full sm:w-64" />
+      <DateRangeFilter v-model:from="enrolledFrom" v-model:to="enrolledTo" :from-label="t('memberships.filters.enrolledFrom')" :to-label="t('memberships.filters.enrolledTo')" />
+    </div>
+
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
         <thead>
@@ -390,7 +407,10 @@ async function confirmLifecycle() {
               {{ t('memberships.empty') }}
             </td>
           </tr>
-          <tr v-for="m in data" v-else :key="m.uuid" class="hover:bg-prohealth-50/50">
+          <tr v-else-if="shown.length === 0">
+            <td colspan="7" class="px-6 py-8 text-center text-prohealth-500">{{ t('memberships.noMatches') }}</td>
+          </tr>
+          <tr v-for="m in shown" v-else :key="m.uuid" class="hover:bg-prohealth-50/50">
             <td class="px-6 py-3">
               <div class="font-semibold">
                 <CommonEntityLinkCell

@@ -49,12 +49,11 @@ const plansApi = usePlans()
 const promotersApi = usePromoters()
 const methodsApi = useCatalog('/v1/admin/payment-methods')
 const planOptions = ref<SelectItem[]>([])
-const promoterOptions = ref<SelectItem[]>([])
 const methodOptions = ref<SelectItem[]>([])
 
 const filterFields = computed<ListFilterField[]>(() => [
   { key: 'planUuid', label: t('affiliationRequests.filters.plan'), icon: 'i-lucide-layers', items: planOptions.value },
-  { key: 'promoterUuid', label: t('affiliationRequests.filters.advisor'), icon: 'i-lucide-users', items: promoterOptions.value },
+  { key: 'promoterUuid', label: t('affiliationRequests.filters.advisor'), icon: 'i-lucide-users', search: promotersApi.searchOptions },
   { key: 'paymentMethodUuid', label: t('affiliationRequests.filters.paymentMethod'), icon: 'i-lucide-credit-card', items: methodOptions.value },
   { key: 'dateFrom', toKey: 'dateTo', label: t('affiliationRequests.filters.dateFrom'), toLabel: t('affiliationRequests.filters.dateTo'), type: 'dateRange' },
 ])
@@ -62,13 +61,11 @@ const masterFilters = ref(emptyListFilters(filterFields.value))
 
 onMounted(async () => {
   try {
-    const [plans, advisors, methods] = await Promise.all([
+    const [plans, methods] = await Promise.all([
       plansApi.options({ limit: 100 }),
-      promotersApi.list({ size: 100, sort: ['displayName,asc'] }),
       methodsApi.listAll(),
     ])
     planOptions.value = plans.map(p => ({ label: p.label, value: p.uuid }))
-    promoterOptions.value = (advisors.content ?? []).map(a => ({ label: a.displayName, value: a.uuid }))
     methodOptions.value = methods.filter(m => m.active).map(m => ({ label: m.name, value: m.uuid }))
   }
   catch {

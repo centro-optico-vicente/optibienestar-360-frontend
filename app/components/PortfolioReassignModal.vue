@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { PromoterDto } from '~/types/promoters'
 
 /**
  * Portfolio reassignment (MEMBER_ASSIGN_PROMOTER), from the promoter detail
@@ -36,28 +35,18 @@ const targetUuid = ref<string | undefined>(undefined)
 const reason = ref('')
 const touched = ref(false)
 const submitting = ref(false)
-const promoterOptions = ref<{ label: string, value: string }[]>([])
-const loadingOptions = ref(false)
 
 const targetError = computed(() =>
   props.mode === 'selected' && touched.value && !targetUuid.value ? t('validation.required') : undefined)
 const reasonError = computed(() =>
   touched.value && reason.value.trim().length < 3 ? t('validation.minChars', { n: 3 }) : undefined)
 
-async function loadPromoterOptions() {
-  loadingOptions.value = true
-  try {
-    const page = await promoters.list({ size: 100, sort: ['displayName,asc'] })
-    promoterOptions.value = (page.content ?? [])
-      .filter((p: PromoterDto) => p.active && p.uuid !== props.sourcePromoterUuid)
-      .map((p: PromoterDto) => ({ label: p.displayName, value: p.uuid }))
-  }
-  catch {
-    promoterOptions.value = []
-  }
-  finally {
-    loadingOptions.value = false
-  }
+/** Server-side advisor search for the target select: active advisors only, never the source one. */
+async function searchPromoterTargets(q: string) {
+  const res = await promoters.options({ ...(q ? { q } : {}), limit: 20 })
+  return res
+    .filter(o => o.active && o.uuid !== props.sourcePromoterUuid)
+    .map(o => ({ label: o.label, value: o.uuid }))
 }
 
 watch(() => props.open, (open) => {
@@ -65,7 +54,6 @@ watch(() => props.open, (open) => {
   targetUuid.value = undefined
   reason.value = ''
   touched.value = false
-  if (props.mode === 'selected') loadPromoterOptions()
 })
 
 async function confirm() {
@@ -115,12 +103,9 @@ async function confirm() {
         <p class="text-xs text-prohealth-500">{{ t('promoters.portfolio.historyNotice') }}</p>
 
         <UFormField v-if="mode === 'selected'" :label="t('promoters.portfolio.target')" required :error="targetError">
-          <USelectMenu
+          <CommonEntityReferenceSelect
             v-model="targetUuid"
-            :items="promoterOptions"
-            label-key="label"
-            value-key="value"
-            :loading="loadingOptions"
+            :search="searchPromoterTargets"
             :placeholder="t('promoters.portfolio.targetPlaceholder')"
             class="w-full"
           />

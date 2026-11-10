@@ -64,6 +64,8 @@ const rolesApi = useRoles()
 const roleOptions = ref<SelectItem[]>([])
 const filterFields = computed<ListFilterField[]>(() => [
   { key: 'roleUuid', label: t('security.users.filters.role'), icon: 'i-lucide-shield', items: roleOptions.value },
+  // Account creation date range (sent as dateFrom/dateTo).
+  { key: 'dateFrom', toKey: 'dateTo', label: t('security.users.filters.createdFrom'), toLabel: t('security.users.filters.createdTo'), type: 'dateRange' },
 ])
 const masterFilters = ref(emptyListFilters(filterFields.value))
 

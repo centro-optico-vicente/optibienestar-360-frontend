@@ -252,17 +252,22 @@ watch(size, (s) => {
   if (s !== UNPAGED_PAGE_SIZE && groupByPromoter.value) groupByPromoter.value = false
 })
 
-// Debounced via the central delay (spec 08): amount/period edits send one request, not one per keystroke.
+// Amount boxes are debounced via the central delay (spec 08); selects, period and checkboxes reload at once.
 const debouncedFilterLoad = useTableFilterDebounce(() => {
   if (resetting.value) return
   page.value = 1
   load()
 })
+watch([amountFrom, amountTo], () => {
+  if (resetting.value) return
+  debouncedFilterLoad()
+})
 watch(
-  [periodRange, promoterTypeUuid, promoterUuid, appliesTo, status, amountFrom, amountTo, campaignUuid, rankUuid, ruleSource],
+  [periodRange, promoterTypeUuid, promoterUuid, appliesTo, status, campaignUuid, rankUuid, ruleSource],
   () => {
     if (resetting.value) return
-    debouncedFilterLoad()
+    page.value = 1
+    load()
   },
   { deep: true },
 )

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { COMMISSION_STATUS_OPTIONS } from '~/types/promoters'
-import type { PromoterDto } from '~/types/promoters'
 
 definePageMeta({
   layout: 'dashboard',
@@ -25,7 +24,6 @@ const canViewCurrency = computed(() => can('CURRENCY_VIEW_ALL'))
 const generatingPdf = ref(false)
 const generatingXlsx = ref(false)
 
-const promoters = ref<PromoterDto[]>([])
 const loadingCatalogs = ref(false)
 
 const defaultCurrencyOptions = computed(() => [
@@ -42,13 +40,6 @@ function currencyLink(code: string | null | undefined): string | null {
 
 async function loadCatalogs() {
   loadingCatalogs.value = true
-  try {
-    const res = await promotersApi.list({ size: 100, sort: ['displayName,asc'] })
-    promoters.value = res.content ?? []
-  } catch (err: any) {
-    console.error('Failed to load promoters:', err)
-  }
-
   try {
     const curRes = await useApi<Array<{ uuid?: string; code: string; label: string; active?: boolean }>>('/v1/admin/currencies/options')
     if (curRes && curRes.length > 0) {
@@ -70,14 +61,6 @@ onMounted(loadCatalogs)
 
 const ALL_VALUE = 'ALL'
 
-const promoterOptions = computed(() => [
-  { label: t('commissions.report.promoterAll'), value: ALL_VALUE },
-  ...promoters.value.map(p => ({
-    label: `${p.displayName} (${p.referralCode || t('common.noCode')})`,
-    value: p.uuid,
-  })),
-])
-
 function formatDateIso(d: Date): string {
   const y = d.getFullYear()
   const m = String(d.getMonth() + 1).padStart(2, '0')
@@ -88,7 +71,7 @@ function formatDateIso(d: Date): string {
 const commFilters = reactive({
   startDate: '',
   endDate: '',
-  promoter: ALL_VALUE,
+  promoter: '',
   status: ALL_VALUE,
   appliesTo: ALL_VALUE,
   targetCurrency: 'USD',
@@ -149,7 +132,7 @@ function setCommPreset(preset: DatePreset) {
 function resetCommFilters() {
   commFilters.startDate = ''
   commFilters.endDate = ''
-  commFilters.promoter = ALL_VALUE
+  commFilters.promoter = ''
   commFilters.status = ALL_VALUE
   commFilters.appliesTo = ALL_VALUE
   commFilters.targetCurrency = 'USD'
@@ -318,15 +301,11 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
           {{ t('commissions.report.promoter') }}
         </label>
         <div class="flex items-center gap-2">
-          <USelectMenu
-            clear
+          <CommonEntityReferenceSelect
             v-model="commFilters.promoter"
-            :items="promoterOptions"
-            label-key="label"
-            value-key="value"
+            :search="promotersApi.searchOptions"
             icon="i-lucide-user"
             :placeholder="t('commissions.report.promoterAll')"
-            :ui="{ content: 'z-[100]' }"
             class="w-full"
           />
           <CommonEntityQuickLinkButton

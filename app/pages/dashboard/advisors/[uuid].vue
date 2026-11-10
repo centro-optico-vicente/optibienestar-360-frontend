@@ -336,10 +336,20 @@ const commissionsLoading = ref(false)
 const commissionsSort = useTableSort([])
 const commissionsHasActiveSort = computed(() => commissionsSort.hasActiveSort.value)
 const commissionsIsMultiSort = computed(() => commissionsSort.orders.value.length > 1)
+// Client-side period filter: a period shows when it overlaps the chosen range (small aggregate list).
+const commissionsFrom = ref('')
+const commissionsTo = ref('')
+const commissionsInRange = computed(() => commissionsSummaryRaw.value.filter((s) => {
+  const start = (s.periodStart ?? '').slice(0, 10)
+  const end = (s.periodEnd ?? '').slice(0, 10)
+  if (commissionsFrom.value && end && end < commissionsFrom.value) return false
+  if (commissionsTo.value && start && start > commissionsTo.value) return false
+  return true
+}))
 const commissionsSummary = computed(() => {
   const orders = commissionsSort.orders.value
-  if (orders.length === 0) return commissionsSummaryRaw.value
-  const sorted = [...commissionsSummaryRaw.value]
+  if (orders.length === 0) return commissionsInRange.value
+  const sorted = [...commissionsInRange.value]
   sorted.sort((a, b) => {
     for (const o of orders) {
       const cmp = compareValues(
@@ -726,7 +736,8 @@ async function loadCommissionsSummary() {
             <h2 class="font-bold text-prohealth-900">{{ t('promoters.detail.commissions.title') }}</h2>
             <p class="text-xs text-prohealth-500 mt-0.5">{{ t('promoters.detail.commissions.hint') }}</p>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="flex flex-wrap items-center gap-2">
+            <DateRangeFilter v-if="commissionsSummaryRaw.length > 0" v-model:from="commissionsFrom" v-model:to="commissionsTo" :from-label="t('promoters.detail.commissions.dateFrom')" :to-label="t('promoters.detail.commissions.dateTo')" />
             <UButton
               v-if="commissionsHasActiveSort"
               variant="link"
@@ -765,7 +776,7 @@ async function loadCommissionsSummary() {
               <tr v-else-if="commissionsSummary.length === 0">
                 <td colspan="3" class="px-6 py-10 text-center text-prohealth-500">
                   <UIcon name="i-lucide-hand-coins" class="w-7 h-7 mx-auto mb-2 text-prohealth-300" />
-                  {{ t('promoters.detail.commissions.empty') }}
+                  {{ commissionsSummaryRaw.length > 0 ? t('promoters.detail.commissions.noMatches') : t('promoters.detail.commissions.empty') }}
                 </td>
               </tr>
               <tr v-for="s in commissionsSummary" v-else :key="`${s.periodStart}-${s.periodEnd}`" class="hover:bg-prohealth-50/50">

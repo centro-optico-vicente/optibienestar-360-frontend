@@ -318,7 +318,9 @@
       "advisorCreatedToast": "Ficha de asesor creada",
       "advisorCreateFailedToast": "El usuario se creó, pero no se pudo crear la ficha de asesor. Créala desde Asesores.",
       "filters": {
-        "role": "Rol"
+        "role": "Rol",
+        "createdFrom": "Creado desde",
+        "createdTo": "Creado hasta"
       }
     },
     "roles": {
@@ -2131,7 +2133,8 @@
     "filters": {
       "allyType": "Tipo de aliado",
       "profession": "Profesión",
-      "state": "Estado / Departamento"
+      "state": "Estado / Departamento",
+      "city": "Ciudad"
     }
   },
   "catalog": {
@@ -3062,7 +3065,9 @@
       "delete": {
         "title": "Eliminar beneficiario",
         "confirm": "¿Seguro que deseas eliminar a {name}? Esta acción desactiva su cobertura (soft-delete)."
-      }
+      },
+      "searchPlaceholder": "Buscar beneficiario…",
+      "noMatches": "Ningún beneficiario coincide con la búsqueda."
     },
     "medical": {
       "title": "Histórico médico",
@@ -3121,7 +3126,10 @@
           "date": "Fecha",
           "actor": "Realizado por",
           "reason": "Motivo"
-        }
+        },
+        "dateFrom": "Desde",
+        "dateTo": "Hasta",
+        "noMatches": "Ningún cambio en ese rango de fechas."
       },
       "form": {
         "changeTitle": "Cambiar asesor",
@@ -3396,7 +3404,8 @@
         "enrolledTo": "Afiliación hasta",
         "nextDueFrom": "Próximo vencimiento desde",
         "nextDueTo": "Próximo vencimiento hasta",
-        "clear": "Quitar filtros"
+        "clear": "Quitar filtros",
+        "searchPlaceholder": "Buscar por afiliado, documento, correo, teléfono o contrato…"
       },
       "columns": {
         "member": "Afiliado",
@@ -3433,7 +3442,13 @@
       "expiresRequired": "Indica la fecha de vencimiento: el plan no define vigencia.",
       "clearsPendingNotice": "Al quitar la reinscripción también se limpia la reinscripción pendiente de esta membresía.",
       "savedToast": "Vigencia actualizada"
-    }
+    },
+    "tabSearchPlaceholder": "Buscar por plan, contrato o estado…",
+    "filters": {
+      "enrolledFrom": "Inscrito desde",
+      "enrolledTo": "Inscrito hasta"
+    },
+    "noMatches": "Ninguna membresía coincide con el filtro."
   },
   "validator": {
     "seoTitle": "Validador — OptiBienestar 360",
@@ -3670,7 +3685,10 @@
           "period": "Período",
           "count": "Cantidad",
           "total": "Total"
-        }
+        },
+        "dateFrom": "Período desde",
+        "dateTo": "Período hasta",
+        "noMatches": "Ningún período en ese rango de fechas."
       }
     },
     "form": {
@@ -4353,6 +4371,10 @@
         "addRow": "+ Agregar parámetro",
         "invalidJson": "El JSON de parámetros no es válido"
       }
+    },
+    "filters": {
+      "lastRunFrom": "Última ejecución desde",
+      "lastRunTo": "Última ejecución hasta"
     }
   },
   "referrals": {

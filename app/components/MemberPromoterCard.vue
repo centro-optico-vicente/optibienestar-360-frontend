@@ -2,7 +2,6 @@
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { MemberPromoterAssignmentDto } from '~/types/members'
-import type { PromoterDto } from '~/types/promoters'
 
 // Permanent member↔promoter link (v2 PDF 2.a): current promoter + reassign/link-by-code
 // + history. Embedded in the member detail page (/dashboard/members/[uuid]) like
@@ -34,6 +33,15 @@ function goToPromoter(to: string) {
 
 // ---- History ----
 const history = ref<MemberPromoterAssignmentDto[]>([])
+// Client-side date range on the assignment date: the history is a small, unpaginated list.
+const historyFrom = ref('')
+const historyTo = ref('')
+const shownHistory = computed(() => history.value.filter((row) => {
+  const day = (row.assignedAt ?? '').slice(0, 10)
+  if (historyFrom.value && (!day || day < historyFrom.value)) return false
+  if (historyTo.value && (!day || day > historyTo.value)) return false
+  return true
+}))
 const historyLoading = ref(false)
 
 async function loadHistory() {
@@ -57,8 +65,6 @@ onMounted(loadHistory)
 // promoterUuid XOR referralCode either way.
 const formOpen = ref(false)
 const submitting = ref(false)
-const promoterOptions = ref<{ label: string, value: string }[]>([])
-const loadingOptions = ref(false)
 
 const state = reactive({
   mode: 'select' as 'select' | 'code',
@@ -75,20 +81,12 @@ const schema = computed(() => z.object({
   reason: z.string().min(3, t('validation.minChars', { n: 3 })),
 }))
 
-async function loadPromoterOptions() {
-  loadingOptions.value = true
-  try {
-    const page = await promoters.list({ size: 100, sort: ['displayName,asc'] })
-    promoterOptions.value = (page.content ?? [])
-      .filter((p: PromoterDto) => p.active && p.uuid !== props.currentPromoterUuid)
-      .map((p: PromoterDto) => ({ label: p.displayName, value: p.uuid }))
-  }
-  catch {
-    promoterOptions.value = []
-  }
-  finally {
-    loadingOptions.value = false
-  }
+/** Server-side advisor search for the target select: active advisors only, never the current one. */
+async function searchPromoterTargets(q: string) {
+  const res = await promoters.options({ ...(q ? { q } : {}), limit: 20 })
+  return res
+    .filter(o => o.active && o.uuid !== props.currentPromoterUuid)
+    .map(o => ({ label: o.label, value: o.uuid }))
 }
 
 function openForm(mode: 'select' | 'code') {
@@ -97,7 +95,6 @@ function openForm(mode: 'select' | 'code') {
   state.referralCode = ''
   state.reason = ''
   formOpen.value = true
-  if (mode === 'select') loadPromoterOptions()
 }
 
 async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
@@ -173,8 +170,9 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
 
     <!-- History -->
     <div class="border-t border-prohealth-100">
-      <div class="px-6 py-3">
+      <div class="flex flex-wrap items-center justify-between gap-3 px-6 py-3">
         <h3 class="text-sm font-semibold text-prohealth-800">{{ t('members.promoter.history.title') }}</h3>
+        <DateRangeFilter v-if="history.length > 0" v-model:from="historyFrom" v-model:to="historyTo" :from-label="t('members.promoter.history.dateFrom')" :to-label="t('members.promoter.history.dateTo')" />
       </div>
       <div class="overflow-auto">
         <table class="w-full text-sm">
@@ -193,7 +191,10 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
                 {{ t('members.promoter.history.empty') }}
               </td>
             </tr>
-            <tr v-for="row in history" v-else :key="row.uuid">
+            <tr v-else-if="shownHistory.length === 0">
+              <td colspan="4" class="px-6 py-6 text-center text-prohealth-400 text-sm">{{ t('members.promoter.history.noMatches') }}</td>
+            </tr>
+            <tr v-for="row in shownHistory" v-else :key="row.uuid">
               <td class="px-6 py-2 text-prohealth-600">{{ row.fromPromoterName || t('members.promoter.none') }}</td>
               <td class="px-6 py-2 text-prohealth-800 font-medium">{{ row.toPromoterName }}</td>
               <td class="px-6 py-2 text-prohealth-600">{{ formatDate(row.assignedAt, 'short') }}</td>
@@ -222,8 +223,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           <UFormField v-if="state.mode === 'select'" :label="t('members.promoter.form.promoter')" name="promoterUuid" required>
             <CommonEntityReferenceSelect
               v-model="state.promoterUuid"
-              :items="promoterOptions"
-              :loading="loadingOptions"
+              :search="searchPromoterTargets"
               entity="promoter"
               :placeholder="t('common.select')"
               @navigate="goToPromoter"

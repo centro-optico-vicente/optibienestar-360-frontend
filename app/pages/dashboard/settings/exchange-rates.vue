@@ -111,9 +111,15 @@ const debouncedFilterLoad = useTableFilterDebounce(() => {
   page.value = 1
   load()
 })
-watch([base, quote, sourceFilter, dateFrom, dateTo, search], () => {
+// Only the free-text box is debounced; currency/source selects and dates reload at once.
+watch(search, () => {
   if (resetting.value) return
   debouncedFilterLoad()
+})
+watch([base, quote, sourceFilter, dateFrom, dateTo], () => {
+  if (resetting.value) return
+  page.value = 1
+  load()
 })
 watch(sort.orders, () => { if (!resetting.value) load() }, { deep: true })
 

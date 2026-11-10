@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { PromoterDto } from '~/types/promoters'
 
 definePageMeta({
   layout: 'dashboard',
@@ -24,7 +23,6 @@ const canViewCurrency = computed(() => can('CURRENCY_VIEW_ALL'))
 const generatingPdf = ref(false)
 const generatingXlsx = ref(false)
 
-const promoters = ref<PromoterDto[]>([])
 const loadingCatalogs = ref(false)
 
 const defaultCurrencyOptions = computed(() => [
@@ -41,13 +39,6 @@ function currencyLink(code: string | null | undefined): string | null {
 
 async function loadCatalogs() {
   loadingCatalogs.value = true
-  try {
-    const res = await promotersApi.list({ size: 100, sort: ['displayName,asc'] })
-    promoters.value = res.content ?? []
-  } catch (err: any) {
-    console.error('Failed to load promoters:', err)
-  }
-
   try {
     const curRes = await useApi<Array<{ uuid?: string; code: string; label: string; active?: boolean }>>('/v1/admin/currencies/options')
     if (curRes && curRes.length > 0) {
@@ -69,18 +60,10 @@ onMounted(loadCatalogs)
 
 const ALL_VALUE = 'ALL'
 
-const promoterOptions = computed(() => [
-  { label: t('commissions.payoutsReport.promoterAll'), value: ALL_VALUE },
-  ...promoters.value.map(p => ({
-    label: `${p.displayName} (${p.referralCode || t('common.noCode')})`,
-    value: p.uuid,
-  })),
-])
-
 const payoutFilters = reactive({
   startDate: '',
   endDate: '',
-  promoter: ALL_VALUE,
+  promoter: '',
   payoutReference: '',
   targetCurrency: 'USD',
 })
@@ -132,7 +115,7 @@ function setPayoutPreset(preset: DatePreset) {
 function resetPayoutFilters() {
   payoutFilters.startDate = ''
   payoutFilters.endDate = ''
-  payoutFilters.promoter = ALL_VALUE
+  payoutFilters.promoter = ''
   payoutFilters.payoutReference = ''
   payoutFilters.targetCurrency = 'USD'
 }
@@ -298,15 +281,11 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             {{ t('commissions.payoutsReport.promoter') }}
           </label>
           <div class="flex items-center gap-2">
-            <USelectMenu
-              clear
+            <CommonEntityReferenceSelect
               v-model="payoutFilters.promoter"
-              :items="promoterOptions"
-              label-key="label"
-              value-key="value"
+              :search="promotersApi.searchOptions"
               icon="i-lucide-user"
               :placeholder="t('commissions.payoutsReport.promoterAll')"
-              :ui="{ content: 'z-[100]' }"
               class="w-full"
             />
             <CommonEntityQuickLinkButton

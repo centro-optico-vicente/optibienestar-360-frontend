@@ -22,7 +22,6 @@ const currenciesApi = useCatalog('/v1/admin/currencies')
 const methodOptions = ref<SelectItem[]>([])
 const bankOptions = ref<SelectItem[]>([])
 const categoryOptions = ref<SelectItem[]>([])
-const promoterOptions = ref<SelectItem[]>([])
 const currencyOptions = ref<SelectItem[]>([])
 
 async function searchMembers(q: string): Promise<SelectItem[]> {
@@ -36,19 +35,17 @@ function patch(partial: Partial<PaymentMasterFilterState>) {
 
 onMounted(async () => {
   try {
-    const [methods, banks, categories, currencies, advisors] = await Promise.all([
+    const [methods, banks, categories, currencies] = await Promise.all([
       methodsApi.listAll(),
       banksApi.listAll(),
       categoriesApi.listAll(),
       currenciesApi.listAll(),
-      promotersApi.list({ size: 100, sort: ['displayName,asc'] }),
     ])
     const active = (items: CatalogItem[]) => items.filter(i => i.active)
     methodOptions.value = active(methods).map(m => ({ label: m.name, value: m.uuid }))
     bankOptions.value = active(banks).map(b => ({ label: bankOptionLabel(b), value: b.uuid }))
     categoryOptions.value = active(categories).map(c => ({ label: c.name, value: c.uuid }))
     currencyOptions.value = active(currencies).map(c => ({ label: `${c.code} (${c.symbol})`, value: c.code! }))
-    promoterOptions.value = (advisors.content ?? []).map(a => ({ label: a.displayName, value: a.uuid }))
   }
   catch {
     // useApi already notified; the dropdowns just stay empty
@@ -99,12 +96,9 @@ onMounted(async () => {
       class="w-48"
       @update:model-value="patch({ categoryUuid: $event ?? '' })"
     />
-    <USelectMenu
+    <CommonEntityReferenceSelect
       :model-value="model.promoterUuid || undefined"
-      clear
-      :items="promoterOptions"
-      label-key="label"
-      value-key="value"
+      :search="promotersApi.searchOptions"
       icon="i-lucide-users"
       :placeholder="t('payments.filters.advisor')"
       class="w-48"

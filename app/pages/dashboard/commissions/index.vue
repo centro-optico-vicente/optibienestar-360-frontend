@@ -70,11 +70,6 @@ const currenciesApi = useCurrencies()
 const currencyOptions = ref<SelectItem[]>([])
 const statusOptions = computed(() => COMMISSION_STATUS_OPTIONS.map(o => ({ label: t(o.labelKey), value: String(o.value) })))
 
-async function searchPromoters(q: string): Promise<SelectItem[]> {
-  const res = await promotersApi.list({ q, size: 20 })
-  return (res.content ?? []).map(p => ({ label: p.displayName, value: p.uuid }))
-}
-
 async function searchMembers(q: string): Promise<SelectItem[]> {
   const res = await membersApi.options({ ...(q ? { q } : {}), limit: 10 })
   return res.map(o => ({ label: memberOptionLabel(o), value: o.uuid }))
@@ -141,9 +136,15 @@ const debouncedSearchLoad = useTableFilterDebounce(() => {
   page.value = 1
   load()
 })
-watch([search, filter, promoterUuid, memberUuid, statusFilter, currencyFilter, dateFrom, dateTo], () => {
+// Only the free-text boxes are debounced; selects and dates are discrete changes and reload at once.
+watch([search, filter], () => {
   if (resetting.value) return
   debouncedSearchLoad()
+})
+watch([promoterUuid, memberUuid, statusFilter, currencyFilter, dateFrom, dateTo], () => {
+  if (resetting.value) return
+  page.value = 1
+  load()
 })
 watch(includeInactive, () => { if (!resetting.value) { page.value = 1; load() } })
 watch(sort.orders, () => { if (!resetting.value) load() }, { deep: true })
@@ -421,7 +422,7 @@ async function confirmVoid() {
       />
       <CommonEntityReferenceSelect
         v-model="promoterUuid"
-        :search="searchPromoters"
+        :search="promotersApi.searchOptions"
         icon="i-lucide-users"
         :placeholder="t('commissions.filters.advisor')"
         class="w-52"

@@ -79,7 +79,6 @@ const filters = reactive({
   nextDueTo: '',
 })
 
-const promoterOptions = ref<SelectItem[]>([])
 const planOptions = ref<SelectItem[]>([])
 
 const planTypeOptions = computed(() => PLAN_TYPE_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
@@ -94,11 +93,7 @@ const statusOptions = computed<SelectItem[]>(() => [
 
 async function loadFilterOptions() {
   try {
-    const [advisors, plans] = await Promise.all([
-      promotersApi.list({ size: 100, sort: ['displayName,asc'] }),
-      plansApi.options({ limit: 100 }),
-    ])
-    promoterOptions.value = (advisors.content ?? []).map(a => ({ label: a.displayName, value: a.uuid }))
+    const plans = await plansApi.options({ limit: 100 })
     planOptions.value = plans.map(p => ({ label: p.label, value: p.uuid }))
   }
   catch {
@@ -106,9 +101,12 @@ async function loadFilterOptions() {
   }
 }
 
-const activeFilterCount = computed(() => Object.values(filters).filter(Boolean).length)
+// Free-text box (`q`: name, document, email, phone, contract). Debounced apart from the discrete filters above.
+const listSearch = ref('')
+const activeFilterCount = computed(() => Object.values(filters).filter(Boolean).length + (listSearch.value.trim() ? 1 : 0))
 
 function clearFilters() {
+  listSearch.value = ''
   Object.assign(filters, { promoterUuid: '', planUuid: '', planType: null, status: '', enrolledFrom: '', enrolledTo: '', nextDueFrom: '', nextDueTo: '' })
 }
 
@@ -125,6 +123,7 @@ async function load() {
     const res = await memberships.search({
       page: page.value - 1,
       size: size.value,
+      q: listSearch.value.trim() || undefined,
       promoterUuid: filters.promoterUuid || undefined,
       planUuid: filters.planUuid || undefined,
       planType: filters.planType || undefined,
@@ -151,6 +150,12 @@ watch(filters, () => {
   page.value = 1
   load()
 })
+// Typing `asd` sends one request with `q=asd` (central delay, spec 08).
+const debouncedListSearch = useTableFilterDebounce(() => {
+  page.value = 1
+  load()
+})
+watch(listSearch, () => debouncedListSearch())
 watch(page, load)
 
 onMounted(() => {
@@ -206,12 +211,18 @@ function paymentStatusColor(s?: string | null): 'error' | 'warning' | 'success' 
       </p>
 
       <div v-if="!selectedMemberUuid" class="space-y-3">
+        <UInput
+          v-model="listSearch"
+          :placeholder="t('memberships.page.filters.searchPlaceholder')"
+          icon="i-lucide-search"
+          class="w-full sm:max-w-md"
+        />
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <UFormField :label="t('memberships.page.filters.status')">
             <USelectMenu v-model="filters.status" clear :items="statusOptions" label-key="label" value-key="value" :placeholder="t('memberships.page.filters.any')" class="w-full" />
           </UFormField>
           <UFormField :label="t('memberships.page.filters.advisor')">
-            <USelectMenu v-model="filters.promoterUuid" clear :items="promoterOptions" label-key="label" value-key="value" :placeholder="t('memberships.page.filters.any')" class="w-full" />
+            <CommonEntityReferenceSelect v-model="filters.promoterUuid" :search="promotersApi.searchOptions" :placeholder="t('memberships.page.filters.any')" class="w-full" />
           </UFormField>
           <UFormField :label="t('memberships.page.filters.plan')">
             <USelectMenu v-model="filters.planUuid" clear :items="planOptions" label-key="label" value-key="value" :placeholder="t('memberships.page.filters.any')" class="w-full" />

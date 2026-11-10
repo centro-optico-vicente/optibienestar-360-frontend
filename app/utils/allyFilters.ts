@@ -4,12 +4,15 @@ export interface AllyMasterFilterState {
   allyTypeUuid: string
   professionUuid: string
   stateUuid: string
+  /** Cascades from `stateUuid`: cleared whenever the state changes. */
+  cityUuid: string
 }
 
 export const emptyAllyMasterFilters = (): AllyMasterFilterState => ({
   allyTypeUuid: '',
   professionUuid: '',
   stateUuid: '',
+  cityUuid: '',
 })
 
 /** Dedicated query params the backend lists accept (blank ones are omitted). */
@@ -18,5 +21,6 @@ export function allyFilterQuery(f: AllyMasterFilterState) {
     allyTypeUuid: f.allyTypeUuid || undefined,
     professionUuid: f.professionUuid || undefined,
     stateUuid: f.stateUuid || undefined,
+    cityUuid: f.cityUuid || undefined,
   }
 }
