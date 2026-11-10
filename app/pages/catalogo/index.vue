@@ -116,10 +116,9 @@ function reload() {
 }
 
 watch([type, category], reload)
-let typingTimer: ReturnType<typeof setTimeout> | undefined
+const debouncedTypingLoad = useTableFilterDebounce(reload)
 watch([search, city, ally], () => {
-  clearTimeout(typingTimer)
-  typingTimer = setTimeout(reload, 400)
+  debouncedTypingLoad()
 })
 
 const hasFilters = computed(() =>

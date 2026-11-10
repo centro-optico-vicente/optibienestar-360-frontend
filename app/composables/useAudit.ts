@@ -23,6 +23,8 @@ interface EntityAuditParams {
   from?: string
   to?: string
   filter?: string
+  /** Free-text, accent/case-insensitive (backend `?q=`). */
+  q?: string
   page?: number
   size?: number
   sort?: string
@@ -86,6 +88,8 @@ interface JobRunAuditParams {
   triggeredBy?: JobTriggerSource | JobTriggerSource[]
   from?: string
   to?: string
+  /** Free-text, accent/case-insensitive (backend `?q=`). */
+  q?: string
   page?: number
   size?: number
   sort?: string[]
@@ -101,6 +105,8 @@ interface LoginAuditParams {
   from?: string
   to?: string
   filter?: string
+  /** Free-text, accent/case-insensitive (backend `?q=`). */
+  q?: string
   page?: number
   size?: number
   sort?: string[]
@@ -129,6 +135,7 @@ export const useAudit = () => {
         from: params.from,
         to: params.to,
         filter: params.filter,
+        q: params.q || undefined,
         page,
         size,
         sort: params.sort ?? 'occurredAt,DESC',
@@ -220,6 +227,7 @@ export const useAudit = () => {
         from: params.from,
         to: params.to,
         filter: params.filter,
+        q: params.q || undefined,
         page,
         size,
         ...(params.sort?.length ? { sort: params.sort } : {}),
@@ -256,6 +264,7 @@ export const useAudit = () => {
         triggeredBy,
         from: params.from,
         to: params.to,
+        q: params.q || undefined,
         page,
         size,
         ...(params.sort?.length ? { sort: params.sort } : {}),

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { MyReferralDto } from '~/types/promoters'
-import { referralStatusColor } from '~/types/promoters'
+import { referralStatusColor, REFERRAL_STATUS_OPTIONS } from '~/types/promoters'
 
 // Authenticated affiliate's own referral history (GET /v1/me/referrals,
 // REFERRAL_CODE_VIEW_OWN). Self-gated: if the user lacks the permission it renders
@@ -17,11 +17,24 @@ const total = ref(0)
 const loading = ref(false)
 const page = ref(1) // UPagination is 1-based; the API is 0-based
 const size = ref(10)
+const search = ref('')
+const statusFilter = ref('')
+const dateFrom = ref('')
+const dateTo = ref('')
+const statusOptions = computed(() => REFERRAL_STATUS_OPTIONS.map(o => ({ label: t(o.labelKey, o.label), value: o.value })))
+const hasFilters = computed(() => !!search.value.trim() || !!statusFilter.value || !!dateFrom.value || !!dateTo.value)
 
 async function load() {
   loading.value = true
   try {
-    const res = await referrals.mine({ page: page.value - 1, size: size.value })
+    const res = await referrals.mine({
+      page: page.value - 1,
+      size: size.value,
+      status: statusFilter.value || undefined,
+      q: search.value.trim() || undefined,
+      dateFrom: dateFrom.value || undefined,
+      dateTo: dateTo.value || undefined,
+    })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
   }
@@ -36,6 +49,18 @@ async function load() {
 }
 
 watch(page, load)
+function reloadFromFirstPage() {
+  if (page.value !== 1) page.value = 1
+  else load()
+}
+watch([statusFilter, dateFrom, dateTo], reloadFromFirstPage)
+// Debounced via the central delay (spec 08): typing `asd` sends one request, not three.
+const debouncedSearchLoad = useTableFilterDebounce(() => {
+  reloadFromFirstPage()
+})
+watch(search, () => {
+  debouncedSearchLoad()
+})
 
 onMounted(() => {
   if (canView.value) load()
@@ -64,6 +89,22 @@ function referredName(r: MyReferralDto): string {
       <p class="text-xs text-prohealth-500 mt-0.5">{{ t('referrals.mine.subtitle') }}</p>
     </div>
 
+    <!-- Filters: always visible so an empty result can be cleared -->
+    <div class="px-6 py-3 border-b border-prohealth-100 flex flex-wrap items-center gap-3">
+      <UInput v-model="search" icon="i-lucide-search" :placeholder="t('referrals.mine.searchPlaceholder')" class="w-full sm:w-64" />
+      <USelectMenu
+        v-model="statusFilter"
+        clear
+        :items="statusOptions"
+        label-key="label"
+        value-key="value"
+        icon="i-lucide-filter"
+        :placeholder="t('referrals.mine.statusPlaceholder')"
+        class="w-full sm:w-48"
+      />
+      <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('referrals.mine.dateFrom')" :to-label="t('referrals.mine.dateTo')" />
+    </div>
+
     <!-- Loading -->
     <div v-if="loading" class="px-6 py-8 space-y-3">
       <USkeleton class="h-5 w-full rounded" />
@@ -73,7 +114,7 @@ function referredName(r: MyReferralDto): string {
     <!-- Empty -->
     <div v-else-if="data.length === 0" class="px-6 py-10 text-center text-prohealth-500">
       <UIcon name="i-lucide-share-2" class="w-7 h-7 mx-auto mb-2 text-prohealth-300" />
-      <p class="text-sm">{{ t('referrals.mine.empty') }}</p>
+      <p class="text-sm">{{ hasFilters ? t('referrals.mine.emptyFiltered') : t('referrals.mine.empty') }}</p>
     </div>
 
     <!-- List -->

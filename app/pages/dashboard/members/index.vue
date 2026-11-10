@@ -5,6 +5,9 @@ import type {
   MemberListItemDto,
 } from '~/types/members'
 import type { SortDirection } from '~/composables/useTableSort'
+import type { ListFilterField } from '~/utils/listFilters'
+import { emptyListFilters, listFilterQuery } from '~/utils/listFilters'
+import type { SelectItem } from '~/types/options'
 
 type MemberRow = MemberListItemDto | MemberDto
 
@@ -47,6 +50,53 @@ const size = ref(DEFAULT_PAGE_SIZE)
 const pageSizeItems = buildPageSizeItems(t)
 const search = ref('')
 const includeInactive = ref(false)
+// ---- Master-table filters (advisor, gender, city, occupation, confirmation) ----
+const promotersApi = usePromoters()
+const genderOptions = ref<SelectItem[]>([])
+const occupationOptions = ref<SelectItem[]>([])
+const promoterOptions = ref<SelectItem[]>([])
+
+async function searchCities(q: string): Promise<SelectItem[]> {
+  const res = await useCatalogOptions('cities').options({ ...(q ? { q } : {}), limit: 15 })
+  return res.map(o => ({ label: o.label, value: o.uuid }))
+}
+
+const filterFields = computed<ListFilterField[]>(() => [
+  { key: 'promoterUuid', label: t('members.filters.advisor'), icon: 'i-lucide-users', items: promoterOptions.value },
+  { key: 'genderUuid', label: t('members.filters.gender'), icon: 'i-lucide-venus-and-mars', items: genderOptions.value, class: 'w-40' },
+  { key: 'cityUuid', label: t('members.filters.city'), icon: 'i-lucide-map-pin', search: searchCities },
+  { key: 'occupationUuid', label: t('members.filters.occupation'), icon: 'i-lucide-briefcase', items: occupationOptions.value },
+  {
+    key: 'confirmed',
+    label: t('members.filters.confirmation'),
+    icon: 'i-lucide-badge-check',
+    items: [
+      { label: t('members.filters.confirmed'), value: 'true' },
+      { label: t('members.filters.pending'), value: 'false' },
+    ],
+    class: 'w-44',
+  },
+  // Enrollment date range (members.enrolledAt) — sent as dateFrom/dateTo.
+  { key: 'dateFrom', toKey: 'dateTo', label: t('members.filters.enrolledFrom'), toLabel: t('members.filters.enrolledTo'), type: 'dateRange' },
+])
+const masterFilters = ref(emptyListFilters(filterFields.value))
+
+onMounted(async () => {
+  try {
+    const [genders, occupations, advisors] = await Promise.all([
+      useCatalogOptions('genders').options({ limit: 100 }),
+      useCatalogOptions('occupations').options({ limit: 200 }),
+      canViewPromoter.value ? promotersApi.list({ size: 100, sort: ['displayName,asc'] }) : Promise.resolve(null),
+    ])
+    genderOptions.value = genders.map(o => ({ label: o.label, value: o.uuid }))
+    occupationOptions.value = occupations.map(o => ({ label: o.label, value: o.uuid }))
+    promoterOptions.value = (advisors?.content ?? []).map(a => ({ label: a.displayName, value: a.uuid }))
+  }
+  catch {
+    // useApi already notified; the dropdowns just stay empty
+  }
+})
+
 // Empty by default: no `sort=` is sent until the user clicks a column, so
 // the backend's own default-sort fallback (entity_config → system_configs
 // → enrolledAt DESC) applies.
@@ -64,6 +114,7 @@ async function load() {
       // The backend exposes free-text search (trigram, accent-insensitive)
       q: search.value.trim() || undefined,
       includeInactive: includeInactive.value,
+      extra: listFilterQuery(masterFilters.value),
     })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
@@ -90,22 +141,24 @@ const resetting = ref(false)
 
 watch(size, () => { if (!resetting.value) page.value = 1 })
 watch([page, size], () => { if (!resetting.value) load() })
-let searchTimer: ReturnType<typeof setTimeout> | undefined
+// Debounced via the central delay (spec 08): typing `asd` sends one request, not three.
+const debouncedSearchLoad = useTableFilterDebounce(() => {
+  if (resetting.value) return
+  page.value = 1
+  load()
+})
 watch(search, () => {
   if (resetting.value) return
-  clearTimeout(searchTimer)
-  searchTimer = setTimeout(() => {
-    page.value = 1
-    load()
-  }, 400)
+  debouncedSearchLoad()
 })
-watch(includeInactive, () => { if (!resetting.value) { page.value = 1; load() } })
+watch([includeInactive, masterFilters], () => { if (!resetting.value) { page.value = 1; load() } })
 watch(sort.orders, () => { if (!resetting.value) load() }, { deep: true })
 
 async function resetFilters() {
   resetting.value = true
   search.value = ''
   includeInactive.value = false
+  masterFilters.value = emptyListFilters(filterFields.value)
   sort.reset()
   size.value = DEFAULT_PAGE_SIZE
   page.value = 1
@@ -296,6 +349,7 @@ function displayName(m: MemberListItemDto): string {
         class="w-full max-w-md"
       />
       <UCheckbox v-model="includeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
+      <ListFilterBar v-model="masterFilters" :fields="filterFields" class="w-full" />
       <UButton
         v-if="hasActiveSort"
         variant="link"

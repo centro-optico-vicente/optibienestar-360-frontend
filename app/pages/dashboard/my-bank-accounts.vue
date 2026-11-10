@@ -3,6 +3,7 @@ import type { CatalogItem } from '~/types/catalogs'
 import type { MyBankAccountRequest, SavedOriginAccountDto } from '~/types/payments'
 import { BANK_ACCOUNT_TYPE_OPTIONS } from '~/types/payments'
 import { requiredFields } from '~/utils/paymentMethodRequirements'
+import { matchesText } from '~/utils/textSearch'
 
 // "Mis cuentas bancarias" — the origin accounts the caller pays FROM, which a payment form offers to reuse.
 // Own data, so any logged-in user may manage them (no permission gate): the backend scopes every call to the
@@ -21,6 +22,15 @@ useSeoMeta({ title: () => t('common.seoTitle', { page: t('myBankAccounts.title')
 
 const accounts = ref<SavedOriginAccountDto[]>([])
 const loading = ref(false)
+
+// Own accounts are a small, fully loaded list: filter in memory (accent/case-insensitive).
+const search = ref('')
+const bankFilter = ref('')
+const visibleAccounts = computed(() => accounts.value.filter(a =>
+  (!bankFilter.value || a.bank_Uuid === bankFilter.value)
+  && matchesText(search.value, a.alias, a.identification, a.accountIdentifier, a.accountCode, a.bank_Display, a.bank_Code,
+    ...(a.paymentMethods ?? []).map(m => m.name)),
+))
 
 async function load() {
   loading.value = true
@@ -218,6 +228,20 @@ async function confirmDelete() {
       <UButton icon="i-lucide-plus" @click="openCreate">{{ t('myBankAccounts.add') }}</UButton>
     </div>
 
+    <div v-if="accounts.length" class="flex flex-wrap items-center gap-3">
+      <UInput v-model="search" icon="i-lucide-search" :placeholder="t('myBankAccounts.searchPlaceholder')" class="w-full sm:w-72" />
+      <USelectMenu
+        v-model="bankFilter"
+        clear
+        :items="bankOptions"
+        label-key="label"
+        value-key="value"
+        icon="i-lucide-landmark"
+        :placeholder="t('myBankAccounts.filters.bank')"
+        class="w-full sm:w-56"
+      />
+    </div>
+
     <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
       <div v-if="loading" class="p-6 space-y-3">
         <USkeleton v-for="n in 3" :key="n" class="h-10 w-full rounded" />
@@ -240,7 +264,7 @@ async function confirmDelete() {
           </tr>
         </thead>
         <tbody class="divide-y divide-prohealth-100">
-          <tr v-for="a in accounts" :key="a.uuid" class="hover:bg-prohealth-50/50">
+          <tr v-for="a in visibleAccounts" :key="a.uuid" class="hover:bg-prohealth-50/50">
             <td class="px-5 py-3">
               <div class="flex flex-wrap gap-1">
                 <UBadge v-for="m in a.paymentMethods" :key="m.uuid" color="primary" variant="subtle" size="sm">{{ m.name }}</UBadge>

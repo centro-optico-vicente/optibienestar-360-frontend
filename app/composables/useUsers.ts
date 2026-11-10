@@ -12,7 +12,11 @@ interface ListParams {
   /** Multi-column sort, e.g. `['createdAt,desc']` — repeated as `sort=` query params. */
   sort?: string[]
   filter?: string
+  /** Free-text, accent/case-insensitive (backend `?q=`). */
+  q?: string
   includeInactive?: boolean
+  /** Master-table filters (query-param name → value), see `utils/listFilters.ts`. */
+  extra?: Record<string, string>
 }
 
 interface OptionsParams {
@@ -33,7 +37,9 @@ export const useUsers = () => {
         size: params.size ?? 20,
         ...(params.sort?.length ? { sort: params.sort } : {}),
         ...(params.filter ? { filter: params.filter } : {}),
+        ...(params.q ? { q: params.q } : {}),
         ...(params.includeInactive ? { includeInactive: 'true' } : {}),
+        ...(params.extra ?? {}),
       },
     })
 

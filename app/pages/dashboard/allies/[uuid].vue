@@ -23,6 +23,7 @@ import {
   ALLY_ROLE_OPTIONS,
 } from '~/types/allies'
 import type { TermsVersionDto } from '~/types/terms'
+import { matchesText } from '~/utils/textSearch'
 
 definePageMeta({
   layout: 'dashboard',
@@ -197,6 +198,17 @@ const productsPage = ref(1) // UPagination is 1-based; the API is 0-based
 const PRODUCTS_PAGE_SIZE = 20
 const productsSearch = ref('')
 const productsType = ref<ProductType | undefined>(undefined)
+const productsCategory = ref<string | undefined>(undefined)
+const productCategoryOptions = ref<{ label: string, value: string }[]>([])
+async function loadProductCategories() {
+  try {
+    const items = await usePublicCatalog('product-categories').list()
+    productCategoryOptions.value = items.map(i => ({ label: i.name, value: i.uuid }))
+  }
+  catch {
+    productCategoryOptions.value = []
+  }
+}
 const productsSort = useTableSort([])
 const productsHasActiveSort = computed(() => productsSort.hasActiveSort.value)
 const productsIsMultiSort = computed(() => productsSort.orders.value.length > 1)
@@ -212,6 +224,7 @@ async function loadProducts() {
       sort: productsSort.sortParam.value,
       q: productsSearch.value.trim() || undefined,
       type: productsType.value,
+      categoryUuid: productsCategory.value,
     })
     products.value = res.content ?? []
     productsTotal.value = res.totalElements ?? 0
@@ -225,17 +238,16 @@ async function loadProducts() {
 }
 watch(productsSort.orders, () => loadProducts(), { deep: true })
 watch(productsPage, () => loadProducts())
-watch(productsType, () => {
+watch([productsType, productsCategory], () => {
   if (productsPage.value !== 1) productsPage.value = 1
   else loadProducts()
 })
-let productsSearchTimer: ReturnType<typeof setTimeout> | undefined
+const debouncedProductsSearchLoad = useTableFilterDebounce(() => {
+  if (productsPage.value !== 1) productsPage.value = 1
+  else loadProducts()
+})
 watch(productsSearch, () => {
-  clearTimeout(productsSearchTimer)
-  productsSearchTimer = setTimeout(() => {
-    if (productsPage.value !== 1) productsPage.value = 1
-    else loadProducts()
-  }, 400)
+  debouncedProductsSearchLoad()
 })
 
 function productTypeLabel(p: AllyProductDto): string {
@@ -938,11 +950,27 @@ async function refreshAll() {
   }
 }
 
+// ---- Client-side search for the small detail tabs (accent/case-insensitive) ----
+const professionsSearch = ref('')
+const allyTypesSearch = ref('')
+const agreementsSearch = ref('')
+const staffSearch = ref('')
+const filteredProfessions = computed(() =>
+  professions.value.filter(p => matchesText(professionsSearch.value, professionLabel(p), p.name)))
+const filteredAllyTypes = computed(() =>
+  allyTypes.value.filter(a => matchesText(allyTypesSearch.value, a.name)))
+const filteredAgreements = computed(() =>
+  agreements.value.filter(a => matchesText(agreementsSearch.value,
+    a.agreementType_Display ?? agrTypeLabel(a.agreementType), a.terms, a.status)))
+const filteredStaff = computed(() =>
+  staff.value.filter(s => matchesText(staffSearch.value, s.userFullName, s.userEmail, s.allyRole)))
+
 // ---- Init ----
 onMounted(async () => {
   await loadAlly()
   await Promise.all([
     loadProducts(),
+    loadProductCategories(),
     loadProfessions(),
     loadAllyTypes(),
     loadAgreements(),
@@ -1294,6 +1322,16 @@ onMounted(async () => {
             size="sm"
             class="w-44"
           />
+          <USelectMenu
+            clear
+            v-model="productsCategory"
+            :items="productCategoryOptions"
+            label-key="label"
+            value-key="value"
+            :placeholder="t('products.filters.allCategories')"
+            size="sm"
+            class="w-52"
+          />
         </div>
 
         <div class="overflow-x-auto">
@@ -1503,6 +1541,13 @@ onMounted(async () => {
         </div>
 
         <div class="p-6 space-y-5">
+          <UInput
+            v-model="professionsSearch"
+            :placeholder="t('allies.professions.searchPlaceholder')"
+            icon="i-lucide-search"
+            size="sm"
+            class="w-full max-w-xs"
+          />
           <!-- List -->
           <div v-if="professionsLoading" class="flex gap-2">
             <USkeleton v-for="i in 3" :key="i" class="h-7 w-28 rounded-full" />
@@ -1512,7 +1557,7 @@ onMounted(async () => {
           </p>
           <div v-else class="flex flex-wrap gap-2">
             <UBadge
-              v-for="s in professions"
+              v-for="s in filteredProfessions"
               :key="s.uuid"
               color="primary"
               variant="subtle"
@@ -1590,6 +1635,13 @@ onMounted(async () => {
         </div>
 
         <div class="p-6 space-y-5">
+          <UInput
+            v-model="allyTypesSearch"
+            :placeholder="t('allies.allyTypes.searchPlaceholder')"
+            icon="i-lucide-search"
+            size="sm"
+            class="w-full max-w-xs"
+          />
           <!-- List -->
           <div v-if="allyTypesLoading" class="flex gap-2">
             <USkeleton v-for="i in 3" :key="i" class="h-7 w-28 rounded-full" />
@@ -1599,7 +1651,7 @@ onMounted(async () => {
           </p>
           <div v-else class="flex flex-wrap gap-2">
             <UBadge
-              v-for="s in allyTypes"
+              v-for="s in filteredAllyTypes"
               :key="s.uuid"
               color="primary"
               variant="subtle"
@@ -1663,6 +1715,16 @@ onMounted(async () => {
           </div>
         </div>
 
+        <div class="px-6 py-3 border-b border-prohealth-100">
+          <UInput
+            v-model="agreementsSearch"
+            :placeholder="t('allies.agreements.searchPlaceholder')"
+            icon="i-lucide-search"
+            size="sm"
+            class="w-full max-w-xs"
+          />
+        </div>
+
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
             <thead>
@@ -1695,7 +1757,7 @@ onMounted(async () => {
                   {{ t('allies.agreements.empty') }}
                 </td>
               </tr>
-              <tr v-for="a in agreements" v-else :key="a.uuid" class="hover:bg-prohealth-50/50">
+              <tr v-for="a in filteredAgreements" v-else :key="a.uuid" class="hover:bg-prohealth-50/50">
                 <td class="px-6 py-3 font-semibold text-prohealth-900">{{ a.agreementType_Display ?? agrTypeLabel(a.agreementType) }}</td>
                 <td class="px-6 py-3 text-prohealth-600">{{ a.startDate_Display ?? date(a.startDate) }}</td>
                 <td class="px-6 py-3 text-prohealth-600">{{ a.endDate_Display ?? date(a.endDate) }}</td>
@@ -1785,6 +1847,16 @@ onMounted(async () => {
           </div>
         </div>
 
+        <div class="px-6 py-3 border-b border-prohealth-100">
+          <UInput
+            v-model="staffSearch"
+            :placeholder="t('allies.staff.searchPlaceholder')"
+            icon="i-lucide-search"
+            size="sm"
+            class="w-full max-w-xs"
+          />
+        </div>
+
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
             <thead>
@@ -1820,7 +1892,7 @@ onMounted(async () => {
                   {{ t('allies.staff.empty') }}
                 </td>
               </tr>
-              <tr v-for="s in staff" v-else :key="s.uuid" class="hover:bg-prohealth-50/50">
+              <tr v-for="s in filteredStaff" v-else :key="s.uuid" class="hover:bg-prohealth-50/50">
                 <td class="px-6 py-3">
                   <div class="font-semibold">
                     <CommonEntityLinkCell

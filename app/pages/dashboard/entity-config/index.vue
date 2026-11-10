@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { matchesText } from '~/utils/textSearch'
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { EntityConfigDto } from '~/composables/useEntityConfig'
@@ -46,10 +47,9 @@ function summarizeSort(sort?: ConfigSortOrder[] | null): string {
 }
 
 const filtered = computed(() => {
-  const q = search.value.trim().toLowerCase()
-  if (!q) return allData.value
-  return allData.value.filter(e =>
-    e.entityKey.toLowerCase().includes(q) || e.displayName.toLowerCase().includes(q))
+  // Accent/case-insensitive, like the server-side `q` of paginated lists.
+  if (!search.value.trim()) return allData.value
+  return allData.value.filter(e => matchesText(search.value, e.entityKey, e.displayName))
 })
 
 const total = computed(() => filtered.value.length)

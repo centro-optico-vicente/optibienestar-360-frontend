@@ -33,6 +33,7 @@ const total = ref(0)
 const loading = ref(false)
 const page = ref(1) // UPagination is 1-based; the API is 0-based
 const size = ref(20)
+const search = ref('')
 
 const recordModalOpen = ref(false)
 const selected = ref<AllyPatientLinkDto | null>(null)
@@ -72,11 +73,14 @@ watch(selectedAllyUuid, async (allyUuid) => {
   }
 })
 
+const dateFrom = ref('')
+const dateTo = ref('')
+
 async function load() {
   if (!selectedAllyUuid.value || !eligible.value) return
   loading.value = true
   try {
-    const res = await patientAccess.patients(selectedAllyUuid.value, { page: page.value - 1, size: size.value })
+    const res = await patientAccess.patients(selectedAllyUuid.value, { page: page.value - 1, size: size.value, q: search.value, dateFrom: dateFrom.value || undefined, dateTo: dateTo.value || undefined })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
   }
@@ -90,6 +94,17 @@ async function load() {
 }
 
 watch(page, load)
+// Typing resets to page 1 — a filtered result set on page 3 would render empty.
+const debouncedSearch = useTableFilterDebounce(() => {
+  if (page.value !== 1) page.value = 1
+  else load()
+})
+watch(search, debouncedSearch)
+// Dates are discrete: reload immediately.
+watch([dateFrom, dateTo], () => {
+  if (page.value !== 1) page.value = 1
+  else load()
+})
 
 function openRecord(link: AllyPatientLinkDto) {
   selected.value = link
@@ -138,6 +153,16 @@ function openRecord(link: AllyPatientLinkDto) {
     />
 
     <div v-else-if="!checking" class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
+      <div class="px-6 py-3 border-b border-prohealth-100 flex flex-wrap items-center gap-3">
+        <UInput
+          v-model="search"
+          :placeholder="t('patientAccess.patients.searchPlaceholder')"
+          icon="i-lucide-search"
+          size="sm"
+          class="w-full max-w-xs"
+        />
+        <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('patientAccess.patients.dateFrom')" :to-label="t('patientAccess.patients.dateTo')" />
+      </div>
       <div v-if="loading" class="px-6 py-8 space-y-3">
         <USkeleton class="h-5 w-full rounded" />
         <USkeleton class="h-5 w-3/4 rounded" />

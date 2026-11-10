@@ -6,6 +6,7 @@ import {
   paymentStatusColor,
 } from '~/types/payments'
 import type { SortDirection } from '~/composables/useTableSort'
+import { emptyPaymentMasterFilters, joinRsql, paymentFilterQuery } from '~/utils/paymentFilters'
 
 definePageMeta({
   layout: 'dashboard',
@@ -52,6 +53,7 @@ const statusFilter = ref<PaymentStatus | null>(null)
 // Empty by default: no `sort=` is sent until the user clicks a column, so
 // the backend's own default-sort fallback (entity_config → system_configs
 // → receivedAt DESC) applies.
+const masterFilters = ref(emptyPaymentMasterFilters())
 const sort = useTableSort([])
 const hasActiveSort = computed(() => sort.hasActiveSort.value)
 const isMultiSort = computed(() => sort.orders.value.length > 1)
@@ -64,7 +66,10 @@ const statusFilterOptions = computed(() => [
 
 function buildFilter(): string | undefined {
   // RSQL: status equality. The queue leverages the (status, received_at DESC) index.
-  return statusFilter.value ? `status==${statusFilter.value}` : undefined
+  return joinRsql(
+    statusFilter.value && `status==${statusFilter.value}`,
+    masterFilters.value.currency && `currency.code==${masterFilters.value.currency}`,
+  )
 }
 
 async function load() {
@@ -75,6 +80,7 @@ async function load() {
       size: size.value,
       sort: sort.sortParam.value,
       filter: buildFilter(),
+      ...paymentFilterQuery(masterFilters.value),
       // Free-text over referenceNumber, adminNotes and supportFileName.
       q: search.value.trim() || undefined,
     })
@@ -103,17 +109,18 @@ const resetting = ref(false)
 
 watch(size, () => { if (!resetting.value) page.value = 1 })
 watch([page, size], () => { if (!resetting.value) load() })
-watch(statusFilter, () => {
+watch([statusFilter, masterFilters], () => {
   if (!resetting.value) { page.value = 1; load() }
 })
-let searchTimer: ReturnType<typeof setTimeout> | undefined
+// Debounced via the central delay (spec 08): typing `asd` sends one request, not three.
+const debouncedSearchLoad = useTableFilterDebounce(() => {
+  if (resetting.value) return
+  page.value = 1
+  load()
+})
 watch(search, () => {
   if (resetting.value) return
-  clearTimeout(searchTimer)
-  searchTimer = setTimeout(() => {
-    page.value = 1
-    load()
-  }, 400)
+  debouncedSearchLoad()
 })
 watch(sort.orders, () => { if (!resetting.value) load() }, { deep: true })
 
@@ -121,6 +128,7 @@ async function resetFilters() {
   resetting.value = true
   search.value = ''
   statusFilter.value = null
+  masterFilters.value = emptyPaymentMasterFilters()
   sort.reset()
   size.value = DEFAULT_PAGE_SIZE
   page.value = 1
@@ -237,6 +245,7 @@ async function confirmDelete() {
         class="w-full max-w-md"
       />
       <USelectMenu
+        clear
         v-model="statusFilter"
         :items="statusFilterOptions"
         label-key="label"
@@ -245,6 +254,7 @@ async function confirmDelete() {
         icon="i-lucide-filter"
         class="w-44"
       />
+      <PaymentMasterFilters v-model="masterFilters" class="w-full" />
       <UButton
         v-if="hasActiveSort"
         variant="link"

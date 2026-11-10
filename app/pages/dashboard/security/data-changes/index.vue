@@ -37,6 +37,7 @@ const pageSizeItems = buildPageSizeItems(t)
 const expandedUuids = ref<Set<string>>(new Set())
 
 const entityKeyFilter = ref<string[]>([])
+const search = ref('')
 const actorUuidFilter = ref<string | undefined>(undefined)
 const ACTION_OPTIONS: { label: string, value: AuditAction }[] = [
   { label: t('audit.actions.CREATE'), value: 'CREATE' },
@@ -104,6 +105,7 @@ async function load() {
       action: actionFilter.value,
       from: dateRange.value.from,
       to: dateRange.value.to,
+      q: search.value.trim() || undefined,
       page: page.value - 1,
       size: size.value,
     })
@@ -124,12 +126,23 @@ const resetting = ref(false)
 
 watch(size, () => { if (!resetting.value) page.value = 1 })
 watch([page, size], () => { if (!resetting.value) load() })
+// Debounced via the central delay (spec 08): typing `asd` sends one request, not three.
+const debouncedSearchLoad = useTableFilterDebounce(() => {
+  if (resetting.value) return
+  page.value = 1
+  load()
+})
+watch(search, () => {
+  if (resetting.value) return
+  debouncedSearchLoad()
+})
 watch([entityKeyFilter, actorUuidFilter, actionFilter, dateRange], () => {
   if (!resetting.value) { page.value = 1; load() }
 }, { deep: true })
 
 async function resetFilters() {
   resetting.value = true
+  search.value = ''
   entityKeyFilter.value = []
   actorUuidFilter.value = undefined
   actionFilter.value = []
@@ -159,6 +172,13 @@ onMounted(load)
 
     <!-- Filtros -->
     <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
+      <UInput
+        v-model="search"
+        :placeholder="$t('security.dataChanges.searchPlaceholder')"
+        icon="i-lucide-search"
+        size="lg"
+        class="w-full max-w-md"
+      />
       <AuditEntityKeyMultiSelect v-model="entityKeyFilter" />
       <AuditActorSelect v-model="actorUuidFilter" />
       <USelectMenu

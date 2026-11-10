@@ -59,14 +59,13 @@ async function load() {
   }
 }
 
-let cityTimer: ReturnType<typeof setTimeout> | undefined
+const debouncedCityLoad = useTableFilterDebounce(() => {
+  const value = city.value.trim()
+  router.replace({ query: value ? { ciudad: value } : {} })
+  load()
+})
 watch(city, () => {
-  clearTimeout(cityTimer)
-  cityTimer = setTimeout(() => {
-    const value = city.value.trim()
-    router.replace({ query: value ? { ciudad: value } : {} })
-    load()
-  }, 400)
+  debouncedCityLoad()
 })
 
 function money(v?: number | string | null): string {

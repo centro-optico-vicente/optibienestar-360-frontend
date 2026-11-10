@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { matchesAny } from '~/utils/textSearch'
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { RoleDto } from '~/types/admin'
@@ -83,11 +84,10 @@ const pageSizeItems = buildPageSizeItems(t)
 // Only applied when there's an active search term, to avoid double-filtering once
 // the backend does honor `q` for real.
 const filteredRoles = computed(() => {
-  const term = search.value.trim().toLowerCase()
+  const term = search.value.trim()
   if (!term) return roles.value
-  return roles.value.filter(r =>
-    r.name?.toLowerCase().includes(term) || r.description?.toLowerCase().includes(term),
-  )
+  // Accent/case-insensitive, same semantics as the backend search.
+  return roles.value.filter(r => matchesAny(term, r.name, r.description))
 })
 const total = computed(() => filteredRoles.value.length)
 const pagedRoles = computed(() => {
@@ -104,14 +104,15 @@ const isMultiSort = computed(() => sort.orders.value.length > 1)
 
 watch(size, () => { if (!resetting.value) page.value = 1 })
 watch(sort.orders, () => { if (!resetting.value) { page.value = 1; loadRoles() } }, { deep: true })
-let searchTimer: ReturnType<typeof setTimeout> | undefined
+// Debounced via the central delay (spec 08): typing `asd` sends one request, not three.
+const debouncedSearchLoad = useTableFilterDebounce(() => {
+  if (resetting.value) return
+  page.value = 1
+  loadRoles()
+})
 watch(search, () => {
   if (resetting.value) return
-  clearTimeout(searchTimer)
-  searchTimer = setTimeout(() => {
-    page.value = 1
-    loadRoles()
-  }, 400)
+  debouncedSearchLoad()
 })
 watch(includeInactive, () => { if (!resetting.value) { page.value = 1; loadRoles() } })
 

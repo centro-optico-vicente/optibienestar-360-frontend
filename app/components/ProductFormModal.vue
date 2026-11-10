@@ -109,7 +109,6 @@ const canSearchAllies = computed(() => can('ALLY_VIEW_ALL'))
 const allySearchTerm = ref('')
 const allyOptions = ref<SelectItem[]>([])
 const allySearching = ref(false)
-let allySearchTimer: ReturnType<typeof setTimeout> | undefined
 
 async function searchAllies(q?: string) {
   if (!canSearchAllies.value) return
@@ -129,11 +128,11 @@ async function searchAllies(q?: string) {
   }
 }
 
+const debouncedSearchAllies = useSearchDebounce((term: string) => searchAllies(term))
 watch(allySearchTerm, (q) => {
-  clearTimeout(allySearchTimer)
   const term = q.trim()
-  if (term.length < 2) return
-  allySearchTimer = setTimeout(() => searchAllies(term), 400)
+  if (!term) return
+  debouncedSearchAllies(term)
 })
 
 // ---- Open / load ----

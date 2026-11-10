@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
 import type { SortDirection } from '~/composables/useTableSort'
+import { allyFilterQuery, emptyAllyMasterFilters } from '~/utils/allyFilters'
 import type { AllyRegistrationStatus } from '~/types/allies'
 import type { AllyRegistrationChannel, AllyRequestListItemDto, AllyRequestStatusFilter } from '~/types/allyRequests'
 import { ALLY_REGISTRATION_CHANNELS, ALLY_REGISTRATION_STATUSES, allyRegistrationStatusColor } from '~/types/allyRequests'
@@ -32,6 +33,9 @@ const status = ref<string>(DEFAULT_STATUS)
 const channel = ref<string>('ALL')
 // Advisor who brought the ally in (promoter uuid); only offered with PROMOTER_VIEW_ALL.
 const promoterUuid = ref<string | undefined>(undefined)
+const masterFilters = ref(emptyAllyMasterFilters())
+const dateFrom = ref('')
+const dateTo = ref('')
 const page = ref(1)
 const pageSize = ref(DEFAULT_PAGE_SIZE)
 const pageSizeItems = buildPageSizeItems(t)
@@ -75,6 +79,9 @@ async function load() {
       status: status.value === 'ALL' ? undefined : status.value as AllyRequestStatusFilter,
       channel: channel.value === 'ALL' ? undefined : channel.value as AllyRegistrationChannel,
       promoterUuid: promoterUuid.value,
+      ...allyFilterQuery(masterFilters.value),
+      dateFrom: dateFrom.value || undefined,
+      dateTo: dateTo.value || undefined,
     })
     items.value = res.content ?? []
     total.value = res.totalElements ?? 0
@@ -102,7 +109,7 @@ const debouncedSearch = useTableFilterDebounce(() => {
 watch(pageSize, () => { if (!resetting.value) page.value = 1 })
 watch([page, pageSize], () => { if (!resetting.value) load() })
 watch(search, () => { if (!resetting.value) debouncedSearch() })
-watch([status, channel, promoterUuid], () => { if (!resetting.value) { page.value = 1; load() } })
+watch([status, channel, promoterUuid, masterFilters, dateFrom, dateTo], () => { if (!resetting.value) { page.value = 1; load() } })
 watch(sort.orders, () => { if (!resetting.value) load() }, { deep: true })
 
 async function resetFilters() {
@@ -111,6 +118,9 @@ async function resetFilters() {
   status.value = DEFAULT_STATUS
   channel.value = 'ALL'
   promoterUuid.value = undefined
+  masterFilters.value = emptyAllyMasterFilters()
+  dateFrom.value = ''
+  dateTo.value = ''
   sort.reset()
   pageSize.value = DEFAULT_PAGE_SIZE
   page.value = 1
@@ -215,6 +225,8 @@ onMounted(() => {
         size="lg"
         class="w-64"
       />
+      <AllyMasterFilters v-model="masterFilters" class="w-full" />
+      <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('allyRequests.filters.dateFrom')" :to-label="t('allyRequests.filters.dateTo')" />
       <UButton
         v-if="hasActiveSort"
         variant="link"

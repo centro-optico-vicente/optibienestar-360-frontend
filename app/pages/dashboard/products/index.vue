@@ -124,11 +124,10 @@ function reloadFromFirstPage() {
 
 watch(size, () => { if (!resetting.value) page.value = 1 })
 watch([page, size], () => { if (!resetting.value) load() })
-let searchTimer: ReturnType<typeof setTimeout> | undefined
+const debouncedSearchLoad = useTableFilterDebounce(reloadFromFirstPage)
 watch(search, () => {
   if (resetting.value) return
-  clearTimeout(searchTimer)
-  searchTimer = setTimeout(reloadFromFirstPage, 400)
+  debouncedSearchLoad()
 })
 watch([typeFilter, categoryFilter, scopeFilter, publishedFilter, includeInactive], reloadFromFirstPage)
 watch(sort.orders, () => { if (!resetting.value) load() }, { deep: true })

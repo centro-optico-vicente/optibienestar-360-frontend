@@ -103,11 +103,10 @@ async function loadRules() {
 onMounted(loadRules)
 watch(size, () => { if (!resetting.value) page.value = 1 })
 watch([page, size], () => { if (!resetting.value) loadRules() })
-let searchTimer: ReturnType<typeof setTimeout> | undefined
+const debouncedSearchLoad = useTableFilterDebounce(() => { page.value = 1; loadRules() })
 watch(search, () => {
   if (resetting.value) return
-  clearTimeout(searchTimer)
-  searchTimer = setTimeout(() => { page.value = 1; loadRules() }, 400)
+  debouncedSearchLoad()
 })
 watch([includeInactive, campaignOnly, metricFilter, competitionTypeFilter], () => {
   if (resetting.value) return
@@ -234,10 +233,12 @@ function buildAwardsFilter(): string | undefined {
   return clauses.length ? clauses.join(';') : undefined
 }
 
+const awardsSearch = ref('')
+
 async function loadAwards() {
   awardsLoading.value = true
   try {
-    const res = await awardsApi.list({ page: awardsPage.value - 1, size: awardsSize.value, filter: buildAwardsFilter() })
+    const res = await awardsApi.list({ page: awardsPage.value - 1, size: awardsSize.value, filter: buildAwardsFilter(), q: awardsSearch.value.trim() || undefined })
     awardsData.value = res.content ?? []
     awardsTotal.value = res.totalElements ?? 0
   }
@@ -258,9 +259,15 @@ watch([awardsRuleUuid, awardsPromoterUuid, awardsStatus, awardsPeriodFrom, award
   awardsPage.value = 1
   loadAwards()
 })
+const debouncedAwardsSearchLoad = useTableFilterDebounce(() => { awardsPage.value = 1; loadAwards() })
+watch(awardsSearch, () => {
+  if (awardsResetting.value) return
+  debouncedAwardsSearchLoad()
+})
 
 async function resetAwardsFilters() {
   awardsResetting.value = true
+  awardsSearch.value = ''
   awardsRuleUuid.value = undefined
   awardsPromoterUuid.value = undefined
   awardsStatus.value = undefined
@@ -456,6 +463,7 @@ function statusColor(status: string): 'success' | 'warning' | 'neutral' | 'error
       </div>
 
       <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
+        <UInput v-model="awardsSearch" :placeholder="t('commissionRules.competitiveRules.awardsSearchPlaceholder')" icon="i-lucide-search" class="w-64" />
         <CommonEntityReferenceSelect v-model="awardsRuleUuid" :search="searchRules"
                                      :placeholder="t('commissionRules.competitiveRules.filters.rule')" icon="i-lucide-trophy" class="w-56" />
         <CommonEntityReferenceSelect v-model="awardsPromoterUuid" :search="searchPromoters" entity="promoter"

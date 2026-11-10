@@ -50,6 +50,7 @@ export const CATALOGS: CatalogDef[] = [
     codeField: 'code',
     parentDisplayField: 'country_Code',
     parentDisplayLabelField: 'country_Display',
+    listFilter: { param: 'countryUuid', field: 'countryUuid' },
     auditEntityKey: 'state',
     auditPermission: 'STATE_RECORD_AUDIT_VIEW',
     auditReportPermission: 'STATE_REPORT_AUDIT_VIEW',

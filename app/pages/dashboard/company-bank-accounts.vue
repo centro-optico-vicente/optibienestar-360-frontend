@@ -36,6 +36,8 @@ const page = ref(1) // UPagination is 1-based; the API is 0-based
 const size = ref(20)
 const search = ref('')
 const includeInactive = ref(false)
+const bankFilter = ref('')
+const currencyFilter = ref('')
 
 async function load() {
   loading.value = true
@@ -45,6 +47,8 @@ async function load() {
       size: size.value,
       q: search.value.trim() || undefined,
       includeInactive: includeInactive.value,
+      bankUuid: bankFilter.value || undefined,
+      currencyCode: currencyFilter.value || undefined,
     })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
@@ -64,7 +68,7 @@ const debouncedSearch = useTableFilterDebounce(() => {
   load()
 })
 watch(search, debouncedSearch)
-watch(includeInactive, () => {
+watch([includeInactive, bankFilter, currencyFilter], () => {
   page.value = 1
   load()
 })
@@ -281,6 +285,26 @@ async function confirmDelete() {
 
     <div class="flex flex-wrap items-center gap-4">
       <UInput v-model="search" icon="i-lucide-search" :placeholder="t('payments.companyAccounts.searchPlaceholder')" class="w-full sm:w-80" />
+      <USelectMenu
+        v-model="bankFilter"
+        clear
+        :items="bankOptions"
+        label-key="label"
+        value-key="value"
+        icon="i-lucide-landmark"
+        :placeholder="t('payments.companyAccounts.filters.bank')"
+        class="w-full sm:w-56"
+      />
+      <USelectMenu
+        v-model="currencyFilter"
+        clear
+        :items="currencyOptions"
+        label-key="label"
+        value-key="value"
+        icon="i-lucide-coins"
+        :placeholder="t('payments.companyAccounts.filters.currency')"
+        class="w-full sm:w-40"
+      />
       <USwitch v-model="includeInactive" :label="t('payments.companyAccounts.includeInactive')" />
     </div>
 

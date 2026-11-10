@@ -10,6 +10,8 @@ interface ListParams {
   size?: number
   /** RSQL filter string — e.g. `rule.uuid==...;status==PENDING`. */
   filter?: string
+  /** Free-text, accent/case-insensitive, over rule name, advisor name/code and payout reference. */
+  q?: string
 }
 
 /** Acceso a premios de comisión competitiva (/v1/admin/competitive-commission-awards, Fase 2b). */
@@ -20,6 +22,7 @@ export const useCompetitiveCommissionAwards = () => {
         page: params.page ?? 0,
         size: params.size ?? 50,
         ...(params.filter ? { filter: params.filter } : {}),
+        ...(params.q ? { q: params.q } : {}),
       },
     })
 

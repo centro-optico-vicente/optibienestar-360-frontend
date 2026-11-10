@@ -16,7 +16,12 @@ interface ListParams {
   size?: number
   sort?: string[]
   q?: string
+  /** RSQL over the allow-listed fields (`scope`, `mode`, `enabled`, `startsAt`, `endsAt`…), e.g. `scope==TARGETED`. */
+  filter?: string
   includeInactive?: boolean
+  /** Validity range `yyyy-MM-dd`, inclusive (campaigns whose period overlaps it). */
+  dateFrom?: string
+  dateTo?: string
   /** Only campaigns currently within [startsAt, endsAt] — used by the rule-form campaign picker. */
   onlyActiveWindow?: boolean
   /** Only TARGETED campaigns currently vigent — used by the payment/enrollment registration form. */
@@ -36,7 +41,10 @@ export const useCampaigns = () => {
         size: params.size ?? 50,
         ...(params.sort?.length ? { sort: params.sort } : {}),
         ...(params.q ? { q: params.q } : {}),
+        ...(params.filter ? { filter: params.filter } : {}),
         ...(params.includeInactive ? { includeInactive: 'true' } : {}),
+        ...(params.dateFrom ? { dateFrom: params.dateFrom } : {}),
+        ...(params.dateTo ? { dateTo: params.dateTo } : {}),
         ...(params.onlyActiveWindow ? { onlyActiveWindow: 'true' } : {}),
         ...(params.onlyTargetedVigent ? { onlyTargetedVigent: 'true' } : {}),
       },

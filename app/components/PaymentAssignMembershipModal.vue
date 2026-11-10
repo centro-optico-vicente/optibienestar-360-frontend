@@ -32,26 +32,28 @@ const memberOptions = ref<SelectItem[]>([])
 const searching = ref(false)
 const memberUuid = ref('')
 
-let searchTimer: ReturnType<typeof setTimeout> | undefined
+async function searchMembers(term: string) {
+  searching.value = true
+  try {
+    const res = await members.options({ q: term, limit: 10 })
+    const merged = new Map(memberOptions.value.map(o => [String(o.value), o]))
+    for (const o of res) merged.set(o.uuid, { label: memberOptionLabel(o), value: o.uuid })
+    memberOptions.value = [...merged.values()]
+  }
+  catch {
+    // useApi already notified the error; keep the options we have
+  }
+  finally {
+    searching.value = false
+  }
+}
+
+// Debounced through the central infra (spec 08): one request for the final term.
+const debouncedSearchMembers = useSearchDebounce(searchMembers)
 watch(memberSearchTerm, (q) => {
-  clearTimeout(searchTimer)
   const term = q.trim()
-  if (term.length < 1) return
-  searchTimer = setTimeout(async () => {
-    searching.value = true
-    try {
-      const res = await members.options({ q: term, limit: 10 })
-      const merged = new Map(memberOptions.value.map(o => [String(o.value), o]))
-      for (const o of res) merged.set(o.uuid, { label: memberOptionLabel(o), value: o.uuid })
-      memberOptions.value = [...merged.values()]
-    }
-    catch {
-      // useApi already notified the error; keep the options we have
-    }
-    finally {
-      searching.value = false
-    }
-  }, 400)
+  if (!term) return
+  debouncedSearchMembers(term)
 })
 
 // ---- The chosen member's memberships ----

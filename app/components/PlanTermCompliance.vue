@@ -78,10 +78,10 @@ watch(compliance, () => {
   else loadRows()
 })
 // Typing resets to page 1 — a filtered result set on page 3 would render empty.
-const debouncedSearch = useDebounceFn(() => {
+const debouncedSearch = useTableFilterDebounce(() => {
   if (page.value !== 1) page.value = 1
   else loadRows()
-}, 350)
+})
 watch(search, debouncedSearch)
 
 // ---- Selection ----

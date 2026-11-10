@@ -105,6 +105,9 @@ function toggleProduct(s: UsageServiceSummaryDto) {
     : { uuid: s.productUuid, name: s.productName || s.productCategoryName }
 }
 
+const dateFrom = ref('')
+const dateTo = ref('')
+
 async function load() {
   loading.value = true
   try {
@@ -114,6 +117,8 @@ async function load() {
       sort: 'usageDate,desc',
       ...scope.value,
       productUuid: productFilter.value?.uuid,
+      dateFrom: dateFrom.value || undefined,
+      dateTo: dateTo.value || undefined,
     })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
@@ -143,7 +148,7 @@ watch(who, () => {
   productFilter.value = null
   loadSummary()
 })
-watch([who, () => productFilter.value?.uuid], reloadFromFirstPage)
+watch([who, () => productFilter.value?.uuid, dateFrom, dateTo], reloadFromFirstPage)
 
 const hasFilters = computed(() => who.value !== 'all' || !!productFilter.value)
 
@@ -255,6 +260,8 @@ function money(v?: number | string | null, currency?: string | null): string | n
         </component>
       </div>
     </section>
+
+    <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('members.usage.filters.dateFrom')" :to-label="t('members.usage.filters.dateTo')" />
 
     <!-- Active service filter -->
     <div v-if="productFilter" class="flex flex-wrap items-center gap-2">

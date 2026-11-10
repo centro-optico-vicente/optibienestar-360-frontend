@@ -42,11 +42,13 @@ const total = ref(0)
 const loading = ref(false)
 const page = ref(1) // UPagination is 1-based; the API is 0-based
 const size = ref(20)
+const dateFrom = ref('')
+const dateTo = ref('')
 
 async function load() {
   loading.value = true
   try {
-    const res = await payments.mine({ page: page.value - 1, size: size.value })
+    const res = await payments.mine({ page: page.value - 1, size: size.value, dateFrom: dateFrom.value || undefined, dateTo: dateTo.value || undefined })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
   }
@@ -61,6 +63,10 @@ async function load() {
 }
 
 watch(page, load)
+watch([dateFrom, dateTo], () => {
+  if (page.value !== 1) page.value = 1
+  else load()
+})
 onMounted(() => {
   load()
   loadCredit()
@@ -206,6 +212,10 @@ async function confirmDelete() {
       </p>
       <p class="text-xs text-green-700">{{ t('payments.credit.help') }}</p>
       <p class="text-xs text-green-700">{{ t('payments.credit.autoApply') }}</p>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
+      <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('payments.filters.dateFrom')" :to-label="t('payments.filters.dateTo')" />
     </div>
 
     <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-16rem)] min-h-[24rem]">
