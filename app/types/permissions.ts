@@ -75,6 +75,10 @@ export const PERMISSIONS = [
   // Discard a registration in progress (backend V236): the person's own DRAFT, the advisor's assisted DRAFT.
   'AFFILIATION_REGISTRATION_DISCARD_OWN',
   'AFFILIATION_REQUEST_DRAFT_DISCARD_ASSISTED',
+  // Keep a registration in progress out of the abandoned-draft cleanup (backend V237): the advisor (own or
+  // unattributed ones) and staff (any).
+  'AFFILIATION_REQUEST_DRAFT_RETAIN_ADVISOR',
+  'AFFILIATION_REQUEST_DRAFT_RETAIN',
   'AFFILIATION_REQUEST_UPDATE',
   'AFFILIATION_REQUEST_APPROVE',
   'AFFILIATION_REQUEST_REJECT',
@@ -122,6 +126,9 @@ export const PERMISSIONS = [
   'ALLY_DRAFT_UPDATE_ASSISTED',
   'ALLY_DRAFT_SUBMIT_ASSISTED',
   'ALLY_DRAFT_DISCARD_ASSISTED',
+  // Keep an ally registration in progress out of the abandoned-draft cleanup (backend V237).
+  'ALLY_DRAFT_RETAIN_ADVISOR',
+  'ALLY_REGISTRATION_RETAIN',
   'ALLY_OPENING_HOURS_UPDATE_OWN',
   // Ally requests (hub ADR 0036): review of self-registered / imported allies.
   'ALLY_REGISTRATION_VIEW_ALL',

@@ -1,5 +1,6 @@
 import type { Page } from '~/types/admin'
 import type { AllyRegistrationStatus } from '~/types/allies'
+import type { DraftRetentionDto } from '~/types/affiliationRequests'
 import type {
   AllyImportDelimiter,
   AllyImportResultDto,
@@ -95,5 +96,12 @@ export const useAllyRequests = () => {
       headers: { Accept: '*/*' },
     })
 
-  return { list, count, get, approve, reject, reopen, invite, agreementSupportUrl, importFile, downloadTemplate }
+  /** Staff: keeps a registration in progress out of the abandoned-draft cleanup, or releases it (ALLY_REGISTRATION_RETAIN; 422 once submitted). */
+  const retain = (uuid: string, retainIt: boolean, note?: string) =>
+    useApi<DraftRetentionDto>(`${BASE}/${uuid}/retain`, {
+      method: 'PUT',
+      body: { retain: retainIt, note: note?.trim() || undefined },
+    })
+
+  return { list, count, get, approve, reject, reopen, invite, agreementSupportUrl, importFile, downloadTemplate, retain }
 }

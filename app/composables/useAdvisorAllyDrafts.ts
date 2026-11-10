@@ -1,4 +1,5 @@
 import type { Page } from '~/types/admin'
+import type { DraftRetentionDto } from '~/types/affiliationRequests'
 import type { AllyRequestCreatedDto, AllyRequestListItemDto, AssistedAllyDraftStartRequest } from '~/types/allyRequests'
 
 /**
@@ -25,5 +26,21 @@ export const useAdvisorAllyDrafts = () => {
 
   const discard = (uuid: string) => useApi<void>(`${BASE}/${uuid}`, { method: 'DELETE' })
 
-  return { list, start, submitUrl, discard }
+  /**
+   * Registrations in progress the advisor may keep (ALLY_DRAFT_RETAIN_ADVISOR): the ones they captured and the
+   * self-registered ones no advisor brought in.
+   */
+  const inProgress = (params: { page?: number, size?: number } = {}) =>
+    useApi<Page<AllyRequestListItemDto>>('/v1/me/advisor/ally-requests/in-progress', {
+      query: { page: params.page ?? 0, size: params.size ?? 50 },
+    })
+
+  /** Keeps a registration in the advisor's scope out of the abandoned-draft cleanup, or releases it (optional note, max 200). */
+  const retain = (uuid: string, retainIt: boolean, note?: string) =>
+    useApi<DraftRetentionDto>(`${BASE}/${uuid}/retain`, {
+      method: 'PUT',
+      body: { retain: retainIt, note: note?.trim() || undefined },
+    })
+
+  return { list, start, submitUrl, discard, inProgress, retain }
 }

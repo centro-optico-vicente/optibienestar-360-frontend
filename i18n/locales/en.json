@@ -6176,7 +6176,8 @@
       "approval": "Request approval",
       "activation": "Membership activation",
       "closedTitle": "The /afiliarse form will send people to sign in",
-      "closedBody": "The advisor's QR also opens that form: while it is off, the advisor must register the person from their portal. Creating members from the dashboard still works."
+      "closedBody": "The advisor's QR also opens that form: while it is off, the advisor must register the person from their portal. Creating members from the dashboard still works.",
+      "draftRetention": "Keep affiliate drafts for (days)"
     },
     "ally": {
       "title": "Allies",
@@ -6185,7 +6186,8 @@
       "approval": "Ally approval",
       "publish": "Publishing in the directory",
       "closedTitle": "The /solicitar-alianza form will send people to sign in",
-      "closedBody": "Allies can still be registered from the dashboard or with the import template."
+      "closedBody": "Allies can still be registered from the dashboard or with the import template.",
+      "draftRetention": "Keep ally drafts for (days)"
     },
     "modes": {
       "memberApproval": {
@@ -6261,7 +6263,8 @@
         "MANUAL": "Published by hand",
         "ON_APPROVAL": "Published on approval"
       }
-    }
+    },
+    "draftRetentionHelp": "Days without changes before the cleanup job discards a draft (1 to 365). A record marked \"Keep record\" is always kept."
   },
   "registration": {
     "required": "Fill in the required fields.",
@@ -6455,5 +6458,21 @@
     "another": "Capture another ally",
     "seeAllies": "See my allies",
     "discardBody": "This ally draft is deleted. The contact's national ID, tax ID and email become free to start over. This cannot be undone."
+  },
+  "keepRecord": {
+    "action": "Keep record",
+    "title": "Keep record",
+    "label": "Keep record",
+    "hint": "The cleanup job will not delete it while it is marked",
+    "noteLabel": "Note (optional)",
+    "noteHelp": "Why it is kept: open negotiation, waiting for information…",
+    "notePlaceholder": "E.g. negotiating with the contact, waiting for documents",
+    "badge": "Record kept",
+    "kept": "Record marked to keep",
+    "released": "The record is no longer kept",
+    "poolTitle": "Registrations in progress",
+    "poolHintMember": "Self-registrations not yet sent to review (yours or without an advisor). Mark the one you are working on so the draft cleanup does not delete it.",
+    "poolHintAlly": "Ally registrations not yet sent to review (yours or without an advisor). Mark the one you are working on so the draft cleanup does not delete it.",
+    "poolEmpty": "There are no registrations in progress."
   }
 }

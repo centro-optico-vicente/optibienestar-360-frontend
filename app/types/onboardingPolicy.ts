@@ -23,6 +23,10 @@ export interface OnboardingPolicyDto {
   memberActivationMode: MemberActivationMode
   allyApprovalMode: AllyApprovalMode
   allyPublishMode: AllyPublishMode
+  /** Days without changes before an abandoned affiliation draft is discarded (backend V237, 1..365; admin-only). */
+  memberDraftRetentionDays: number
+  /** Same for an ally draft (long negotiations). A record marked "keep record" is never discarded. */
+  allyDraftRetentionDays: number
 }
 
 /**

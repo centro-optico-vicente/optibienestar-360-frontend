@@ -6176,7 +6176,8 @@
       "approval": "Aprobación de la solicitud",
       "activation": "Activación de la membresía",
       "closedTitle": "El formulario /afiliarse llevará al inicio de sesión",
-      "closedBody": "El QR del asesor también lleva a ese formulario: mientras esté apagado, el asesor debe registrar a la persona desde su portal. El alta desde el panel sigue funcionando."
+      "closedBody": "El QR del asesor también lleva a ese formulario: mientras esté apagado, el asesor debe registrar a la persona desde su portal. El alta desde el panel sigue funcionando.",
+      "draftRetention": "Conservar borradores de afiliados (días)"
     },
     "ally": {
       "title": "Aliados",
@@ -6185,7 +6186,8 @@
       "approval": "Aprobación del aliado",
       "publish": "Publicación en el directorio",
       "closedTitle": "El formulario /solicitar-alianza llevará al inicio de sesión",
-      "closedBody": "Los aliados se siguen registrando desde el panel o con la plantilla de importación."
+      "closedBody": "Los aliados se siguen registrando desde el panel o con la plantilla de importación.",
+      "draftRetention": "Conservar borradores de aliados (días)"
     },
     "modes": {
       "memberApproval": {
@@ -6261,7 +6263,8 @@
         "MANUAL": "Se publica a mano",
         "ON_APPROVAL": "Se publica al aprobarse"
       }
-    }
+    },
+    "draftRetentionHelp": "Días sin cambios antes de que el job de limpieza descarte un borrador (de 1 a 365). Un registro marcado como «Mantener registro» siempre se conserva."
   },
   "registration": {
     "required": "Completa los campos obligatorios.",
@@ -6455,5 +6458,21 @@
     "another": "Captar otro aliado",
     "seeAllies": "Ver mis aliados",
     "discardBody": "Se borra este borrador de aliado. La cédula, el RIF y el correo del contacto quedan libres para empezar de nuevo. Esta acción no se puede deshacer."
+  },
+  "keepRecord": {
+    "action": "Mantener registro",
+    "title": "Mantener registro",
+    "label": "Mantener registro",
+    "hint": "El job de limpieza no lo borrará mientras esté marcado",
+    "noteLabel": "Nota (opcional)",
+    "noteHelp": "Por qué se mantiene: negociación abierta, a la espera de información…",
+    "notePlaceholder": "Ej.: negociando con el contacto, a la espera de documentos",
+    "badge": "Registro mantenido",
+    "kept": "Registro marcado para mantener",
+    "released": "El registro ya no se mantiene",
+    "poolTitle": "Registros en progreso",
+    "poolHintMember": "Autoregistros que aún no se envían a revisión (los tuyos o sin asesor). Marca el que estés atendiendo para que la limpieza de borradores no lo borre.",
+    "poolHintAlly": "Registros de aliados que aún no se envían a revisión (los tuyos o sin asesor). Marca el que estés atendiendo para que la limpieza de borradores no lo borre.",
+    "poolEmpty": "No hay registros en progreso."
   }
 }

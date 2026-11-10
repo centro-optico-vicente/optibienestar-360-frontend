@@ -38,6 +38,8 @@ const state = reactive<OnboardingPolicyUpdateRequest>({
   memberActivationMode: 'ON_PAYMENT_APPROVED',
   allyApprovalMode: 'MANUAL_WITH_AGREEMENT',
   allyPublishMode: 'MANUAL',
+  memberDraftRetentionDays: 15,
+  allyDraftRetentionDays: 30,
 })
 
 /** Values last loaded from the server: the modes of a switched-off registration snap back to these. */
@@ -106,6 +108,8 @@ function applyDto(dto: OnboardingPolicyDto) {
   state.memberActivationMode = dto.memberActivationMode
   state.allyApprovalMode = dto.allyApprovalMode
   state.allyPublishMode = dto.allyPublishMode
+  state.memberDraftRetentionDays = dto.memberDraftRetentionDays
+  state.allyDraftRetentionDays = dto.allyDraftRetentionDays
   saved.value = { ...state }
 }
 
@@ -230,6 +234,10 @@ onMounted(load)
             <URadioGroup v-model="state.memberActivationMode" :items="memberActivationOptions" :disabled="memberModesLocked" />
           </UFormField>
 
+          <UFormField :label="t('onboardingPolicy.member.draftRetention')" :help="t('onboardingPolicy.draftRetentionHelp')">
+            <UInput v-model.number="state.memberDraftRetentionDays" type="number" :min="1" :max="365" class="w-32" :disabled="!canUpdate || isSubmitting" />
+          </UFormField>
+
           <div class="rounded-xl bg-prohealth-50 border border-prohealth-100 p-4">
             <p class="text-xs font-semibold uppercase tracking-wide text-prohealth-600 mb-2">{{ t('onboardingPolicy.flow.title') }}</p>
             <ol class="flex flex-wrap items-center gap-2 text-sm text-prohealth-800">
@@ -270,6 +278,10 @@ onMounted(load)
 
           <UFormField :label="t('onboardingPolicy.ally.publish')">
             <URadioGroup v-model="state.allyPublishMode" :items="allyPublishOptions" :disabled="allyModesLocked" />
+          </UFormField>
+
+          <UFormField :label="t('onboardingPolicy.ally.draftRetention')" :help="t('onboardingPolicy.draftRetentionHelp')">
+            <UInput v-model.number="state.allyDraftRetentionDays" type="number" :min="1" :max="365" class="w-32" :disabled="!canUpdate || isSubmitting" />
           </UFormField>
 
           <div class="rounded-xl bg-prohealth-50 border border-prohealth-100 p-4">

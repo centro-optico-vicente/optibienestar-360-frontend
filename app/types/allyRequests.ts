@@ -95,6 +95,11 @@ export interface AllyRequestListItemDto {
   createdAt_Display?: string | null
   hasUser: boolean
   hasActiveAgreement: boolean
+  /** "Keep record" (backend V237): the abandoned-draft cleanup skips this registration. */
+  retainFromCleanup?: boolean
+  retainNote?: string | null
+  retainedAt?: string | null
+  retainedAt_Display?: string | null
 }
 
 export interface AllyRequestHolderDto {
