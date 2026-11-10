@@ -5,6 +5,7 @@ import type {
   AffiliationRequestStatus,
   AffiliationRequestUpdateRequest,
   AssistedAffiliationRequest,
+  DraftRetentionDto,
 } from '~/types/affiliationRequests'
 import type { PaymentSupportUrlDto } from '~/types/payments'
 
@@ -75,5 +76,12 @@ export const useAffiliationRequests = () => {
       body,
     })
 
-  return { list, get, update, approve, reject, paymentSupportUrl, mine, createAssisted }
+  /** Staff: keeps a draft out of the abandoned-draft cleanup, or releases it (AFFILIATION_REQUEST_DRAFT_RETAIN; 422 once submitted). */
+  const retain = (uuid: string, retainIt: boolean, note?: string) =>
+    useApi<DraftRetentionDto>(`/v1/admin/affiliation-requests/${uuid}/retain`, {
+      method: 'PUT',
+      body: { retain: retainIt, note: note?.trim() || undefined },
+    })
+
+  return { list, get, update, approve, reject, paymentSupportUrl, mine, createAssisted, retain }
 }

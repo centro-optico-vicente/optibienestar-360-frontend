@@ -126,6 +126,71 @@ function another() {
   done.value = null
 }
 
+// ---- Keep record (ALLY_DRAFT_RETAIN_ADVISOR): the cleanup job skips the marked registrations ----
+const canKeep = computed(() => can('ALLY_DRAFT_RETAIN_ADVISOR'))
+const pool = ref<AllyRequestListItemDto[]>([])
+const poolLoading = ref(false)
+const openDraft = ref<{ retained: boolean, note: string | null } | null>(null)
+const keepTarget = ref<{ uuid: string, retained: boolean, note: string | null } | null>(null)
+const keepOpen = computed({ get: () => keepTarget.value !== null, set: (v: boolean) => { if (!v) keepTarget.value = null } })
+const keeping = ref(false)
+
+async function loadPool() {
+  if (!canKeep.value) return
+  poolLoading.value = true
+  try {
+    // Captured drafts are listed above: here only the self-registered ones in progress.
+    pool.value = ((await api.inProgress({ size: 50 })).content ?? []).filter(r => r.registrationChannel !== 'ADVISOR')
+  }
+  catch {
+    pool.value = []
+  }
+  finally {
+    poolLoading.value = false
+  }
+}
+
+// State of the open draft, for its keep-record button (taken from the same in-progress list).
+async function loadOpenDraft(uuid: string) {
+  openDraft.value = null
+  if (!uuid || !canKeep.value) return
+  try {
+    const found = ((await api.inProgress({ size: 200 })).content ?? []).find(r => r.uuid === uuid)
+    openDraft.value = found ? { retained: !!found.retainFromCleanup, note: found.retainNote ?? null } : null
+  }
+  catch {
+    openDraft.value = null
+  }
+}
+
+function askKeep(r: { uuid: string, retainFromCleanup?: boolean, retainNote?: string | null }) {
+  keepTarget.value = { uuid: r.uuid, retained: !!r.retainFromCleanup, note: r.retainNote ?? null }
+}
+
+async function saveKeep(payload: { retain: boolean, note: string }) {
+  if (!keepTarget.value) return
+  keeping.value = true
+  try {
+    const uuid = keepTarget.value.uuid
+    await api.retain(uuid, payload.retain, payload.note)
+    toast.add({ title: payload.retain ? t('keepRecord.kept') : t('keepRecord.released'), color: 'success', icon: 'i-lucide-check-circle' })
+    keepTarget.value = null
+    if (uuid === draftUuid.value) await loadOpenDraft(uuid)
+    else await Promise.all([loadDrafts(), loadPool()])
+  }
+  catch {
+    // useApi toasted the reason (e.g. it was already sent to review).
+  }
+  finally {
+    keeping.value = false
+  }
+}
+onMounted(loadPool)
+watch(draftUuid, (uuid) => {
+  void loadOpenDraft(uuid)
+  if (!uuid) void loadPool()
+}, { immediate: true })
+
 // ---- Discard a draft (ALLY_DRAFT_DISCARD_ASSISTED) ----
 const canDiscard = computed(() => can('ALLY_DRAFT_DISCARD_ASSISTED'))
 const discardTarget = ref<string | null>(null)
@@ -174,7 +239,11 @@ async function discardDraft() {
     <template v-else-if="draftUuid">
       <div class="flex flex-wrap items-center justify-between gap-2">
         <UButton color="neutral" variant="ghost" icon="i-lucide-arrow-left" size="sm" @click="router.push({ query: {} })">{{ t('assistedAlly.backToDrafts') }}</UButton>
-        <UButton v-if="canDiscard" color="error" variant="link" size="sm" icon="i-lucide-trash-2" @click="discardTarget = draftUuid">{{ t('registration.discard.action') }}</UButton>
+        <div class="flex items-center gap-2">
+          <UBadge v-if="openDraft?.retained" color="info" variant="subtle" size="sm" icon="i-lucide-bookmark-check">{{ t('keepRecord.badge') }}</UBadge>
+          <UButton v-if="canKeep && openDraft" color="neutral" variant="outline" size="sm" icon="i-lucide-bookmark" @click="askKeep({ uuid: draftUuid, retainFromCleanup: openDraft.retained, retainNote: openDraft.note })">{{ t('keepRecord.action') }}</UButton>
+          <UButton v-if="canDiscard" color="error" variant="link" size="sm" icon="i-lucide-trash-2" @click="discardTarget = draftUuid">{{ t('registration.discard.action') }}</UButton>
+        </div>
       </div>
       <AdvisorAllyWizard :key="draftUuid" :draft-uuid="draftUuid" @later="onLater" @submitted="onSubmitted" @failed="router.replace({ query: {} })" />
     </template>
@@ -244,20 +313,54 @@ async function discardDraft() {
         <ul v-else class="divide-y divide-prohealth-100">
           <li v-for="d in drafts" :key="d.uuid" class="flex items-center justify-between gap-3 py-3">
             <div class="min-w-0">
-              <p class="font-medium text-prohealth-900 truncate">{{ d.name }}</p>
+              <p class="font-medium text-prohealth-900 truncate">
+                {{ d.name }}
+                <UBadge v-if="d.retainFromCleanup" color="info" variant="subtle" size="sm" class="ml-1 align-middle">{{ t('keepRecord.badge') }}</UBadge>
+              </p>
               <p class="text-xs text-prohealth-500 truncate">
                 {{ d.segment_Display ?? t(`allies.segments.${d.segment}`, d.segment) }} · {{ d.contactName ?? t('common.empty') }} · {{ d.createdAt_Display ?? formatDate(d.createdAt, 'datetime') }}
               </p>
             </div>
             <div class="flex items-center gap-1 shrink-0">
+              <UTooltip v-if="canKeep" :text="t('keepRecord.action')">
+                <UButton color="neutral" variant="ghost" size="sm" :icon="d.retainFromCleanup ? 'i-lucide-bookmark-check' : 'i-lucide-bookmark'" :aria-label="t('keepRecord.action')" @click="askKeep(d)" />
+              </UTooltip>
               <UButton v-if="canDiscard" color="error" variant="ghost" size="sm" icon="i-lucide-trash-2" :aria-label="t('registration.discard.action')" @click="discardTarget = d.uuid" />
               <UButton color="primary" variant="soft" size="sm" trailing-icon="i-lucide-arrow-right" @click="resume(d.uuid)">{{ t('assistedAlly.resume') }}</UButton>
             </div>
           </li>
         </ul>
       </section>
+
+      <!-- Self-registered registrations in progress: the advisor can keep one they are working on -->
+      <section v-if="canKeep" class="bg-white rounded-2xl border border-prohealth-100 p-6 space-y-3">
+        <div>
+          <h2 class="font-bold text-prohealth-900">{{ t('keepRecord.poolTitle') }}</h2>
+          <p class="text-xs text-prohealth-500 mt-1">{{ t('keepRecord.poolHintAlly') }}</p>
+        </div>
+        <div v-if="poolLoading" class="space-y-2">
+          <USkeleton class="h-12 w-full rounded-xl" />
+        </div>
+        <p v-else-if="pool.length === 0" class="text-sm text-prohealth-500 py-4 text-center">{{ t('keepRecord.poolEmpty') }}</p>
+        <ul v-else class="divide-y divide-prohealth-100">
+          <li v-for="r in pool" :key="r.uuid" class="flex items-center justify-between gap-3 py-3">
+            <div class="min-w-0">
+              <p class="font-medium text-prohealth-900 truncate">
+                {{ r.name }}
+                <UBadge v-if="r.retainFromCleanup" color="info" variant="subtle" size="sm" class="ml-1 align-middle">{{ t('keepRecord.badge') }}</UBadge>
+              </p>
+              <p class="text-xs text-prohealth-500 truncate">
+                {{ r.segment_Display ?? t(`allies.segments.${r.segment}`, r.segment) }} · {{ r.contactName ?? t('common.empty') }} · {{ r.createdAt_Display ?? formatDate(r.createdAt, 'datetime') }}
+              </p>
+              <p v-if="r.retainNote" class="text-xs text-prohealth-600 truncate">{{ r.retainNote }}</p>
+            </div>
+            <UButton color="neutral" variant="outline" size="sm" :icon="r.retainFromCleanup ? 'i-lucide-bookmark-check' : 'i-lucide-bookmark'" @click="askKeep(r)">{{ t('keepRecord.action') }}</UButton>
+          </li>
+        </ul>
+      </section>
     </template>
 
+    <KeepRecordModal v-model:open="keepOpen" :retained="keepTarget?.retained ?? false" :note="keepTarget?.note" :loading="keeping" @confirm="saveKeep" />
     <DiscardDraftModal v-model:open="discardOpen" :description="t('assistedAlly.discardBody')" :loading="discarding" @confirm="discardDraft" />
   </div>
 </template>

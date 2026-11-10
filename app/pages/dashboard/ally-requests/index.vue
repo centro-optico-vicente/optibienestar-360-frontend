@@ -140,6 +140,35 @@ function onImported() {
   load()
 }
 
+// ---- Keep record (ALLY_REGISTRATION_RETAIN): staff can keep a registration in progress out of the abandoned-draft cleanup ----
+const { can } = usePermissions()
+const toast = useToast()
+const canKeep = computed(() => can('ALLY_REGISTRATION_RETAIN'))
+const keepTarget = ref<{ uuid: string, retained: boolean, note: string | null } | null>(null)
+const keepOpen = computed({ get: () => keepTarget.value !== null, set: (v: boolean) => { if (!v) keepTarget.value = null } })
+const keeping = ref(false)
+
+function askKeep(r: { uuid: string, retainFromCleanup?: boolean, retainNote?: string | null }) {
+  keepTarget.value = { uuid: r.uuid, retained: !!r.retainFromCleanup, note: r.retainNote ?? null }
+}
+
+async function saveKeep(payload: { retain: boolean, note: string }) {
+  if (!keepTarget.value) return
+  keeping.value = true
+  try {
+    await api.retain(keepTarget.value.uuid, payload.retain, payload.note)
+    toast.add({ title: payload.retain ? t('keepRecord.kept') : t('keepRecord.released'), color: 'success', icon: 'i-lucide-check-circle' })
+    keepTarget.value = null
+    await load()
+  }
+  catch {
+    // useApi toasted the reason (e.g. it was already sent to review).
+  }
+  finally {
+    keeping.value = false
+  }
+}
+
 onMounted(() => {
   void advisors.load()
   load()
@@ -238,6 +267,7 @@ onMounted(() => {
             >
               <td class="px-5 py-3">
                 <NuxtLink :to="detailPath(r)" class="font-medium text-prohealth-900 hover:underline">{{ r.name }}</NuxtLink>
+                <UBadge v-if="r.retainFromCleanup" color="info" variant="subtle" size="sm" class="ml-2" :title="r.retainNote || undefined">{{ t('keepRecord.badge') }}</UBadge>
                 <p class="text-xs text-prohealth-500">
                   {{ r.allyTypeNames?.length ? r.allyTypeNames.join(', ') : t('common.empty') }}
                   <template v-if="r.city_Display"> · {{ r.city_Display }}</template>
@@ -262,6 +292,9 @@ onMounted(() => {
               </td>
               <td class="px-5 py-3">
                 <div class="flex items-center justify-end gap-1">
+                  <UTooltip v-if="canKeep && status === 'IN_PROGRESS'" :text="t('keepRecord.action')">
+                    <UButton color="neutral" variant="ghost" size="sm" :icon="r.retainFromCleanup ? 'i-lucide-bookmark-check' : 'i-lucide-bookmark'" :aria-label="t('keepRecord.action')" @click="askKeep(r)" />
+                  </UTooltip>
                   <UTooltip :text="t('allyRequests.viewDetail')">
                     <UButton color="neutral" variant="ghost" icon="i-lucide-eye" size="sm" :to="detailPath(r)" />
                   </UTooltip>
@@ -297,5 +330,6 @@ onMounted(() => {
     </div>
 
     <AllyImportModal v-model:open="importOpen" @imported="onImported" />
+    <KeepRecordModal v-model:open="keepOpen" :retained="keepTarget?.retained ?? false" :note="keepTarget?.note" :loading="keeping" @confirm="saveKeep" />
   </div>
 </template>

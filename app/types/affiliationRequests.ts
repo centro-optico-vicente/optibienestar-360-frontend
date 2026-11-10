@@ -43,6 +43,11 @@ export interface AffiliationRequestListItemDto {
   createdAt_Display?: string | null
   reviewedAt?: string | null
   reviewedAt_Display?: string | null
+  /** "Keep record" (backend V237): the abandoned-draft cleanup skips this draft. */
+  retainFromCleanup?: boolean
+  retainNote?: string | null
+  retainedAt?: string | null
+  retainedAt_Display?: string | null
 }
 
 /** One edited field of an UPDATED log row. `field` is the request field name. */
@@ -217,6 +222,21 @@ export interface MyAffiliationFamilyMember {
 }
 
 /** GET /v1/me/affiliation-request and the answer of every step (backend AffiliationRegistrationDto). */
+/** Body of the "keep record" calls (PUT .../retain); `note` is optional (max 200) and ignored when releasing. */
+export interface DraftRetentionRequest {
+  retain: boolean
+  note?: string
+}
+
+/** Answer of the "keep record" calls. */
+export interface DraftRetentionDto {
+  uuid: string
+  retainFromCleanup: boolean
+  retainNote?: string | null
+  retainedAt?: string | null
+  retainedAt_Display?: string | null
+}
+
 export interface MyAffiliationRequestDto {
   uuid: string
   status: AffiliationRequestStatus
@@ -240,6 +260,10 @@ export interface MyAffiliationRequestDto {
   referralCode?: string | null
   submittedAt?: string | null
   rejectionReason?: string | null
+  /** "Keep record" (backend V237). */
+  retainFromCleanup?: boolean
+  retainNote?: string | null
+  retainedAt?: string | null
 }
 
 /**
