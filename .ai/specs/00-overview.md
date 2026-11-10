@@ -18,6 +18,7 @@
 | 10 | [Design system](10-design-system.md) | Nuxt UI overrides + componentes propios |
 | 12 | [Auditoría](12-audit.md) | Config de auditoría, bitácoras de login/reportes, timeline de cambios |
 | 13 | [Identidad visual de marca](13-brand-visual-identity.md) | Paleta, tipografía, logo (`BrandLogo`), contraste y patrones según el Manual de Marca OB360 |
+| 14 | [Búsqueda, filtros y debounce](14-list-search-debounce.md) | `q`, dropdowns limpiables, rangos de fecha y retraso único de escritura en listados |
 
 ## Specs cross-stack relevantes
 
