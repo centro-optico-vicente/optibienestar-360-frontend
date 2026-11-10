@@ -54,5 +54,11 @@ export const useMyAffiliationRequest = () => {
   /** Validates the essentials and moves the request from DRAFT to PENDING (the policy may approve it right away). */
   const submit = () => useApi<MyAffiliationRequestDto>(`${BASE}/submit`, { method: 'POST' })
 
-  return { start, get, savePersonal, savePlan, savePayment, saveFamily, submit }
+  /**
+   * Discards the DRAFT (AFFILIATION_REGISTRATION_DISCARD_OWN): the request is deleted and the login closed, so the
+   * national ID and email are free for a new registration. 422 once it was sent to review.
+   */
+  const discard = () => useApi<void>(BASE, { method: 'DELETE' })
+
+  return { start, get, savePersonal, savePlan, savePayment, saveFamily, submit, discard }
 }

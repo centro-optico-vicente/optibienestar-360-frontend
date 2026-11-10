@@ -563,6 +563,8 @@ export interface MyAllyProfileDto {
   profession_Uuid?: string | null
   /** Set when the ally sent the registration to review. */
   registrationSubmittedAt?: string | null
+  /** Backend field name: the registration was sent to review (`registration_submitted_at` is set). */
+  submitted?: boolean
   hasOpeningHours?: boolean
   hasApprovedOffers?: boolean
   completeness: { percent: number, missing: (AllyProfileMissingKey | string)[] }

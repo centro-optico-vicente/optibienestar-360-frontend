@@ -87,6 +87,32 @@ watch(draftUuid, (uuid) => {
   if (!uuid) void loadDrafts()
 })
 
+// ---- Discard a draft (AFFILIATION_REQUEST_DRAFT_DISCARD_ASSISTED) ----
+const { can } = usePermissions()
+const canDiscard = computed(() => can('AFFILIATION_REQUEST_DRAFT_DISCARD_ASSISTED'))
+const discardTarget = ref<string | null>(null)
+const discardOpen = computed({ get: () => discardTarget.value !== null, set: (v: boolean) => { if (!v) discardTarget.value = null } })
+const discarding = ref(false)
+
+async function discardDraft() {
+  if (!discardTarget.value) return
+  discarding.value = true
+  try {
+    await api.discard(discardTarget.value)
+    toast.add({ title: t('registration.discard.done'), color: 'success', icon: 'i-lucide-check-circle' })
+    const wasOpen = discardTarget.value === draftUuid.value
+    discardTarget.value = null
+    if (wasOpen) await router.push({ query: {} })
+    else await loadDrafts()
+  }
+  catch {
+    // useApi toasted the reason (e.g. it was already sent to review).
+  }
+  finally {
+    discarding.value = false
+  }
+}
+
 function resume(uuid: string) {
   void router.push({ query: { draft: uuid } })
 }
@@ -126,7 +152,10 @@ function another() {
 
     <!-- Wizard of one draft -->
     <template v-else-if="draftUuid">
-      <UButton color="neutral" variant="ghost" icon="i-lucide-arrow-left" size="sm" @click="router.push({ query: {} })">{{ t('assistedAffiliation.backToDrafts') }}</UButton>
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <UButton color="neutral" variant="ghost" icon="i-lucide-arrow-left" size="sm" @click="router.push({ query: {} })">{{ t('assistedAffiliation.backToDrafts') }}</UButton>
+        <UButton v-if="canDiscard" color="error" variant="link" size="sm" icon="i-lucide-trash-2" @click="discardTarget = draftUuid">{{ t('registration.discard.action') }}</UButton>
+      </div>
       <AdvisorAffiliationWizard :key="draftUuid" :draft-uuid="draftUuid" @later="onLater" @submitted="onSubmitted" @failed="router.replace({ query: {} })" />
     </template>
 
@@ -178,10 +207,15 @@ function another() {
                 {{ d.documentType }}-{{ d.documentNumber }} · {{ d.plan_Display ?? t('assistedAffiliation.noPlanYet') }} · {{ d.createdAt_Display ?? formatDate(d.createdAt, 'datetime') }}
               </p>
             </div>
-            <UButton color="primary" variant="soft" size="sm" trailing-icon="i-lucide-arrow-right" @click="resume(d.uuid)">{{ t('assistedAffiliation.resume') }}</UButton>
+            <div class="flex items-center gap-1 shrink-0">
+              <UButton v-if="canDiscard" color="error" variant="ghost" size="sm" icon="i-lucide-trash-2" :aria-label="t('registration.discard.action')" @click="discardTarget = d.uuid" />
+              <UButton color="primary" variant="soft" size="sm" trailing-icon="i-lucide-arrow-right" @click="resume(d.uuid)">{{ t('assistedAffiliation.resume') }}</UButton>
+            </div>
           </li>
         </ul>
       </section>
     </template>
+
+    <DiscardDraftModal v-model:open="discardOpen" :description="t('registration.discard.bodyAssisted')" :loading="discarding" @confirm="discardDraft" />
   </div>
 </template>

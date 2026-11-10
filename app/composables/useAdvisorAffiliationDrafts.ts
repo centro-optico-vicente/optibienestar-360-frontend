@@ -30,6 +30,9 @@ export const useAdvisorAffiliationDrafts = () => {
 
   const get = (uuid: string) => useApi<MyAffiliationRequestDto>(`${BASE}/${uuid}`)
 
+  /** Discards one of the advisor's own drafts (AFFILIATION_REQUEST_DRAFT_DISCARD_ASSISTED); another's is a 404. */
+  const discard = (uuid: string) => useApi<void>(`${BASE}/${uuid}`, { method: 'DELETE' })
+
   /** The step api of the shared registration step components, bound to one draft. */
   const forDraft = (uuid: string): MemberRegistrationApi => {
     const patchStep = (step: MemberRegistrationStep, body: MyAffiliationStepRequest | FormData) =>
@@ -58,5 +61,5 @@ export const useAdvisorAffiliationDrafts = () => {
     }
   }
 
-  return { list, start, get, forDraft }
+  return { list, start, get, discard, forDraft }
 }

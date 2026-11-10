@@ -845,6 +845,10 @@
       "myAllies": {
         "label": "My allies",
         "description": "The allies you brought in and their registration status."
+      },
+      "captureAlly": {
+        "label": "Capture an ally",
+        "description": "Register a business or professional as an ally from your device."
       }
     },
     "other": {
@@ -6043,7 +6047,8 @@
     "channel": {
       "SELF_SERVICE": "Public form",
       "IMPORT": "Template",
-      "ADMIN": "Panel"
+      "ADMIN": "Panel",
+      "ADVISOR": "Captured by an advisor"
     },
     "columns": {
       "name": "Ally",
@@ -6361,6 +6366,30 @@
       "body": "Your registration is {percent}% done. Complete what is missing to finish.",
       "later": "Remind me later",
       "now": "Complete now"
+    },
+    "missing": {
+      "title": "This is missing before you can submit your registration",
+      "hint": "Complete the following and submit again:",
+      "goTo": "Go to {step}",
+      "items": {
+        "birthDate": "Birth date",
+        "plan": "Chosen plan",
+        "contract": "Accepted contract",
+        "allyType": "Ally business type",
+        "city": "City",
+        "taxDocument": "Tax ID (RIF)",
+        "profession": "Profession or specialty"
+      }
+    },
+    "discard": {
+      "action": "Discard draft",
+      "title": "Discard this draft?",
+      "confirm": "Discard",
+      "done": "Draft discarded",
+      "doneBody": "Whenever you want, you can start a new registration with the same details.",
+      "bodyMember": "What you have filled in so far is deleted and you are signed out. Your national ID and email become free to register again. This cannot be undone.",
+      "bodyAlly": "What you have filled in so far is deleted and you are signed out. Your national ID, tax ID and email become free to register again. This cannot be undone.",
+      "bodyAssisted": "This draft is deleted. The person's national ID and email become free to start over. This cannot be undone."
     }
   },
   "assistedAffiliation": {
@@ -6402,5 +6431,29 @@
       "registration": "Registration",
       "published": "Publication"
     }
+  },
+  "assistedAlly": {
+    "title": "Capture an ally",
+    "subtitle": "Register a business or a professional as an ally from your device. Save it step by step and resume it whenever you want.",
+    "startTitle": "New ally",
+    "startHint": "Start with who the ally is and their contact person. The rest (business type, tax ID or profession, city, profile and hours) is saved step by step.",
+    "contactB2P": "Professional's details",
+    "emailHelp": "When you submit the registration, this email receives the link to create their password and enter their ally space.",
+    "startSubmit": "Start",
+    "draftsTitle": "My ally drafts",
+    "draftsHint": "Allies you started and have not sent yet. Tap one to pick up where you left off.",
+    "draftsEmpty": "You have no drafts.",
+    "resume": "Resume",
+    "backToDrafts": "Back to my drafts",
+    "draftFor": "Ally: {name}",
+    "loadFailed": "We could not load the draft.",
+    "savedLater": "Draft saved",
+    "savedLaterBody": "You will find it under “My ally drafts” to continue whenever you want.",
+    "doneTitle": "Request sent",
+    "doneBody": "The request is under review. {email} will receive the link to create their password and enter their ally space.",
+    "doneBodyNoEmail": "The request is under review. The contact person will receive the link to create their password.",
+    "another": "Capture another ally",
+    "seeAllies": "See my allies",
+    "discardBody": "This ally draft is deleted. The contact's national ID, tax ID and email become free to start over. This cannot be undone."
   }
 }
