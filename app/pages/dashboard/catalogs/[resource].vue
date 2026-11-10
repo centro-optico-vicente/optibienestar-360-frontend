@@ -179,14 +179,13 @@ async function load() {
 // reload instead of one per changed ref.
 const resetting = ref(false)
 
-let searchTimer: ReturnType<typeof setTimeout> | undefined
+const debouncedSearchLoad = useTableFilterDebounce(() => {
+  page.value = 1
+  load()
+})
 watch(search, () => {
   if (resetting.value) return
-  clearTimeout(searchTimer)
-  searchTimer = setTimeout(() => {
-    page.value = 1
-    load()
-  }, 300)
+  debouncedSearchLoad()
 })
 watch(pageSize, () => { if (!resetting.value) { page.value = 1; load() } })
 watch(page, () => { if (!resetting.value) load() })

@@ -6,6 +6,13 @@ interface ListParams {
   size?: number
   /** `OPEN`, `KEPT_AS_CREDIT`, … — omitted lists every status. */
   status?: string
+  /** Free-text, accent/case-insensitive: claim reason/comment and the payer's name/document. */
+  q?: string
+  /** Affiliate (member uuid) whose person made the payment. */
+  memberUuid?: string
+  /** `yyyy-MM-dd`, inclusive, on the day the claim was opened. */
+  dateFrom?: string
+  dateTo?: string
 }
 
 /**
@@ -19,6 +26,10 @@ export const usePaymentClaims = () => {
         page: params.page ?? 0,
         size: params.size ?? 20,
         ...(params.status ? { status: params.status } : {}),
+        ...(params.q ? { q: params.q } : {}),
+        ...(params.memberUuid ? { memberUuid: params.memberUuid } : {}),
+        ...(params.dateFrom ? { dateFrom: params.dateFrom } : {}),
+        ...(params.dateTo ? { dateTo: params.dateTo } : {}),
       },
     })
 

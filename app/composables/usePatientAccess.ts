@@ -27,8 +27,8 @@ export const usePatientAccess = () => {
   const openLink = (allyUuid: string, memberUuid: string) =>
     useApi<AllyPatientLinkDto>(`${base(allyUuid)}/${memberUuid}/links`, { method: 'POST' })
 
-  const patients = (allyUuid: string, params: { page?: number, size?: number } = {}) =>
-    useApi<Page<AllyPatientLinkDto>>(base(allyUuid), { query: params })
+  const patients = (allyUuid: string, params: { page?: number, size?: number, q?: string, dateFrom?: string, dateTo?: string } = {}) =>
+    useApi<Page<AllyPatientLinkDto>>(base(allyUuid), { query: { ...params, q: params.q?.trim() || undefined, dateFrom: params.dateFrom || undefined, dateTo: params.dateTo || undefined } })
 
   const medicalRecord = (allyUuid: string, memberUuid: string) =>
     useApi<MedicalRecordDto>(`${base(allyUuid)}/${memberUuid}/medical-record`)

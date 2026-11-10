@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
 import type { SortDirection } from '~/composables/useTableSort'
+import type { ListFilterField } from '~/utils/listFilters'
+import { emptyListFilters, listFilterQuery } from '~/utils/listFilters'
+import type { SelectItem } from '~/types/options'
 import type { AffiliationRequestListItemDto, AffiliationRequestStatus } from '~/types/affiliationRequests'
 import { AFFILIATION_REQUEST_STATUSES, affiliationRequestStatusColor } from '~/types/affiliationRequests'
 
@@ -41,6 +44,38 @@ const isMultiSort = computed(() => sort.orders.value.length > 1)
 
 const resetting = ref(false)
 
+// ---- Master-table filters (plan, advisor, payment method, creation date range) ----
+const plansApi = usePlans()
+const promotersApi = usePromoters()
+const methodsApi = useCatalog('/v1/admin/payment-methods')
+const planOptions = ref<SelectItem[]>([])
+const promoterOptions = ref<SelectItem[]>([])
+const methodOptions = ref<SelectItem[]>([])
+
+const filterFields = computed<ListFilterField[]>(() => [
+  { key: 'planUuid', label: t('affiliationRequests.filters.plan'), icon: 'i-lucide-layers', items: planOptions.value },
+  { key: 'promoterUuid', label: t('affiliationRequests.filters.advisor'), icon: 'i-lucide-users', items: promoterOptions.value },
+  { key: 'paymentMethodUuid', label: t('affiliationRequests.filters.paymentMethod'), icon: 'i-lucide-credit-card', items: methodOptions.value },
+  { key: 'dateFrom', toKey: 'dateTo', label: t('affiliationRequests.filters.dateFrom'), toLabel: t('affiliationRequests.filters.dateTo'), type: 'dateRange' },
+])
+const masterFilters = ref(emptyListFilters(filterFields.value))
+
+onMounted(async () => {
+  try {
+    const [plans, advisors, methods] = await Promise.all([
+      plansApi.options({ limit: 100 }),
+      promotersApi.list({ size: 100, sort: ['displayName,asc'] }),
+      methodsApi.listAll(),
+    ])
+    planOptions.value = plans.map(p => ({ label: p.label, value: p.uuid }))
+    promoterOptions.value = (advisors.content ?? []).map(a => ({ label: a.displayName, value: a.uuid }))
+    methodOptions.value = methods.filter(m => m.active).map(m => ({ label: m.name, value: m.uuid }))
+  }
+  catch {
+    // useApi already notified; the dropdowns just stay empty
+  }
+})
+
 async function load() {
   loading.value = true
   try {
@@ -50,6 +85,7 @@ async function load() {
       sort: sort.sortParam.value,
       q: search.value.trim() || undefined,
       status: status.value === 'ALL' ? undefined : status.value as AffiliationRequestStatus,
+      extra: listFilterQuery(masterFilters.value),
     })
     items.value = res.content ?? []
     total.value = res.totalElements ?? 0
@@ -77,13 +113,14 @@ const debouncedSearch = useTableFilterDebounce(() => {
 watch(pageSize, () => { if (!resetting.value) page.value = 1 })
 watch([page, pageSize], () => { if (!resetting.value) load() })
 watch(search, () => { if (!resetting.value) debouncedSearch() })
-watch(status, () => { if (!resetting.value) { page.value = 1; load() } })
+watch([status, masterFilters], () => { if (!resetting.value) { page.value = 1; load() } })
 watch(sort.orders, () => { if (!resetting.value) load() }, { deep: true })
 
 async function resetFilters() {
   resetting.value = true
   search.value = ''
   status.value = DEFAULT_STATUS
+  masterFilters.value = emptyListFilters(filterFields.value)
   sort.reset()
   pageSize.value = DEFAULT_PAGE_SIZE
   page.value = 1
@@ -157,6 +194,7 @@ onMounted(load)
         size="lg"
         class="w-48"
       />
+      <ListFilterBar v-model="masterFilters" :fields="filterFields" class="w-full" />
       <UButton
         v-if="hasActiveSort"
         variant="link"

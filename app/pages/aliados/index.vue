@@ -102,10 +102,9 @@ function reloadFromFirstPage() {
 
 watch(page, load)
 watch([category, segment, availability], reloadFromFirstPage)
-let searchTimer: ReturnType<typeof setTimeout> | undefined
+const debouncedSearchLoad = useTableFilterDebounce(reloadFromFirstPage)
 watch([search, city], () => {
-  clearTimeout(searchTimer)
-  searchTimer = setTimeout(reloadFromFirstPage, 400)
+  debouncedSearchLoad()
 })
 
 // "Rubro": product categories by NAME (the API takes name or code, never ids here).

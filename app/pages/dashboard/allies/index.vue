@@ -5,6 +5,7 @@ import type {
   AllyListItemDto,
 } from '~/types/allies'
 import type { SortDirection } from '~/composables/useTableSort'
+import { allyFilterQuery, emptyAllyMasterFilters } from '~/utils/allyFilters'
 
 // The admin table renders AllyListItemDto rows; openEdit / openDelete are also
 // reachable from openFromQuery with a full AllyDto loaded by GET /{uuid}.
@@ -63,6 +64,7 @@ const segmentFilterOptions = computed(() => [
 // createdAt DESC) applies. A pre-loaded entry here would never clear — this
 // table has no "Creado" header to toggle it off — so it would silently stick
 // as a phantom secondary sort behind whatever column the user picks.
+const masterFilters = ref(emptyAllyMasterFilters())
 const sort = useTableSort([])
 const hasActiveSort = computed(() => sort.hasActiveSort.value)
 const isMultiSort = computed(() => sort.orders.value.length > 1)
@@ -78,6 +80,7 @@ async function load() {
       includeInactive: includeInactive.value,
       filter: segmentFilter.value ? `segment==${segmentFilter.value}` : undefined,
       promoterUuid: promoterUuid.value,
+      ...allyFilterQuery(masterFilters.value),
     })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
@@ -110,16 +113,15 @@ const resetting = ref(false)
 
 watch(size, () => { if (!resetting.value) page.value = 1 })
 watch([page, size], () => { if (!resetting.value) load() })
-let searchTimer: ReturnType<typeof setTimeout> | undefined
+const debouncedSearchLoad = useTableFilterDebounce(() => {
+  page.value = 1
+  load()
+})
 watch(search, () => {
   if (resetting.value) return
-  clearTimeout(searchTimer)
-  searchTimer = setTimeout(() => {
-    page.value = 1
-    load()
-  }, 400)
+  debouncedSearchLoad()
 })
-watch([includeInactive, segmentFilter, promoterUuid], () => { if (!resetting.value) { page.value = 1; load() } })
+watch([includeInactive, segmentFilter, promoterUuid, masterFilters], () => { if (!resetting.value) { page.value = 1; load() } })
 watch(sort.orders, () => { if (!resetting.value) load() }, { deep: true })
 
 // "Limpiar filtros y actualizar" from the list refresh menu.
@@ -129,6 +131,7 @@ async function resetFilters() {
   includeInactive.value = false
   segmentFilter.value = undefined
   promoterUuid.value = undefined
+  masterFilters.value = emptyAllyMasterFilters()
   sort.reset()
   size.value = DEFAULT_PAGE_SIZE
   page.value = 1
@@ -314,6 +317,7 @@ async function confirmDelete() {
         icon="i-lucide-user-check"
         class="w-64"
       />
+      <AllyMasterFilters v-model="masterFilters" />
       <UCheckbox v-model="includeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
       <UButton
         v-if="hasActiveSort"

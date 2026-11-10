@@ -33,6 +33,15 @@ interface ListParams {
    * doesn't support the `=in=` operator a multi-value filter would need.
    */
   direction?: 'IN' | 'OUT' | 'ALL'
+  /** Master-table filters (see `utils/paymentFilters.ts`). */
+  memberUuid?: string
+  paymentMethodUuid?: string
+  bankUuid?: string
+  categoryUuid?: string
+  promoterUuid?: string
+  /** `yyyy-MM-dd`, inclusive, on the payment date. */
+  dateFrom?: string
+  dateTo?: string
 }
 
 /**
@@ -61,6 +70,13 @@ export const usePayments = () => {
         ...(params.filter ? { filter: params.filter } : {}),
         ...(params.q ? { q: params.q } : {}),
         ...(params.direction ? { direction: params.direction } : {}),
+        ...(params.memberUuid ? { memberUuid: params.memberUuid } : {}),
+        ...(params.paymentMethodUuid ? { paymentMethodUuid: params.paymentMethodUuid } : {}),
+        ...(params.bankUuid ? { bankUuid: params.bankUuid } : {}),
+        ...(params.categoryUuid ? { categoryUuid: params.categoryUuid } : {}),
+        ...(params.promoterUuid ? { promoterUuid: params.promoterUuid } : {}),
+        ...(params.dateFrom ? { dateFrom: params.dateFrom } : {}),
+        ...(params.dateTo ? { dateTo: params.dateTo } : {}),
       },
     })
 
@@ -165,12 +181,14 @@ export const usePayments = () => {
 
   // ---- Member self-service ----
   /** My payment history (COLLECTION_VIEW_OWN). No RSQL nor free-text. */
-  const mine = (params: Pick<ListParams, 'page' | 'size' | 'sort'> = {}) =>
+  const mine = (params: Pick<ListParams, 'page' | 'size' | 'sort' | 'dateFrom' | 'dateTo'> = {}) =>
     useApi<Page<PaymentDto>>('/v1/me/payments', {
       query: {
         page: params.page ?? 0,
         size: params.size ?? 20,
         sort: params.sort?.length ? params.sort : ['receivedAt,desc'],
+        ...(params.dateFrom ? { dateFrom: params.dateFrom } : {}),
+        ...(params.dateTo ? { dateTo: params.dateTo } : {}),
       },
     })
 
@@ -212,13 +230,15 @@ export const usePayments = () => {
    * promoter's downline); `direction=OUT` -> "Mis pagos de comisiones"
    * (commission payouts disbursed to the promoter). PROMOTER_VIEW_OWN.
    */
-  const mineForPromoter = (direction: 'IN' | 'OUT', params: Pick<ListParams, 'page' | 'size' | 'sort'> = {}) =>
+  const mineForPromoter = (direction: 'IN' | 'OUT', params: Pick<ListParams, 'page' | 'size' | 'sort' | 'dateFrom' | 'dateTo'> = {}) =>
     useApi<Page<PaymentDto>>('/v1/advisors/me/payments', {
       query: {
         direction,
         page: params.page ?? 0,
         size: params.size ?? 20,
         sort: params.sort?.length ? params.sort : ['receivedAt,desc'],
+        ...(params.dateFrom ? { dateFrom: params.dateFrom } : {}),
+        ...(params.dateTo ? { dateTo: params.dateTo } : {}),
       },
     })
 

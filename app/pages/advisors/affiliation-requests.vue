@@ -26,6 +26,9 @@ const page = ref(1) // UPagination is 1-based; the API is 0-based
 const size = ref(20)
 // 'ALL' = no status filter.
 const status = ref<string>('ALL')
+const search = ref('')
+const dateFrom = ref('')
+const dateTo = ref('')
 
 const statusItems = computed(() => [
   { value: 'ALL', label: t('affiliationRequests.statusAll') },
@@ -39,6 +42,9 @@ async function load() {
       page: page.value - 1,
       size: size.value,
       status: status.value === 'ALL' ? undefined : status.value as AffiliationRequestStatus,
+      q: search.value.trim() || undefined,
+      dateFrom: dateFrom.value || undefined,
+      dateTo: dateTo.value || undefined,
     })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
@@ -54,7 +60,12 @@ async function load() {
 }
 
 watch(page, load)
-watch(status, () => {
+const debouncedSearch = useTableFilterDebounce(() => {
+  if (page.value !== 1) page.value = 1
+  else load()
+})
+watch(search, debouncedSearch)
+watch([status, dateFrom, dateTo], () => {
   if (page.value !== 1) page.value = 1
   else load()
 })
@@ -72,7 +83,16 @@ function statusLabel(r: AffiliationRequestListItemDto): string {
         <h1 class="text-2xl font-extrabold text-prohealth-900">{{ t('affiliationRequests.mine.title') }}</h1>
         <p class="text-sm text-prohealth-700/70 mt-1">{{ t('affiliationRequests.mine.subtitle') }}</p>
       </div>
-      <USelect v-model="status" :items="statusItems" :aria-label="t('affiliationRequests.columns.status')" class="w-48" />
+      <div class="flex flex-wrap items-center gap-3">
+        <UInput
+          v-model="search"
+          :placeholder="t('affiliationRequests.mine.searchPlaceholder')"
+          icon="i-lucide-search"
+          class="w-64"
+        />
+        <USelect v-model="status" :items="statusItems" :aria-label="t('affiliationRequests.columns.status')" class="w-48" />
+        <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('affiliationRequests.filters.dateFrom')" :to-label="t('affiliationRequests.filters.dateTo')" />
+      </div>
     </div>
 
     <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-16rem)] min-h-[24rem]">

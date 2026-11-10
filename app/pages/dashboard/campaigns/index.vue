@@ -42,6 +42,12 @@ const hasActiveSort = computed(() => sort.hasActiveSort.value)
 const isMultiSort = computed(() => sort.orders.value.length > 1)
 
 const resetting = ref(false)
+const scopeFilter = ref('')
+const modeFilter = ref('')
+const dateFrom = ref('')
+const dateTo = ref('')
+const scopeOptions = computed(() => CAMPAIGN_SCOPE_OPTIONS.map(o => ({ label: t(o.labelKey), value: String(o.value) })))
+const modeOptions = computed(() => CAMPAIGN_MODE_OPTIONS.map(o => ({ label: t(o.labelKey), value: String(o.value) })))
 
 async function load() {
   loading.value = true
@@ -51,7 +57,12 @@ async function load() {
       size: pageSize.value,
       sort: sort.sortParam.value,
       q: search.value.trim() || undefined,
+      // RSQL: `scope` and `mode` are allow-listed by the backend.
+      filter: [scopeFilter.value && `scope==${scopeFilter.value}`, modeFilter.value && `mode==${modeFilter.value}`]
+        .filter(Boolean).join(';') || undefined,
       includeInactive: includeInactive.value,
+      dateFrom: dateFrom.value || undefined,
+      dateTo: dateTo.value || undefined,
     })
     items.value = res.content ?? []
     total.value = res.totalElements ?? 0
@@ -73,19 +84,22 @@ async function load() {
 
 watch(pageSize, () => { if (!resetting.value) page.value = 1 })
 watch([page, pageSize], () => { if (!resetting.value) load() })
-let searchTimer: ReturnType<typeof setTimeout> | undefined
+const debouncedSearchLoad = useTableFilterDebounce(() => { page.value = 1; load() })
 watch(search, () => {
   if (resetting.value) return
-  clearTimeout(searchTimer)
-  searchTimer = setTimeout(() => { page.value = 1; load() }, 400)
+  debouncedSearchLoad()
 })
-watch(includeInactive, () => { if (!resetting.value) { page.value = 1; load() } })
+watch([includeInactive, scopeFilter, modeFilter, dateFrom, dateTo], () => { if (!resetting.value) { page.value = 1; load() } })
 watch(sort.orders, () => { if (!resetting.value) load() }, { deep: true })
 
 async function resetFilters() {
   resetting.value = true
   search.value = ''
   includeInactive.value = false
+  scopeFilter.value = ''
+  modeFilter.value = ''
+  dateFrom.value = ''
+  dateTo.value = ''
   sort.reset()
   pageSize.value = DEFAULT_PAGE_SIZE
   page.value = 1
@@ -182,6 +196,27 @@ onMounted(load)
         size="lg"
         class="w-full max-w-md"
       />
+      <USelectMenu
+        v-model="scopeFilter"
+        clear
+        :items="scopeOptions"
+        label-key="label"
+        value-key="value"
+        icon="i-lucide-target"
+        :placeholder="t('campaigns.filters.scope')"
+        class="w-full max-w-xs"
+      />
+      <USelectMenu
+        v-model="modeFilter"
+        clear
+        :items="modeOptions"
+        label-key="label"
+        value-key="value"
+        icon="i-lucide-settings-2"
+        :placeholder="t('campaigns.filters.mode')"
+        class="w-full max-w-xs"
+      />
+      <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('campaigns.filters.dateFrom')" :to-label="t('campaigns.filters.dateTo')" />
       <UCheckbox v-model="includeInactive" :label="t('catalogs.includeInactive')" class="self-center" />
       <UButton
         v-if="hasActiveSort"

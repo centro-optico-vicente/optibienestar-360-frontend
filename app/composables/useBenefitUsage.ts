@@ -7,6 +7,9 @@ interface HistoryParams {
   sort?: string
   /** Free-text match against the member's document number or full name. */
   search?: string
+  /** Usage date range `yyyy-MM-dd`, inclusive. */
+  dateFrom?: string
+  dateTo?: string
 }
 
 /**
@@ -63,6 +66,8 @@ export const useBenefitUsage = () => {
         size: params.size ?? 20,
         sort: params.sort ?? 'usageDate,desc',
         search: params.search?.trim() || undefined,
+        dateFrom: params.dateFrom || undefined,
+        dateTo: params.dateTo || undefined,
       },
     })
 
@@ -79,6 +84,8 @@ export const useBenefitUsage = () => {
         ...scopeQuery(params),
         productUuid: params.productUuid || undefined,
         productCategoryUuid: params.productCategoryUuid || undefined,
+        dateFrom: params.dateFrom || undefined,
+        dateTo: params.dateTo || undefined,
       },
     })
 

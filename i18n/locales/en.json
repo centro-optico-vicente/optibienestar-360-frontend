@@ -91,6 +91,11 @@
       "usd": "USD — US Dollar ($)",
       "ves": "VES — Venezuelan Bolívar (Bs.)",
       "eur": "EUR — Euro (€)"
+    },
+    "dateRange": {
+      "from": "From",
+      "to": "To",
+      "clear": "Clear date"
     }
   },
   "locale": {
@@ -311,7 +316,10 @@
       },
       "invitedToast": "User created. We emailed an invitation to set their password.",
       "advisorCreatedToast": "Advisor profile created",
-      "advisorCreateFailedToast": "The user was created, but the advisor profile could not be. Create it from Advisors."
+      "advisorCreateFailedToast": "The user was created, but the advisor profile could not be. Create it from Advisors.",
+      "filters": {
+        "role": "Role"
+      }
     },
     "roles": {
       "seoTitle": "Roles — OptiBienestar 360",
@@ -412,7 +420,7 @@
       "seoTitle": "Login sessions — OptiBienestar 360",
       "title": "Login sessions",
       "subtitle": "Global history of login attempts and system sessions.",
-      "searchPlaceholder": "Search by email…",
+      "searchPlaceholder": "Search by email, IP, host or failure reason…",
       "empty": "No login attempts recorded.",
       "paginationSummary": "{shown} of {total} attempts",
       "filters": {
@@ -467,7 +475,8 @@
         "action": "Action",
         "actor": "Actor",
         "occurredAt": "Date"
-      }
+      },
+      "searchPlaceholder": "Search by entity or path…"
     },
     "reportsAudit": {
       "seoTitle": "Generated reports — OptiBienestar 360",
@@ -519,7 +528,8 @@
         "started": "Started",
         "duration": "Duration",
         "error": "Error"
-      }
+      },
+      "searchPlaceholder": "Search by job or error message…"
     }
   },
   "roles": {
@@ -1544,6 +1554,9 @@
         "FIXED_DATE": "Fixed annual date",
         "PERIOD": "Period in months"
       }
+    },
+    "filters": {
+      "type": "Plan type"
     }
   },
   "allies": {
@@ -1795,14 +1808,16 @@
       "hint": "Professions and business activities the partner offers.",
       "add": "Add profession",
       "addButton": "Add",
-      "empty": "No professions assigned."
+      "empty": "No professions assigned.",
+      "searchPlaceholder": "Search profession…"
     },
     "allyTypes": {
       "title": "Partner types",
       "hint": "Business classification of the partner.",
       "add": "Add type",
       "addButton": "Add",
-      "empty": "No types assigned."
+      "empty": "No types assigned.",
+      "searchPlaceholder": "Search ally type…"
     },
     "agreements": {
       "title": "Agreements",
@@ -1854,7 +1869,8 @@
       "delete": {
         "title": "Delete agreement",
         "confirm": "Are you sure you want to delete the {type} agreement? (soft-delete)"
-      }
+      },
+      "searchPlaceholder": "Search by type, terms or status…"
     },
     "staff": {
       "title": "Staff",
@@ -1899,7 +1915,8 @@
       "delete": {
         "title": "Unlink user",
         "confirm": "Are you sure you want to unlink {name} from this partner? (soft-delete)"
-      }
+      },
+      "searchPlaceholder": "Search by name, email or role…"
     },
     "public": {
       "seoTitle": "Partner network — OptiBienestar 360",
@@ -2110,6 +2127,11 @@
       "modalHelp": "The advisor who brought the ally into OptiBienestar 360. The change is recorded in the ally change log.",
       "none": "No advisor",
       "savedToast": "Advisor updated"
+    },
+    "filters": {
+      "allyType": "Ally type",
+      "profession": "Profession",
+      "state": "State / Department"
     }
   },
   "catalog": {
@@ -2473,7 +2495,7 @@
     "new": "Register payment",
     "createTooltip": "Register a new payment",
     "noPermissionRegister": "You don't have permission to register payments",
-    "searchPlaceholder": "Search by reference or notes…",
+    "searchPlaceholder": "Search by affiliate, ID, reference or notes…",
     "statusFilterAll": "All",
     "statusFilterPlaceholder": "Status",
     "empty": "No payments",
@@ -2522,7 +2544,7 @@
         "originAccount": "Origin account (company)",
         "payoutAccount": "Destination account (advisor)"
       },
-      "searchPlaceholder": "Search by reference…",
+      "searchPlaceholder": "Search by advisor, ID, reference or notes…",
       "empty": "No commission payouts",
       "detailTitle": "Payment detail",
       "columns": {
@@ -2541,7 +2563,7 @@
     "movements": {
       "title": "Movements",
       "subtitle": "Master view of collections and commission payouts, both directions.",
-      "searchPlaceholder": "Search…",
+      "searchPlaceholder": "Search by affiliate, ID, reference or notes…",
       "empty": "No movements",
       "directionAll": "All",
       "directionIn": "Collection",
@@ -2788,7 +2810,11 @@
       "noneAtAll": "No company accounts have been registered yet.",
       "pickMethodHint": "Pick the payment method first: it decides which details the account needs.",
       "holderDocumentHelp": "ID or RIF, e.g. J-12345678-9.",
-      "phonePlaceholder": "04141234567"
+      "phonePlaceholder": "04141234567",
+      "filters": {
+        "bank": "Bank",
+        "currency": "Currency"
+      }
     },
     "assignOwn": {
       "title": "Assign to a membership",
@@ -2869,6 +2895,16 @@
         "email": "Email",
         "accepts": "Accepts"
       }
+    },
+    "filters": {
+      "member": "Affiliate",
+      "method": "Method",
+      "bank": "Bank",
+      "category": "Reason",
+      "advisor": "Advisor",
+      "currency": "Currency",
+      "dateFrom": "Date from",
+      "dateTo": "Date to"
     }
   },
   "members": {
@@ -3223,7 +3259,9 @@
       "emptyFiltered": "No usages match this filter.",
       "filters": {
         "service": "Service: {name}",
-        "clear": "Clear filter"
+        "clear": "Clear filter",
+        "dateFrom": "Usage from",
+        "dateTo": "Usage to"
       },
       "summary": {
         "title": "By service",
@@ -3258,6 +3296,17 @@
       "confirm": "Freeze",
       "frozenToast": "Balance frozen",
       "releasedToast": "Balance released"
+    },
+    "filters": {
+      "advisor": "Advisor",
+      "gender": "Gender",
+      "city": "City",
+      "occupation": "Occupation",
+      "confirmation": "Confirmation",
+      "confirmed": "Confirmed",
+      "pending": "Pending confirmation",
+      "enrolledFrom": "Enrolled from",
+      "enrolledTo": "Enrolled to"
     }
   },
   "memberships": {
@@ -3468,7 +3517,9 @@
       "searchPlaceholder": "Search by member ID or name...",
       "consumptionLabel": "Consumed value",
       "copayLabel": "Co-pay",
-      "validateCta": "Validate affiliate"
+      "validateCta": "Validate affiliate",
+      "dateFrom": "Usage from",
+      "dateTo": "Usage to"
     },
     "scanner": {
       "button": "Scan",
@@ -3849,7 +3900,7 @@
     },
     "title": "Commissions",
     "subtitle": "Advisor commission ledger and period payouts.",
-    "searchPlaceholder": "Search by advisor, code or reference…",
+    "searchPlaceholder": "Search by advisor, affiliate, ID, code or reference…",
     "filterPlaceholder": "RSQL filter, e.g. promoter.uuid==…;status==PENDING",
     "empty": "No commissions recorded yet.",
     "paginationSummary": "Showing {shown} of {total}",
@@ -4161,6 +4212,14 @@
       "bulkConfirm": "The {count} selected commissions will be excluded from the next payout. This cannot be undone.",
       "bulkSuccessToast": "{count} commissions voided.",
       "selectAllPending": "Select all pending"
+    },
+    "filters": {
+      "advisor": "Advisor",
+      "member": "Affiliate",
+      "status": "Status",
+      "currency": "Currency",
+      "dateFrom": "Earned from",
+      "dateTo": "Earned to"
     }
   },
   "scheduledJobs": {
@@ -4303,7 +4362,12 @@
       "empty": "You haven't referred anyone yet. Share your code to get started.",
       "pendingReferred": "Referral pending enrollment",
       "enrolledOn": "Enrolled on {date}",
-      "reward": "Reward: {reward}"
+      "reward": "Reward: {reward}",
+      "searchPlaceholder": "Search by name, ID or code…",
+      "statusPlaceholder": "Status",
+      "emptyFiltered": "No referral matches the search.",
+      "dateFrom": "Referred from",
+      "dateTo": "Referred to"
     },
     "status": {
       "PENDING_ENROLLMENT": "Pending enrollment",
@@ -4489,7 +4553,13 @@
       "addRowTooltip": "Add campaign exception",
       "noCampaignsPermission": "No permission to manage campaign exceptions"
     },
-    "reglasExpress": "Express rules"
+    "reglasExpress": "Express rules",
+    "filters": {
+      "scope": "Scope",
+      "mode": "Mode",
+      "dateFrom": "Active from",
+      "dateTo": "Active to"
+    }
   },
   "commissionRules": {
     "title": "Commission Rules",
@@ -4939,7 +5009,8 @@
         "back": "Back",
         "confirm": "Confirm",
         "successToast": "Recalculated: {created} created, {updated} updated, {displaced} displaced"
-      }
+      },
+      "awardsSearchPlaceholder": "Search by rule, advisor or payout reference…"
     }
   },
   "hierarchyOverrideTiers": {
@@ -5330,7 +5401,11 @@
     "deletedToast": "Exchange rate deleted.",
     "filters": {
       "basePlaceholder": "Base (USD)",
-      "quotePlaceholder": "Quote (VES)"
+      "quotePlaceholder": "Quote (VES)",
+      "searchPlaceholder": "Search by currency code or name…",
+      "sourcePlaceholder": "Source",
+      "dateFrom": "Operation from",
+      "dateTo": "Operation to"
     },
     "columns": {
       "pair": "Pair",
@@ -5395,7 +5470,10 @@
     "filters": {
       "status": "Status",
       "rule": "Rule",
-      "openOrStale": "Open and stale"
+      "openOrStale": "Open and stale",
+      "period": "Period",
+      "dateFrom": "Period from",
+      "dateTo": "Period to"
     },
     "tieStatuses": {
       "OPEN": "Open tie",
@@ -5751,7 +5829,15 @@
     "mine": {
       "title": "My affiliation requests",
       "subtitle": "The people who signed up with your QR and where their request stands.",
-      "empty": "No requests through your QR yet"
+      "empty": "No requests through your QR yet",
+      "searchPlaceholder": "Search by name, ID, email or phone…"
+    },
+    "filters": {
+      "plan": "Plan",
+      "advisor": "Advisor",
+      "paymentMethod": "Payment method",
+      "dateFrom": "Created from",
+      "dateTo": "Created to"
     }
   },
   "securityPolicy": {
@@ -5862,7 +5948,11 @@
     "savedToast": "Account saved",
     "removedToast": "Account removed",
     "deleteTitle": "Delete account",
-    "deleteConfirm": "This account will stop showing among your saved accounts. Payments you already registered do not change."
+    "deleteConfirm": "This account will stop showing among your saved accounts. Payments you already registered do not change.",
+    "searchPlaceholder": "Search by alias, account, ID or bank…",
+    "filters": {
+      "bank": "Bank"
+    }
   },
   "paymentClaims": {
     "title": "Payment claims",
@@ -5906,7 +5996,13 @@
     "refundedAmountInvalid": "Must be greater than 0 and not exceed the claimed amount.",
     "noteLabel": "Resolution note",
     "confirm": "Resolve",
-    "resolvedToast": "Claim resolved"
+    "resolvedToast": "Claim resolved",
+    "searchPlaceholder": "Search by affiliate, ID, reason or comment…",
+    "filters": {
+      "member": "Affiliate",
+      "dateFrom": "Claim from",
+      "dateTo": "Claim to"
+    }
   },
   "publicAccounts": {
     "seoTitle": "Accounts to pay into — OptiBienestar 360",
@@ -5940,7 +6036,10 @@
       "notEligibleTitle": "Not available for this ally",
       "notEligibleDescription": "Only the doctor or a medical operator of a medical professional ally can read their patients' history.",
       "empty": "You have no patients yet. Scan an affiliate's credential QR in the validator.",
-      "since": "Since {date}"
+      "since": "Since {date}",
+      "searchPlaceholder": "Search by name or ID…",
+      "dateFrom": "Linked from",
+      "dateTo": "Linked to"
     },
     "mine": {
       "title": "Who viewed my history",
@@ -6160,7 +6259,11 @@
       "doneToast": "{count} allies imported",
       "doneBody": "They are pending approval, unpublished and without a user. Invite each contact from its request."
     },
-    "advisorFilter": "Filter by advisor"
+    "advisorFilter": "Filter by advisor",
+    "filters": {
+      "dateFrom": "Submitted from",
+      "dateTo": "Submitted to"
+    }
   },
   "onboardingPolicy": {
     "title": "Registration policy",
@@ -6474,5 +6577,11 @@
     "poolHintMember": "Self-registrations not yet sent to review (yours or without an advisor). Mark the one you are working on so the draft cleanup does not delete it.",
     "poolHintAlly": "Ally registrations not yet sent to review (yours or without an advisor). Mark the one you are working on so the draft cleanup does not delete it.",
     "poolEmpty": "There are no registrations in progress."
+  },
+  "allyProducts": {
+    "filters": {
+      "dateFrom": "Submitted from",
+      "dateTo": "Submitted to"
+    }
   }
 }

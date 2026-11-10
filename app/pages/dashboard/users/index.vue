@@ -3,6 +3,9 @@ import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/util
 import type { UserDto } from '~/types/admin'
 import { toLocaleCode } from '~/composables/useAppLocale'
 import type { SortDirection } from '~/composables/useTableSort'
+import type { ListFilterField } from '~/utils/listFilters'
+import { emptyListFilters, listFilterQuery } from '~/utils/listFilters'
+import type { SelectItem } from '~/types/options'
 
 definePageMeta({
   layout: 'dashboard',
@@ -56,12 +59,23 @@ const sort = useTableSort([])
 const hasActiveSort = computed(() => sort.hasActiveSort.value)
 const isMultiSort = computed(() => sort.orders.value.length > 1)
 
-function buildFilter(): string | undefined {
-  const term = search.value.trim()
-  if (!term) return undefined
-  // RSQL: OR entre fullName y email (coma = OR)
-  return `fullName=='*${term}*',email=='*${term}*'`
-}
+// ---- Master-table filters (role) ----
+const rolesApi = useRoles()
+const roleOptions = ref<SelectItem[]>([])
+const filterFields = computed<ListFilterField[]>(() => [
+  { key: 'roleUuid', label: t('security.users.filters.role'), icon: 'i-lucide-shield', items: roleOptions.value },
+])
+const masterFilters = ref(emptyListFilters(filterFields.value))
+
+onMounted(async () => {
+  try {
+    const roles = await rolesApi.options({ limit: 100 })
+    roleOptions.value = roles.map(o => ({ label: o.label, value: o.uuid }))
+  }
+  catch {
+    // useApi already notified; the dropdown just stays empty
+  }
+})
 
 async function load() {
   loading.value = true
@@ -70,8 +84,10 @@ async function load() {
       page: page.value - 1,
       size: size.value,
       sort: sort.sortParam.value,
-      filter: buildFilter(),
+      // Free-text goes through the backend `q` (unaccent + case-insensitive), not a raw RSQL LIKE.
+      q: search.value.trim() || undefined,
       includeInactive: includeInactive.value,
+      extra: listFilterQuery(masterFilters.value),
     })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
@@ -98,22 +114,24 @@ const resetting = ref(false)
 
 watch(size, () => { if (!resetting.value) page.value = 1 })
 watch([page, size], () => { if (!resetting.value) load() })
-let searchTimer: ReturnType<typeof setTimeout> | undefined
+// Debounced via the central delay (spec 08): typing `asd` sends one request, not three.
+const debouncedSearchLoad = useTableFilterDebounce(() => {
+  if (resetting.value) return
+  page.value = 1
+  load()
+})
 watch(search, () => {
   if (resetting.value) return
-  clearTimeout(searchTimer)
-  searchTimer = setTimeout(() => {
-    page.value = 1
-    load()
-  }, 400)
+  debouncedSearchLoad()
 })
-watch(includeInactive, () => { if (!resetting.value) { page.value = 1; load() } })
+watch([includeInactive, masterFilters], () => { if (!resetting.value) { page.value = 1; load() } })
 watch(sort.orders, () => { if (!resetting.value) load() }, { deep: true })
 
 async function resetFilters() {
   resetting.value = true
   search.value = ''
   includeInactive.value = false
+  masterFilters.value = emptyListFilters(filterFields.value)
   sort.reset()
   size.value = DEFAULT_PAGE_SIZE
   page.value = 1
@@ -271,6 +289,7 @@ async function confirmDelete() {
         class="w-full max-w-md"
       />
       <UCheckbox v-model="includeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
+      <ListFilterBar v-model="masterFilters" :fields="filterFields" class="w-full" />
       <UButton
         v-if="hasActiveSort"
         variant="link"

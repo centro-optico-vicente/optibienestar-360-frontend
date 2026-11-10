@@ -38,6 +38,11 @@ interface ListParams {
   includeInactive?: boolean
   /** Only the allies this advisor (promoter uuid) brought in. */
   promoterUuid?: string
+  /** Master-table filters (see `utils/allyFilters.ts`). */
+  allyTypeUuid?: string
+  professionUuid?: string
+  stateUuid?: string
+  cityUuid?: string
 }
 
 /**
@@ -65,6 +70,10 @@ export const useAllies = () => {
         ...(params.q ? { q: params.q } : {}),
         ...(params.includeInactive ? { includeInactive: 'true' } : {}),
         ...(params.promoterUuid ? { promoterUuid: params.promoterUuid } : {}),
+        ...(params.allyTypeUuid ? { allyTypeUuid: params.allyTypeUuid } : {}),
+        ...(params.professionUuid ? { professionUuid: params.professionUuid } : {}),
+        ...(params.stateUuid ? { stateUuid: params.stateUuid } : {}),
+        ...(params.cityUuid ? { cityUuid: params.cityUuid } : {}),
       },
     })
 
@@ -124,7 +133,7 @@ export const useAllies = () => {
     useApi<null>(`/v1/admin/allies/${allyUuid}/ally-types/${allyTypeUuid}`, { method: 'DELETE' })
 
   // ---- Products and services (offers of the products catalog, hub ADR 0026) ----
-  const listProducts = (allyUuid: string, params: { page?: number, size?: number, sort?: string[], q?: string, type?: ProductType } = {}) =>
+  const listProducts = (allyUuid: string, params: { page?: number, size?: number, sort?: string[], q?: string, type?: ProductType, categoryUuid?: string } = {}) =>
     useApi<Page<AllyProductDto>>(`/v1/admin/allies/${allyUuid}/products`, {
       query: {
         page: params.page ?? 0,
@@ -132,6 +141,7 @@ export const useAllies = () => {
         ...(params.sort?.length ? { sort: params.sort } : {}),
         ...(params.q ? { q: params.q } : {}),
         ...(params.type ? { type: params.type } : {}),
+        ...(params.categoryUuid ? { categoryUuid: params.categoryUuid } : {}),
       },
     })
 
@@ -148,7 +158,7 @@ export const useAllies = () => {
     useApi<null>(`/v1/admin/allies/${allyUuid}/products/${uuid}`, { method: 'DELETE' })
 
   // ---- Offer review workflow (ALLY_PRODUCT_APPROVE; log → ALLY_PRODUCT_VIEW_ALL) ----
-  const listPendingProducts = (params: { allyUuid?: string, productCategoryUuid?: string, q?: string, page?: number, size?: number } = {}) =>
+  const listPendingProducts = (params: { allyUuid?: string, productCategoryUuid?: string, q?: string, dateFrom?: string, dateTo?: string, page?: number, size?: number } = {}) =>
     useApi<Page<AllyProductDto>>('/v1/admin/ally-products/pending', {
       query: {
         page: params.page ?? 0,
@@ -156,6 +166,8 @@ export const useAllies = () => {
         ...(params.allyUuid ? { allyUuid: params.allyUuid } : {}),
         ...(params.productCategoryUuid ? { productCategoryUuid: params.productCategoryUuid } : {}),
         ...(params.q ? { q: params.q } : {}),
+        ...(params.dateFrom ? { dateFrom: params.dateFrom } : {}),
+        ...(params.dateTo ? { dateTo: params.dateTo } : {}),
       },
     })
 

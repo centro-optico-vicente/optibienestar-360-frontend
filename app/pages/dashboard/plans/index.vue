@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PLAN_TYPE_OPTIONS } from '~/types/plans'
 import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
 import type { PlanDto } from '~/types/plans'
 import type { SortDirection } from '~/composables/useTableSort'
@@ -34,6 +35,8 @@ const size = ref(DEFAULT_PAGE_SIZE)
 const pageSizeItems = buildPageSizeItems(t)
 const search = ref('')
 const includeInactive = ref(false)
+const typeFilter = ref('')
+const typeOptions = computed(() => PLAN_TYPE_OPTIONS.map(o => ({ label: t(o.labelKey, o.label), value: String(o.value) })))
 // Empty by default: no `sort=` is sent until the user clicks a column, so
 // the backend's own default-sort fallback (entity_config → system_configs
 // → code ASC) applies.
@@ -49,6 +52,8 @@ async function load() {
       size: size.value,
       sort: sort.sortParam.value,
       q: search.value.trim() || undefined,
+      // RSQL: `type` is allow-listed by the backend.
+      filter: typeFilter.value ? `type==${typeFilter.value}` : undefined,
       includeInactive: includeInactive.value,
     })
     data.value = res.content ?? []
@@ -76,22 +81,22 @@ const resetting = ref(false)
 
 watch(size, () => { if (!resetting.value) page.value = 1 })
 watch([page, size], () => { if (!resetting.value) load() })
-let searchTimer: ReturnType<typeof setTimeout> | undefined
+const debouncedSearchLoad = useTableFilterDebounce(() => {
+  page.value = 1
+  load()
+})
 watch(search, () => {
   if (resetting.value) return
-  clearTimeout(searchTimer)
-  searchTimer = setTimeout(() => {
-    page.value = 1
-    load()
-  }, 400)
+  debouncedSearchLoad()
 })
-watch(includeInactive, () => { if (!resetting.value) { page.value = 1; load() } })
+watch([includeInactive, typeFilter], () => { if (!resetting.value) { page.value = 1; load() } })
 watch(sort.orders, () => { if (!resetting.value) load() }, { deep: true })
 
 async function resetFilters() {
   resetting.value = true
   search.value = ''
   includeInactive.value = false
+  typeFilter.value = ''
   sort.reset()
   size.value = DEFAULT_PAGE_SIZE
   page.value = 1
@@ -226,6 +231,16 @@ function openAudit(p: PlanDto) {
         icon="i-lucide-search"
         size="lg"
         class="w-full max-w-md"
+      />
+      <USelectMenu
+        v-model="typeFilter"
+        clear
+        :items="typeOptions"
+        label-key="label"
+        value-key="value"
+        icon="i-lucide-layers"
+        :placeholder="t('plans.filters.type')"
+        class="w-full max-w-xs"
       />
       <UCheckbox v-model="includeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
       <UButton

@@ -255,16 +255,17 @@ watch(size, (s) => {
   if (s !== UNPAGED_PAGE_SIZE && groupByPromoter.value) groupByPromoter.value = false
 })
 
-let filterTimer: ReturnType<typeof setTimeout> | undefined
+// Debounced via the central delay (spec 08): amount/period edits send one request, not one per keystroke.
+const debouncedFilterLoad = useTableFilterDebounce(() => {
+  if (resetting.value) return
+  page.value = 1
+  load()
+})
 watch(
   [periodRange, promoterTypeUuid, promoterUuid, appliesTo, status, amountFrom, amountTo, campaignUuid, rankUuid, ruleSource],
   () => {
     if (resetting.value) return
-    clearTimeout(filterTimer)
-    filterTimer = setTimeout(() => {
-      page.value = 1
-      load()
-    }, 300)
+    debouncedFilterLoad()
   },
   { deep: true },
 )

@@ -15,6 +15,11 @@ interface ListParams {
   base?: string
   quote?: string
   filter?: string
+  /** Free-text, accent/case-insensitive, over both currencies' code and name. */
+  q?: string
+  /** `yyyy-MM-dd`, inclusive, on the operation date. */
+  dateFrom?: string
+  dateTo?: string
 }
 
 /**
@@ -77,6 +82,9 @@ export const useExchangeRates = () => {
         ...(params.base ? { base: params.base } : {}),
         ...(params.quote ? { quote: params.quote } : {}),
         ...(params.filter ? { filter: params.filter } : {}),
+        ...(params.q ? { q: params.q } : {}),
+        ...(params.dateFrom ? { dateFrom: params.dateFrom } : {}),
+        ...(params.dateTo ? { dateTo: params.dateTo } : {}),
       },
     })
 

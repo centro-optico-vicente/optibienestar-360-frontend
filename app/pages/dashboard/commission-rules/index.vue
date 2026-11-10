@@ -176,11 +176,15 @@ async function loadTiers() {
 
 watch(tierSize, () => { if (!resetting.value) tierPage.value = 1 })
 watch([tierPage, tierSize], () => { if (!resetting.value) loadTiers() })
-let tierSearchTimer: ReturnType<typeof setTimeout> | undefined
+// Debounced via the central delay (spec 08): typing `asd` sends one request, not three.
+const debouncedTierSearchLoad = useTableFilterDebounce(() => {
+  if (resetting.value) return
+  tierPage.value = 1
+  loadTiers()
+})
 watch(tierSearch, () => {
   if (resetting.value) return
-  clearTimeout(tierSearchTimer)
-  tierSearchTimer = setTimeout(() => { tierPage.value = 1; loadTiers() }, 400)
+  debouncedTierSearchLoad()
 })
 watch([tierIncludeInactive, tierPromoterTypeUuid, tierPlanType, tierAppliesTo], () => {
   if (resetting.value) return
@@ -317,11 +321,15 @@ async function loadBonusRules() {
 
 watch(bonusSize, () => { if (!resetting.value) bonusPage.value = 1 })
 watch([bonusPage, bonusSize], () => { if (!resetting.value) loadBonusRules() })
-let bonusSearchTimer: ReturnType<typeof setTimeout> | undefined
+// Debounced via the central delay (spec 08): typing `asd` sends one request, not three.
+const debouncedBonusSearchLoad = useTableFilterDebounce(() => {
+  if (resetting.value) return
+  bonusPage.value = 1
+  loadBonusRules()
+})
 watch(bonusSearch, () => {
   if (resetting.value) return
-  clearTimeout(bonusSearchTimer)
-  bonusSearchTimer = setTimeout(() => { bonusPage.value = 1; loadBonusRules() }, 400)
+  debouncedBonusSearchLoad()
 })
 watch([bonusIncludeInactive, bonusPromoterTypeUuid], () => {
   if (resetting.value) return
@@ -431,11 +439,15 @@ async function loadCollectionTiers() {
 
 watch(collectionSize, () => { if (!resetting.value) collectionPage.value = 1 })
 watch([collectionPage, collectionSize], () => { if (!resetting.value) loadCollectionTiers() })
-let collectionSearchTimer: ReturnType<typeof setTimeout> | undefined
+// Debounced via the central delay (spec 08): typing `asd` sends one request, not three.
+const debouncedCollectionSearchLoad = useTableFilterDebounce(() => {
+  if (resetting.value) return
+  collectionPage.value = 1
+  loadCollectionTiers()
+})
 watch(collectionSearch, () => {
   if (resetting.value) return
-  clearTimeout(collectionSearchTimer)
-  collectionSearchTimer = setTimeout(() => { collectionPage.value = 1; loadCollectionTiers() }, 400)
+  debouncedCollectionSearchLoad()
 })
 watch([collectionIncludeInactive, collectionPromoterTypeUuid], () => {
   if (resetting.value) return
@@ -571,11 +583,15 @@ async function loadOverrideTiers() {
 
 watch(overrideSize, () => { if (!resetting.value) overridePage.value = 1 })
 watch([overridePage, overrideSize], () => { if (!resetting.value) loadOverrideTiers() })
-let overrideSearchTimer: ReturnType<typeof setTimeout> | undefined
+// Debounced via the central delay (spec 08): typing `asd` sends one request, not three.
+const debouncedOverrideSearchLoad = useTableFilterDebounce(() => {
+  if (resetting.value) return
+  overridePage.value = 1
+  loadOverrideTiers()
+})
 watch(overrideSearch, () => {
   if (resetting.value) return
-  clearTimeout(overrideSearchTimer)
-  overrideSearchTimer = setTimeout(() => { overridePage.value = 1; loadOverrideTiers() }, 400)
+  debouncedOverrideSearchLoad()
 })
 watch([overrideIncludeInactive, overrideRankUuid, overrideCategory], () => {
   if (resetting.value) return

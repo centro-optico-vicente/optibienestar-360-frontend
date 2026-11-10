@@ -50,7 +50,8 @@ const statusFilterOptions = computed(() => [
 function buildFilter(): string | undefined {
   const clauses: string[] = []
   if (statusFilter.value === 'OPEN_OR_STALE') clauses.push('status=in=(OPEN,STALE)')
-  else clauses.push(`status==${statusFilter.value}`)
+  // A cleared dropdown (null/undefined) means "any status": no status clause.
+  else if (statusFilter.value) clauses.push(`status==${statusFilter.value}`)
   if (ruleUuid.value) clauses.push(`rule.uuid==${ruleUuid.value}`)
   return clauses.join(';')
 }
@@ -61,11 +62,13 @@ const total = ref(0)
 const loading = ref(false)
 const page = ref(1)
 const size = ref(DEFAULT_PAGE_SIZE)
+const dateFrom = ref('')
+const dateTo = ref('')
 
 async function load() {
   loading.value = true
   try {
-    const res = await winnersApi.listTies({ page: page.value - 1, size: size.value, filter: buildFilter() })
+    const res = await winnersApi.listTies({ page: page.value - 1, size: size.value, filter: buildFilter(), dateFrom: dateFrom.value || undefined, dateTo: dateTo.value || undefined })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
   }
@@ -80,7 +83,7 @@ async function load() {
 
 onMounted(load)
 watch([page, size], load)
-watch([statusFilter, ruleUuid], () => { page.value = 1; load() })
+watch([statusFilter, ruleUuid, dateFrom, dateTo], () => { page.value = 1; load() })
 
 // ---- Per-tie lazy decision history ----
 const expandedKeys = ref<Set<string>>(new Set())
@@ -189,6 +192,7 @@ async function confirmRevert() {
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <UFormField :label="t('competitiveWinners.filters.status')">
           <USelectMenu
+            clear
             v-model="statusFilter"
             :items="statusFilterOptions"
             label-key="label"
@@ -199,6 +203,9 @@ async function confirmRevert() {
         </UFormField>
         <UFormField :label="t('competitiveWinners.filters.rule')">
           <CommonEntityReferenceSelect v-model="ruleUuid" :search="searchRules" icon="i-lucide-trophy" :placeholder="t('common.select')" />
+        </UFormField>
+        <UFormField :label="t('competitiveWinners.filters.period')">
+          <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('competitiveWinners.filters.dateFrom')" :to-label="t('competitiveWinners.filters.dateTo')" />
         </UFormField>
       </div>
     </div>

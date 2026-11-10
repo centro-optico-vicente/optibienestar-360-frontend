@@ -45,7 +45,6 @@ async function loadCategories() {
 const allySearchTerm = ref('')
 const allyOptions = ref<SelectItem[]>([])
 const allySearching = ref(false)
-let allySearchTimer: ReturnType<typeof setTimeout> | undefined
 
 async function searchAllies(q?: string) {
   if (!canViewAllies.value) return
@@ -64,16 +63,18 @@ async function searchAllies(q?: string) {
   }
 }
 
+const debouncedSearchAllies = useSearchDebounce((term: string) => searchAllies(term))
 watch(allySearchTerm, (q) => {
-  clearTimeout(allySearchTimer)
   const term = q.trim()
-  if (term.length < 2) return
-  allySearchTimer = setTimeout(() => searchAllies(term), 400)
+  if (!term) return
+  debouncedSearchAllies(term)
 })
 
 // ---- List ----
 const PAGE_SIZE = 20
 const data = ref<AllyProductDto[]>([])
+const dateFrom = ref('')
+const dateTo = ref('')
 const total = ref(0)
 const page = ref(1)
 const loading = ref(false)
@@ -87,6 +88,9 @@ async function load() {
       q: search.value.trim() || undefined,
       allyUuid: allyFilter.value,
       productCategoryUuid: categoryFilter.value,
+      // Submission date range (createdAt), inclusive.
+      dateFrom: dateFrom.value || undefined,
+      dateTo: dateTo.value || undefined,
     })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
@@ -106,16 +110,17 @@ function reloadFromFirstPage() {
 }
 
 watch(page, load)
-watch([allyFilter, categoryFilter], reloadFromFirstPage)
-let searchTimer: ReturnType<typeof setTimeout> | undefined
+watch([allyFilter, categoryFilter, dateFrom, dateTo], reloadFromFirstPage)
+const debouncedSearchLoad = useTableFilterDebounce(reloadFromFirstPage)
 watch(search, () => {
-  clearTimeout(searchTimer)
-  searchTimer = setTimeout(reloadFromFirstPage, 400)
+  debouncedSearchLoad()
 })
 
-const hasFilters = computed(() => Boolean(search.value.trim() || allyFilter.value || categoryFilter.value))
+const hasFilters = computed(() => Boolean(search.value.trim() || allyFilter.value || categoryFilter.value || dateFrom.value || dateTo.value))
 function clearFilters() {
   search.value = ''
+  dateFrom.value = ''
+  dateTo.value = ''
   allyFilter.value = undefined
   categoryFilter.value = undefined
 }
@@ -265,6 +270,7 @@ onMounted(() => {
         :placeholder="t('products.filters.allCategories')"
         class="w-56"
       />
+      <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('allyProducts.filters.dateFrom')" :to-label="t('allyProducts.filters.dateTo')" />
       <UButton v-if="hasFilters" variant="link" color="neutral" size="sm" icon="i-lucide-x" @click="clearFilters">
         {{ t('common.clearFilters') }}
       </UButton>

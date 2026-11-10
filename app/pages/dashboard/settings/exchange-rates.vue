@@ -44,6 +44,25 @@ const size = ref(DEFAULT_PAGE_SIZE)
 const pageSizeItems = buildPageSizeItems(t)
 const base = ref('')
 const quote = ref('')
+const search = ref('')
+const sourceFilter = ref('')
+const dateFrom = ref('')
+const dateTo = ref('')
+const currencyOptions = ref<{ label: string, value: string }[]>([])
+const sourceOptions = computed(() => EXCHANGE_RATE_SOURCE_OPTIONS.map(o => ({ label: t(o.labelKey, o.label), value: String(o.value) })))
+
+// Currency master for the base/quote dropdowns (value = ISO code, the contract of `base`/`quote`).
+async function loadCurrencyOptions() {
+  try {
+    const currencies = await useCatalog('/v1/admin/currencies').listAll()
+    currencyOptions.value = currencies
+      .filter(c => c.active)
+      .map(c => ({ label: `${c.code} - ${c.name}`, value: c.code! }))
+  }
+  catch {
+    currencyOptions.value = []
+  }
+}
 // Empty by default: no `sort=` is sent until the user clicks a column, so the
 // backend's own default (validFrom DESC) applies.
 const sort = useTableSort([])
@@ -57,8 +76,12 @@ async function load() {
       page: page.value - 1,
       size: size.value,
       sort: sort.sortParam.value,
-      base: base.value.trim().toUpperCase() || undefined,
-      quote: quote.value.trim().toUpperCase() || undefined,
+      base: base.value || undefined,
+      quote: quote.value || undefined,
+      q: search.value.trim() || undefined,
+      filter: sourceFilter.value ? `source==${sourceFilter.value}` : undefined,
+      dateFrom: dateFrom.value || undefined,
+      dateTo: dateTo.value || undefined,
     })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
@@ -84,14 +107,13 @@ const resetting = ref(false)
 
 watch(size, () => { if (!resetting.value) page.value = 1 })
 watch([page, size], () => { if (!resetting.value) load() })
-let filterTimer: ReturnType<typeof setTimeout> | undefined
-watch([base, quote], () => {
+const debouncedFilterLoad = useTableFilterDebounce(() => {
+  page.value = 1
+  load()
+})
+watch([base, quote, sourceFilter, dateFrom, dateTo, search], () => {
   if (resetting.value) return
-  clearTimeout(filterTimer)
-  filterTimer = setTimeout(() => {
-    page.value = 1
-    load()
-  }, 400)
+  debouncedFilterLoad()
 })
 watch(sort.orders, () => { if (!resetting.value) load() }, { deep: true })
 
@@ -99,6 +121,10 @@ async function resetFilters() {
   resetting.value = true
   base.value = ''
   quote.value = ''
+  search.value = ''
+  sourceFilter.value = ''
+  dateFrom.value = ''
+  dateTo.value = ''
   sort.reset()
   size.value = DEFAULT_PAGE_SIZE
   page.value = 1
@@ -107,7 +133,10 @@ async function resetFilters() {
   load()
 }
 
-onMounted(load)
+onMounted(() => {
+  loadCurrencyOptions()
+  load()
+})
 
 // ---- Presentation helpers ----
 function sourceColor(sourceValue: ExchangeRateSource): 'neutral' | 'info' | 'success' {
@@ -258,17 +287,42 @@ async function confirmDelete() {
     <!-- Filters -->
     <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
       <UInput
+        v-model="search"
+        :placeholder="t('exchangeRates.filters.searchPlaceholder')"
+        icon="i-lucide-search"
+        class="w-56"
+      />
+      <USelectMenu
         v-model="base"
+        clear
+        :items="currencyOptions"
+        label-key="label"
+        value-key="value"
         :placeholder="t('exchangeRates.filters.basePlaceholder')"
-        icon="i-lucide-search"
-        class="w-32 font-mono uppercase"
+        icon="i-lucide-coins"
+        class="w-44"
       />
-      <UInput
+      <USelectMenu
         v-model="quote"
+        clear
+        :items="currencyOptions"
+        label-key="label"
+        value-key="value"
         :placeholder="t('exchangeRates.filters.quotePlaceholder')"
-        icon="i-lucide-search"
-        class="w-32 font-mono uppercase"
+        icon="i-lucide-coins"
+        class="w-44"
       />
+      <USelectMenu
+        v-model="sourceFilter"
+        clear
+        :items="sourceOptions"
+        label-key="label"
+        value-key="value"
+        :placeholder="t('exchangeRates.filters.sourcePlaceholder')"
+        icon="i-lucide-database"
+        class="w-40"
+      />
+      <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('exchangeRates.filters.dateFrom')" :to-label="t('exchangeRates.filters.dateTo')" />
       <UButton
         v-if="hasActiveSort"
         variant="link"

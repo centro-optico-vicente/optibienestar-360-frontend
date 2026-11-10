@@ -148,7 +148,6 @@ async function loadCategories() {
 const productSearchTerm = ref('')
 const productOptions = ref<SelectItem[]>([])
 const productSearching = ref(false)
-let searchTimer: ReturnType<typeof setTimeout> | undefined
 
 async function searchProducts(q?: string) {
   if (!canPickGeneral.value) return
@@ -168,13 +167,13 @@ async function searchProducts(q?: string) {
   }
 }
 
+const debouncedSearchProducts = useSearchDebounce((term: string) => searchProducts(term))
 watch(productSearchTerm, (q) => {
-  clearTimeout(searchTimer)
   const term = q.trim()
   // Don't clear the options on '' — USelectMenu resets the term right after a
   // pick, and wiping the list would make the trigger show the raw uuid.
-  if (term.length < 2) return
-  searchTimer = setTimeout(() => searchProducts(term), 400)
+  if (!term) return
+  debouncedSearchProducts(term)
 })
 
 // ---- Open / load ----

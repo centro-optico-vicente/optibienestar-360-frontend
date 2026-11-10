@@ -48,16 +48,15 @@ async function fetchMembers(q?: string) {
   }
 }
 
-let searchTimer: ReturnType<typeof setTimeout> | undefined
+const debouncedFetchMembers = useSearchDebounce((term: string) => fetchMembers(term))
 watch(memberSearchTerm, (q) => {
-  clearTimeout(searchTimer)
   const term = q.trim()
   // Don't clear memberOptions here: USelectMenu resets search-term to '' right after a
   // pick (resetSearchTermOnSelect/Blur), and wiping the list at that point would drop
   // the just-selected item, making the trigger fall back to showing the raw uuid
   // instead of its label.
   if (term.length < 1) return
-  searchTimer = setTimeout(() => fetchMembers(term), 400)
+  debouncedFetchMembers(term)
 })
 
 // First page on open when nothing is loaded yet (an empty query lists the first affiliates).

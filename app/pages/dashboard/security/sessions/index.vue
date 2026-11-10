@@ -72,7 +72,8 @@ async function load() {
   try {
     const res = await audit.listLogins({
       uuid: sessionUuidFilter.value,
-      email: search.value.trim() || undefined,
+      // Free-text (accent/case-insensitive) over email, IP, host, agent and failure reason.
+      q: search.value.trim() || undefined,
       result: resultFilter.value,
       // Omitted when honoring a direct session deep-link — the session may
       // fall outside "today" and a date filter would hide it entirely.
@@ -107,12 +108,16 @@ const resetting = ref(false)
 
 watch(size, () => { if (!resetting.value) page.value = 1 })
 watch([page, size], () => { if (!resetting.value) load() })
-let searchTimer: ReturnType<typeof setTimeout> | undefined
+// Debounced via the central delay (spec 08): typing `asd` sends one request, not three.
+const debouncedSearchLoad = useTableFilterDebounce(() => {
+  if (resetting.value) return
+  page.value = 1
+  load()
+})
 watch(search, () => {
   if (resetting.value) return
   sessionUuidFilter.value = undefined
-  clearTimeout(searchTimer)
-  searchTimer = setTimeout(() => { page.value = 1; load() }, 400)
+  debouncedSearchLoad()
 })
 watch([resultFilter, dateRange], () => {
   if (!resetting.value) { sessionUuidFilter.value = undefined; page.value = 1; load() }

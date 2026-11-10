@@ -3,6 +3,7 @@ import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/util
 import type { PaymentDto, PaymentStatus } from '~/types/payments'
 import { PAYMENT_STATUS_OPTIONS, paymentStatusColor } from '~/types/payments'
 import type { SortDirection } from '~/composables/useTableSort'
+import { emptyPaymentMasterFilters, joinRsql, paymentFilterQuery } from '~/utils/paymentFilters'
 
 // "Movimientos" (hub plan payments-unification, §"Pantallas requeridas" #6) —
 // master admin view over BOTH directions (IN collections + OUT commission
@@ -32,6 +33,7 @@ const pageSizeItems = buildPageSizeItems(t)
 const search = ref('')
 const directionFilter = ref<'IN' | 'OUT' | ''>('')
 const statusFilter = ref<PaymentStatus | ''>('')
+const masterFilters = ref(emptyPaymentMasterFilters())
 const sort = useTableSort([])
 const hasActiveSort = computed(() => sort.hasActiveSort.value)
 const isMultiSort = computed(() => sort.orders.value.length > 1)
@@ -56,7 +58,11 @@ async function load() {
       // direction is its own query param (not RSQL — the backend's filter
       // validator doesn't support an "in" operator); "Todos" -> ALL.
       direction: directionFilter.value || 'ALL',
-      filter: statusFilter.value ? `status==${statusFilter.value}` : undefined,
+      filter: joinRsql(
+        statusFilter.value && `status==${statusFilter.value}`,
+        masterFilters.value.currency && `currency.code==${masterFilters.value.currency}`,
+      ),
+      ...paymentFilterQuery(masterFilters.value),
       q: search.value.trim() || undefined,
     })
     data.value = res.content ?? []
@@ -82,15 +88,16 @@ const resetting = ref(false)
 
 watch(size, () => { if (!resetting.value) page.value = 1 })
 watch([page, size], () => { if (!resetting.value) load() })
-watch([directionFilter, statusFilter], () => { if (!resetting.value) { page.value = 1; load() } })
-let searchTimer: ReturnType<typeof setTimeout> | undefined
+watch([directionFilter, statusFilter, masterFilters], () => { if (!resetting.value) { page.value = 1; load() } })
+// Debounced via the central delay (spec 08): typing `asd` sends one request, not three.
+const debouncedSearchLoad = useTableFilterDebounce(() => {
+  if (resetting.value) return
+  page.value = 1
+  load()
+})
 watch(search, () => {
   if (resetting.value) return
-  clearTimeout(searchTimer)
-  searchTimer = setTimeout(() => {
-    page.value = 1
-    load()
-  }, 400)
+  debouncedSearchLoad()
 })
 watch(sort.orders, () => { if (!resetting.value) load() }, { deep: true })
 
@@ -99,6 +106,7 @@ async function resetFilters() {
   search.value = ''
   directionFilter.value = ''
   statusFilter.value = ''
+  masterFilters.value = emptyPaymentMasterFilters()
   sort.reset()
   size.value = DEFAULT_PAGE_SIZE
   page.value = 1
@@ -160,6 +168,7 @@ function subjectDisplay(p: PaymentDto): string {
         icon="i-lucide-filter"
         class="w-44"
       />
+      <PaymentMasterFilters v-model="masterFilters" class="w-full" />
       <UButton
         v-if="hasActiveSort"
         variant="link"

@@ -2,6 +2,10 @@
 import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
 import type { CommissionDto, CommissionStatus } from '~/types/promoters'
 import type { SortDirection } from '~/composables/useTableSort'
+import type { SelectItem } from '~/types/options'
+import { COMMISSION_STATUS_OPTIONS } from '~/types/promoters'
+import { memberOptionLabel } from '~/types/members'
+import { joinRsql } from '~/utils/paymentFilters'
 
 definePageMeta({
   layout: 'dashboard',
@@ -52,6 +56,38 @@ const route = useRoute()
 // raw RSQL, e.g. `promoter.uuid==…;status==PENDING`; seeded from `?filter=` so other screens can deep-link here.
 const filter = ref(typeof route.query.filter === 'string' ? route.query.filter : '')
 const includeInactive = ref(false)
+// Master-table filters (dropdowns). They are merged into the RSQL `filter` (`promoter.uuid`, `status`,
+// `currency.code` are allow-listed) or sent as dedicated params (affiliate, date range).
+const promoterUuid = ref('')
+const memberUuid = ref('')
+const statusFilter = ref('')
+const currencyFilter = ref('')
+const dateFrom = ref('')
+const dateTo = ref('')
+const promotersApi = usePromoters()
+const membersApi = useMembers()
+const currenciesApi = useCurrencies()
+const currencyOptions = ref<SelectItem[]>([])
+const statusOptions = computed(() => COMMISSION_STATUS_OPTIONS.map(o => ({ label: t(o.labelKey), value: String(o.value) })))
+
+async function searchPromoters(q: string): Promise<SelectItem[]> {
+  const res = await promotersApi.list({ q, size: 20 })
+  return (res.content ?? []).map(p => ({ label: p.displayName, value: p.uuid }))
+}
+
+async function searchMembers(q: string): Promise<SelectItem[]> {
+  const res = await membersApi.options({ ...(q ? { q } : {}), limit: 10 })
+  return res.map(o => ({ label: memberOptionLabel(o), value: o.uuid }))
+}
+
+function buildFilter(): string | undefined {
+  return joinRsql(
+    filter.value.trim(),
+    promoterUuid.value && `promoter.uuid==${promoterUuid.value}`,
+    statusFilter.value && `status==${statusFilter.value}`,
+    currencyFilter.value && `currency.code==${currencyFilter.value}`,
+  )
+}
 // Empty by default: no `sort=` is sent until the user clicks a column, so
 // the backend's own default-sort fallback (entity_config → system_configs
 // → earnedAt DESC) applies.
@@ -66,7 +102,10 @@ async function load() {
       page: page.value - 1,
       size: size.value,
       sort: sort.sortParam.value,
-      filter: filter.value.trim() || undefined,
+      filter: buildFilter(),
+      memberUuid: memberUuid.value || undefined,
+      dateFrom: dateFrom.value || undefined,
+      dateTo: dateTo.value || undefined,
       q: search.value.trim() || undefined,
       includeInactive: includeInactive.value,
     })
@@ -96,14 +135,15 @@ const resetting = ref(false)
 
 watch(size, () => { if (!resetting.value) page.value = 1 })
 watch([page, size], () => { if (!resetting.value) load() })
-let searchTimer: ReturnType<typeof setTimeout> | undefined
-watch([search, filter], () => {
+// Debounced via the central delay (spec 08): typing `asd` sends one request, not three.
+const debouncedSearchLoad = useTableFilterDebounce(() => {
   if (resetting.value) return
-  clearTimeout(searchTimer)
-  searchTimer = setTimeout(() => {
-    page.value = 1
-    load()
-  }, 400)
+  page.value = 1
+  load()
+})
+watch([search, filter, promoterUuid, memberUuid, statusFilter, currencyFilter, dateFrom, dateTo], () => {
+  if (resetting.value) return
+  debouncedSearchLoad()
 })
 watch(includeInactive, () => { if (!resetting.value) { page.value = 1; load() } })
 watch(sort.orders, () => { if (!resetting.value) load() }, { deep: true })
@@ -112,6 +152,12 @@ async function resetFilters() {
   resetting.value = true
   search.value = ''
   filter.value = ''
+  promoterUuid.value = ''
+  memberUuid.value = ''
+  statusFilter.value = ''
+  currencyFilter.value = ''
+  dateFrom.value = ''
+  dateTo.value = ''
   includeInactive.value = false
   sort.reset()
   size.value = DEFAULT_PAGE_SIZE
@@ -121,7 +167,15 @@ async function resetFilters() {
   load()
 }
 
-onMounted(load)
+onMounted(async () => {
+  load()
+  try {
+    currencyOptions.value = (await currenciesApi.options()).filter(c => c.active).map(c => ({ label: c.label, value: c.code ?? c.label }))
+  }
+  catch {
+    // useApi already notified; the currency dropdown just stays empty
+  }
+})
 
 // ---- Presentation helpers ----
 // Amount in the commission's currency, formatted in the VE convention. Empty → '—'.
@@ -365,6 +419,41 @@ async function confirmVoid() {
         size="lg"
         class="w-full max-w-md font-mono"
       />
+      <CommonEntityReferenceSelect
+        v-model="promoterUuid"
+        :search="searchPromoters"
+        icon="i-lucide-users"
+        :placeholder="t('commissions.filters.advisor')"
+        class="w-52"
+      />
+      <CommonEntityReferenceSelect
+        v-model="memberUuid"
+        :search="searchMembers"
+        icon="i-lucide-user"
+        :placeholder="t('commissions.filters.member')"
+        class="w-52"
+      />
+      <USelectMenu
+        v-model="statusFilter"
+        clear
+        :items="statusOptions"
+        label-key="label"
+        value-key="value"
+        icon="i-lucide-filter"
+        :placeholder="t('commissions.filters.status')"
+        class="w-44"
+      />
+      <USelectMenu
+        v-model="currencyFilter"
+        clear
+        :items="currencyOptions"
+        label-key="label"
+        value-key="value"
+        icon="i-lucide-coins"
+        :placeholder="t('commissions.filters.currency')"
+        class="w-40"
+      />
+      <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('commissions.filters.dateFrom')" :to-label="t('commissions.filters.dateTo')" />
       <UCheckbox v-model="includeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
       <UButton
         v-if="hasActiveSort"

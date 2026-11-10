@@ -15,6 +15,8 @@ interface ListParams {
   sort?: string[]
   q?: string
   status?: AffiliationRequestStatus
+  /** Master-table filters (query-param name → value), see `utils/listFilters.ts`. */
+  extra?: Record<string, string>
 }
 
 /**
@@ -31,6 +33,7 @@ export const useAffiliationRequests = () => {
         ...(params.sort?.length ? { sort: params.sort } : {}),
         ...(params.q ? { q: params.q } : {}),
         ...(params.status ? { status: params.status } : {}),
+        ...(params.extra ?? {}),
       },
     })
 
@@ -60,12 +63,15 @@ export const useAffiliationRequests = () => {
     useApi<PaymentSupportUrlDto>(`/v1/admin/affiliation-requests/${uuid}/payment-support`)
 
   /** Advisor portal: the requests that came through the caller's own QR. */
-  const mine = (params: { page?: number, size?: number, status?: AffiliationRequestStatus } = {}) =>
+  const mine = (params: { page?: number, size?: number, status?: AffiliationRequestStatus, q?: string, dateFrom?: string, dateTo?: string } = {}) =>
     useApi<Page<AffiliationRequestListItemDto>>('/v1/advisors/me/affiliation-requests', {
       query: {
         page: params.page ?? 0,
         size: params.size ?? 20,
         ...(params.status ? { status: params.status } : {}),
+        ...(params.q ? { q: params.q } : {}),
+        ...(params.dateFrom ? { dateFrom: params.dateFrom } : {}),
+        ...(params.dateTo ? { dateTo: params.dateTo } : {}),
       },
     })
 

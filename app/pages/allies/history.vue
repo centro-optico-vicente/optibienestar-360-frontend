@@ -23,11 +23,13 @@ const loading = ref(false)
 const page = ref(1) // UPagination is 1-based; the API is 0-based
 const size = ref(20)
 const search = ref('')
+const dateFrom = ref('')
+const dateTo = ref('')
 
 async function load() {
   loading.value = true
   try {
-    const res = await benefitUsage.history({ page: page.value - 1, size: size.value, search: search.value })
+    const res = await benefitUsage.history({ page: page.value - 1, size: size.value, search: search.value, dateFrom: dateFrom.value || undefined, dateTo: dateTo.value || undefined })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
   }
@@ -43,11 +45,16 @@ async function load() {
 
 watch(page, load)
 // Typing resets to page 1 — a filtered result set on page 3 would render empty.
-const debouncedSearch = useDebounceFn(() => {
+const debouncedSearch = useTableFilterDebounce(() => {
   if (page.value !== 1) page.value = 1
   else load()
-}, 350)
+})
 watch(search, debouncedSearch)
+// Dates are discrete: reload immediately.
+watch([dateFrom, dateTo], () => {
+  if (page.value !== 1) page.value = 1
+  else load()
+})
 onMounted(load)
 </script>
 
@@ -63,14 +70,17 @@ onMounted(load)
       </UButton>
     </div>
 
-    <UInput
-      v-model="search"
-      :placeholder="t('validator.history.searchPlaceholder')"
-      icon="i-lucide-search"
-      size="lg"
-      autocomplete="off"
-      class="max-w-sm"
-    />
+    <div class="flex flex-wrap items-center gap-3">
+      <UInput
+        v-model="search"
+        :placeholder="t('validator.history.searchPlaceholder')"
+        icon="i-lucide-search"
+        size="lg"
+        autocomplete="off"
+        class="w-full max-w-sm"
+      />
+      <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('validator.history.dateFrom')" :to-label="t('validator.history.dateTo')" />
+    </div>
 
     <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
       <!-- Loading -->

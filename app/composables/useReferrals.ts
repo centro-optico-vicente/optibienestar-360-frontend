@@ -19,13 +19,20 @@ export const useReferrals = () => {
   const issueCode = (body: ReferralCodeIssueRequest) =>
     useApi<ReferralCodeIssueResponse>('/v1/admin/referral-codes', { method: 'POST', body })
 
-  /** Mi histórico de referidos (todos los estados; sin RSQL ni `q`). */
-  const mine = (params: { page?: number, size?: number, sort?: string } = {}) =>
+  /**
+   * Mi histórico de referidos. `status` filtra por estado y `q` busca (sin tildes ni mayúsculas) por
+   * nombre/documento del referido y por el código de referido.
+   */
+  const mine = (params: { page?: number, size?: number, sort?: string, status?: string, q?: string, dateFrom?: string, dateTo?: string } = {}) =>
     useApi<Page<MyReferralDto>>('/v1/me/referrals', {
       query: {
         page: params.page ?? 0,
         size: params.size ?? 20,
         sort: params.sort ?? 'createdAt,desc',
+        ...(params.status ? { status: params.status } : {}),
+        ...(params.q ? { q: params.q } : {}),
+        ...(params.dateFrom ? { dateFrom: params.dateFrom } : {}),
+        ...(params.dateTo ? { dateTo: params.dateTo } : {}),
       },
     })
 

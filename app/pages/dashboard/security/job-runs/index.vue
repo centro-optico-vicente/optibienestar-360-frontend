@@ -25,6 +25,7 @@ const page = ref(1) // UPagination es 1-based; la API es 0-based
 const size = ref(DEFAULT_PAGE_SIZE)
 const pageSizeItems = buildPageSizeItems(t)
 
+const search = ref('')
 const jobUuidFilter = ref<string | undefined>(undefined)
 const outcomeFilter = ref<JobRunOutcome[]>([])
 const OUTCOME_OPTIONS = JOB_RUN_OUTCOME_OPTIONS.map(o => ({ label: t(`scheduledJobs.outcome.${o.value}`, o.label), value: o.value }))
@@ -77,6 +78,7 @@ async function load() {
       triggeredBy: triggerFilter.value,
       from: dateRange.value.from,
       to: dateRange.value.to,
+      q: search.value.trim() || undefined,
       page: page.value - 1,
       size: size.value,
       sort: sort.sortParam.value,
@@ -106,6 +108,16 @@ const resetting = ref(false)
 
 watch(size, () => { if (!resetting.value) page.value = 1 })
 watch([page, size], () => { if (!resetting.value) load() })
+// Debounced via the central delay (spec 08): typing `asd` sends one request, not three.
+const debouncedSearchLoad = useTableFilterDebounce(() => {
+  if (resetting.value) return
+  page.value = 1
+  load()
+})
+watch(search, () => {
+  if (resetting.value) return
+  debouncedSearchLoad()
+})
 watch([jobUuidFilter, outcomeFilter, triggerFilter, dateRange], () => {
   if (!resetting.value) { page.value = 1; load() }
 }, { deep: true })
@@ -113,6 +125,7 @@ watch(sort.orders, () => { if (!resetting.value) load() }, { deep: true })
 
 async function resetFilters() {
   resetting.value = true
+  search.value = ''
   jobUuidFilter.value = undefined
   outcomeFilter.value = []
   triggerFilter.value = []
@@ -143,6 +156,13 @@ onMounted(load)
 
     <!-- Filtros -->
     <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
+      <UInput
+        v-model="search"
+        :placeholder="$t('security.jobRuns.searchPlaceholder')"
+        icon="i-lucide-search"
+        size="lg"
+        class="w-full max-w-md"
+      />
       <ScheduledJobSelect v-model="jobUuidFilter" />
       <USelectMenu
         v-model="outcomeFilter"

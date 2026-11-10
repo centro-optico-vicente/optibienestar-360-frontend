@@ -26,6 +26,10 @@ interface ListParams {
   promoterRankUuid?: string
   campaignUuid?: string
   ruleSource?: CommissionRuleSource
+  /** Master-table filters of the ledger screen (affiliate + earned-date range, `yyyy-MM-dd` inclusive). */
+  memberUuid?: string
+  dateFrom?: string
+  dateTo?: string
 }
 
 /**
@@ -54,6 +58,9 @@ export const useCommissions = () => {
         ...(params.promoterRankUuid ? { promoterRankUuid: params.promoterRankUuid } : {}),
         ...(params.campaignUuid ? { campaignUuid: params.campaignUuid } : {}),
         ...(params.ruleSource ? { ruleSource: params.ruleSource } : {}),
+        ...(params.memberUuid ? { memberUuid: params.memberUuid } : {}),
+        ...(params.dateFrom ? { dateFrom: params.dateFrom } : {}),
+        ...(params.dateTo ? { dateTo: params.dateTo } : {}),
       },
     })
 

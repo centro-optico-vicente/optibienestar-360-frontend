@@ -21,6 +21,14 @@ interface ListParams {
   channel?: AllyRegistrationChannel
   /** Only the requests this advisor (promoter uuid) brought in. */
   promoterUuid?: string
+  /** Master-table filters (see `utils/allyFilters.ts`). */
+  allyTypeUuid?: string
+  professionUuid?: string
+  stateUuid?: string
+  cityUuid?: string
+  /** Submission date range, `yyyy-MM-dd`, inclusive. */
+  dateFrom?: string
+  dateTo?: string
 }
 
 const BASE = '/v1/admin/ally-requests'
@@ -41,6 +49,12 @@ export const useAllyRequests = () => {
         ...(params.status ? { status: params.status } : {}),
         ...(params.channel ? { channel: params.channel } : {}),
         ...(params.promoterUuid ? { promoterUuid: params.promoterUuid } : {}),
+        ...(params.allyTypeUuid ? { allyTypeUuid: params.allyTypeUuid } : {}),
+        ...(params.professionUuid ? { professionUuid: params.professionUuid } : {}),
+        ...(params.stateUuid ? { stateUuid: params.stateUuid } : {}),
+        ...(params.cityUuid ? { cityUuid: params.cityUuid } : {}),
+        ...(params.dateFrom ? { dateFrom: params.dateFrom } : {}),
+        ...(params.dateTo ? { dateTo: params.dateTo } : {}),
       },
     })
 

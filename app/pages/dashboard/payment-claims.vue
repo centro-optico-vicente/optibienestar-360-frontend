@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { PaymentClaimDto, ResolvePaymentClaimRequest } from '~/types/payments'
 import { CLAIM_STATUSES } from '~/types/payments'
+import type { SelectItem } from '~/types/options'
+import { memberOptionLabel } from '~/types/members'
 
 // Claims on the remaining credit of a payment (hub ADR 0029): a payer or staff flagged a payment as wrong,
 // overpaid or a refund request. Finance resolves each one: keep the amount as credit ("monedero"), refund it
@@ -15,6 +17,7 @@ const { t } = useI18n()
 const { can } = usePermissions()
 const toast = useToast()
 const claimsApi = usePaymentClaims()
+const membersApi = useMembers()
 
 useSeoMeta({ title: () => t('common.seoTitle', { page: t('paymentClaims.title') }) })
 
@@ -26,6 +29,15 @@ const loading = ref(false)
 const page = ref(1) // UPagination is 1-based; the API is 0-based
 const size = ref(20)
 const status = ref<string>('OPEN')
+const search = ref('')
+const memberUuid = ref('')
+const dateFrom = ref('')
+const dateTo = ref('')
+
+async function searchMembers(q: string): Promise<SelectItem[]> {
+  const res = await membersApi.options({ ...(q ? { q } : {}), limit: 10 })
+  return res.map(o => ({ label: memberOptionLabel(o), value: o.uuid }))
+}
 
 const statusOptions = computed(() => [
   { label: t('paymentClaims.allStatuses'), value: '' },
@@ -35,7 +47,15 @@ const statusOptions = computed(() => [
 async function load() {
   loading.value = true
   try {
-    const res = await claimsApi.list({ page: page.value - 1, size: size.value, status: status.value || undefined })
+    const res = await claimsApi.list({
+      page: page.value - 1,
+      size: size.value,
+      status: status.value || undefined,
+      q: search.value.trim() || undefined,
+      memberUuid: memberUuid.value || undefined,
+      dateFrom: dateFrom.value || undefined,
+      dateTo: dateTo.value || undefined,
+    })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
   }
@@ -49,9 +69,17 @@ async function load() {
   }
 }
 
-watch(status, () => {
+function reloadFromFirstPage() {
   if (page.value !== 1) page.value = 1
   else load()
+}
+watch([status, memberUuid, dateFrom, dateTo], reloadFromFirstPage)
+// Debounced via the central delay (spec 08): typing `asd` sends one request, not three.
+const debouncedSearchLoad = useTableFilterDebounce(() => {
+  reloadFromFirstPage()
+})
+watch(search, () => {
+  debouncedSearchLoad()
 })
 watch(page, load)
 onMounted(load)
@@ -117,7 +145,21 @@ async function confirmResolve() {
     </div>
 
     <div class="flex flex-wrap items-center gap-4">
-      <USelectMenu v-model="status" :items="statusOptions" label-key="label" value-key="value" class="w-full sm:w-64" />
+      <UInput
+        v-model="search"
+        :placeholder="t('paymentClaims.searchPlaceholder')"
+        icon="i-lucide-search"
+        class="w-full sm:w-72"
+      />
+      <USelectMenu clear v-model="status" :items="statusOptions" label-key="label" value-key="value" class="w-full sm:w-56" />
+      <CommonEntityReferenceSelect
+        v-model="memberUuid"
+        :search="searchMembers"
+        icon="i-lucide-user"
+        :placeholder="t('paymentClaims.filters.member')"
+        class="w-full sm:w-60"
+      />
+      <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('paymentClaims.filters.dateFrom')" :to-label="t('paymentClaims.filters.dateTo')" />
     </div>
 
     <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col">

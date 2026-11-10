@@ -7,6 +7,9 @@ interface ListParams {
   sort?: string[]
   q?: string
   includeInactive?: boolean
+  /** Master filters: the account's bank (uuid) and currency (ISO code). */
+  bankUuid?: string
+  currencyCode?: string
 }
 
 /**
@@ -23,6 +26,8 @@ export const useCompanyBankAccounts = () => {
         ...(params.sort?.length ? { sort: params.sort } : {}),
         ...(params.q ? { q: params.q } : {}),
         ...(params.includeInactive ? { includeInactive: 'true' } : {}),
+        ...(params.bankUuid ? { bankUuid: params.bankUuid } : {}),
+        ...(params.currencyCode ? { currencyCode: params.currencyCode } : {}),
       },
     })
 

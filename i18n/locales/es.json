@@ -91,6 +91,11 @@
       "usd": "USD — Dólar Estadounidense ($)",
       "ves": "VES — Bolívar Venezolano (Bs.)",
       "eur": "EUR — Euro (€)"
+    },
+    "dateRange": {
+      "from": "Desde",
+      "to": "Hasta",
+      "clear": "Limpiar fecha"
     }
   },
   "locale": {
@@ -311,7 +316,10 @@
       },
       "invitedToast": "Usuario creado. Le enviamos una invitación para crear su contraseña.",
       "advisorCreatedToast": "Ficha de asesor creada",
-      "advisorCreateFailedToast": "El usuario se creó, pero no se pudo crear la ficha de asesor. Créala desde Asesores."
+      "advisorCreateFailedToast": "El usuario se creó, pero no se pudo crear la ficha de asesor. Créala desde Asesores.",
+      "filters": {
+        "role": "Rol"
+      }
     },
     "roles": {
       "seoTitle": "Roles — OptiBienestar 360",
@@ -412,7 +420,7 @@
       "seoTitle": "Accesos y sesiones — OptiBienestar 360",
       "title": "Accesos y sesiones",
       "subtitle": "Historial global de intentos de acceso y sesiones del sistema.",
-      "searchPlaceholder": "Buscar por correo…",
+      "searchPlaceholder": "Buscar por correo, IP, equipo o motivo de fallo…",
       "empty": "Sin accesos registrados.",
       "paginationSummary": "{shown} de {total} accesos",
       "filters": {
@@ -467,7 +475,8 @@
         "action": "Acción",
         "actor": "Actor",
         "occurredAt": "Fecha"
-      }
+      },
+      "searchPlaceholder": "Buscar por entidad o ruta…"
     },
     "reportsAudit": {
       "seoTitle": "Reportes generados — OptiBienestar 360",
@@ -519,7 +528,8 @@
         "started": "Inicio",
         "duration": "Duración",
         "error": "Error"
-      }
+      },
+      "searchPlaceholder": "Buscar por tarea o mensaje de error…"
     }
   },
   "roles": {
@@ -1544,6 +1554,9 @@
         "FIXED_DATE": "Fecha fija anual",
         "PERIOD": "Período en meses"
       }
+    },
+    "filters": {
+      "type": "Tipo de plan"
     }
   },
   "allies": {
@@ -1795,14 +1808,16 @@
       "hint": "Profesiones y actividades que ofrece el aliado.",
       "add": "Añadir profesión",
       "addButton": "Añadir",
-      "empty": "Sin profesiones asignadas."
+      "empty": "Sin profesiones asignadas.",
+      "searchPlaceholder": "Buscar profesión…"
     },
     "allyTypes": {
       "title": "Tipos de aliado",
       "hint": "Clasificación de negocio del aliado.",
       "add": "Añadir tipo",
       "addButton": "Añadir",
-      "empty": "Sin tipos asignados."
+      "empty": "Sin tipos asignados.",
+      "searchPlaceholder": "Buscar tipo de aliado…"
     },
     "agreements": {
       "title": "Acuerdos",
@@ -1854,7 +1869,8 @@
       "delete": {
         "title": "Eliminar acuerdo",
         "confirm": "¿Seguro que deseas eliminar el acuerdo {type}? (soft-delete)"
-      }
+      },
+      "searchPlaceholder": "Buscar por tipo, términos o estado…"
     },
     "staff": {
       "title": "Personal",
@@ -1899,7 +1915,8 @@
       "delete": {
         "title": "Desvincular usuario",
         "confirm": "¿Seguro que deseas desvincular a {name} de este aliado? (soft-delete)"
-      }
+      },
+      "searchPlaceholder": "Buscar por nombre, correo o rol…"
     },
     "public": {
       "seoTitle": "Red de aliados — OptiBienestar 360",
@@ -2110,6 +2127,11 @@
       "modalHelp": "El asesor que trajo al aliado a OptiBienestar 360. El cambio queda en la bitácora del aliado.",
       "none": "Sin asesor",
       "savedToast": "Asesor actualizado"
+    },
+    "filters": {
+      "allyType": "Tipo de aliado",
+      "profession": "Profesión",
+      "state": "Estado / Departamento"
     }
   },
   "catalog": {
@@ -2473,7 +2495,7 @@
     "new": "Registrar cobro",
     "createTooltip": "Registrar un nuevo cobro",
     "noPermissionRegister": "No tienes permiso para registrar cobros",
-    "searchPlaceholder": "Buscar por referencia o notas…",
+    "searchPlaceholder": "Buscar por afiliado, documento, referencia o notas…",
     "statusFilterAll": "Todos",
     "statusFilterPlaceholder": "Estado",
     "empty": "Sin cobros",
@@ -2522,7 +2544,7 @@
         "originAccount": "Cuenta de origen (empresa)",
         "payoutAccount": "Cuenta destino (asesor)"
       },
-      "searchPlaceholder": "Buscar por referencia…",
+      "searchPlaceholder": "Buscar por asesor, documento, referencia o notas…",
       "empty": "Sin pagos de comisión",
       "detailTitle": "Detalle del pago",
       "columns": {
@@ -2541,7 +2563,7 @@
     "movements": {
       "title": "Movimientos",
       "subtitle": "Vista maestra de cobros y pagos de comisión, ambas direcciones.",
-      "searchPlaceholder": "Buscar…",
+      "searchPlaceholder": "Buscar por afiliado, documento, referencia o notas…",
       "empty": "Sin movimientos",
       "directionAll": "Todos",
       "directionIn": "Cobro",
@@ -2788,7 +2810,11 @@
       "noneAtAll": "Todavía no hay cuentas de la empresa registradas.",
       "pickMethodHint": "Elige primero el método de pago: de él dependen los datos que pide la cuenta.",
       "holderDocumentHelp": "Cédula o RIF, por ejemplo J-12345678-9.",
-      "phonePlaceholder": "04141234567"
+      "phonePlaceholder": "04141234567",
+      "filters": {
+        "bank": "Banco",
+        "currency": "Moneda"
+      }
     },
     "assignOwn": {
       "title": "Asignar a una membresía",
@@ -2869,6 +2895,16 @@
         "email": "Correo",
         "accepts": "Acepta"
       }
+    },
+    "filters": {
+      "member": "Afiliado",
+      "method": "Método",
+      "bank": "Banco",
+      "category": "Motivo",
+      "advisor": "Asesor",
+      "currency": "Moneda",
+      "dateFrom": "Fecha desde",
+      "dateTo": "Fecha hasta"
     }
   },
   "members": {
@@ -3223,7 +3259,9 @@
       "emptyFiltered": "No hay consumos con este filtro.",
       "filters": {
         "service": "Servicio: {name}",
-        "clear": "Quitar filtro"
+        "clear": "Quitar filtro",
+        "dateFrom": "Consumo desde",
+        "dateTo": "Consumo hasta"
       },
       "summary": {
         "title": "Por servicio",
@@ -3258,6 +3296,17 @@
       "confirm": "Congelar",
       "frozenToast": "Saldo congelado",
       "releasedToast": "Saldo liberado"
+    },
+    "filters": {
+      "advisor": "Asesor",
+      "gender": "Género",
+      "city": "Ciudad",
+      "occupation": "Ocupación",
+      "confirmation": "Confirmación",
+      "confirmed": "Confirmado",
+      "pending": "Pendiente de confirmar",
+      "enrolledFrom": "Inscrito desde",
+      "enrolledTo": "Inscrito hasta"
     }
   },
   "memberships": {
@@ -3468,7 +3517,9 @@
       "searchPlaceholder": "Buscar por cédula o nombre del afiliado...",
       "consumptionLabel": "Valor consumido",
       "copayLabel": "Copago",
-      "validateCta": "Validar afiliado"
+      "validateCta": "Validar afiliado",
+      "dateFrom": "Consumo desde",
+      "dateTo": "Consumo hasta"
     },
     "scanner": {
       "button": "Escanear",
@@ -3849,7 +3900,7 @@
     },
     "title": "Comisiones",
     "subtitle": "Ledger de comisiones de los asesores y liquidación de períodos.",
-    "searchPlaceholder": "Buscar por asesor, código o referencia…",
+    "searchPlaceholder": "Buscar por asesor, afiliado, documento, código o referencia…",
     "filterPlaceholder": "Filtro RSQL, p. ej. promoter.uuid==…;status==PENDING",
     "empty": "No hay comisiones registradas.",
     "paginationSummary": "Mostrando {shown} de {total}",
@@ -4161,6 +4212,14 @@
       "bulkConfirm": "Las {count} comisiones seleccionadas quedarán excluidas de la próxima liquidación. Esta acción no se puede deshacer.",
       "bulkSuccessToast": "Se anularon {count} comisiones.",
       "selectAllPending": "Seleccionar todas las pendientes"
+    },
+    "filters": {
+      "advisor": "Asesor",
+      "member": "Afiliado",
+      "status": "Estado",
+      "currency": "Moneda",
+      "dateFrom": "Generada desde",
+      "dateTo": "Generada hasta"
     }
   },
   "scheduledJobs": {
@@ -4303,7 +4362,12 @@
       "empty": "Todavía no has referido a nadie. Comparte tu código para empezar.",
       "pendingReferred": "Referido pendiente de inscripción",
       "enrolledOn": "Inscrito el {date}",
-      "reward": "Recompensa: {reward}"
+      "reward": "Recompensa: {reward}",
+      "searchPlaceholder": "Buscar por nombre, documento o código…",
+      "statusPlaceholder": "Estado",
+      "emptyFiltered": "Ningún referido coincide con la búsqueda.",
+      "dateFrom": "Referido desde",
+      "dateTo": "Referido hasta"
     },
     "status": {
       "PENDING_ENROLLMENT": "Por inscribir",
@@ -4489,7 +4553,13 @@
       "addRowTooltip": "Agregar excepción de campaña",
       "noCampaignsPermission": "Sin permiso para gestionar excepciones de campaña"
     },
-    "reglasExpress": "Reglas express"
+    "reglasExpress": "Reglas express",
+    "filters": {
+      "scope": "Alcance",
+      "mode": "Modalidad",
+      "dateFrom": "Vigente desde",
+      "dateTo": "Vigente hasta"
+    }
   },
   "commissionRules": {
     "title": "Reglas de comisión",
@@ -4939,7 +5009,8 @@
         "back": "Volver",
         "confirm": "Confirmar",
         "successToast": "Recalculado: {created} creados, {updated} actualizados, {displaced} desplazados"
-      }
+      },
+      "awardsSearchPlaceholder": "Buscar por regla, asesor o referencia de pago…"
     }
   },
   "hierarchyOverrideTiers": {
@@ -5330,7 +5401,11 @@
     "deletedToast": "Tasa de cambio eliminada.",
     "filters": {
       "basePlaceholder": "Base (USD)",
-      "quotePlaceholder": "Cotizada (VES)"
+      "quotePlaceholder": "Cotizada (VES)",
+      "searchPlaceholder": "Buscar por código o nombre de moneda…",
+      "sourcePlaceholder": "Fuente",
+      "dateFrom": "Operación desde",
+      "dateTo": "Operación hasta"
     },
     "columns": {
       "pair": "Par",
@@ -5395,7 +5470,10 @@
     "filters": {
       "status": "Estado",
       "rule": "Regla",
-      "openOrStale": "Abiertos y a revisar"
+      "openOrStale": "Abiertos y a revisar",
+      "period": "Período",
+      "dateFrom": "Período desde",
+      "dateTo": "Período hasta"
     },
     "tieStatuses": {
       "OPEN": "Empate abierto",
@@ -5751,7 +5829,15 @@
     "mine": {
       "title": "Mis solicitudes de afiliación",
       "subtitle": "Las personas que se registraron con tu QR y en qué estado está su solicitud.",
-      "empty": "Todavía no hay solicitudes con tu QR"
+      "empty": "Todavía no hay solicitudes con tu QR",
+      "searchPlaceholder": "Buscar por nombre, cédula, correo o teléfono…"
+    },
+    "filters": {
+      "plan": "Plan",
+      "advisor": "Asesor",
+      "paymentMethod": "Método de pago",
+      "dateFrom": "Creada desde",
+      "dateTo": "Creada hasta"
     }
   },
   "securityPolicy": {
@@ -5862,7 +5948,11 @@
     "savedToast": "Cuenta guardada",
     "removedToast": "Cuenta eliminada",
     "deleteTitle": "Eliminar cuenta",
-    "deleteConfirm": "Esta cuenta dejará de aparecer entre tus cuentas guardadas. Tus pagos ya registrados no cambian."
+    "deleteConfirm": "Esta cuenta dejará de aparecer entre tus cuentas guardadas. Tus pagos ya registrados no cambian.",
+    "searchPlaceholder": "Buscar por alias, cuenta, documento o banco…",
+    "filters": {
+      "bank": "Banco"
+    }
   },
   "paymentClaims": {
     "title": "Reclamos de pagos",
@@ -5906,7 +5996,13 @@
     "refundedAmountInvalid": "Debe ser mayor que 0 y no superar el monto reclamado.",
     "noteLabel": "Nota de resolución",
     "confirm": "Resolver",
-    "resolvedToast": "Reclamo resuelto"
+    "resolvedToast": "Reclamo resuelto",
+    "searchPlaceholder": "Buscar por afiliado, documento, motivo o comentario…",
+    "filters": {
+      "member": "Afiliado",
+      "dateFrom": "Reclamo desde",
+      "dateTo": "Reclamo hasta"
+    }
   },
   "publicAccounts": {
     "seoTitle": "Cuentas para pagar — OptiBienestar 360",
@@ -5940,7 +6036,10 @@
       "notEligibleTitle": "No disponible para este aliado",
       "notEligibleDescription": "Solo el médico o un operador médico de un aliado profesional del área médica puede consultar la historia de sus pacientes.",
       "empty": "Todavía no tienes pacientes. Escanea el QR de la credencial de un afiliado en el validador.",
-      "since": "Desde {date}"
+      "since": "Desde {date}",
+      "searchPlaceholder": "Buscar por nombre o documento…",
+      "dateFrom": "Vinculado desde",
+      "dateTo": "Vinculado hasta"
     },
     "mine": {
       "title": "Quién vio mi historia",
@@ -6160,7 +6259,11 @@
       "doneToast": "Se importaron {count} aliados",
       "doneBody": "Quedaron pendientes de aprobación, sin publicar y sin usuario. Invita a cada contacto desde su solicitud."
     },
-    "advisorFilter": "Filtrar por asesor"
+    "advisorFilter": "Filtrar por asesor",
+    "filters": {
+      "dateFrom": "Solicitud desde",
+      "dateTo": "Solicitud hasta"
+    }
   },
   "onboardingPolicy": {
     "title": "Política de registro",
@@ -6474,5 +6577,11 @@
     "poolHintMember": "Autoregistros que aún no se envían a revisión (los tuyos o sin asesor). Marca el que estés atendiendo para que la limpieza de borradores no lo borre.",
     "poolHintAlly": "Registros de aliados que aún no se envían a revisión (los tuyos o sin asesor). Marca el que estés atendiendo para que la limpieza de borradores no lo borre.",
     "poolEmpty": "No hay registros en progreso."
+  },
+  "allyProducts": {
+    "filters": {
+      "dateFrom": "Enviada desde",
+      "dateTo": "Enviada hasta"
+    }
   }
 }

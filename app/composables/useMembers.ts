@@ -26,6 +26,8 @@ interface ListParams {
   filter?: string
   q?: string
   includeInactive?: boolean
+  /** Master-table filters (query-param name → value), see `utils/listFilters.ts`. */
+  extra?: Record<string, string>
 }
 
 interface OptionsParams {
@@ -55,6 +57,7 @@ export const useMembers = () => {
         ...(params.filter ? { filter: params.filter } : {}),
         ...(params.q ? { q: params.q } : {}),
         ...(params.includeInactive ? { includeInactive: 'true' } : {}),
+        ...(params.extra ?? {}),
       },
     })
 

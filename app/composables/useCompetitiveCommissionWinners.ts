@@ -12,6 +12,9 @@ interface ListTiesParams {
   size?: number
   /** RSQL filter string — e.g. `status==OPEN;rule.uuid==...`. */
   filter?: string
+  /** Period range `yyyy-MM-dd`, inclusive. */
+  dateFrom?: string
+  dateTo?: string
 }
 
 /** D16 — tablero de ganadores (/v1/admin/competitive-commission-winners, Fase 2c). */
@@ -22,6 +25,8 @@ export const useCompetitiveCommissionWinners = () => {
         page: params.page ?? 0,
         size: params.size ?? 50,
         ...(params.filter ? { filter: params.filter } : {}),
+        ...(params.dateFrom ? { dateFrom: params.dateFrom } : {}),
+        ...(params.dateTo ? { dateTo: params.dateTo } : {}),
       },
     })
 
