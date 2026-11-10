@@ -6024,7 +6024,8 @@
     "status": {
       "PENDING": "Pendiente",
       "APPROVED": "Aprobada",
-      "REJECTED": "Rechazada"
+      "REJECTED": "Rechazada",
+      "IN_PROGRESS": "En progreso"
     },
     "channel": {
       "SELF_SERVICE": "Formulario público",
