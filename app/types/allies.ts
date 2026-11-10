@@ -561,8 +561,6 @@ export interface MyAllyProfileDto {
   taxDocumentType?: string | null
   taxDocumentNumber?: string | null
   profession_Uuid?: string | null
-  /** Set when the ally sent the registration to review. */
-  registrationSubmittedAt?: string | null
   /** Backend field name: the registration was sent to review (`registration_submitted_at` is set). */
   submitted?: boolean
   hasOpeningHours?: boolean
