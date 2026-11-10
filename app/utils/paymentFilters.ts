@@ -35,7 +35,7 @@ export function paymentFilterQuery(f: PaymentMasterFilterState) {
 }
 
 /** Currency has no dedicated param: it rides the RSQL `filter` (`currency.code` is allow-listed). */
-export function joinRsql(...clauses: Array<string | undefined | false>): string | undefined {
+export function joinRsql(...clauses: Array<string | null | undefined | false>): string | undefined {
   const parts = clauses.filter((c): c is string => !!c)
   return parts.length ? parts.join(';') : undefined
 }

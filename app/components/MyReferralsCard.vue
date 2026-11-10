@@ -21,7 +21,7 @@ const search = ref('')
 const statusFilter = ref('')
 const dateFrom = ref('')
 const dateTo = ref('')
-const statusOptions = computed(() => REFERRAL_STATUS_OPTIONS.map(o => ({ label: t(o.labelKey, o.label), value: o.value })))
+const statusOptions = computed(() => REFERRAL_STATUS_OPTIONS.map(o => ({ label: t(o.labelKey, o.label), value: String(o.value) })))
 const hasFilters = computed(() => !!search.value.trim() || !!statusFilter.value || !!dateFrom.value || !!dateTo.value)
 
 async function load() {

@@ -36,7 +36,7 @@ const pageSizeItems = buildPageSizeItems(t)
 const search = ref('')
 const includeInactive = ref(false)
 const typeFilter = ref('')
-const typeOptions = computed(() => PLAN_TYPE_OPTIONS.map(o => ({ label: t(o.labelKey, o.label), value: o.value })))
+const typeOptions = computed(() => PLAN_TYPE_OPTIONS.map(o => ({ label: t(o.labelKey, o.label), value: String(o.value) })))
 // Empty by default: no `sort=` is sent until the user clicks a column, so
 // the backend's own default-sort fallback (entity_config → system_configs
 // → code ASC) applies.

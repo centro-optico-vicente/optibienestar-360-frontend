@@ -46,8 +46,8 @@ const scopeFilter = ref('')
 const modeFilter = ref('')
 const dateFrom = ref('')
 const dateTo = ref('')
-const scopeOptions = computed(() => CAMPAIGN_SCOPE_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
-const modeOptions = computed(() => CAMPAIGN_MODE_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
+const scopeOptions = computed(() => CAMPAIGN_SCOPE_OPTIONS.map(o => ({ label: t(o.labelKey), value: String(o.value) })))
+const modeOptions = computed(() => CAMPAIGN_MODE_OPTIONS.map(o => ({ label: t(o.labelKey), value: String(o.value) })))
 
 async function load() {
   loading.value = true

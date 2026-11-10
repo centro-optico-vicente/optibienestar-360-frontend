@@ -68,7 +68,7 @@ const promotersApi = usePromoters()
 const membersApi = useMembers()
 const currenciesApi = useCurrencies()
 const currencyOptions = ref<SelectItem[]>([])
-const statusOptions = computed(() => COMMISSION_STATUS_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
+const statusOptions = computed(() => COMMISSION_STATUS_OPTIONS.map(o => ({ label: t(o.labelKey), value: String(o.value) })))
 
 async function searchPromoters(q: string): Promise<SelectItem[]> {
   const res = await promotersApi.list({ q, size: 20 })

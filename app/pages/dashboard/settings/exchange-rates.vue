@@ -45,11 +45,11 @@ const pageSizeItems = buildPageSizeItems(t)
 const base = ref('')
 const quote = ref('')
 const search = ref('')
-const sourceFilter = ref<ExchangeRateSource | ''>('')
+const sourceFilter = ref('')
 const dateFrom = ref('')
 const dateTo = ref('')
 const currencyOptions = ref<{ label: string, value: string }[]>([])
-const sourceOptions = computed(() => EXCHANGE_RATE_SOURCE_OPTIONS.map(o => ({ label: t(o.labelKey, o.label), value: o.value })))
+const sourceOptions = computed(() => EXCHANGE_RATE_SOURCE_OPTIONS.map(o => ({ label: t(o.labelKey, o.label), value: String(o.value) })))
 
 // Currency master for the base/quote dropdowns (value = ISO code, the contract of `base`/`quote`).
 async function loadCurrencyOptions() {

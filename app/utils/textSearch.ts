@@ -11,3 +11,12 @@ export function matchesAny(term: string, ...fields: Array<string | null | undefi
   const needle = foldText(term)
   return fields.some(f => foldText(f).includes(needle))
 }
+
+/**
+ * Same as {@link matchesAny} but takes the raw input box value: a blank term
+ * matches everything, so callers can filter unconditionally.
+ */
+export function matchesText(term: string | null | undefined, ...fields: Array<string | null | undefined>): boolean {
+  const trimmed = (term ?? '').trim()
+  return trimmed === '' || matchesAny(trimmed, ...fields)
+}
