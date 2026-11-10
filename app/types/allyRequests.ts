@@ -6,6 +6,8 @@
 import type { AgreementType, AllyRegistrationStatus, AllySegment } from '~/types/allies'
 
 export const ALLY_REGISTRATION_STATUSES = ['PENDING', 'APPROVED', 'REJECTED'] as const
+/** Inbox filter: the real statuses plus IN_PROGRESS (self-registered, steps not yet sent to review; hub ADR 0037). */
+export type AllyRequestStatusFilter = AllyRegistrationStatus | 'IN_PROGRESS'
 export const ALLY_REGISTRATION_CHANNELS = ['SELF_SERVICE', 'IMPORT', 'ADMIN'] as const
 export type AllyRegistrationChannel = typeof ALLY_REGISTRATION_CHANNELS[number]
 

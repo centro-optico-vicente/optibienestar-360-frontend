@@ -2,7 +2,7 @@
 import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
 import type { SortDirection } from '~/composables/useTableSort'
 import type { AllyRegistrationStatus } from '~/types/allies'
-import type { AllyRegistrationChannel, AllyRequestListItemDto } from '~/types/allyRequests'
+import type { AllyRegistrationChannel, AllyRequestListItemDto, AllyRequestStatusFilter } from '~/types/allyRequests'
 import { ALLY_REGISTRATION_CHANNELS, ALLY_REGISTRATION_STATUSES, allyRegistrationStatusColor } from '~/types/allyRequests'
 
 // Review queue of the ally requests (hub ADR 0036, GET /v1/admin/ally-requests):
@@ -38,6 +38,7 @@ const importOpen = ref(false)
 const statusItems = computed(() => [
   { value: 'ALL', label: t('allyRequests.statusAll') },
   ...ALLY_REGISTRATION_STATUSES.map(s => ({ value: s, label: t(`allyRequests.status.${s}`) })),
+  { value: 'IN_PROGRESS', label: t('allyRequests.status.IN_PROGRESS') },
 ])
 const channelItems = computed(() => [
   { value: 'ALL', label: t('allyRequests.channelAll') },
@@ -68,7 +69,7 @@ async function load() {
       size: pageSize.value,
       sort: sort.sortParam.value,
       q: search.value.trim() || undefined,
-      status: status.value === 'ALL' ? undefined : status.value as AllyRegistrationStatus,
+      status: status.value === 'ALL' ? undefined : status.value as AllyRequestStatusFilter,
       channel: channel.value === 'ALL' ? undefined : channel.value as AllyRegistrationChannel,
     })
     items.value = res.content ?? []
@@ -113,7 +114,9 @@ async function resetFilters() {
   load()
 }
 
+// In progress rows are PENDING on the server (steps not yet sent to review); the filter says what they are.
 function statusLabel(r: AllyRequestListItemDto): string {
+  if (status.value === 'IN_PROGRESS') return t('allyRequests.status.IN_PROGRESS')
   return r.registrationStatus_Display ?? t(`allyRequests.status.${r.registrationStatus}`, r.registrationStatus)
 }
 function channelLabel(r: AllyRequestListItemDto): string {
@@ -233,7 +236,7 @@ onMounted(load)
               </td>
               <td class="px-5 py-3 text-prohealth-600 whitespace-nowrap">{{ r.createdAt_Display ?? formatDate(r.createdAt, 'datetime') }}</td>
               <td class="px-5 py-3">
-                <UBadge :color="allyRegistrationStatusColor(r.registrationStatus)" variant="subtle" size="sm">{{ statusLabel(r) }}</UBadge>
+                <UBadge :color="status === 'IN_PROGRESS' ? 'neutral' : allyRegistrationStatusColor(r.registrationStatus)" variant="subtle" size="sm">{{ statusLabel(r) }}</UBadge>
               </td>
               <td class="px-5 py-3">
                 <div class="flex items-center justify-end gap-1">

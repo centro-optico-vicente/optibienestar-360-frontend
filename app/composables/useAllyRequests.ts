@@ -8,6 +8,7 @@ import type {
   AllyRequestDetailDto,
   AllyRequestInviteRequest,
   AllyRequestListItemDto,
+  AllyRequestStatusFilter,
 } from '~/types/allyRequests'
 
 interface ListParams {
@@ -15,7 +16,7 @@ interface ListParams {
   size?: number
   sort?: string[]
   q?: string
-  status?: AllyRegistrationStatus
+  status?: AllyRequestStatusFilter
   channel?: AllyRegistrationChannel
 }
 
