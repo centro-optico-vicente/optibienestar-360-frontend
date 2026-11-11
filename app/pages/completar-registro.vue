@@ -183,7 +183,8 @@ function goHome() {
 
     <template v-else>
       <UAlert v-if="alreadySubmitted" color="info" variant="subtle" icon="i-lucide-hourglass" :title="t('registration.wizard.alreadySubmittedTitle')" :description="t('registration.wizard.alreadySubmittedBody')" />
-      <RegistrationProgressBar :current="current + 1" :total="stepKeys.length + 1" :label="stepLabel(currentKey)" />
+      <!-- Step 1 is the public form (/solicitar-alianza, /afiliarse): the wizard starts at step 2. -->
+      <RegistrationProgressBar :current="current + 2" :total="stepKeys.length + 1" :label="stepLabel(currentKey)" />
 
       <div class="bg-white rounded-2xl border border-prohealth-100 p-6 space-y-4">
         <h2 class="font-bold text-prohealth-900">{{ stepLabel(currentKey) }}</h2>
