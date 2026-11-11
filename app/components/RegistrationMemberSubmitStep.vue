@@ -9,6 +9,7 @@ const props = defineProps<{ request: MyAffiliationRequestDto, plans: PublicPlan[
 const emit = defineEmits<{ submitted: [request: MyAffiliationRequestDto], back: [], later: [], goto: [step: string] }>()
 
 const { t } = useI18n()
+const notifyApiError = useNotifyApiError()
 const api = useMemberRegistrationApi()
 
 const plan = computed(() => props.plans.find(p => p.uuid === props.request.plan_Uuid) ?? null)
@@ -24,8 +25,9 @@ async function send() {
     emit('submitted', await api.submit())
   }
   catch (error) {
-    // useApi toasted the reason; when it is "incomplete" the list says what and where.
+    // When it is "incomplete" the list says what and where; otherwise show the reason useApi left untold (400 / 404).
     missingKeys.value = missingFromError(error) ?? []
+    if (!missingKeys.value.length) notifyApiError(error)
   }
   finally {
     sending.value = false

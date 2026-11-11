@@ -25,6 +25,7 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()
+const notifyApiError = useNotifyApiError()
 const { refreshSession, logout } = useAuth()
 const registration = useRegistrationProgress()
 const memberApi = useMyAffiliationRequest()
@@ -148,8 +149,9 @@ async function discardRegistration() {
     toast.add({ title: t('registration.discard.done'), description: t('registration.discard.doneBody'), color: 'success', icon: 'i-lucide-check-circle' })
     await logout()
   }
-  catch {
-    // useApi toasted the reason (e.g. it was already sent to review).
+  catch (err) {
+    // useApi toasts most reasons (e.g. it was already sent to review); 400 / 404 are left to us.
+    notifyApiError(err)
   }
   finally {
     discarding.value = false

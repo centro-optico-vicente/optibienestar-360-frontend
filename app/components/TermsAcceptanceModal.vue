@@ -177,6 +177,9 @@ async function onAccept() {
           :label="scrolledToEnd[currentKey]
             ? t('termsAcceptance.acceptLabel')
             : t('termsAcceptance.scrollHint')"
+          :aria-label="scrolledToEnd[currentKey]
+            ? t('termsAcceptance.acceptLabel')
+            : t('termsAcceptance.scrollHint')"
         />
 
         <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
