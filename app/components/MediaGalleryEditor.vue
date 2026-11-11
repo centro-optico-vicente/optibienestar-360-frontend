@@ -22,6 +22,11 @@ const props = withDefaults(defineProps<{
   readonly?: boolean
   /** Extra hint under the title (e.g. offers fall back to the product's images). */
   emptyHint?: string
+  /**
+   * The owner is not public yet (a pending ally, #320): the images are saved but not shown in the directory, so the
+   * texts do not promise "published immediately".
+   */
+  deferredPublish?: boolean
 }>(), {
   canRead: true,
   canUpload: true,
@@ -29,6 +34,7 @@ const props = withDefaults(defineProps<{
   canDelete: true,
   readonly: false,
   emptyHint: undefined,
+  deferredPublish: false,
 })
 
 const emit = defineEmits<{
@@ -118,7 +124,7 @@ async function onFileSelected(event: Event) {
     errorMessage.value = t('media.errors.tooLarge', { mb: MEDIA_MAX_FILE_MB })
     return
   }
-  await run(() => media.upload(props.base, file), 'media.uploadedToast')
+  await run(() => media.upload(props.base, file), props.deferredPublish ? 'media.uploadedToastDeferred' : 'media.uploadedToast')
 }
 
 // ---- External URL ----
@@ -131,15 +137,45 @@ const urlError = computed(() => {
   return /^https:\/\/\S+$/i.test(v) ? '' : t('media.errors.httpsOnly')
 })
 
+// An https page (a social profile, a gallery page) passes the format check but is not an image: it would be
+// published as a broken picture (#315). The browser loads it as an <img> first; no CORS involved.
+const urlNotImage = ref(false)
+const checkingUrl = ref(false)
+watch(urlValue, () => { urlNotImage.value = false })
+
+function loadsAsImage(url: string, timeoutMs = 10_000): Promise<boolean> {
+  return new Promise((resolve) => {
+    const img = new Image()
+    const timer = setTimeout(() => finish(false), timeoutMs)
+    function finish(ok: boolean) {
+      clearTimeout(timer)
+      img.onload = null
+      img.onerror = null
+      resolve(ok)
+    }
+    img.onload = () => finish(img.naturalWidth > 0)
+    img.onerror = () => finish(false)
+    img.src = url
+  })
+}
+
 function openUrlForm() {
   urlValue.value = ''
   urlCaption.value = ''
+  urlNotImage.value = false
   urlOpen.value = true
 }
 
 async function submitUrl() {
   const url = urlValue.value.trim()
-  if (!url || urlError.value) return
+  if (!url || urlError.value || checkingUrl.value) return
+  checkingUrl.value = true
+  const isImage = await loadsAsImage(url)
+  checkingUrl.value = false
+  if (!isImage) {
+    urlNotImage.value = true
+    return
+  }
   const ok = await run(
     () => media.addUrl(props.base, { url, ...(urlCaption.value.trim() ? { caption: urlCaption.value.trim() } : {}) }),
     'media.urlAddedToast',
@@ -261,7 +297,7 @@ defineExpose({ reload: load })
     </div>
 
     <p v-if="uploadAllowed" class="text-xs text-prohealth-500">
-      {{ t('media.hint', { mb: MEDIA_MAX_FILE_MB }) }}
+      {{ t(deferredPublish ? 'media.hintDeferred' : 'media.hint', { mb: MEDIA_MAX_FILE_MB }) }}
       <span v-if="atLimit" class="text-amber-700 font-medium"> {{ t('media.limitReached', { max: MEDIA_MAX_ITEMS }) }}</span>
     </p>
     <p v-else-if="props.readonly || !props.canUpload" class="text-xs text-prohealth-500">{{ t('media.readonlyHint') }}</p>
@@ -393,7 +429,12 @@ defineExpose({ reload: load })
     <UModal v-model:open="urlOpen" :title="t('media.urlModal.title')" :description="t('media.urlModal.description')">
       <template #body>
         <div class="space-y-4">
-          <UFormField :label="t('media.urlModal.url')" :error="urlError || undefined" required>
+          <UFormField
+            :label="t('media.urlModal.url')"
+            :error="urlError || (urlNotImage ? t('media.errors.notAnImageUrl') : undefined)"
+            :help="checkingUrl ? t('media.errors.checkingUrl') : undefined"
+            required
+          >
             <UInput v-model="urlValue" placeholder="https://" icon="i-lucide-link" class="w-full" @keydown.enter.prevent="submitUrl" />
           </UFormField>
           <UFormField :label="t('media.urlModal.caption')">
@@ -406,7 +447,7 @@ defineExpose({ reload: load })
           <UButton color="neutral" variant="ghost" :disabled="busy" @click="urlOpen = false">
             {{ t('common.cancel') }}
           </UButton>
-          <UButton color="primary" icon="i-lucide-plus" :loading="busy" :disabled="!urlValue.trim() || !!urlError" @click="submitUrl">
+          <UButton color="primary" icon="i-lucide-plus" :loading="busy || checkingUrl" :disabled="!urlValue.trim() || !!urlError || urlNotImage" @click="submitUrl">
             {{ t('media.urlModal.submit') }}
           </UButton>
         </div>

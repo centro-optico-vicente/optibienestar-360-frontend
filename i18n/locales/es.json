@@ -2010,6 +2010,7 @@
       "gallery": {
         "title": "Imágenes de mi aliado",
         "hint": "Logo y fotos que se muestran en el directorio público. Se publican de inmediato.",
+        "hintPending": "Logo y fotos para tu ficha del directorio. Se mostrarán cuando tu alianza esté aprobada y publicada.",
         "offersTitle": "Imágenes de mis ofertas",
         "offersHint": "Agrega fotos a cada oferta, en cualquier estado de revisión. Se publican de inmediato.",
         "offersEmpty": "Aún no tienes ofertas.",
@@ -5902,6 +5903,7 @@
     "title": "Imágenes",
     "count": "{n} / {max}",
     "hint": "JPG, PNG o WEBP de hasta {mb} MB, o una URL https. Se publican de inmediato. Arrastra o usa las flechas para ordenar; la principal es la portada.",
+    "hintDeferred": "JPG, PNG o WEBP de hasta {mb} MB, o una URL https. Arrastra o usa las flechas para ordenar; la principal es la portada.",
     "limitReached": "Alcanzaste el máximo de {max} imágenes.",
     "readonlyHint": "Solo lectura: no tienes permiso para modificar las imágenes.",
     "noReadPermission": "No tienes permiso para ver las imágenes.",
@@ -5921,6 +5923,7 @@
       "URL": "URL"
     },
     "uploadedToast": "Imagen subida y publicada",
+    "uploadedToastDeferred": "Imagen subida",
     "urlAddedToast": "Imagen agregada",
     "primaryToast": "Imagen principal actualizada",
     "captionSavedToast": "Texto alternativo guardado",
@@ -5928,7 +5931,9 @@
     "errors": {
       "notImage": "El archivo debe ser una imagen (JPG, PNG o WEBP)",
       "tooLarge": "La imagen supera los {mb} MB",
-      "httpsOnly": "La URL debe empezar con https://"
+      "httpsOnly": "La URL debe empezar con https://",
+      "notAnImageUrl": "No pudimos abrir una imagen en esa dirección. Usa el enlace directo a la imagen (termina en .jpg, .png o .webp), no el de una página.",
+      "checkingUrl": "Comprobando la imagen…"
     },
     "urlModal": {
       "title": "Agregar imagen por URL",
