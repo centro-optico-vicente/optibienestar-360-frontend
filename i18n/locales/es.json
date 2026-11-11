@@ -6464,6 +6464,7 @@
       "subtitle": "Cada paso se guarda. Puedes salir y seguir cuando quieras.",
       "savedLater": "Avance guardado",
       "savedLaterBody": "Entra de nuevo con tu cédula o correo para seguir donde quedaste.",
+      "savedLaterBodyAlly": "Puedes seguir cuando quieras desde «Completar registro». Recuerda pulsar «Enviar registro» al final para que lo revisemos.",
       "loadFailed": "No pudimos cargar tu registro.",
       "retry": "Reintentar",
       "submittedToast": "Registro enviado",
