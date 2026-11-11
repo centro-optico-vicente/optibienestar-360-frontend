@@ -9,6 +9,7 @@ const props = defineProps<{ request: MyAffiliationRequestDto, essential: boolean
 const emit = defineEmits<{ done: [request: MyAffiliationRequestDto | null, mode: StepExit] }>()
 
 const { t } = useI18n()
+const notifyApiError = useNotifyApiError()
 const toast = useToast()
 const api = useMemberRegistrationApi()
 
@@ -58,8 +59,9 @@ async function finish(mode: StepExit) {
     })
     emit('done', saved, mode)
   }
-  catch {
-    // useApi already toasted the backend's reason.
+  catch (err) {
+    // useApi does not toast 400 / 404: say why the step was not saved.
+    notifyApiError(err)
   }
   finally {
     saving.value = false

@@ -10,6 +10,7 @@ import type { AllySegment } from '~/types/allies'
 import type { AllyRequestCreateRequest } from '~/types/allyRequests'
 import type { RegistrationStartResponse } from '~/types/affiliationRequests'
 import { ALLY_WIZARD_STEPS } from '~/types/registration'
+import { isValidPhone } from '~/utils/contactValidation'
 
 // English pair of this public screen (hub URL convention); the fixed `key`
 // keeps the half-filled form when the switcher jumps between the two URLs.
@@ -57,16 +58,65 @@ const draft = useRegistrationDraft('ally', state, ['password', 'homepage', 'acce
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-function invalid(): string | null {
-  const isB2B = segment.value === 'B2B'
-  const missing = !state.firstName.trim() || !state.lastName.trim() || !state.documentNumber.trim()
-    || !state.mobile.trim() || !state.email.trim() || (isB2B && !state.name.trim())
-  if (missing) return t('allyRequestForm.required')
-  if (!/^\d{1,9}$/.test(state.documentNumber.trim())) return t('allyRequestForm.badDocument')
-  if (!EMAIL_RE.test(state.email.trim())) return t('allyRequestForm.badEmail')
-  if (state.password && state.password.length < 8) return t('allyRequestForm.shortPassword')
-  if (!state.acceptedPortalTerms) return t('allyRequestForm.termsRequired')
-  return null
+// The national ID only takes digits (#319): typed letters, dots and hyphens never get in (no value rewrite, so the
+// caret does not jump), and a pasted value or a draft saved before this filter existed is cleaned.
+function onlyDigits(event: InputEvent) {
+  const data = event.data
+  if (!data || !/\D/.test(data) || !event.inputType.startsWith('insert')) return
+  // Keep only the digits of what is being typed or pasted, at the caret, and put the caret right after them.
+  event.preventDefault()
+  const input = event.target as HTMLInputElement
+  const digits = data.replace(/\D/g, '')
+  const start = input.selectionStart ?? input.value.length
+  const end = input.selectionEnd ?? start
+  state.documentNumber = (input.value.slice(0, start) + digits + input.value.slice(end)).slice(0, 9)
+  const caret = Math.min(start + digits.length, state.documentNumber.length)
+  void nextTick(() => input.setSelectionRange(caret, caret))
+}
+watch(() => state.documentNumber, (value) => {
+  const digits = value.replace(/\D/g, '').slice(0, 9)
+  if (digits !== value) state.documentNumber = digits
+}, { immediate: true })
+
+type FieldKey = 'name' | 'firstName' | 'lastName' | 'documentNumber' | 'mobile' | 'email' | 'password'
+/** Field order on screen: the first one with an error gets the focus. */
+const FIELD_ORDER: readonly FieldKey[] = ['name', 'firstName', 'lastName', 'documentNumber', 'mobile', 'email', 'password']
+
+// Errors under each field (#319) instead of a single toast, one at a time, that did not say where.
+const errors = reactive<Partial<Record<FieldKey, string>>>({})
+for (const key of FIELD_ORDER) watch(() => state[key], () => { delete errors[key] })
+
+function validate(): Partial<Record<FieldKey, string>> {
+  const found: Partial<Record<FieldKey, string>> = {}
+  const required = t('allyRequestForm.requiredField')
+  if (segment.value === 'B2B' && !state.name.trim()) found.name = required
+  if (!state.firstName.trim()) found.firstName = required
+  if (!state.lastName.trim()) found.lastName = required
+  if (!state.documentNumber.trim()) found.documentNumber = required
+  else if (!/^\d{1,9}$/.test(state.documentNumber.trim())) found.documentNumber = t('allyRequestForm.badDocument')
+  if (!state.mobile.trim()) found.mobile = required
+  else if (!isValidPhone(state.mobile)) found.mobile = t('allyRequestForm.badMobile')
+  if (!state.email.trim()) found.email = required
+  else if (!EMAIL_RE.test(state.email.trim())) found.email = t('allyRequestForm.badEmail')
+  if (state.password && state.password.length < 8) found.password = t('allyRequestForm.shortPassword')
+  return found
+}
+
+/** Shows every error at once and focuses the first field with one; returns whether the form can be sent. */
+function checkForm(): boolean {
+  for (const key of FIELD_ORDER) delete errors[key]
+  Object.assign(errors, validate())
+  const first = FIELD_ORDER.find(key => errors[key])
+  if (first) {
+    toast.add({ title: t('allyRequestForm.fixFields'), color: 'error' })
+    void nextTick(() => document.querySelector<HTMLInputElement>(`[name="ally-request-${first}"]`)?.focus())
+    return false
+  }
+  if (!state.acceptedPortalTerms) {
+    toast.add({ title: t('allyRequestForm.termsRequired'), color: 'error' })
+    return false
+  }
+  return true
 }
 
 function buildRequest(): AllyRequestCreateRequest {
@@ -93,11 +143,7 @@ const checkEmail = ref<string | null>(null)
 
 async function submit() {
   accountExists.value = null
-  const error = invalid()
-  if (error) {
-    toast.add({ title: error, color: 'error' })
-    return
-  }
+  if (!checkForm()) return
   sending.value = true
   try {
     const res = await useApi<RegistrationStartResponse>('/v1/public/ally-requests', {
@@ -163,9 +209,10 @@ async function submit() {
               :label="segment === 'B2B' ? t('allyRequestForm.fields.name') : t('allyRequestForm.fields.nameB2P')"
               :help="segment === 'B2P' ? t('allyRequestForm.fields.nameB2PHelp') : undefined"
               :required="segment === 'B2B'"
+              :error="errors.name"
               class="sm:col-span-2"
             >
-              <UInput v-model="state.name" class="w-full" maxlength="150" autocomplete="organization" />
+              <UInput v-model="state.name" name="ally-request-name" class="w-full" maxlength="150" autocomplete="organization" />
             </UFormField>
           </fieldset>
 
@@ -173,33 +220,38 @@ async function submit() {
             <legend class="text-sm font-semibold text-prohealth-900 mb-2">
               {{ segment === 'B2B' ? t('allyRequestForm.sections.contactB2B') : t('allyRequestForm.sections.contactB2P') }}
             </legend>
-            <UFormField :label="t('allyRequestForm.fields.firstName')" required>
-              <UInput v-model="state.firstName" class="w-full" maxlength="50" autocomplete="given-name" />
+            <UFormField :label="t('allyRequestForm.fields.firstName')" required :error="errors.firstName">
+              <UInput v-model="state.firstName" name="ally-request-firstName" class="w-full" maxlength="50" autocomplete="given-name" />
             </UFormField>
-            <UFormField :label="t('allyRequestForm.fields.lastName')" required>
-              <UInput v-model="state.lastName" class="w-full" maxlength="50" autocomplete="family-name" />
+            <UFormField :label="t('allyRequestForm.fields.lastName')" required :error="errors.lastName">
+              <UInput v-model="state.lastName" name="ally-request-lastName" class="w-full" maxlength="50" autocomplete="family-name" />
             </UFormField>
-            <UFormField :label="t('allyRequestForm.fields.document')" required>
+            <UFormField :label="t('allyRequestForm.fields.document')" required :error="errors.documentNumber">
               <div class="flex gap-2">
-                <USelect v-model="state.documentType" :items="docTypes" class="w-20" />
-                <UInput v-model="state.documentNumber" class="flex-1" maxlength="9" inputmode="numeric" placeholder="12345678" />
+                <!-- Nested field: UFormField hands its id to every control inside, so the V/E select gets its own and
+                     the "Cédula de identidad" label points to the number only (#323). -->
+                <UFormField class="w-20 shrink-0">
+                  <USelect v-model="state.documentType" :items="docTypes" :aria-label="t('allyRequestForm.fields.documentType')" class="w-full" />
+                </UFormField>
+                <UInput v-model="state.documentNumber" name="ally-request-documentNumber" class="flex-1" maxlength="9" inputmode="numeric" autocomplete="off" placeholder="12345678" @beforeinput="onlyDigits" />
               </div>
             </UFormField>
-            <UFormField :label="t('allyRequestForm.fields.mobile')" required>
-              <UInput v-model="state.mobile" class="w-full" maxlength="30" autocomplete="tel" placeholder="0414-1234567" />
+            <UFormField :label="t('allyRequestForm.fields.mobile')" required :error="errors.mobile">
+              <UInput v-model="state.mobile" name="ally-request-mobile" type="tel" class="w-full" maxlength="30" autocomplete="tel" placeholder="0414-1234567" />
             </UFormField>
-            <UFormField :label="t('allyRequestForm.fields.email')" :help="t('allyRequestForm.fields.emailHelp')" required class="sm:col-span-2">
-              <UInput v-model="state.email" type="email" class="w-full" maxlength="254" autocomplete="email" />
+            <UFormField :label="t('allyRequestForm.fields.email')" :help="t('allyRequestForm.fields.emailHelp')" required :error="errors.email" class="sm:col-span-2">
+              <UInput v-model="state.email" name="ally-request-email" type="email" class="w-full" maxlength="254" autocomplete="email" />
             </UFormField>
-            <UFormField :label="t('registration.step1.password')" :help="t('registration.step1.passwordHelp')" class="sm:col-span-2">
-              <UInput v-model="state.password" type="password" class="w-full" maxlength="128" autocomplete="new-password" />
+            <UFormField :label="t('registration.step1.password')" :help="t('registration.step1.passwordHelp')" :error="errors.password" class="sm:col-span-2">
+              <UInput v-model="state.password" name="ally-request-password" type="password" class="w-full" maxlength="128" autocomplete="new-password" />
             </UFormField>
           </fieldset>
 
           <UCheckbox v-model="state.acceptedPortalTerms" :label="t('allyRequestForm.termsAccept')" />
           <p class="text-xs text-prohealth-500">{{ t('allyRequestForm.reviewNote') }}</p>
 
-          <UButton type="submit" block color="primary" :loading="sending" :disabled="!state.acceptedPortalTerms" icon="i-lucide-arrow-right" trailing>
+          <!-- Disabled until the terms are accepted: greyed out so it does not look clickable (#323). -->
+          <UButton type="submit" block color="primary" :loading="sending" :disabled="!state.acceptedPortalTerms" icon="i-lucide-arrow-right" trailing class="disabled:opacity-50 disabled:grayscale aria-disabled:opacity-50 aria-disabled:grayscale">
             {{ t('registration.step1.submit') }}
           </UButton>
         </form>

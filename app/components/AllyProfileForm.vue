@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { CatalogItem } from '~/types/catalogs'
 import type { MyAllyProfileDto, MyAllyProfileUpdateRequest } from '~/types/allies'
+import { isValidFoundedYear, isValidPhone, isValidWebsite } from '~/utils/contactValidation'
 
 // Own ally profile editor of the ally portal (hub ADR 0036):
 // PUT /v1/me/allies/{allyUuid}/profile, PATCH semantics (omitted = unchanged,
@@ -147,10 +148,20 @@ const dirty = computed(() => Object.keys(buildChanges()).length > 0)
 function invalid(): string | null {
   if (props.profile.nameEditable && !form.name.trim()) return t('allies.portal.profile.nameRequired')
   if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) return t('validation.emailInvalid')
+  // Phones and the website reach the public directory: free text ("hola", "mi sitio web") is rejected (#314, #318).
+  const phoneFields = isB2B.value ? (['phone', 'whatsapp'] as const) : (['phone', 'whatsapp', 'appointmentPhone'] as const)
+  for (const field of phoneFields) {
+    const raw = form[field].trim()
+    if (raw && !isValidPhone(raw)) return t('allies.portal.profile.badPhone', { field: t(`allies.form.fields.${field}`) })
+  }
+  if (form.website.trim() && !isValidWebsite(form.website)) return t('allies.portal.profile.badWebsite')
   if (isB2B.value) {
     for (const field of B2B_NUMBER_FIELDS) {
       const raw = form[field].trim()
       if (raw && !/^\d{1,4}$/.test(raw)) return t('allies.portal.profile.badNumber', { field: t(`allies.form.fields.${field}`) })
+    }
+    if (form.foundedYear.trim() && !isValidFoundedYear(form.foundedYear)) {
+      return t('allies.portal.profile.badFoundedYear', { year: new Date().getFullYear() })
     }
   }
   return null

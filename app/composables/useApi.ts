@@ -136,11 +136,12 @@ export const useApi = async <T = unknown>(
       })
     }
 
+    // No response (status 0): never show ofetch's technical text ("[GET] http://…: <no response> Failed to fetch").
     const apiError: ApiError = {
       status,
       problem,
       message: problemMessage(status, problem, t, formatTime)
-        ?? fetchError.message
+        ?? (status === 0 ? t('errors.network') : fetchError.message)
         ?? t('errors.network'),
     }
     throw apiError

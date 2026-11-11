@@ -10,6 +10,7 @@ const emit = defineEmits<{ done: [profile: MyAllyProfileDto | null, mode: StepEx
 
 const { t } = useI18n()
 const toast = useToast()
+const notifyApiError = useNotifyApiError()
 const myAllies = useMyAllies()
 
 const state = reactive({
@@ -63,8 +64,9 @@ async function finish(mode: StepExit) {
   try {
     emit('done', await myAllies.updateProfile(props.allyUuid, { cityUuid: state.cityUuid, address: state.address.trim() }), mode)
   }
-  catch {
-    // useApi toasted the reason.
+  catch (err) {
+    // useApi does not toast 400 / 404: say why the step was not saved.
+    notifyApiError(err)
   }
   finally {
     saving.value = false
