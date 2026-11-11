@@ -12,11 +12,15 @@ export const useNotifyApiError = () => {
   const { t } = useI18n()
 
   return (err: unknown) => {
-    const error = err as ApiError | undefined
-    const status = error?.status ?? 0
-    if (status !== 0 && status !== 400 && status !== 404) return
+    // Not a useApi error (a bug in the code, a thrown TypeError…): a generic message, never "check your internet".
+    if (!err || typeof err !== 'object' || typeof (err as ApiError).status !== 'number') {
+      toast.add({ title: t('errors.unexpected'), color: 'error', icon: 'i-lucide-circle-alert' })
+      return
+    }
+    const error = err as ApiError
+    if (error.status !== 0 && error.status !== 400 && error.status !== 404) return
     toast.add({
-      title: status === 0 ? t('errors.network') : (error?.message || t('errors.unexpected')),
+      title: error.status === 0 ? t('errors.network') : (error.message || t('errors.unexpected')),
       color: 'error',
       icon: 'i-lucide-circle-alert',
     })

@@ -61,7 +61,9 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 // The national ID only takes digits (#319): typed letters, dots and hyphens never get in (no value rewrite, so the
 // caret does not jump), and a pasted value or a draft saved before this filter existed is cleaned.
 function onlyDigits(event: InputEvent) {
-  const data = event.data
+  // A paste or drop carries its text in dataTransfer (event.data is null there). It must be handled here too:
+  // otherwise maxlength cuts "V-12.345.678" to 9 characters before cleaning and digits are lost.
+  const data = event.data ?? event.dataTransfer?.getData('text/plain') ?? null
   if (!data || !/\D/.test(data) || !event.inputType.startsWith('insert')) return
   // Keep only the digits of what is being typed or pasted, at the caret, and put the caret right after them.
   event.preventDefault()
@@ -85,6 +87,8 @@ const FIELD_ORDER: readonly FieldKey[] = ['name', 'firstName', 'lastName', 'docu
 // Errors under each field (#319) instead of a single toast, one at a time, that did not say where.
 const errors = reactive<Partial<Record<FieldKey, string>>>({})
 for (const key of FIELD_ORDER) watch(() => state[key], () => { delete errors[key] })
+// The business name is only required for a commercial ally: switching to professional drops its error.
+watch(segment, () => { delete errors.name })
 
 function validate(): Partial<Record<FieldKey, string>> {
   const found: Partial<Record<FieldKey, string>> = {}

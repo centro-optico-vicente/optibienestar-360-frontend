@@ -19,6 +19,16 @@ export function isValidWebsite(value: string): boolean {
   return /^https?:\/\/[^\s/?#]+\.[^\s/?#]+(?:[/?#]\S*)?$/i.test(value.trim())
 }
 
+/**
+ * Adds `https://` to an address typed without a scheme (`miempresa.com`, `www.miempresa.com`). Anything else — empty,
+ * already with a scheme, or free text like "mi sitio web" — is returned trimmed and left to `isValidWebsite`.
+ */
+export function withWebScheme(value: string): string {
+  const v = value.trim()
+  if (!v || /^[a-z][a-z\d+.-]*:\/\//i.test(v)) return v
+  return /^[^\s/?#]+\.[^\s/?#]+(?:[/?#]\S*)?$/.test(v) ? `https://${v}` : v
+}
+
 /** A foundation year: four digits, not before 1800 and not in the future. */
 export function isValidFoundedYear(value: string, now = new Date()): boolean {
   if (!/^\d{4}$/.test(value.trim())) return false
