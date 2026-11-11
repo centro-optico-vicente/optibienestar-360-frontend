@@ -35,7 +35,10 @@ useSeoMeta({ title: () => t('registration.wizard.seoTitle') })
 
 const loading = ref(true)
 const loadFailed = ref(false)
-const isAlly = computed(() => registration.isAlly.value)
+// The variant is fixed by the first progress load: a later reload (after "Enviar registro" the session is renewed)
+// may come back empty, and the page must not turn into the member wizard ("Completa tu afiliación", #309).
+const allyKind = ref<boolean | null>(null)
+const isAlly = computed(() => allyKind.value ?? registration.isAlly.value)
 const stepKeys = computed<readonly string[]>(() => isAlly.value ? ALLY_WIZARD_STEPS : MEMBER_WIZARD_STEPS)
 const current = ref(0)
 const currentKey = computed(() => stepKeys.value[current.value] ?? 'submit')
@@ -70,6 +73,7 @@ async function loadAll() {
   loadFailed.value = false
   try {
     await registration.load(true)
+    if (registration.progress.value) allyKind.value = registration.isAlly.value
     if (isAlly.value) {
       ally.value = (await myAllies.list())[0] ?? null
       if (ally.value) profile.value = await myAllies.getProfile(ally.value.uuid)
@@ -92,7 +96,9 @@ async function loadAll() {
 onMounted(loadAll)
 
 async function leaveForLater() {
-  toast.add({ title: t('registration.wizard.savedLater'), description: t('registration.wizard.savedLaterBody'), color: 'success', icon: 'i-lucide-check-circle' })
+  // The member is signed out ("sign in again…"); the ally stays in its portal, so it gets its own text.
+  const body = isAlly.value ? 'registration.wizard.savedLaterBodyAlly' : 'registration.wizard.savedLaterBody'
+  toast.add({ title: t('registration.wizard.savedLater'), description: t(body), color: 'success', icon: 'i-lucide-check-circle' })
   // A pending member has no other portal: back to the sign-in screen, where the link or password resumes it.
   if (isAlly.value) await router.push('/allies')
   else await logout()
@@ -185,7 +191,8 @@ function goHome() {
 
     <template v-else>
       <UAlert v-if="alreadySubmitted" color="info" variant="subtle" icon="i-lucide-hourglass" :title="t('registration.wizard.alreadySubmittedTitle')" :description="t('registration.wizard.alreadySubmittedBody')" />
-      <RegistrationProgressBar :current="current + 1" :total="stepKeys.length + 1" :label="stepLabel(currentKey)" />
+      <!-- Step 1 is the public form (/solicitar-alianza, /afiliarse): the wizard starts at step 2. -->
+      <RegistrationProgressBar :current="current + 2" :total="stepKeys.length + 1" :label="stepLabel(currentKey)" />
 
       <div class="bg-white rounded-2xl border border-prohealth-100 p-6 space-y-4">
         <h2 class="font-bold text-prohealth-900">{{ stepLabel(currentKey) }}</h2>

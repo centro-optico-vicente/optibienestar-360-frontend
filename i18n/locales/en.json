@@ -2010,6 +2010,7 @@
       "gallery": {
         "title": "My partner's images",
         "hint": "Logo and photos shown in the public directory. They are published immediately.",
+        "hintPending": "Logo and photos for your directory profile. They will be shown once your alliance is approved and published.",
         "offersTitle": "Images of my offers",
         "offersHint": "Add photos to each offer, in any review state. They are published immediately.",
         "offersEmpty": "You have no offers yet.",
@@ -2019,6 +2020,9 @@
       "registration": {
         "pendingTitle": "Your request is under review",
         "pendingBody": "Your request is under review. Once you sign the agreement and we approve it, you will be able to register your offers and appear in the directory.",
+        "draftTitle": "You have not submitted your registration yet",
+        "draftBody": "Our team does not receive your request until you press “Submit registration”. Meanwhile you will not appear in the directory.",
+        "draftAction": "Finish and submit",
         "rejectedTitle": "Your ally request was rejected",
         "rejectedNoReason": "Write to us if you want to know more or try again.",
         "reloginTitle": "Your alliance was approved!",
@@ -5899,6 +5903,7 @@
     "title": "Images",
     "count": "{n} / {max}",
     "hint": "JPG, PNG or WEBP up to {mb} MB, or an https URL. They are published immediately. Drag or use the arrows to reorder; the primary one is the cover.",
+    "hintDeferred": "JPG, PNG or WEBP up to {mb} MB, or an https URL. Drag or use the arrows to reorder; the primary one is the cover.",
     "limitReached": "You reached the maximum of {max} images.",
     "readonlyHint": "Read only: you do not have permission to change the images.",
     "noReadPermission": "You do not have permission to view the images.",
@@ -5918,6 +5923,7 @@
       "URL": "URL"
     },
     "uploadedToast": "Image uploaded and published",
+    "uploadedToastDeferred": "Image uploaded",
     "urlAddedToast": "Image added",
     "primaryToast": "Primary image updated",
     "captionSavedToast": "Alt text saved",
@@ -5925,7 +5931,9 @@
     "errors": {
       "notImage": "The file must be an image (JPG, PNG or WEBP)",
       "tooLarge": "The image exceeds {mb} MB",
-      "httpsOnly": "The URL must start with https://"
+      "httpsOnly": "The URL must start with https://",
+      "notAnImageUrl": "We could not open an image at that address. Use the direct link to the image (ending in .jpg, .png or .webp), not a page link.",
+      "checkingUrl": "Checking the image…"
     },
     "urlModal": {
       "title": "Add image by URL",
@@ -6471,6 +6479,7 @@
       "subtitle": "Every step is saved. You can leave and continue whenever you want.",
       "savedLater": "Progress saved",
       "savedLaterBody": "Sign in again with your national ID or email to continue where you left off.",
+      "savedLaterBodyAlly": "You can continue whenever you want from “Complete registration”. Remember to press “Submit registration” at the end so we can review it.",
       "loadFailed": "We could not load your registration.",
       "retry": "Retry",
       "submittedToast": "Registration submitted",
@@ -6499,6 +6508,7 @@
     "notice": {
       "title": "Finish your registration",
       "body": "Your registration is {percent}% done. Complete what is missing to finish.",
+      "bodyReady": "Your registration is complete, but you have not submitted it yet. Submit it so we can review it.",
       "later": "Remind me later",
       "now": "Complete now"
     },

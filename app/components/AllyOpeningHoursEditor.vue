@@ -16,6 +16,8 @@ const props = defineProps<{
   scope: 'admin' | 'portal'
   readonly?: boolean
 }>()
+/** The week was saved: whoever shows the profile completeness reloads it (#316). */
+const emit = defineEmits<{ saved: [] }>()
 
 interface Range { opensAt: string, closesAt: string }
 
@@ -120,6 +122,7 @@ async function save() {
     week.value = fromDtos(saved ?? [])
     dirty.value = false
     toast.add({ title: t('allies.openingHours.savedToast'), color: 'success', icon: 'i-lucide-check-circle' })
+    emit('saved')
   }
   catch {
     // useApi already shows the error toast

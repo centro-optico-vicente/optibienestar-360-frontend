@@ -39,7 +39,8 @@ export const useRegistrationProgress = () => {
 
   /** Whether the active role can have a registration (avoids a request for staff and advisors). */
   const applies = (): boolean => {
-    const role = useAuthStore().activeRole
+    // primaryRole falls back to the user's role when the token carries none (refreshed tokens, backend#411).
+    const role = useAuthStore().primaryRole
     return role != null && REGISTRATION_ROLES.includes(role)
   }
 
@@ -80,8 +81,10 @@ export const useRegistrationProgress = () => {
   const showCompletionPortal = computed(() => progress.value?.showCompletionPortal === true)
   const isAlly = computed(() => isAllyRegistration(progress.value?.kind))
   const percent = computed(() => Math.max(0, Math.min(100, Math.round(progress.value?.percent ?? 0))))
-  /** The notice asks to complete something: the portal is open and the person has not finished. */
-  const hasPendingWork = computed(() => showCompletionPortal.value && percent.value < 100)
+  /** Everything may be filled in, but "Enviar registro" was never pressed: the team has not received it (#313). */
+  const notSubmitted = computed(() => progress.value?.submitted === false)
+  /** The notice asks to complete something: the portal is open and the person has not finished or not sent it. */
+  const hasPendingWork = computed(() => showCompletionPortal.value && (percent.value < 100 || notSubmitted.value))
 
-  return { progress, loaded, dismissed, load, reset, dismissNotice, showCompletionPortal, isAlly, percent, hasPendingWork }
+  return { progress, loaded, dismissed, load, reset, dismissNotice, showCompletionPortal, isAlly, percent, notSubmitted, hasPendingWork }
 }

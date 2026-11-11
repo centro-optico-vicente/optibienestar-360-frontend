@@ -8,6 +8,9 @@ import { ROLES } from '~/types/auth'
 const ACCESS_KEY = 'op_access_token'
 const REFRESH_KEY = 'op_refresh_token'
 const USER_KEY = 'op_user'
+// Active role of the session, kept next to the access token: `/v1/auth/refresh` may reissue a token without the
+// `role_name` claim (backend#411), and a reload must not lose the role the session started with.
+const ROLE_KEY = 'op_active_role'
 
 /** Decodifica el payload del JWT. SOLO para UI — no verifica la firma. */
 function decodeJwt(token: string): JwtPayload | null {
@@ -45,6 +48,11 @@ function normalizeRole(name: string | null | undefined): UserRole | null {
 function activeRoleFromToken(token: string | null): UserRole | null {
   if (!token) return null
   return normalizeRole(decodeJwt(token)?.role_name)
+}
+
+/** The user's first assigned role: last resort when neither the token nor the session knows the active one. */
+function firstRoleOf(user: AuthUser | null): UserRole | null {
+  return normalizeRole(user?.roles?.[0]?.name)
 }
 
 /** Lee el claim `exp` (en ms) del accessToken; null si no se puede decodificar. */
@@ -117,6 +125,8 @@ export const useAuthStore = defineStore('auth', {
       this.user = rawUser ? (JSON.parse(rawUser) as AuthUser) : null
       this.permissions = permissionsFromToken(this.accessToken)
       this.activeRole = activeRoleFromToken(this.accessToken)
+        ?? normalizeRole(sessionStorage.getItem(ROLE_KEY))
+        ?? firstRoleOf(this.user)
 
       if (!this.accessToken && this.refreshToken) {
         const refreshed = await this.tryRefresh()
@@ -124,6 +134,11 @@ export const useAuthStore = defineStore('auth', {
         // en esta pestaña) — hay que reconstruirlo desde /v1/me.
         if (refreshed && !this.user) {
           await this.fetchUser()
+        }
+        // A new tab only has the refresh token: if the reissued token carries no role, use the user's.
+        if (refreshed && !this.activeRole) {
+          this.activeRole = firstRoleOf(this.user)
+          this.persist()
         }
       }
 
@@ -145,7 +160,8 @@ export const useAuthStore = defineStore('auth', {
       this.accessToken = accessToken
       this.refreshToken = refreshToken
       this.permissions = permissionsFromToken(accessToken)
-      this.activeRole = activeRoleFromToken(accessToken)
+      // A silent refresh never changes the active role: keep it when the reissued token omits it (backend#411).
+      this.activeRole = activeRoleFromToken(accessToken) ?? this.activeRole ?? firstRoleOf(this.user)
       this.persist()
       this.scheduleRefresh()
     },
@@ -165,7 +181,7 @@ export const useAuthStore = defineStore('auth', {
       this.accessToken = res.accessToken
       this.user = res.user
       this.permissions = permissionsFromToken(res.accessToken)
-      this.activeRole = activeRoleFromToken(res.accessToken)
+      this.activeRole = activeRoleFromToken(res.accessToken) ?? this.activeRole ?? firstRoleOf(res.user)
       this.persist()
       this.scheduleRefresh()
     },
@@ -175,6 +191,8 @@ export const useAuthStore = defineStore('auth', {
       if (this.accessToken) sessionStorage.setItem(ACCESS_KEY, this.accessToken)
       if (this.refreshToken) localStorage.setItem(REFRESH_KEY, this.refreshToken)
       if (this.user) sessionStorage.setItem(USER_KEY, JSON.stringify(this.user))
+      if (this.activeRole) sessionStorage.setItem(ROLE_KEY, this.activeRole)
+      else sessionStorage.removeItem(ROLE_KEY)
     },
 
     /**
@@ -268,6 +286,7 @@ export const useAuthStore = defineStore('auth', {
       if (import.meta.client) {
         sessionStorage.removeItem(ACCESS_KEY)
         sessionStorage.removeItem(USER_KEY)
+        sessionStorage.removeItem(ROLE_KEY)
         localStorage.removeItem(REFRESH_KEY)
       }
     },

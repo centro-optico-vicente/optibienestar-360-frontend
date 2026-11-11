@@ -6,6 +6,7 @@ import { canOperateAtCounter, type AllyProductDto, type DiscountType, type MyAll
 import { discountRequestFields } from '~/utils/offerDiscount'
 import type { SelectItem } from '~/types/options'
 import { ROLES } from '~/types/auth'
+import { COMPLETE_REGISTRATION_PATH } from '~/utils/roleHome'
 import { PRODUCT_TYPE_OPTIONS, type ProductType } from '~/types/products'
 
 // Partner panel: propose products and services (POST /v1/me/allies/products,
@@ -69,10 +70,16 @@ async function loadProfile() {
   }
 }
 
-// Allies created before the request flow have no status in old payloads: approved.
-const registrationStatus = computed(() =>
-  profile.value?.registrationStatus ?? selectedAlly.value?.registrationStatus ?? 'APPROVED')
+// Allies created before the request flow have no status in old payloads: approved. Unknown (null) while the
+// ally list is still loading, so nothing reacts to a status that was only assumed.
+const registrationStatus = computed(() => selectedAlly.value
+  ? (profile.value?.registrationStatus ?? selectedAlly.value.registrationStatus ?? 'APPROVED')
+  : null)
 const isPending = computed(() => registrationStatus.value === 'PENDING')
+// PENDING also covers a draft that was never sent (#313): until "Enviar registro" the team has not received it,
+// so the banner says so and points back to the wizard instead of "en revisión".
+const registration = useRegistrationProgress()
+const isDraft = computed(() => isPending.value && registration.notSubmitted.value)
 const isRejected = computed(() => registrationStatus.value === 'REJECTED')
 const isApproved = computed(() => registrationStatus.value === 'APPROVED')
 const rejectionReason = computed(() => profile.value?.rejectionReason ?? selectedAlly.value?.rejectionReason ?? null)
@@ -80,8 +87,10 @@ const hasApprovedOffers = computed(() =>
   profile.value?.hasApprovedOffers ?? selectedAlly.value?.hasApprovedOffers ?? true)
 const missing = computed(() => profile.value?.completeness?.missing ?? [])
 const completenessPercent = computed(() => Math.max(0, Math.min(100, Math.round(profile.value?.completeness?.percent ?? 0))))
-// Approved while the session still carries the pending role: new permissions need a new login.
-const needsRelogin = computed(() => isApproved.value && auth.activeRole === ROLES.ALLY_PENDING)
+// Approved while the session still carries the pending role: new permissions need a new login. Only once the
+// profile confirms the approval — refreshing on an assumed status renewed the session on every visit (#308).
+const needsRelogin = computed(() =>
+  profile.value?.registrationStatus === 'APPROVED' && auth.activeRole === ROLES.ALLY_PENDING)
 
 // Approved while the session still carries the pending role: refresh the tokens instead of asking
 // for a new login (hub ADR 0037 §5). The banner below stays only if the refresh did not change the role.
@@ -103,6 +112,20 @@ const canEditProfile = computed(() =>
 
 function onProfileSaved(saved: MyAllyProfileDto) {
   profile.value = saved
+}
+
+// The gallery (logo) and the opening hours save on their own: refresh only the completeness card (#316). Patching the
+// nested field keeps the profile object, so the profile form (reset on a new profile) keeps what is being typed.
+async function refreshCompleteness() {
+  const uuid = selectedAlly.value?.uuid
+  if (!uuid || !profile.value) return
+  try {
+    const fresh = await myAllies.getProfile(uuid)
+    if (profile.value && fresh.completeness) profile.value.completeness = fresh.completeness
+  }
+  catch {
+    // Keep the current completeness.
+  }
 }
 
 interface NextStep { key: string, done: boolean, anchor: string }
@@ -207,6 +230,7 @@ watch(productSearchTerm, (q) => {
 
 onMounted(async () => {
   loadCategories()
+  void registration.load()
   await loadMyAllies()
   // Offers are for approved allies only (ally_product.propose.not_approved otherwise).
   if ((selectedAlly.value?.registrationStatus ?? 'APPROVED') === 'APPROVED') searchProducts()
@@ -354,7 +378,16 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         class="w-full max-w-sm"
       />
       <UAlert
-        v-if="isPending"
+        v-if="isDraft"
+        color="warning"
+        variant="subtle"
+        icon="i-lucide-send"
+        :title="t('allies.portal.registration.draftTitle')"
+        :description="t('allies.portal.registration.draftBody')"
+        :actions="[{ label: t('allies.portal.registration.draftAction'), color: 'primary', icon: 'i-lucide-arrow-right', to: COMPLETE_REGISTRATION_PATH }]"
+      />
+      <UAlert
+        v-else-if="isPending"
         color="warning"
         variant="subtle"
         icon="i-lucide-hourglass"
@@ -430,10 +463,10 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     />
 
     <!-- Own gallery (hub ADR 0027): published immediately -->
-    <AllyGalleryCard v-if="selectedAlly" :ally-uuid="selectedAlly.uuid" :readonly="!canEditMedia" />
+    <AllyGalleryCard v-if="selectedAlly" :ally-uuid="selectedAlly.uuid" :readonly="!canEditMedia" :pending="!isApproved" @changed="refreshCompleteness" />
 
     <!-- Weekly opening hours (V214, hub ADR 0031 §7) -->
-    <AllyOpeningHoursCard v-if="selectedAlly" :ally-uuid="selectedAlly.uuid" :readonly="!canEditOpeningHours" />
+    <AllyOpeningHoursCard v-if="selectedAlly" :ally-uuid="selectedAlly.uuid" :readonly="!canEditOpeningHours" @saved="refreshCompleteness" />
 
     <!-- Professional's own licenses (hub ADR 0031 §5 / 0036): add or remove; staff verify -->
     <div v-if="selectedAlly && profile?.segment === 'B2P'" id="ally-licenses" class="scroll-mt-20">

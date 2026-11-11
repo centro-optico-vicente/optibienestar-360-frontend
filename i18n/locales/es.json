@@ -2010,6 +2010,7 @@
       "gallery": {
         "title": "Imágenes de mi aliado",
         "hint": "Logo y fotos que se muestran en el directorio público. Se publican de inmediato.",
+        "hintPending": "Logo y fotos para tu ficha del directorio. Se mostrarán cuando tu alianza esté aprobada y publicada.",
         "offersTitle": "Imágenes de mis ofertas",
         "offersHint": "Agrega fotos a cada oferta, en cualquier estado de revisión. Se publican de inmediato.",
         "offersEmpty": "Aún no tienes ofertas.",
@@ -2019,6 +2020,9 @@
       "registration": {
         "pendingTitle": "Tu solicitud está en revisión",
         "pendingBody": "Tu solicitud está en revisión. Cuando firmes el convenio y la aprobemos, podrás registrar tus ofertas y aparecer en el directorio.",
+        "draftTitle": "Aún no has enviado tu registro",
+        "draftBody": "Tu solicitud no le llega a nuestro equipo hasta que pulses «Enviar registro». Mientras tanto no aparecerás en el directorio.",
+        "draftAction": "Terminar y enviar",
         "rejectedTitle": "Tu solicitud de alianza fue rechazada",
         "rejectedNoReason": "Escríbenos si quieres saber más o volver a intentarlo.",
         "reloginTitle": "¡Tu alianza fue aprobada!",
@@ -5899,6 +5903,7 @@
     "title": "Imágenes",
     "count": "{n} / {max}",
     "hint": "JPG, PNG o WEBP de hasta {mb} MB, o una URL https. Se publican de inmediato. Arrastra o usa las flechas para ordenar; la principal es la portada.",
+    "hintDeferred": "JPG, PNG o WEBP de hasta {mb} MB, o una URL https. Arrastra o usa las flechas para ordenar; la principal es la portada.",
     "limitReached": "Alcanzaste el máximo de {max} imágenes.",
     "readonlyHint": "Solo lectura: no tienes permiso para modificar las imágenes.",
     "noReadPermission": "No tienes permiso para ver las imágenes.",
@@ -5918,6 +5923,7 @@
       "URL": "URL"
     },
     "uploadedToast": "Imagen subida y publicada",
+    "uploadedToastDeferred": "Imagen subida",
     "urlAddedToast": "Imagen agregada",
     "primaryToast": "Imagen principal actualizada",
     "captionSavedToast": "Texto alternativo guardado",
@@ -5925,7 +5931,9 @@
     "errors": {
       "notImage": "El archivo debe ser una imagen (JPG, PNG o WEBP)",
       "tooLarge": "La imagen supera los {mb} MB",
-      "httpsOnly": "La URL debe empezar con https://"
+      "httpsOnly": "La URL debe empezar con https://",
+      "notAnImageUrl": "No pudimos abrir una imagen en esa dirección. Usa el enlace directo a la imagen (termina en .jpg, .png o .webp), no el de una página.",
+      "checkingUrl": "Comprobando la imagen…"
     },
     "urlModal": {
       "title": "Agregar imagen por URL",
@@ -6471,6 +6479,7 @@
       "subtitle": "Cada paso se guarda. Puedes salir y seguir cuando quieras.",
       "savedLater": "Avance guardado",
       "savedLaterBody": "Entra de nuevo con tu cédula o correo para seguir donde quedaste.",
+      "savedLaterBodyAlly": "Puedes seguir cuando quieras desde «Completar registro». Recuerda pulsar «Enviar registro» al final para que lo revisemos.",
       "loadFailed": "No pudimos cargar tu registro.",
       "retry": "Reintentar",
       "submittedToast": "Registro enviado",
@@ -6499,6 +6508,7 @@
     "notice": {
       "title": "Termina tu registro",
       "body": "Tu registro está al {percent}%. Completa lo que falta para terminar.",
+      "bodyReady": "Tu registro está completo, pero todavía no lo has enviado. Envíalo para que lo revisemos.",
       "later": "Recordar luego",
       "now": "Completar ahora"
     },
