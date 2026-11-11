@@ -69,9 +69,11 @@ async function loadProfile() {
   }
 }
 
-// Allies created before the request flow have no status in old payloads: approved.
-const registrationStatus = computed(() =>
-  profile.value?.registrationStatus ?? selectedAlly.value?.registrationStatus ?? 'APPROVED')
+// Allies created before the request flow have no status in old payloads: approved. Unknown (null) while the
+// ally list is still loading, so nothing reacts to a status that was only assumed.
+const registrationStatus = computed(() => selectedAlly.value
+  ? (profile.value?.registrationStatus ?? selectedAlly.value.registrationStatus ?? 'APPROVED')
+  : null)
 const isPending = computed(() => registrationStatus.value === 'PENDING')
 const isRejected = computed(() => registrationStatus.value === 'REJECTED')
 const isApproved = computed(() => registrationStatus.value === 'APPROVED')
@@ -80,8 +82,10 @@ const hasApprovedOffers = computed(() =>
   profile.value?.hasApprovedOffers ?? selectedAlly.value?.hasApprovedOffers ?? true)
 const missing = computed(() => profile.value?.completeness?.missing ?? [])
 const completenessPercent = computed(() => Math.max(0, Math.min(100, Math.round(profile.value?.completeness?.percent ?? 0))))
-// Approved while the session still carries the pending role: new permissions need a new login.
-const needsRelogin = computed(() => isApproved.value && auth.activeRole === ROLES.ALLY_PENDING)
+// Approved while the session still carries the pending role: new permissions need a new login. Only once the
+// profile confirms the approval — refreshing on an assumed status renewed the session on every visit (#308).
+const needsRelogin = computed(() =>
+  profile.value?.registrationStatus === 'APPROVED' && auth.activeRole === ROLES.ALLY_PENDING)
 
 // Approved while the session still carries the pending role: refresh the tokens instead of asking
 // for a new login (hub ADR 0037 §5). The banner below stays only if the refresh did not change the role.
