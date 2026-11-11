@@ -34,7 +34,10 @@ useSeoMeta({ title: () => t('registration.wizard.seoTitle') })
 
 const loading = ref(true)
 const loadFailed = ref(false)
-const isAlly = computed(() => registration.isAlly.value)
+// The variant is fixed by the first progress load: a later reload (after "Enviar registro" the session is renewed)
+// may come back empty, and the page must not turn into the member wizard ("Completa tu afiliación", #309).
+const allyKind = ref<boolean | null>(null)
+const isAlly = computed(() => allyKind.value ?? registration.isAlly.value)
 const stepKeys = computed<readonly string[]>(() => isAlly.value ? ALLY_WIZARD_STEPS : MEMBER_WIZARD_STEPS)
 const current = ref(0)
 const currentKey = computed(() => stepKeys.value[current.value] ?? 'submit')
@@ -69,6 +72,7 @@ async function loadAll() {
   loadFailed.value = false
   try {
     await registration.load(true)
+    if (registration.progress.value) allyKind.value = registration.isAlly.value
     if (isAlly.value) {
       ally.value = (await myAllies.list())[0] ?? null
       if (ally.value) profile.value = await myAllies.getProfile(ally.value.uuid)

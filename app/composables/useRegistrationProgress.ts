@@ -39,7 +39,8 @@ export const useRegistrationProgress = () => {
 
   /** Whether the active role can have a registration (avoids a request for staff and advisors). */
   const applies = (): boolean => {
-    const role = useAuthStore().activeRole
+    // primaryRole falls back to the user's role when the token carries none (refreshed tokens, backend#411).
+    const role = useAuthStore().primaryRole
     return role != null && REGISTRATION_ROLES.includes(role)
   }
 
