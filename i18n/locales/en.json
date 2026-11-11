@@ -2019,6 +2019,9 @@
       "registration": {
         "pendingTitle": "Your request is under review",
         "pendingBody": "Your request is under review. Once you sign the agreement and we approve it, you will be able to register your offers and appear in the directory.",
+        "draftTitle": "You have not submitted your registration yet",
+        "draftBody": "Our team does not receive your request until you press “Submit registration”. Meanwhile you will not appear in the directory.",
+        "draftAction": "Finish and submit",
         "rejectedTitle": "Your ally request was rejected",
         "rejectedNoReason": "Write to us if you want to know more or try again.",
         "reloginTitle": "Your alliance was approved!",
@@ -6493,6 +6496,7 @@
     "notice": {
       "title": "Finish your registration",
       "body": "Your registration is {percent}% done. Complete what is missing to finish.",
+      "bodyReady": "Your registration is complete, but you have not submitted it yet. Submit it so we can review it.",
       "later": "Remind me later",
       "now": "Complete now"
     },

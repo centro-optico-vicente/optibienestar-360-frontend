@@ -2019,6 +2019,9 @@
       "registration": {
         "pendingTitle": "Tu solicitud está en revisión",
         "pendingBody": "Tu solicitud está en revisión. Cuando firmes el convenio y la aprobemos, podrás registrar tus ofertas y aparecer en el directorio.",
+        "draftTitle": "Aún no has enviado tu registro",
+        "draftBody": "Tu solicitud no le llega a nuestro equipo hasta que pulses «Enviar registro». Mientras tanto no aparecerás en el directorio.",
+        "draftAction": "Terminar y enviar",
         "rejectedTitle": "Tu solicitud de alianza fue rechazada",
         "rejectedNoReason": "Escríbenos si quieres saber más o volver a intentarlo.",
         "reloginTitle": "¡Tu alianza fue aprobada!",
@@ -6493,6 +6496,7 @@
     "notice": {
       "title": "Termina tu registro",
       "body": "Tu registro está al {percent}%. Completa lo que falta para terminar.",
+      "bodyReady": "Tu registro está completo, pero todavía no lo has enviado. Envíalo para que lo revisemos.",
       "later": "Recordar luego",
       "now": "Completar ahora"
     },

@@ -81,8 +81,10 @@ export const useRegistrationProgress = () => {
   const showCompletionPortal = computed(() => progress.value?.showCompletionPortal === true)
   const isAlly = computed(() => isAllyRegistration(progress.value?.kind))
   const percent = computed(() => Math.max(0, Math.min(100, Math.round(progress.value?.percent ?? 0))))
-  /** The notice asks to complete something: the portal is open and the person has not finished. */
-  const hasPendingWork = computed(() => showCompletionPortal.value && percent.value < 100)
+  /** Everything may be filled in, but "Enviar registro" was never pressed: the team has not received it (#313). */
+  const notSubmitted = computed(() => progress.value?.submitted === false)
+  /** The notice asks to complete something: the portal is open and the person has not finished or not sent it. */
+  const hasPendingWork = computed(() => showCompletionPortal.value && (percent.value < 100 || notSubmitted.value))
 
-  return { progress, loaded, dismissed, load, reset, dismissNotice, showCompletionPortal, isAlly, percent, hasPendingWork }
+  return { progress, loaded, dismissed, load, reset, dismissNotice, showCompletionPortal, isAlly, percent, notSubmitted, hasPendingWork }
 }
