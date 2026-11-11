@@ -69,20 +69,6 @@ async function loadProfile() {
   }
 }
 
-// The gallery (logo) and the opening hours save on their own: refresh only the completeness card (#316). Patching the
-// nested field keeps the profile object, so the profile form (reset on a new profile) keeps what is being typed.
-async function refreshCompleteness() {
-  const uuid = selectedAlly.value?.uuid
-  if (!uuid || !profile.value) return
-  try {
-    const fresh = await myAllies.getProfile(uuid)
-    if (profile.value && fresh.completeness) profile.value.completeness = fresh.completeness
-  }
-  catch {
-    // Keep the current completeness.
-  }
-}
-
 // Allies created before the request flow have no status in old payloads: approved.
 const registrationStatus = computed(() =>
   profile.value?.registrationStatus ?? selectedAlly.value?.registrationStatus ?? 'APPROVED')
@@ -117,6 +103,20 @@ const canEditProfile = computed(() =>
 
 function onProfileSaved(saved: MyAllyProfileDto) {
   profile.value = saved
+}
+
+// The gallery (logo) and the opening hours save on their own: refresh only the completeness card (#316). Patching the
+// nested field keeps the profile object, so the profile form (reset on a new profile) keeps what is being typed.
+async function refreshCompleteness() {
+  const uuid = selectedAlly.value?.uuid
+  if (!uuid || !profile.value) return
+  try {
+    const fresh = await myAllies.getProfile(uuid)
+    if (profile.value && fresh.completeness) profile.value.completeness = fresh.completeness
+  }
+  catch {
+    // Keep the current completeness.
+  }
 }
 
 interface NextStep { key: string, done: boolean, anchor: string }
