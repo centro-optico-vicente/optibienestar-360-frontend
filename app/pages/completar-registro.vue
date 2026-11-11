@@ -91,7 +91,9 @@ async function loadAll() {
 onMounted(loadAll)
 
 async function leaveForLater() {
-  toast.add({ title: t('registration.wizard.savedLater'), description: t('registration.wizard.savedLaterBody'), color: 'success', icon: 'i-lucide-check-circle' })
+  // The member is signed out ("sign in again…"); the ally stays in its portal, so it gets its own text.
+  const body = isAlly.value ? 'registration.wizard.savedLaterBodyAlly' : 'registration.wizard.savedLaterBody'
+  toast.add({ title: t('registration.wizard.savedLater'), description: t(body), color: 'success', icon: 'i-lucide-check-circle' })
   // A pending member has no other portal: back to the sign-in screen, where the link or password resumes it.
   if (isAlly.value) await router.push('/allies')
   else await logout()

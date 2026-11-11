@@ -6464,6 +6464,7 @@
       "subtitle": "Every step is saved. You can leave and continue whenever you want.",
       "savedLater": "Progress saved",
       "savedLaterBody": "Sign in again with your national ID or email to continue where you left off.",
+      "savedLaterBodyAlly": "You can continue whenever you want from “Complete registration”. Remember to press “Submit registration” at the end so we can review it.",
       "loadFailed": "We could not load your registration.",
       "retry": "Retry",
       "submittedToast": "Registration submitted",
