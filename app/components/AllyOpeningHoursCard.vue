@@ -1,6 +1,8 @@
 <script setup lang="ts">
 // Weekly opening hours card of the ally portal (V214, hub ADR 0031 §7), shared with the registration wizard.
 const props = defineProps<{ allyUuid: string, readonly?: boolean }>()
+/** Forwarded from the editor: the profile completeness ("Te falta: Horario") must be reloaded (#316). */
+const emit = defineEmits<{ saved: [] }>()
 
 const { t } = useI18n()
 </script>
@@ -11,6 +13,6 @@ const { t } = useI18n()
     <p class="text-xs text-prohealth-500">
       {{ props.readonly ? t('allies.openingHours.portalReadonlyHint') : t('allies.openingHours.portalHint') }}
     </p>
-    <AllyOpeningHoursEditor :key="allyUuid" :ally-uuid="allyUuid" scope="portal" :readonly="props.readonly" />
+    <AllyOpeningHoursEditor :key="allyUuid" :ally-uuid="allyUuid" scope="portal" :readonly="props.readonly" @saved="emit('saved')" />
   </div>
 </template>

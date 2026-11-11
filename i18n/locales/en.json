@@ -2010,6 +2010,7 @@
       "gallery": {
         "title": "My partner's images",
         "hint": "Logo and photos shown in the public directory. They are published immediately.",
+        "hintPending": "Logo and photos for your directory profile. They will be shown once your alliance is approved and published.",
         "offersTitle": "Images of my offers",
         "offersHint": "Add photos to each offer, in any review state. They are published immediately.",
         "offersEmpty": "You have no offers yet.",
@@ -5896,6 +5897,7 @@
     "title": "Images",
     "count": "{n} / {max}",
     "hint": "JPG, PNG or WEBP up to {mb} MB, or an https URL. They are published immediately. Drag or use the arrows to reorder; the primary one is the cover.",
+    "hintDeferred": "JPG, PNG or WEBP up to {mb} MB, or an https URL. Drag or use the arrows to reorder; the primary one is the cover.",
     "limitReached": "You reached the maximum of {max} images.",
     "readonlyHint": "Read only: you do not have permission to change the images.",
     "noReadPermission": "You do not have permission to view the images.",
@@ -5915,6 +5917,7 @@
       "URL": "URL"
     },
     "uploadedToast": "Image uploaded and published",
+    "uploadedToastDeferred": "Image uploaded",
     "urlAddedToast": "Image added",
     "primaryToast": "Primary image updated",
     "captionSavedToast": "Alt text saved",
@@ -5922,7 +5925,9 @@
     "errors": {
       "notImage": "The file must be an image (JPG, PNG or WEBP)",
       "tooLarge": "The image exceeds {mb} MB",
-      "httpsOnly": "The URL must start with https://"
+      "httpsOnly": "The URL must start with https://",
+      "notAnImageUrl": "We could not open an image at that address. Use the direct link to the image (ending in .jpg, .png or .webp), not a page link.",
+      "checkingUrl": "Checking the image…"
     },
     "urlModal": {
       "title": "Add image by URL",
