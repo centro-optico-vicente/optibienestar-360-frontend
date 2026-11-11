@@ -20,6 +20,7 @@ export const useNav = () => {
   const { showCompletionPortal } = useRegistrationProgress()
 
   const isLeafVisible = (leaf: NavLeaf): boolean => {
+    if (leaf.hiddenForRoles?.length && hasAnyRole(...leaf.hiddenForRoles)) return false
     if (leaf.registrationPortal) return showCompletionPortal.value
     if (leaf.roles?.length) return hasAnyRole(...leaf.roles)
     if (!leaf.requires) return true

@@ -26,9 +26,14 @@ export interface NavLeaf {
   exact?: boolean
   requires?: Permission | Permission[]
   roles?: UserRole[]
+  /** Hidden for these active roles even when nothing else gates the leaf (e.g. the panel for pending roles). */
+  hiddenForRoles?: UserRole[]
   /** Shown only while the registration progress says `showCompletionPortal` (hub ADR 0037 §3). */
   registrationPortal?: boolean
 }
+
+/** Roles of a registration still under review (hub ADR 0036 / 0037): no panel, no global menu search. */
+export const PENDING_ROLES: readonly UserRole[] = [ROLES.ALLY_PENDING, ROLES.MEMBER_PENDING]
 
 /** Un módulo/vertical: agrupa vistas bajo un encabezado colapsable. */
 export interface NavGroup {
@@ -75,7 +80,8 @@ const catalogChildren: NavLeaf[] = CATALOGS
   }))
 
 export const MAIN_NAV: NavEntry[] = [
-  { label: 'Panel', labelKey: 'nav.items.panel.label', to: '/dashboard', icon: 'i-lucide-layout-dashboard', exact: true },
+  // A pending ally or member has no panel yet (its home is the wizard or its own portal, utils/roleHome.ts).
+  { label: 'Panel', labelKey: 'nav.items.panel.label', to: '/dashboard', icon: 'i-lucide-layout-dashboard', exact: true, hiddenForRoles: [...PENDING_ROLES] },
   {
     key: 'afiliaciones',
     label: 'Afiliaciones',
