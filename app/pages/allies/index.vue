@@ -114,6 +114,20 @@ function onProfileSaved(saved: MyAllyProfileDto) {
   profile.value = saved
 }
 
+// The gallery (logo) and the opening hours save on their own: refresh only the completeness card (#316). Patching the
+// nested field keeps the profile object, so the profile form (reset on a new profile) keeps what is being typed.
+async function refreshCompleteness() {
+  const uuid = selectedAlly.value?.uuid
+  if (!uuid || !profile.value) return
+  try {
+    const fresh = await myAllies.getProfile(uuid)
+    if (profile.value && fresh.completeness) profile.value.completeness = fresh.completeness
+  }
+  catch {
+    // Keep the current completeness.
+  }
+}
+
 interface NextStep { key: string, done: boolean, anchor: string }
 const nextSteps = computed<NextStep[]>(() => [
   { key: 'offers', done: hasApprovedOffers.value, anchor: '#propose-offer' },
@@ -449,10 +463,10 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     />
 
     <!-- Own gallery (hub ADR 0027): published immediately -->
-    <AllyGalleryCard v-if="selectedAlly" :ally-uuid="selectedAlly.uuid" :readonly="!canEditMedia" />
+    <AllyGalleryCard v-if="selectedAlly" :ally-uuid="selectedAlly.uuid" :readonly="!canEditMedia" :pending="!isApproved" @changed="refreshCompleteness" />
 
     <!-- Weekly opening hours (V214, hub ADR 0031 §7) -->
-    <AllyOpeningHoursCard v-if="selectedAlly" :ally-uuid="selectedAlly.uuid" :readonly="!canEditOpeningHours" />
+    <AllyOpeningHoursCard v-if="selectedAlly" :ally-uuid="selectedAlly.uuid" :readonly="!canEditOpeningHours" @saved="refreshCompleteness" />
 
     <!-- Professional's own licenses (hub ADR 0031 §5 / 0036): add or remove; staff verify -->
     <div v-if="selectedAlly && profile?.segment === 'B2P'" id="ally-licenses" class="scroll-mt-20">
