@@ -10,6 +10,7 @@ const props = defineProps<{ allyUuid: string, profile: MyAllyProfileDto, progres
 const emit = defineEmits<{ submitted: [], back: [], later: [], goto: [step: string] }>()
 
 const { t } = useI18n()
+const notifyApiError = useNotifyApiError()
 const sending = ref(false)
 // The 422 of a submit with essentials missing: shown as a list with a jump to each step (hub ADR 0037).
 const missingKeys = ref<string[]>([])
@@ -23,8 +24,9 @@ async function send() {
     emit('submitted')
   }
   catch (error) {
-    // useApi toasted the reason; when it is "incomplete" the list says what and where.
+    // When it is "incomplete" the list says what and where; otherwise show the reason useApi left untold (400 / 404).
     missingKeys.value = missingFromError(error) ?? []
+    if (!missingKeys.value.length) notifyApiError(error)
   }
   finally {
     sending.value = false

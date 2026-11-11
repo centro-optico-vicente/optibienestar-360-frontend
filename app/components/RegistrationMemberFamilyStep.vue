@@ -9,6 +9,7 @@ const props = defineProps<{ request: MyAffiliationRequestDto, essential: boolean
 const emit = defineEmits<{ done: [request: MyAffiliationRequestDto | null, mode: StepExit] }>()
 
 const { t } = useI18n()
+const notifyApiError = useNotifyApiError()
 const toast = useToast()
 const api = useMemberRegistrationApi()
 
@@ -63,8 +64,9 @@ async function finish(mode: StepExit) {
     }))
     emit('done', await api.saveFamily(members), mode)
   }
-  catch {
-    // useApi toasted the reason (e.g. the plan's seat limit).
+  catch (err) {
+    // useApi toasts most reasons (e.g. the plan's seat limit); 400 / 404 are left to us.
+    notifyApiError(err)
   }
   finally {
     saving.value = false

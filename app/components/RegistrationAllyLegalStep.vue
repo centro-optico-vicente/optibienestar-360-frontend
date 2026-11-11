@@ -12,6 +12,7 @@ const emit = defineEmits<{ done: [profile: MyAllyProfileDto | null, mode: StepEx
 
 const { t } = useI18n()
 const toast = useToast()
+const notifyApiError = useNotifyApiError()
 const myAllies = useMyAllies()
 
 const isB2B = computed(() => props.profile.segment === 'B2B')
@@ -47,11 +48,15 @@ onMounted(async () => {
   professions.value = profs
 })
 
+// The RIF is typed as the placeholder suggests ("12345678-9") but the backend stores digits only (#310): hyphens and
+// spaces are dropped before validating and sending.
+const taxDigits = computed(() => state.taxDocumentNumber.replace(/[\s-]/g, ''))
+
 function invalid(): string | null {
   if (!state.allyTypeUuid) return t('registration.required')
   if (isB2B.value) {
     if (!state.taxDocumentNumber.trim()) return t('registration.required')
-    if (!/^[\d-]{5,15}$/.test(state.taxDocumentNumber.trim())) return t('allyRequestForm.badTaxDocument')
+    if (!/^[\d\s-]+$/.test(state.taxDocumentNumber.trim()) || !/^\d{5,15}$/.test(taxDigits.value)) return t('allyRequestForm.badTaxDocument')
   }
   else if (!state.professionUuid) {
     return t('registration.required')
@@ -70,11 +75,12 @@ async function finish(mode: StepExit) {
   saving.value = true
   try {
     emit('done', await myAllies.updateProfile(props.allyUuid, isB2B.value
-      ? { allyTypeUuid: state.allyTypeUuid, taxDocumentType: state.taxDocumentType, taxDocumentNumber: state.taxDocumentNumber.trim() }
+      ? { allyTypeUuid: state.allyTypeUuid, taxDocumentType: state.taxDocumentType, taxDocumentNumber: taxDigits.value }
       : { allyTypeUuid: state.allyTypeUuid, professionUuid: state.professionUuid }), mode)
   }
-  catch {
-    // useApi toasted the reason.
+  catch (err) {
+    // useApi does not toast 400 / 404 (e.g. a duplicated RIF): say why the step was not saved.
+    notifyApiError(err)
   }
   finally {
     saving.value = false

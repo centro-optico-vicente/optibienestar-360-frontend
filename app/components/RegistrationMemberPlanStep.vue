@@ -19,6 +19,7 @@ const props = defineProps<{
 const emit = defineEmits<{ done: [request: MyAffiliationRequestDto | null, mode: StepExit] }>()
 
 const { t } = useI18n()
+const notifyApiError = useNotifyApiError()
 const toast = useToast()
 const { formatCurrency } = useFormatters()
 const api = useMemberRegistrationApi()
@@ -133,8 +134,9 @@ async function finish(mode: StepExit) {
     const saved = await api.savePlan(planUuid.value, terms.value!.uuid)
     emit('done', saved, mode)
   }
-  catch {
-    // useApi toasted the reason; a newer contract published meanwhile is rejected: reload it.
+  catch (err) {
+    // useApi does not toast 400 / 404; a newer contract published meanwhile is rejected: reload it.
+    notifyApiError(err)
     await loadTerms()
   }
   finally {

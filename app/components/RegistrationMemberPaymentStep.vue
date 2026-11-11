@@ -11,6 +11,7 @@ const props = defineProps<{ request: MyAffiliationRequestDto, plans: PublicPlan[
 const emit = defineEmits<{ done: [request: MyAffiliationRequestDto | null, mode: StepExit] }>()
 
 const { t } = useI18n()
+const notifyApiError = useNotifyApiError()
 const toast = useToast()
 const { formatCurrency } = useFormatters()
 const api = useMemberRegistrationApi()
@@ -140,8 +141,9 @@ async function finish(mode: StepExit) {
   try {
     emit('done', await api.savePayment(buildPayment(), supportFile.value), mode)
   }
-  catch {
-    // useApi toasted the reason.
+  catch (err) {
+    // useApi does not toast 400 / 404: say why the step was not saved.
+    notifyApiError(err)
   }
   finally {
     saving.value = false
