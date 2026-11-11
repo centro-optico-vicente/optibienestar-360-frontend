@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { OTHER_NAV, isNavGroup } from '~/utils/nav'
+import { OTHER_NAV, PENDING_ROLES, isNavGroup } from '~/utils/nav'
 import { gatedTermType } from '~/types/terms'
 
 const auth = useAuthStore()
@@ -70,6 +70,9 @@ const navSearch = ref('')
 const searchOpen = ref(false)
 const searchWrapperRef = ref<HTMLElement | null>(null)
 const searchInputRef = ref<HTMLInputElement | null>(null)
+// A pending ally / member only has its wizard and its own portal: the menu search ("Buscar afiliados, planes…")
+// promises things it cannot reach.
+const showNavSearch = computed(() => !PENDING_ROLES.some(role => role === auth.primaryRole))
 
 const flatSearchableLeaves = computed<NavSearchResult[]>(() => {
   const leaves: NavSearchResult[] = []
@@ -228,7 +231,7 @@ defineShortcuts({
             square
             @click="isSidebarCollapsed = !isSidebarCollapsed"
           />
-          <div ref="searchWrapperRef" class="hidden md:block relative flex-1 max-w-md">
+          <div v-if="showNavSearch" ref="searchWrapperRef" class="hidden md:block relative flex-1 max-w-md">
             <div class="flex items-center gap-2 bg-prohealth-50 px-3 py-2 rounded-lg">
               <UIcon name="i-lucide-search" class="w-4 h-4 text-prohealth-400 shrink-0" />
               <input

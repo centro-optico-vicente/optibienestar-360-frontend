@@ -35,7 +35,11 @@ function completeNow() {
           <UIcon name="i-lucide-clipboard-list" class="w-8 h-8 text-prohealth-600" />
           <h2 class="text-lg font-extrabold text-prohealth-900">{{ t('registration.notice.title') }}</h2>
         </div>
-        <p class="text-sm text-prohealth-700">{{ t('registration.notice.body', { percent: registration.percent.value }) }}</p>
+        <p class="text-sm text-prohealth-700">
+          {{ registration.percent.value >= 100 && registration.notSubmitted.value
+            ? t('registration.notice.bodyReady')
+            : t('registration.notice.body', { percent: registration.percent.value }) }}
+        </p>
         <UProgress :model-value="registration.percent.value" :max="100" size="sm" />
         <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
           <UButton color="neutral" variant="outline" @click="registration.dismissNotice()">{{ t('registration.notice.later') }}</UButton>

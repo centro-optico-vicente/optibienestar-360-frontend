@@ -6,6 +6,7 @@ import { canOperateAtCounter, type AllyProductDto, type DiscountType, type MyAll
 import { discountRequestFields } from '~/utils/offerDiscount'
 import type { SelectItem } from '~/types/options'
 import { ROLES } from '~/types/auth'
+import { COMPLETE_REGISTRATION_PATH } from '~/utils/roleHome'
 import { PRODUCT_TYPE_OPTIONS, type ProductType } from '~/types/products'
 
 // Partner panel: propose products and services (POST /v1/me/allies/products,
@@ -73,6 +74,10 @@ async function loadProfile() {
 const registrationStatus = computed(() =>
   profile.value?.registrationStatus ?? selectedAlly.value?.registrationStatus ?? 'APPROVED')
 const isPending = computed(() => registrationStatus.value === 'PENDING')
+// PENDING also covers a draft that was never sent (#313): until "Enviar registro" the team has not received it,
+// so the banner says so and points back to the wizard instead of "en revisión".
+const registration = useRegistrationProgress()
+const isDraft = computed(() => isPending.value && registration.notSubmitted.value)
 const isRejected = computed(() => registrationStatus.value === 'REJECTED')
 const isApproved = computed(() => registrationStatus.value === 'APPROVED')
 const rejectionReason = computed(() => profile.value?.rejectionReason ?? selectedAlly.value?.rejectionReason ?? null)
@@ -207,6 +212,7 @@ watch(productSearchTerm, (q) => {
 
 onMounted(async () => {
   loadCategories()
+  void registration.load()
   await loadMyAllies()
   // Offers are for approved allies only (ally_product.propose.not_approved otherwise).
   if ((selectedAlly.value?.registrationStatus ?? 'APPROVED') === 'APPROVED') searchProducts()
@@ -354,7 +360,16 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         class="w-full max-w-sm"
       />
       <UAlert
-        v-if="isPending"
+        v-if="isDraft"
+        color="warning"
+        variant="subtle"
+        icon="i-lucide-send"
+        :title="t('allies.portal.registration.draftTitle')"
+        :description="t('allies.portal.registration.draftBody')"
+        :actions="[{ label: t('allies.portal.registration.draftAction'), color: 'primary', icon: 'i-lucide-arrow-right', to: COMPLETE_REGISTRATION_PATH }]"
+      />
+      <UAlert
+        v-else-if="isPending"
         color="warning"
         variant="subtle"
         icon="i-lucide-hourglass"
