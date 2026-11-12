@@ -60,6 +60,9 @@ async function loadCurrencyOptions() {
   catch { currencyItems.value = [] }
   finally { loadingCurrencies.value = false }
 }
+function onCurrenciesOpen(open: boolean) {
+  if (open && !currencyItems.value.length && !loadingCurrencies.value) void loadCurrencyOptions()
+}
 /** Resolves `flatAmountCurrencyUuid` to its ISO code for `CurrencyConverterDisplay`. */
 const flatAmountCurrencyCode = computed(() => currencyCodeByUuid.value[state.flatAmountCurrencyUuid] ?? null)
 /** Resolves `minAmountCurrencyUuid` (basis=AMOUNT threshold) to its ISO code. */
@@ -77,6 +80,9 @@ async function loadPromoterTypeOptions() {
   }
   catch { promoterTypeItems.value = [] }
   finally { loadingPromoterTypes.value = false }
+}
+function onPromoterTypesOpen(open: boolean) {
+  if (open && !promoterTypeItems.value.length && !loadingPromoterTypes.value) void loadPromoterTypeOptions()
 }
 async function searchCampaigns(q: string): Promise<SelectItem[]> {
   const res = await campaignsApi.list({ q, size: 20 })
@@ -269,11 +275,12 @@ function populateFrom(tier: CollectionCommissionTierDto | null) {
   editSnapshot.value = snapEditState()
 }
 
-watch(() => props.open, async (open) => {
+watch(() => props.open, (open) => {
   if (!open) return
-  if (currencyItems.value.length === 0) await loadCurrencyOptions()
-  if (promoterTypeItems.value.length === 0) await loadPromoterTypeOptions()
   populateFrom(props.tier ?? null)
+  // Lists load when their dropdown opens; only those with a preset value load now (label + ISO code).
+  if (state.flatAmountCurrencyUuid || state.minAmountCurrencyUuid) onCurrenciesOpen(true)
+  if (state.promoterTypeUuids.length) onPromoterTypesOpen(true)
 })
 
 async function reloadForm() {
@@ -430,6 +437,7 @@ async function restoreTier() {
             :loading="loadingCurrencies"
             :placeholder="t('common.select')"
             class="w-full"
+            @open="onCurrenciesOpen"
             @navigate="goToCurrency"
           />
         </UFormField>
@@ -526,6 +534,7 @@ async function restoreTier() {
             :loading="loadingCurrencies"
             :placeholder="t('common.select')"
             icon="i-lucide-coins"
+            @open="onCurrenciesOpen"
             @navigate="goToCurrency"
           />
         </UFormField>
@@ -542,6 +551,7 @@ async function restoreTier() {
             icon="i-lucide-tags"
             :placeholder="t('commissionRules.form.promoterTypesPlaceholder')"
             class="w-full"
+            @update:open="onPromoterTypesOpen"
           />
         </UFormField>
 

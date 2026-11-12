@@ -24,40 +24,27 @@ const canViewCurrency = computed(() => can('CURRENCY_VIEW_ALL'))
 const generatingPdf = ref(false)
 const generatingXlsx = ref(false)
 
-const loadingCatalogs = ref(false)
-
 const defaultCurrencyOptions = computed(() => [
   { label: t('common.currencies.usd'), value: 'USD' },
   { label: t('common.currencies.ves'), value: 'VES' },
   { label: t('common.currencies.eur'), value: 'EUR' },
 ])
-const dynamicCurrencyOptions = ref<Array<{ label: string; value: string }>>([])
-const currencyOptions = computed(() => (dynamicCurrencyOptions.value.length > 0 ? dynamicCurrencyOptions.value : defaultCurrencyOptions.value))
+// Fetched the first time the currency dropdown opens; until then (or if the user lacks
+// access to currencies/options or it fails) the defaults above keep the 'USD' label visible.
+const currencies = useLazyOptions(async () => {
+  const curRes = await useApi<Array<{ uuid?: string; code: string; label: string; active?: boolean }>>('/v1/admin/currencies/options')
+  return (curRes ?? [])
+    .filter(c => c.active !== false)
+    .map(c => ({
+      label: c.label || `${c.code}`,
+      value: c.code,
+    }))
+})
+const currencyOptions = computed(() => (currencies.items.value.length > 0 ? currencies.items.value : defaultCurrencyOptions.value))
 
 function currencyLink(code: string | null | undefined): string | null {
   return code ? `/dashboard/catalogs/currencies?code=${encodeURIComponent(code)}` : null
 }
-
-async function loadCatalogs() {
-  loadingCatalogs.value = true
-  try {
-    const curRes = await useApi<Array<{ uuid?: string; code: string; label: string; active?: boolean }>>('/v1/admin/currencies/options')
-    if (curRes && curRes.length > 0) {
-      dynamicCurrencyOptions.value = curRes
-        .filter(c => c.active !== false)
-        .map(c => ({
-          label: c.label || `${c.code}`,
-          value: c.code,
-        }))
-    }
-  } catch {
-    // Si no tiene permisos a currencies/options o falla, mantiene defaultCurrencyOptions
-  } finally {
-    loadingCatalogs.value = false
-  }
-}
-
-onMounted(loadCatalogs)
 
 const ALL_VALUE = 'ALL'
 
@@ -364,6 +351,8 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
               clear
               v-model="commFilters.targetCurrency"
               :items="currencyOptions"
+              :loading="currencies.loading.value"
+              @update:open="currencies.onOpen"
               label-key="label"
               value-key="value"
               icon="i-lucide-coins"

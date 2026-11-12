@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { PAYMENT_METHOD_OPTIONS, PAYMENT_STATUS_OPTIONS } from '~/types/payments'
-import type { PlanDto } from '~/types/plans'
 
 definePageMeta({
   layout: 'dashboard',
@@ -26,65 +25,48 @@ const canViewCurrency = computed(() => can('CURRENCY_VIEW_ALL'))
 const generatingPdf = ref(false)
 const generatingXlsx = ref(false)
 
-const plans = ref<PlanDto[]>([])
-const loadingCatalogs = ref(false)
+// Each parameter dropdown fetches its list the first time it is opened, not on mount.
+const plans = useLazyOptions(async () => {
+  const plansRes = await plansApi.list({ size: 100, sort: ['name,asc'] })
+  return (plansRes.content ?? []).map(pl => ({
+    label: `${pl.name} (${pl.code})`,
+    value: pl.uuid,
+  }))
+})
 
 const defaultCurrencyOptions = computed(() => [
   { label: t('common.currencies.usd'), value: 'USD' },
   { label: t('common.currencies.ves'), value: 'VES' },
   { label: t('common.currencies.eur'), value: 'EUR' },
 ])
-const dynamicCurrencyOptions = ref<Array<{ label: string; value: string }>>([])
-const currencyOptions = computed(() => (dynamicCurrencyOptions.value.length > 0 ? dynamicCurrencyOptions.value : defaultCurrencyOptions.value))
+// Until loaded (or if the user lacks access to currencies/options or it fails) the
+// defaults above keep the 'USD' label visible.
+const currencies = useLazyOptions(async () => {
+  const curRes = await useApi<Array<{ uuid?: string; code: string; label: string; active?: boolean }>>('/v1/admin/currencies/options')
+  return (curRes ?? [])
+    .filter(c => c.active !== false)
+    .map(c => ({
+      label: c.label || `${c.code}`,
+      value: c.code,
+    }))
+})
+const currencyOptions = computed(() => (currencies.items.value.length > 0 ? currencies.items.value : defaultCurrencyOptions.value))
 
 function currencyLink(code: string | null | undefined): string | null {
   return code ? `/dashboard/catalogs/currencies?code=${encodeURIComponent(code)}` : null
 }
 
-const dynamicPaymentMethods = ref<Array<{ label: string; value: string }>>([])
-
-async function loadCatalogs() {
-  loadingCatalogs.value = true
-  try {
-    const plansRes = await plansApi.list({ size: 100, sort: ['name,asc'] })
-    plans.value = plansRes.content ?? []
-  } catch (err: any) {
-    console.error('Failed to load plans:', err)
-  }
-
-  try {
-    const curRes = await useApi<Array<{ uuid?: string; code: string; label: string; active?: boolean }>>('/v1/admin/currencies/options')
-    if (curRes && curRes.length > 0) {
-      dynamicCurrencyOptions.value = curRes
-        .filter(c => c.active !== false)
-        .map(c => ({
-          label: c.label || `${c.code}`,
-          value: c.code,
-        }))
-    }
-  } catch {
-    // Si no tiene permisos a currencies/options o falla, mantiene defaultCurrencyOptions
-  }
-
-  try {
-    const pmRes = await useApi<Array<{ uuid?: string; code?: string; value?: string; label?: string; active?: boolean }>>('/v1/admin/payment-methods/options')
-    if (pmRes && pmRes.length > 0) {
-      dynamicPaymentMethods.value = pmRes
-        .filter(m => m.active !== false)
-        .map(m => ({
-          label: m.label || m.code || m.value || '',
-          value: m.code || m.value || '',
-        }))
-        .filter(m => m.value !== '')
-    }
-  } catch {
-    // Si no tiene permisos o falla, usa PAYMENT_METHOD_OPTIONS
-  } finally {
-    loadingCatalogs.value = false
-  }
-}
-
-onMounted(loadCatalogs)
+// Until loaded (or on failure) the method dropdown falls back to PAYMENT_METHOD_OPTIONS.
+const paymentMethods = useLazyOptions(async () => {
+  const pmRes = await useApi<Array<{ uuid?: string; code?: string; value?: string; label?: string; active?: boolean }>>('/v1/admin/payment-methods/options')
+  return (pmRes ?? [])
+    .filter(m => m.active !== false)
+    .map(m => ({
+      label: m.label || m.code || m.value || '',
+      value: m.code || m.value || '',
+    }))
+    .filter(m => m.value !== '')
+})
 
 const ALL_VALUE = 'ALL'
 
@@ -96,10 +78,7 @@ const directionOptions = computed(() => [
 
 const planOptions = computed(() => [
   { label: t('payments.movementsReport.planAll'), value: ALL_VALUE },
-  ...plans.value.map(pl => ({
-    label: `${pl.name} (${pl.code})`,
-    value: pl.uuid,
-  })),
+  ...plans.items.value,
 ])
 
 const movementFilters = reactive({
@@ -122,10 +101,10 @@ const movementStatusOptions = computed(() => [
 ])
 
 const movementMethodOptions = computed(() => {
-  if (dynamicPaymentMethods.value.length > 0) {
+  if (paymentMethods.items.value.length > 0) {
     return [
       { label: t('payments.movementsReport.methodAll'), value: ALL_VALUE },
-      ...dynamicPaymentMethods.value,
+      ...paymentMethods.items.value,
     ]
   }
   return [
@@ -392,6 +371,8 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             clear
             v-model="movementFilters.paymentMethod"
             :items="movementMethodOptions"
+            :loading="paymentMethods.loading.value"
+            @update:open="paymentMethods.onOpen"
             label-key="label"
             value-key="value"
             icon="i-lucide-wallet"
@@ -413,6 +394,8 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
               clear
               v-model="movementFilters.plan"
               :items="planOptions"
+              :loading="plans.loading.value"
+              @update:open="plans.onOpen"
               label-key="label"
               value-key="value"
               icon="i-lucide-package"
@@ -459,6 +442,8 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
               clear
               v-model="movementFilters.targetCurrency"
               :items="currencyOptions"
+              :loading="currencies.loading.value"
+              @update:open="currencies.onOpen"
               label-key="label"
               value-key="value"
               icon="i-lucide-coins"

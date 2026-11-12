@@ -58,21 +58,13 @@ const tabs = computed(() => [
 const activeTab = ref('tiers')
 const pageSizeItems = buildPageSizeItems(t)
 
-// ---- Promoter-type quick filter (shared catalog, loaded once for all 3 tabs) ----
-const promoterTypeItems = ref<SelectItem[]>([])
+// ---- Promoter-type quick filter (shared catalog for all 3 tabs, fetched the first time any of them opens) ----
 const promoterTypeOptions = useCatalogOptions('advisor-types')
-onMounted(async () => {
-  try {
-    const res = await promoterTypeOptions.options({ limit: 100 })
-    promoterTypeItems.value = res.map(o => ({ label: o.label, value: o.uuid }))
-  }
-  catch {
-    promoterTypeItems.value = []
-  }
-})
+const promoterTypes = useLazyOptions(async () =>
+  (await promoterTypeOptions.options({ limit: 100 })).map(o => ({ label: o.label, value: o.uuid })))
 const promoterTypeFilterItems = computed(() => [
   { label: t('commissionRules.filters.allPromoterTypes'), value: undefined },
-  ...promoterTypeItems.value,
+  ...promoterTypes.items.value,
 ])
 const planTypeFilterItems = computed(() => [
   { label: t('commissionRules.filters.allPlanTypes'), value: undefined },
@@ -83,21 +75,13 @@ const appliesToFilterItems = computed(() => [
   ...APPLIES_TO_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })),
 ])
 
-// ---- Rank quick filter (Supervisor/Coordinador catalog, tab 4 only) ----
-const rankItems = ref<SelectItem[]>([])
+// ---- Rank quick filter (Supervisor/Coordinador catalog, tab 4 only; fetched on first open) ----
 const hierarchyApi = usePromoterHierarchy()
-onMounted(async () => {
-  try {
-    const res = await hierarchyApi.rankOptions({ limit: 100 })
-    rankItems.value = res.map(o => ({ label: o.label, value: o.uuid }))
-  }
-  catch {
-    rankItems.value = []
-  }
-})
+const ranks = useLazyOptions(async () =>
+  (await hierarchyApi.rankOptions({ limit: 100 })).map(o => ({ label: o.label, value: o.uuid })))
 const rankFilterItems = computed(() => [
   { label: t('hierarchyOverrideTiers.filters.allRanks'), value: undefined },
-  ...rankItems.value,
+  ...ranks.items.value,
 ])
 const categoryFilterItems = computed(() => [
   { label: t('hierarchyOverrideTiers.filters.allCategories'), value: undefined },
@@ -952,6 +936,8 @@ onMounted(() => {
           clear
           v-model="tierPromoterTypeUuid"
           :items="promoterTypeFilterItems"
+          :loading="promoterTypes.loading.value"
+          @update:open="promoterTypes.onOpen"
           label-key="label"
           value-key="value"
           icon="i-lucide-users"
@@ -1115,6 +1101,8 @@ onMounted(() => {
           clear
           v-model="bonusPromoterTypeUuid"
           :items="promoterTypeFilterItems"
+          :loading="promoterTypes.loading.value"
+          @update:open="promoterTypes.onOpen"
           label-key="label"
           value-key="value"
           icon="i-lucide-users"
@@ -1269,6 +1257,8 @@ onMounted(() => {
           clear
           v-model="collectionPromoterTypeUuid"
           :items="promoterTypeFilterItems"
+          :loading="promoterTypes.loading.value"
+          @update:open="promoterTypes.onOpen"
           label-key="label"
           value-key="value"
           icon="i-lucide-users"
@@ -1403,6 +1393,8 @@ onMounted(() => {
           clear
           v-model="overrideRankUuid"
           :items="rankFilterItems"
+          :loading="ranks.loading.value"
+          @update:open="ranks.onOpen"
           label-key="label"
           value-key="value"
           icon="i-lucide-network"

@@ -96,59 +96,73 @@ const editLoading = ref(false)
 // so it can't use type="submit"; it triggers validation via this instead.
 const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 
-// ---- Lazy-loaded catalogs, fetched only when the modal opens ----
-const genderOptions = ref<SelectItem[]>([])
-const maritalStatusOptions = ref<SelectItem[]>([])
-const occupationOptions = ref<SelectItem[]>([])
-const stateOptions = ref<SelectItem[]>([])
-const cityOptions = ref<SelectItem[]>([])
-const { options: documentTypeOptions, load: loadDocumentTypes } = useDocumentTypes()
-const catalogsLoaded = ref(false)
-
-async function loadCatalogs() {
-  if (catalogsLoaded.value) return
-  const safeOptions = async (resource: string, limit = 200) => {
+// ---- Lazy catalogs: each list is fetched the first time its dropdown opens ----
+// "Nuevo" requests nothing up front. On edit the detail already brings the labels of
+// its gender, marital status, occupation, state and city, so those are seeded from it
+// instead of loading the full lists (the list replaces the seed once the dropdown opens).
+function withSeed<T extends { value: unknown }>(seed: T[], items: T[]): T[] {
+  const seen = new Set(items.map(i => i.value))
+  return [...seed.filter(i => !seen.has(i.value)), ...items]
+}
+function lazyCatalog(resource: string) {
+  const lazy = useLazyOptions(async () => {
     try {
-      return await useCatalogOptions(resource).options({ limit })
+      return toSelectItems(await useCatalogOptions(resource).options({ limit: 200 }))
     }
     catch {
       return []
     }
-  }
-  const [genders, marital, occupations, states] = await Promise.all([
-    safeOptions('genders'),
-    safeOptions('marital-statuses'),
-    safeOptions('occupations'),
-    safeOptions('states'),
-  ])
-  genderOptions.value = toSelectItems(genders)
-  maritalStatusOptions.value = toSelectItems(marital)
-  occupationOptions.value = toSelectItems(occupations)
-  stateOptions.value = toSelectItems(states)
-  await loadDocumentTypes()
-  catalogsLoaded.value = true
+  })
+  const seed = ref<SelectItem[]>([])
+  return { ...lazy, seed, items: computed(() => withSeed(seed.value, lazy.items.value)) }
+}
+const seedOf = (r?: { uuid: string, name: string } | null): SelectItem[] =>
+  r?.uuid ? [{ label: r.name, value: r.uuid }] : []
+
+const genders = lazyCatalog('genders')
+const maritalStatuses = lazyCatalog('marital-statuses')
+const occupations = lazyCatalog('occupations')
+const states = lazyCatalog('states')
+// useState-cached for the whole session: loaded on open, or on edit when a value is set.
+const { options: documentTypeOptions, load: loadDocumentTypes } = useDocumentTypes()
+function onDocumentTypesOpen(open: boolean) {
+  if (open) void loadDocumentTypes()
 }
 
-// Cities cascade based on the selected state. `pendingCityUuid` lets populateEditForm
-// preselect a city once its state's cities finish loading — otherwise the watcher's
-// reset below would wipe the value the instant `selectedStateUuid` is set.
+// Cities cascade based on the selected state, fetched when the city dropdown opens.
+// `pendingCity` lets populateEditForm preselect (and label) the member's city without
+// loading its state's cities — otherwise the watcher's reset below would wipe the
+// value the instant `selectedStateUuid` is set.
 const selectedStateUuid = ref<string | undefined>(undefined)
-const pendingCityUuid = ref<string | undefined>(undefined)
-watch(selectedStateUuid, async (stateUuid) => {
-  const keepCityUuid = pendingCityUuid.value
-  pendingCityUuid.value = undefined
-  cityOptions.value = []
-  state.cityUuid = undefined
-  if (!stateUuid) return
+const pendingCity = ref<SelectItem | undefined>(undefined)
+const cityOptions = ref<SelectItem[]>([])
+let citiesLoadedFor: string | undefined
+const citiesLoading = ref(false)
+watch(selectedStateUuid, (stateUuid) => {
+  const keepCity = pendingCity.value
+  pendingCity.value = undefined
+  citiesLoadedFor = undefined
+  cityOptions.value = keepCity && stateUuid ? [keepCity] : []
+  state.cityUuid = keepCity && stateUuid ? keepCity.value as string : undefined
+})
+async function onCitiesOpen(open: boolean) {
+  const stateUuid = selectedStateUuid.value
+  if (!open || !stateUuid || citiesLoadedFor === stateUuid) return
+  citiesLoading.value = true
   try {
-    const cities = await useCatalogOptions('cities').options({ parentUuid: stateUuid, limit: 200 })
-    cityOptions.value = toSelectItems(cities)
-    if (keepCityUuid) state.cityUuid = keepCityUuid
+    const cities = toSelectItems(await useCatalogOptions('cities').options({ parentUuid: stateUuid, limit: 200 }))
+    // The state may have changed while the request was in flight.
+    if (selectedStateUuid.value !== stateUuid) return
+    cityOptions.value = withSeed(cityOptions.value.filter(c => c.value === state.cityUuid), cities)
+    citiesLoadedFor = stateUuid
   }
   catch {
-    cityOptions.value = []
+    // useApi already notified; the next open retries.
   }
-})
+  finally {
+    citiesLoading.value = false
+  }
+}
 
 function statusLabel(s?: string | null): string {
   return s ? t(`members.status.${s}`, s) : t('common.empty')
@@ -279,7 +293,8 @@ function resetForm() {
   state.notes = ''
   isActive.value = true
   selectedStateUuid.value = undefined
-  pendingCityUuid.value = undefined
+  pendingCity.value = undefined
+  for (const c of [genders, maritalStatuses, occupations, states]) c.seed.value = []
 }
 
 // Snapshot of the last-loaded edit state, used to warn before a refresh
@@ -295,13 +310,29 @@ function populateEditForm(full: MemberDto) {
   state.lastName = full.lastName ?? ''
   state.secondLastName = full.secondLastName ?? ''
   state.documentType = full.documentType || undefined
+  if (full.documentType) void loadDocumentTypes()
   state.documentNumber = full.documentNumber ?? ''
   state.birthDate = full.birthDate ?? ''
+  genders.seed.value = seedOf(full.gender)
+  maritalStatuses.seed.value = seedOf(full.maritalStatus)
+  occupations.seed.value = seedOf(full.occupation)
   state.genderUuid = full.gender?.uuid
   state.maritalStatusUuid = full.maritalStatus?.uuid
   state.occupationUuid = full.occupation?.uuid
-  pendingCityUuid.value = full.city?.uuid
-  selectedStateUuid.value = full.city?.state_Uuid ?? undefined
+  // State and city labels come with the detail: seed them instead of loading the lists.
+  const city = full.city
+  const stateUuid = city?.state_Uuid ?? undefined
+  states.seed.value = stateUuid ? [{ label: city?.state_Display ?? stateUuid, value: stateUuid }] : []
+  const cityItem = city?.uuid ? { label: city.name, value: city.uuid } : undefined
+  if (selectedStateUuid.value === stateUuid) {
+    // Same state (a refresh): the watcher won't run, so seed the city here.
+    if (cityItem) cityOptions.value = withSeed([cityItem], cityOptions.value)
+  }
+  else {
+    pendingCity.value = cityItem
+    selectedStateUuid.value = stateUuid
+  }
+  state.cityUuid = cityItem?.value
   state.birthplace = full.birthplace ?? ''
   state.numberOfChildren = full.numberOfChildren != null ? String(full.numberOfChildren) : ''
   state.spouseName = full.spouseName ?? ''
@@ -322,26 +353,17 @@ function populateEditForm(full: MemberDto) {
 // Populate/reset the form whenever the modal opens (mode/member are set by the parent beforehand).
 watch(() => props.open, async (open) => {
   if (!open) return
-  const editMember = props.mode === 'edit' ? props.member : null
-  // Show the loader from the start of an edit: on the first open the catalogs
-  // load too, and rendering the empty form meanwhile looked like a reload.
-  if (editMember) editLoading.value = true
+  resetForm()
   resetEmergency()
-  if (!editMember) {
-    await loadCatalogs()
-    resetForm()
-    editSnapshot.value = ''
-    return
-  }
-  loadEmergency(editMember.uuid)
+  editSnapshot.value = ''
+  if (props.mode !== 'edit' || !props.member) return
+  loadEmergency(props.member.uuid)
+  // The list row (MemberListItemDto) only carries the full name, document, phone and
+  // enrollment date; the rest (name parts, birth, gender, catalogs…) only comes in the
+  // detail. Always (re-)fetch the full record so the form is populated reliably either way.
+  editLoading.value = true
   try {
-    // The list row (MemberListItemDto) only carries the full name, document, phone and
-    // enrollment date; the rest (name parts, birth, gender, catalogs…) only comes in the
-    // detail. Always (re-)fetch it, in parallel with the catalogs it relies on.
-    const [, full] = await Promise.all([loadCatalogs(), members.get(editMember.uuid)])
-    resetForm()
-    editSnapshot.value = ''
-    populateEditForm(full)
+    populateEditForm(await members.get(props.member.uuid))
   }
   catch {
     // The detail failed to load (useApi already notified); close the modal.
@@ -513,6 +535,7 @@ function requestDelete() {
               entity="document_type"
               :placeholder="t('common.select')"
               @navigate="goToCatalogRecord"
+              @open="onDocumentTypesOpen"
             />
           </UFormField>
           <UFormField :label="t('members.form.fields.documentNumber')" name="documentNumber" required>
@@ -533,19 +556,23 @@ function requestDelete() {
           <UFormField :label="t('members.form.fields.gender')" name="genderUuid">
             <CommonEntityReferenceSelect
               v-model="state.genderUuid"
-              :items="genderOptions"
+              :items="genders.items.value"
+              :loading="genders.loading.value"
               entity="gender"
               :placeholder="t('common.select')"
               @navigate="goToCatalogRecord"
+              @open="genders.onOpen"
             />
           </UFormField>
           <UFormField :label="t('members.form.fields.maritalStatus')" name="maritalStatusUuid">
             <CommonEntityReferenceSelect
               v-model="state.maritalStatusUuid"
-              :items="maritalStatusOptions"
+              :items="maritalStatuses.items.value"
+              :loading="maritalStatuses.loading.value"
               entity="marital_status"
               :placeholder="t('common.select')"
               @navigate="goToCatalogRecord"
+              @open="maritalStatuses.onOpen"
             />
           </UFormField>
         </div>
@@ -566,10 +593,12 @@ function requestDelete() {
         <UFormField :label="t('members.form.fields.occupation')" name="occupationUuid">
           <CommonEntityReferenceSelect
             v-model="state.occupationUuid"
-            :items="occupationOptions"
+            :items="occupations.items.value"
+            :loading="occupations.loading.value"
             entity="occupation"
             :placeholder="t('common.select')"
             @navigate="goToCatalogRecord"
+            @open="occupations.onOpen"
           />
         </UFormField>
 
@@ -603,20 +632,24 @@ function requestDelete() {
           <UFormField :label="t('members.form.fields.state')" name="stateUuid">
             <CommonEntityReferenceSelect
               v-model="selectedStateUuid"
-              :items="stateOptions"
+              :items="states.items.value"
+              :loading="states.loading.value"
               entity="state"
               :placeholder="t('common.select')"
               @navigate="goToCatalogRecord"
+              @open="states.onOpen"
             />
           </UFormField>
           <UFormField :label="t('members.form.fields.city')" name="cityUuid">
             <CommonEntityReferenceSelect
               v-model="state.cityUuid"
               :items="cityOptions"
+              :loading="citiesLoading"
               :disabled="!selectedStateUuid"
               entity="city"
               :placeholder="t('members.form.selectCityFirst')"
               @navigate="goToCatalogRecord"
+              @open="onCitiesOpen"
             />
           </UFormField>
         </div>

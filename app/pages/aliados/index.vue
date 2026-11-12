@@ -108,17 +108,11 @@ watch([search, city], () => {
 })
 
 // "Rubro": product categories by NAME (the API takes name or code, never ids here).
-const categoryOptions = ref<string[]>([])
-
-async function loadCategories() {
-  try {
-    const items = await usePublicCatalog('product-categories').list()
-    categoryOptions.value = items.filter(i => i.active !== false).map(i => i.name)
-  }
-  catch {
-    categoryOptions.value = []
-  }
-}
+// Fetched the first time the dropdown opens; a preset ?categoria= still shows (value == label).
+const categories = useLazyOptions(async () =>
+  (await usePublicCatalog('product-categories').list())
+    .filter(i => i.active !== false)
+    .map(i => ({ label: i.name, value: i.name })))
 
 function clearFilters() {
   search.value = ''
@@ -132,9 +126,7 @@ const hasFilters = computed(() =>
   Boolean(search.value.trim() || city.value.trim() || category.value || segment.value || availability.value),
 )
 
-onMounted(async () => {
-  await Promise.all([load(), loadCategories()])
-})
+onMounted(load)
 </script>
 
 <template>
@@ -201,10 +193,13 @@ onMounted(async () => {
           <USelectMenu
             clear
             v-model="category"
-            :items="categoryOptions"
+            :items="categories.items.value"
+            :loading="categories.loading.value"
+            value-key="value"
             :placeholder="t('allies.public.filters.category')"
             size="lg"
             class="flex-1"
+            @update:open="categories.onOpen"
           />
           <UTooltip v-if="hasFilters" :text="t('allies.public.filters.clear')">
             <UButton

@@ -52,8 +52,11 @@ const search = ref('')
 const includeInactive = ref(false)
 // ---- Master-table filters (advisor, gender, city, occupation, confirmation) ----
 const promotersApi = usePromoters()
-const genderOptions = ref<SelectItem[]>([])
-const occupationOptions = ref<SelectItem[]>([])
+// Gender/occupation lists are fetched the first time their dropdown opens.
+const genders = useLazyOptions(async () =>
+  (await useCatalogOptions('genders').options({ limit: 100 })).map(o => ({ label: o.label, value: o.uuid })))
+const occupations = useLazyOptions(async () =>
+  (await useCatalogOptions('occupations').options({ limit: 200 })).map(o => ({ label: o.label, value: o.uuid })))
 
 async function searchCities(q: string): Promise<SelectItem[]> {
   const res = await useCatalogOptions('cities').options({ ...(q ? { q } : {}), limit: 15 })
@@ -63,9 +66,9 @@ async function searchCities(q: string): Promise<SelectItem[]> {
 const filterFields = computed<ListFilterField[]>(() => [
   // The advisor list needs PROMOTER_VIEW_ALL; without it the filter is not offered.
   ...(canViewPromoter.value ? [{ key: 'promoterUuid', label: t('members.filters.advisor'), icon: 'i-lucide-users', search: promotersApi.searchOptions }] : []),
-  { key: 'genderUuid', label: t('members.filters.gender'), icon: 'i-lucide-venus-and-mars', items: genderOptions.value, class: 'w-40' },
+  { key: 'genderUuid', label: t('members.filters.gender'), icon: 'i-lucide-venus-and-mars', lazy: genders, class: 'w-40' },
   { key: 'cityUuid', label: t('members.filters.city'), icon: 'i-lucide-map-pin', search: searchCities },
-  { key: 'occupationUuid', label: t('members.filters.occupation'), icon: 'i-lucide-briefcase', items: occupationOptions.value },
+  { key: 'occupationUuid', label: t('members.filters.occupation'), icon: 'i-lucide-briefcase', lazy: occupations },
   {
     key: 'confirmed',
     label: t('members.filters.confirmation'),
@@ -80,20 +83,6 @@ const filterFields = computed<ListFilterField[]>(() => [
   { key: 'dateFrom', toKey: 'dateTo', label: t('members.filters.enrolledFrom'), toLabel: t('members.filters.enrolledTo'), type: 'dateRange' },
 ])
 const masterFilters = ref(emptyListFilters(filterFields.value))
-
-onMounted(async () => {
-  try {
-    const [genders, occupations] = await Promise.all([
-      useCatalogOptions('genders').options({ limit: 100 }),
-      useCatalogOptions('occupations').options({ limit: 200 }),
-    ])
-    genderOptions.value = genders.map(o => ({ label: o.label, value: o.uuid }))
-    occupationOptions.value = occupations.map(o => ({ label: o.label, value: o.uuid }))
-  }
-  catch {
-    // useApi already notified; the dropdowns just stay empty
-  }
-})
 
 // Empty by default: no `sort=` is sent until the user clicks a column, so
 // the backend's own default-sort fallback (entity_config → system_configs

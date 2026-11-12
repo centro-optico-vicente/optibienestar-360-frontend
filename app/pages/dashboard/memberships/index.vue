@@ -79,7 +79,9 @@ const filters = reactive({
   nextDueTo: '',
 })
 
-const planOptions = ref<SelectItem[]>([])
+// Fetched the first time the plan filter opens.
+const plans = useLazyOptions(async () =>
+  (await plansApi.options({ limit: 100 })).map(p => ({ label: p.label, value: p.uuid })))
 
 const planTypeOptions = computed(() => PLAN_TYPE_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
 const statusOptions = computed<SelectItem[]>(() => [
@@ -90,16 +92,6 @@ const statusOptions = computed<SelectItem[]>(() => [
   { label: t('memberships.page.statusFilter.EXPIRED'), value: 'EXPIRED' },
   { label: t('memberships.page.statusFilter.CANCELED'), value: 'CANCELED' },
 ])
-
-async function loadFilterOptions() {
-  try {
-    const plans = await plansApi.options({ limit: 100 })
-    planOptions.value = plans.map(p => ({ label: p.label, value: p.uuid }))
-  }
-  catch {
-    // useApi already notified; the filters just stay empty
-  }
-}
 
 // Free-text box (`q`: name, document, email, phone, contract). Debounced apart from the discrete filters above.
 const listSearch = ref('')
@@ -158,10 +150,7 @@ const debouncedListSearch = useTableFilterDebounce(() => {
 watch(listSearch, () => debouncedListSearch())
 watch(page, load)
 
-onMounted(() => {
-  load()
-  loadFilterOptions()
-})
+onMounted(load)
 
 function paymentStatusColor(s?: string | null): 'error' | 'warning' | 'success' | 'neutral' {
   if (s === 'OVERDUE') return 'error'
@@ -225,7 +214,7 @@ function paymentStatusColor(s?: string | null): 'error' | 'warning' | 'success' 
             <CommonEntityReferenceSelect v-model="filters.promoterUuid" :search="promotersApi.searchOptions" :placeholder="t('memberships.page.filters.any')" class="w-full" />
           </UFormField>
           <UFormField :label="t('memberships.page.filters.plan')">
-            <USelectMenu v-model="filters.planUuid" clear :items="planOptions" label-key="label" value-key="value" :placeholder="t('memberships.page.filters.any')" class="w-full" />
+            <USelectMenu v-model="filters.planUuid" clear :items="plans.items.value" :loading="plans.loading.value" label-key="label" value-key="value" :placeholder="t('memberships.page.filters.any')" class="w-full" @update:open="plans.onOpen" />
           </UFormField>
           <UFormField :label="t('memberships.page.filters.planType')">
             <USelectMenu v-model="filters.planType" clear :items="planTypeOptions" label-key="label" value-key="value" :placeholder="t('memberships.page.filters.any')" class="w-full" />

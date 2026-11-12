@@ -10,6 +10,7 @@
 2. **Toda lista desplegable de filtro es limpiable** (`clear` en `USelectMenu`; `CommonEntityReferenceSelect` ya lo es siempre) y la lógica de carga trata el valor vacío como «sin filtro». Excepción: campos obligatorios de un formulario.
 3. **Un solo retraso para escribir**: lo que se teclea se espera, así `asd` rápido genera **una** petición con `q=asd`. Lo discreto (elegir en un select, una fecha, una casilla) recarga **de inmediato**.
 4. **Las tablas con fechas operacionales o transaccionales tienen rango** `dateFrom` / `dateTo`. Las bitácoras (sesiones, jobs, cambios de datos, reportes) no.
+5. **Las listas desplegables se cargan al abrirse, no al montar.** Ni la vista ni una modal en modo «Nuevo» piden las opciones de sus selects de entrada: cada lista se pide la primera vez que se despliega (o se escribe en ella) con `useLazyOptions`. En edición solo se carga la lista de un campo que ya trae valor (para mostrar su etiqueta), o se siembra la etiqueta que trae el detalle.
 
 ## Debounce: una sola fuente
 
@@ -31,15 +32,16 @@ watch(search, debouncedSearch)                                  // texto: espera
 watch([statusFilter, dateFrom, dateTo, masterFilters], reloadFromFirstPage) // discreto: inmediato
 ```
 
-Mantener el guard `resetting` dentro del callback para que «Limpiar filtros» no dispare una petición extra. Un select con búsqueda en servidor no exige mínimo de caracteres: al abrirlo vacío lista los primeros resultados.
+Mantener el guard `resetting` dentro del callback para que «Limpiar filtros» no dispare una petición extra. Un select con búsqueda en servidor no exige mínimo de caracteres: al abrirlo vacío lista los primeros resultados (y no busca nada hasta abrirse, salvo que ya tenga un valor).
 
 ## Componentes y utilidades compartidas
 
 | Pieza | Para qué |
 |---|---|
-| `CommonEntityReferenceSelect` | Select de entidad con `:items` o con `:search` (servidor, ya con debounce), siempre limpiable |
+| `CommonEntityReferenceSelect` | Select de entidad con `:items` o con `:search` (servidor, ya con debounce, perezoso: busca al abrirse), siempre limpiable; emite `open` para cargar `:items` al desplegar |
+| `useLazyOptions(loader, initial?)` | Opciones de un select pedidas la primera vez que se abre: `items`, `loading`, `onOpen` (para `@update:open`), `ensureLoaded()` (para quien necesite la lista antes, p. ej. una edición), `reset()`. Una petición por instancia, sin duplicar las simultáneas |
 | `DateRangeFilter` | Dos fechas limpiables (`v-model:from` / `v-model:to`, o el evento `change`); si «desde» queda después de «hasta» las intercambia |
-| `ListFilterBar` + `utils/listFilters.ts` | Barra genérica de filtros: select, typeahead, fecha y `dateRange` |
+| `ListFilterBar` + `utils/listFilters.ts` | Barra genérica de filtros: select (`items` estáticos o `lazy` con `useLazyOptions`), typeahead, fecha y `dateRange` |
 | `PaymentMasterFilters` + `utils/paymentFilters.ts` | Afiliado, método, banco, motivo, asesor, moneda y fechas en las pantallas de pagos; `joinRsql` une cláusulas RSQL |
 | `AllyMasterFilters` + `utils/allyFilters.ts` | Tipo de aliado, profesión, estado y ciudad (la ciudad se habilita al elegir estado y se limpia si cambia) |
 | `utils/textSearch.ts` | Para listas pequeñas filtradas en el navegador: `foldText`, `matchesAny`, `matchesText` (sin tildes ni mayúsculas; un término vacío coincide con todo) |
@@ -55,6 +57,7 @@ Mantener el guard `resetting` dentro del callback para que «Limpiar filtros» n
 
 - [ ] Caja de búsqueda con `useTableFilterDebounce`, enviando `q`
 - [ ] Un dropdown por cada tabla maestra relevante, limpiable y con valores `String(...)`
+- [ ] Opciones de los dropdowns con `useLazyOptions` (nada en `onMounted`)
 - [ ] `DateRangeFilter` si la tabla muestra fechas operacionales
 - [ ] «Limpiar filtros» restablece todo y respeta el guard `resetting`
 - [ ] Sin `setTimeout` de búsqueda ni números de retraso fijos

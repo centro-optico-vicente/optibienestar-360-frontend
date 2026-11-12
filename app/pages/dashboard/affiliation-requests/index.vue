@@ -3,7 +3,6 @@ import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/util
 import type { SortDirection } from '~/composables/useTableSort'
 import type { ListFilterField } from '~/utils/listFilters'
 import { emptyListFilters, listFilterQuery } from '~/utils/listFilters'
-import type { SelectItem } from '~/types/options'
 import type { AffiliationRequestListItemDto, AffiliationRequestStatus } from '~/types/affiliationRequests'
 import { AFFILIATION_REQUEST_STATUSES, affiliationRequestStatusColor } from '~/types/affiliationRequests'
 
@@ -48,30 +47,19 @@ const resetting = ref(false)
 const plansApi = usePlans()
 const promotersApi = usePromoters()
 const methodsApi = useCatalog('/v1/admin/payment-methods')
-const planOptions = ref<SelectItem[]>([])
-const methodOptions = ref<SelectItem[]>([])
+// Plan/payment-method lists are fetched the first time their dropdown opens.
+const plans = useLazyOptions(async () =>
+  (await plansApi.options({ limit: 100 })).map(p => ({ label: p.label, value: p.uuid })))
+const methods = useLazyOptions(async () =>
+  (await methodsApi.listAll()).filter(m => m.active).map(m => ({ label: m.name, value: m.uuid })))
 
 const filterFields = computed<ListFilterField[]>(() => [
-  { key: 'planUuid', label: t('affiliationRequests.filters.plan'), icon: 'i-lucide-layers', items: planOptions.value },
+  { key: 'planUuid', label: t('affiliationRequests.filters.plan'), icon: 'i-lucide-layers', lazy: plans },
   { key: 'promoterUuid', label: t('affiliationRequests.filters.advisor'), icon: 'i-lucide-users', search: promotersApi.searchOptions },
-  { key: 'paymentMethodUuid', label: t('affiliationRequests.filters.paymentMethod'), icon: 'i-lucide-credit-card', items: methodOptions.value },
+  { key: 'paymentMethodUuid', label: t('affiliationRequests.filters.paymentMethod'), icon: 'i-lucide-credit-card', lazy: methods },
   { key: 'dateFrom', toKey: 'dateTo', label: t('affiliationRequests.filters.dateFrom'), toLabel: t('affiliationRequests.filters.dateTo'), type: 'dateRange' },
 ])
 const masterFilters = ref(emptyListFilters(filterFields.value))
-
-onMounted(async () => {
-  try {
-    const [plans, methods] = await Promise.all([
-      plansApi.options({ limit: 100 }),
-      methodsApi.listAll(),
-    ])
-    planOptions.value = plans.map(p => ({ label: p.label, value: p.uuid }))
-    methodOptions.value = methods.filter(m => m.active).map(m => ({ label: m.name, value: m.uuid }))
-  }
-  catch {
-    // useApi already notified; the dropdowns just stay empty
-  }
-})
 
 async function load() {
   loading.value = true

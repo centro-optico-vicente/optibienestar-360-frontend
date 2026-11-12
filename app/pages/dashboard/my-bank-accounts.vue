@@ -45,34 +45,21 @@ async function load() {
   }
 }
 
-const bankItems = ref<CatalogItem[]>([])
-const bankOptions = computed(() => bankItems.value.map(b => ({
-  label: bankOptionLabel(b),
-  value: b.uuid,
-})))
+// Fetched the first time the bank filter or the create/edit form opens, not when the page mounts.
+const banks = useLazyOptions(async () =>
+  ((await useApi<CatalogItem[]>('/v1/me/banks')) ?? []).filter(b => b.active).map(b => ({ label: bankOptionLabel(b), value: b.uuid })))
 // The self-service method list already carries the `mandatory*` flags the form needs.
-const methodItems = ref<CatalogItem[]>([])
+const methods = useLazyOptions(async () =>
+  ((await useApi<CatalogItem[]>('/v1/me/payment-methods')) ?? []).map(m => ({ label: m.name, value: m.uuid, item: m })))
+const methodItems = computed(() => methods.items.value.map(m => m.item))
 const methodOptions = computed(() => methodItems.value.filter(m => m.active).map(m => ({ label: m.name, value: m.uuid })))
 
-async function loadCatalogs() {
-  try {
-    const [banks, methods] = await Promise.all([
-      useApi<CatalogItem[]>('/v1/me/banks'),
-      useApi<CatalogItem[]>('/v1/me/payment-methods'),
-    ])
-    bankItems.value = (banks ?? []).filter(b => b.active)
-    methodItems.value = methods ?? []
-  }
-  catch {
-    bankItems.value = []
-    methodItems.value = []
-  }
+/** The form needs both lists (label of the edited bank, the method flags) before it opens. */
+function loadFormOptions() {
+  return Promise.all([banks.ensureLoaded(), methods.ensureLoaded()])
 }
 
-onMounted(() => {
-  load()
-  loadCatalogs()
-})
+onMounted(load)
 
 /** What identifies an account in the table: its number, or the phone / email for methods without one. */
 function accountKey(a: SavedOriginAccountDto): string {
@@ -134,7 +121,8 @@ function openCreate() {
   formOpen.value = true
 }
 
-function openEdit(account: SavedOriginAccountDto) {
+async function openEdit(account: SavedOriginAccountDto) {
+  await loadFormOptions()
   editing.value = account
   Object.assign(state, {
     paymentMethodUuids: account.paymentMethods.map(m => m.uuid),
@@ -233,12 +221,14 @@ async function confirmDelete() {
       <USelectMenu
         v-model="bankFilter"
         clear
-        :items="bankOptions"
+        :items="banks.items.value"
+        :loading="banks.loading.value"
         label-key="label"
         value-key="value"
         icon="i-lucide-landmark"
         :placeholder="t('myBankAccounts.filters.bank')"
         class="w-full sm:w-56"
+        @update:open="banks.onOpen"
       />
     </div>
 
@@ -298,13 +288,13 @@ async function confirmDelete() {
       <template #body>
         <div class="space-y-4">
           <UFormField :label="t('myBankAccounts.fields.paymentMethods')" required :error="showError('method')">
-            <USelectMenu v-model="state.paymentMethodUuids" multiple :items="methodOptions" label-key="label" value-key="value" class="w-full" :placeholder="t('common.select')" />
+            <USelectMenu v-model="state.paymentMethodUuids" multiple :items="methodOptions" :loading="methods.loading.value" label-key="label" value-key="value" class="w-full" :placeholder="t('common.select')" @update:open="methods.onOpen" />
           </UFormField>
 
           <template v-if="selectedMethods.length">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <UFormField v-if="required.bank" :label="t('myBankAccounts.fields.bank')" required :error="showError('bank')">
-                <USelectMenu v-model="state.bankUuid" :items="bankOptions" label-key="label" value-key="value" class="w-full" :placeholder="t('common.select')" />
+                <USelectMenu v-model="state.bankUuid" :items="banks.items.value" :loading="banks.loading.value" label-key="label" value-key="value" class="w-full" :placeholder="t('common.select')" @update:open="banks.onOpen" />
               </UFormField>
               <UFormField v-if="required.accountType" :label="t('myBankAccounts.fields.accountType')" required :error="showError('accountType')">
                 <USelectMenu v-model="state.accountType" :items="BANK_ACCOUNT_TYPE_OPTIONS" label-key="label" value-key="value" class="w-full" :placeholder="t('common.select')" />

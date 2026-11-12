@@ -48,21 +48,14 @@ const search = ref('')
 const sourceFilter = ref('')
 const dateFrom = ref('')
 const dateTo = ref('')
-const currencyOptions = ref<{ label: string, value: string }[]>([])
 const sourceOptions = computed(() => EXCHANGE_RATE_SOURCE_OPTIONS.map(o => ({ label: t(o.labelKey, o.label), value: String(o.value) })))
 
 // Currency master for the base/quote dropdowns (value = ISO code, the contract of `base`/`quote`).
-async function loadCurrencyOptions() {
-  try {
-    const currencies = await useCatalog('/v1/admin/currencies').listAll()
-    currencyOptions.value = currencies
-      .filter(c => c.active)
-      .map(c => ({ label: `${c.code} - ${c.name}`, value: c.code! }))
-  }
-  catch {
-    currencyOptions.value = []
-  }
-}
+// Shared by both selects and fetched the first time either one opens.
+const currencies = useLazyOptions(async () =>
+  (await useCatalog('/v1/admin/currencies').listAll())
+    .filter(c => c.active)
+    .map(c => ({ label: `${c.code} - ${c.name}`, value: c.code! })))
 // Empty by default: no `sort=` is sent until the user clicks a column, so the
 // backend's own default (validFrom DESC) applies.
 const sort = useTableSort([])
@@ -139,10 +132,7 @@ async function resetFilters() {
   load()
 }
 
-onMounted(() => {
-  loadCurrencyOptions()
-  load()
-})
+onMounted(load)
 
 // ---- Presentation helpers ----
 function sourceColor(sourceValue: ExchangeRateSource): 'neutral' | 'info' | 'success' {
@@ -301,22 +291,26 @@ async function confirmDelete() {
       <USelectMenu
         v-model="base"
         clear
-        :items="currencyOptions"
+        :items="currencies.items.value"
+        :loading="currencies.loading.value"
         label-key="label"
         value-key="value"
         :placeholder="t('exchangeRates.filters.basePlaceholder')"
         icon="i-lucide-coins"
         class="w-44"
+        @update:open="currencies.onOpen"
       />
       <USelectMenu
         v-model="quote"
         clear
-        :items="currencyOptions"
+        :items="currencies.items.value"
+        :loading="currencies.loading.value"
         label-key="label"
         value-key="value"
         :placeholder="t('exchangeRates.filters.quotePlaceholder')"
         icon="i-lucide-coins"
         class="w-44"
+        @update:open="currencies.onOpen"
       />
       <USelectMenu
         v-model="sourceFilter"

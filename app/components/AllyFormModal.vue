@@ -62,77 +62,80 @@ const editLoading = ref(false)
 // so it can't use type="submit"; it triggers validation via this instead.
 const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 
-// ---- Lazy-loaded catalogs, fetched only when the modal opens ----
+// ---- Lazy catalogs: each list is fetched the first time its dropdown opens ----
+// "Nuevo" requests nothing up front. On edit the detail already brings the labels of
+// its ally types, professions, state and city, so those are seeded from it instead
+// of loading the full lists (the list replaces the seed once the dropdown opens).
+// Seed items not present in the loaded list are listed first.
+function withSeed<T extends { value: unknown }>(seed: T[], items: T[]): T[] {
+  const seen = new Set(items.map(i => i.value))
+  return [...seed.filter(i => !seen.has(i.value)), ...items]
+}
+const toSeed = (refs?: { uuid: string, name: string }[] | null): SelectItem[] =>
+  (refs ?? []).map(r => ({ label: r.name, value: r.uuid }))
+
+const safeCatalogOptions = async (resource: string) => {
+  try {
+    return toSelectItems(await useCatalogOptions(resource).options({ limit: 200 }))
+  }
+  catch {
+    return []
+  }
+}
+
 // Ally types carry their segment (V179) so the select only offers the types of
 // the ally's segment (hub ADR 0031: an ally never mixes B2B and B2P types).
 interface AllyTypeItem extends SelectItem { segment?: AllySegment }
-const allyTypeItems = ref<AllyTypeItem[]>([])
+const allyTypes = useLazyOptions<AllyTypeItem>(async () => {
+  try {
+    const items = await useCatalog('/v1/admin/catalogs/ally-types').listAll()
+    return items.map(i => ({
+      label: i.active ? i.name : `${i.name} (${t('catalogs.status.inactive')})`,
+      value: i.uuid,
+      segment: i.segment,
+    }))
+  }
+  catch {
+    // Without the full catalog the segment is unknown: offer every type.
+    return safeCatalogOptions('ally-types')
+  }
+})
+const seededAllyTypes = ref<AllyTypeItem[]>([])
+// Seeded types have no segment, so they always pass the filter (they are the ally's own).
 const allyTypeOptions = computed<SelectItem[]>(() =>
-  allyTypeItems.value.filter(i => !i.segment || i.segment === state.segment))
+  withSeed(seededAllyTypes.value, allyTypes.items.value).filter(i => !i.segment || i.segment === state.segment))
 // B2P host clinic: another commercial (B2B) ally.
 const hostAllyOptions = ref<SelectItem[]>([])
 // In-flight/settled request for the B2B host list: opening a B2P ally calls
 // loadHostAllies twice in the same tick (populateEditForm + the segment watcher),
 // and both must share one request.
 let hostAlliesRequest: Promise<void> | null = null
-const professionOptions = ref<SelectItem[]>([])
-const stateOptions = ref<SelectItem[]>([])
-const cityOptions = ref<SelectItem[]>([])
+const professions = useLazyOptions(() => safeCatalogOptions('professions'))
+const seededProfessions = ref<SelectItem[]>([])
+const professionOptions = computed(() => withSeed(seededProfessions.value, professions.items.value))
+const states = useLazyOptions(() => safeCatalogOptions('states'))
+const seededState = ref<SelectItem[]>([])
+const stateOptions = computed(() => withSeed(seededState.value, states.items.value))
+// useState-cached for the whole session: loaded on open, or on edit when a value is set.
 const { options: documentTypeOptions, load: loadDocumentTypes } = useDocumentTypes()
-// "Asesor que lo captó": the promoter list needs PROMOTER_VIEW_ALL; without it
-// the select only shows the currently assigned promoter (from the detail).
+function onDocumentTypesOpen(open: boolean) {
+  if (open) void loadDocumentTypes()
+}
+// "Asesor que lo captó" (create only): the promoter list needs PROMOTER_VIEW_ALL;
+// without it the select stays empty.
 const canListPromoters = computed(() => can('PROMOTER_VIEW_ALL'))
-const promoterOptions = ref<SelectItem[]>([])
-const catalogsLoaded = ref(false)
-
-async function loadPromoterOptions() {
-  if (!canListPromoters.value) return
+const promoters = useLazyOptions(async () => {
+  if (!canListPromoters.value) return []
   try {
     const res = await promotersApi.list({ size: 200, sort: ['displayName,asc'] })
-    promoterOptions.value = (res.content ?? [])
+    return (res.content ?? [])
       .filter(p => !p.system)
       .map(p => ({ label: `${p.displayName} (${p.referralCode || t('common.noCode')})`, value: p.uuid }))
   }
   catch {
-    promoterOptions.value = []
+    return []
   }
-}
-
-async function loadCatalogs() {
-  if (catalogsLoaded.value) return
-  const safeOptions = async (resource: string, limit = 200) => {
-    try {
-      return await useCatalogOptions(resource).options({ limit })
-    }
-    catch {
-      return []
-    }
-  }
-  const loadAllyTypes = async (): Promise<AllyTypeItem[]> => {
-    try {
-      const items = await useCatalog('/v1/admin/catalogs/ally-types').listAll()
-      return items.map(i => ({
-        label: i.active ? i.name : `${i.name} (${t('catalogs.status.inactive')})`,
-        value: i.uuid,
-        segment: i.segment,
-      }))
-    }
-    catch {
-      // Without the full catalog the segment is unknown: offer every type.
-      return toSelectItems(await safeOptions('ally-types'))
-    }
-  }
-  const [types, professions, states] = await Promise.all([
-    loadAllyTypes(),
-    safeOptions('professions'),
-    safeOptions('states'),
-  ])
-  allyTypeItems.value = types
-  professionOptions.value = toSelectItems(professions)
-  stateOptions.value = toSelectItems(states)
-  await Promise.all([loadDocumentTypes(), loadPromoterOptions()])
-  catalogsLoaded.value = true
-}
+})
 
 function loadHostAllies(): Promise<void> {
   hostAlliesRequest ??= (async () => {
@@ -151,26 +154,40 @@ function loadHostAllies(): Promise<void> {
   return hostAlliesRequest
 }
 
-// Cities cascade based on the selected state. `pendingCityUuid` lets populateEditForm
-// preselect a city once its state's cities finish loading — otherwise the watcher's
-// reset below would wipe the value the instant `selectedStateUuid` is set.
+// Cities cascade based on the selected state, fetched when the city dropdown opens.
+// `pendingCity` lets populateEditForm preselect (and label) the ally's city without
+// loading its state's cities — otherwise the watcher's reset below would wipe the
+// value the instant `selectedStateUuid` is set.
 const selectedStateUuid = ref<string | undefined>(undefined)
-const pendingCityUuid = ref<string | undefined>(undefined)
-watch(selectedStateUuid, async (stateUuid) => {
-  const keepCityUuid = pendingCityUuid.value
-  pendingCityUuid.value = undefined
-  cityOptions.value = []
-  state.cityUuid = undefined
-  if (!stateUuid) return
+const pendingCity = ref<SelectItem | undefined>(undefined)
+const cityOptions = ref<SelectItem[]>([])
+let citiesLoadedFor: string | undefined
+const citiesLoading = ref(false)
+watch(selectedStateUuid, (stateUuid) => {
+  const keepCity = pendingCity.value
+  pendingCity.value = undefined
+  citiesLoadedFor = undefined
+  cityOptions.value = keepCity && stateUuid ? [keepCity] : []
+  state.cityUuid = keepCity && stateUuid ? keepCity.value as string : undefined
+})
+async function onCitiesOpen(open: boolean) {
+  const stateUuid = selectedStateUuid.value
+  if (!open || !stateUuid || citiesLoadedFor === stateUuid) return
+  citiesLoading.value = true
   try {
-    const cities = await useCatalogOptions('cities').options({ parentUuid: stateUuid, limit: 200 })
-    cityOptions.value = toSelectItems(cities)
-    if (keepCityUuid) state.cityUuid = keepCityUuid
+    const cities = toSelectItems(await useCatalogOptions('cities').options({ parentUuid: stateUuid, limit: 200 }))
+    // The state may have changed while the request was in flight.
+    if (selectedStateUuid.value !== stateUuid) return
+    cityOptions.value = withSeed(cityOptions.value.filter(c => c.value === state.cityUuid), cities)
+    citiesLoadedFor = stateUuid
   }
   catch {
-    cityOptions.value = []
+    // useApi already notified; the next open retries.
   }
-})
+  finally {
+    citiesLoading.value = false
+  }
+}
 
 const STATUS_OPTIONS = ['ACTIVE', 'INACTIVE', 'SUSPENDED']
 function statusLabel(status?: string | null): string {
@@ -288,11 +305,19 @@ const personDocumentTypeItems = [
   { label: 'E', value: 'E' },
 ]
 
+// Segment of the ally loaded for edit: its types already match it, so populating the
+// form needs no type list. null on create.
+const loadedSegment = ref<AllySegment | null>(null)
+
 // Switching segment drops the types of the other segment (the backend rejects a mix).
-watch(() => state.segment, (segment) => {
-  const allowed = new Set(allyTypeItems.value.filter(i => !i.segment || i.segment === segment).map(i => i.value))
-  state.allyTypeUuids = state.allyTypeUuids.filter(uuid => allowed.has(uuid))
+// Only then is the type list (which knows each type's segment) needed.
+watch(() => state.segment, async (segment) => {
   if (segment === 'B2P') loadHostAllies()
+  if (segment === loadedSegment.value || !state.allyTypeUuids.length) return
+  await allyTypes.ensureLoaded()
+  if (!allyTypes.loaded.value || state.segment !== segment) return
+  const allowed = new Set(allyTypes.items.value.filter(i => !i.segment || i.segment === segment).map(i => i.value))
+  state.allyTypeUuids = state.allyTypeUuids.filter(uuid => allowed.has(uuid))
 })
 
 // Read-only agreement file data shown on edit (assigned by the backend).
@@ -382,7 +407,11 @@ function resetForm() {
   registrationStatusDisplay.value = null
   fileNumber.value = null
   selectedStateUuid.value = undefined
-  pendingCityUuid.value = undefined
+  pendingCity.value = undefined
+  loadedSegment.value = null
+  seededAllyTypes.value = []
+  seededProfessions.value = []
+  seededState.value = []
 }
 
 // Serialized snapshot of the edit form right after it was populated from the
@@ -404,6 +433,7 @@ const discardConfirmOpen = ref(false)
 
 // Maps a full AllyDto (GET /{uuid}) into the reactive form state.
 function populateEditForm(full: AllyDto) {
+  loadedSegment.value = full.segment ?? 'B2B'
   state.segment = full.segment ?? 'B2B'
   if (state.segment === 'B2P') loadHostAllies()
   const holder = full.holder ?? null
@@ -439,7 +469,9 @@ function populateEditForm(full: AllyDto) {
   state.hasPos = full.hasPos ?? false
   state.representativePosition = full.representativePosition ?? ''
   state.name = full.name ?? ''
+  seededAllyTypes.value = toSeed(full.allyTypes)
   state.allyTypeUuids = (full.allyTypes ?? []).map(at => at.uuid)
+  if (full.taxDocumentType) void loadDocumentTypes()
   state.taxDocumentType = full.taxDocumentType || undefined
   state.taxDocumentNumber = full.taxDocumentNumber ?? ''
   state.email = full.email ?? ''
@@ -449,8 +481,20 @@ function populateEditForm(full: AllyDto) {
   state.instagram = full.instagram ?? ''
   state.facebook = full.facebook ?? ''
   state.address = full.address ?? ''
-  pendingCityUuid.value = full.city?.uuid
-  selectedStateUuid.value = full.city?.state_Uuid ?? undefined
+  // State and city labels come with the detail: seed them instead of loading the lists.
+  const city = full.city
+  const stateUuid = city?.state_Uuid ?? undefined
+  seededState.value = stateUuid ? [{ label: city?.state_Display ?? stateUuid, value: stateUuid }] : []
+  const cityItem = city?.uuid ? { label: city.name, value: city.uuid } : undefined
+  if (selectedStateUuid.value === stateUuid) {
+    // Same state (a refresh): the watcher won't run, so seed the city here.
+    if (cityItem) cityOptions.value = withSeed([cityItem], cityOptions.value)
+  }
+  else {
+    pendingCity.value = cityItem
+    selectedStateUuid.value = stateUuid
+  }
+  state.cityUuid = cityItem?.value
   state.googleMapsUrl = full.googleMapsUrl ?? ''
   state.referralCode = full.referralCode ?? ''
   state.description = full.description ?? ''
@@ -459,15 +503,10 @@ function populateEditForm(full: AllyDto) {
   registrationStatus.value = full.registrationStatus ?? null
   registrationStatusDisplay.value = full.registrationStatus_Display ?? null
   state.status = full.status || 'ACTIVE'
+  seededProfessions.value = toSeed(full.professions)
   state.professionUuids = (full.professions ?? []).map(s => s.uuid)
+  // The advisor select is create-only (it changes from the detail page), so no list here.
   state.capturedByPromoterUuid = full.capturedByPromoter_Uuid ?? undefined
-  // Keep the assigned promoter selectable even if the list is unavailable/filtered.
-  if (full.capturedByPromoter_Uuid && !promoterOptions.value.some(o => o.value === full.capturedByPromoter_Uuid)) {
-    promoterOptions.value = [
-      ...promoterOptions.value,
-      { label: full.capturedByPromoter_Display ?? full.capturedByPromoter_Uuid, value: full.capturedByPromoter_Uuid },
-    ]
-  }
   allyNumber.value = full.allyNumber ?? null
   fileNumber.value = full.fileNumber ?? null
   editSnapshot.value = snapshotEditState()
@@ -476,23 +515,14 @@ function populateEditForm(full: AllyDto) {
 // Populate/reset the form whenever the modal opens (mode/ally are set by the parent beforehand).
 watch(() => props.open, async (open) => {
   if (!open) return
-  const editAlly = props.mode === 'edit' ? props.ally : null
-  if (!editAlly) {
-    await loadCatalogs()
-    resetForm()
-    editSnapshot.value = ''
-    return
-  }
-  // Show the loader from the start of an edit: on the first open the catalogs
-  // load too, and rendering the empty form meanwhile looked like a reload.
+  resetForm()
+  editSnapshot.value = ''
+  if (props.mode !== 'edit' || !props.ally) return
+  // The list row (AllyListItemDto) omits several fields the form needs; always
+  // (re-)fetch the full detail so the form is populated reliably either way.
   editLoading.value = true
   try {
-    // The list row (AllyListItemDto) omits several fields the form needs; always
-    // (re-)fetch the full detail, in parallel with the catalogs it relies on.
-    const [, full] = await Promise.all([loadCatalogs(), allies.get(editAlly.uuid)])
-    resetForm()
-    editSnapshot.value = ''
-    populateEditForm(full)
+    populateEditForm(await allies.get(props.ally.uuid))
   }
   catch {
     // The detail failed to load (useApi already notified); close the modal.
@@ -724,12 +754,14 @@ function requestDelete() {
               clear
               v-model="state.allyTypeUuids"
               :items="allyTypeOptions"
+              :loading="allyTypes.loading.value"
               label-key="label"
               value-key="value"
               multiple
               icon="i-lucide-tags"
               :placeholder="t('allies.form.selectMultiple')"
               class="w-full"
+              @update:open="allyTypes.onOpen"
             />
           </UFormField>
         </div>
@@ -742,6 +774,7 @@ function requestDelete() {
               entity="document_type"
               :placeholder="t('common.select')"
               @navigate="goToCatalogRecord"
+              @open="onDocumentTypesOpen"
             />
           </UFormField>
           <UFormField :label="t('allies.form.fields.taxDocumentNumber')" name="taxDocumentNumber">
@@ -865,12 +898,14 @@ function requestDelete() {
           <USelectMenu
             v-model="state.capturedByPromoterUuid"
             clear
-            :items="promoterOptions"
+            :items="promoters.items.value"
+            :loading="promoters.loading.value"
             label-key="label"
             value-key="value"
             icon="i-lucide-user-check"
             :placeholder="t('common.select')"
             class="w-full"
+            @update:open="promoters.onOpen"
           />
         </UFormField>
 
@@ -904,19 +939,23 @@ function requestDelete() {
             <CommonEntityReferenceSelect
               v-model="selectedStateUuid"
               :items="stateOptions"
+              :loading="states.loading.value"
               entity="state"
               :placeholder="t('common.select')"
               @navigate="goToCatalogRecord"
+              @open="states.onOpen"
             />
           </UFormField>
           <UFormField :label="t('allies.form.fields.city')" name="cityUuid">
             <CommonEntityReferenceSelect
               v-model="state.cityUuid"
               :items="cityOptions"
+              :loading="citiesLoading"
               :disabled="!selectedStateUuid"
               entity="city"
               :placeholder="t('allies.form.selectCityFirst')"
               @navigate="goToCatalogRecord"
+              @open="onCitiesOpen"
             />
           </UFormField>
         </div>
@@ -942,12 +981,14 @@ function requestDelete() {
             clear
             v-model="state.professionUuids"
             :items="professionOptions"
+            :loading="professions.loading.value"
             label-key="label"
             value-key="value"
             multiple
             icon="i-lucide-list-checks"
             :placeholder="t('allies.form.selectMultiple')"
             class="w-full"
+            @update:open="professions.onOpen"
           />
         </UFormField>
 

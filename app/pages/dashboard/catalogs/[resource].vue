@@ -3,7 +3,7 @@ import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { CatalogDef, CatalogField, CatalogItem } from '~/types/catalogs'
 import type { RankTreeNode } from '~/components/PromoterRankTreeNode.vue'
-import { toSelectItems } from '~/types/options'
+import { toSelectItems, type SelectItem } from '~/types/options'
 import { getCatalogDef } from '~/utils/catalog-registry'
 import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
 import type { SortDirection } from '~/composables/useTableSort'
@@ -205,32 +205,45 @@ async function resetFilters() {
 }
 
 // ---- Parent catalog options (for FK selects and the filter) ----
-const parentOptions = ref<Record<string, { label: string, value: string }[]>>({})
-
-async function loadParents() {
-  if (!def.value) return
-  parentOptions.value = {}
+// One entry per parent field (`value` = field name). Fetched the first time the
+// parent filter or the create/edit form opens, not when the page mounts; reset
+// when the route switches to another catalog.
+const parents = useLazyOptions<{ value: string, items: SelectItem[] }>(async () => {
+  if (!def.value) return []
   // Self-referencing FKs (parentKey === this catalog's own key, e.g.
   // advisor-ranks.parentRankUuid) aren't under `/v1/admin/catalogs/*` like the
   // rest — `useCatalogOptions` would 404. Those are populated separately from
-  // `allRanks` (see the watcher below), excluding the record being edited.
+  // `allRanks` (see `parentOptions` below), excluding the record being edited.
   // Self-references of a regular catalog (professions.parentUuid, V213) DO live
   // under `/v1/admin/catalogs/*`, so they load like any other FK.
   const isRegularCatalog = def.value.basePath.startsWith('/v1/admin/catalogs/')
   const parentFields = def.value.fields.filter(f => f.type === 'parent' && f.parentKey
     && (f.parentKey !== def.value!.key || isRegularCatalog))
-  await Promise.all(parentFields.map(async (f) => {
+  return Promise.all(parentFields.map(async (f) => {
     const pdef = getCatalogDef(f.parentKey!)
-    if (!pdef) return
+    if (!pdef) return { value: f.name, items: [] }
     try {
-      const list = await useCatalogOptions(pdef.key).options({ limit: 200 })
-      parentOptions.value[f.name] = toSelectItems(list)
+      return { value: f.name, items: toSelectItems(await useCatalogOptions(pdef.key).options({ limit: 200 })) }
     }
     catch {
-      parentOptions.value[f.name] = []
+      return { value: f.name, items: [] }
     }
   }))
-}
+})
+
+// Options per FK field name. Only advisor-ranks feeds its self-FK from `allRanks`
+// (every other rank: a rank can't be its own parent); regular catalogs
+// (professions) load theirs through `parents`.
+const parentOptions = computed<Record<string, SelectItem[]>>(() => {
+  const out: Record<string, SelectItem[]> = Object.fromEntries(parents.items.value.map(p => [p.value, p.items]))
+  const selfField = def.value?.fields.find(f => f.type === 'parent' && f.parentKey === def.value!.key)
+  if (selfField && !def.value!.basePath.startsWith('/v1/admin/catalogs/')) {
+    out[selfField.name] = allRanks.value
+      .filter(r => r.uuid !== editingUuid.value)
+      .map(r => ({ label: r.name, value: r.uuid }))
+  }
+  return out
+})
 
 // Options for the parent filter select (reuses the FK field's options).
 const filterOptions = computed(() => {
@@ -321,7 +334,8 @@ async function init() {
   page.value = 1
   await nextTick()
   resetting.value = false
-  await Promise.all([loadParents(), load(), loadAllRanksIfNeeded()])
+  parents.reset()
+  await Promise.all([load(), loadAllRanksIfNeeded()])
 }
 
 onMounted(init)
@@ -370,26 +384,6 @@ const isActive = ref(true)
 // Same reasoning as `isActive`, but per-field — `checkbox`-type fields
 // (e.g. advisor-types.generatesHierarchyOverride) live here instead of `state`.
 const checkboxState = reactive<Record<string, boolean>>({})
-
-// Options for the self-referencing parentRankUuid FK select: every other
-// rank, excluding the one currently being edited (a rank can't be its own
-// parent). Re-synced whenever the full rank list or the record being edited
-// changes — this used to be a derived-only readonly display (closest rank by
-// `hierarchyLevel`); now `parentRankUuid` is a real, editable FK, so the form
-// field above (rendered generically for `type: 'parent'`) replaces it.
-watch([allRanks, editingUuid], () => {
-  if (!def.value) return
-  const selfField = def.value.fields.find(f => f.type === 'parent' && f.parentKey === def.value!.key)
-  // Only advisor-ranks feeds its self-FK from `allRanks`; regular catalogs
-  // (professions) load theirs in loadParents().
-  if (!selfField || def.value.basePath.startsWith('/v1/admin/catalogs/')) return
-  parentOptions.value = {
-    ...parentOptions.value,
-    [selfField.name]: allRanks.value
-      .filter(r => r.uuid !== editingUuid.value)
-      .map(r => ({ label: r.name, value: r.uuid })),
-  }
-}, { immediate: true })
 
 // Keep immutable fields visible while editing so the record's natural key and
 // parent relationship remain identifiable; buildBody() still excludes them
@@ -471,7 +465,9 @@ function populateEditForm(item: CatalogItem) {
   editSnapshot.value = snapEditState()
 }
 
-function openEdit(item: CatalogItem) {
+async function openEdit(item: CatalogItem) {
+  // FK selects must show the edited record's labels, not raw uuids.
+  await parents.ensureLoaded()
   mode.value = 'edit'
   populateEditForm(item)
   formOpen.value = true
@@ -642,10 +638,12 @@ async function confirmDelete() {
         v-if="def.listFilter"
         v-model="filterValue"
         :items="filterOptions"
+        :loading="parents.loading.value"
         label-key="label"
         value-key="value"
         :placeholder="$t('catalogs.filterByParent')"
         class="w-full max-w-xs"
+        @update:open="parents.onOpen"
       />
       <UCheckbox v-model="includeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
       <UButton
@@ -909,7 +907,9 @@ async function confirmDelete() {
                 value-key="value"
                 :placeholder="$t('catalogs.selectPlaceholder', { field: fieldLabel(f).toLowerCase() })"
                 :disabled="mode === 'edit' && f.onlyCreate"
+                :loading="parents.loading.value"
                 class="w-full"
+                @update:open="parents.onOpen"
               />
               <CommonEntityQuickLinkButton
                 :to="parentEditLink(state[f.name] || null)"

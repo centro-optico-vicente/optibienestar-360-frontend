@@ -29,17 +29,9 @@ const canViewLog = computed(() => can('ALLY_PRODUCT_VIEW_ALL'))
 const search = ref('')
 const allyFilter = ref<string | undefined>(undefined)
 const categoryFilter = ref<string | undefined>(undefined)
-const categoryOptions = ref<SelectItem[]>([])
-
-async function loadCategories() {
-  try {
-    const items = await usePublicCatalog('product-categories').list()
-    categoryOptions.value = items.map(i => ({ label: i.name, value: i.uuid }))
-  }
-  catch {
-    categoryOptions.value = []
-  }
-}
+// Fetched the first time the category filter opens.
+const categories = useLazyOptions(async () =>
+  (await usePublicCatalog('product-categories').list()).map(i => ({ label: i.name, value: i.uuid })))
 
 // Ally picker: server-side search (needs ALLY_VIEW_ALL; otherwise hidden).
 const allySearchTerm = ref('')
@@ -61,6 +53,11 @@ async function searchAllies(q?: string) {
   finally {
     allySearching.value = false
   }
+}
+
+// First open with nothing typed lists the first page; typing searches from then on.
+function onAllyOpen(open: boolean) {
+  if (open && !allyOptions.value.length && !allySearching.value && !allySearchTerm.value.trim()) void searchAllies()
 }
 
 const debouncedSearchAllies = useSearchDebounce((term: string) => searchAllies(term))
@@ -219,11 +216,7 @@ async function openLog(o: AllyProductDto) {
   }
 }
 
-onMounted(() => {
-  loadCategories()
-  searchAllies()
-  load()
-})
+onMounted(load)
 </script>
 
 <template>
@@ -260,15 +253,18 @@ onMounted(() => {
         :placeholder="t('allyProductReview.allAllies')"
         :search-input="{ placeholder: t('products.form.allySearchPlaceholder'), icon: 'i-lucide-search' }"
         class="w-60"
+        @update:open="onAllyOpen"
       />
       <USelectMenu
         clear
         v-model="categoryFilter"
-        :items="categoryOptions"
+        :items="categories.items.value"
+        :loading="categories.loading.value"
         label-key="label"
         value-key="value"
         :placeholder="t('products.filters.allCategories')"
         class="w-56"
+        @update:open="categories.onOpen"
       />
       <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('allyProducts.filters.dateFrom')" :to-label="t('allyProducts.filters.dateTo')" />
       <UButton v-if="hasFilters" variant="link" color="neutral" size="sm" icon="i-lucide-x" @click="clearFilters">

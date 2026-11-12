@@ -1,4 +1,8 @@
 import type { SelectItem } from '~/types/options'
+import type { useLazyOptions } from '~/composables/useLazyOptions'
+
+/** Options loaded the first time the select opens (see `useLazyOptions`). */
+export type LazySelectOptions = Pick<ReturnType<typeof useLazyOptions<SelectItem>>, 'items' | 'loading' | 'onOpen'>
 
 /** One dropdown/date control of <ListFilterBar>. `key` is also the query param name. */
 export interface ListFilterField {
@@ -7,6 +11,8 @@ export interface ListFilterField {
   icon?: string
   /** Static options (small master tables). */
   items?: SelectItem[]
+  /** Server-backed options fetched only when the dropdown opens (preferred over `items` for API lists). */
+  lazy?: LazySelectOptions
   /** Server-side typeahead (large masters such as members). */
   search?: (q: string) => Promise<SelectItem[]>
   /**

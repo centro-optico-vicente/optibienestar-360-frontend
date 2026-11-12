@@ -50,13 +50,15 @@ function patch(key: string, value: unknown) {
         v-else
         :model-value="model[f.key] || undefined"
         clear
-        :items="f.items ?? []"
+        :items="f.lazy ? f.lazy.items.value : (f.items ?? [])"
+        :loading="f.lazy?.loading.value"
         label-key="label"
         value-key="value"
         :icon="f.icon"
         :placeholder="f.label"
         :class="f.class ?? 'w-48'"
         @update:model-value="patch(f.key, $event)"
+        @update:open="f.lazy?.onOpen($event)"
       />
     </template>
   </div>
