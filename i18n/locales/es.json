@@ -154,6 +154,8 @@
       "submit": "Ingresar",
       "noAccount": "¿No tienes cuenta?",
       "contactPromoter": "Contacta a un asesor.",
+      "joinLink": "Afíliate aquí",
+      "orContactPromoter": "o contacta a un asesor.",
       "welcomeTitle": "¡Bienvenido!",
       "welcomeDescription": "Hola {name}",
       "errorFallback": "No fue posible iniciar sesión",

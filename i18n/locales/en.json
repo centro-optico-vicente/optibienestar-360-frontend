@@ -154,6 +154,8 @@
       "submit": "Sign in",
       "noAccount": "Don't have an account?",
       "contactPromoter": "Contact an advisor.",
+      "joinLink": "Join here",
+      "orContactPromoter": "or contact an advisor.",
       "welcomeTitle": "Welcome!",
       "welcomeDescription": "Hi {name}",
       "errorFallback": "Unable to sign in",

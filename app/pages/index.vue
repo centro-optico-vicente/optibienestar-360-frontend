@@ -23,7 +23,7 @@ const toast = useToast()
 
 // Onboarding policy (hub ADR 0037): a closed self-registration lands here with
 // `?registration=member|ally`, and the "become an ally" link hides while closed.
-const { load: loadOnboardingPolicy, allySelfRegistrationEnabled } = usePublicOnboardingPolicy()
+const { load: loadOnboardingPolicy, memberSelfRegistrationEnabled, allySelfRegistrationEnabled } = usePublicOnboardingPolicy()
 const closedRegistration = computed<'member' | 'ally' | null>(() => {
   const value = route.query.registration
   return value === 'member' || value === 'ally' ? value : null
@@ -229,7 +229,11 @@ const onSendLink = async (): Promise<void> => {
 
       <p class="text-center text-sm text-prohealth-700/70 pt-2">
         {{ $t('auth.login.noAccount') }}
-        <span class="text-prohealth-900 font-medium">{{ $t('auth.login.contactPromoter') }}</span>
+        <template v-if="memberSelfRegistrationEnabled">
+          <NuxtLink :to="publicPath('/afiliarse')" class="text-cyan-700 font-medium hover:underline">{{ $t('auth.login.joinLink') }}</NuxtLink>
+          {{ $t('auth.login.orContactPromoter') }}
+        </template>
+        <span v-else class="text-prohealth-900 font-medium">{{ $t('auth.login.contactPromoter') }}</span>
       </p>
       <p v-if="allySelfRegistrationEnabled" class="text-center text-sm text-prohealth-700/70">
         {{ $t('auth.login.becomeAllyPrompt') }}
