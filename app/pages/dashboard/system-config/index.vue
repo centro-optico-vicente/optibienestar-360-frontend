@@ -82,14 +82,9 @@ const schema = computed(() =>
       .number()
       .int()
       .positive(t('validation.positive')),
-    pdfMaxConcurrentRenders: z
-      .number()
-      .int()
-      .positive(t('validation.positive')),
-    pdfRenderWaitSeconds: z
-      .number()
-      .int()
-      .min(0),
+    // 0 or -1 = no limit (backend V238).
+    pdfMaxConcurrentRenders: z.number().int().min(-1),
+    pdfRenderWaitSeconds: z.number().int().min(-1),
     // Loosely typed on purpose (not z.enum(COMMON_SORT_FIELDS)) — the
     // USelectMenu below already constrains input to that whitelist; a
     // stricter literal-union type here just fights ConfigSortOrder's plain
@@ -395,7 +390,7 @@ onMounted(load)
             >
               <UInputNumber
                 v-model="state.pdfMaxConcurrentRenders"
-                :min="1"
+                :min="-1"
                 class="w-full sm:w-40"
                 :disabled="isSubmitting || !canUpdateAudit"
               />
@@ -408,7 +403,7 @@ onMounted(load)
             >
               <UInputNumber
                 v-model="state.pdfRenderWaitSeconds"
-                :min="0"
+                :min="-1"
                 class="w-full sm:w-40"
                 :disabled="isSubmitting || !canUpdateAudit"
               />
