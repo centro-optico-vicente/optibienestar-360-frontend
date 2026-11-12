@@ -275,7 +275,7 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
     v-model:open="isOpen"
     :title="relaunchOf ? t('campaigns.detail.relaunch') : (mode === 'create' ? t('campaigns.form.createTitle') : t('campaigns.form.editTitle'))"
     :description="relaunchOf ? t('campaigns.form.relaunchDescription') : (mode === 'create' ? t('campaigns.form.createDescription') : t('campaigns.form.editDescription'))"
-    :ui="{ content: 'max-w-2xl' }"
+    :ui="MODAL_MEDIUM_UI"
   >
     <template #body>
       <UForm ref="formRef" :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">

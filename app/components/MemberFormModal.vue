@@ -475,7 +475,7 @@ function requestDelete() {
     v-model:open="isOpen"
     :title="mode === 'create' ? t('members.form.createTitle') : t('members.form.editTitle')"
     :description="mode === 'create' ? t('members.form.createDescription') : t('members.form.editDescription')"
-    :ui="{ content: 'max-w-3xl' }"
+    :ui="MODAL_WIDE_UI"
   >
     <template #body>
       <div v-if="editLoading" class="py-12 flex flex-col items-center justify-center gap-2 text-prohealth-500">
@@ -490,7 +490,7 @@ function requestDelete() {
         class="space-y-4"
         @submit="onSubmit"
       >
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <UFormField :label="t('members.form.fields.firstName')" name="firstName" required>
             <UInput v-model="state.firstName" class="w-full" />
           </UFormField>
@@ -505,7 +505,7 @@ function requestDelete() {
           </UFormField>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <UFormField :label="t('members.form.fields.documentType')" name="documentType" required>
             <CommonEntityReferenceSelect
               v-model="state.documentType"
@@ -520,7 +520,7 @@ function requestDelete() {
           </UFormField>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <UFormField :label="t('members.form.fields.birthDate')" name="birthDate" required>
             <UInput v-model="state.birthDate" type="date" class="w-full" />
           </UFormField>
@@ -529,7 +529,7 @@ function requestDelete() {
           </UFormField>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <UFormField :label="t('members.form.fields.gender')" name="genderUuid">
             <CommonEntityReferenceSelect
               v-model="state.genderUuid"
@@ -550,7 +550,7 @@ function requestDelete() {
           </UFormField>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <UFormField :label="t('members.form.fields.birthplace')" name="birthplace">
             <UInput v-model="state.birthplace" class="w-full" />
           </UFormField>
@@ -573,7 +573,7 @@ function requestDelete() {
           />
         </UFormField>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <UFormField :label="t('members.form.fields.employerName')" name="employerName">
             <UInput v-model="state.employerName" class="w-full" />
           </UFormField>
@@ -586,7 +586,7 @@ function requestDelete() {
           <UInput v-model="state.employerAddress" class="w-full" />
         </UFormField>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <UFormField :label="t('members.form.fields.phone')" name="phone">
             <UInput v-model="state.phone" class="w-full" />
           </UFormField>
@@ -599,7 +599,7 @@ function requestDelete() {
           <UInput v-model="state.email" type="email" class="w-full" />
         </UFormField>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <UFormField :label="t('members.form.fields.state')" name="stateUuid">
             <CommonEntityReferenceSelect
               v-model="selectedStateUuid"
@@ -625,7 +625,7 @@ function requestDelete() {
           <UInput v-model="state.address" class="w-full" />
         </UFormField>
 
-        <div v-if="mode === 'edit'" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div v-if="mode === 'edit'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <UFormField :label="t('members.form.fields.status')" name="status">
             <USelectMenu
               clear

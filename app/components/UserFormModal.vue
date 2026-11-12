@@ -341,6 +341,7 @@ function requestDelete() {
     v-model:open="isOpen"
     :title="mode === 'create' ? t('security.users.modalCreateTitle') : t('security.users.modalEditTitle')"
     :description="mode === 'create' ? t('security.users.modalCreateDescription') : t('security.users.modalEditDescription')"
+    :ui="MODAL_MEDIUM_UI"
   >
     <template #body>
       <UForm
