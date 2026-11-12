@@ -322,18 +322,26 @@ function populateEditForm(full: MemberDto) {
 // Populate/reset the form whenever the modal opens (mode/member are set by the parent beforehand).
 watch(() => props.open, async (open) => {
   if (!open) return
-  await loadCatalogs()
-  resetForm()
+  const editMember = props.mode === 'edit' ? props.member : null
+  // Show the loader from the start of an edit: on the first open the catalogs
+  // load too, and rendering the empty form meanwhile looked like a reload.
+  if (editMember) editLoading.value = true
   resetEmergency()
-  editSnapshot.value = ''
-  if (props.mode !== 'edit' || !props.member) return
-  loadEmergency(props.member.uuid)
-  // The list row (MemberListItemDto) only carries the full name, document, phone and
-  // enrollment date; the rest (name parts, birth, gender, catalogs…) only comes in the
-  // detail. Always (re-)fetch the full record so the form is populated reliably either way.
-  editLoading.value = true
+  if (!editMember) {
+    await loadCatalogs()
+    resetForm()
+    editSnapshot.value = ''
+    return
+  }
+  loadEmergency(editMember.uuid)
   try {
-    populateEditForm(await members.get(props.member.uuid))
+    // The list row (MemberListItemDto) only carries the full name, document, phone and
+    // enrollment date; the rest (name parts, birth, gender, catalogs…) only comes in the
+    // detail. Always (re-)fetch it, in parallel with the catalogs it relies on.
+    const [, full] = await Promise.all([loadCatalogs(), members.get(editMember.uuid)])
+    resetForm()
+    editSnapshot.value = ''
+    populateEditForm(full)
   }
   catch {
     // The detail failed to load (useApi already notified); close the modal.

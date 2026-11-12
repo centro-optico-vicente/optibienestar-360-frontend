@@ -476,15 +476,23 @@ function populateEditForm(full: AllyDto) {
 // Populate/reset the form whenever the modal opens (mode/ally are set by the parent beforehand).
 watch(() => props.open, async (open) => {
   if (!open) return
-  await loadCatalogs()
-  resetForm()
-  editSnapshot.value = ''
-  if (props.mode !== 'edit' || !props.ally) return
-  // The list row (AllyListItemDto) omits several fields the form needs; always
-  // (re-)fetch the full detail so the form is populated reliably either way.
+  const editAlly = props.mode === 'edit' ? props.ally : null
+  if (!editAlly) {
+    await loadCatalogs()
+    resetForm()
+    editSnapshot.value = ''
+    return
+  }
+  // Show the loader from the start of an edit: on the first open the catalogs
+  // load too, and rendering the empty form meanwhile looked like a reload.
   editLoading.value = true
   try {
-    populateEditForm(await allies.get(props.ally.uuid))
+    // The list row (AllyListItemDto) omits several fields the form needs; always
+    // (re-)fetch the full detail, in parallel with the catalogs it relies on.
+    const [, full] = await Promise.all([loadCatalogs(), allies.get(editAlly.uuid)])
+    resetForm()
+    editSnapshot.value = ''
+    populateEditForm(full)
   }
   catch {
     // The detail failed to load (useApi already notified); close the modal.
