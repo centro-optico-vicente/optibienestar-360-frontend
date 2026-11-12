@@ -78,6 +78,22 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  // Icons ship inside the JS bundle instead of being fetched at runtime from
+  // api.iconify.design (one request per new icon set, 100–300 ms each, icons
+  // popping in late). The scan reads every `i-lucide-*` / `i-simple-icons-*`
+  // literal from the sources; `.ts` is added because nav, catalog registry and
+  // composables declare icons there (the default glob only covers templates).
+  // Nuxt UI adds its own default icons through the `icon:clientBundleIcons` hook.
+  // The Iconify API stays as a fallback for any icon the scan misses, so a
+  // missed name still renders instead of leaving a blank.
+  icon: {
+    clientBundle: {
+      scan: {
+        globInclude: ['**/*.{vue,ts,tsx,jsx,md,yml,yaml}'],
+      },
+    },
+  },
+
   // Portal light-only: fijamos el tema claro para que los tokens de Nuxt UI
   // (p. ej. --ui-text-highlighted, que usa el texto de los inputs) no se inviertan
   // a blanco cuando el SO está en modo oscuro. Sin esto, el texto del input queda
