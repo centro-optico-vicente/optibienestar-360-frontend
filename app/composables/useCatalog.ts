@@ -33,14 +33,22 @@ export const useCatalog = (basePath: string) => {
   const get = (uuid: string) =>
     useApi<CatalogItem>(`${basePath}/${uuid}`)
 
+  // Any change to a catalog invalidates the cached select options
+  // (`useCatalogOptions`), so the next select opened shows the new data.
+  const invalidating = async <T>(request: Promise<T>): Promise<T> => {
+    const result = await request
+    clearCatalogOptionsCache()
+    return result
+  }
+
   const create = (body: Record<string, unknown>) =>
-    useApi<CatalogItem>(basePath, { method: 'POST', body })
+    invalidating(useApi<CatalogItem>(basePath, { method: 'POST', body }))
 
   const update = (uuid: string, body: Record<string, unknown>) =>
-    useApi<CatalogItem>(`${basePath}/${uuid}`, { method: 'PUT', body })
+    invalidating(useApi<CatalogItem>(`${basePath}/${uuid}`, { method: 'PUT', body }))
 
   const remove = (uuid: string, physical = false) =>
-    useApi<null>(`${basePath}/${uuid}`, { method: 'DELETE', query: physical ? { physical: true } : {} })
+    invalidating(useApi<null>(`${basePath}/${uuid}`, { method: 'DELETE', query: physical ? { physical: true } : {} }))
 
   /** "Ping" of FK usage before deleting: lets the UI offer a physical delete vs. a deactivation. */
   const usage = (uuid: string) =>
@@ -54,7 +62,7 @@ export const useCatalog = (basePath: string) => {
    * just re-`load()`, same as after create/update/delete.
    */
   const reorder = (uuid: string, afterRankUuid: string | null) =>
-    useApi<CatalogItem[]>(`${basePath}/${uuid}/reorder`, { method: 'PUT', body: { afterRankUuid } })
+    invalidating(useApi<CatalogItem[]>(`${basePath}/${uuid}/reorder`, { method: 'PUT', body: { afterRankUuid } }))
 
   return { list, listAll, get, create, update, remove, usage, reorder }
 }
