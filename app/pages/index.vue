@@ -38,7 +38,9 @@ const identifierSchema = computed(() => z.string().trim().min(3, t('validation.m
 
 const schema = computed(() => z.object({
   identifier: identifierSchema.value,
-  password: z.string().min(8, t('validation.minChars', { n: 8 })),
+  // No length rule on login: an account may predate the current password policy (e.g. demo users).
+  // Only reject an empty value or one made solely of whitespace (spaces, tabs, line breaks).
+  password: z.string().refine(v => v.trim().length > 0, t('validation.required')),
 }))
 
 interface LoginSchema {
@@ -61,6 +63,9 @@ const identifierError = ref<string | null>(null)
 
 // Mientras la cuenta esté bloqueada (HTTP 423) deshabilitamos el botón.
 const isLocked = computed<boolean>(() => !!lockedUntil.value && lockedUntil.value > new Date())
+
+// The submit button stays disabled until both fields have something other than whitespace.
+const canSubmit = computed<boolean>(() => !!state.identifier?.trim() && !!state.password?.trim())
 
 const onSubmit = async (event: FormSubmitEvent<LoginSchema>): Promise<void> => {
   isSubmitting.value = true
@@ -202,7 +207,8 @@ const onSendLink = async (): Promise<void> => {
         size="lg"
         color="primary"
         :loading="isSubmitting"
-        :disabled="isLocked"
+        :disabled="isLocked || !canSubmit"
+        class="disabled:cursor-not-allowed"
         icon="i-lucide-log-in"
       >
         {{ $t('auth.login.submit') }}
