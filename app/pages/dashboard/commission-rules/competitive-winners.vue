@@ -85,6 +85,14 @@ onMounted(load)
 watch([page, size], load)
 watch([statusFilter, ruleUuid, dateFrom, dateTo], () => { page.value = 1; load() })
 
+// Status is the inbox state (defaults to open/stale) and stays visible, so it isn't counted or cleared.
+const activeFilterCount = computed(() => countActiveFilters(ruleUuid.value, dateFrom.value, dateTo.value))
+function clearFilters() {
+  ruleUuid.value = undefined
+  dateFrom.value = ''
+  dateTo.value = ''
+}
+
 // ---- Per-tie lazy decision history ----
 const expandedKeys = ref<Set<string>>(new Set())
 const decisionsByKey = ref<Record<string, CompetitiveManualDecisionDto[]>>({})
@@ -188,27 +196,29 @@ async function confirmRevert() {
       </div>
     </div>
 
-    <div class="bg-white rounded-2xl border border-prohealth-100 p-4">
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <UFormField :label="t('competitiveWinners.filters.status')">
-          <USelectMenu
-            clear
-            v-model="statusFilter"
-            :items="statusFilterOptions"
-            label-key="label"
-            value-key="value"
-            icon="i-lucide-flag"
-            class="w-full"
-          />
-        </UFormField>
-        <UFormField :label="t('competitiveWinners.filters.rule')">
-          <CommonEntityReferenceSelect v-model="ruleUuid" :search="searchRules" icon="i-lucide-trophy" :placeholder="t('common.select')" />
-        </UFormField>
-        <UFormField :label="t('competitiveWinners.filters.period')">
-          <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('competitiveWinners.filters.dateFrom')" :to-label="t('competitiveWinners.filters.dateTo')" />
-        </UFormField>
-      </div>
-    </div>
+    <ListFilterPanel :active-count="activeFilterCount" @clear="clearFilters">
+      <UFormField :label="t('competitiveWinners.filters.status')" class="w-full sm:w-64">
+        <USelectMenu
+          v-model="statusFilter"
+          clear
+          :items="statusFilterOptions"
+          label-key="label"
+          value-key="value"
+          icon="i-lucide-flag"
+          class="w-full"
+        />
+      </UFormField>
+      <template #filters>
+        <div class="flex flex-wrap items-center gap-3">
+          <UFormField :label="t('competitiveWinners.filters.rule')" class="w-full sm:w-64">
+            <CommonEntityReferenceSelect v-model="ruleUuid" :search="searchRules" icon="i-lucide-trophy" :placeholder="t('common.select')" />
+          </UFormField>
+          <UFormField :label="t('competitiveWinners.filters.period')">
+            <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('competitiveWinners.filters.dateFrom')" :to-label="t('competitiveWinners.filters.dateTo')" />
+          </UFormField>
+        </div>
+      </template>
+    </ListFilterPanel>
 
     <div v-if="loading" class="grid gap-4">
       <USkeleton v-for="i in 3" :key="i" class="h-40 w-full rounded-2xl" />

@@ -36,10 +36,6 @@ const { can } = usePermissions()
 
 const canViewPromoter = computed(() => can('PROMOTER_VIEW_ALL'))
 
-// Filters panel — open by default, collapsible via the same chevron pattern
-// used by payouts-generate.vue.
-const filtersOpen = ref(true)
-
 // ---- Filters ----
 const periodRange = ref<DateTimeRange>(emptyDateRange())
 const promoterTypeUuid = ref<string | undefined>(undefined)
@@ -57,6 +53,18 @@ const rankUuid = ref<string | undefined>(undefined)
 // Orthogonal to `appliesTo` (Concepto): which tier engine priced the row —
 // only meaningful within MONTHLY rows (INSCRIPTION is always TIER).
 const ruleSource = ref<CommissionRuleSource | undefined>(undefined)
+// Status is the inbox state (defaults to PENDING) and stays visible, so it isn't counted.
+const activeFilterCount = computed(() => countActiveFilters(
+  periodRange.value,
+  promoterTypeUuid.value,
+  promoterUuid.value,
+  appliesTo.value,
+  amountFrom.value,
+  amountTo.value,
+  campaignUuid.value,
+  rankUuid.value,
+  ruleSource.value,
+))
 
 const appliesToOptions = computed(() => APPLIES_TO_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
 const statusOptions = computed(() => COMMISSION_STATUS_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
@@ -430,25 +438,24 @@ async function onReject(reason: string) {
       <p class="text-sm text-prohealth-700/70 mt-1">{{ t('commissions.approval.subtitle') }}</p>
     </div>
 
-    <!-- Filters (collapsible, open by default) -->
-    <div class="bg-white rounded-2xl border border-prohealth-100 p-4 space-y-3">
-      <div class="flex items-center justify-between">
-        <span class="text-sm font-semibold text-prohealth-700 flex items-center gap-2">
-          <UIcon name="i-lucide-filter" class="w-4 h-4 text-prohealth-400" />
-          {{ t('commissions.approval.filtersTitle') }}
-        </span>
-        <UButton
-          type="button"
-          color="neutral"
-          variant="ghost"
-          size="xs"
-          :icon="filtersOpen ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
-          :title="t('commissions.approval.filtersTitle')"
-          @click="filtersOpen = !filtersOpen"
+    <!-- Status (inbox state) + collapsible filters -->
+    <ListFilterPanel :active-count="activeFilterCount" @clear="clearFilters">
+      <UFormField :label="t('commissions.approval.fields.status')" class="w-full sm:w-56">
+        <USelectMenu
+          v-model="status"
+          clear
+          :items="statusOptions"
+          label-key="label"
+          value-key="value"
+          icon="i-lucide-flag"
+          :placeholder="t('common.select')"
+          class="w-full"
         />
-      </div>
-
-      <div v-if="filtersOpen" class="space-y-3">
+      </UFormField>
+      <UButton color="primary" variant="outline" icon="i-lucide-refresh-cw" :loading="loading" class="self-end" @click="load">
+        {{ t('commissions.approval.refreshButton') }}
+      </UButton>
+      <template #filters>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <UFormField :label="t('commissions.approval.fields.period')">
             <div class="flex items-center gap-1">
@@ -491,25 +498,12 @@ async function onReject(reason: string) {
 
           <UFormField :label="t('commissions.approval.fields.appliesTo')">
             <USelectMenu
-              clear
               v-model="appliesTo"
+              clear
               :items="appliesToOptions"
               label-key="label"
               value-key="value"
               icon="i-lucide-list-tree"
-              :placeholder="t('common.select')"
-              class="w-full"
-            />
-          </UFormField>
-
-          <UFormField :label="t('commissions.approval.fields.status')">
-            <USelectMenu
-              clear
-              v-model="status"
-              :items="statusOptions"
-              label-key="label"
-              value-key="value"
-              icon="i-lucide-flag"
               :placeholder="t('common.select')"
               class="w-full"
             />
@@ -563,8 +557,8 @@ async function onReject(reason: string) {
 
           <UFormField :label="t('commissions.approval.fields.ruleSource')">
             <USelectMenu
-              clear
               v-model="ruleSource"
+              clear
               :items="ruleSourceOptions"
               label-key="label"
               value-key="value"
@@ -574,17 +568,8 @@ async function onReject(reason: string) {
             />
           </UFormField>
         </div>
-
-        <div class="flex items-center justify-end gap-2 pt-1">
-          <UButton color="neutral" variant="link" size="sm" icon="i-lucide-list-restart" @click="clearFilters">
-            {{ t('commissions.approval.clearAll') }}
-          </UButton>
-          <UButton color="primary" variant="outline" icon="i-lucide-refresh-cw" :loading="loading" @click="load">
-            {{ t('commissions.approval.refreshButton') }}
-          </UButton>
-        </div>
-      </div>
-    </div>
+      </template>
+    </ListFilterPanel>
 
     <!-- Table: fixed height + internal scroll, sticky header -->
     <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-26rem)] min-h-[20rem]">

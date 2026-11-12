@@ -114,6 +114,7 @@ watch(search, () => {
 })
 
 const hasFilters = computed(() => Boolean(search.value.trim() || allyFilter.value || categoryFilter.value || dateFrom.value || dateTo.value))
+const activeFilterCount = computed(() => countActiveFilters(allyFilter.value, categoryFilter.value, dateFrom.value, dateTo.value))
 function clearFilters() {
   search.value = ''
   dateFrom.value = ''
@@ -231,7 +232,7 @@ onMounted(load)
     </div>
 
     <!-- Filters -->
-    <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
+    <ListFilterPanel :active-count="activeFilterCount" @clear="clearFilters">
       <UInput
         v-model="search"
         :placeholder="t('allyProductReview.searchPlaceholder')"
@@ -239,38 +240,43 @@ onMounted(load)
         size="lg"
         class="w-full max-w-sm"
       />
-      <USelectMenu
-        v-if="canViewAllies"
-        clear
-        v-model="allyFilter"
-        v-model:search-term="allySearchTerm"
-        :items="allyOptions"
-        label-key="label"
-        value-key="value"
-        ignore-filter
-        icon="i-lucide-handshake"
-        :loading="allySearching"
-        :placeholder="t('allyProductReview.allAllies')"
-        :search-input="{ placeholder: t('products.form.allySearchPlaceholder'), icon: 'i-lucide-search' }"
-        class="w-60"
-        @update:open="onAllyOpen"
-      />
-      <USelectMenu
-        clear
-        v-model="categoryFilter"
-        :items="categories.items.value"
-        :loading="categories.loading.value"
-        label-key="label"
-        value-key="value"
-        :placeholder="t('products.filters.allCategories')"
-        class="w-56"
-        @update:open="categories.onOpen"
-      />
-      <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('allyProducts.filters.dateFrom')" :to-label="t('allyProducts.filters.dateTo')" />
-      <UButton v-if="hasFilters" variant="link" color="neutral" size="sm" icon="i-lucide-x" @click="clearFilters">
+      <!-- Only the search is set: the panel's «Limpiar» shows once a master filter is active. -->
+      <UButton v-if="hasFilters && activeFilterCount === 0" variant="link" color="neutral" size="sm" icon="i-lucide-x" @click="clearFilters">
         {{ t('common.clearFilters') }}
       </UButton>
-    </div>
+      <template #filters>
+        <div class="flex flex-wrap items-center gap-3">
+          <USelectMenu
+            v-if="canViewAllies"
+            v-model="allyFilter"
+            v-model:search-term="allySearchTerm"
+            clear
+            :items="allyOptions"
+            label-key="label"
+            value-key="value"
+            ignore-filter
+            icon="i-lucide-handshake"
+            :loading="allySearching"
+            :placeholder="t('allyProductReview.allAllies')"
+            :search-input="{ placeholder: t('products.form.allySearchPlaceholder'), icon: 'i-lucide-search' }"
+            class="w-60"
+            @update:open="onAllyOpen"
+          />
+          <USelectMenu
+            v-model="categoryFilter"
+            clear
+            :items="categories.items.value"
+            :loading="categories.loading.value"
+            label-key="label"
+            value-key="value"
+            :placeholder="t('products.filters.allCategories')"
+            class="w-56"
+            @update:open="categories.onOpen"
+          />
+          <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('allyProducts.filters.dateFrom')" :to-label="t('allyProducts.filters.dateTo')" />
+        </div>
+      </template>
+    </ListFilterPanel>
 
     <!-- Table -->
     <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">

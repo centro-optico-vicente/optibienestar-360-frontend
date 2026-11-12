@@ -2,7 +2,7 @@
 import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
 import type { SortDirection } from '~/composables/useTableSort'
 import type { ListFilterField } from '~/utils/listFilters'
-import { emptyListFilters, listFilterQuery } from '~/utils/listFilters'
+import { countActiveFilters, emptyListFilters, listFilterQuery } from '~/utils/listFilters'
 import type { AffiliationRequestListItemDto, AffiliationRequestStatus } from '~/types/affiliationRequests'
 import { AFFILIATION_REQUEST_STATUSES, affiliationRequestStatusColor } from '~/types/affiliationRequests'
 
@@ -60,6 +60,7 @@ const filterFields = computed<ListFilterField[]>(() => [
   { key: 'dateFrom', toKey: 'dateTo', label: t('affiliationRequests.filters.dateFrom'), toLabel: t('affiliationRequests.filters.dateTo'), type: 'dateRange' },
 ])
 const masterFilters = ref(emptyListFilters(filterFields.value))
+const activeFilterCount = computed(() => countActiveFilters(masterFilters.value))
 
 async function load() {
   loading.value = true
@@ -164,7 +165,7 @@ onMounted(load)
       <ListRefreshMenu :loading="loading" variant="ghost" @refresh="load" @reset="resetFilters" />
     </div>
 
-    <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
+    <ListFilterPanel :active-count="activeFilterCount" @clear="resetFilters">
       <UInput
         v-model="search"
         :placeholder="t('affiliationRequests.searchPlaceholder')"
@@ -179,7 +180,6 @@ onMounted(load)
         size="lg"
         class="w-48"
       />
-      <ListFilterBar v-model="masterFilters" :fields="filterFields" class="w-full" />
       <UButton
         v-if="hasActiveSort"
         variant="link"
@@ -191,7 +191,10 @@ onMounted(load)
       >
         {{ t('common.clearSort') }}
       </UButton>
-    </div>
+      <template #filters>
+        <ListFilterBar v-model="masterFilters" :fields="filterFields" />
+      </template>
+    </ListFilterPanel>
 
     <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-19rem)] min-h-[20rem]">
       <div class="overflow-auto flex-1">

@@ -4,7 +4,7 @@ import type { UserDto } from '~/types/admin'
 import { toLocaleCode } from '~/composables/useAppLocale'
 import type { SortDirection } from '~/composables/useTableSort'
 import type { ListFilterField } from '~/utils/listFilters'
-import { emptyListFilters, listFilterQuery } from '~/utils/listFilters'
+import { countActiveFilters, emptyListFilters, listFilterQuery } from '~/utils/listFilters'
 
 definePageMeta({
   layout: 'dashboard',
@@ -69,6 +69,7 @@ const filterFields = computed<ListFilterField[]>(() => [
   { key: 'dateFrom', toKey: 'dateTo', label: t('security.users.filters.createdFrom'), toLabel: t('security.users.filters.createdTo'), type: 'dateRange' },
 ])
 const masterFilters = ref(emptyListFilters(filterFields.value))
+const activeFilterCount = computed(() => countActiveFilters(masterFilters.value))
 
 async function load() {
   loading.value = true
@@ -273,7 +274,7 @@ async function confirmDelete() {
     </div>
 
     <!-- Búsqueda -->
-    <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
+    <ListFilterPanel :active-count="activeFilterCount" @clear="resetFilters">
       <UInput
         v-model="search"
         :placeholder="$t('security.users.searchPlaceholder')"
@@ -282,7 +283,6 @@ async function confirmDelete() {
         class="w-full max-w-md"
       />
       <UCheckbox v-model="includeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
-      <ListFilterBar v-model="masterFilters" :fields="filterFields" class="w-full" />
       <UButton
         v-if="hasActiveSort"
         variant="link"
@@ -294,7 +294,10 @@ async function confirmDelete() {
       >
         {{ t('common.clearSort') }}
       </UButton>
-    </div>
+      <template #filters>
+        <ListFilterBar v-model="masterFilters" :fields="filterFields" />
+      </template>
+    </ListFilterPanel>
 
     <!-- Tabla -->
     <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-19rem)] min-h-[24rem]">

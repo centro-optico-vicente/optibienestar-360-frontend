@@ -6,7 +6,7 @@ import type {
 } from '~/types/members'
 import type { SortDirection } from '~/composables/useTableSort'
 import type { ListFilterField } from '~/utils/listFilters'
-import { emptyListFilters, listFilterQuery } from '~/utils/listFilters'
+import { countActiveFilters, emptyListFilters, listFilterQuery } from '~/utils/listFilters'
 import type { SelectItem } from '~/types/options'
 
 type MemberRow = MemberListItemDto | MemberDto
@@ -83,6 +83,7 @@ const filterFields = computed<ListFilterField[]>(() => [
   { key: 'dateFrom', toKey: 'dateTo', label: t('members.filters.enrolledFrom'), toLabel: t('members.filters.enrolledTo'), type: 'dateRange' },
 ])
 const masterFilters = ref(emptyListFilters(filterFields.value))
+const activeFilterCount = computed(() => countActiveFilters(masterFilters.value))
 
 // Empty by default: no `sort=` is sent until the user clicks a column, so
 // the backend's own default-sort fallback (entity_config → system_configs
@@ -326,8 +327,8 @@ function displayName(m: MemberListItemDto): string {
       </div>
     </div>
 
-    <!-- Search -->
-    <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
+    <!-- Search + collapsible master filters -->
+    <ListFilterPanel :active-count="activeFilterCount" @clear="resetFilters">
       <UInput
         v-model="search"
         :placeholder="t('members.searchPlaceholder')"
@@ -336,7 +337,6 @@ function displayName(m: MemberListItemDto): string {
         class="w-full max-w-md"
       />
       <UCheckbox v-model="includeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
-      <ListFilterBar v-model="masterFilters" :fields="filterFields" class="w-full" />
       <UButton
         v-if="hasActiveSort"
         variant="link"
@@ -348,7 +348,10 @@ function displayName(m: MemberListItemDto): string {
       >
         {{ t('common.clearSort') }}
       </UButton>
-    </div>
+      <template #filters>
+        <ListFilterBar v-model="masterFilters" :fields="filterFields" />
+      </template>
+    </ListFilterPanel>
 
     <!-- Table -->
     <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-19rem)] min-h-[24rem]">
