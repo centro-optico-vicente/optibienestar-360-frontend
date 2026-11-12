@@ -4,6 +4,7 @@ import { memberOptionLabel } from '~/types/members'
 import type { MembershipListItemDto, MembershipStatusFilter } from '~/types/memberships'
 import { membershipStatusColor } from '~/types/memberships'
 import { PLAN_TYPE_OPTIONS, type PlanType } from '~/types/plans'
+import { countActiveFilters } from '~/utils/listFilters'
 
 // Cross-member memberships list (GET /v1/admin/memberships) with filters by affiliate, advisor,
 // plan, plan type, status (lifecycle plus derived overdue / due soon) and date ranges. Picking one
@@ -103,7 +104,7 @@ async function loadFilterOptions() {
 
 // Free-text box (`q`: name, document, email, phone, contract). Debounced apart from the discrete filters above.
 const listSearch = ref('')
-const activeFilterCount = computed(() => Object.values(filters).filter(Boolean).length + (listSearch.value.trim() ? 1 : 0))
+const activeFilterCount = computed(() => countActiveFilters(filters))
 
 function clearFilters() {
   listSearch.value = ''
@@ -186,62 +187,63 @@ function paymentStatusColor(s?: string | null): 'error' | 'warning' | 'success' 
       </div>
     </div>
 
-    <!-- Affiliate picker + filters -->
-    <div class="bg-white rounded-2xl border border-prohealth-100 p-4 space-y-4">
-      <UFormField :label="t('memberships.page.searchLabel')" :help="t('memberships.page.searchHelp')">
-        <USelectMenu
-          clear
-          v-model="selectedMemberUuid"
-          v-model:search-term="memberSearchTerm"
-          :items="memberOptions"
-          label-key="label"
-          value-key="value"
-          ignore-filter
-          icon="i-lucide-search"
-          :loading="searching"
-          :placeholder="t('memberships.page.searchPlaceholder')"
-          :search-input="{ placeholder: t('memberships.page.searchPlaceholder'), icon: 'i-lucide-search' }"
-          class="w-full sm:max-w-md"
-          @update:open="onPickerOpen"
-        />
-      </UFormField>
-      <p v-if="selectedMemberLabel" class="text-xs text-prohealth-500">
-        {{ t('memberships.page.managingFor') }} <span class="font-semibold text-prohealth-700">{{ selectedMemberLabel }}</span>.
-        <NuxtLink :to="`/dashboard/members/${selectedMemberUuid}`" class="text-cyan-700 hover:underline">{{ t('memberships.page.viewFullRecord') }}</NuxtLink>.
-      </p>
-
-      <div v-if="!selectedMemberUuid" class="space-y-3">
+    <!-- Affiliate picker + search + collapsible filters -->
+    <ListFilterPanel :active-count="activeFilterCount" @clear="clearFilters">
+      <div class="w-full space-y-3">
+        <UFormField :label="t('memberships.page.searchLabel')" :help="t('memberships.page.searchHelp')">
+          <USelectMenu
+            clear
+            v-model="selectedMemberUuid"
+            v-model:search-term="memberSearchTerm"
+            :items="memberOptions"
+            label-key="label"
+            value-key="value"
+            ignore-filter
+            icon="i-lucide-search"
+            :loading="searching"
+            :placeholder="t('memberships.page.searchPlaceholder')"
+            :search-input="{ placeholder: t('memberships.page.searchPlaceholder'), icon: 'i-lucide-search' }"
+            class="w-full sm:max-w-md"
+            @update:open="onPickerOpen"
+          />
+        </UFormField>
+        <p v-if="selectedMemberLabel" class="text-xs text-prohealth-500">
+          {{ t('memberships.page.managingFor') }} <span class="font-semibold text-prohealth-700">{{ selectedMemberLabel }}</span>.
+          <NuxtLink :to="`/dashboard/members/${selectedMemberUuid}`" class="text-cyan-700 hover:underline">{{ t('memberships.page.viewFullRecord') }}</NuxtLink>.
+        </p>
         <UInput
+          v-if="!selectedMemberUuid"
           v-model="listSearch"
           :placeholder="t('memberships.page.filters.searchPlaceholder')"
           icon="i-lucide-search"
           class="w-full sm:max-w-md"
         />
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <UFormField :label="t('memberships.page.filters.status')">
-            <USelectMenu v-model="filters.status" clear :items="statusOptions" label-key="label" value-key="value" :placeholder="t('memberships.page.filters.any')" class="w-full" />
-          </UFormField>
-          <UFormField :label="t('memberships.page.filters.advisor')">
-            <CommonEntityReferenceSelect v-model="filters.promoterUuid" :search="promotersApi.searchOptions" :placeholder="t('memberships.page.filters.any')" class="w-full" />
-          </UFormField>
-          <UFormField :label="t('memberships.page.filters.plan')">
-            <USelectMenu v-model="filters.planUuid" clear :items="planOptions" label-key="label" value-key="value" :placeholder="t('memberships.page.filters.any')" class="w-full" />
-          </UFormField>
-          <UFormField :label="t('memberships.page.filters.planType')">
-            <USelectMenu v-model="filters.planType" clear :items="planTypeOptions" label-key="label" value-key="value" :placeholder="t('memberships.page.filters.any')" class="w-full" />
-          </UFormField>
-        </div>
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <UFormField :label="t('memberships.page.filters.enrolledFrom')"><UInput v-model="filters.enrolledFrom" type="date" class="w-full" /></UFormField>
-          <UFormField :label="t('memberships.page.filters.enrolledTo')"><UInput v-model="filters.enrolledTo" type="date" class="w-full" /></UFormField>
-          <UFormField :label="t('memberships.page.filters.nextDueFrom')"><UInput v-model="filters.nextDueFrom" type="date" class="w-full" /></UFormField>
-          <UFormField :label="t('memberships.page.filters.nextDueTo')"><UInput v-model="filters.nextDueTo" type="date" class="w-full" /></UFormField>
-        </div>
-        <UButton v-if="activeFilterCount > 0" color="neutral" variant="ghost" size="sm" icon="i-lucide-filter-x" @click="clearFilters">
-          {{ t('memberships.page.filters.clear') }} ({{ activeFilterCount }})
-        </UButton>
       </div>
-    </div>
+      <template v-if="!selectedMemberUuid" #filters>
+        <div class="space-y-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <UFormField :label="t('memberships.page.filters.status')">
+              <USelectMenu v-model="filters.status" clear :items="statusOptions" label-key="label" value-key="value" :placeholder="t('memberships.page.filters.any')" class="w-full" />
+            </UFormField>
+            <UFormField :label="t('memberships.page.filters.advisor')">
+              <CommonEntityReferenceSelect v-model="filters.promoterUuid" :search="promotersApi.searchOptions" :placeholder="t('memberships.page.filters.any')" class="w-full" />
+            </UFormField>
+            <UFormField :label="t('memberships.page.filters.plan')">
+              <USelectMenu v-model="filters.planUuid" clear :items="planOptions" label-key="label" value-key="value" :placeholder="t('memberships.page.filters.any')" class="w-full" />
+            </UFormField>
+            <UFormField :label="t('memberships.page.filters.planType')">
+              <USelectMenu v-model="filters.planType" clear :items="planTypeOptions" label-key="label" value-key="value" :placeholder="t('memberships.page.filters.any')" class="w-full" />
+            </UFormField>
+          </div>
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <UFormField :label="t('memberships.page.filters.enrolledFrom')"><UInput v-model="filters.enrolledFrom" type="date" class="w-full" /></UFormField>
+            <UFormField :label="t('memberships.page.filters.enrolledTo')"><UInput v-model="filters.enrolledTo" type="date" class="w-full" /></UFormField>
+            <UFormField :label="t('memberships.page.filters.nextDueFrom')"><UInput v-model="filters.nextDueFrom" type="date" class="w-full" /></UFormField>
+            <UFormField :label="t('memberships.page.filters.nextDueTo')"><UInput v-model="filters.nextDueTo" type="date" class="w-full" /></UFormField>
+          </div>
+        </div>
+      </template>
+    </ListFilterPanel>
 
     <!-- Memberships of the selected member -->
     <MemberMembershipsCard v-if="selectedMemberUuid" :key="selectedMemberUuid" :member-uuid="selectedMemberUuid" />

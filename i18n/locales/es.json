@@ -96,6 +96,10 @@
       "from": "Desde",
       "to": "Hasta",
       "clear": "Limpiar fecha"
+    },
+    "filters": {
+      "toggle": "Filtros",
+      "clear": "Limpiar filtros"
     }
   },
   "locale": {

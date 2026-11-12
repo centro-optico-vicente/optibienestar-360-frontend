@@ -54,6 +54,7 @@ const statusFilter = ref<PaymentStatus | null>(null)
 // the backend's own default-sort fallback (entity_config → system_configs
 // → receivedAt DESC) applies.
 const masterFilters = ref(emptyPaymentMasterFilters())
+const activeFilterCount = computed(() => countActiveFilters(statusFilter.value, masterFilters.value))
 const sort = useTableSort([])
 const hasActiveSort = computed(() => sort.hasActiveSort.value)
 const isMultiSort = computed(() => sort.orders.value.length > 1)
@@ -235,8 +236,8 @@ async function confirmDelete() {
       </div>
     </div>
 
-    <!-- Filters -->
-    <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
+    <!-- Search + collapsible master filters -->
+    <ListFilterPanel :active-count="activeFilterCount" @clear="resetFilters">
       <UInput
         v-model="search"
         :placeholder="t('payments.searchPlaceholder')"
@@ -244,17 +245,6 @@ async function confirmDelete() {
         size="lg"
         class="w-full max-w-md"
       />
-      <USelectMenu
-        clear
-        v-model="statusFilter"
-        :items="statusFilterOptions"
-        label-key="label"
-        value-key="value"
-        :placeholder="t('payments.statusFilterPlaceholder')"
-        icon="i-lucide-filter"
-        class="w-44"
-      />
-      <PaymentMasterFilters v-model="masterFilters" class="w-full" />
       <UButton
         v-if="hasActiveSort"
         variant="link"
@@ -266,7 +256,22 @@ async function confirmDelete() {
       >
         {{ t('common.clearSort') }}
       </UButton>
-    </div>
+      <template #filters>
+        <div class="flex flex-wrap items-center gap-3">
+          <USelectMenu
+            v-model="statusFilter"
+            clear
+            :items="statusFilterOptions"
+            label-key="label"
+            value-key="value"
+            :placeholder="t('payments.statusFilterPlaceholder')"
+            icon="i-lucide-filter"
+            class="w-44"
+          />
+          <PaymentMasterFilters v-model="masterFilters" />
+        </div>
+      </template>
+    </ListFilterPanel>
 
     <!-- Table -->
     <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-19rem)] min-h-[24rem]">

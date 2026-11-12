@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
 import { defaultTodayRange } from '~/utils/date'
+import { countActiveFilters } from '~/utils/listFilters'
 import { resolveAuditEntityLink } from '~/utils/audit-entity-link'
 import type { AuditAction, DataChangeAuditLogDto } from '~/types/audit'
 
@@ -46,6 +47,7 @@ const ACTION_OPTIONS: { label: string, value: AuditAction }[] = [
 ]
 const actionFilter = ref<AuditAction[]>([])
 const dateRange = ref(defaultTodayRange())
+const activeFilterCount = computed(() => countActiveFilters(entityKeyFilter.value, actorUuidFilter.value, actionFilter.value, dateRange.value.from !== defaultTodayRange().from))
 
 const ACTION_META: Record<AuditAction, { icon: string, color: 'success' | 'warning' | 'error' }> = {
   CREATE: { icon: 'i-lucide-plus-circle', color: 'success' },
@@ -171,7 +173,7 @@ onMounted(load)
     </div>
 
     <!-- Filtros -->
-    <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
+    <ListFilterPanel :active-count="activeFilterCount" @clear="resetFilters">
       <UInput
         v-model="search"
         :placeholder="$t('security.dataChanges.searchPlaceholder')"
@@ -179,20 +181,24 @@ onMounted(load)
         size="lg"
         class="w-full max-w-md"
       />
-      <AuditEntityKeyMultiSelect v-model="entityKeyFilter" />
-      <AuditActorSelect v-model="actorUuidFilter" />
-      <USelectMenu
-        v-model="actionFilter"
-        :items="ACTION_OPTIONS"
-        label-key="label"
-        value-key="value"
-        multiple
-        clear
-        :placeholder="$t('security.dataChanges.filters.action')"
-        class="w-52"
-      />
-      <AuditDateRangePicker v-model="dateRange" />
-    </div>
+      <template #filters>
+        <div class="flex flex-wrap items-center gap-3">
+          <AuditEntityKeyMultiSelect v-model="entityKeyFilter" />
+          <AuditActorSelect v-model="actorUuidFilter" />
+          <USelectMenu
+            v-model="actionFilter"
+            :items="ACTION_OPTIONS"
+            label-key="label"
+            value-key="value"
+            multiple
+            clear
+            :placeholder="$t('security.dataChanges.filters.action')"
+            class="w-52"
+          />
+          <AuditDateRangePicker v-model="dateRange" />
+        </div>
+      </template>
+    </ListFilterPanel>
 
     <!-- Listado -->
     <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-19rem)] min-h-[20rem]">

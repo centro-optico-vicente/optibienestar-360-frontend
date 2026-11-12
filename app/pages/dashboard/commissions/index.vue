@@ -64,6 +64,7 @@ const statusFilter = ref('')
 const currencyFilter = ref('')
 const dateFrom = ref('')
 const dateTo = ref('')
+const activeFilterCount = computed(() => countActiveFilters(filter.value, promoterUuid.value, memberUuid.value, statusFilter.value, currencyFilter.value, dateFrom.value, dateTo.value))
 const promotersApi = usePromoters()
 const membersApi = useMembers()
 const currenciesApi = useCurrencies()
@@ -404,8 +405,8 @@ async function confirmVoid() {
       </div>
     </div>
 
-    <!-- Filters -->
-    <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
+    <!-- Search + collapsible filters -->
+    <ListFilterPanel :active-count="activeFilterCount" @clear="resetFilters">
       <UInput
         v-model="search"
         :placeholder="t('commissions.searchPlaceholder')"
@@ -413,48 +414,6 @@ async function confirmVoid() {
         size="lg"
         class="w-full max-w-md"
       />
-      <UInput
-        v-model="filter"
-        :placeholder="t('commissions.filterPlaceholder')"
-        icon="i-lucide-filter"
-        size="lg"
-        class="w-full max-w-md font-mono"
-      />
-      <CommonEntityReferenceSelect
-        v-model="promoterUuid"
-        :search="promotersApi.searchOptions"
-        icon="i-lucide-users"
-        :placeholder="t('commissions.filters.advisor')"
-        class="w-52"
-      />
-      <CommonEntityReferenceSelect
-        v-model="memberUuid"
-        :search="searchMembers"
-        icon="i-lucide-user"
-        :placeholder="t('commissions.filters.member')"
-        class="w-52"
-      />
-      <USelectMenu
-        v-model="statusFilter"
-        clear
-        :items="statusOptions"
-        label-key="label"
-        value-key="value"
-        icon="i-lucide-filter"
-        :placeholder="t('commissions.filters.status')"
-        class="w-44"
-      />
-      <USelectMenu
-        v-model="currencyFilter"
-        clear
-        :items="currencyOptions"
-        label-key="label"
-        value-key="value"
-        icon="i-lucide-coins"
-        :placeholder="t('commissions.filters.currency')"
-        class="w-40"
-      />
-      <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('commissions.filters.dateFrom')" :to-label="t('commissions.filters.dateTo')" />
       <UCheckbox v-model="includeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
       <UButton
         v-if="hasActiveSort"
@@ -467,7 +426,53 @@ async function confirmVoid() {
       >
         {{ t('common.clearSort') }}
       </UButton>
-    </div>
+      <template #filters>
+        <div class="flex flex-wrap items-center gap-3">
+          <UInput
+            v-model="filter"
+            :placeholder="t('commissions.filterPlaceholder')"
+            icon="i-lucide-filter"
+            size="lg"
+            class="w-full max-w-md font-mono"
+          />
+          <CommonEntityReferenceSelect
+            v-model="promoterUuid"
+            :search="promotersApi.searchOptions"
+            icon="i-lucide-users"
+            :placeholder="t('commissions.filters.advisor')"
+            class="w-52"
+          />
+          <CommonEntityReferenceSelect
+            v-model="memberUuid"
+            :search="searchMembers"
+            icon="i-lucide-user"
+            :placeholder="t('commissions.filters.member')"
+            class="w-52"
+          />
+          <USelectMenu
+            v-model="statusFilter"
+            clear
+            :items="statusOptions"
+            label-key="label"
+            value-key="value"
+            icon="i-lucide-filter"
+            :placeholder="t('commissions.filters.status')"
+            class="w-44"
+          />
+          <USelectMenu
+            v-model="currencyFilter"
+            clear
+            :items="currencyOptions"
+            label-key="label"
+            value-key="value"
+            icon="i-lucide-coins"
+            :placeholder="t('commissions.filters.currency')"
+            class="w-40"
+          />
+          <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('commissions.filters.dateFrom')" :to-label="t('commissions.filters.dateTo')" />
+        </div>
+      </template>
+    </ListFilterPanel>
 
     <!-- Table -->
     <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-19rem)] min-h-[24rem]">

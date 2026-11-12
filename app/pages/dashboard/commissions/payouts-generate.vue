@@ -7,6 +7,7 @@ import type { AppliesTo } from '~/types/commissionTiers'
 import { APPLIES_TO_OPTIONS } from '~/types/commissionTiers'
 import type { CommissionRuleSource } from '~/types/promoters'
 import { emptyDateRange, type DateTimeRange } from '~/utils/date'
+import { countActiveFilters } from '~/utils/listFilters'
 import type { SortDirection } from '~/composables/useTableSort'
 
 // Dedicated "Generar pagos" screen (separates pagar, gerencia de
@@ -35,10 +36,6 @@ const { can } = usePermissions()
 const canViewPromoter = computed(() => can('PROMOTER_VIEW_ALL'))
 const canGeneratePayout = computed(() => can('COMMISSION_PAYOUT'))
 
-// Filters panel — open by default, collapsible via the same chevron pattern
-// used by RolePermissionsModal's domain groups.
-const filtersOpen = ref(true)
-
 // ---- Filters ----
 const periodRange = ref<DateTimeRange>(emptyDateRange())
 const promoterTypeUuid = ref<string | undefined>(undefined)
@@ -54,6 +51,18 @@ const rankUuid = ref<string | undefined>(undefined)
 // Orthogonal to `appliesTo` (Concepto): which tier engine priced the row —
 // only meaningful within MONTHLY rows (INSCRIPTION is always TIER).
 const ruleSource = ref<CommissionRuleSource | undefined>(undefined)
+const activeFilterCount = computed(() => countActiveFilters(
+  periodRange.value.from || periodRange.value.to,
+  promoterTypeUuid.value,
+  promoterUuid.value,
+  appliesTo.value,
+  status.value,
+  amountFrom.value,
+  amountTo.value,
+  campaignUuid.value,
+  rankUuid.value,
+  ruleSource.value,
+))
 
 const appliesToOptions = computed(() => APPLIES_TO_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
 const statusOptions = computed(() => COMMISSION_STATUS_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
@@ -402,25 +411,12 @@ async function onPayoutDone() {
       <p class="text-sm text-prohealth-700/70 mt-1">{{ t('commissions.payoutGenerate.subtitle') }}</p>
     </div>
 
-    <!-- Filters (collapsible, open by default) -->
-    <div class="bg-white rounded-2xl border border-prohealth-100 p-4 space-y-3">
-      <div class="flex items-center justify-between">
-        <span class="text-sm font-semibold text-prohealth-700 flex items-center gap-2">
-          <UIcon name="i-lucide-filter" class="w-4 h-4 text-prohealth-400" />
-          {{ t('commissions.payoutGenerate.filtersTitle') }}
-        </span>
-        <UButton
-          type="button"
-          color="neutral"
-          variant="ghost"
-          size="xs"
-          :icon="filtersOpen ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
-          :title="t('commissions.payoutGenerate.filtersTitle')"
-          @click="filtersOpen = !filtersOpen"
-        />
-      </div>
-
-      <div v-if="filtersOpen" class="space-y-3">
+    <!-- Filters (collapsible) -->
+    <ListFilterPanel :active-count="activeFilterCount" @clear="clearFilters">
+      <UButton color="primary" variant="outline" icon="i-lucide-refresh-cw" :loading="loading" @click="load">
+        {{ t('commissions.payoutGenerate.refreshButton') }}
+      </UButton>
+      <template #filters>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <UFormField :label="t('commissions.payoutGenerate.fields.period')">
             <div class="flex items-center gap-1">
@@ -542,17 +538,8 @@ async function onPayoutDone() {
             />
           </UFormField>
         </div>
-
-        <div class="flex items-center justify-end gap-2 pt-1">
-          <UButton color="neutral" variant="link" size="sm" icon="i-lucide-list-restart" @click="clearFilters">
-            {{ t('commissions.payoutGenerate.clearAll') }}
-          </UButton>
-          <UButton color="primary" variant="outline" icon="i-lucide-refresh-cw" :loading="loading" @click="load">
-            {{ t('commissions.payoutGenerate.refreshButton') }}
-          </UButton>
-        </div>
-      </div>
-    </div>
+      </template>
+    </ListFilterPanel>
 
     <!-- Table: fixed height + internal scroll, sticky header -->
     <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-26rem)] min-h-[20rem]">

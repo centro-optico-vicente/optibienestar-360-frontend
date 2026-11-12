@@ -2,6 +2,7 @@
 import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
 import type { SelectItem } from '~/types/options'
 import type { SortDirection } from '~/composables/useTableSort'
+import { countActiveFilters } from '~/utils/listFilters'
 import {
   PRODUCT_TYPE_OPTIONS,
   type ProductDto,
@@ -66,6 +67,7 @@ const typeFilter = ref<ProductType | undefined>(undefined)
 const categoryFilter = ref<string | undefined>(undefined)
 const scopeFilter = ref<'general' | 'exclusive' | undefined>(undefined)
 const publishedFilter = ref<'yes' | 'no' | undefined>(undefined)
+const activeFilterCount = computed(() => countActiveFilters(typeFilter.value, categoryFilter.value, scopeFilter.value, publishedFilter.value))
 const publishedOptions = computed(() => [
   { label: t('products.filters.published'), value: 'yes' },
   { label: t('products.filters.unpublished'), value: 'no' },
@@ -259,52 +261,13 @@ onMounted(async () => {
     </div>
 
     <!-- Search + filters -->
-    <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
+    <ListFilterPanel :active-count="activeFilterCount" @clear="resetFilters">
       <UInput
         v-model="search"
         :placeholder="t('products.searchPlaceholder')"
         icon="i-lucide-search"
         size="lg"
         class="w-full max-w-md"
-      />
-      <USelectMenu
-        clear
-        v-model="typeFilter"
-        :items="typeOptions"
-        label-key="label"
-        value-key="value"
-        :search-input="false"
-        :placeholder="t('products.filters.allTypes')"
-        class="w-40"
-      />
-      <USelectMenu
-        clear
-        v-model="categoryFilter"
-        :items="categoryOptions"
-        label-key="label"
-        value-key="value"
-        :placeholder="t('products.filters.allCategories')"
-        class="w-56"
-      />
-      <USelectMenu
-        clear
-        v-model="scopeFilter"
-        :items="scopeOptions"
-        label-key="label"
-        value-key="value"
-        :search-input="false"
-        :placeholder="t('products.filters.allScopes')"
-        class="w-48"
-      />
-      <USelectMenu
-        clear
-        v-model="publishedFilter"
-        :items="publishedOptions"
-        label-key="label"
-        value-key="value"
-        :search-input="false"
-        :placeholder="t('products.filters.allPublication')"
-        class="w-52"
       />
       <UCheckbox v-model="includeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
       <UButton
@@ -318,7 +281,50 @@ onMounted(async () => {
       >
         {{ t('common.clearSort') }}
       </UButton>
-    </div>
+      <template #filters>
+        <div class="flex flex-wrap items-center gap-3">
+          <USelectMenu
+            clear
+            v-model="typeFilter"
+            :items="typeOptions"
+            label-key="label"
+            value-key="value"
+            :search-input="false"
+            :placeholder="t('products.filters.allTypes')"
+            class="w-40"
+          />
+          <USelectMenu
+            clear
+            v-model="categoryFilter"
+            :items="categoryOptions"
+            label-key="label"
+            value-key="value"
+            :placeholder="t('products.filters.allCategories')"
+            class="w-56"
+          />
+          <USelectMenu
+            clear
+            v-model="scopeFilter"
+            :items="scopeOptions"
+            label-key="label"
+            value-key="value"
+            :search-input="false"
+            :placeholder="t('products.filters.allScopes')"
+            class="w-48"
+          />
+          <USelectMenu
+            clear
+            v-model="publishedFilter"
+            :items="publishedOptions"
+            label-key="label"
+            value-key="value"
+            :search-input="false"
+            :placeholder="t('products.filters.allPublication')"
+            class="w-52"
+          />
+        </div>
+      </template>
+    </ListFilterPanel>
 
     <!-- Table -->
     <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-19rem)] min-h-[24rem]">

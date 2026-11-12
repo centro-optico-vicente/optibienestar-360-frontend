@@ -56,6 +56,8 @@ const tabs = computed(() => [
   { label: t('commissionRules.tabs.competitiveRules'), value: 'competitiveRules', icon: 'i-lucide-trophy' },
 ])
 const activeTab = ref('tiers')
+// Each tab's filter panel remembers its open/closed state on its own.
+const route = useRoute()
 const pageSizeItems = buildPageSizeItems(t)
 
 // ---- Promoter-type quick filter (shared catalog, loaded once for all 3 tabs) ----
@@ -120,6 +122,7 @@ const tierIncludeInactive = ref(false)
 const tierPromoterTypeUuid = ref<string | undefined>(undefined)
 const tierPlanType = ref<PlanType | undefined>(undefined)
 const tierAppliesTo = ref<AppliesTo | undefined>(undefined)
+const tierActiveFilterCount = computed(() => countActiveFilters(tierPromoterTypeUuid.value, tierPlanType.value, tierAppliesTo.value))
 const tierPage = ref(1)
 const tierSize = ref(DEFAULT_PAGE_SIZE)
 // Client-side toggle ("reglas express" / campaign-only), applied over the
@@ -277,6 +280,7 @@ const bonusLoading = ref(false)
 const bonusSearch = ref('')
 const bonusIncludeInactive = ref(false)
 const bonusPromoterTypeUuid = ref<string | undefined>(undefined)
+const bonusActiveFilterCount = computed(() => countActiveFilters(bonusPromoterTypeUuid.value))
 const bonusPage = ref(1)
 const bonusSize = ref(DEFAULT_PAGE_SIZE)
 // See tierCampaignOnly above for why this filter is client-side.
@@ -395,6 +399,7 @@ const collectionLoading = ref(false)
 const collectionSearch = ref('')
 const collectionIncludeInactive = ref(false)
 const collectionPromoterTypeUuid = ref<string | undefined>(undefined)
+const collectionActiveFilterCount = computed(() => countActiveFilters(collectionPromoterTypeUuid.value))
 const collectionPage = ref(1)
 const collectionSize = ref(DEFAULT_PAGE_SIZE)
 // See tierCampaignOnly above for why this filter is client-side.
@@ -534,6 +539,7 @@ const overrideSearch = ref('')
 const overrideIncludeInactive = ref(false)
 const overrideRankUuid = ref<string | undefined>(undefined)
 const overrideCategory = ref<OverrideCategory | undefined>(undefined)
+const overrideActiveFilterCount = computed(() => countActiveFilters(overrideRankUuid.value, overrideCategory.value))
 const overridePage = ref(1)
 const overrideSize = ref(DEFAULT_PAGE_SIZE)
 // See tierCampaignOnly above for why this filter is client-side.
@@ -940,40 +946,13 @@ onMounted(() => {
           {{ t('common.new') }}
         </UButton>
       </div>
-      <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
+      <ListFilterPanel :active-count="tierActiveFilterCount" :storage-key="`${route.path}#tiers`" @clear="resetTierFilters">
         <UInput
           v-model="tierSearch"
           :placeholder="t('commissionRules.tiers.searchPlaceholder')"
           icon="i-lucide-search"
           size="lg"
           class="w-full max-w-md"
-        />
-        <USelectMenu
-          clear
-          v-model="tierPromoterTypeUuid"
-          :items="promoterTypeFilterItems"
-          label-key="label"
-          value-key="value"
-          icon="i-lucide-users"
-          class="w-56"
-        />
-        <USelectMenu
-          clear
-          v-model="tierPlanType"
-          :items="planTypeFilterItems"
-          label-key="label"
-          value-key="value"
-          icon="i-lucide-layout-grid"
-          class="w-56"
-        />
-        <USelectMenu
-          clear
-          v-model="tierAppliesTo"
-          :items="appliesToFilterItems"
-          label-key="label"
-          value-key="value"
-          icon="i-lucide-target"
-          class="w-48"
         />
         <UCheckbox v-model="tierIncludeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
         <UCheckbox v-model="tierCampaignOnly" :label="t('commissionRules.filters.campaignOnly')" class="self-center" />
@@ -988,7 +967,38 @@ onMounted(() => {
         >
           {{ t('common.clearSort') }}
         </UButton>
-      </div>
+        <template #filters>
+          <div class="flex flex-wrap items-center gap-3">
+            <USelectMenu
+              v-model="tierPromoterTypeUuid"
+              clear
+              :items="promoterTypeFilterItems"
+              label-key="label"
+              value-key="value"
+              icon="i-lucide-users"
+              class="w-56"
+            />
+            <USelectMenu
+              v-model="tierPlanType"
+              clear
+              :items="planTypeFilterItems"
+              label-key="label"
+              value-key="value"
+              icon="i-lucide-layout-grid"
+              class="w-56"
+            />
+            <USelectMenu
+              v-model="tierAppliesTo"
+              clear
+              :items="appliesToFilterItems"
+              label-key="label"
+              value-key="value"
+              icon="i-lucide-target"
+              class="w-48"
+            />
+          </div>
+        </template>
+      </ListFilterPanel>
       <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
         <table class="w-full text-sm">
           <thead class="bg-prohealth-50/60">
@@ -1103,22 +1113,13 @@ onMounted(() => {
           {{ t('common.new') }}
         </UButton>
       </div>
-      <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
+      <ListFilterPanel :active-count="bonusActiveFilterCount" :storage-key="`${route.path}#bonusRules`" @clear="resetBonusFilters">
         <UInput
           v-model="bonusSearch"
           :placeholder="t('commissionRules.bonusRules.searchPlaceholder')"
           icon="i-lucide-search"
           size="lg"
           class="w-full max-w-md"
-        />
-        <USelectMenu
-          clear
-          v-model="bonusPromoterTypeUuid"
-          :items="promoterTypeFilterItems"
-          label-key="label"
-          value-key="value"
-          icon="i-lucide-users"
-          class="w-56"
         />
         <UCheckbox v-model="bonusIncludeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
         <UCheckbox v-model="bonusCampaignOnly" :label="t('commissionRules.filters.campaignOnly')" class="self-center" />
@@ -1133,7 +1134,18 @@ onMounted(() => {
         >
           {{ t('common.clearSort') }}
         </UButton>
-      </div>
+        <template #filters>
+          <USelectMenu
+            v-model="bonusPromoterTypeUuid"
+            clear
+            :items="promoterTypeFilterItems"
+            label-key="label"
+            value-key="value"
+            icon="i-lucide-users"
+            class="w-56"
+          />
+        </template>
+      </ListFilterPanel>
       <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
         <table class="w-full text-sm">
           <thead class="bg-prohealth-50/60">
@@ -1257,22 +1269,13 @@ onMounted(() => {
           {{ t('common.new') }}
         </UButton>
       </div>
-      <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
+      <ListFilterPanel :active-count="collectionActiveFilterCount" :storage-key="`${route.path}#collectionTiers`" @clear="resetCollectionFilters">
         <UInput
           v-model="collectionSearch"
           :placeholder="t('commissionRules.collectionTiers.searchPlaceholder')"
           icon="i-lucide-search"
           size="lg"
           class="w-full max-w-md"
-        />
-        <USelectMenu
-          clear
-          v-model="collectionPromoterTypeUuid"
-          :items="promoterTypeFilterItems"
-          label-key="label"
-          value-key="value"
-          icon="i-lucide-users"
-          class="w-56"
         />
         <UCheckbox v-model="collectionIncludeInactive" :label="t('catalogs.includeInactive')" class="self-center" />
         <UCheckbox v-model="collectionCampaignOnly" :label="t('commissionRules.filters.campaignOnly')" class="self-center" />
@@ -1287,7 +1290,18 @@ onMounted(() => {
         >
           {{ t('common.clearSort') }}
         </UButton>
-      </div>
+        <template #filters>
+          <USelectMenu
+            v-model="collectionPromoterTypeUuid"
+            clear
+            :items="promoterTypeFilterItems"
+            label-key="label"
+            value-key="value"
+            icon="i-lucide-users"
+            class="w-56"
+          />
+        </template>
+      </ListFilterPanel>
       <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
         <table class="w-full text-sm">
           <thead class="bg-prohealth-50/60">
@@ -1391,31 +1405,13 @@ onMounted(() => {
           {{ t('common.new') }}
         </UButton>
       </div>
-      <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
+      <ListFilterPanel :active-count="overrideActiveFilterCount" :storage-key="`${route.path}#overrideTiers`" @clear="resetOverrideFilters">
         <UInput
           v-model="overrideSearch"
           :placeholder="t('hierarchyOverrideTiers.searchPlaceholder')"
           icon="i-lucide-search"
           size="lg"
           class="w-full max-w-md"
-        />
-        <USelectMenu
-          clear
-          v-model="overrideRankUuid"
-          :items="rankFilterItems"
-          label-key="label"
-          value-key="value"
-          icon="i-lucide-network"
-          class="w-56"
-        />
-        <USelectMenu
-          clear
-          v-model="overrideCategory"
-          :items="categoryFilterItems"
-          label-key="label"
-          value-key="value"
-          icon="i-lucide-target"
-          class="w-48"
         />
         <UCheckbox v-model="overrideIncludeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
         <UCheckbox v-model="overrideCampaignOnly" :label="t('commissionRules.filters.campaignOnly')" class="self-center" />
@@ -1430,7 +1426,29 @@ onMounted(() => {
         >
           {{ t('common.clearSort') }}
         </UButton>
-      </div>
+        <template #filters>
+          <div class="flex flex-wrap items-center gap-3">
+            <USelectMenu
+              v-model="overrideRankUuid"
+              clear
+              :items="rankFilterItems"
+              label-key="label"
+              value-key="value"
+              icon="i-lucide-network"
+              class="w-56"
+            />
+            <USelectMenu
+              v-model="overrideCategory"
+              clear
+              :items="categoryFilterItems"
+              label-key="label"
+              value-key="value"
+              icon="i-lucide-target"
+              class="w-48"
+            />
+          </div>
+        </template>
+      </ListFilterPanel>
       <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
         <table class="w-full text-sm">
           <thead class="bg-prohealth-50/60">

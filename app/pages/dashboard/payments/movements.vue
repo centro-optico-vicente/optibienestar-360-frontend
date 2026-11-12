@@ -4,6 +4,7 @@ import type { PaymentDto, PaymentStatus } from '~/types/payments'
 import { PAYMENT_STATUS_OPTIONS, paymentStatusColor } from '~/types/payments'
 import type { SortDirection } from '~/composables/useTableSort'
 import { emptyPaymentMasterFilters, joinRsql, paymentFilterQuery } from '~/utils/paymentFilters'
+import { countActiveFilters } from '~/utils/listFilters'
 
 // "Movimientos" (hub plan payments-unification, §"Pantallas requeridas" #6) —
 // master admin view over BOTH directions (IN collections + OUT commission
@@ -34,6 +35,7 @@ const search = ref('')
 const directionFilter = ref<'IN' | 'OUT' | ''>('')
 const statusFilter = ref<PaymentStatus | ''>('')
 const masterFilters = ref(emptyPaymentMasterFilters())
+const activeFilterCount = computed(() => countActiveFilters(directionFilter.value, statusFilter.value, masterFilters.value))
 const sort = useTableSort([])
 const hasActiveSort = computed(() => sort.hasActiveSort.value)
 const isMultiSort = computed(() => sort.orders.value.length > 1)
@@ -141,8 +143,8 @@ function subjectDisplay(p: PaymentDto): string {
       </div>
     </div>
 
-    <!-- Filters -->
-    <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
+    <!-- Search + collapsible master filters -->
+    <ListFilterPanel :active-count="activeFilterCount" @clear="resetFilters">
       <UInput
         v-model="search"
         :placeholder="t('payments.movements.searchPlaceholder')"
@@ -150,25 +152,6 @@ function subjectDisplay(p: PaymentDto): string {
         size="lg"
         class="w-full max-w-md"
       />
-      <USelectMenu
-        v-model="directionFilter"
-        :items="directionFilterOptions"
-        label-key="label"
-        value-key="value"
-        icon="i-lucide-arrow-left-right"
-        class="w-40"
-      />
-      <USelectMenu
-        clear
-        v-model="statusFilter"
-        :items="statusFilterOptions"
-        label-key="label"
-        value-key="value"
-        :placeholder="t('payments.statusFilterPlaceholder')"
-        icon="i-lucide-filter"
-        class="w-44"
-      />
-      <PaymentMasterFilters v-model="masterFilters" class="w-full" />
       <UButton
         v-if="hasActiveSort"
         variant="link"
@@ -180,7 +163,30 @@ function subjectDisplay(p: PaymentDto): string {
       >
         {{ t('common.clearSort') }}
       </UButton>
-    </div>
+      <template #filters>
+        <div class="flex flex-wrap items-center gap-3">
+          <USelectMenu
+            v-model="directionFilter"
+            :items="directionFilterOptions"
+            label-key="label"
+            value-key="value"
+            icon="i-lucide-arrow-left-right"
+            class="w-40"
+          />
+          <USelectMenu
+            clear
+            v-model="statusFilter"
+            :items="statusFilterOptions"
+            label-key="label"
+            value-key="value"
+            :placeholder="t('payments.statusFilterPlaceholder')"
+            icon="i-lucide-filter"
+            class="w-44"
+          />
+          <PaymentMasterFilters v-model="masterFilters" />
+        </div>
+      </template>
+    </ListFilterPanel>
 
     <!-- Table -->
     <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-19rem)] min-h-[24rem]">

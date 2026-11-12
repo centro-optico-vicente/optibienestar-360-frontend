@@ -35,3 +35,16 @@ export function listFilterQuery(state: ListFilterState): Record<string, string> 
 /** Number of active filters — handy for a "clear filters" affordance. */
 export const activeListFilterCount = (state: ListFilterState): number =>
   Object.values(state).filter(Boolean).length
+
+/**
+ * How many filters have a value, for the «Filtros» badge of <ListFilterPanel>.
+ * Accepts filter-state objects (each non-blank field counts) and single values;
+ * blank strings, null/undefined, false and empty arrays don't count.
+ */
+export function countActiveFilters(...parts: unknown[]): number {
+  const isSet = (v: unknown) => !(v == null || v === '' || v === false || (Array.isArray(v) && v.length === 0))
+  return parts.reduce<number>((n, p) => {
+    if (p && typeof p === 'object' && !Array.isArray(p)) return n + Object.values(p).filter(isSet).length
+    return n + (isSet(p) ? 1 : 0)
+  }, 0)
+}

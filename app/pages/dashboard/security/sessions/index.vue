@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
 import { defaultTodayRange } from '~/utils/date'
+import { countActiveFilters } from '~/utils/listFilters'
 import type { LoginAuditLogDto, LoginAuditResult } from '~/types/audit'
 import type { SortDirection } from '~/composables/useTableSort'
 
@@ -40,6 +41,7 @@ const RESULT_OPTIONS: { label: string, value: LoginAuditResult }[] = [
 ]
 const resultFilter = ref<LoginAuditResult[]>([])
 const dateRange = ref(defaultTodayRange())
+const activeFilterCount = computed(() => countActiveFilters(resultFilter.value, dateRange.value.from !== defaultTodayRange().from))
 
 const RESULT_META: Record<LoginAuditResult, { color: 'success' | 'error', icon: string }> = {
   SUCCESS: { color: 'success', icon: 'i-lucide-check-circle' },
@@ -161,7 +163,7 @@ onMounted(load)
     </div>
 
     <!-- Filtros -->
-    <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
+    <ListFilterPanel :active-count="activeFilterCount" @clear="resetFilters">
       <UInput
         v-model="search"
         :placeholder="$t('security.sessions.searchPlaceholder')"
@@ -169,17 +171,6 @@ onMounted(load)
         size="lg"
         class="w-full max-w-md"
       />
-      <USelectMenu
-        v-model="resultFilter"
-        :items="RESULT_OPTIONS"
-        label-key="label"
-        value-key="value"
-        multiple
-        clear
-        :placeholder="$t('security.sessions.filters.result')"
-        class="w-56"
-      />
-      <AuditDateRangePicker v-model="dateRange" />
       <UBadge v-if="sessionUuidFilter" color="primary" variant="subtle" class="gap-1">
         {{ $t('security.sessions.filteredBySession') }}
         <UButton color="primary" variant="link" size="xs" :padded="false" @click="clearSessionFilter">
@@ -197,7 +188,22 @@ onMounted(load)
       >
         {{ $t('common.clearSort') }}
       </UButton>
-    </div>
+      <template #filters>
+        <div class="flex flex-wrap items-center gap-3">
+          <USelectMenu
+            v-model="resultFilter"
+            :items="RESULT_OPTIONS"
+            label-key="label"
+            value-key="value"
+            multiple
+            clear
+            :placeholder="$t('security.sessions.filters.result')"
+            class="w-56"
+          />
+          <AuditDateRangePicker v-model="dateRange" />
+        </div>
+      </template>
+    </ListFilterPanel>
 
     <!-- Tabla -->
     <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-18rem)] min-h-[20rem]">

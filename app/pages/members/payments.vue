@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { CreditBalanceDto, PaymentDto } from '~/types/payments'
 import { paymentStatusColor } from '~/types/payments'
+import { countActiveFilters } from '~/utils/listFilters'
 
 // "Mis pagos" (hub plan payments-unification, "Mis portales") — the
 // caller's own collections, with or without a membership (V201: without one the
@@ -44,6 +45,12 @@ const page = ref(1) // UPagination is 1-based; the API is 0-based
 const size = ref(20)
 const dateFrom = ref('')
 const dateTo = ref('')
+const activeFilterCount = computed(() => countActiveFilters(dateFrom.value, dateTo.value))
+
+function clearDateRange() {
+  dateFrom.value = ''
+  dateTo.value = ''
+}
 
 async function load() {
   loading.value = true
@@ -214,9 +221,11 @@ async function confirmDelete() {
       <p class="text-xs text-green-700">{{ t('payments.credit.autoApply') }}</p>
     </div>
 
-    <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
-      <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('payments.filters.dateFrom')" :to-label="t('payments.filters.dateTo')" />
-    </div>
+    <ListFilterPanel :active-count="activeFilterCount" @clear="clearDateRange">
+      <template #filters>
+        <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('payments.filters.dateFrom')" :to-label="t('payments.filters.dateTo')" />
+      </template>
+    </ListFilterPanel>
 
     <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-16rem)] min-h-[24rem]">
       <div class="overflow-auto flex-1">

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
 import { defaultTodayRange } from '~/utils/date'
+import { countActiveFilters } from '~/utils/listFilters'
 import { resolveAuditEntityLink } from '~/utils/audit-entity-link'
 import type { ReportAuditLogDto } from '~/types/audit'
 
@@ -47,6 +48,7 @@ const FORMAT_OPTIONS: { label: string, value: string }[] = [
 ]
 const formatFilter = ref<string[]>([])
 const dateRange = ref(defaultTodayRange())
+const activeFilterCount = computed(() => countActiveFilters(entityKeyFilter.value, actorUuidFilter.value, formatFilter.value, dateRange.value.from !== defaultTodayRange().from))
 
 function formatSize(bytes?: number | null): string {
   if (!bytes) return t('common.empty')
@@ -154,22 +156,26 @@ onMounted(load)
     </div>
 
     <!-- Filtros -->
-    <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
-      <AuditEntityKeyMultiSelect v-model="entityKeyFilter" />
-      <AuditActorSelect v-model="actorUuidFilter" />
-      <USelectMenu
-        v-model="formatFilter"
-        :items="FORMAT_OPTIONS"
-        label-key="label"
-        value-key="value"
-        multiple
-        clear
-        icon="i-lucide-file-type"
-        :placeholder="$t('security.reportsAudit.filters.format')"
-        class="w-48"
-      />
-      <AuditDateRangePicker v-model="dateRange" />
-    </div>
+    <ListFilterPanel :active-count="activeFilterCount" @clear="resetFilters">
+      <template #filters>
+        <div class="flex flex-wrap items-center gap-3">
+          <AuditEntityKeyMultiSelect v-model="entityKeyFilter" />
+          <AuditActorSelect v-model="actorUuidFilter" />
+          <USelectMenu
+            v-model="formatFilter"
+            :items="FORMAT_OPTIONS"
+            label-key="label"
+            value-key="value"
+            multiple
+            clear
+            icon="i-lucide-file-type"
+            :placeholder="$t('security.reportsAudit.filters.format')"
+            class="w-48"
+          />
+          <AuditDateRangePicker v-model="dateRange" />
+        </div>
+      </template>
+    </ListFilterPanel>
 
     <!-- Listado -->
     <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-19rem)] min-h-[20rem]">

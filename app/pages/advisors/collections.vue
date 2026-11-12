@@ -57,6 +57,11 @@ watch([dateFrom, dateTo], () => {
   if (page.value !== 1) page.value = 1
   else load()
 })
+const activeFilterCount = computed(() => countActiveFilters(dateFrom.value, dateTo.value))
+function clearDates() {
+  dateFrom.value = ''
+  dateTo.value = ''
+}
 onMounted(load)
 
 function statusLabel(s?: string | null): string {
@@ -124,9 +129,11 @@ async function confirmDelete() {
       </UTooltip>
     </div>
 
-    <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
-      <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('payments.filters.dateFrom')" :to-label="t('payments.filters.dateTo')" />
-    </div>
+    <ListFilterPanel :active-count="activeFilterCount" @clear="clearDates">
+      <template #filters>
+        <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('payments.filters.dateFrom')" :to-label="t('payments.filters.dateTo')" />
+      </template>
+    </ListFilterPanel>
 
     <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-16rem)] min-h-[24rem]">
       <div class="overflow-auto flex-1">
