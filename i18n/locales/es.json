@@ -1126,7 +1126,11 @@
       "409": "Conflicto: el recurso ya existe o cambió.",
       "422": "No se pudo completar por una regla de negocio.",
       "423": "Cuenta bloqueada temporalmente.",
-      "500": "Error interno. Intenta nuevamente."
+      "429": "Demasiadas solicitudes. Espera un momento e intenta de nuevo.",
+      "500": "Error interno. Intenta nuevamente.",
+      "502": "El servidor no está disponible en este momento. Intenta de nuevo en un minuto.",
+      "503": "El servicio no está disponible temporalmente. Intenta de nuevo en un minuto.",
+      "504": "El servidor tardó demasiado en responder. Intenta de nuevo."
     },
     "forbidden": {
       "seoTitle": "Sin permiso — OptiBienestar 360",

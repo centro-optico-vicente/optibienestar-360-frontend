@@ -93,7 +93,9 @@ export const useDocumentReports = () => {
         } else {
           message = problem.detail || problem.title || ''
         }
-      } else {
+      } else if (contentType.includes('text/plain')) {
+        // Plain text is a direct server message; HTML is a gateway/edge error page (e.g. Cloudflare 502)
+        // and is never shown — the status fallbacks below take over.
         const text = await response.text()
         if (text && text.length < 300) {
           message = text
@@ -142,7 +144,11 @@ export const useDocumentReports = () => {
       throw error
     }
 
-    const toastMsg = message || t(defaultErrorKey)
+    // No server message: gateway/edge statuses (429, 502, 503, 504…) get their own text from
+    // `errors.byStatus`; anything else keeps the report-specific default.
+    const toastMsg = message || (response.status >= 429 && response.status !== 500
+      ? t(`errors.byStatus.${response.status}`, t(defaultErrorKey))
+      : t(defaultErrorKey))
     toast.add({
       title: toastMsg,
       color: 'error',
@@ -163,13 +169,29 @@ export const useDocumentReports = () => {
     }
 
     const activeLocale = String(unref($i18n.locale) ?? 'es')
-    const response = await fetch(endpoint, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${auth.accessToken || ''}`,
-        'Accept-Language': activeLocale,
-      },
-    })
+    let response: Response
+    try {
+      response = await fetch(endpoint, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${auth.accessToken || ''}`,
+          'Accept-Language': activeLocale,
+        },
+      })
+    } catch {
+      // No readable response: offline, DNS, or an edge error page without CORS headers
+      // (the browser blocks it, so the status is unknown). Never show the browser's raw text.
+      const toastMsg = t('errors.network')
+      toast.add({
+        title: toastMsg,
+        color: 'error',
+        icon: 'i-lucide-circle-alert',
+      })
+      const error: any = new Error(toastMsg)
+      error._reported = true
+      error.status = 0
+      throw error
+    }
 
     if (!response.ok) {
       await handleReportError(response, defaultErrorKey)

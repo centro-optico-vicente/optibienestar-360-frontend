@@ -1126,7 +1126,11 @@
       "409": "Conflict: the resource already exists or changed.",
       "422": "Couldn't complete due to a business rule.",
       "423": "Account temporarily locked.",
-      "500": "Internal error. Please try again."
+      "429": "Too many requests. Wait a moment and try again.",
+      "500": "Internal error. Please try again.",
+      "502": "The server is unavailable right now. Try again in a minute.",
+      "503": "The service is temporarily unavailable. Try again in a minute.",
+      "504": "The server took too long to respond. Try again."
     },
     "forbidden": {
       "seoTitle": "No access — OptiBienestar 360",

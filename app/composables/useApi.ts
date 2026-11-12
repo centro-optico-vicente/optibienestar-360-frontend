@@ -98,7 +98,10 @@ export const useApi = async <T = unknown>(
   catch (err) {
     const fetchError = err as FetchError
     const status = fetchError.response?.status ?? 0
-    const problem = (fetchError.response?._data ?? null) as ProblemDetail | null
+    // Only a JSON object is a ProblemDetail. A gateway/edge error (Cloudflare or proxy 502/503/504)
+    // arrives as an HTML page, which ofetch hands over as a string — treat it as "no server message".
+    const rawData = fetchError.response?._data
+    const problem = (rawData && typeof rawData === 'object' ? rawData : null) as ProblemDetail | null
 
     // 401 → refresh the token once and retry the original request.
     if (status === 401 && !skipAuth && !_retried) {
@@ -136,13 +139,13 @@ export const useApi = async <T = unknown>(
       })
     }
 
-    // No response (status 0): never show ofetch's technical text ("[GET] http://…: <no response> Failed to fetch").
+    // Never surface ofetch's technical text ("[GET] http://…: 502 Bad Gateway" / "<no response> Failed to fetch"):
+    // without a server message, fall back to the status message, then to the generic one.
     const apiError: ApiError = {
       status,
       problem,
       message: problemMessage(status, problem, t, formatTime)
-        ?? (status === 0 ? t('errors.network') : fetchError.message)
-        ?? t('errors.network'),
+        ?? (status === 0 ? t('errors.network') : t(`errors.byStatus.${status}`, t('errors.unexpected'))),
     }
     throw apiError
   }
