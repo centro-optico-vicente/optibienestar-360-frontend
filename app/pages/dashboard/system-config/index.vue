@@ -60,8 +60,8 @@ const state = reactive({
   defaultSort: [] as ConfigSortOrder[],
   loginSessionExpirationDays: 30,
   patientMedicalAccessEnabled: false,
-  pdfMaxConcurrentRenders: 2,
-  pdfRenderWaitSeconds: 30,
+  pdfMaxConcurrentRenders: 5,
+  pdfRenderWaitSeconds: 10,
 })
 
 const schema = computed(() =>
@@ -117,8 +117,8 @@ async function load() {
     state.loginSessionExpirationDays = res.loginSessionExpirationDays
     state.defaultSort = res.defaultSort ?? []
     state.patientMedicalAccessEnabled = res.patientMedicalAccessEnabled ?? false
-    state.pdfMaxConcurrentRenders = res.pdfMaxConcurrentRenders ?? 2
-    state.pdfRenderWaitSeconds = res.pdfRenderWaitSeconds ?? 30
+    state.pdfMaxConcurrentRenders = res.pdfMaxConcurrentRenders ?? 5
+    state.pdfRenderWaitSeconds = res.pdfRenderWaitSeconds ?? 10
   }
   catch {
     state.reportFooter = ''
@@ -179,8 +179,8 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     state.loginSessionExpirationDays = updated.loginSessionExpirationDays
     state.defaultSort = updated.defaultSort ?? []
     state.patientMedicalAccessEnabled = updated.patientMedicalAccessEnabled ?? false
-    state.pdfMaxConcurrentRenders = updated.pdfMaxConcurrentRenders ?? 2
-    state.pdfRenderWaitSeconds = updated.pdfRenderWaitSeconds ?? 30
+    state.pdfMaxConcurrentRenders = updated.pdfMaxConcurrentRenders ?? 5
+    state.pdfRenderWaitSeconds = updated.pdfRenderWaitSeconds ?? 10
     snapshot.value = snapshotState()
     toast.add({
       title: t('systemConfig.updatedToast'),

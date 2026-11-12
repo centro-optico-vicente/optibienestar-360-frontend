@@ -5340,7 +5340,7 @@
     },
     "pdfRendering": {
       "maxConcurrentRenders": "PDF generados a la vez",
-      "maxConcurrentRendersHelp": "Cuántas fichas o listados en PDF se generan al mismo tiempo. Cada uno ocupa memoria del servidor; un número alto puede dejarlo sin memoria. Recomendado: 2. Con 0 o -1 no hay límite.",
+      "maxConcurrentRendersHelp": "Cuántas fichas o listados en PDF se generan al mismo tiempo. Cada uno ocupa memoria del servidor; un número alto puede dejarlo sin memoria. Predeterminado: 5. Con 0 o -1 no hay límite.",
       "renderWaitSeconds": "Espera máxima (segundos)",
       "renderWaitSecondsHelp": "Cuánto espera un PDF a que se libere un lugar. Si se cumple el tiempo, el usuario ve un aviso para intentar de nuevo. Con 0 o -1 espera sin límite de tiempo."
     }
