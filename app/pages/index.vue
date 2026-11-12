@@ -11,6 +11,9 @@ definePageMeta({ layout: 'auth', alias: ['/en'], key: 'public-login' })
 const { t } = useI18n()
 const publicPath = usePublicPath()
 
+// Same WhatsApp as the floating contact button of the public website.
+const CONTACT_WHATSAPP_URL = 'https://wa.me/584122925608'
+
 useSeoMeta({
   title: () => t('auth.login.seoTitle'),
   description: () => t('auth.login.seoDescription'),
@@ -231,9 +234,10 @@ const onSendLink = async (): Promise<void> => {
         {{ $t('auth.login.noAccount') }}
         <template v-if="memberSelfRegistrationEnabled">
           <NuxtLink :to="publicPath('/afiliarse')" class="text-cyan-700 font-medium hover:underline">{{ $t('auth.login.joinLink') }}</NuxtLink>
-          {{ $t('auth.login.orContactPromoter') }}
+          {{ $t('auth.login.or') }}
+          <a :href="CONTACT_WHATSAPP_URL" target="_blank" rel="noopener" class="text-prohealth-900 font-medium hover:underline">{{ $t('auth.login.contactPromoterInline') }}</a>
         </template>
-        <span v-else class="text-prohealth-900 font-medium">{{ $t('auth.login.contactPromoter') }}</span>
+        <a v-else :href="CONTACT_WHATSAPP_URL" target="_blank" rel="noopener" class="text-prohealth-900 font-medium hover:underline">{{ $t('auth.login.contactPromoter') }}</a>
       </p>
       <p v-if="allySelfRegistrationEnabled" class="text-center text-sm text-prohealth-700/70">
         {{ $t('auth.login.becomeAllyPrompt') }}
