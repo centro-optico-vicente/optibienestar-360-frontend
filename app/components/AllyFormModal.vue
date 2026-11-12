@@ -71,7 +71,10 @@ const allyTypeOptions = computed<SelectItem[]>(() =>
   allyTypeItems.value.filter(i => !i.segment || i.segment === state.segment))
 // B2P host clinic: another commercial (B2B) ally.
 const hostAllyOptions = ref<SelectItem[]>([])
-const hostAlliesLoaded = ref(false)
+// In-flight/settled request for the B2B host list: opening a B2P ally calls
+// loadHostAllies twice in the same tick (populateEditForm + the segment watcher),
+// and both must share one request.
+let hostAlliesRequest: Promise<void> | null = null
 const professionOptions = ref<SelectItem[]>([])
 const stateOptions = ref<SelectItem[]>([])
 const cityOptions = ref<SelectItem[]>([])
@@ -131,18 +134,21 @@ async function loadCatalogs() {
   catalogsLoaded.value = true
 }
 
-async function loadHostAllies() {
-  if (hostAlliesLoaded.value) return
-  try {
-    const res = await allies.list({ size: 200, sort: ['name,asc'], filter: 'segment==B2B' })
-    hostAllyOptions.value = (res.content ?? [])
-      .filter(a => a.uuid !== props.ally?.uuid)
-      .map(a => ({ label: a.name, value: a.uuid }))
-    hostAlliesLoaded.value = true
-  }
-  catch {
-    hostAllyOptions.value = []
-  }
+function loadHostAllies(): Promise<void> {
+  hostAlliesRequest ??= (async () => {
+    try {
+      const res = await allies.list({ size: 200, sort: ['name,asc'], filter: 'segment==B2B' })
+      hostAllyOptions.value = (res.content ?? [])
+        .filter(a => a.uuid !== props.ally?.uuid)
+        .map(a => ({ label: a.name, value: a.uuid }))
+    }
+    catch {
+      hostAllyOptions.value = []
+      // Let the next segment switch / modal open retry.
+      hostAlliesRequest = null
+    }
+  })()
+  return hostAlliesRequest
 }
 
 // Cities cascade based on the selected state. `pendingCityUuid` lets populateEditForm

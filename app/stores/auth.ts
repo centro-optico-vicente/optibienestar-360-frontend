@@ -388,6 +388,7 @@ export const useAuthStore = defineStore('auth', {
       this.user = null
       this.permissions = []
       this.activeRole = null
+      clearCatalogOptionsCache()
       if (import.meta.client) {
         sessionStorage.removeItem(ACCESS_KEY)
         sessionStorage.removeItem(USER_KEY)
