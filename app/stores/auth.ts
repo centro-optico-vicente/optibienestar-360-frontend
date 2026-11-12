@@ -1,12 +1,15 @@
 import { defineStore } from 'pinia'
 import type { AccessTokenResponse, AuthUser, JwtPayload, LoginResponse, RefreshResponse, UserRole } from '~/types/auth'
 import { ROLES } from '~/types/auth'
+import { postAuthSync } from '~/utils/authChannel'
 
 // Política de almacenamiento (Guía de integración §9):
 // accessToken en sessionStorage (corto, 15 min), refreshToken en localStorage
 // ("recordar sesión"). El backend NO emite cookies httpOnly.
 const ACCESS_KEY = 'op_access_token'
-const REFRESH_KEY = 'op_refresh_token'
+/** localStorage key of the refresh token — shared by every tab (the `session-sync` plugin watches it). */
+export const REFRESH_STORAGE_KEY = 'op_refresh_token'
+const REFRESH_KEY = REFRESH_STORAGE_KEY
 const USER_KEY = 'op_user'
 // Active role of the session, kept next to the access token: `/v1/auth/refresh` may reissue a token without the
 // `role_name` claim (backend#411), and a reload must not lose the role the session started with.
@@ -70,6 +73,31 @@ let refreshTimer: ReturnType<typeof setTimeout> | null = null
 const REFRESH_MARGIN_MS = 60_000
 // Retry delay when the refresh fails for a reason other than a rejected token (network, 5xx, backend restarting).
 const REFRESH_RETRY_MS = 30_000
+
+/**
+ * The refresh token every tab shares. The backend rotates it on each refresh, so a tab's
+ * in-memory copy goes stale as soon as another tab refreshes — always refresh with this one.
+ */
+function sharedRefreshToken(): string | null {
+  if (!import.meta.client) return null
+  try {
+    return localStorage.getItem(REFRESH_KEY)
+  }
+  catch {
+    return null
+  }
+}
+
+/**
+ * Runs the refresh holding a lock shared by every tab of the origin, so two tabs never rotate
+ * the same refresh token at once (one of them would get 401). Browsers without the Web Locks
+ * API run it unlocked — `tryRefresh` then recovers from the race by retrying with the token
+ * the other tab left in localStorage.
+ */
+function withRefreshLock<T>(fn: () => Promise<T>): Promise<T> {
+  const locks = import.meta.client ? navigator.locks : undefined
+  return locks ? locks.request('op-auth-refresh', fn) : fn()
+}
 
 /** Refresh answers that mean the refresh token itself was rejected — the session is over. */
 function isRejectedRefresh(err: unknown): boolean {
@@ -170,6 +198,8 @@ export const useAuthStore = defineStore('auth', {
       this.sessionExpiredAt = null
       this.persist()
       this.scheduleRefresh()
+      // Sign-in or active-role switch: the other tabs pick up the same session (role, permissions, menu).
+      if (res.user) postAuthSync({ type: 'session-changed', userUuid: res.user.uuid, activeRole: this.activeRole })
     },
 
     setTokens(accessToken: string, refreshToken: string): void {
@@ -182,10 +212,25 @@ export const useAuthStore = defineStore('auth', {
       this.scheduleRefresh()
     },
 
-    /** Actualiza el perfil del usuario (p.ej. tras GET /v1/me) sin tocar los tokens. */
-    setUser(user: AuthUser): void {
+    /**
+     * Actualiza el perfil del usuario (p.ej. tras GET /v1/me) sin tocar los tokens.
+     * `broadcast: false` when the update itself came from another tab (no echo).
+     */
+    setUser(user: AuthUser, { broadcast = true }: { broadcast?: boolean } = {}): void {
       this.user = user
       this.persist()
+      if (broadcast) postAuthSync({ type: 'user-updated', user })
+    },
+
+    /**
+     * Another tab rotated (or set) the shared refresh token: keep this tab's copy current so its
+     * own next refresh — or the logout body — doesn't send a revoked token.
+     */
+    adoptRefreshToken(token: string): void {
+      if (token === this.refreshToken) return
+      this.refreshToken = token
+      // A tab that had no refresh token left (retry timer cleared) can renew again.
+      if (!refreshTimer) this.scheduleRefresh()
     },
 
     /**
@@ -200,6 +245,8 @@ export const useAuthStore = defineStore('auth', {
       this.activeRole = activeRoleFromToken(res.accessToken) ?? this.activeRole ?? firstRoleOf(res.user)
       this.persist()
       this.scheduleRefresh()
+      // The locale lives on the user: the other tabs switch language too.
+      postAuthSync({ type: 'user-updated', user: res.user })
     },
 
     persist(): void {
@@ -247,39 +294,55 @@ export const useAuthStore = defineStore('auth', {
     },
 
     /**
-     * Renueva el par de tokens. Comparte la promesa entre llamadas concurrentes.
+     * Renueva el par de tokens. Comparte la promesa entre llamadas concurrentes de esta pestaña,
+     * y un lock entre pestañas (`withRefreshLock`) para que las pestañas se turnen.
+     *
+     * Always refreshes with the SHARED token (localStorage), read inside the lock: another tab may
+     * have rotated it a moment ago, and the in-memory copy would be revoked already.
      *
      * Only a rejected refresh token (400/401/403) ends the session — and marks it as expired so
      * the user is sent to the login screen. A network error or a 5xx (backend restarting, gateway
      * 502) keeps the session and retries later: dropping it there would log everyone out on a blip.
      */
     async tryRefresh(): Promise<boolean> {
-      if (!this.refreshToken) return false
+      if (!this.refreshToken && !sharedRefreshToken()) return false
       if (refreshing) return refreshing
 
-      const config = useRuntimeConfig()
-      refreshing = (async (): Promise<boolean> => {
-        try {
-          const data = await $fetch<RefreshResponse>('/v1/auth/refresh', {
-            baseURL: config.public.apiBaseUrl,
-            method: 'POST',
-            body: { refreshToken: this.refreshToken },
-          })
-          this.setTokens(data.accessToken, data.refreshToken)
-          return true
-        }
-        catch (err) {
-          if (isRejectedRefresh(err)) this.expireSession()
-          else this.scheduleRefreshRetry()
-          return false
-        }
-      })()
+      refreshing = withRefreshLock(() => this.refreshWith(sharedRefreshToken() ?? this.refreshToken, true))
 
       try {
         return await refreshing
       }
       finally {
         refreshing = null
+      }
+    },
+
+    /** One `/v1/auth/refresh` call with `token`; on a lost race, one retry with the newer shared token. */
+    async refreshWith(token: string | null, canRetry: boolean): Promise<boolean> {
+      if (!token) return false
+      this.refreshToken = token
+      const config = useRuntimeConfig()
+      try {
+        const data = await $fetch<RefreshResponse>('/v1/auth/refresh', {
+          baseURL: config.public.apiBaseUrl,
+          method: 'POST',
+          body: { refreshToken: token },
+        })
+        this.setTokens(data.accessToken, data.refreshToken)
+        return true
+      }
+      catch (err) {
+        if (!isRejectedRefresh(err)) {
+          this.scheduleRefreshRetry()
+          return false
+        }
+        // Rejected — but if another tab rotated the token while this call was in flight (no Web
+        // Locks), ours was simply superseded: retry once with theirs instead of logging out.
+        const latest = sharedRefreshToken()
+        if (canRetry && latest && latest !== token) return this.refreshWith(latest, false)
+        this.expireSession()
+        return false
       }
     },
 
