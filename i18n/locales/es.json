@@ -120,6 +120,10 @@
     "invalidUuid": "Debe ser un UUID válido"
   },
   "auth": {
+    "sessionExpired": {
+      "title": "Tu sesión expiró",
+      "description": "Inicia sesión de nuevo para continuar donde estabas."
+    },
     "fields": {
       "email": "Correo electrónico",
       "emailPlaceholder": "tu{'@'}correo.com",

@@ -48,10 +48,12 @@ LABEL org.opencontainers.image.title="optibienestar-360-frontend" \
 ENV NUXT_PUBLIC_API_BASE_URL="https://api-test.centroopticovicente.com"
 
 # Build identity exposed by the entrypoint in /version.json. Fixed at build time
-# from the release tag — not meant to be overridden per environment. Without a
-# build arg (local image) it reports 0.0.1-dev, same as `pnpm dev`.
-ENV APP_VERSION="${BUILD_VERSION}" \
-	APP_BUILD_DATE="${BUILD_DATE}"
+# from the release tag. Without a build arg (local image) it reports 0.0.1-dev,
+# same as `pnpm dev`. Baked into a file instead of ENV on purpose: tools that
+# recreate a container from its previous config (e.g. Portainer "Recreate" after
+# changing only the image) carry over the old container's env, which would shadow
+# the new image's ENV and keep reporting the previous release.
+RUN printf 'version=%s\nbuildDate=%s\n' "${BUILD_VERSION}" "${BUILD_DATE}" > /etc/app-build-info
 
 COPY docker/default.conf /etc/nginx/conf.d/default.conf
 # Runtime config renderer: writes /usr/share/nginx/html/config.js from env vars
