@@ -54,8 +54,8 @@ const methods = useLazyOptions(async () =>
   (await methodsApi.listAll()).filter(m => m.active).map(m => ({ label: m.name, value: m.uuid })))
 
 const filterFields = computed<ListFilterField[]>(() => [
-  { key: 'planUuid', label: t('affiliationRequests.filters.plan'), icon: 'i-lucide-layers', lazy: plans },
   { key: 'promoterUuid', label: t('affiliationRequests.filters.advisor'), icon: 'i-lucide-users', search: promotersApi.searchOptions },
+  { key: 'planUuid', label: t('affiliationRequests.filters.plan'), icon: 'i-lucide-layers', lazy: plans },
   { key: 'paymentMethodUuid', label: t('affiliationRequests.filters.paymentMethod'), icon: 'i-lucide-credit-card', lazy: methods },
   { key: 'dateFrom', toKey: 'dateTo', label: t('affiliationRequests.filters.dateFrom'), toLabel: t('affiliationRequests.filters.dateTo'), type: 'dateRange' },
 ])

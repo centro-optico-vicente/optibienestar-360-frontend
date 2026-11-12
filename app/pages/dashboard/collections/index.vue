@@ -257,19 +257,17 @@ async function confirmDelete() {
         {{ t('common.clearSort') }}
       </UButton>
       <template #filters>
-        <div class="flex flex-wrap items-center gap-3">
-          <USelectMenu
-            v-model="statusFilter"
-            clear
-            :items="statusFilterOptions"
-            label-key="label"
-            value-key="value"
-            :placeholder="t('payments.statusFilterPlaceholder')"
-            icon="i-lucide-filter"
-            class="w-44"
-          />
-          <PaymentMasterFilters v-model="masterFilters" />
-        </div>
+        <USelectMenu
+          v-model="statusFilter"
+          clear
+          :items="statusFilterOptions"
+          label-key="label"
+          value-key="value"
+          :placeholder="t('payments.statusFilterPlaceholder')"
+          icon="i-lucide-filter"
+          class="w-full"
+        />
+        <PaymentMasterFilters v-model="masterFilters" />
       </template>
     </ListFilterPanel>
 

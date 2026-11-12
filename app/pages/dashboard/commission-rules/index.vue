@@ -954,35 +954,33 @@ onMounted(() => {
           {{ t('common.clearSort') }}
         </UButton>
         <template #filters>
-          <div class="flex flex-wrap items-center gap-3">
-            <USelectMenu
-              v-model="tierPromoterTypeUuid"
-              clear
-              :items="promoterTypeFilterItems"
-              label-key="label"
-              value-key="value"
-              icon="i-lucide-users"
-              class="w-56"
-            />
-            <USelectMenu
-              v-model="tierPlanType"
-              clear
-              :items="planTypeFilterItems"
-              label-key="label"
-              value-key="value"
-              icon="i-lucide-layout-grid"
-              class="w-56"
-            />
-            <USelectMenu
-              v-model="tierAppliesTo"
-              clear
-              :items="appliesToFilterItems"
-              label-key="label"
-              value-key="value"
-              icon="i-lucide-target"
-              class="w-48"
-            />
-          </div>
+          <USelectMenu
+            v-model="tierPromoterTypeUuid"
+            clear
+            :items="promoterTypeFilterItems"
+            label-key="label"
+            value-key="value"
+            icon="i-lucide-users"
+            class="w-full"
+          />
+          <USelectMenu
+            v-model="tierPlanType"
+            clear
+            :items="planTypeFilterItems"
+            label-key="label"
+            value-key="value"
+            icon="i-lucide-layout-grid"
+            class="w-full"
+          />
+          <USelectMenu
+            v-model="tierAppliesTo"
+            clear
+            :items="appliesToFilterItems"
+            label-key="label"
+            value-key="value"
+            icon="i-lucide-target"
+            class="w-full"
+          />
         </template>
       </ListFilterPanel>
       <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">
@@ -1130,7 +1128,7 @@ onMounted(() => {
             label-key="label"
             value-key="value"
             icon="i-lucide-users"
-            class="w-56"
+            class="w-full"
           />
         </template>
       </ListFilterPanel>
@@ -1288,7 +1286,7 @@ onMounted(() => {
             label-key="label"
             value-key="value"
             icon="i-lucide-users"
-            class="w-56"
+            class="w-full"
           />
         </template>
       </ListFilterPanel>
@@ -1419,26 +1417,24 @@ onMounted(() => {
           {{ t('common.clearSort') }}
         </UButton>
         <template #filters>
-          <div class="flex flex-wrap items-center gap-3">
-            <USelectMenu
-              v-model="overrideRankUuid"
-              clear
-              :items="rankFilterItems"
-              label-key="label"
-              value-key="value"
-              icon="i-lucide-network"
-              class="w-56"
-            />
-            <USelectMenu
-              v-model="overrideCategory"
-              clear
-              :items="categoryFilterItems"
-              label-key="label"
-              value-key="value"
-              icon="i-lucide-target"
-              class="w-48"
-            />
-          </div>
+          <USelectMenu
+            v-model="overrideRankUuid"
+            clear
+            :items="rankFilterItems"
+            label-key="label"
+            value-key="value"
+            icon="i-lucide-network"
+            class="w-full"
+          />
+          <USelectMenu
+            v-model="overrideCategory"
+            clear
+            :items="categoryFilterItems"
+            label-key="label"
+            value-key="value"
+            icon="i-lucide-target"
+            class="w-full"
+          />
         </template>
       </ListFilterPanel>
       <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden">

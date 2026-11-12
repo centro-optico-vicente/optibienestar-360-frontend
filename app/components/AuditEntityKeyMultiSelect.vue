@@ -34,7 +34,7 @@ const items = computed((): { label: string, value: string }[] =>
     multiple
     clear
     :placeholder="t('security.dataChanges.filters.entityKeyAll')"
-    class="w-64"
+    class="w-full"
     @update:model-value="(v: string[]) => $emit('update:modelValue', v)"
   />
 </template>

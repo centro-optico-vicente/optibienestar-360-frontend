@@ -656,7 +656,7 @@ async function confirmDelete() {
           label-key="label"
           value-key="value"
           :placeholder="$t('catalogs.filterByParent')"
-          class="w-full max-w-xs"
+          class="w-full"
           @update:open="parents.onOpen"
         />
       </template>

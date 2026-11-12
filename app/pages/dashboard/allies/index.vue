@@ -313,33 +313,31 @@ async function confirmDelete() {
         {{ t('common.clearSort') }}
       </UButton>
       <template #filters>
-        <div class="flex flex-wrap items-center gap-3">
-          <USelectMenu
-            v-model="segmentFilter"
-            clear
-            :items="segmentFilterOptions"
-            value-key="value"
-            label-key="label"
-            :search-input="false"
-            :placeholder="t('allies.form.fields.segment')"
-            icon="i-lucide-layers"
-            class="w-56"
-          />
-          <USelectMenu
-            v-if="advisors.available.value"
-            v-model="promoterUuid"
-            clear
-            :items="advisorItems.items.value"
-            :loading="advisorItems.loading.value"
-            value-key="value"
-            label-key="label"
-            :placeholder="t('allies.advisor.filter')"
-            icon="i-lucide-user-check"
-            class="w-64"
-            @update:open="advisorItems.onOpen"
-          />
-          <AllyMasterFilters v-model="masterFilters" />
-        </div>
+        <USelectMenu
+          v-model="segmentFilter"
+          clear
+          :items="segmentFilterOptions"
+          value-key="value"
+          label-key="label"
+          :search-input="false"
+          :placeholder="t('allies.form.fields.segment')"
+          icon="i-lucide-layers"
+          class="w-full"
+        />
+        <USelectMenu
+          v-if="advisors.available.value"
+          v-model="promoterUuid"
+          clear
+          :items="advisorItems.items.value"
+          :loading="advisorItems.loading.value"
+          value-key="value"
+          label-key="label"
+          :placeholder="t('allies.advisor.filter')"
+          icon="i-lucide-user-check"
+          class="w-full"
+          @update:open="advisorItems.onOpen"
+        />
+        <AllyMasterFilters v-model="masterFilters" />
       </template>
     </ListFilterPanel>
 

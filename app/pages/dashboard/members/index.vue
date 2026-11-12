@@ -64,11 +64,7 @@ async function searchCities(q: string): Promise<SelectItem[]> {
 }
 
 const filterFields = computed<ListFilterField[]>(() => [
-  // The advisor list needs PROMOTER_VIEW_ALL; without it the filter is not offered.
-  ...(canViewPromoter.value ? [{ key: 'promoterUuid', label: t('members.filters.advisor'), icon: 'i-lucide-users', search: promotersApi.searchOptions }] : []),
-  { key: 'genderUuid', label: t('members.filters.gender'), icon: 'i-lucide-venus-and-mars', lazy: genders, class: 'w-40' },
-  { key: 'cityUuid', label: t('members.filters.city'), icon: 'i-lucide-map-pin', search: searchCities },
-  { key: 'occupationUuid', label: t('members.filters.occupation'), icon: 'i-lucide-briefcase', lazy: occupations },
+  // Order: status → entity references → catalogs → location → date range.
   {
     key: 'confirmed',
     label: t('members.filters.confirmation'),
@@ -77,8 +73,12 @@ const filterFields = computed<ListFilterField[]>(() => [
       { label: t('members.filters.confirmed'), value: 'true' },
       { label: t('members.filters.pending'), value: 'false' },
     ],
-    class: 'w-44',
   },
+  // The advisor list needs PROMOTER_VIEW_ALL; without it the filter is not offered.
+  ...(canViewPromoter.value ? [{ key: 'promoterUuid', label: t('members.filters.advisor'), icon: 'i-lucide-users', search: promotersApi.searchOptions }] : []),
+  { key: 'genderUuid', label: t('members.filters.gender'), icon: 'i-lucide-venus-and-mars', lazy: genders },
+  { key: 'occupationUuid', label: t('members.filters.occupation'), icon: 'i-lucide-briefcase', lazy: occupations },
+  { key: 'cityUuid', label: t('members.filters.city'), icon: 'i-lucide-map-pin', search: searchCities },
   // Enrollment date range (members.enrolledAt) — sent as dateFrom/dateTo.
   { key: 'dateFrom', toKey: 'dateTo', label: t('members.filters.enrolledFrom'), toLabel: t('members.filters.enrolledTo'), type: 'dateRange' },
 ])

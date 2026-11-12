@@ -18,7 +18,8 @@ function patch(key: string, value: unknown) {
 </script>
 
 <template>
-  <div class="flex flex-wrap items-center gap-3">
+  <!-- `contents`: each control is a direct cell of the ListFilterPanel grid. -->
+  <div class="contents">
     <template v-for="f in fields" :key="f.key">
       <DateRangeFilter
         v-if="f.type === 'dateRange' && f.toKey"
@@ -34,7 +35,7 @@ function patch(key: string, value: unknown) {
         type="date"
         :aria-label="f.label"
         :title="f.label"
-        :class="f.class ?? 'w-40'"
+        :class="f.class ?? 'w-full'"
         @update:model-value="patch(f.key, $event)"
       />
       <CommonEntityReferenceSelect
@@ -43,7 +44,7 @@ function patch(key: string, value: unknown) {
         :search="f.search"
         :icon="f.icon"
         :placeholder="f.label"
-        :class="f.class ?? 'w-56'"
+        :class="f.class ?? 'w-full'"
         @update:model-value="patch(f.key, $event)"
       />
       <USelectMenu
@@ -56,7 +57,7 @@ function patch(key: string, value: unknown) {
         value-key="value"
         :icon="f.icon"
         :placeholder="f.label"
-        :class="f.class ?? 'w-48'"
+        :class="f.class ?? 'w-full'"
         @update:model-value="patch(f.key, $event)"
         @update:open="f.lazy?.onOpen($event)"
       />

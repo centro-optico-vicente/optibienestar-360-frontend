@@ -40,7 +40,7 @@ const value = computed({
     entity="scheduled_job"
     icon="i-lucide-timer"
     :placeholder="t('security.jobRuns.filters.jobPlaceholder')"
-    class="w-64"
+    class="w-full"
     @navigate="(to: string) => navigateTo(to)"
     @open="options.onOpen"
   />

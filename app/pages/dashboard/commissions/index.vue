@@ -423,52 +423,50 @@ async function confirmVoid() {
         {{ t('common.clearSort') }}
       </UButton>
       <template #filters>
-        <div class="flex flex-wrap items-center gap-3">
-          <UInput
-            v-model="filter"
-            :placeholder="t('commissions.filterPlaceholder')"
-            icon="i-lucide-filter"
-            size="lg"
-            class="w-full max-w-md font-mono"
-          />
-          <CommonEntityReferenceSelect
-            v-model="promoterUuid"
-            :search="promotersApi.searchOptions"
-            icon="i-lucide-users"
-            :placeholder="t('commissions.filters.advisor')"
-            class="w-52"
-          />
-          <CommonEntityReferenceSelect
-            v-model="memberUuid"
-            :search="searchMembers"
-            icon="i-lucide-user"
-            :placeholder="t('commissions.filters.member')"
-            class="w-52"
-          />
-          <USelectMenu
-            v-model="statusFilter"
-            clear
-            :items="statusOptions"
-            label-key="label"
-            value-key="value"
-            icon="i-lucide-filter"
-            :placeholder="t('commissions.filters.status')"
-            class="w-44"
-          />
-          <USelectMenu
-            v-model="currencyFilter"
-            clear
-            :items="currencies.items.value"
-            :loading="currencies.loading.value"
-            label-key="label"
-            value-key="value"
-            icon="i-lucide-coins"
-            :placeholder="t('commissions.filters.currency')"
-            class="w-40"
-            @update:open="currencies.onOpen"
-          />
-          <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('commissions.filters.dateFrom')" :to-label="t('commissions.filters.dateTo')" />
-        </div>
+        <USelectMenu
+          v-model="statusFilter"
+          clear
+          :items="statusOptions"
+          label-key="label"
+          value-key="value"
+          icon="i-lucide-filter"
+          :placeholder="t('commissions.filters.status')"
+          class="w-full"
+        />
+        <CommonEntityReferenceSelect
+          v-model="promoterUuid"
+          :search="promotersApi.searchOptions"
+          icon="i-lucide-users"
+          :placeholder="t('commissions.filters.advisor')"
+          class="w-full"
+        />
+        <CommonEntityReferenceSelect
+          v-model="memberUuid"
+          :search="searchMembers"
+          icon="i-lucide-user"
+          :placeholder="t('commissions.filters.member')"
+          class="w-full"
+        />
+        <USelectMenu
+          v-model="currencyFilter"
+          clear
+          :items="currencies.items.value"
+          :loading="currencies.loading.value"
+          label-key="label"
+          value-key="value"
+          icon="i-lucide-coins"
+          :placeholder="t('commissions.filters.currency')"
+          class="w-full"
+          @update:open="currencies.onOpen"
+        />
+        <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('commissions.filters.dateFrom')" :to-label="t('commissions.filters.dateTo')" />
+        <UInput
+          v-model="filter"
+          :placeholder="t('commissions.filterPlaceholder')"
+          icon="i-lucide-filter"
+          size="lg"
+          class="w-full font-mono col-span-full"
+        />
       </template>
     </ListFilterPanel>
 

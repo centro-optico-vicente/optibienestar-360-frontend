@@ -41,14 +41,23 @@ function patch(partial: Partial<PaymentMasterFilterState>) {
 </script>
 
 <template>
-  <div class="flex flex-wrap items-center gap-3">
+  <!-- `contents`: each control is a direct cell of the ListFilterPanel grid. -->
+  <div class="contents">
     <CommonEntityReferenceSelect
       :model-value="model.memberUuid || undefined"
       :search="searchMembers"
       icon="i-lucide-user"
       :placeholder="t('payments.filters.member')"
-      class="w-56"
+      class="w-full"
       @update:model-value="patch({ memberUuid: $event ?? '' })"
+    />
+    <CommonEntityReferenceSelect
+      :model-value="model.promoterUuid || undefined"
+      :search="promotersApi.searchOptions"
+      icon="i-lucide-users"
+      :placeholder="t('payments.filters.advisor')"
+      class="w-full"
+      @update:model-value="patch({ promoterUuid: $event ?? '' })"
     />
     <USelectMenu
       :model-value="model.paymentMethodUuid || undefined"
@@ -60,7 +69,7 @@ function patch(partial: Partial<PaymentMasterFilterState>) {
       value-key="value"
       icon="i-lucide-credit-card"
       :placeholder="t('payments.filters.method')"
-      class="w-44"
+      class="w-full"
       @update:model-value="patch({ paymentMethodUuid: $event ?? '' })"
     />
     <USelectMenu
@@ -73,7 +82,7 @@ function patch(partial: Partial<PaymentMasterFilterState>) {
       value-key="value"
       icon="i-lucide-landmark"
       :placeholder="t('payments.filters.bank')"
-      class="w-48"
+      class="w-full"
       @update:model-value="patch({ bankUuid: $event ?? '' })"
     />
     <USelectMenu
@@ -86,16 +95,8 @@ function patch(partial: Partial<PaymentMasterFilterState>) {
       value-key="value"
       icon="i-lucide-tag"
       :placeholder="t('payments.filters.category')"
-      class="w-48"
+      class="w-full"
       @update:model-value="patch({ categoryUuid: $event ?? '' })"
-    />
-    <CommonEntityReferenceSelect
-      :model-value="model.promoterUuid || undefined"
-      :search="promotersApi.searchOptions"
-      icon="i-lucide-users"
-      :placeholder="t('payments.filters.advisor')"
-      class="w-48"
-      @update:model-value="patch({ promoterUuid: $event ?? '' })"
     />
     <USelectMenu
       :model-value="model.currency || undefined"
@@ -107,7 +108,7 @@ function patch(partial: Partial<PaymentMasterFilterState>) {
       value-key="value"
       icon="i-lucide-coins"
       :placeholder="t('payments.filters.currency')"
-      class="w-36"
+      class="w-full"
       @update:model-value="patch({ currency: $event ?? '' })"
     />
     <DateRangeFilter

@@ -158,22 +158,20 @@ onMounted(load)
     <!-- Filtros -->
     <ListFilterPanel :active-count="activeFilterCount" @clear="resetFilters">
       <template #filters>
-        <div class="flex flex-wrap items-center gap-3">
-          <AuditEntityKeyMultiSelect v-model="entityKeyFilter" />
-          <AuditActorSelect v-model="actorUuidFilter" />
-          <USelectMenu
-            v-model="formatFilter"
-            :items="FORMAT_OPTIONS"
-            label-key="label"
-            value-key="value"
-            multiple
-            clear
-            icon="i-lucide-file-type"
-            :placeholder="$t('security.reportsAudit.filters.format')"
-            class="w-48"
-          />
-          <AuditDateRangePicker v-model="dateRange" />
-        </div>
+        <AuditActorSelect v-model="actorUuidFilter" />
+        <AuditEntityKeyMultiSelect v-model="entityKeyFilter" />
+        <USelectMenu
+          v-model="formatFilter"
+          :items="FORMAT_OPTIONS"
+          label-key="label"
+          value-key="value"
+          multiple
+          clear
+          icon="i-lucide-file-type"
+          :placeholder="$t('security.reportsAudit.filters.format')"
+          class="w-full"
+        />
+        <AuditDateRangePicker v-model="dateRange" />
       </template>
     </ListFilterPanel>
 

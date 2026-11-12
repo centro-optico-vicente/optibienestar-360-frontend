@@ -288,7 +288,7 @@ async function confirmDelete() {
         v-model="search"
         :placeholder="t('exchangeRates.filters.searchPlaceholder')"
         icon="i-lucide-search"
-        class="w-56"
+        class="w-full sm:max-w-md"
       />
       <UButton
         v-if="hasActiveSort"
@@ -302,43 +302,41 @@ async function confirmDelete() {
         {{ t('common.clearSort') }}
       </UButton>
       <template #filters>
-        <div class="flex flex-wrap items-center gap-3">
-          <USelectMenu
-            v-model="base"
-            clear
-            :items="currencies.items.value"
-            :loading="currencies.loading.value"
-            label-key="label"
-            value-key="value"
-            :placeholder="t('exchangeRates.filters.basePlaceholder')"
-            icon="i-lucide-coins"
-            class="w-44"
-            @update:open="currencies.onOpen"
-          />
-          <USelectMenu
-            v-model="quote"
-            clear
-            :items="currencies.items.value"
-            :loading="currencies.loading.value"
-            label-key="label"
-            value-key="value"
-            :placeholder="t('exchangeRates.filters.quotePlaceholder')"
-            icon="i-lucide-coins"
-            class="w-44"
-            @update:open="currencies.onOpen"
-          />
-          <USelectMenu
-            v-model="sourceFilter"
-            clear
-            :items="sourceOptions"
-            label-key="label"
-            value-key="value"
-            :placeholder="t('exchangeRates.filters.sourcePlaceholder')"
-            icon="i-lucide-database"
-            class="w-40"
-          />
-          <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('exchangeRates.filters.dateFrom')" :to-label="t('exchangeRates.filters.dateTo')" />
-        </div>
+        <USelectMenu
+          v-model="base"
+          clear
+          :items="currencies.items.value"
+          :loading="currencies.loading.value"
+          label-key="label"
+          value-key="value"
+          :placeholder="t('exchangeRates.filters.basePlaceholder')"
+          icon="i-lucide-coins"
+          class="w-full"
+          @update:open="currencies.onOpen"
+        />
+        <USelectMenu
+          v-model="quote"
+          clear
+          :items="currencies.items.value"
+          :loading="currencies.loading.value"
+          label-key="label"
+          value-key="value"
+          :placeholder="t('exchangeRates.filters.quotePlaceholder')"
+          icon="i-lucide-coins"
+          class="w-full"
+          @update:open="currencies.onOpen"
+        />
+        <USelectMenu
+          v-model="sourceFilter"
+          clear
+          :items="sourceOptions"
+          label-key="label"
+          value-key="value"
+          :placeholder="t('exchangeRates.filters.sourcePlaceholder')"
+          icon="i-lucide-database"
+          class="w-full"
+        />
+        <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('exchangeRates.filters.dateFrom')" :to-label="t('exchangeRates.filters.dateTo')" />
       </template>
     </ListFilterPanel>
 

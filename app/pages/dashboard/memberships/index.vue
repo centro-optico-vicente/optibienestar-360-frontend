@@ -209,28 +209,12 @@ function paymentStatusColor(s?: string | null): 'error' | 'warning' | 'success' 
         />
       </div>
       <template v-if="!selectedMemberUuid" #filters>
-        <div class="space-y-3">
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <UFormField :label="t('memberships.page.filters.status')">
-              <USelectMenu v-model="filters.status" clear :items="statusOptions" label-key="label" value-key="value" :placeholder="t('memberships.page.filters.any')" class="w-full" />
-            </UFormField>
-            <UFormField :label="t('memberships.page.filters.advisor')">
-              <CommonEntityReferenceSelect v-model="filters.promoterUuid" :search="promotersApi.searchOptions" :placeholder="t('memberships.page.filters.any')" class="w-full" />
-            </UFormField>
-            <UFormField :label="t('memberships.page.filters.plan')">
-              <USelectMenu v-model="filters.planUuid" clear :items="plans.items.value" :loading="plans.loading.value" label-key="label" value-key="value" :placeholder="t('memberships.page.filters.any')" class="w-full" @update:open="plans.onOpen" />
-            </UFormField>
-            <UFormField :label="t('memberships.page.filters.planType')">
-              <USelectMenu v-model="filters.planType" clear :items="planTypeOptions" label-key="label" value-key="value" :placeholder="t('memberships.page.filters.any')" class="w-full" />
-            </UFormField>
-          </div>
-          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <UFormField :label="t('memberships.page.filters.enrolledFrom')"><UInput v-model="filters.enrolledFrom" type="date" class="w-full" /></UFormField>
-            <UFormField :label="t('memberships.page.filters.enrolledTo')"><UInput v-model="filters.enrolledTo" type="date" class="w-full" /></UFormField>
-            <UFormField :label="t('memberships.page.filters.nextDueFrom')"><UInput v-model="filters.nextDueFrom" type="date" class="w-full" /></UFormField>
-            <UFormField :label="t('memberships.page.filters.nextDueTo')"><UInput v-model="filters.nextDueTo" type="date" class="w-full" /></UFormField>
-          </div>
-        </div>
+        <USelectMenu v-model="filters.status" clear :items="statusOptions" label-key="label" value-key="value" :placeholder="t('memberships.page.filters.status')" :aria-label="t('memberships.page.filters.status')" class="w-full" />
+        <CommonEntityReferenceSelect v-model="filters.promoterUuid" :search="promotersApi.searchOptions" :placeholder="t('memberships.page.filters.advisor')" class="w-full" />
+        <USelectMenu v-model="filters.planUuid" clear :items="plans.items.value" :loading="plans.loading.value" label-key="label" value-key="value" :placeholder="t('memberships.page.filters.plan')" :aria-label="t('memberships.page.filters.plan')" class="w-full" @update:open="plans.onOpen" />
+        <USelectMenu v-model="filters.planType" clear :items="planTypeOptions" label-key="label" value-key="value" :placeholder="t('memberships.page.filters.planType')" :aria-label="t('memberships.page.filters.planType')" class="w-full" />
+        <DateRangeFilter v-model:from="filters.enrolledFrom" v-model:to="filters.enrolledTo" :from-label="t('memberships.page.filters.enrolledFrom')" :to-label="t('memberships.page.filters.enrolledTo')" />
+        <DateRangeFilter v-model:from="filters.nextDueFrom" v-model:to="filters.nextDueTo" :from-label="t('memberships.page.filters.nextDueFrom')" :to-label="t('memberships.page.filters.nextDueTo')" />
       </template>
     </ListFilterPanel>
 

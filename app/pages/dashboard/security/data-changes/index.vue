@@ -182,21 +182,19 @@ onMounted(load)
         class="w-full max-w-md"
       />
       <template #filters>
-        <div class="flex flex-wrap items-center gap-3">
-          <AuditEntityKeyMultiSelect v-model="entityKeyFilter" />
-          <AuditActorSelect v-model="actorUuidFilter" />
-          <USelectMenu
-            v-model="actionFilter"
-            :items="ACTION_OPTIONS"
-            label-key="label"
-            value-key="value"
-            multiple
-            clear
-            :placeholder="$t('security.dataChanges.filters.action')"
-            class="w-52"
-          />
-          <AuditDateRangePicker v-model="dateRange" />
-        </div>
+        <AuditActorSelect v-model="actorUuidFilter" />
+        <AuditEntityKeyMultiSelect v-model="entityKeyFilter" />
+        <USelectMenu
+          v-model="actionFilter"
+          :items="ACTION_OPTIONS"
+          label-key="label"
+          value-key="value"
+          multiple
+          clear
+          :placeholder="$t('security.dataChanges.filters.action')"
+          class="w-full"
+        />
+        <AuditDateRangePicker v-model="dateRange" />
       </template>
     </ListFilterPanel>
 

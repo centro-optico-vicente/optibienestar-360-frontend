@@ -177,30 +177,28 @@ onMounted(load)
         {{ $t('common.clearSort') }}
       </UButton>
       <template #filters>
-        <div class="flex flex-wrap items-center gap-3">
-          <ScheduledJobSelect v-model="jobUuidFilter" />
-          <USelectMenu
-            v-model="outcomeFilter"
-            :items="OUTCOME_OPTIONS"
-            label-key="label"
-            value-key="value"
-            multiple
-            clear
-            :placeholder="$t('security.jobRuns.filters.outcome')"
-            class="w-52"
-          />
-          <USelectMenu
-            v-model="triggerFilter"
-            :items="TRIGGER_OPTIONS"
-            label-key="label"
-            value-key="value"
-            multiple
-            clear
-            :placeholder="$t('security.jobRuns.filters.trigger')"
-            class="w-52"
-          />
-          <AuditDateRangePicker v-model="dateRange" />
-        </div>
+        <USelectMenu
+          v-model="outcomeFilter"
+          :items="OUTCOME_OPTIONS"
+          label-key="label"
+          value-key="value"
+          multiple
+          clear
+          :placeholder="$t('security.jobRuns.filters.outcome')"
+          class="w-full"
+        />
+        <ScheduledJobSelect v-model="jobUuidFilter" />
+        <USelectMenu
+          v-model="triggerFilter"
+          :items="TRIGGER_OPTIONS"
+          label-key="label"
+          value-key="value"
+          multiple
+          clear
+          :placeholder="$t('security.jobRuns.filters.trigger')"
+          class="w-full"
+        />
+        <AuditDateRangePicker v-model="dateRange" />
       </template>
     </ListFilterPanel>
 

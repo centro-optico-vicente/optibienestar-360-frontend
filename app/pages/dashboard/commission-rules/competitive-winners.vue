@@ -209,14 +209,13 @@ async function confirmRevert() {
         />
       </UFormField>
       <template #filters>
-        <div class="flex flex-wrap items-center gap-3">
-          <UFormField :label="t('competitiveWinners.filters.rule')" class="w-full sm:w-64">
-            <CommonEntityReferenceSelect v-model="ruleUuid" :search="searchRules" icon="i-lucide-trophy" :placeholder="t('common.select')" />
-          </UFormField>
-          <UFormField :label="t('competitiveWinners.filters.period')">
-            <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('competitiveWinners.filters.dateFrom')" :to-label="t('competitiveWinners.filters.dateTo')" />
-          </UFormField>
-        </div>
+        <UFormField :label="t('competitiveWinners.filters.rule')" class="w-full">
+          <CommonEntityReferenceSelect v-model="ruleUuid" :search="searchRules" icon="i-lucide-trophy" :placeholder="t('common.select')" />
+        </UFormField>
+        <!-- The labelled field is the grid cell, so it takes the range's two columns. -->
+        <UFormField :label="t('competitiveWinners.filters.period')" class="sm:col-span-2">
+          <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('competitiveWinners.filters.dateFrom')" :to-label="t('competitiveWinners.filters.dateTo')" />
+        </UFormField>
       </template>
     </ListFilterPanel>
 
