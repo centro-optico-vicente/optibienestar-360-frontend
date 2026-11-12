@@ -34,6 +34,8 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@iconify-json/lucide": "^1.2.153",
+    "@iconify-json/simple-icons": "^1.2.102",
     "@nuxt/devtools": "^3.4.4",
     "@types/dompurify": "^3.2.0",
     "@types/markdown-it": "^14.2.0",
