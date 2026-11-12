@@ -109,8 +109,10 @@ export const useApi = async <T = unknown>(
       if (refreshed) {
         return useApi<T>(url, { ...options, _retried: true })
       }
-      auth.clearSession()
-      if (import.meta.client) await navigateTo(currentLoginPath())
+      // A rejected refresh token already expired the session inside tryRefresh. With no refresh
+      // token at all, the 401 ends it here. Either way the `session-expiry` plugin sends the user to
+      // the login screen. A transient refresh failure keeps the token: the error just propagates.
+      if (!auth.refreshToken) auth.expireSession()
     }
 
     // 403 terms.pending: the module's contract (ASESOR / ALIADO) was postponed —
