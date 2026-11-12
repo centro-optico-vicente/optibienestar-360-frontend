@@ -129,20 +129,17 @@ const schema = computed(() => {
 
 // ---- Catalogs ----
 const typeOptions = computed(() => PRODUCT_TYPE_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
-const categoryOptions = ref<SelectItem[]>([])
-
-async function loadCategories() {
-  if (categoryOptions.value.length) return
-  try {
-    const items = await usePublicCatalog('product-categories').list()
-    categoryOptions.value = items
-      .filter(i => i.active !== false)
-      .map(i => ({ label: i.name, value: i.uuid }))
-  }
-  catch {
-    categoryOptions.value = []
-  }
-}
+// Fetched the first time the dropdown opens; on edit the offer's category label is
+// seeded so it shows without loading the whole list.
+const categories = useLazyOptions(async () =>
+  (await usePublicCatalog('product-categories').list())
+    .filter(i => i.active !== false)
+    .map(i => ({ label: i.name, value: i.uuid })))
+const seededCategory = ref<SelectItem[]>([])
+const categoryOptions = computed<SelectItem[]>(() => {
+  const seen = new Set(categories.items.value.map(i => i.value))
+  return [...seededCategory.value.filter(i => !seen.has(i.value)), ...categories.items.value]
+})
 
 // ---- General product search (server-side, debounced) ----
 const productSearchTerm = ref('')
@@ -167,6 +164,14 @@ async function searchProducts(q?: string) {
   }
 }
 
+// The first page of general products is fetched when the dropdown first opens.
+let productsSearched = false
+function onProductsOpen(open: boolean) {
+  if (!open || productsSearched) return
+  productsSearched = true
+  void searchProducts()
+}
+
 const debouncedSearchProducts = useSearchDebounce((term: string) => searchProducts(term))
 watch(productSearchTerm, (q) => {
   const term = q.trim()
@@ -183,11 +188,9 @@ watch(() => props.open, async (open) => {
   editing.value = null
   source.value = canPickGeneral.value ? 'general' : 'exclusive'
   productSearchTerm.value = ''
-  loadCategories()
-  if (props.mode === 'create') {
-    searchProducts()
-    return
-  }
+  productsSearched = false
+  seededCategory.value = []
+  if (props.mode === 'create') return
   if (!props.offerUuid) return
   editLoading.value = true
   try {
@@ -195,6 +198,9 @@ watch(() => props.open, async (open) => {
     editing.value = full
     state.productUuid = full.productUuid
     state.productCategoryUuid = full.productCategory?.uuid
+    if (full.productCategory?.uuid) {
+      seededCategory.value = [{ label: full.productCategory.name, value: full.productCategory.uuid }]
+    }
     state.productType = (full.productType as ProductType) || 'SERVICE'
     state.name = full.name ?? ''
     state.description = full.description ?? ''
@@ -327,6 +333,7 @@ function requestDelete() {
             :placeholder="t('allies.products.form.productSearchPlaceholder')"
             :search-input="{ placeholder: t('allies.products.form.productSearchPlaceholder'), icon: 'i-lucide-search' }"
             class="w-full"
+            @update:open="onProductsOpen"
           />
         </UFormField>
 
@@ -362,10 +369,12 @@ function requestDelete() {
                 clear
                 v-model="state.productCategoryUuid"
                 :items="categoryOptions"
+                :loading="categories.loading.value"
                 label-key="label"
                 value-key="value"
                 :placeholder="t('common.select')"
                 class="w-full"
+                @update:open="categories.onOpen"
               />
             </UFormField>
           </div>

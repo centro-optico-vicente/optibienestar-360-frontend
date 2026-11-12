@@ -89,20 +89,17 @@ const schema = computed(() => z.object({
 
 // ---- Catalogs ----
 const typeOptions = computed(() => PRODUCT_TYPE_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
-const categoryOptions = ref<SelectItem[]>([])
-
-async function loadCategories() {
-  if (categoryOptions.value.length) return
-  try {
-    const items = await usePublicCatalog('product-categories').list()
-    categoryOptions.value = items
-      .filter(i => i.active !== false)
-      .map(i => ({ label: i.name, value: i.uuid }))
-  }
-  catch {
-    categoryOptions.value = []
-  }
-}
+// Fetched the first time the dropdown opens; on edit the detail's category label is
+// seeded so it shows without loading the whole list.
+const categories = useLazyOptions(async () =>
+  (await usePublicCatalog('product-categories').list())
+    .filter(i => i.active !== false)
+    .map(i => ({ label: i.name, value: i.uuid })))
+const seededCategory = ref<SelectItem[]>([])
+const categoryOptions = computed<SelectItem[]>(() => {
+  const seen = new Set(categories.items.value.map(i => i.value))
+  return [...seededCategory.value.filter(i => !seen.has(i.value)), ...categories.items.value]
+})
 
 // ---- Owner ally (server-side search; needs ALLY_VIEW_ALL) ----
 const canSearchAllies = computed(() => can('ALLY_VIEW_ALL'))
@@ -128,6 +125,14 @@ async function searchAllies(q?: string) {
   }
 }
 
+// The first page of allies is fetched when the dropdown first opens, not on modal open.
+let alliesSearched = false
+function onAlliesOpen(open: boolean) {
+  if (!open || alliesSearched) return
+  alliesSearched = true
+  void searchAllies()
+}
+
 const debouncedSearchAllies = useSearchDebounce((term: string) => searchAllies(term))
 watch(allySearchTerm, (q) => {
   const term = q.trim()
@@ -142,11 +147,9 @@ watch(() => props.open, async (open) => {
   editing.value = null
   allyOptions.value = []
   allySearchTerm.value = ''
-  loadCategories()
-  if (props.mode === 'create') {
-    searchAllies()
-    return
-  }
+  alliesSearched = false
+  seededCategory.value = []
+  if (props.mode === 'create') return
   if (!props.productUuid) return
   editLoading.value = true
   try {
@@ -157,6 +160,9 @@ watch(() => props.open, async (open) => {
     state.description = full.description ?? ''
     state.productType = (full.productType as ProductType) || 'SERVICE'
     state.productCategoryUuid = full.productCategory_Uuid ?? undefined
+    if (full.productCategory_Uuid) {
+      seededCategory.value = [{ label: full.productCategory_Display ?? full.productCategory_Uuid, value: full.productCategory_Uuid }]
+    }
     state.ownerAllyUuid = full.ownerAlly_Uuid ?? undefined
     state.requiresAppointment = full.requiresAppointment
     state.published = full.published ?? true
@@ -164,7 +170,6 @@ watch(() => props.open, async (open) => {
     if (full.ownerAlly_Uuid) {
       allyOptions.value = [{ label: full.ownerAlly_Display ?? full.ownerAlly_Uuid, value: full.ownerAlly_Uuid }]
     }
-    searchAllies()
   }
   catch {
     isOpen.value = false
@@ -274,10 +279,12 @@ function requestDelete() {
               clear
               v-model="state.productCategoryUuid"
               :items="categoryOptions"
+              :loading="categories.loading.value"
               label-key="label"
               value-key="value"
               :placeholder="t('common.select')"
               class="w-full"
+              @update:open="categories.onOpen"
             />
           </UFormField>
         </div>
@@ -305,6 +312,7 @@ function requestDelete() {
             :placeholder="t('products.form.generalPlaceholder')"
             :search-input="{ placeholder: t('products.form.allySearchPlaceholder'), icon: 'i-lucide-search' }"
             class="w-full"
+            @update:open="onAlliesOpen"
           />
         </UFormField>
 

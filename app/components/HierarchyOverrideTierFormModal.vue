@@ -130,6 +130,9 @@ async function loadRankOptions() {
     loadingRanks.value = false
   }
 }
+function onRanksOpen(open: boolean) {
+  if (open && !rankItems.value.length && !loadingRanks.value) void loadRankOptions()
+}
 
 // ---- Currency options (flatAmount's own currency FK, ADR 0015) ----
 const currencyItems = ref<SelectItem[]>([])
@@ -149,6 +152,9 @@ async function loadCurrencyOptions() {
   finally {
     loadingCurrencies.value = false
   }
+}
+function onCurrenciesOpen(open: boolean) {
+  if (open && !currencyItems.value.length && !loadingCurrencies.value) void loadCurrencyOptions()
 }
 /** Resolves `flatAmountCurrencyUuid` to its ISO code for `CurrencyConverterDisplay`. */
 const flatAmountCurrencyCode = computed(() => currencyCodeByUuid.value[state.flatAmountCurrencyUuid] ?? null)
@@ -337,11 +343,12 @@ function populateFrom(tier: HierarchyOverrideTierDto | null) {
   nextTick(() => { suppressCampaignAutofill.value = false })
 }
 
-watch(() => props.open, async (open) => {
+watch(() => props.open, (open) => {
   if (!open) return
-  if (rankItems.value.length === 0) await loadRankOptions()
-  if (currencyItems.value.length === 0) await loadCurrencyOptions()
   populateFrom(props.tier ?? null)
+  // Lists load when their dropdown opens; only those with a preset value load now (label + ISO code).
+  if (state.rankUuid) onRanksOpen(true)
+  if (state.flatAmountCurrencyUuid || state.thresholdAmountCurrencyUuid) onCurrenciesOpen(true)
 })
 
 async function reloadForm() {
@@ -458,6 +465,7 @@ async function restoreTier() {
               :loading="loadingRanks"
               entity="promoter_rank"
               :placeholder="t('common.select')"
+              @open="onRanksOpen"
               @navigate="goToRank"
             />
           </UFormField>
@@ -491,6 +499,7 @@ async function restoreTier() {
             :loading="loadingCurrencies"
             :placeholder="t('common.select')"
             class="w-full"
+            @open="onCurrenciesOpen"
             @navigate="goToCurrency"
           />
         </UFormField>
@@ -586,6 +595,7 @@ async function restoreTier() {
             :loading="loadingCurrencies"
             :placeholder="t('common.select')"
             icon="i-lucide-coins"
+            @open="onCurrenciesOpen"
             @navigate="goToCurrency"
           />
         </UFormField>

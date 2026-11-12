@@ -19,10 +19,16 @@ const banksApi = useCatalog('/v1/admin/banks')
 const categoriesApi = useCatalog('/v1/admin/payment-categories')
 const currenciesApi = useCatalog('/v1/admin/currencies')
 
-const methodOptions = ref<SelectItem[]>([])
-const bankOptions = ref<SelectItem[]>([])
-const categoryOptions = ref<SelectItem[]>([])
-const currencyOptions = ref<SelectItem[]>([])
+// Each dropdown fetches its list the first time it is opened, not when the list mounts.
+const activeItems = (items: CatalogItem[]) => items.filter(i => i.active)
+const methods = useLazyOptions(async () =>
+  activeItems(await methodsApi.listAll()).map(m => ({ label: m.name, value: m.uuid })))
+const banks = useLazyOptions(async () =>
+  activeItems(await banksApi.listAll()).map(b => ({ label: bankOptionLabel(b), value: b.uuid })))
+const categories = useLazyOptions(async () =>
+  activeItems(await categoriesApi.listAll()).map(c => ({ label: c.name, value: c.uuid })))
+const currencies = useLazyOptions(async () =>
+  activeItems(await currenciesApi.listAll()).map(c => ({ label: `${c.code} (${c.symbol})`, value: c.code! })))
 
 async function searchMembers(q: string): Promise<SelectItem[]> {
   const res = await membersApi.options({ ...(q ? { q } : {}), limit: 10 })
@@ -32,25 +38,6 @@ async function searchMembers(q: string): Promise<SelectItem[]> {
 function patch(partial: Partial<PaymentMasterFilterState>) {
   model.value = { ...model.value, ...partial }
 }
-
-onMounted(async () => {
-  try {
-    const [methods, banks, categories, currencies] = await Promise.all([
-      methodsApi.listAll(),
-      banksApi.listAll(),
-      categoriesApi.listAll(),
-      currenciesApi.listAll(),
-    ])
-    const active = (items: CatalogItem[]) => items.filter(i => i.active)
-    methodOptions.value = active(methods).map(m => ({ label: m.name, value: m.uuid }))
-    bankOptions.value = active(banks).map(b => ({ label: bankOptionLabel(b), value: b.uuid }))
-    categoryOptions.value = active(categories).map(c => ({ label: c.name, value: c.uuid }))
-    currencyOptions.value = active(currencies).map(c => ({ label: `${c.code} (${c.symbol})`, value: c.code! }))
-  }
-  catch {
-    // useApi already notified; the dropdowns just stay empty
-  }
-})
 </script>
 
 <template>
@@ -66,7 +53,9 @@ onMounted(async () => {
     <USelectMenu
       :model-value="model.paymentMethodUuid || undefined"
       clear
-      :items="methodOptions"
+      :items="methods.items.value"
+      :loading="methods.loading.value"
+      @update:open="methods.onOpen"
       label-key="label"
       value-key="value"
       icon="i-lucide-credit-card"
@@ -77,7 +66,9 @@ onMounted(async () => {
     <USelectMenu
       :model-value="model.bankUuid || undefined"
       clear
-      :items="bankOptions"
+      :items="banks.items.value"
+      :loading="banks.loading.value"
+      @update:open="banks.onOpen"
       label-key="label"
       value-key="value"
       icon="i-lucide-landmark"
@@ -88,7 +79,9 @@ onMounted(async () => {
     <USelectMenu
       :model-value="model.categoryUuid || undefined"
       clear
-      :items="categoryOptions"
+      :items="categories.items.value"
+      :loading="categories.loading.value"
+      @update:open="categories.onOpen"
       label-key="label"
       value-key="value"
       icon="i-lucide-tag"
@@ -107,7 +100,9 @@ onMounted(async () => {
     <USelectMenu
       :model-value="model.currency || undefined"
       clear
-      :items="currencyOptions"
+      :items="currencies.items.value"
+      :loading="currencies.loading.value"
+      @update:open="currencies.onOpen"
       label-key="label"
       value-key="value"
       icon="i-lucide-coins"

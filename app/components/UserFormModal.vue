@@ -34,7 +34,10 @@ const promoterTypeOptions = useCatalogOptions('advisor-types')
 const { can } = usePermissions()
 // "Create the advisor profile too" (hub ADR 0037 §5): only for who may create advisors.
 const canCreateAdvisor = computed(() => props.mode === 'create' && can('PROMOTER_CREATE'))
-const promoterTypeItems = ref<{ label: string, value: string }[]>([])
+// Advisor types: only listed when the advisor block shows; fetched when its dropdown opens.
+const promoterTypes = useLazyOptions(async () => canCreateAdvisor.value
+  ? (await promoterTypeOptions.options({ limit: 100 })).map(o => ({ label: o.label, value: o.uuid }))
+  : [])
 
 const isOpen = computed({
   get: () => props.open,
@@ -51,30 +54,20 @@ const isSubmitting = ref(false)
 // so it can't use type="submit"; it triggers validation via this instead.
 const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 
-// ---- Lazy-loaded catalogs (roles + document types), fetched only when the modal opens ----
-const roleOptions = ref<{ label: string, value: string }[]>([])
+// ---- Lazy catalogs: each list is fetched the first time its dropdown opens ----
+// "Nuevo" requests nothing up front. On edit the user already brings its roles
+// (uuid + name), so they are seeded instead of loading the full role list.
+const roleList = useLazyOptions(async () =>
+  (await roles.options({ limit: 200 })).map(o => ({ label: o.label, value: o.uuid })))
+const seededRoles = ref<{ label: string, value: string }[]>([])
+const roleOptions = computed(() => {
+  const seen = new Set(roleList.items.value.map(i => i.value))
+  return [...seededRoles.value.filter(i => !seen.has(i.value)), ...roleList.items.value]
+})
+// useState-cached for the whole session: loaded on open, or on edit when a value is set.
 const { options: documentTypeOptions, load: loadDocumentTypes } = useDocumentTypes()
-const catalogsLoaded = ref(false)
-
-async function loadCatalogs() {
-  if (catalogsLoaded.value) return
-  if (canCreateAdvisor.value) {
-    try {
-      promoterTypeItems.value = (await promoterTypeOptions.options({ limit: 100 })).map(o => ({ label: o.label, value: o.uuid }))
-    }
-    catch {
-      promoterTypeItems.value = []
-    }
-  }
-  try {
-    const res = await roles.options({ limit: 200 })
-    roleOptions.value = res.map(o => ({ label: o.label, value: o.uuid }))
-  }
-  catch {
-    roleOptions.value = []
-  }
-  await loadDocumentTypes()
-  catalogsLoaded.value = true
+function onDocumentTypesOpen(open: boolean) {
+  if (open) void loadDocumentTypes()
 }
 
 // Backend only accepts these (AdminUpdateUserRequest.status pattern).
@@ -206,20 +199,21 @@ function populateEditForm(u: UserDto) {
   state.lastName = u.lastName ?? ''
   state.secondLastName = u.secondLastName ?? ''
   state.documentType = u.documentType || undefined
+  if (u.documentType) void loadDocumentTypes()
   state.documentNumber = u.documentNumber ?? ''
   state.phone = u.phone ?? ''
   state.locale = toLocaleCode(u.locale)
   loadedLocale.value = state.locale
   state.status = u.status || 'ACTIVE'
   state.active = u.active ?? true
+  seededRoles.value = (u.roles ?? []).map(r => ({ label: r.name, value: r.uuid }))
   state.roleIds = (u.roles ?? []).map(r => r.uuid)
   editSnapshot.value = snapEditState()
 }
 
 // Populate/reset the form whenever the modal opens (mode/user are set by the parent beforehand).
-watch(() => props.open, async (open) => {
+watch(() => props.open, (open) => {
   if (!open) return
-  await loadCatalogs()
   if (props.mode === 'edit' && props.user) populateEditForm(props.user)
   else resetForm()
 })
@@ -392,6 +386,7 @@ function requestDelete() {
               entity="document_type"
               :placeholder="t('common.select')"
               @navigate="goToCatalogRecord"
+              @open="onDocumentTypesOpen"
             />
           </UFormField>
           <UFormField :label="t('security.users.fields.documentNumber')" name="documentNumber">
@@ -441,12 +436,14 @@ function requestDelete() {
             clear
             v-model="state.roleIds"
             :items="roleOptions"
+            :loading="roleList.loading.value"
             label-key="label"
             value-key="value"
             multiple
             icon="i-lucide-list-checks"
             :placeholder="t('security.users.selectRolesPlaceholder')"
             class="w-full"
+            @update:open="roleList.onOpen"
           />
         </UFormField>
 
@@ -454,7 +451,7 @@ function requestDelete() {
           <USwitch v-model="state.alsoAdvisor" :label="t('security.users.fields.alsoAdvisor')" />
           <p class="text-xs text-prohealth-500">{{ t('security.users.fields.alsoAdvisorHelp') }}</p>
           <UFormField v-if="state.alsoAdvisor" :label="t('security.users.fields.advisorType')" name="promoterTypeUuid">
-            <USelectMenu v-model="state.promoterTypeUuid" :items="promoterTypeItems" label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" />
+            <USelectMenu v-model="state.promoterTypeUuid" :items="promoterTypes.items.value" :loading="promoterTypes.loading.value" label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" @update:open="promoterTypes.onOpen" />
           </UFormField>
         </div>
       </UForm>

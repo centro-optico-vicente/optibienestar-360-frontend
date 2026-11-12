@@ -15,9 +15,9 @@ import { DEFAULT_DEBOUNCE_MS } from '~/utils/debounce-config'
 //   the default USelectMenu behavior.
 // - `search`: async function `(q) => SelectItem[]` for server-side lookups (users,
 //   members...) — debounced via the shared `DEFAULT_DEBOUNCE_MS` config
-//   (see `.ai/specs/08-debounce-search-inputs.md`). `q` may be empty — an
-//   empty query still fires (debounced) so opening the dropdown with no
-//   typing lists the first results instead of requiring a minimum length.
+//   (see `.ai/specs/08-debounce-search-inputs.md`). Lazy: the first search runs
+//   when the dropdown is opened (empty `q` → first results) or the user types,
+//   never on mount — unless the select mounts with a value already set.
 //
 // The quick-link route + permission are resolved from `entity` via the central
 // registry (`~/utils/entity-references.ts`) so a route change is a one-file edit
@@ -64,6 +64,8 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
   'update:modelValue': [value: string | undefined]
   'navigate': [to: string]
+  /** The dropdown opened/closed — lets `items` callers load their list lazily. */
+  'open': [open: boolean]
 }>()
 
 const { can: hasPermission } = usePermissions()
@@ -96,11 +98,36 @@ const runSearch = useSearchDebounce(async (term: string) => {
   }
 }, props.debounceMs)
 
+// Lazy: nothing is requested until the dropdown is opened or the user types, so a
+// list screen full of filter selects (or a modal opened with "Nuevo") costs no
+// requests up front. Exception: a select mounted with a value already set (edit
+// forms) searches right away so the label of that value can resolve.
+const searchedOnce = ref(false)
+
+function searchNow(term: string) {
+  searchedOnce.value = true
+  runSearch(term)
+}
+
 watch(searchTerm, (q) => {
   if (!isServerSearch.value) return
   const term = q.trim()
   if (term.length < props.minSearchLength) return
-  runSearch(term)
+  searchNow(term)
+})
+
+function onOpenChange(open: boolean) {
+  emit('open', open)
+  if (!open || !isServerSearch.value || searchedOnce.value) return
+  const term = searchTerm.value.trim()
+  if (term.length < props.minSearchLength) return
+  searchNow(term)
+}
+
+// A value set before the first search (edit forms fill the model after mounting)
+// needs the first results so its label can show.
+watch(() => props.modelValue, (v) => {
+  if (v && isServerSearch.value && !searchedOnce.value && props.minSearchLength === 0) searchNow('')
 }, { immediate: true })
 
 const displayItems = computed(() => (isServerSearch.value ? searchResults.value : (props.items ?? [])))
@@ -123,6 +150,7 @@ const isLoading = computed(() => props.loading || searching.value)
       :placeholder="placeholder"
       :search-input="{ placeholder: searchPlaceholder || placeholder, icon: 'i-lucide-search' }"
       :class="props.class"
+      @update:open="onOpenChange"
     />
     <CommonEntityQuickLinkButton :to="linkTo" :can="linkCan" @navigate="(t: string) => emit('navigate', t)" />
   </div>

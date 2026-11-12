@@ -5,7 +5,6 @@ import { toLocaleCode } from '~/composables/useAppLocale'
 import type { SortDirection } from '~/composables/useTableSort'
 import type { ListFilterField } from '~/utils/listFilters'
 import { emptyListFilters, listFilterQuery } from '~/utils/listFilters'
-import type { SelectItem } from '~/types/options'
 
 definePageMeta({
   layout: 'dashboard',
@@ -61,23 +60,15 @@ const isMultiSort = computed(() => sort.orders.value.length > 1)
 
 // ---- Master-table filters (role) ----
 const rolesApi = useRoles()
-const roleOptions = ref<SelectItem[]>([])
+// Fetched the first time the role dropdown opens.
+const roles = useLazyOptions(async () =>
+  (await rolesApi.options({ limit: 100 })).map(o => ({ label: o.label, value: o.uuid })))
 const filterFields = computed<ListFilterField[]>(() => [
-  { key: 'roleUuid', label: t('security.users.filters.role'), icon: 'i-lucide-shield', items: roleOptions.value },
+  { key: 'roleUuid', label: t('security.users.filters.role'), icon: 'i-lucide-shield', lazy: roles },
   // Account creation date range (sent as dateFrom/dateTo).
   { key: 'dateFrom', toKey: 'dateTo', label: t('security.users.filters.createdFrom'), toLabel: t('security.users.filters.createdTo'), type: 'dateRange' },
 ])
 const masterFilters = ref(emptyListFilters(filterFields.value))
-
-onMounted(async () => {
-  try {
-    const roles = await rolesApi.options({ limit: 100 })
-    roleOptions.value = roles.map(o => ({ label: o.label, value: o.uuid }))
-  }
-  catch {
-    // useApi already notified; the dropdown just stays empty
-  }
-})
 
 async function load() {
   loading.value = true

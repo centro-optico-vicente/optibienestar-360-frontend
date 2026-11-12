@@ -8,9 +8,12 @@ const model = defineModel<AllyMasterFilterState>({ required: true })
 
 const { t } = useI18n()
 
-const typeOptions = ref<SelectItem[]>([])
-const professionOptions = ref<SelectItem[]>([])
-const stateOptions = ref<SelectItem[]>([])
+// Each dropdown fetches its list the first time it is opened, not when the list mounts.
+const lazyCatalog = (resource: string) => useLazyOptions(async () =>
+  (await useCatalogOptions(resource).options({ limit: 200 })).map(o => ({ label: o.label, value: o.uuid })))
+const types = lazyCatalog('ally-types')
+const professions = lazyCatalog('professions')
+const states = lazyCatalog('states')
 
 /** Cities of the chosen state (server-side search; `q` is debounced by the select). */
 async function searchCities(q: string): Promise<SelectItem[]> {
@@ -26,22 +29,6 @@ async function searchCities(q: string): Promise<SelectItem[]> {
 function patch(partial: Partial<AllyMasterFilterState>) {
   model.value = { ...model.value, ...partial }
 }
-
-onMounted(async () => {
-  try {
-    const [types, professions, states] = await Promise.all([
-      useCatalogOptions('ally-types').options({ limit: 200 }),
-      useCatalogOptions('professions').options({ limit: 200 }),
-      useCatalogOptions('states').options({ limit: 200 }),
-    ])
-    typeOptions.value = types.map(o => ({ label: o.label, value: o.uuid }))
-    professionOptions.value = professions.map(o => ({ label: o.label, value: o.uuid }))
-    stateOptions.value = states.map(o => ({ label: o.label, value: o.uuid }))
-  }
-  catch {
-    // useApi already notified; the dropdowns just stay empty
-  }
-})
 </script>
 
 <template>
@@ -49,7 +36,9 @@ onMounted(async () => {
     <USelectMenu
       :model-value="model.allyTypeUuid || undefined"
       clear
-      :items="typeOptions"
+      :items="types.items.value"
+      :loading="types.loading.value"
+      @update:open="types.onOpen"
       label-key="label"
       value-key="value"
       icon="i-lucide-tag"
@@ -60,7 +49,9 @@ onMounted(async () => {
     <USelectMenu
       :model-value="model.professionUuid || undefined"
       clear
-      :items="professionOptions"
+      :items="professions.items.value"
+      :loading="professions.loading.value"
+      @update:open="professions.onOpen"
       label-key="label"
       value-key="value"
       icon="i-lucide-stethoscope"
@@ -71,7 +62,9 @@ onMounted(async () => {
     <USelectMenu
       :model-value="model.stateUuid || undefined"
       clear
-      :items="stateOptions"
+      :items="states.items.value"
+      :loading="states.loading.value"
+      @update:open="states.onOpen"
       label-key="label"
       value-key="value"
       icon="i-lucide-map-pin"

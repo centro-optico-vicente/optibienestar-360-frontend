@@ -50,7 +50,6 @@ const methodOptions = computed(() => methodItems.value.map(m => ({ label: m.name
 const bankOptions = computed(() => bankItems.value.map(b => ({ label: bankOptionLabel(b), value: b.uuid })))
 const selectedMethod = computed(() => methodItems.value.find(m => m.uuid === state.paymentMethodUuid) ?? null)
 const selectedBank = computed(() => bankItems.value.find(b => b.uuid === state.bankUuid) ?? null)
-const loadingMethods = ref(false)
 
 // ---- Additional payment lines (V117 lines feature) — see usePaymentLinesEditor.
 // The form's own fields above stay the flat "first line"; this editor only
@@ -73,43 +72,26 @@ const linesExceedDeclaredAmount = computed(() =>
 )
 const currencyItems = ref<CatalogItem[]>([])
 const currencyOptions = computed(() => currencyItems.value.map(c => ({ label: `${c.code} (${c.symbol})`, value: c.code! })))
-const loadingCurrencies = ref(false)
 
-async function loadMethodsAndBanks() {
-  loadingMethods.value = true
-  try {
-    const [methods, banks] = await Promise.all([
-      useApi<CatalogItem[]>('/v1/me/payment-methods'),
-      useApi<CatalogItem[]>('/v1/me/banks'),
-    ])
-    methodItems.value = (methods ?? []).filter(m => m.active)
-    bankItems.value = (banks ?? []).filter(b => b.active)
-  }
-  catch {
-    methodItems.value = []
-    bankItems.value = []
-  }
-  finally {
-    loadingMethods.value = false
-  }
-}
+// Methods and banks are fetched the first time their dropdown opens (a method/bank
+// can only be chosen after that, so `selectedMethod`/`selectedBank` always find it).
+const methods = useLazyOptions(async () => {
+  methodItems.value = ((await useApi<CatalogItem[]>('/v1/me/payment-methods')) ?? []).filter(m => m.active)
+  return methodOptions.value
+})
+const banks = useLazyOptions(async () => {
+  bankItems.value = ((await useApi<CatalogItem[]>('/v1/me/banks')) ?? []).filter(b => b.active)
+  return bankOptions.value
+})
 
 // Currency dropdown label uses the real `symbol` from the master (ADR 0015)
 // — "USD ($)" — not a hardcoded code -> symbol map. `value` sent to the
-// backend stays the ISO `code`, same contract as before.
-async function loadCurrencies() {
-  loadingCurrencies.value = true
-  try {
-    const currencies = await useApi<CatalogItem[]>('/v1/me/currencies')
-    currencyItems.value = (currencies ?? []).filter(c => c.active)
-  }
-  catch {
-    currencyItems.value = []
-  }
-  finally {
-    loadingCurrencies.value = false
-  }
-}
+// backend stays the ISO `code`, same contract as before. Loaded when the modal
+// opens (once per instance): the form preselects USD, whose label needs the list.
+const currencies = useLazyOptions(async () => {
+  currencyItems.value = ((await useApi<CatalogItem[]>('/v1/me/currencies')) ?? []).filter(c => c.active)
+  return currencyOptions.value
+})
 
 // ---- Own portfolio (member picker) ----
 const memberOptions = ref<{ label: string, value: string }[]>([])
@@ -311,8 +293,7 @@ watch(() => props.open, (open) => {
     resetForm()
     applyPrefill()
     loadPortfolio()
-    loadMethodsAndBanks()
-    loadCurrencies()
+    void currencies.ensureLoaded()
   }
 })
 
@@ -436,7 +417,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
                 :items="currencyOptions"
                 label-key="label"
                 value-key="value"
-                :loading="loadingCurrencies"
+                :loading="currencies.loading.value"
                 class="w-full font-mono"
               />
               <CommonEntityQuickLinkButton :to="'/dashboard/catalogs/currencies'" :can="canViewCurrencies" @navigate="openCatalog" />
@@ -456,9 +437,10 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
                 :items="methodOptions"
                 label-key="label"
                 value-key="value"
-                :loading="loadingMethods"
+                :loading="methods.loading.value"
                 :placeholder="t('common.select')"
                 class="w-full"
+                @update:open="methods.onOpen"
               />
               <CommonEntityQuickLinkButton :to="'/dashboard/catalogs/payment-methods'" :can="canViewMethods" @navigate="openCatalog" />
             </div>
@@ -471,7 +453,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           <UFormField v-if="selectedMethod?.mandatoryIdentification" :label="t('payments.payouts.fields.identification')" name="identification" required><UInput class="w-full" v-model="state.identification" /></UFormField>
           <UFormField v-if="selectedMethod?.mandatoryBank" :label="t('payments.payouts.fields.bank')" name="bankUuid" required>
             <div class="flex items-center gap-1">
-              <USelectMenu class="w-full" v-model="state.bankUuid" :items="bankOptions" label-key="label" value-key="value" :placeholder="t('common.select')" />
+              <USelectMenu class="w-full" v-model="state.bankUuid" :items="bankOptions" :loading="banks.loading.value" label-key="label" value-key="value" :placeholder="t('common.select')" @update:open="banks.onOpen" />
               <CommonEntityQuickLinkButton :to="'/dashboard/catalogs/banks'" :can="canViewBanks" @navigate="openCatalog" />
             </div>
           </UFormField>
@@ -499,7 +481,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           <div v-for="(line, index) in linesEditor.lines.value" :key="index" class="rounded-lg bg-prohealth-50/60 p-3 space-y-3">
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
               <UFormField class="sm:col-span-1" :label="t('payments.form.fields.lineMethod')">
-                <USelectMenu clear v-model="line.paymentMethodUuid" :items="methodOptions" label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" />
+                <USelectMenu clear v-model="line.paymentMethodUuid" :items="methodOptions" :loading="methods.loading.value" label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" @update:open="methods.onOpen" />
               </UFormField>
               <UFormField class="sm:col-span-1" :label="t('payments.form.fields.lineAmount')">
                 <UInput v-model="line.amount" placeholder="10.00" class="w-full text-right" />
@@ -514,7 +496,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
               <UFormField v-if="methodForLine(line.paymentMethodUuid)?.mandatoryReferenceNumber" :label="t('payments.form.fields.reference')"><UInput class="w-full" v-model="line.referenceNumber" /></UFormField>
               <UFormField v-if="methodForLine(line.paymentMethodUuid)?.mandatoryIdentification" :label="t('payments.payouts.fields.identification')"><UInput class="w-full" v-model="line.identification" /></UFormField>
               <UFormField v-if="methodForLine(line.paymentMethodUuid)?.mandatoryBank" :label="t('payments.payouts.fields.bank')">
-                <USelectMenu class="w-full" v-model="line.bankUuid" :items="bankOptions" label-key="label" value-key="value" :placeholder="t('common.select')" />
+                <USelectMenu class="w-full" v-model="line.bankUuid" :items="bankOptions" :loading="banks.loading.value" label-key="label" value-key="value" :placeholder="t('common.select')" @update:open="banks.onOpen" />
               </UFormField>
               <UFormField v-if="methodForLine(line.paymentMethodUuid)?.mandatoryBankAccount" :label="t('payments.payouts.fields.accountIdentifier')"><UInput class="w-full" v-model="line.bankAccountIdentifier" /></UFormField>
               <UFormField v-if="methodForLine(line.paymentMethodUuid)?.mandatoryAccountType" :label="t('payments.payouts.fields.accountType')"><USelectMenu class="w-full" v-model="line.bankAccountType" :items="BANK_ACCOUNT_TYPE_OPTIONS" label-key="label" value-key="value" :placeholder="t('common.select')" /></UFormField>

@@ -51,6 +51,11 @@ const pageSizeItems = buildPageSizeItems(t)
 const search = ref('')
 const includeInactive = ref(false)
 const advisors = useAdvisorOptions()
+// The advisor list is fetched the first time the filter opens.
+const advisorItems = useLazyOptions(async () => {
+  await advisors.load()
+  return advisors.options.value
+})
 // Advisor who brought the ally in (promoter uuid); only offered with PROMOTER_VIEW_ALL.
 const promoterUuid = ref<string | undefined>(undefined)
 // B2B / B2P (hub ADR 0031) — RSQL `segment==…` on the admin list.
@@ -157,7 +162,6 @@ function effectiveStatusLabel(a: AllyRow): string {
 }
 
 onMounted(async () => {
-  void advisors.load()
   await load()
   await openFromQuery()
 })
@@ -310,12 +314,14 @@ async function confirmDelete() {
         v-if="advisors.available.value"
         v-model="promoterUuid"
         clear
-        :items="advisors.options.value"
+        :items="advisorItems.items.value"
+        :loading="advisorItems.loading.value"
         value-key="value"
         label-key="label"
         :placeholder="t('allies.advisor.filter')"
         icon="i-lucide-user-check"
         class="w-64"
+        @update:open="advisorItems.onOpen"
       />
       <AllyMasterFilters v-model="masterFilters" />
       <UCheckbox v-model="includeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />

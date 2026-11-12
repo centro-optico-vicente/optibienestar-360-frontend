@@ -108,26 +108,12 @@ function goToLinkedRecord(to: string) {
   navigateTo(to)
 }
 
-// Small, fixed catalogs — loaded once, filtered client-side by CommonEntityReferenceSelect's `items` mode.
-const promoterTypeItems = ref<SelectItem[]>([])
-const rankItems = ref<SelectItem[]>([])
-
-async function loadStaticCatalogs() {
-  try {
-    const res = await promoterTypeOptions.options({ limit: 100 })
-    promoterTypeItems.value = res.map(o => ({ label: o.label, value: o.uuid }))
-  }
-  catch {
-    promoterTypeItems.value = []
-  }
-  try {
-    const ranks = await rankCatalog.listAll()
-    rankItems.value = ranks.map(r => ({ label: r.name, value: r.uuid }))
-  }
-  catch {
-    rankItems.value = []
-  }
-}
+// Small, fixed catalogs — fetched the first time each dropdown opens, then filtered
+// client-side by CommonEntityReferenceSelect's `items` mode.
+const promoterTypes = useLazyOptions(async () =>
+  (await promoterTypeOptions.options({ limit: 100 })).map(o => ({ label: o.label, value: o.uuid })))
+const ranks = useLazyOptions(async () =>
+  (await rankCatalog.listAll()).map(r => ({ label: r.name, value: r.uuid })))
 
 function clearPeriod() {
   periodRange.value = emptyDateRange()
@@ -276,7 +262,6 @@ watch(
 )
 
 onMounted(() => {
-  loadStaticCatalogs()
   load()
 })
 
@@ -483,11 +468,13 @@ async function onReject(reason: string) {
           <UFormField :label="t('commissions.approval.fields.promoterType')">
             <CommonEntityReferenceSelect
               v-model="promoterTypeUuid"
-              :items="promoterTypeItems"
+              :items="promoterTypes.items.value"
+              :loading="promoterTypes.loading.value"
               entity="promoter_type"
               icon="i-lucide-tags"
               :placeholder="t('common.select')"
               @navigate="goToLinkedRecord"
+              @open="promoterTypes.onOpen"
             />
           </UFormField>
 
@@ -564,11 +551,13 @@ async function onReject(reason: string) {
           <UFormField :label="t('commissions.approval.fields.rank')">
             <CommonEntityReferenceSelect
               v-model="rankUuid"
-              :items="rankItems"
+              :items="ranks.items.value"
+              :loading="ranks.loading.value"
               entity="promoter_rank"
               icon="i-lucide-award"
               :placeholder="t('common.select')"
               @navigate="goToLinkedRecord"
+              @open="ranks.onOpen"
             />
           </UFormField>
 

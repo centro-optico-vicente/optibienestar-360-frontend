@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
-import type { SelectItem } from '~/types/options'
 import type { SortDirection } from '~/composables/useTableSort'
 import {
   PRODUCT_TYPE_OPTIONS,
@@ -42,17 +41,9 @@ const scopeOptions = computed(() => [
   { label: t('products.filters.general'), value: 'general' },
   { label: t('products.filters.exclusive'), value: 'exclusive' },
 ])
-const categoryOptions = ref<SelectItem[]>([])
-
-async function loadCategories() {
-  try {
-    const items = await usePublicCatalog('product-categories').list()
-    categoryOptions.value = items.map(i => ({ label: i.name, value: i.uuid }))
-  }
-  catch {
-    categoryOptions.value = []
-  }
-}
+// Fetched the first time the category filter opens.
+const categories = useLazyOptions(async () =>
+  (await usePublicCatalog('product-categories').list()).map(i => ({ label: i.name, value: i.uuid })))
 
 // ---- List + pagination + search ----
 const data = ref<ProductListItemDto[]>([])
@@ -228,7 +219,6 @@ async function openFromQuery() {
 }
 
 onMounted(async () => {
-  loadCategories()
   await load()
   await openFromQuery()
 })
@@ -280,11 +270,13 @@ onMounted(async () => {
       <USelectMenu
         clear
         v-model="categoryFilter"
-        :items="categoryOptions"
+        :items="categories.items.value"
+        :loading="categories.loading.value"
         label-key="label"
         value-key="value"
         :placeholder="t('products.filters.allCategories')"
         class="w-56"
+        @update:open="categories.onOpen"
       />
       <USelectMenu
         clear

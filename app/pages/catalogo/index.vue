@@ -47,16 +47,11 @@ const typeChips = computed(() => [
 ])
 
 // Categories by NAME — the API filters by name or code, never by id here.
-const categoryOptions = ref<string[]>([])
-async function loadCategories() {
-  try {
-    const items = await usePublicCatalog('product-categories').list()
-    categoryOptions.value = items.filter(i => i.active !== false).map(i => i.name)
-  }
-  catch {
-    categoryOptions.value = []
-  }
-}
+// Fetched the first time the dropdown opens; a preset ?categoria= still shows (value == label).
+const categories = useLazyOptions(async () =>
+  (await usePublicCatalog('product-categories').list())
+    .filter(i => i.active !== false)
+    .map(i => ({ label: i.name, value: i.name })))
 
 /** Mirrors the filters into the URL in plain words, so the search can be shared. */
 function syncUrl() {
@@ -146,7 +141,6 @@ function typeLabel(item: PublicProductListItemDto): string {
 }
 
 onMounted(() => {
-  loadCategories()
   fetchPage(0)
 })
 </script>
@@ -185,9 +179,12 @@ onMounted(() => {
           <USelectMenu
             clear
             v-model="category"
-            :items="categoryOptions"
+            :items="categories.items.value"
+            :loading="categories.loading.value"
+            value-key="value"
             :placeholder="t('catalog.public.filters.category')"
             size="lg"
+            @update:open="categories.onOpen"
           />
           <UInput
             v-model="city"

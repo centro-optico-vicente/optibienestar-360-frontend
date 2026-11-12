@@ -22,6 +22,11 @@ useSeoMeta({ title: () => t('common.seoTitle', { page: t('nav.items.allyRequests
 
 const api = useAllyRequests()
 const advisors = useAdvisorOptions()
+// The advisor list is fetched the first time the filter opens.
+const advisorItems = useLazyOptions(async () => {
+  await advisors.load()
+  return advisors.options.value
+})
 
 const items = ref<AllyRequestListItemDto[]>([])
 const total = ref(0)
@@ -180,7 +185,6 @@ async function saveKeep(payload: { retain: boolean, note: string }) {
 }
 
 onMounted(() => {
-  void advisors.load()
   load()
 })
 </script>
@@ -217,13 +221,15 @@ onMounted(() => {
         v-if="advisors.available.value"
         v-model="promoterUuid"
         clear
-        :items="advisors.options.value"
+        :items="advisorItems.items.value"
+        :loading="advisorItems.loading.value"
         value-key="value"
         label-key="label"
         :placeholder="t('allyRequests.advisorFilter')"
         icon="i-lucide-user-check"
         size="lg"
         class="w-64"
+        @update:open="advisorItems.onOpen"
       />
       <AllyMasterFilters v-model="masterFilters" class="w-full" />
       <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('allyRequests.filters.dateFrom')" :to-label="t('allyRequests.filters.dateTo')" />

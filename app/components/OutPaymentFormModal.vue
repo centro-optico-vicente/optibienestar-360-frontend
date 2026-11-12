@@ -32,11 +32,26 @@ function openCatalog(to: string) {
 const isOpen = computed({ get: () => props.open, set: value => emit('update:open', value) })
 const editing = computed(() => Boolean(props.payment))
 const submitting = ref(false)
-const loadingOptions = ref(false)
-const promoterOptions = ref<{ label: string, value: string, personUuid?: string }[]>([])
-const categoryOptions = ref<{ label: string, value: string }[]>([])
-const currencyOptions = ref<{ label: string, value: string }[]>([])
-const loadingCurrencies = ref(false)
+// Each list is fetched the first time its dropdown opens, or as soon as its field
+// gets a value (edit mode, or a value prefilled from the payout account) so the
+// selected label can show — see the `ensureLoaded` watchers below.
+const promoterList = useLazyOptions<{ label: string, value: string, personUuid?: string }>(async () =>
+  ((await promoters.list({ size: 200, sort: ['displayName,asc'] })).content ?? [])
+    .filter((promoter: PromoterDto) => promoter.active)
+    .map((promoter: PromoterDto) => ({ label: promoter.displayName, value: promoter.uuid, personUuid: promoter.person_Uuid ?? undefined })))
+const promoterOptions = promoterList.items
+const categories = useLazyOptions(async () =>
+  (await categoriesApi.listAll({ filter: 'direction==OUT' }))
+    .filter((category: CatalogItem) => category.active && category.direction === 'OUT')
+    .map((category: CatalogItem) => ({ label: category.name, value: category.uuid })))
+// Currency dropdown label uses the real `symbol` from the master (ADR 0015)
+// — "USD ($)" — not a hardcoded code -> symbol map. `value` sent to the
+// backend stays the ISO `code`, same contract as before. Loaded when the modal
+// opens (once per instance): the form preselects USD, whose label needs the list.
+const currencies = useLazyOptions(async () =>
+  (await currenciesApi.listAll())
+    .filter((currency: CatalogItem) => currency.active)
+    .map((currency: CatalogItem) => ({ label: `${currency.code} (${currency.symbol})`, value: currency.code! })))
 
 // The person picker shows the promoter's display name (matches the person's
 // own name in practice) while `state.personUuid` — sent to the backend —
@@ -90,9 +105,20 @@ const state = reactive<FormState>({
   payoutAccountUuid: '',
 })
 
-const methodOptions = ref<{ label: string, value: string }[]>([])
-const bankOptions = ref<{ label: string, value: string }[]>([])
+const methods = useLazyOptions(async () =>
+  (await methodsApi.listAll())
+    .filter((method: CatalogItem) => method.active)
+    .map((method: CatalogItem) => ({ label: method.name, value: method.uuid })))
 const banksByUuid = ref<Record<string, CatalogItem>>({})
+const banks = useLazyOptions(async () => {
+  const active = (await banksApi.listAll()).filter((bank: CatalogItem) => bank.active)
+  banksByUuid.value = Object.fromEntries(active.map((bank: CatalogItem) => [bank.uuid, bank]))
+  return active.map((bank: CatalogItem) => ({ label: bankOptionLabel(bank), value: bank.uuid }))
+})
+// A preset value (edit, payout-account prefill) needs its list for the label.
+watch(() => state.promoterUuid, v => v && promoterList.ensureLoaded())
+watch(() => state.paymentCategoryUuid, v => v && categories.ensureLoaded())
+watch(() => state.paymentMethodUuid, v => v && methods.ensureLoaded())
 const selectedMethod = ref<CatalogItem | null>(null)
 const supportFile = ref<File | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
@@ -137,59 +163,6 @@ const schema = computed(() => z.object({
   paymentDate: z.string().min(1, t('validation.required')),
   adminNotes: z.string().max(1000).optional(),
 }))
-
-// Currency dropdown label uses the real `symbol` from the master (ADR 0015)
-// — "USD ($)" — not a hardcoded code -> symbol map. `value` sent to the
-// backend stays the ISO `code`, same contract as before.
-async function loadCurrencies() {
-  loadingCurrencies.value = true
-  try {
-    const currencies = await currenciesApi.listAll()
-    currencyOptions.value = currencies
-      .filter((currency: CatalogItem) => currency.active)
-      .map((currency: CatalogItem) => ({ label: `${currency.code} (${currency.symbol})`, value: currency.code! }))
-  }
-  catch {
-    currencyOptions.value = []
-  }
-  finally {
-    loadingCurrencies.value = false
-  }
-}
-
-async function loadOptions() {
-  loadingOptions.value = true
-  try {
-    const [promoterPage, categories, methods, banks] = await Promise.all([
-      promoters.list({ size: 200, sort: ['displayName,asc'] }),
-      categoriesApi.listAll({ filter: 'direction==OUT' }),
-      methodsApi.listAll(),
-      banksApi.listAll(),
-    ])
-    promoterOptions.value = (promoterPage.content ?? [])
-      .filter((promoter: PromoterDto) => promoter.active)
-      .map((promoter: PromoterDto) => ({ label: promoter.displayName, value: promoter.uuid, personUuid: promoter.person_Uuid ?? undefined }))
-    categoryOptions.value = categories
-      .filter((category: CatalogItem) => category.active && category.direction === 'OUT')
-      .map((category: CatalogItem) => ({ label: category.name, value: category.uuid }))
-    methodOptions.value = methods
-      .filter((method: CatalogItem) => method.active)
-      .map((method: CatalogItem) => ({ label: method.name, value: method.uuid }))
-    const activeBanks = banks.filter((bank: CatalogItem) => bank.active)
-    bankOptions.value = activeBanks
-      .map((bank: CatalogItem) => ({ label: bankOptionLabel(bank), value: bank.uuid }))
-    banksByUuid.value = Object.fromEntries(activeBanks.map((bank: CatalogItem) => [bank.uuid, bank]))
-  }
-  catch {
-    promoterOptions.value = []
-    categoryOptions.value = []
-    methodOptions.value = []
-    bankOptions.value = []
-  }
-  finally {
-    loadingOptions.value = false
-  }
-}
 
 function reset() {
   state.promoterUuid = props.payment?.promoter_Uuid ?? ''
@@ -322,8 +295,11 @@ watch(() => state.payoutAccountUuid, () => {
 // When a bank is picked and the method requires an account code, prefix
 // bankAccountCode with the bank's SUDEBAN code so the user only fills in
 // the rest of the account number.
-watch(() => state.bankUuid, (uuid) => {
-  const bank = uuid ? banksByUuid.value[uuid] : null
+watch(() => state.bankUuid, async (uuid) => {
+  if (!uuid) return
+  await banks.ensureLoaded()
+  if (state.bankUuid !== uuid) return
+  const bank = banksByUuid.value[uuid]
   if (!bank?.code || !selectedMethod.value?.mandatoryAccountCode) return
   const prefix = `${bank.code}-`
   if (!state.bankAccountCode.startsWith(prefix)) state.bankAccountCode = prefix
@@ -332,8 +308,7 @@ watch(() => state.bankUuid, (uuid) => {
 watch(() => props.open, open => {
   if (open) {
     reset()
-    loadOptions()
-    loadCurrencies()
+    void currencies.ensureLoaded()
   }
 })
 
@@ -387,7 +362,7 @@ function submitForm() {
       <UForm data-out-payment-form :schema="schema" :state="state" class="space-y-5" @submit="onSubmit">
         <div class="rounded-xl border border-prohealth-100 bg-prohealth-50/40 p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
         <UFormField :label="t('payments.payouts.fields.promoter')" name="promoterUuid" required>
-          <USelectMenu class="w-full" v-model="state.promoterUuid" :items="promoterOptions" label-key="label" value-key="value" :loading="loadingOptions" :placeholder="t('payments.payouts.promoterPlaceholder')" />
+          <USelectMenu class="w-full" v-model="state.promoterUuid" :items="promoterOptions" label-key="label" value-key="value" :loading="promoterList.loading.value" :placeholder="t('payments.payouts.promoterPlaceholder')" @update:open="promoterList.onOpen" />
         </UFormField>
         <UFormField :label="t('payments.payouts.fields.person')" name="personUuid" required>
           <UInput class="w-full" :model-value="personDisplayName" readonly :placeholder="t('payments.payouts.personPlaceholder')" />
@@ -422,7 +397,7 @@ function submitForm() {
         </UFormField>
         <UFormField class="sm:col-span-1" :label="t('payments.payouts.fields.currency')" name="currency" required>
           <div class="flex items-center gap-1">
-            <USelectMenu class="w-full" v-model="state.currency" :items="currencyOptions" label-key="label" value-key="value" :loading="loadingCurrencies" :placeholder="t('payments.form.placeholders.currency')" />
+            <USelectMenu class="w-full" v-model="state.currency" :items="currencies.items.value" label-key="label" value-key="value" :loading="currencies.loading.value" :placeholder="t('payments.form.placeholders.currency')" />
             <CommonEntityQuickLinkButton :to="'/dashboard/catalogs/currencies'" :can="canViewCurrencies" @navigate="openCatalog" />
           </div>
         </UFormField>
@@ -433,7 +408,7 @@ function submitForm() {
         </UFormField>
         <UFormField :label="t('payments.payouts.columns.method')" name="paymentMethodUuid" required>
           <div class="flex items-center gap-1">
-            <USelectMenu class="w-full" v-model="state.paymentMethodUuid" :items="methodOptions" label-key="label" value-key="value" :placeholder="t('payments.form.placeholders.method')" />
+            <USelectMenu class="w-full" v-model="state.paymentMethodUuid" :items="methods.items.value" :loading="methods.loading.value" label-key="label" value-key="value" :placeholder="t('payments.form.placeholders.method')" @update:open="methods.onOpen" />
             <CommonEntityQuickLinkButton :to="'/dashboard/catalogs/payment-methods'" :can="canViewMethods" @navigate="openCatalog" />
           </div>
         </UFormField>
@@ -442,7 +417,7 @@ function submitForm() {
         <UFormField v-if="selectedMethod?.mandatoryIdentification" :label="t('payments.payouts.fields.identification')" name="identification" required><UInput class="w-full" v-model="state.identification" /></UFormField>
         <UFormField v-if="selectedMethod?.mandatoryBank" :label="t('payments.payouts.fields.bank')" name="bankUuid" required>
           <div class="flex items-center gap-1">
-            <USelectMenu class="w-full" v-model="state.bankUuid" :items="bankOptions" label-key="label" value-key="value" :placeholder="t('common.select')" />
+            <USelectMenu class="w-full" v-model="state.bankUuid" :items="banks.items.value" :loading="banks.loading.value" label-key="label" value-key="value" :placeholder="t('common.select')" @update:open="banks.onOpen" />
             <CommonEntityQuickLinkButton :to="'/dashboard/catalogs/banks'" :can="canViewBanks" @navigate="openCatalog" />
           </div>
         </UFormField>
@@ -471,7 +446,7 @@ function submitForm() {
           </div>
           <p class="text-xs text-prohealth-500 mt-1">{{ t('payments.payouts.fields.supportHint') }}</p>
         </UFormField>
-        <UFormField :label="t('payments.payouts.fields.category')" name="paymentCategoryUuid" required><USelectMenu class="w-full" v-model="state.paymentCategoryUuid" :items="categoryOptions" label-key="label" value-key="value" :loading="loadingOptions" :placeholder="t('payments.payouts.categoryPlaceholder')" /></UFormField>
+        <UFormField :label="t('payments.payouts.fields.category')" name="paymentCategoryUuid" required><USelectMenu class="w-full" v-model="state.paymentCategoryUuid" :items="categories.items.value" label-key="label" value-key="value" :loading="categories.loading.value" :placeholder="t('payments.payouts.categoryPlaceholder')" @update:open="categories.onOpen" /></UFormField>
         <button type="submit" class="hidden" />
       </UForm>
     </template>

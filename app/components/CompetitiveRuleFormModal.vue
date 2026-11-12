@@ -59,6 +59,9 @@ async function loadPromoterTypeOptions() {
   catch { promoterTypeItems.value = [] }
   finally { loadingPromoterTypes.value = false }
 }
+function onPromoterTypesOpen(open: boolean) {
+  if (open && !promoterTypeItems.value.length && !loadingPromoterTypes.value) void loadPromoterTypeOptions()
+}
 
 const rankItems = ref<SelectItem[]>([])
 const loadingRanks = ref(false)
@@ -70,6 +73,9 @@ async function loadRankOptions() {
   }
   catch { rankItems.value = [] }
   finally { loadingRanks.value = false }
+}
+function onRanksOpen(open: boolean) {
+  if (open && !rankItems.value.length && !loadingRanks.value) void loadRankOptions()
 }
 
 const isOpen = computed({
@@ -87,6 +93,9 @@ async function loadCurrencyOptions() {
   }
   catch { currencyItems.value = [] }
   finally { loadingCurrencies.value = false }
+}
+function onCurrenciesOpen(open: boolean) {
+  if (open && !currencyItems.value.length && !loadingCurrencies.value) void loadCurrencyOptions()
 }
 
 async function searchCampaigns(q: string): Promise<SelectItem[]> {
@@ -362,14 +371,15 @@ function populateFrom(rule: CompetitiveRuleDto | null, opts: { isClone?: boolean
   nextTick(() => { suppressCampaignAutofill.value = false })
 }
 
-watch(() => props.open, async (open) => {
+watch(() => props.open, (open) => {
   if (!open) return
   if (props.rule) populateFrom(props.rule)
   else if (props.cloneFrom) populateFrom(props.cloneFrom, { isClone: true })
   else populateFrom(null)
-  if (currencyItems.value.length === 0) await loadCurrencyOptions()
-  if (promoterTypeItems.value.length === 0) await loadPromoterTypeOptions()
-  if (rankItems.value.length === 0) await loadRankOptions()
+  // Lists load when their dropdown opens; only those with a preset value load now (label).
+  if (state.thresholdCurrencyUuid || positionsEditor.ranges.value.some(r => r.currencyUuid)) onCurrenciesOpen(true)
+  if (state.promoterTypeUuids.length) onPromoterTypesOpen(true)
+  if (state.rankUuids.length) onRanksOpen(true)
 })
 
 async function reloadForm() {
@@ -488,7 +498,8 @@ function openDeleteFromEdit() {
             </UFormField>
             <UFormField :label="t('commissionRules.competitiveRules.form.thresholdCurrency')" name="thresholdCurrencyUuid">
               <CommonEntityReferenceSelect v-model="state.thresholdCurrencyUuid" :items="currencyItems" entity="currency"
-                                           :loading="loadingCurrencies" :placeholder="t('common.select')" icon="i-lucide-coins" @navigate="goToCurrency" />
+                                           :loading="loadingCurrencies" :placeholder="t('common.select')" icon="i-lucide-coins" @navigate="goToCurrency"
+                                           @open="onCurrenciesOpen" />
             </UFormField>
           </template>
         </div>
@@ -565,7 +576,8 @@ function openDeleteFromEdit() {
               </template>
               <UFormField :label="t('commissionRules.competitiveRules.form.rewardCurrency')">
                 <CommonEntityReferenceSelect v-model="range.currencyUuid" :items="currencyItems" entity="currency"
-                                             :loading="loadingCurrencies" :placeholder="t('common.select')" icon="i-lucide-coins" @navigate="goToCurrency" />
+                                             :loading="loadingCurrencies" :placeholder="t('common.select')" icon="i-lucide-coins" @navigate="goToCurrency"
+                                             @open="onCurrenciesOpen" />
               </UFormField>
               <UFormField v-if="isRanking" :label="t('commissionRules.competitiveRules.form.minThreshold')" :help="t('commissionRules.competitiveRules.form.minThresholdHelp')">
                 <UInput v-model="range.minThreshold" class="w-full" />
@@ -665,12 +677,14 @@ function openDeleteFromEdit() {
 
         <UFormField :label="t('commissionRules.form.promoterTypes')" name="promoterTypeUuids" :help="t('commissionRules.form.promoterTypesHelp')">
           <USelectMenu clear v-model="state.promoterTypeUuids" :items="promoterTypeItems" label-key="label" value-key="value" multiple
-                       :loading="loadingPromoterTypes" icon="i-lucide-tags" :placeholder="t('commissionRules.form.promoterTypesPlaceholder')" class="w-full" />
+                       :loading="loadingPromoterTypes" icon="i-lucide-tags" :placeholder="t('commissionRules.form.promoterTypesPlaceholder')" class="w-full"
+                       @update:open="onPromoterTypesOpen" />
         </UFormField>
 
         <UFormField :label="t('commissionRules.competitiveRules.form.ranks')" name="rankUuids">
           <USelectMenu clear v-model="state.rankUuids" :items="rankItems" label-key="label" value-key="value" multiple
-                       :loading="loadingRanks" icon="i-lucide-network" :placeholder="t('common.select')" class="w-full" />
+                       :loading="loadingRanks" icon="i-lucide-network" :placeholder="t('common.select')" class="w-full"
+                       @update:open="onRanksOpen" />
         </UFormField>
 
         <UFormField :label="t('campaigns.form.campaign')" name="campaignUuid" :help="t('campaigns.form.campaignHelp')">

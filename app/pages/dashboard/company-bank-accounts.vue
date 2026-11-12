@@ -75,34 +75,23 @@ watch([includeInactive, bankFilter, currencyFilter], () => {
 watch(page, load)
 
 // ---- Bank / currency options (self-service read-only catalogs: no admin catalog permission needed) ----
-const bankOptions = ref<{ label: string, value: string }[]>([])
-const currencyOptions = ref<{ label: string, value: string }[]>([])
+// Fetched the first time a filter opens or the create/edit form opens, not when the page mounts.
+const banks = useLazyOptions(async () =>
+  ((await useApi<CatalogItem[]>('/v1/me/banks')) ?? []).filter(b => b.active).map(b => ({ label: bankOptionLabel(b), value: b.uuid })))
+const currencies = useLazyOptions(async () =>
+  ((await useApi<CatalogItem[]>('/v1/me/currencies')) ?? []).filter(c => c.active).map(c => ({ label: `${c.code} (${c.symbol})`, value: c.code! })))
 // The self-service method list already carries the `mandatory*` flags the form needs.
-const methodItems = ref<CatalogItem[]>([])
+const methods = useLazyOptions(async () =>
+  ((await useApi<CatalogItem[]>('/v1/me/payment-methods')) ?? []).map(m => ({ label: m.name, value: m.uuid, item: m })))
+const methodItems = computed(() => methods.items.value.map(m => m.item))
 const methodOptions = computed(() => methodItems.value.filter(m => m.active).map(m => ({ label: m.name, value: m.uuid })))
 
-async function loadCatalogs() {
-  try {
-    const [banks, currencies, methods] = await Promise.all([
-      useApi<CatalogItem[]>('/v1/me/banks'),
-      useApi<CatalogItem[]>('/v1/me/currencies'),
-      useApi<CatalogItem[]>('/v1/me/payment-methods'),
-    ])
-    methodItems.value = methods ?? []
-    bankOptions.value = (banks ?? []).filter(b => b.active).map(b => ({ label: bankOptionLabel(b), value: b.uuid }))
-    currencyOptions.value = (currencies ?? []).filter(c => c.active).map(c => ({ label: `${c.code} (${c.symbol})`, value: c.code! }))
-  }
-  catch {
-    bankOptions.value = []
-    currencyOptions.value = []
-    methodItems.value = []
-  }
+/** Editing needs every list first (labels of the record's values, the method flags); creating loads each select on open. */
+function loadFormOptions() {
+  return Promise.all([banks.ensureLoaded(), currencies.ensureLoaded(), methods.ensureLoaded()])
 }
 
-onMounted(() => {
-  load()
-  loadCatalogs()
-})
+onMounted(load)
 
 // ---- Create / edit ----
 const formOpen = ref(false)
@@ -177,7 +166,8 @@ function openCreate() {
   formOpen.value = true
 }
 
-function openEdit(a: CompanyBankAccountDto) {
+async function openEdit(a: CompanyBankAccountDto) {
+  await loadFormOptions()
   editingUuid.value = a.uuid
   Object.assign(state, {
     paymentMethodUuids: a.paymentMethods.map(m => m.uuid),
@@ -288,22 +278,26 @@ async function confirmDelete() {
       <USelectMenu
         v-model="bankFilter"
         clear
-        :items="bankOptions"
+        :items="banks.items.value"
+        :loading="banks.loading.value"
         label-key="label"
         value-key="value"
         icon="i-lucide-landmark"
         :placeholder="t('payments.companyAccounts.filters.bank')"
         class="w-full sm:w-56"
+        @update:open="banks.onOpen"
       />
       <USelectMenu
         v-model="currencyFilter"
         clear
-        :items="currencyOptions"
+        :items="currencies.items.value"
+        :loading="currencies.loading.value"
         label-key="label"
         value-key="value"
         icon="i-lucide-coins"
         :placeholder="t('payments.companyAccounts.filters.currency')"
         class="w-full sm:w-40"
+        @update:open="currencies.onOpen"
       />
       <USwitch v-model="includeInactive" :label="t('payments.companyAccounts.includeInactive')" />
     </div>
@@ -378,16 +372,16 @@ async function confirmDelete() {
         <UForm ref="formRef" :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <UFormField :label="t('payments.companyAccounts.fields.methods')" name="paymentMethodUuids" required>
-              <USelectMenu v-model="state.paymentMethodUuids" multiple :items="methodOptions" label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" />
+              <USelectMenu v-model="state.paymentMethodUuids" multiple :items="methodOptions" :loading="methods.loading.value" label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" @update:open="methods.onOpen" />
             </UFormField>
             <UFormField :label="t('payments.companyAccounts.fields.currency')" name="currency" required>
-              <USelectMenu v-model="state.currency" :items="currencyOptions" label-key="label" value-key="value" class="w-full font-mono" />
+              <USelectMenu v-model="state.currency" :items="currencies.items.value" :loading="currencies.loading.value" label-key="label" value-key="value" class="w-full font-mono" @update:open="currencies.onOpen" />
             </UFormField>
           </div>
           <template v-if="selectedMethods.length">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <UFormField v-if="required.bank" :label="t('payments.companyAccounts.fields.bank')" name="bankUuid" required>
-                <USelectMenu v-model="state.bankUuid" :items="bankOptions" label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" />
+                <USelectMenu v-model="state.bankUuid" :items="banks.items.value" :loading="banks.loading.value" label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" @update:open="banks.onOpen" />
               </UFormField>
               <UFormField v-if="required.accountType" :label="t('payments.companyAccounts.fields.accountType')" name="accountType" required>
                 <USelectMenu v-model="state.accountType" :items="BANK_ACCOUNT_TYPE_OPTIONS" label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" />

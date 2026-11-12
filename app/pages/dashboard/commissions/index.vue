@@ -67,7 +67,9 @@ const dateTo = ref('')
 const promotersApi = usePromoters()
 const membersApi = useMembers()
 const currenciesApi = useCurrencies()
-const currencyOptions = ref<SelectItem[]>([])
+// Fetched the first time the currency dropdown opens, not when the list mounts.
+const currencies = useLazyOptions(async () =>
+  (await currenciesApi.options()).filter(c => c.active).map(c => ({ label: c.label, value: c.code ?? c.label })))
 const statusOptions = computed(() => COMMISSION_STATUS_OPTIONS.map(o => ({ label: t(o.labelKey), value: String(o.value) })))
 
 async function searchMembers(q: string): Promise<SelectItem[]> {
@@ -168,14 +170,8 @@ async function resetFilters() {
   load()
 }
 
-onMounted(async () => {
+onMounted(() => {
   load()
-  try {
-    currencyOptions.value = (await currenciesApi.options()).filter(c => c.active).map(c => ({ label: c.label, value: c.code ?? c.label }))
-  }
-  catch {
-    // useApi already notified; the currency dropdown just stays empty
-  }
 })
 
 // ---- Presentation helpers ----
@@ -447,7 +443,9 @@ async function confirmVoid() {
       <USelectMenu
         v-model="currencyFilter"
         clear
-        :items="currencyOptions"
+        :items="currencies.items.value"
+        :loading="currencies.loading.value"
+        @update:open="currencies.onOpen"
         label-key="label"
         value-key="value"
         icon="i-lucide-coins"

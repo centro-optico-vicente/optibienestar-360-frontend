@@ -56,6 +56,11 @@ async function loadCurrencyOptions() {
   catch { currencyItems.value = [] }
   finally { loadingCurrencies.value = false }
 }
+// Fetched the first time the dropdown opens, or on open when the goal already has a
+// currency (its label and ISO code for the conversion preview need the list).
+function onCurrenciesOpen(open: boolean) {
+  if (open && !currencyItems.value.length && !loadingCurrencies.value) void loadCurrencyOptions()
+}
 
 /** Resolves `targetAmountCurrencyUuid` to its ISO code for `CurrencyConverterDisplay`. */
 const targetAmountCurrencyCode = computed(() => currencyCodeByUuid.value[state.targetAmountCurrencyUuid] ?? null)
@@ -214,10 +219,10 @@ function requestDelete() {
   emit('delete', props.campaign)
 }
 
-watch(() => props.open, async (open) => {
+watch(() => props.open, (open) => {
   if (!open) return
   populateFrom(props.campaign ?? null, props.forceCreate === true)
-  if (currencyItems.value.length === 0) await loadCurrencyOptions()
+  if (state.targetAmountCurrencyUuid) onCurrenciesOpen(true)
 })
 
 async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
@@ -343,6 +348,7 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
             :loading="loadingCurrencies"
             :placeholder="t('common.select')"
             icon="i-lucide-coins"
+            @open="onCurrenciesOpen"
             @navigate="goToCurrency"
           />
         </UFormField>

@@ -108,26 +108,37 @@ const state = reactive<FormState>({
 })
 
 // Eligible-supervisor options for the immediate rank above the promoter's own
-// (`allSuperiors: false`) — loaded whenever the edit form opens/refreshes,
-// keyed off the promoter's current rank.
+// (`allSuperiors: false`), keyed off the promoter's current rank. Fetched the first
+// time the dropdown opens; until then only the current supervisor (from the detail)
+// is listed so its label shows.
 const supervisorOptions = ref<SelectItem[]>([])
 const loadingSupervisors = ref(false)
+let supervisorRankUuid: string | null = null
+let supervisorsLoaded = false
 
-async function loadSupervisorOptions(rankUuid: string | null | undefined, currentSupervisorUuid?: string | null, currentSupervisorDisplay?: string | null) {
-  supervisorOptions.value = []
-  if (!rankUuid) return
+function seedSupervisorOptions(rankUuid: string | null | undefined, currentSupervisorUuid?: string | null, currentSupervisorDisplay?: string | null) {
+  supervisorRankUuid = rankUuid ?? null
+  supervisorsLoaded = false
+  supervisorOptions.value = currentSupervisorUuid
+    ? [{ label: currentSupervisorDisplay || currentSupervisorUuid, value: currentSupervisorUuid }]
+    : []
+}
+
+async function onSupervisorsOpen(open: boolean) {
+  const rankUuid = supervisorRankUuid
+  if (!open || !rankUuid || supervisorsLoaded || loadingSupervisors.value) return
   loadingSupervisors.value = true
   try {
     const options = toSelectItems(await hierarchyApi.eligibleSupervisors(rankUuid, { allSuperiors: false, limit: 200 }))
+    if (supervisorRankUuid !== rankUuid) return
     // The current supervisor might fall outside the eligible-list limit — keep
     // it selectable regardless, same defensive idea as `currentValues` elsewhere.
-    if (currentSupervisorUuid && !options.some(o => o.value === currentSupervisorUuid)) {
-      options.unshift({ label: currentSupervisorDisplay || currentSupervisorUuid, value: currentSupervisorUuid })
-    }
-    supervisorOptions.value = options
+    const seen = new Set(options.map(o => o.value))
+    supervisorOptions.value = [...supervisorOptions.value.filter(o => !seen.has(o.value)), ...options]
+    supervisorsLoaded = true
   }
   catch {
-    supervisorOptions.value = []
+    // useApi already notified; the next open retries.
   }
   finally {
     loadingSupervisors.value = false
@@ -138,17 +149,14 @@ async function loadSupervisorOptions(rankUuid: string | null | undefined, curren
 // actually changed, same "diff before writing" idea as `isEditDirty` below.
 const originalSupervisorUuid = ref<string | null>(null)
 
-// Loaded once when the modal opens — small fixed catalog, no search needed.
-const promoterTypeItems = ref<SelectItem[]>([])
-watch(() => props.open, async (open) => {
-  if (!open || promoterTypeItems.value.length) return
-  try {
-    const res = await promoterTypeOptions.options({ limit: 100 })
-    promoterTypeItems.value = res.map(o => ({ label: o.label, value: o.uuid }))
-  }
-  catch {
-    promoterTypeItems.value = []
-  }
+// Small fixed catalog, fetched the first time its dropdown opens. On edit the
+// detail's `promoterType_Display` seeds the current type so its label shows.
+const promoterTypes = useLazyOptions(async () =>
+  (await promoterTypeOptions.options({ limit: 100 })).map(o => ({ label: o.label, value: o.uuid })))
+const seededPromoterType = ref<SelectItem[]>([])
+const promoterTypeItems = computed<SelectItem[]>(() => {
+  const seen = new Set(promoterTypes.items.value.map(i => i.value))
+  return [...seededPromoterType.value.filter(i => !seen.has(i.value)), ...promoterTypes.items.value]
 })
 
 // ---- User search (create-only; server-side, debounced via CommonEntityReferenceSelect) ----
@@ -219,6 +227,7 @@ function populateFrom(p: PromoterDto | null) {
     state.email = ''
     state.phone = ''
     state.promoterTypeUuid = ''
+    seededPromoterType.value = []
     state.status = 'ACTIVE'
     state.active = true
     state.supervisorUuid = ''
@@ -234,6 +243,9 @@ function populateFrom(p: PromoterDto | null) {
   state.email = p.email ?? ''
   state.phone = p.phone ?? ''
   state.promoterTypeUuid = p.promoterType_Uuid ?? ''
+  seededPromoterType.value = p.promoterType_Uuid
+    ? [{ label: p.promoterType_Display ?? p.promoterType_Uuid, value: p.promoterType_Uuid }]
+    : []
   state.status = (p.status as PromoterStatus) ?? 'ACTIVE'
   state.active = p.active ?? true
   state.supervisorUuid = p.supervisor_Uuid ?? ''
@@ -249,7 +261,7 @@ async function reloadForm() {
   try {
     const detail = await promoters.get(props.promoter.uuid)
     populateFrom(detail)
-    await loadSupervisorOptions(detail.rank_Uuid, detail.supervisor_Uuid, detail.supervisor_Display)
+    seedSupervisorOptions(detail.rank_Uuid, detail.supervisor_Uuid, detail.supervisor_Display)
   }
   catch { /* useApi already notified */ }
   finally { reloading.value = false }
@@ -275,12 +287,12 @@ watch(() => props.open, async (open) => {
   try {
     const detail = await promoters.get(props.promoter.uuid)
     populateFrom(detail)
-    await loadSupervisorOptions(detail.rank_Uuid, detail.supervisor_Uuid, detail.supervisor_Display)
+    seedSupervisorOptions(detail.rank_Uuid, detail.supervisor_Uuid, detail.supervisor_Display)
   }
   catch {
     // If the detail fails to load, use the received record as a fallback.
     populateFrom(props.promoter)
-    await loadSupervisorOptions(props.promoter.rank_Uuid, props.promoter.supervisor_Uuid, props.promoter.supervisor_Display)
+    seedSupervisorOptions(props.promoter.rank_Uuid, props.promoter.supervisor_Uuid, props.promoter.supervisor_Display)
   }
   finally {
     loadingDetail.value = false
@@ -439,9 +451,11 @@ async function restorePromoter() {
               <CommonEntityReferenceSelect
                 v-model="state.promoterTypeUuid"
                 :items="promoterTypeItems"
+                :loading="promoterTypes.loading.value"
                 entity="promoter_type"
                 :placeholder="t('common.select')"
                 @navigate="goToCatalogRecord"
+                @open="promoterTypes.onOpen"
               />
             </UFormField>
           </div>
@@ -457,9 +471,11 @@ async function restorePromoter() {
               <CommonEntityReferenceSelect
                 v-model="state.promoterTypeUuid"
                 :items="promoterTypeItems"
+                :loading="promoterTypes.loading.value"
                 entity="promoter_type"
                 :placeholder="t('common.select')"
                 @navigate="goToCatalogRecord"
+                @open="promoterTypes.onOpen"
               />
             </UFormField>
           </div>
@@ -506,6 +522,7 @@ async function restorePromoter() {
                 value-key="value"
                 :placeholder="t('promoters.hierarchy.supervisorPlaceholder')"
                 class="w-full"
+                @update:open="onSupervisorsOpen"
               />
               <CommonEntityQuickLinkButton
                 :to="supervisorLink"
