@@ -68,14 +68,6 @@ let refreshing: Promise<boolean> | null = null
 let refreshTimer: ReturnType<typeof setTimeout> | null = null
 // Margen para renovar antes del `exp`: cubre el reloj del cliente y la latencia.
 const REFRESH_MARGIN_MS = 60_000
-// Retry delay when the refresh fails for a reason other than a rejected token (network, 5xx, backend restarting).
-const REFRESH_RETRY_MS = 30_000
-
-/** Refresh answers that mean the refresh token itself was rejected — the session is over. */
-function isRejectedRefresh(err: unknown): boolean {
-  const status = (err as { response?: { status?: number } })?.response?.status ?? 0
-  return status === 400 || status === 401 || status === 403
-}
 
 interface AuthState {
   accessToken: string | null
@@ -85,12 +77,6 @@ interface AuthState {
   /** Active session role (JWT `role_name` claim) — null on tokens minted before this existed. */
   activeRole: UserRole | null
   isHydrated: boolean
-  /**
-   * When the session ended on its own (refresh token rejected), not by a logout. The
-   * `session-expiry` plugin watches it to send the user to the login screen — without it a
-   * failed background refresh leaves the page mounted with no user and no permissions.
-   */
-  sessionExpiredAt: number | null
 }
 
 export const useAuthStore = defineStore('auth', {
@@ -101,7 +87,6 @@ export const useAuthStore = defineStore('auth', {
     permissions: [],
     activeRole: null,
     isHydrated: false,
-    sessionExpiredAt: null,
   }),
 
   getters: {
@@ -167,7 +152,6 @@ export const useAuthStore = defineStore('auth', {
       this.user = res.user
       this.permissions = permissionsFromToken(res.accessToken)
       this.activeRole = activeRoleFromToken(res.accessToken)
-      this.sessionExpiredAt = null
       this.persist()
       this.scheduleRefresh()
     },
@@ -239,20 +223,7 @@ export const useAuthStore = defineStore('auth', {
       return expMs - Date.now() <= REFRESH_MARGIN_MS
     },
 
-    /** Re-tries the refresh later — the token is still good, the backend just didn't answer. */
-    scheduleRefreshRetry(): void {
-      if (!import.meta.client || !this.refreshToken) return
-      if (refreshTimer) clearTimeout(refreshTimer)
-      refreshTimer = setTimeout(() => { void this.tryRefresh() }, REFRESH_RETRY_MS)
-    },
-
-    /**
-     * Renueva el par de tokens. Comparte la promesa entre llamadas concurrentes.
-     *
-     * Only a rejected refresh token (400/401/403) ends the session — and marks it as expired so
-     * the user is sent to the login screen. A network error or a 5xx (backend restarting, gateway
-     * 502) keeps the session and retries later: dropping it there would log everyone out on a blip.
-     */
+    /** Renueva el par de tokens. Comparte la promesa entre llamadas concurrentes. */
     async tryRefresh(): Promise<boolean> {
       if (!this.refreshToken) return false
       if (refreshing) return refreshing
@@ -268,9 +239,8 @@ export const useAuthStore = defineStore('auth', {
           this.setTokens(data.accessToken, data.refreshToken)
           return true
         }
-        catch (err) {
-          if (isRejectedRefresh(err)) this.expireSession()
-          else this.scheduleRefreshRetry()
+        catch {
+          this.clearSession()
           return false
         }
       })()
@@ -301,16 +271,6 @@ export const useAuthStore = defineStore('auth', {
       catch {
         this.clearSession()
       }
-    },
-
-    /**
-     * Ends a session the backend no longer accepts and flags it as expired (see `sessionExpiredAt`).
-     * No-op when there is no session left, so several failing requests flag it only once.
-     */
-    expireSession(): void {
-      if (!this.accessToken && !this.refreshToken && !this.user) return
-      this.clearSession()
-      this.sessionExpiredAt = Date.now()
     },
 
     clearSession(): void {

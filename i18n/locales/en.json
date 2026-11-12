@@ -120,10 +120,6 @@
     "invalidUuid": "Must be a valid UUID"
   },
   "auth": {
-    "sessionExpired": {
-      "title": "Your session has expired",
-      "description": "Sign in again to pick up where you left off."
-    },
     "fields": {
       "email": "Email",
       "emailPlaceholder": "you{'@'}email.com",
