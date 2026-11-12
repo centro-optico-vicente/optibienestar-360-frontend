@@ -94,9 +94,11 @@ function sharedRefreshToken(): string | null {
  * API run it unlocked — `tryRefresh` then recovers from the race by retrying with the token
  * the other tab left in localStorage.
  */
-function withRefreshLock<T>(fn: () => Promise<T>): Promise<T> {
+async function withRefreshLock<T>(fn: () => Promise<T>): Promise<T> {
   const locks = import.meta.client ? navigator.locks : undefined
-  return locks ? locks.request('op-auth-refresh', fn) : fn()
+  // `request` resolves with the callback's (awaited) result; typed Promise<Promise<T>>, so await it.
+  if (locks) return await locks.request('op-auth-refresh', fn)
+  return fn()
 }
 
 /** Refresh answers that mean the refresh token itself was rejected — the session is over. */
