@@ -44,6 +44,17 @@ La URL del backend **no se hornea en el bundle JS**. En su lugar:
 
 Resultado: **una sola imagen sirve cualquier entorno**; la URL se define con `-e NUXT_PUBLIC_API_BASE_URL=...` en el contenedor (modelo 12-factor) y se aplica con un reinicio, sin rebuild.
 
+### 4. Proxy de la API en el mismo origen (opcional, `API_PROXY_UPSTREAM`)
+
+El SPA y la API viven en orígenes distintos (`optibienestar360.…` vs `api.…`). Como cada llamada autenticada lleva `Authorization`, el navegador manda un preflight `OPTIONS` antes de cada request. El navegador guarda ese preflight **por URL**, así que cada UUID o query nuevo lo vuelve a pagar. Un HAR de una sesión admin normal mostró ~35 `OPTIONS` en 87 requests, de ~200 ms cada uno.
+
+Si el contenedor recibe `API_PROXY_UPSTREAM` (`scheme://host[:puerto]`, sin path):
+
+1. El mismo `40-render-runtime-config.sh` escribe `/etc/nginx/api-proxy/api.conf`, que `default.conf` incluye. Contiene un `location ^~ /api/` que quita el prefijo y reenvía al upstream. Usa `resolver` + variable para que Nginx arranque aunque el backend no esté levantado. Agrega la IP del cliente a `X-Forwarded-For` (el backend la resuelve con forward headers `NATIVE`), acepta cuerpos de hasta 25 MB y tiene un timeout de 120 s para los reportes.
+2. `config.js` publica `API_BASE_URL: "/api"`, que tiene prioridad sobre `NUXT_PUBLIC_API_BASE_URL`. El navegador llama al mismo origen y desaparecen los preflights.
+
+Si `API_PROXY_UPSTREAM` no está definida, no se genera nada y todo funciona como antes. En el stack del hub conviene apuntar al backend por la red de Docker (`http://<COMPOSE_PROJECT_NAME>_backend:8080`) y no a la URL pública, para no volver a salir por Cloudflare. Un valor inválido (sin `http(s)://` o con path) hace fallar el arranque del contenedor.
+
 ## Alternativas descartadas
 
 - **Hornear la URL en build-time** (`ARG` durante `pnpm generate`): obliga a una imagen por entorno y rebuild para cambiar la API. Contradice el requisito de configurar por env var.
