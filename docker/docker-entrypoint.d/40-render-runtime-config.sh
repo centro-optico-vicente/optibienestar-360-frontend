@@ -28,8 +28,16 @@ EOF
 echo "[runtime-config] wrote ${CONFIG_PATH} (API_BASE_URL='${API_BASE_URL}', TIME_ZONE='${TIME_ZONE}')"
 
 # Release identity for quick verification: curl /version.json
-VERSION="${APP_VERSION:-0.0.1-dev}"
-BUILD_DATE="${APP_BUILD_DATE:-}"
+# Read from the image (written at build time), never from env, so a container
+# recreated with a stale env still reports the release it actually runs.
+BUILD_INFO_PATH="/etc/app-build-info"
+VERSION=""
+BUILD_DATE=""
+if [ -r "$BUILD_INFO_PATH" ]; then
+  VERSION="$(sed -n 's/^version=//p' "$BUILD_INFO_PATH")"
+  BUILD_DATE="$(sed -n 's/^buildDate=//p' "$BUILD_INFO_PATH")"
+fi
+VERSION="${VERSION:-0.0.1-dev}"
 VERSION_PATH="/usr/share/nginx/html/version.json"
 printf '{"version":"%s","buildDate":"%s"}\n' "$VERSION" "$BUILD_DATE" > "$VERSION_PATH"
 echo "[runtime-config] wrote ${VERSION_PATH} (version='${VERSION}', buildDate='${BUILD_DATE}')"
