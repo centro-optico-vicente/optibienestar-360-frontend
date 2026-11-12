@@ -1011,6 +1011,7 @@ async function refreshAll() {
       v-model:open="benFormOpen"
       :title="benMode === 'create' ? t('members.beneficiaries.form.createTitle') : t('members.beneficiaries.form.editTitle')"
       :description="benMode === 'create' ? t('members.beneficiaries.form.createDescription') : t('members.beneficiaries.form.editDescription')"
+      :ui="MODAL_MEDIUM_UI"
     >
       <template #body>
         <UForm

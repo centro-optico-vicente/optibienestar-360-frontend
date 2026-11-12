@@ -385,7 +385,7 @@ async function restorePromoter() {
     v-model:open="isOpen"
     :title="mode === 'create' ? t('promoters.form.createTitle') : t('promoters.form.editTitle')"
     :description="mode === 'create' ? t('promoters.form.createDescription') : t('promoters.form.editDescription')"
-    :ui="{ content: 'max-w-2xl' }"
+    :ui="MODAL_MEDIUM_UI"
   >
     <template #body>
       <div v-if="loadingDetail" class="py-12 flex flex-col items-center justify-center gap-2 text-prohealth-500">

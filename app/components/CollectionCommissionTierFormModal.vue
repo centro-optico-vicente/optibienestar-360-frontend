@@ -393,7 +393,7 @@ async function restoreTier() {
   <UModal
     v-model:open="isOpen"
     :title="mode === 'create' ? t('commissionRules.collectionTiers.form.createTitle') : t('commissionRules.collectionTiers.form.editTitle')"
-    :ui="{ content: 'max-w-2xl' }"
+    :ui="MODAL_WIDE_UI"
   >
     <template #body>
       <UForm ref="formRef" :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">

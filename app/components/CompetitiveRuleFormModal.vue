@@ -451,7 +451,7 @@ function openDeleteFromEdit() {
   <UModal
     v-model:open="isOpen"
     :title="mode === 'create' ? t('commissionRules.competitiveRules.form.createTitle') : t('commissionRules.competitiveRules.form.editTitle')"
-    :ui="{ content: 'max-w-3xl' }"
+    :ui="MODAL_WIDE_UI"
   >
     <template #body>
       <UForm ref="formRef" :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">

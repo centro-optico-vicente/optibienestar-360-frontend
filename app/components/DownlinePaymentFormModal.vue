@@ -392,7 +392,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     v-model:open="isOpen"
     :title="t('promoterSelf.collections.form.title')"
     :description="t('promoterSelf.collections.form.description')"
-    :ui="{ content: 'max-w-3xl' }"
+    :ui="MODAL_WIDE_UI"
   >
     <template #body>
       <UForm ref="formRef" :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">

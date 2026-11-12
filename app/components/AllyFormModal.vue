@@ -671,7 +671,7 @@ function requestDelete() {
     v-model:open="isOpen"
     :title="mode === 'create' ? t('allies.form.createTitle') : t('allies.form.editTitle')"
     :description="mode === 'create' ? t('allies.form.createDescription') : t('allies.form.editDescription')"
-    :ui="{ content: 'max-w-2xl' }"
+    :ui="MODAL_WIDE_UI"
   >
     <template #body>
       <div v-if="editLoading" class="py-12 flex flex-col items-center justify-center gap-2 text-prohealth-500">
@@ -698,7 +698,7 @@ function requestDelete() {
         </UFormField>
 
         <!-- Agreement file number (B2B "0007" / B2P "ASE001-0007") — assigned by the backend, read-only. -->
-        <div v-if="mode === 'edit' && (allyNumber || fileNumber)" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div v-if="mode === 'edit' && (allyNumber || fileNumber)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <UFormField :label="t('allies.form.fields.allyNumber')" name="allyNumber">
             <UInput :model-value="String(allyNumber ?? '')" disabled class="w-full font-mono" />
           </UFormField>
@@ -707,7 +707,7 @@ function requestDelete() {
           </UFormField>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <UFormField :label="state.segment === 'B2P' ? t('allies.form.fields.nameProfessional') : t('allies.form.fields.name')" name="name" required>
             <UInput v-model="state.name" class="w-full" />
           </UFormField>
@@ -726,7 +726,7 @@ function requestDelete() {
           </UFormField>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <UFormField :label="t('allies.form.fields.taxDocumentType')" name="taxDocumentType">
             <CommonEntityReferenceSelect
               v-model="state.taxDocumentType"
@@ -763,7 +763,7 @@ function requestDelete() {
               <UInput v-model="state.holderDocumentNumber" icon="i-lucide-id-card" class="w-full" />
             </UFormField>
           </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <UFormField :label="t('allies.form.fields.holderFirstName')" name="holderFirstName">
               <UInput v-model="state.holderFirstName" :disabled="holderLinked" class="w-full" />
             </UFormField>
@@ -795,7 +795,7 @@ function requestDelete() {
         <!-- B2P: where the professional practices (Convenio Profesional §III). -->
         <fieldset v-if="state.segment === 'B2P'" class="rounded-xl border border-prohealth-100 p-4 space-y-4">
           <legend class="px-1 text-sm font-semibold text-prohealth-800">{{ t('allies.form.site.title') }}</legend>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <UFormField :label="t('allies.form.fields.hostAlly')" name="hostAllyUuid" :help="t('allies.form.site.hostAllyHelp')">
               <USelectMenu
                 v-model="state.hostAllyUuid"
@@ -828,7 +828,7 @@ function requestDelete() {
         <!-- B2B: operating structure (Convenio Comercial §I–IV). -->
         <fieldset v-else class="rounded-xl border border-prohealth-100 p-4 space-y-4">
           <legend class="px-1 text-sm font-semibold text-prohealth-800">{{ t('allies.form.commercial.title') }}</legend>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <UFormField :label="t('allies.form.fields.tradeName')" name="tradeName">
               <UInput v-model="state.tradeName" class="w-full" />
             </UFormField>
@@ -866,7 +866,7 @@ function requestDelete() {
           />
         </UFormField>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <UFormField :label="t('allies.form.fields.email')" name="email">
             <UInput v-model="state.email" type="email" class="w-full" />
           </UFormField>
@@ -891,7 +891,7 @@ function requestDelete() {
           </UFormField>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <UFormField :label="t('allies.form.fields.state')" name="stateUuid">
             <CommonEntityReferenceSelect
               v-model="selectedStateUuid"
