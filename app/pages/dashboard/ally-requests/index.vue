@@ -233,23 +233,21 @@ onMounted(() => {
         {{ t('common.clearSort') }}
       </UButton>
       <template #filters>
-        <div class="flex flex-wrap items-center gap-3">
-          <USelect v-model="channel" :items="channelItems" :aria-label="t('allyRequests.columns.channel')" size="lg" class="w-48" />
-          <USelectMenu
-            v-if="advisors.available.value"
-            v-model="promoterUuid"
-            clear
-            :items="advisors.options.value"
-            value-key="value"
-            label-key="label"
-            :placeholder="t('allyRequests.advisorFilter')"
-            icon="i-lucide-user-check"
-            size="lg"
-            class="w-64"
-          />
-          <AllyMasterFilters v-model="masterFilters" />
-          <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('allyRequests.filters.dateFrom')" :to-label="t('allyRequests.filters.dateTo')" />
-        </div>
+        <USelect v-model="channel" :items="channelItems" :aria-label="t('allyRequests.columns.channel')" class="w-full" />
+        <USelectMenu
+          v-if="advisors.available.value"
+          v-model="promoterUuid"
+          clear
+          :items="advisors.options.value"
+          value-key="value"
+          label-key="label"
+          :placeholder="t('allyRequests.advisorFilter')"
+          icon="i-lucide-user-check"
+         
+          class="w-full"
+        />
+        <AllyMasterFilters v-model="masterFilters" />
+        <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('allyRequests.filters.dateFrom')" :to-label="t('allyRequests.filters.dateTo')" />
       </template>
     </ListFilterPanel>
 

@@ -210,29 +210,27 @@ onMounted(load)
         {{ t('common.clearSort') }}
       </UButton>
       <template #filters>
-        <div class="flex flex-wrap items-center gap-3">
-          <USelectMenu
-            v-model="scopeFilter"
-            clear
-            :items="scopeOptions"
-            label-key="label"
-            value-key="value"
-            icon="i-lucide-target"
-            :placeholder="t('campaigns.filters.scope')"
-            class="w-full max-w-xs"
-          />
-          <USelectMenu
-            v-model="modeFilter"
-            clear
-            :items="modeOptions"
-            label-key="label"
-            value-key="value"
-            icon="i-lucide-settings-2"
-            :placeholder="t('campaigns.filters.mode')"
-            class="w-full max-w-xs"
-          />
-          <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('campaigns.filters.dateFrom')" :to-label="t('campaigns.filters.dateTo')" />
-        </div>
+        <USelectMenu
+          v-model="scopeFilter"
+          clear
+          :items="scopeOptions"
+          label-key="label"
+          value-key="value"
+          icon="i-lucide-target"
+          :placeholder="t('campaigns.filters.scope')"
+          class="w-full"
+        />
+        <USelectMenu
+          v-model="modeFilter"
+          clear
+          :items="modeOptions"
+          label-key="label"
+          value-key="value"
+          icon="i-lucide-settings-2"
+          :placeholder="t('campaigns.filters.mode')"
+          class="w-full"
+        />
+        <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('campaigns.filters.dateFrom')" :to-label="t('campaigns.filters.dateTo')" />
       </template>
     </ListFilterPanel>
 

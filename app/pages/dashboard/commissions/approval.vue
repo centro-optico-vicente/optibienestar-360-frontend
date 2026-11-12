@@ -471,114 +471,112 @@ async function onReject(reason: string) {
         {{ t('commissions.approval.refreshButton') }}
       </UButton>
       <template #filters>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <UFormField :label="t('commissions.approval.fields.period')">
-            <div class="flex items-center gap-1">
-              <AuditDateRangePicker v-model="periodRange" />
-              <UButton
-                v-if="periodRange.from || periodRange.to"
-                color="neutral"
-                variant="ghost"
-                size="xs"
-                icon="i-lucide-x"
-                :title="t('commissions.approval.fields.clearPeriod')"
-                @click="clearPeriod"
-              />
-            </div>
-          </UFormField>
+        <UFormField :label="t('commissions.approval.fields.promoter')">
+          <CommonEntityReferenceSelect
+            v-model="promoterUuid"
+            :search="searchPromoters"
+            entity="promoter"
+            icon="i-lucide-user"
+            :placeholder="t('common.select')"
+            @navigate="goToLinkedRecord"
+          />
+        </UFormField>
 
-          <UFormField :label="t('commissions.approval.fields.promoterType')">
-            <CommonEntityReferenceSelect
-              v-model="promoterTypeUuid"
-              :items="promoterTypeItems"
-              entity="promoter_type"
-              icon="i-lucide-tags"
-              :placeholder="t('common.select')"
-              @navigate="goToLinkedRecord"
+        <UFormField :label="t('commissions.approval.fields.campaign')">
+          <CommonEntityReferenceSelect
+            v-model="campaignUuid"
+            :search="searchCampaigns"
+            entity="campaign"
+            icon="i-lucide-rocket"
+            :placeholder="t('common.select')"
+            @navigate="goToLinkedRecord"
+          />
+        </UFormField>
+
+        <UFormField :label="t('commissions.approval.fields.promoterType')">
+          <CommonEntityReferenceSelect
+            v-model="promoterTypeUuid"
+            :items="promoterTypeItems"
+            entity="promoter_type"
+            icon="i-lucide-tags"
+            :placeholder="t('common.select')"
+            @navigate="goToLinkedRecord"
+          />
+        </UFormField>
+
+        <UFormField :label="t('commissions.approval.fields.appliesTo')">
+          <USelectMenu
+            v-model="appliesTo"
+            clear
+            :items="appliesToOptions"
+            label-key="label"
+            value-key="value"
+            icon="i-lucide-list-tree"
+            :placeholder="t('common.select')"
+            class="w-full"
+          />
+        </UFormField>
+
+        <UFormField :label="t('commissions.approval.fields.rank')">
+          <CommonEntityReferenceSelect
+            v-model="rankUuid"
+            :items="rankItems"
+            entity="promoter_rank"
+            icon="i-lucide-award"
+            :placeholder="t('common.select')"
+            @navigate="goToLinkedRecord"
+          />
+        </UFormField>
+
+        <UFormField :label="t('commissions.approval.fields.ruleSource')">
+          <USelectMenu
+            v-model="ruleSource"
+            clear
+            :items="ruleSourceOptions"
+            label-key="label"
+            value-key="value"
+            icon="i-lucide-git-branch"
+            :placeholder="t('common.select')"
+            class="w-full"
+          />
+        </UFormField>
+
+        <UFormField :label="t('commissions.approval.fields.amountFrom')">
+          <UInput v-model="amountFrom" type="number" min="0" class="w-full" :ui="NUMBER_INPUT_UI">
+            <template #leading>
+              <span class="text-prohealth-400 text-sm">$</span>
+            </template>
+            <template v-if="amountFrom" #trailing>
+              <UButton color="neutral" variant="ghost" size="xs" icon="i-lucide-x" @click="clearAmountFrom" />
+            </template>
+          </UInput>
+        </UFormField>
+
+        <UFormField :label="t('commissions.approval.fields.amountTo')">
+          <UInput v-model="amountTo" type="number" min="0" class="w-full" :ui="NUMBER_INPUT_UI">
+            <template #leading>
+              <span class="text-prohealth-400 text-sm">$</span>
+            </template>
+            <template v-if="amountTo" #trailing>
+              <UButton color="neutral" variant="ghost" size="xs" icon="i-lucide-x" @click="clearAmountTo" />
+            </template>
+          </UInput>
+        </UFormField>
+
+        <UFormField :label="t('commissions.approval.fields.period')">
+          <div class="flex items-center gap-1">
+            <AuditDateRangePicker v-model="periodRange" />
+            <UButton
+              v-if="periodRange.from || periodRange.to"
+              color="neutral"
+              variant="ghost"
+              size="xs"
+              icon="i-lucide-x"
+              :title="t('commissions.approval.fields.clearPeriod')"
+              @click="clearPeriod"
             />
-          </UFormField>
-
-          <UFormField :label="t('commissions.approval.fields.promoter')">
-            <CommonEntityReferenceSelect
-              v-model="promoterUuid"
-              :search="searchPromoters"
-              entity="promoter"
-              icon="i-lucide-user"
-              :placeholder="t('common.select')"
-              @navigate="goToLinkedRecord"
-            />
-          </UFormField>
-
-          <UFormField :label="t('commissions.approval.fields.appliesTo')">
-            <USelectMenu
-              v-model="appliesTo"
-              clear
-              :items="appliesToOptions"
-              label-key="label"
-              value-key="value"
-              icon="i-lucide-list-tree"
-              :placeholder="t('common.select')"
-              class="w-full"
-            />
-          </UFormField>
-
-          <UFormField :label="t('commissions.approval.fields.amountFrom')">
-            <UInput v-model="amountFrom" type="number" min="0" class="w-full" :ui="NUMBER_INPUT_UI">
-              <template #leading>
-                <span class="text-prohealth-400 text-sm">$</span>
-              </template>
-              <template v-if="amountFrom" #trailing>
-                <UButton color="neutral" variant="ghost" size="xs" icon="i-lucide-x" @click="clearAmountFrom" />
-              </template>
-            </UInput>
-          </UFormField>
-
-          <UFormField :label="t('commissions.approval.fields.amountTo')">
-            <UInput v-model="amountTo" type="number" min="0" class="w-full" :ui="NUMBER_INPUT_UI">
-              <template #leading>
-                <span class="text-prohealth-400 text-sm">$</span>
-              </template>
-              <template v-if="amountTo" #trailing>
-                <UButton color="neutral" variant="ghost" size="xs" icon="i-lucide-x" @click="clearAmountTo" />
-              </template>
-            </UInput>
-          </UFormField>
-
-          <UFormField :label="t('commissions.approval.fields.campaign')">
-            <CommonEntityReferenceSelect
-              v-model="campaignUuid"
-              :search="searchCampaigns"
-              entity="campaign"
-              icon="i-lucide-rocket"
-              :placeholder="t('common.select')"
-              @navigate="goToLinkedRecord"
-            />
-          </UFormField>
-
-          <UFormField :label="t('commissions.approval.fields.rank')">
-            <CommonEntityReferenceSelect
-              v-model="rankUuid"
-              :items="rankItems"
-              entity="promoter_rank"
-              icon="i-lucide-award"
-              :placeholder="t('common.select')"
-              @navigate="goToLinkedRecord"
-            />
-          </UFormField>
-
-          <UFormField :label="t('commissions.approval.fields.ruleSource')">
-            <USelectMenu
-              v-model="ruleSource"
-              clear
-              :items="ruleSourceOptions"
-              label-key="label"
-              value-key="value"
-              icon="i-lucide-git-branch"
-              :placeholder="t('common.select')"
-              class="w-full"
-            />
-          </UFormField>
-        </div>
+          </div>
+        </UFormField>
       </template>
     </ListFilterPanel>
 

@@ -255,7 +255,7 @@ function openAudit(p: PlanDto) {
           value-key="value"
           icon="i-lucide-layers"
           :placeholder="t('plans.filters.type')"
-          class="w-full max-w-xs"
+          class="w-full"
         />
       </template>
     </ListFilterPanel>

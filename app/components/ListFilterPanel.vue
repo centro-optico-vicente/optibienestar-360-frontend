@@ -91,7 +91,14 @@ const panelId = useId()
         </UButton>
       </div>
     </div>
-    <div v-if="slots.filters" v-show="open" :id="panelId" class="border-t border-prohealth-100 pt-3">
+    <!-- One even grid for every list: each control is a cell (date ranges span two),
+         so nothing drops to a half-empty row of its own. -->
+    <div
+      v-if="slots.filters"
+      v-show="open"
+      :id="panelId"
+      class="border-t border-prohealth-100 pt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3 items-center"
+    >
       <slot name="filters" />
     </div>
   </div>

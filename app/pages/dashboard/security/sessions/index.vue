@@ -189,19 +189,17 @@ onMounted(load)
         {{ $t('common.clearSort') }}
       </UButton>
       <template #filters>
-        <div class="flex flex-wrap items-center gap-3">
-          <USelectMenu
-            v-model="resultFilter"
-            :items="RESULT_OPTIONS"
-            label-key="label"
-            value-key="value"
-            multiple
-            clear
-            :placeholder="$t('security.sessions.filters.result')"
-            class="w-56"
-          />
-          <AuditDateRangePicker v-model="dateRange" />
-        </div>
+        <USelectMenu
+          v-model="resultFilter"
+          :items="RESULT_OPTIONS"
+          label-key="label"
+          value-key="value"
+          multiple
+          clear
+          :placeholder="$t('security.sessions.filters.result')"
+          class="w-full"
+        />
+        <AuditDateRangePicker v-model="dateRange" />
       </template>
     </ListFilterPanel>
 

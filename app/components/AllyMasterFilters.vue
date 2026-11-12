@@ -45,7 +45,8 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex flex-wrap items-center gap-3">
+  <!-- `contents`: each control is a direct cell of the ListFilterPanel grid. -->
+  <div class="contents">
     <USelectMenu
       :model-value="model.allyTypeUuid || undefined"
       clear
@@ -54,7 +55,7 @@ onMounted(async () => {
       value-key="value"
       icon="i-lucide-tag"
       :placeholder="t('allies.filters.allyType')"
-      class="w-52"
+      class="w-full"
       @update:model-value="patch({ allyTypeUuid: $event ?? '' })"
     />
     <USelectMenu
@@ -65,7 +66,7 @@ onMounted(async () => {
       value-key="value"
       icon="i-lucide-stethoscope"
       :placeholder="t('allies.filters.profession')"
-      class="w-52"
+      class="w-full"
       @update:model-value="patch({ professionUuid: $event ?? '' })"
     />
     <USelectMenu
@@ -76,7 +77,7 @@ onMounted(async () => {
       value-key="value"
       icon="i-lucide-map-pin"
       :placeholder="t('allies.filters.state')"
-      class="w-52"
+      class="w-full"
       @update:model-value="patch({ stateUuid: $event ?? '', cityUuid: '' })"
     />
     <!-- Keyed by the state so the typeahead drops the previous state's cached cities. -->
@@ -87,7 +88,7 @@ onMounted(async () => {
       :disabled="!model.stateUuid"
       icon="i-lucide-building-2"
       :placeholder="t('allies.filters.city')"
-      class="w-52"
+      class="w-full"
       @update:model-value="patch({ cityUuid: $event ?? '' })"
     />
   </div>

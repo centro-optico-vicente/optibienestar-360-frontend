@@ -33,7 +33,7 @@ const value = computed({
     entity="user"
     icon="i-lucide-user-search"
     :placeholder="t('security.dataChanges.filters.actorPlaceholder')"
-    class="w-64"
+    class="w-full"
     @navigate="(to: string) => navigateTo(to)"
   />
 </template>

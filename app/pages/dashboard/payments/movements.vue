@@ -164,27 +164,25 @@ function subjectDisplay(p: PaymentDto): string {
         {{ t('common.clearSort') }}
       </UButton>
       <template #filters>
-        <div class="flex flex-wrap items-center gap-3">
-          <USelectMenu
-            v-model="directionFilter"
-            :items="directionFilterOptions"
-            label-key="label"
-            value-key="value"
-            icon="i-lucide-arrow-left-right"
-            class="w-40"
-          />
-          <USelectMenu
-            clear
-            v-model="statusFilter"
-            :items="statusFilterOptions"
-            label-key="label"
-            value-key="value"
-            :placeholder="t('payments.statusFilterPlaceholder')"
-            icon="i-lucide-filter"
-            class="w-44"
-          />
-          <PaymentMasterFilters v-model="masterFilters" />
-        </div>
+        <USelectMenu
+          v-model="directionFilter"
+          :items="directionFilterOptions"
+          label-key="label"
+          value-key="value"
+          icon="i-lucide-arrow-left-right"
+          class="w-full"
+        />
+        <USelectMenu
+          clear
+          v-model="statusFilter"
+          :items="statusFilterOptions"
+          label-key="label"
+          value-key="value"
+          :placeholder="t('payments.statusFilterPlaceholder')"
+          icon="i-lucide-filter"
+          class="w-full"
+        />
+        <PaymentMasterFilters v-model="masterFilters" />
       </template>
     </ListFilterPanel>
 

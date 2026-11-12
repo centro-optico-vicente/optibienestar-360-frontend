@@ -40,16 +40,20 @@ function onTo(v: unknown) {
 </script>
 
 <template>
-  <div class="inline-flex flex-wrap items-center gap-2">
+  <!-- One filter-grid cell spanning two columns; each end says «Desde»/«Hasta» so it never reads as a bare dd/mm/aaaa. -->
+  <div class="grid grid-cols-2 gap-2 w-full min-w-[17rem] sm:col-span-2">
     <UInput
       :model-value="from"
       type="date"
       :max="to || undefined"
       :aria-label="fromLabel ?? t('common.dateRange.from')"
       :title="fromLabel ?? t('common.dateRange.from')"
-      class="w-40"
+      class="w-full"
       @update:model-value="onFrom"
     >
+      <template #leading>
+        <span class="text-xs text-prohealth-400">{{ t('common.dateRange.from') }}</span>
+      </template>
       <template v-if="from" #trailing>
         <UButton
           color="neutral"
@@ -67,9 +71,12 @@ function onTo(v: unknown) {
       :min="from || undefined"
       :aria-label="toLabel ?? t('common.dateRange.to')"
       :title="toLabel ?? t('common.dateRange.to')"
-      class="w-40"
+      class="w-full"
       @update:model-value="onTo"
     >
+      <template #leading>
+        <span class="text-xs text-prohealth-400">{{ t('common.dateRange.to') }}</span>
+      </template>
       <template v-if="to" #trailing>
         <UButton
           color="neutral"

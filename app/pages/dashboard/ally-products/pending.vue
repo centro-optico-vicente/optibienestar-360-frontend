@@ -245,40 +245,38 @@ onMounted(() => {
         :placeholder="t('allyProductReview.searchPlaceholder')"
         icon="i-lucide-search"
         size="lg"
-        class="w-full max-w-sm"
+        class="w-full sm:max-w-md"
       />
       <!-- Only the search is set: the panel's «Limpiar» shows once a master filter is active. -->
       <UButton v-if="hasFilters && activeFilterCount === 0" variant="link" color="neutral" size="sm" icon="i-lucide-x" @click="clearFilters">
         {{ t('common.clearFilters') }}
       </UButton>
       <template #filters>
-        <div class="flex flex-wrap items-center gap-3">
-          <USelectMenu
-            v-if="canViewAllies"
-            v-model="allyFilter"
-            v-model:search-term="allySearchTerm"
-            clear
-            :items="allyOptions"
-            label-key="label"
-            value-key="value"
-            ignore-filter
-            icon="i-lucide-handshake"
-            :loading="allySearching"
-            :placeholder="t('allyProductReview.allAllies')"
-            :search-input="{ placeholder: t('products.form.allySearchPlaceholder'), icon: 'i-lucide-search' }"
-            class="w-60"
-          />
-          <USelectMenu
-            v-model="categoryFilter"
-            clear
-            :items="categoryOptions"
-            label-key="label"
-            value-key="value"
-            :placeholder="t('products.filters.allCategories')"
-            class="w-56"
-          />
-          <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('allyProducts.filters.dateFrom')" :to-label="t('allyProducts.filters.dateTo')" />
-        </div>
+        <USelectMenu
+          v-if="canViewAllies"
+          v-model="allyFilter"
+          v-model:search-term="allySearchTerm"
+          clear
+          :items="allyOptions"
+          label-key="label"
+          value-key="value"
+          ignore-filter
+          icon="i-lucide-handshake"
+          :loading="allySearching"
+          :placeholder="t('allyProductReview.allAllies')"
+          :search-input="{ placeholder: t('products.form.allySearchPlaceholder'), icon: 'i-lucide-search' }"
+          class="w-full"
+        />
+        <USelectMenu
+          v-model="categoryFilter"
+          clear
+          :items="categoryOptions"
+          label-key="label"
+          value-key="value"
+          :placeholder="t('products.filters.allCategories')"
+          class="w-full"
+        />
+        <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('allyProducts.filters.dateFrom')" :to-label="t('allyProducts.filters.dateTo')" />
       </template>
     </ListFilterPanel>
 
