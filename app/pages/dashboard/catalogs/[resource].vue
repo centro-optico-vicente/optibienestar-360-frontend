@@ -119,6 +119,7 @@ const search = ref('')
 
 // Parent filter (e.g. cities by state).
 const filterValue = ref<string>('')
+const activeFilterCount = computed(() => countActiveFilters(filterValue.value))
 const includeInactive = ref(false)
 
 // Server-side pagination. `page` is 1-based (UPagination); the API is 0-based.
@@ -625,25 +626,13 @@ async function confirmDelete() {
     </div>
 
     <!-- Filters -->
-    <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap gap-3">
+    <ListFilterPanel :active-count="activeFilterCount" @clear="resetFilters">
       <UInput
         v-model="search"
         :placeholder="$t('catalogs.searchPlaceholder')"
         icon="i-lucide-search"
         size="lg"
         class="w-full max-w-md"
-      />
-      <USelectMenu
-    clear
-        v-if="def.listFilter"
-        v-model="filterValue"
-        :items="filterOptions"
-        :loading="parents.loading.value"
-        label-key="label"
-        value-key="value"
-        :placeholder="$t('catalogs.filterByParent')"
-        class="w-full max-w-xs"
-        @update:open="parents.onOpen"
       />
       <UCheckbox v-model="includeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
       <UButton
@@ -657,7 +646,21 @@ async function confirmDelete() {
       >
         {{ t('common.clearSort') }}
       </UButton>
-    </div>
+      <!-- Only catalogs with a parent filter get the collapsible section. -->
+      <template v-if="def.listFilter" #filters>
+        <USelectMenu
+          v-model="filterValue"
+          clear
+          :items="filterOptions"
+          :loading="parents.loading.value"
+          label-key="label"
+          value-key="value"
+          :placeholder="$t('catalogs.filterByParent')"
+          class="w-full max-w-xs"
+          @update:open="parents.onOpen"
+        />
+      </template>
+    </ListFilterPanel>
 
     <!-- Table (+ vertical rank tree side panel, advisor-ranks only) -->
     <div :class="def.key === 'advisor-ranks' ? 'flex flex-col lg:flex-row gap-4 items-start' : ''">

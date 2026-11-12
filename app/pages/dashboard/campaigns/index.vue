@@ -46,6 +46,7 @@ const scopeFilter = ref('')
 const modeFilter = ref('')
 const dateFrom = ref('')
 const dateTo = ref('')
+const activeFilterCount = computed(() => countActiveFilters(scopeFilter.value, modeFilter.value, dateFrom.value, dateTo.value))
 const scopeOptions = computed(() => CAMPAIGN_SCOPE_OPTIONS.map(o => ({ label: t(o.labelKey), value: String(o.value) })))
 const modeOptions = computed(() => CAMPAIGN_MODE_OPTIONS.map(o => ({ label: t(o.labelKey), value: String(o.value) })))
 
@@ -188,7 +189,7 @@ onMounted(load)
       </div>
     </div>
 
-    <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
+    <ListFilterPanel :active-count="activeFilterCount" @clear="resetFilters">
       <UInput
         v-model="search"
         :placeholder="t('campaigns.searchPlaceholder')"
@@ -196,27 +197,6 @@ onMounted(load)
         size="lg"
         class="w-full max-w-md"
       />
-      <USelectMenu
-        v-model="scopeFilter"
-        clear
-        :items="scopeOptions"
-        label-key="label"
-        value-key="value"
-        icon="i-lucide-target"
-        :placeholder="t('campaigns.filters.scope')"
-        class="w-full max-w-xs"
-      />
-      <USelectMenu
-        v-model="modeFilter"
-        clear
-        :items="modeOptions"
-        label-key="label"
-        value-key="value"
-        icon="i-lucide-settings-2"
-        :placeholder="t('campaigns.filters.mode')"
-        class="w-full max-w-xs"
-      />
-      <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('campaigns.filters.dateFrom')" :to-label="t('campaigns.filters.dateTo')" />
       <UCheckbox v-model="includeInactive" :label="t('catalogs.includeInactive')" class="self-center" />
       <UButton
         v-if="hasActiveSort"
@@ -229,7 +209,32 @@ onMounted(load)
       >
         {{ t('common.clearSort') }}
       </UButton>
-    </div>
+      <template #filters>
+        <div class="flex flex-wrap items-center gap-3">
+          <USelectMenu
+            v-model="scopeFilter"
+            clear
+            :items="scopeOptions"
+            label-key="label"
+            value-key="value"
+            icon="i-lucide-target"
+            :placeholder="t('campaigns.filters.scope')"
+            class="w-full max-w-xs"
+          />
+          <USelectMenu
+            v-model="modeFilter"
+            clear
+            :items="modeOptions"
+            label-key="label"
+            value-key="value"
+            icon="i-lucide-settings-2"
+            :placeholder="t('campaigns.filters.mode')"
+            class="w-full max-w-xs"
+          />
+          <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('campaigns.filters.dateFrom')" :to-label="t('campaigns.filters.dateTo')" />
+        </div>
+      </template>
+    </ListFilterPanel>
 
     <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-19rem)] min-h-[20rem]">
       <div class="overflow-auto flex-1">

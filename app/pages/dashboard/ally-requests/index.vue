@@ -57,6 +57,15 @@ const channelItems = computed(() => [
   ...ALLY_REGISTRATION_CHANNELS.map(c => ({ value: c, label: t(`allyRequests.channel.${c}`) })),
 ])
 
+// Status stays visible (inbox state, defaults to PENDING), so it isn't counted; 'ALL' channel = no filter.
+const activeFilterCount = computed(() => countActiveFilters(
+  channel.value === 'ALL' ? undefined : channel.value,
+  promoterUuid.value,
+  masterFilters.value,
+  dateFrom.value,
+  dateTo.value,
+))
+
 const sort = useTableSort([])
 const hasActiveSort = computed(() => sort.hasActiveSort.value)
 const isMultiSort = computed(() => sort.orders.value.length > 1)
@@ -207,7 +216,7 @@ onMounted(() => {
       </div>
     </div>
 
-    <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
+    <ListFilterPanel :active-count="activeFilterCount" @clear="resetFilters">
       <UInput
         v-model="search"
         :placeholder="t('allyRequests.searchPlaceholder')"
@@ -216,23 +225,6 @@ onMounted(() => {
         class="w-full max-w-md"
       />
       <USelect v-model="status" :items="statusItems" :aria-label="t('allyRequests.columns.status')" size="lg" class="w-44" />
-      <USelect v-model="channel" :items="channelItems" :aria-label="t('allyRequests.columns.channel')" size="lg" class="w-48" />
-      <USelectMenu
-        v-if="advisors.available.value"
-        v-model="promoterUuid"
-        clear
-        :items="advisorItems.items.value"
-        :loading="advisorItems.loading.value"
-        value-key="value"
-        label-key="label"
-        :placeholder="t('allyRequests.advisorFilter')"
-        icon="i-lucide-user-check"
-        size="lg"
-        class="w-64"
-        @update:open="advisorItems.onOpen"
-      />
-      <AllyMasterFilters v-model="masterFilters" class="w-full" />
-      <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('allyRequests.filters.dateFrom')" :to-label="t('allyRequests.filters.dateTo')" />
       <UButton
         v-if="hasActiveSort"
         variant="link"
@@ -244,7 +236,28 @@ onMounted(() => {
       >
         {{ t('common.clearSort') }}
       </UButton>
-    </div>
+      <template #filters>
+        <div class="flex flex-wrap items-center gap-3">
+          <USelect v-model="channel" :items="channelItems" :aria-label="t('allyRequests.columns.channel')" size="lg" class="w-48" />
+          <USelectMenu
+            v-if="advisors.available.value"
+            v-model="promoterUuid"
+            clear
+            :items="advisorItems.items.value"
+            :loading="advisorItems.loading.value"
+            value-key="value"
+            label-key="label"
+            :placeholder="t('allyRequests.advisorFilter')"
+            icon="i-lucide-user-check"
+            size="lg"
+            class="w-64"
+            @update:open="advisorItems.onOpen"
+          />
+          <AllyMasterFilters v-model="masterFilters" />
+          <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('allyRequests.filters.dateFrom')" :to-label="t('allyRequests.filters.dateTo')" />
+        </div>
+      </template>
+    </ListFilterPanel>
 
     <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-19rem)] min-h-[20rem]">
       <div class="overflow-auto flex-1">

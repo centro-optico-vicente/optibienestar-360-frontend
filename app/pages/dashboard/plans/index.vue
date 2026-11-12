@@ -3,6 +3,7 @@ import { PLAN_TYPE_OPTIONS } from '~/types/plans'
 import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
 import type { PlanDto } from '~/types/plans'
 import type { SortDirection } from '~/composables/useTableSort'
+import { countActiveFilters } from '~/utils/listFilters'
 
 definePageMeta({
   layout: 'dashboard',
@@ -36,6 +37,7 @@ const pageSizeItems = buildPageSizeItems(t)
 const search = ref('')
 const includeInactive = ref(false)
 const typeFilter = ref('')
+const activeFilterCount = computed(() => countActiveFilters(typeFilter.value))
 const typeOptions = computed(() => PLAN_TYPE_OPTIONS.map(o => ({ label: t(o.labelKey, o.label), value: String(o.value) })))
 // Empty by default: no `sort=` is sent until the user clicks a column, so
 // the backend's own default-sort fallback (entity_config → system_configs
@@ -224,23 +226,13 @@ function openAudit(p: PlanDto) {
     </div>
 
     <!-- Search -->
-    <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
+    <ListFilterPanel :active-count="activeFilterCount" @clear="resetFilters">
       <UInput
         v-model="search"
         :placeholder="t('plans.searchPlaceholder')"
         icon="i-lucide-search"
         size="lg"
         class="w-full max-w-md"
-      />
-      <USelectMenu
-        v-model="typeFilter"
-        clear
-        :items="typeOptions"
-        label-key="label"
-        value-key="value"
-        icon="i-lucide-layers"
-        :placeholder="t('plans.filters.type')"
-        class="w-full max-w-xs"
       />
       <UCheckbox v-model="includeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
       <UButton
@@ -254,7 +246,19 @@ function openAudit(p: PlanDto) {
       >
         {{ t('common.clearSort') }}
       </UButton>
-    </div>
+      <template #filters>
+        <USelectMenu
+          v-model="typeFilter"
+          clear
+          :items="typeOptions"
+          label-key="label"
+          value-key="value"
+          icon="i-lucide-layers"
+          :placeholder="t('plans.filters.type')"
+          class="w-full max-w-xs"
+        />
+      </template>
+    </ListFilterPanel>
 
     <!-- Table -->
     <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-19rem)] min-h-[24rem]">

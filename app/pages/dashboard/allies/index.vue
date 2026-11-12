@@ -70,6 +70,7 @@ const segmentFilterOptions = computed(() => [
 // table has no "Creado" header to toggle it off — so it would silently stick
 // as a phantom secondary sort behind whatever column the user picks.
 const masterFilters = ref(emptyAllyMasterFilters())
+const activeFilterCount = computed(() => countActiveFilters(segmentFilter.value, promoterUuid.value, masterFilters.value))
 const sort = useTableSort([])
 const hasActiveSort = computed(() => sort.hasActiveSort.value)
 const isMultiSort = computed(() => sort.orders.value.length > 1)
@@ -290,8 +291,8 @@ async function confirmDelete() {
       </div>
     </div>
 
-    <!-- Search -->
-    <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
+    <!-- Search + collapsible master filters -->
+    <ListFilterPanel :active-count="activeFilterCount" @clear="resetFilters">
       <UInput
         v-model="search"
         :placeholder="t('allies.searchPlaceholder')"
@@ -299,31 +300,6 @@ async function confirmDelete() {
         size="lg"
         class="w-full max-w-md"
       />
-      <USelectMenu
-        v-model="segmentFilter"
-        clear
-        :items="segmentFilterOptions"
-        value-key="value"
-        label-key="label"
-        :search-input="false"
-        :placeholder="t('allies.form.fields.segment')"
-        icon="i-lucide-layers"
-        class="w-56"
-      />
-      <USelectMenu
-        v-if="advisors.available.value"
-        v-model="promoterUuid"
-        clear
-        :items="advisorItems.items.value"
-        :loading="advisorItems.loading.value"
-        value-key="value"
-        label-key="label"
-        :placeholder="t('allies.advisor.filter')"
-        icon="i-lucide-user-check"
-        class="w-64"
-        @update:open="advisorItems.onOpen"
-      />
-      <AllyMasterFilters v-model="masterFilters" />
       <UCheckbox v-model="includeInactive" :label="$t('catalogs.includeInactive')" class="self-center" />
       <UButton
         v-if="hasActiveSort"
@@ -336,7 +312,36 @@ async function confirmDelete() {
       >
         {{ t('common.clearSort') }}
       </UButton>
-    </div>
+      <template #filters>
+        <div class="flex flex-wrap items-center gap-3">
+          <USelectMenu
+            v-model="segmentFilter"
+            clear
+            :items="segmentFilterOptions"
+            value-key="value"
+            label-key="label"
+            :search-input="false"
+            :placeholder="t('allies.form.fields.segment')"
+            icon="i-lucide-layers"
+            class="w-56"
+          />
+          <USelectMenu
+            v-if="advisors.available.value"
+            v-model="promoterUuid"
+            clear
+            :items="advisorItems.items.value"
+            :loading="advisorItems.loading.value"
+            value-key="value"
+            label-key="label"
+            :placeholder="t('allies.advisor.filter')"
+            icon="i-lucide-user-check"
+            class="w-64"
+            @update:open="advisorItems.onOpen"
+          />
+          <AllyMasterFilters v-model="masterFilters" />
+        </div>
+      </template>
+    </ListFilterPanel>
 
     <!-- Table -->
     <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-19rem)] min-h-[24rem]">

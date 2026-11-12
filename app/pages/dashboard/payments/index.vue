@@ -4,6 +4,7 @@ import type { PaymentDto, PaymentStatus } from '~/types/payments'
 import { PAYMENT_STATUS_OPTIONS, paymentStatusColor } from '~/types/payments'
 import type { SortDirection } from '~/composables/useTableSort'
 import { emptyPaymentMasterFilters, joinRsql, paymentFilterQuery } from '~/utils/paymentFilters'
+import { countActiveFilters } from '~/utils/listFilters'
 
 // "Pagos" is the administrative OUT ledger for commission payouts and manual
 // payment entries, including their review workflow.
@@ -50,6 +51,7 @@ const statusFilter = ref<PaymentStatus | null>(null)
 // Empty by default: no `sort=` is sent until the user clicks a column, so
 // the backend's own default-sort fallback applies — same as the IN screen.
 const masterFilters = ref(emptyPaymentMasterFilters())
+const activeFilterCount = computed(() => countActiveFilters(statusFilter.value, masterFilters.value))
 const sort = useTableSort([])
 const hasActiveSort = computed(() => sort.hasActiveSort.value)
 const isMultiSort = computed(() => sort.orders.value.length > 1)
@@ -226,8 +228,8 @@ async function reviewPayment(p: PaymentDto, approve: boolean) {
       </div>
     </div>
 
-    <!-- Filters -->
-    <div class="bg-white rounded-2xl border border-prohealth-100 p-4 flex flex-wrap items-center gap-3">
+    <!-- Search + collapsible master filters -->
+    <ListFilterPanel :active-count="activeFilterCount" @clear="resetFilters">
       <UInput
         v-model="search"
         :placeholder="t('payments.payouts.searchPlaceholder')"
@@ -235,17 +237,6 @@ async function reviewPayment(p: PaymentDto, approve: boolean) {
         size="lg"
         class="w-full max-w-md"
       />
-      <USelectMenu
-        clear
-        v-model="statusFilter"
-        :items="statusFilterOptions"
-        label-key="label"
-        value-key="value"
-        :placeholder="t('payments.statusFilterPlaceholder')"
-        icon="i-lucide-filter"
-        class="w-44"
-      />
-      <PaymentMasterFilters v-model="masterFilters" class="w-full" />
       <UButton
         v-if="hasActiveSort"
         variant="link"
@@ -257,7 +248,22 @@ async function reviewPayment(p: PaymentDto, approve: boolean) {
       >
         {{ t('common.clearSort') }}
       </UButton>
-    </div>
+      <template #filters>
+        <div class="flex flex-wrap items-center gap-3">
+          <USelectMenu
+            clear
+            v-model="statusFilter"
+            :items="statusFilterOptions"
+            label-key="label"
+            value-key="value"
+            :placeholder="t('payments.statusFilterPlaceholder')"
+            icon="i-lucide-filter"
+            class="w-44"
+          />
+          <PaymentMasterFilters v-model="masterFilters" />
+        </div>
+      </template>
+    </ListFilterPanel>
 
     <!-- Table -->
     <div class="bg-white rounded-2xl border border-prohealth-100 overflow-hidden flex flex-col h-[calc(100vh-19rem)] min-h-[24rem]">
