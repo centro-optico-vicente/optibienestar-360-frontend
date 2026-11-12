@@ -5289,7 +5289,8 @@
       "dataChangeAudit": "Data change audit",
       "reportAudit": "Report audit",
       "sessions": "Session and system usage",
-      "patientAccess": "Medical history for medical allies"
+      "patientAccess": "Medical history for medical allies",
+      "pdfRendering": "PDF generation"
     },
     "audit": {
       "sectionTitle": "Audit",
@@ -5336,6 +5337,12 @@
     "patientAccess": {
       "enabled": "Let medical allies read their patients' history",
       "enabledHelp": "After scanning the credential QR, the doctor of a medical professional ally can read that patient's medical history. Keep it off until legal confirms the membership agreement clause."
+    },
+    "pdfRendering": {
+      "maxConcurrentRenders": "PDFs generated at once",
+      "maxConcurrentRendersHelp": "How many PDF record cards or lists are generated at the same time. Each one uses server memory; a high number can run the server out of memory. Recommended: 2.",
+      "renderWaitSeconds": "Maximum wait (seconds)",
+      "renderWaitSecondsHelp": "How long a PDF waits for a free slot. When the time runs out, the user sees a notice to try again. With 0 it does not wait."
     }
   },
   "markdownEditor": {

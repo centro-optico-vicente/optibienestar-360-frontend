@@ -22,6 +22,10 @@ export interface SystemConfigDto {
   defaultSort?: ConfigSortOrder[] | null
   /** Medical allies may read their patients' medical history (backend V215, hub ADR 0032). Off by default. */
   patientMedicalAccessEnabled?: boolean
+  /** Max generic PDF documents rendered at the same time (backend V238). */
+  pdfMaxConcurrentRenders?: number
+  /** Seconds a PDF request waits for a free render slot before 503 (backend V238). */
+  pdfRenderWaitSeconds?: number
   updatedAt?: string
 }
 
@@ -36,6 +40,8 @@ export interface UpdateSystemConfigRequest {
   loginSessionExpirationDays?: number
   defaultSort?: ConfigSortOrder[]
   patientMedicalAccessEnabled?: boolean
+  pdfMaxConcurrentRenders?: number
+  pdfRenderWaitSeconds?: number
 }
 
 export const useSystemConfig = () => {

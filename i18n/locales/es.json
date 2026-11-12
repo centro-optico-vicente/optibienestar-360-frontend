@@ -5289,7 +5289,8 @@
       "dataChangeAudit": "Auditoría de cambios de datos",
       "reportAudit": "Auditoría de reportes",
       "sessions": "Sesión y uso del sistema",
-      "patientAccess": "Historia médica para aliados médicos"
+      "patientAccess": "Historia médica para aliados médicos",
+      "pdfRendering": "Generación de PDF"
     },
     "audit": {
       "sectionTitle": "Auditoría",
@@ -5336,6 +5337,12 @@
     "patientAccess": {
       "enabled": "Permitir que los médicos aliados vean la historia de sus pacientes",
       "enabledHelp": "Al escanear el QR de la credencial, el médico de un aliado profesional del área médica puede consultar la historia médica de ese paciente. Mantener apagado hasta que legal confirme la cláusula del Acuerdo de Membresía."
+    },
+    "pdfRendering": {
+      "maxConcurrentRenders": "PDF generados a la vez",
+      "maxConcurrentRendersHelp": "Cuántas fichas o listados en PDF se generan al mismo tiempo. Cada uno ocupa memoria del servidor; un número alto puede dejarlo sin memoria. Recomendado: 2.",
+      "renderWaitSeconds": "Espera máxima (segundos)",
+      "renderWaitSecondsHelp": "Cuánto espera un PDF a que se libere un lugar. Si se cumple el tiempo, el usuario ve un aviso para intentar de nuevo. Con 0 no espera."
     }
   },
   "markdownEditor": {

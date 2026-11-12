@@ -60,6 +60,8 @@ const state = reactive({
   defaultSort: [] as ConfigSortOrder[],
   loginSessionExpirationDays: 30,
   patientMedicalAccessEnabled: false,
+  pdfMaxConcurrentRenders: 2,
+  pdfRenderWaitSeconds: 30,
 })
 
 const schema = computed(() =>
@@ -80,6 +82,14 @@ const schema = computed(() =>
       .number()
       .int()
       .positive(t('validation.positive')),
+    pdfMaxConcurrentRenders: z
+      .number()
+      .int()
+      .positive(t('validation.positive')),
+    pdfRenderWaitSeconds: z
+      .number()
+      .int()
+      .min(0),
     // Loosely typed on purpose (not z.enum(COMMON_SORT_FIELDS)) — the
     // USelectMenu below already constrains input to that whitelist; a
     // stricter literal-union type here just fights ConfigSortOrder's plain
@@ -112,6 +122,8 @@ async function load() {
     state.loginSessionExpirationDays = res.loginSessionExpirationDays
     state.defaultSort = res.defaultSort ?? []
     state.patientMedicalAccessEnabled = res.patientMedicalAccessEnabled ?? false
+    state.pdfMaxConcurrentRenders = res.pdfMaxConcurrentRenders ?? 2
+    state.pdfRenderWaitSeconds = res.pdfRenderWaitSeconds ?? 30
   }
   catch {
     state.reportFooter = ''
@@ -157,6 +169,8 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
             loginSessionExpirationDays: state.loginSessionExpirationDays,
             defaultSort: state.defaultSort,
             patientMedicalAccessEnabled: state.patientMedicalAccessEnabled,
+            pdfMaxConcurrentRenders: state.pdfMaxConcurrentRenders,
+            pdfRenderWaitSeconds: state.pdfRenderWaitSeconds,
           }
         : {}),
     })
@@ -170,6 +184,8 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     state.loginSessionExpirationDays = updated.loginSessionExpirationDays
     state.defaultSort = updated.defaultSort ?? []
     state.patientMedicalAccessEnabled = updated.patientMedicalAccessEnabled ?? false
+    state.pdfMaxConcurrentRenders = updated.pdfMaxConcurrentRenders ?? 2
+    state.pdfRenderWaitSeconds = updated.pdfRenderWaitSeconds ?? 30
     snapshot.value = snapshotState()
     toast.add({
       title: t('systemConfig.updatedToast'),
@@ -366,6 +382,36 @@ onMounted(load)
               name="patientMedicalAccessEnabled"
             >
               <USwitch v-model="state.patientMedicalAccessEnabled" :disabled="isSubmitting || !canUpdateAudit" />
+            </UFormField>
+          </div>
+
+          <!-- Generación de PDF (backend V238): cap on concurrent renders -->
+          <div class="bg-white rounded-2xl border border-prohealth-100 p-6 shadow-sm space-y-4">
+            <h2 class="text-base font-bold text-prohealth-900">{{ t('systemConfig.sections.pdfRendering') }}</h2>
+            <UFormField
+              :label="t('systemConfig.pdfRendering.maxConcurrentRenders')"
+              :help="t('systemConfig.pdfRendering.maxConcurrentRendersHelp')"
+              name="pdfMaxConcurrentRenders"
+            >
+              <UInputNumber
+                v-model="state.pdfMaxConcurrentRenders"
+                :min="1"
+                class="w-full sm:w-40"
+                :disabled="isSubmitting || !canUpdateAudit"
+              />
+            </UFormField>
+
+            <UFormField
+              :label="t('systemConfig.pdfRendering.renderWaitSeconds')"
+              :help="t('systemConfig.pdfRendering.renderWaitSecondsHelp')"
+              name="pdfRenderWaitSeconds"
+            >
+              <UInputNumber
+                v-model="state.pdfRenderWaitSeconds"
+                :min="0"
+                class="w-full sm:w-40"
+                :disabled="isSubmitting || !canUpdateAudit"
+              />
             </UFormField>
           </div>
 
