@@ -61,24 +61,14 @@ const schema = computed(() =>
 // value keyed by `uuid` (ADR
 // 0014 `_Uuid` FK convention, matching the backend's `paymentMethodUuid`/
 // `currencyUuid` fields).
-const methodOptions = ref<{ label: string, value: string }[]>([])
-const currencyOptions = ref<{ label: string, value: string }[]>([])
-const loadingCatalogs = ref(false)
-
-async function loadCatalogs() {
-  loadingCatalogs.value = true
-  try {
-    const [methods, currencies] = await Promise.all([methodsApi.options(), currenciesApi.options()])
-    methodOptions.value = methods.map(m => ({ label: m.label, value: m.uuid }))
-    currencyOptions.value = currencies.map(c => ({ label: c.label, value: c.uuid }))
-  }
-  catch {
-    methodOptions.value = []
-    currencyOptions.value = []
-  }
-  finally {
-    loadingCatalogs.value = false
-  }
+const methodLazy = useLazyOptions(async q => (await methodsApi.options({ q })).map(m => ({ label: m.label, value: m.uuid })))
+const currencyLazy = useLazyOptions(async q => (await currenciesApi.options({ q })).map(c => ({ label: c.label, value: c.uuid })))
+const methodOptions = computed(() => methodLazy.items.value)
+const currencyOptions = computed(() => currencyLazy.items.value)
+const loadingCatalogs = computed(() => methodLazy.loading.value || currencyLazy.loading.value)
+function loadCatalogs() {
+  void methodLazy.ensureLoaded()
+  void currencyLazy.ensureLoaded()
 }
 
 const preview = ref<CommissionPayoutResponse | null>(null)
@@ -104,7 +94,7 @@ watch(() => props.open, (open) => {
   preview.value = null
   previewing.value = false
   confirming.value = false
-  void loadCatalogs()
+  loadCatalogs()
 })
 
 async function onPreview(_event: FormSubmitEvent<Record<string, unknown>>) {
@@ -193,11 +183,14 @@ async function onConfirm() {
               clear
               v-model="state.paymentMethodUuid"
               :items="methodOptions"
+              v-model:search-term="methodLazy.searchTerm.value"
+              ignore-filter
               label-key="label"
               value-key="value"
               :loading="loadingCatalogs"
               :placeholder="t('common.select')"
               class="w-full"
+              @update:model-value="methodLazy.remember($event)"
             />
           </UFormField>
           <UFormField :label="t('commissions.payoutBySelection.fields.currency')" name="currencyUuid" required>
@@ -205,11 +198,14 @@ async function onConfirm() {
               clear
               v-model="state.currencyUuid"
               :items="currencyOptions"
+              v-model:search-term="currencyLazy.searchTerm.value"
+              ignore-filter
               label-key="label"
               value-key="value"
               :loading="loadingCatalogs"
               :placeholder="t('common.select')"
               class="w-full"
+              @update:model-value="currencyLazy.remember($event)"
             />
           </UFormField>
         </div>

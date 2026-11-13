@@ -70,7 +70,7 @@ const membersApi = useMembers()
 const currenciesApi = useCurrencies()
 // Fetched the first time the currency dropdown opens, not when the list mounts.
 const currencies = useLazyOptions(async q =>
-  (await currenciesApi.options(q)).filter(c => c.active).map(c => ({ label: c.label, value: c.code ?? c.label })))
+  (await currenciesApi.options({ q })).filter(c => c.active).map(c => ({ label: c.label, value: c.code ?? c.label })))
 const statusOptions = computed(() => COMMISSION_STATUS_OPTIONS.map(o => ({ label: t(o.labelKey), value: String(o.value) })))
 
 async function searchMembers(q: string): Promise<SelectItem[]> {

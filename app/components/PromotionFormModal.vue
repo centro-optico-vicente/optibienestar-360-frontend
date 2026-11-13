@@ -37,7 +37,9 @@ const appliesToItems = computed(() => [
   { label: t('promotions.appliesTo.MONTHLY'), value: 'MONTHLY' },
   { label: t('promotions.appliesTo.BOTH'), value: 'BOTH' },
 ])
-const planItems = ref<{ label: string, value: string }[]>([])
+// Plans searched on the server (`q`) when the dropdown opens and while typing (the promotion's own plans stay listed).
+const planLazy = useLazyOptions(async q => (await plansApi.options({ q })).map(o => ({ label: o.label, value: o.uuid })))
+const planItems = computed(() => planLazy.items.value)
 
 const state = reactive({
   name: '',
@@ -85,13 +87,7 @@ watch(() => props.open, async (open) => {
     referrerRewardCycles: p?.referrerRewardCycles ?? undefined,
     planUuids: (p?.plans ?? []).map(pl => pl.uuid),
   })
-  try {
-    const options = await plansApi.options()
-    planItems.value = options.map(o => ({ label: o.label, value: o.uuid }))
-  }
-  catch {
-    planItems.value = []
-  }
+  await planLazy.ensureLoaded()
 })
 
 const errors = computed(() => {
@@ -218,10 +214,13 @@ function numberOrUndefined(v: string | number | null | undefined): number | unde
               clear
               v-model="state.planUuids"
               :items="planItems"
+              v-model:search-term="planLazy.searchTerm.value"
+              ignore-filter
               label-key="label"
               value-key="value"
               multiple
               class="w-full"
+              @update:model-value="planLazy.remember($event)"
             />
           </UFormField>
         </div>

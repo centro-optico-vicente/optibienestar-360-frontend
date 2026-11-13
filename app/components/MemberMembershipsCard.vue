@@ -197,20 +197,9 @@ const enrollSubmitting = ref(false)
 // Save button lives in the modal's #footer slot, outside the <UForm> element,
 // so it can't use type="submit"; it triggers validation via this instead.
 const enrollFormRef = ref<{ submit: () => Promise<void> } | null>(null)
-const planOptions = ref<{ label: string, value: string }[]>([])
-const plansLoaded = ref(false)
-
-async function loadPlans() {
-  if (plansLoaded.value) return
-  try {
-    const res = await plans.options()
-    planOptions.value = toSelectItems(res)
-    plansLoaded.value = true
-  }
-  catch {
-    planOptions.value = []
-  }
-}
+// Plans searched on the server (`q`) when the dropdown opens and while typing.
+const planLazy = useLazyOptions(async q => toSelectItems(await plans.options({ q })))
+const planOptions = computed(() => planLazy.items.value)
 
 interface EnrollState {
   planUuid: string | undefined
@@ -272,7 +261,7 @@ async function openEnroll() {
   enrollState.promotionUuid = undefined
   enrollState.promotionCode = ''
   enrollOpen.value = true
-  await loadPlans()
+  await planLazy.ensureLoaded()
 }
 
 async function onEnrollSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
@@ -539,10 +528,13 @@ async function confirmLifecycle() {
               clear
               v-model="enrollState.planUuid"
               :items="planOptions"
+              v-model:search-term="planLazy.searchTerm.value"
+              ignore-filter
               label-key="label"
               value-key="value"
               :placeholder="t('memberships.enrollForm.selectPlan')"
               class="w-full"
+              @update:model-value="planLazy.remember($event)"
             />
           </UFormField>
 

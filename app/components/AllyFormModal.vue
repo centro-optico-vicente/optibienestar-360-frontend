@@ -150,34 +150,28 @@ function loadHostAllies(): Promise<void> {
 // value the instant `selectedStateUuid` is set.
 const selectedStateUuid = ref<string | undefined>(undefined)
 const pendingCity = ref<SelectItem | undefined>(undefined)
-const cityOptions = ref<SelectItem[]>([])
-let citiesLoadedFor: string | undefined
-const citiesLoading = ref(false)
+// Searched on the server (`q`) within the selected state; the ally's own city stays listed through its seed.
+const cities = (() => {
+  const lazy = useLazyOptions(async (q) => {
+    const stateUuid = selectedStateUuid.value
+    if (!stateUuid) return []
+    try {
+      return toSelectItems(await useCatalogOptions('cities').options({ q, parentUuid: stateUuid }))
+    }
+    catch {
+      return []
+    }
+  })
+  const seed = ref<SelectItem[]>([])
+  return { ...lazy, seed, items: computed(() => withSeed(seed.value, lazy.items.value)) }
+})()
 watch(selectedStateUuid, (stateUuid) => {
   const keepCity = pendingCity.value
   pendingCity.value = undefined
-  citiesLoadedFor = undefined
-  cityOptions.value = keepCity && stateUuid ? [keepCity] : []
+  cities.reset()
+  cities.seed.value = keepCity && stateUuid ? [keepCity] : []
   state.cityUuid = keepCity && stateUuid ? keepCity.value as string : undefined
 })
-async function onCitiesOpen(open: boolean) {
-  const stateUuid = selectedStateUuid.value
-  if (!open || !stateUuid || citiesLoadedFor === stateUuid) return
-  citiesLoading.value = true
-  try {
-    const cities = toSelectItems(await useCatalogOptions('cities').options({ parentUuid: stateUuid, limit: DROPDOWN_PAGE_SIZE }))
-    // The state may have changed while the request was in flight.
-    if (selectedStateUuid.value !== stateUuid) return
-    cityOptions.value = withSeed(cityOptions.value.filter(c => c.value === state.cityUuid), cities)
-    citiesLoadedFor = stateUuid
-  }
-  catch {
-    // useApi already notified; the next open retries.
-  }
-  finally {
-    citiesLoading.value = false
-  }
-}
 
 const STATUS_OPTIONS = ['ACTIVE', 'INACTIVE', 'SUSPENDED']
 function statusLabel(status?: string | null): string {
@@ -477,7 +471,7 @@ function populateEditForm(full: AllyDto) {
   const cityItem = city?.uuid ? { label: city.name, value: city.uuid } : undefined
   if (selectedStateUuid.value === stateUuid) {
     // Same state (a refresh): the watcher won't run, so seed the city here.
-    if (cityItem) cityOptions.value = withSeed([cityItem], cityOptions.value)
+    if (cityItem) cities.seed.value = [cityItem]
   }
   else {
     pendingCity.value = cityItem
@@ -942,13 +936,11 @@ function requestDelete() {
           <UFormField :label="t('allies.form.fields.city')" name="cityUuid">
             <CommonEntityReferenceSelect
               v-model="state.cityUuid"
-              :items="cityOptions"
-              :loading="citiesLoading"
+              :lazy="cities"
               :disabled="!selectedStateUuid"
               entity="city"
               :placeholder="t('allies.form.selectCityFirst')"
               @navigate="goToCatalogRecord"
-              @open="onCitiesOpen"
             />
           </UFormField>
         </div>

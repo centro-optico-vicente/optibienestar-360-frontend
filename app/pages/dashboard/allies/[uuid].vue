@@ -465,7 +465,9 @@ async function removeProfession(professionUuid: string) {
 // =========================================================
 const allyTypes = ref<CatalogRef[]>([])
 const allyTypesLoading = ref(false)
-const allAllyTypeOptions = ref<{ label: string, value: string }[]>([])
+// Ally types searched on the server (`q`); the ones already assigned are left out of the list.
+const allyTypeLazy = useLazyOptions(async q => toSelectItems(await useCatalogOptions('ally-types').options({ q })))
+const allAllyTypeOptions = computed(() => allyTypeLazy.items.value)
 const allyTypeToAdd = ref<string | undefined>(undefined)
 const allyTypeMutating = ref(false)
 
@@ -482,15 +484,6 @@ async function loadAllyTypes() {
   }
 }
 
-async function loadAllAllyTypes() {
-  try {
-    const items = await useCatalogOptions('ally-types').options()
-    allAllyTypeOptions.value = toSelectItems(items)
-  }
-  catch {
-    allAllyTypeOptions.value = []
-  }
-}
 
 /** Only the ally types not yet assigned. */
 const availableAllyTypeOptions = computed(() => {
@@ -785,21 +778,9 @@ watch(staffSort.orders, () => loadStaff(), { deep: true })
 
 // System users for the assignment selector (requires USER_VIEW_ALL; without the
 // permission it fails silently and the select stays empty).
-const userOptions = ref<{ label: string, value: string }[]>([])
-
-async function loadUserOptions() {
-  if (!can('USER_VIEW_ALL')) return
-  try {
-    const res = await useUsers().list({ size: 100, sort: ['createdAt,desc'] })
-    userOptions.value = (res.content ?? []).map(u => ({
-      label: `${u.fullName} (${u.email})`,
-      value: u.uuid,
-    }))
-  }
-  catch {
-    userOptions.value = []
-  }
-}
+// Users searched on the server (`q`) when the dropdown opens and while typing.
+const userLazy = useLazyOptions(async q => (await useUsers().options({ q })).map(u => ({ label: u.label, value: u.uuid })))
+const userOptions = computed(() => userLazy.items.value)
 
 const staffFormOpen = ref(false)
 const staffMode = ref<'create' | 'edit'>('create')
@@ -976,8 +957,6 @@ onMounted(async () => {
     loadAgreements(),
     loadStaff(),
     loadAllProfessions(),
-    loadAllAllyTypes(),
-    loadUserOptions(),
   ])
 })
 </script>
@@ -1608,11 +1587,15 @@ onMounted(async () => {
               clear
               v-model="allyTypeToAdd"
               :items="availableAllyTypeOptions"
+              v-model:search-term="allyTypeLazy.searchTerm.value"
+              ignore-filter
               label-key="label"
               value-key="value"
               :placeholder="t('common.select')"
               :disabled="!canUpdate"
               class="w-48"
+              @update:open="allyTypeLazy.onOpen"
+              @update:model-value="allyTypeLazy.remember($event)"
             />
             <UButton
               color="primary"
@@ -2168,10 +2151,14 @@ onMounted(async () => {
               clear
               v-model="staffState.userUuid"
               :items="userOptions"
+              v-model:search-term="userLazy.searchTerm.value"
+              ignore-filter
               label-key="label"
               value-key="value"
               :placeholder="t('allies.staff.form.selectUser')"
               class="w-full"
+              @update:open="userLazy.onOpen"
+              @update:model-value="userLazy.remember($event)"
             />
           </UFormField>
 

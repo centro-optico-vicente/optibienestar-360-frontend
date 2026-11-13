@@ -48,55 +48,38 @@ const promoterTypeOptions = useCatalogOptions('advisor-types')
 const hierarchyApi = usePromoterHierarchy()
 const toast = useToast()
 
-const promoterTypeItems = ref<SelectItem[]>([])
-const loadingPromoterTypes = ref(false)
-async function loadPromoterTypeOptions() {
-  loadingPromoterTypes.value = true
-  try {
-    const options = await promoterTypeOptions.options()
-    promoterTypeItems.value = options.map(o => ({ label: o.label, value: o.uuid }))
-  }
-  catch { promoterTypeItems.value = [] }
-  finally { loadingPromoterTypes.value = false }
-}
-function onPromoterTypesOpen(open: boolean) {
-  if (open && !promoterTypeItems.value.length && !loadingPromoterTypes.value) void loadPromoterTypeOptions()
-}
+// Searched on the server (`q`) when the dropdown opens and while typing; what was seen stays in the maps above.
+const promoterTypeLazy = useLazyOptions(async (q) => {
+  const options = await promoterTypeOptions.options({ q })
+  const found = options.map(o => ({ label: o.label, value: o.uuid }))
+  return found
+})
+const promoterTypeItems = computed(() => promoterTypeLazy.items.value)
+const loadingPromoterTypes = computed(() => promoterTypeLazy.loading.value)
+const onPromoterTypesOpen = promoterTypeLazy.onOpen
 
-const rankItems = ref<SelectItem[]>([])
-const loadingRanks = ref(false)
-async function loadRankOptions() {
-  loadingRanks.value = true
-  try {
-    const options = await hierarchyApi.rankOptions()
-    rankItems.value = options.map(o => ({ label: o.label, value: o.uuid }))
-  }
-  catch { rankItems.value = [] }
-  finally { loadingRanks.value = false }
-}
-function onRanksOpen(open: boolean) {
-  if (open && !rankItems.value.length && !loadingRanks.value) void loadRankOptions()
-}
+// Searched on the server (`q`) when the dropdown opens and while typing; what was seen stays in the maps above.
+const rankLazy = useLazyOptions(async (q) => {
+  const options = await hierarchyApi.rankOptions({ q })
+  const found = options.map(o => ({ label: o.label, value: o.uuid }))
+  return found
+})
+const rankItems = computed(() => rankLazy.items.value)
+const loadingRanks = computed(() => rankLazy.loading.value)
+const onRanksOpen = rankLazy.onOpen
 
 const isOpen = computed({
   get: () => props.open,
   set: (v: boolean) => emit('update:open', v),
 })
 
-const currencyItems = ref<SelectItem[]>([])
-const loadingCurrencies = ref(false)
-async function loadCurrencyOptions() {
-  loadingCurrencies.value = true
-  try {
-    const options = await currencies.options()
-    currencyItems.value = options.filter(o => o.code).map(o => ({ label: o.label, value: o.uuid }))
-  }
-  catch { currencyItems.value = [] }
-  finally { loadingCurrencies.value = false }
-}
-function onCurrenciesOpen(open: boolean) {
-  if (open && !currencyItems.value.length && !loadingCurrencies.value) void loadCurrencyOptions()
-}
+// Searched on the server (`q`) when the dropdown opens and while typing; what was seen stays in the maps above.
+const currencyLazy = useLazyOptions(async (q) => {
+  const options = await currencies.options({ q })
+  const found = options.filter(o => o.code).map(o => ({ label: o.label, value: o.uuid }))
+  return found
+})
+const onCurrenciesOpen = currencyLazy.onOpen
 
 async function searchCampaigns(q: string): Promise<SelectItem[]> {
   const res = await campaignsApi.options({ q, limit: DROPDOWN_PAGE_SIZE })
@@ -497,9 +480,7 @@ function openDeleteFromEdit() {
               </UInput>
             </UFormField>
             <UFormField :label="t('commissionRules.competitiveRules.form.thresholdCurrency')" name="thresholdCurrencyUuid">
-              <CommonEntityReferenceSelect v-model="state.thresholdCurrencyUuid" :items="currencyItems" entity="currency"
-                                           :loading="loadingCurrencies" :placeholder="t('common.select')" icon="i-lucide-coins" @navigate="goToCurrency"
-                                           @open="onCurrenciesOpen" />
+              <CommonEntityReferenceSelect v-model="state.thresholdCurrencyUuid" entity="currency" :placeholder="t('common.select')" icon="i-lucide-coins" @navigate="goToCurrency" :lazy="currencyLazy" />
             </UFormField>
           </template>
         </div>
@@ -575,9 +556,7 @@ function openDeleteFromEdit() {
                 </UFormField>
               </template>
               <UFormField :label="t('commissionRules.competitiveRules.form.rewardCurrency')">
-                <CommonEntityReferenceSelect v-model="range.currencyUuid" :items="currencyItems" entity="currency"
-                                             :loading="loadingCurrencies" :placeholder="t('common.select')" icon="i-lucide-coins" @navigate="goToCurrency"
-                                             @open="onCurrenciesOpen" />
+                <CommonEntityReferenceSelect v-model="range.currencyUuid" entity="currency" :placeholder="t('common.select')" icon="i-lucide-coins" @navigate="goToCurrency" :lazy="currencyLazy" />
               </UFormField>
               <UFormField v-if="isRanking" :label="t('commissionRules.competitiveRules.form.minThreshold')" :help="t('commissionRules.competitiveRules.form.minThresholdHelp')">
                 <UInput v-model="range.minThreshold" class="w-full" />
@@ -676,15 +655,23 @@ function openDeleteFromEdit() {
         </UFormField>
 
         <UFormField :label="t('commissionRules.form.promoterTypes')" name="promoterTypeUuids" :help="t('commissionRules.form.promoterTypesHelp')">
-          <USelectMenu clear v-model="state.promoterTypeUuids" :items="promoterTypeItems" label-key="label" value-key="value" multiple
+          <USelectMenu clear v-model="state.promoterTypeUuids" :items="promoterTypeItems"
+                       v-model:search-term="promoterTypeLazy.searchTerm.value"
+                       ignore-filter label-key="label" value-key="value" multiple
                        :loading="loadingPromoterTypes" icon="i-lucide-tags" :placeholder="t('commissionRules.form.promoterTypesPlaceholder')" class="w-full"
-                       @update:open="onPromoterTypesOpen" />
+                       @update:open="onPromoterTypesOpen"
+                       @update:model-value="promoterTypeLazy.remember($event)"
+                     />
         </UFormField>
 
         <UFormField :label="t('commissionRules.competitiveRules.form.ranks')" name="rankUuids">
-          <USelectMenu clear v-model="state.rankUuids" :items="rankItems" label-key="label" value-key="value" multiple
+          <USelectMenu clear v-model="state.rankUuids" :items="rankItems"
+                       v-model:search-term="rankLazy.searchTerm.value"
+                       ignore-filter label-key="label" value-key="value" multiple
                        :loading="loadingRanks" icon="i-lucide-network" :placeholder="t('common.select')" class="w-full"
-                       @update:open="onRanksOpen" />
+                       @update:open="onRanksOpen"
+                       @update:model-value="rankLazy.remember($event)"
+                     />
         </UFormField>
 
         <UFormField :label="t('campaigns.form.campaign')" name="campaignUuid" :help="t('campaigns.form.campaignHelp')">

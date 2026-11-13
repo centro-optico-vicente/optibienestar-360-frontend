@@ -30,8 +30,10 @@ const canManageTerms = computed(() => can('TERMS_CREATE') || can('TERMS_UPDATE')
 
 const loading = ref(false)
 const isSubmitting = ref(false)
-const currencyItems = ref<SelectItem[]>([])
-const loadingCurrencies = ref(false)
+// Currencies and ally types are searched on the server (`q`) when the dropdown opens and while typing.
+const currencyLazy = useLazyOptions(async q => toSelectItems(await currenciesApi.options({ q })))
+const currencyItems = computed(() => currencyLazy.items.value)
+const loadingCurrencies = computed(() => currencyLazy.loading.value)
 
 const state = reactive({
   name: '',
@@ -139,18 +141,6 @@ function snapshotState() { return JSON.stringify(state) }
 const isDirty = computed(() => snapshot.value !== '' && snapshotState() !== snapshot.value)
 const discardConfirmOpen = ref(false)
 
-async function loadCurrencyOptions() {
-  loadingCurrencies.value = true
-  try {
-    currencyItems.value = toSelectItems(await currenciesApi.options())
-  }
-  catch {
-    currencyItems.value = []
-  }
-  finally {
-    loadingCurrencies.value = false
-  }
-}
 
 async function load() {
   loading.value = true
@@ -501,18 +491,7 @@ const segmentItems = computed(() => (['B2B', 'B2P'] as AllySegment[]).map(value 
   value,
 })))
 
-const allyTypeItems = ref<SelectItem[]>([])
-const allyTypeItemsLoaded = ref(false)
-async function loadAllyTypeItems() {
-  if (allyTypeItemsLoaded.value) return
-  try {
-    allyTypeItems.value = toSelectItems(await useCatalogOptions('ally-types').options())
-    allyTypeItemsLoaded.value = true
-  }
-  catch {
-    allyTypeItems.value = []
-  }
-}
+const allyTypeLazy = useLazyOptions(async q => toSelectItems(await useCatalogOptions('ally-types').options({ q })))
 
 // Server-side ally search. The selected ally is kept in the results so its
 // label still shows when it comes from a version row rather than a search.
@@ -550,7 +529,7 @@ function editTermStream(v: TermsVersionDto) {
   applyTermStream(tab)
 }
 
-watch(activeTermTab, (type) => { if (type === TERM_TYPES.ALLY) loadAllyTypeItems() })
+watch(activeTermTab, (type) => { if (type === TERM_TYPES.ALLY) void allyTypeLazy.ensureLoaded() })
 
 // ---- Template variables (insert / copy) + rendered preview ----
 const termEditorRef = ref<{ insert: (text: string) => void } | null>(null)
@@ -577,7 +556,7 @@ const termPreviewHtml = computed(() => DOMPurify.sanitize(md.render(activeTerm.v
 
 onMounted(() => {
   load()
-  loadCurrencyOptions()
+  void currencyLazy.ensureLoaded()
   loadTermType(activeTermTab.value)
 })
 </script>
@@ -719,11 +698,14 @@ onMounted(() => {
               clear
               v-model="state.officialCurrencyUuid"
               :items="currencyItems"
+              v-model:search-term="currencyLazy.searchTerm.value"
+              ignore-filter
               label-key="label"
               value-key="value"
               :loading="loadingCurrencies"
               class="w-full"
               :disabled="!canUpdate || isSubmitting"
+              @update:model-value="currencyLazy.remember($event)"
             />
           </UFormField>
 
@@ -736,11 +718,14 @@ onMounted(() => {
               clear
               v-model="state.referenceCurrencyUuid"
               :items="currencyItems"
+              v-model:search-term="currencyLazy.searchTerm.value"
+              ignore-filter
               label-key="label"
               value-key="value"
               :loading="loadingCurrencies"
               class="w-full"
               :disabled="!canUpdate || isSubmitting"
+              @update:model-value="currencyLazy.remember($event)"
             />
           </UFormField>
         </div>
@@ -974,11 +959,11 @@ onMounted(() => {
             <UFormField :label="t('organization.terms.scope.allyType')">
               <CommonEntityReferenceSelect
                 v-model="activeTerm.allyTypeUuid"
-                :items="allyTypeItems"
                 entity="ally_type"
                 icon="i-lucide-tags"
                 :placeholder="t('organization.terms.scope.any')"
                 :disabled="!canManageTerms"
+                :lazy="allyTypeLazy"
               />
             </UFormField>
             <UFormField :label="t('organization.terms.scope.ally')">

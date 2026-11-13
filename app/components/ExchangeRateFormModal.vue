@@ -2,7 +2,6 @@
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { ExchangeRateDto } from '~/types/currencies'
-import type { SelectItem } from '~/types/options'
 
 // Manual entry / correction of an `exchange_rates` row (ADR 0015 §2/§7).
 // Create needs base/quote currency codes; edit only ever touches a MANUAL
@@ -30,24 +29,11 @@ const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 
 // ---- Currency options (base/quote selects — no free-text ISO code input,
 // a typo there just 404s at submit time) ----
-const currencyOptions = ref<SelectItem[]>([])
-const loadingCurrencies = ref(false)
-
-async function loadCurrencyOptions() {
-  loadingCurrencies.value = true
-  try {
-    const options = await currencies.options()
-    currencyOptions.value = options
-      .filter(o => o.code)
-      .map(o => ({ label: `${o.code} — ${o.label}`, value: o.code! }))
-  }
-  catch {
-    currencyOptions.value = []
-  }
-  finally {
-    loadingCurrencies.value = false
-  }
-}
+// Searched on the server (`q`) when a dropdown opens and while typing.
+const currencyLazy = useLazyOptions(async q =>
+  (await currencies.options({ q })).filter(o => o.code).map(o => ({ label: o.label, value: o.code! })))
+const currencyOptions = computed(() => currencyLazy.items.value)
+const loadingCurrencies = computed(() => currencyLazy.loading.value)
 
 interface FormState {
   baseCurrencyCode: string
@@ -93,7 +79,7 @@ function datetimeLocalToIso(value: string): string | undefined {
 // Reset/prefill every time the modal opens — same pattern as PaymentFormModal.
 watch(() => props.open, async (open) => {
   if (!open) return
-  if (currencyOptions.value.length === 0) await loadCurrencyOptions()
+  await currencyLazy.ensureLoaded()
   if (props.rate) {
     state.baseCurrencyCode = props.rate.baseCurrency_Code
     state.quoteCurrencyCode = props.rate.quoteCurrency_Code
@@ -158,12 +144,15 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
               clear
               v-model="state.baseCurrencyCode"
               :items="currencyOptions"
+              v-model:search-term="currencyLazy.searchTerm.value"
+              ignore-filter
               label-key="label"
               value-key="value"
               :disabled="isEdit"
               :loading="loadingCurrencies"
               :placeholder="t('common.select')"
               class="w-full"
+              @update:model-value="currencyLazy.remember($event)"
             />
           </UFormField>
           <UFormField :label="t('exchangeRates.form.fields.quote')" name="quoteCurrencyCode" required>
@@ -171,12 +160,15 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
               clear
               v-model="state.quoteCurrencyCode"
               :items="currencyOptions"
+              v-model:search-term="currencyLazy.searchTerm.value"
+              ignore-filter
               label-key="label"
               value-key="value"
               :disabled="isEdit"
               :loading="loadingCurrencies"
               :placeholder="t('common.select')"
               class="w-full"
+              @update:model-value="currencyLazy.remember($event)"
             />
           </UFormField>
         </div>
