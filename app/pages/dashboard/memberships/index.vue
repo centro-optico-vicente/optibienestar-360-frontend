@@ -38,7 +38,7 @@ const selectedMemberUuid = ref<string>('')
 async function fetchMembers(q?: string) {
   searching.value = true
   try {
-    const res = await members.options({ ...(q ? { q } : {}), limit: 10 })
+    const res = await members.options({ ...(q ? { q } : {}), limit: DROPDOWN_PAGE_SIZE })
     memberOptions.value = res.map(o => ({ label: memberOptionLabel(o), value: o.uuid }))
   }
   catch {
@@ -81,8 +81,8 @@ const filters = reactive({
 })
 
 // Fetched the first time the plan filter opens.
-const plans = useLazyOptions(async () =>
-  (await plansApi.options({ limit: 100 })).map(p => ({ label: p.label, value: p.uuid })))
+const plans = useLazyOptions(async q =>
+  (await plansApi.options({ q })).map(p => ({ label: p.label, value: p.uuid })))
 
 const planTypeOptions = computed(() => PLAN_TYPE_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
 const statusOptions = computed<SelectItem[]>(() => [
@@ -218,7 +218,7 @@ function paymentStatusColor(s?: string | null): 'error' | 'warning' | 'success' 
               <CommonEntityReferenceSelect v-model="filters.promoterUuid" :search="promotersApi.searchOptions" :placeholder="t('memberships.page.filters.any')" class="w-full" />
             </UFormField>
             <UFormField :label="t('memberships.page.filters.plan')">
-              <USelectMenu v-model="filters.planUuid" clear :items="plans.items.value" :loading="plans.loading.value" label-key="label" value-key="value" :placeholder="t('memberships.page.filters.any')" class="w-full" @update:open="plans.onOpen" />
+              <USelectMenu v-model="filters.planUuid" clear :items="plans.items.value" v-model:search-term="plans.searchTerm.value" ignore-filter :loading="plans.loading.value" label-key="label" value-key="value" :placeholder="t('memberships.page.filters.any')" class="w-full" @update:open="plans.onOpen" @update:model-value="plans.remember($event)" />
             </UFormField>
             <UFormField :label="t('memberships.page.filters.planType')">
               <USelectMenu v-model="filters.planType" clear :items="planTypeOptions" label-key="label" value-key="value" :placeholder="t('memberships.page.filters.any')" class="w-full" />

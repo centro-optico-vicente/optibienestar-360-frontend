@@ -1,8 +1,8 @@
 import type { SelectItem } from '~/types/options'
 import type { useLazyOptions } from '~/composables/useLazyOptions'
 
-/** Options loaded the first time the select opens (see `useLazyOptions`). */
-export type LazySelectOptions = Pick<ReturnType<typeof useLazyOptions<SelectItem>>, 'items' | 'loading' | 'onOpen'>
+/** Options loaded the first time the select opens and searched on the server with `q` (see `useLazyOptions`). */
+export type LazySelectOptions = Pick<ReturnType<typeof useLazyOptions<SelectItem>>, 'items' | 'loading' | 'onOpen' | 'searchTerm' | 'remember'>
 
 /** One dropdown/date control of <ListFilterBar>. `key` is also the query param name. */
 export interface ListFilterField {

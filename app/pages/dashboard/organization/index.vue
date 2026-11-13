@@ -506,7 +506,7 @@ const allyTypeItemsLoaded = ref(false)
 async function loadAllyTypeItems() {
   if (allyTypeItemsLoaded.value) return
   try {
-    allyTypeItems.value = toSelectItems(await useCatalogOptions('ally-types').options({ limit: 200 }))
+    allyTypeItems.value = toSelectItems(await useCatalogOptions('ally-types').options())
     allyTypeItemsLoaded.value = true
   }
   catch {

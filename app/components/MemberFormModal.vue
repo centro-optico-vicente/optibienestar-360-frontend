@@ -105,9 +105,9 @@ function withSeed<T extends { value: unknown }>(seed: T[], items: T[]): T[] {
   return [...seed.filter(i => !seen.has(i.value)), ...items]
 }
 function lazyCatalog(resource: string) {
-  const lazy = useLazyOptions(async () => {
+  const lazy = useLazyOptions(async q => {
     try {
-      return toSelectItems(await useCatalogOptions(resource).options({ limit: 200 }))
+      return toSelectItems(await useCatalogOptions(resource).options({ q }))
     }
     catch {
       return []
@@ -150,7 +150,7 @@ async function onCitiesOpen(open: boolean) {
   if (!open || !stateUuid || citiesLoadedFor === stateUuid) return
   citiesLoading.value = true
   try {
-    const cities = toSelectItems(await useCatalogOptions('cities').options({ parentUuid: stateUuid, limit: 200 }))
+    const cities = toSelectItems(await useCatalogOptions('cities').options({ parentUuid: stateUuid, limit: DROPDOWN_PAGE_SIZE }))
     // The state may have changed while the request was in flight.
     if (selectedStateUuid.value !== stateUuid) return
     cityOptions.value = withSeed(cityOptions.value.filter(c => c.value === state.cityUuid), cities)

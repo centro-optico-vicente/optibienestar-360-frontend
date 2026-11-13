@@ -18,8 +18,9 @@ const { t } = useI18n()
 const jobs = useScheduledJobs()
 
 // Fetched the first time the dropdown opens (or when a value is preset, so its label shows).
-const options = useLazyOptions(async () => {
-  const res = await jobs.list({ size: 200, includeInactive: true, sort: ['displayName,asc'] })
+// Server search over the list endpoint (`q`), not `/options`: a job filter must also offer inactive jobs (they keep run history).
+const options = useLazyOptions(async (q) => {
+  const res = await jobs.list({ q, size: DROPDOWN_PAGE_SIZE, includeInactive: true, sort: ['displayName,asc'] })
   return (res.content ?? []).map(j => ({ label: j.displayName, value: j.uuid }))
 })
 watch(() => props.modelValue, (v) => {
@@ -35,13 +36,11 @@ const value = computed({
 <template>
   <CommonEntityReferenceSelect
     v-model="value"
-    :items="options.items.value"
-    :loading="options.loading.value"
     entity="scheduled_job"
     icon="i-lucide-timer"
     :placeholder="t('security.jobRuns.filters.jobPlaceholder')"
     class="w-64"
     @navigate="(to: string) => navigateTo(to)"
-    @open="options.onOpen"
+    :lazy="options"
   />
 </template>

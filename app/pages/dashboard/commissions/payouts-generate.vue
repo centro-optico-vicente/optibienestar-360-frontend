@@ -106,8 +106,8 @@ async function searchPromoters(q: string): Promise<SelectItem[]> {
 }
 
 async function searchCampaigns(q: string): Promise<SelectItem[]> {
-  const res = await campaignsApi.list({ q, size: 20 })
-  return (res.content ?? []).map(c => ({ label: c.name, value: c.uuid }))
+  const res = await campaignsApi.options({ q, limit: DROPDOWN_PAGE_SIZE })
+  return res.map(c => ({ label: c.label, value: c.uuid }))
 }
 
 function goToLinkedRecord(to: string) {
@@ -116,10 +116,10 @@ function goToLinkedRecord(to: string) {
 
 // Small, fixed catalogs — fetched the first time each dropdown opens, then filtered
 // client-side by CommonEntityReferenceSelect's `items` mode.
-const promoterTypes = useLazyOptions(async () =>
-  (await promoterTypeOptions.options({ limit: 100 })).map(o => ({ label: o.label, value: o.uuid })))
-const ranks = useLazyOptions(async () =>
-  (await hierarchyApi.rankOptions({ limit: 100 })).map(o => ({ label: o.label, value: o.uuid })))
+const promoterTypes = useLazyOptions(async q =>
+  (await promoterTypeOptions.options({ q })).map(o => ({ label: o.label, value: o.uuid })))
+const ranks = useLazyOptions(async q =>
+  (await hierarchyApi.rankOptions({ q })).map(o => ({ label: o.label, value: o.uuid })))
 
 function clearPeriod() {
   periodRange.value = emptyDateRange()
@@ -421,13 +421,11 @@ async function onPayoutDone() {
           <UFormField :label="t('commissions.payoutGenerate.fields.promoterType')">
             <CommonEntityReferenceSelect
               v-model="promoterTypeUuid"
-              :items="promoterTypes.items.value"
-              :loading="promoterTypes.loading.value"
               entity="promoter_type"
               icon="i-lucide-tags"
               :placeholder="t('common.select')"
               @navigate="goToLinkedRecord"
-              @open="promoterTypes.onOpen"
+              :lazy="promoterTypes"
             />
           </UFormField>
 
@@ -504,13 +502,11 @@ async function onPayoutDone() {
           <UFormField :label="t('commissions.payoutGenerate.fields.rank')">
             <CommonEntityReferenceSelect
               v-model="rankUuid"
-              :items="ranks.items.value"
-              :loading="ranks.loading.value"
               entity="promoter_rank"
               icon="i-lucide-award"
               :placeholder="t('common.select')"
               @navigate="goToLinkedRecord"
-              @open="ranks.onOpen"
+              :lazy="ranks"
             />
           </UFormField>
 
@@ -725,13 +721,15 @@ async function onPayoutDone() {
             :items-per-page="size"
           />
           <USelectMenu
+            clear
             v-model="size"
             :items="pageSizeItems"
             label-key="label"
             value-key="value"
             icon="i-lucide-list"
-            :search-input="false"
             class="w-40"
+            :reset-model-value-on-clear="false"
+            @clear="size = DEFAULT_PAGE_SIZE"
           />
           <UCheckbox v-model="groupByPromoter" :label="t('commissions.payoutGenerate.groupByPromoter')" />
         </div>

@@ -66,7 +66,7 @@ async function loadSupervisors() {
   if (!selectedRank.value) return
   loadingSupervisors.value = true
   try {
-    const options = await hierarchyApi.eligibleSupervisors(selectedRank.value, { allSuperiors: allSuperiors.value, limit: 200 })
+    const options = await hierarchyApi.eligibleSupervisors(selectedRank.value, { allSuperiors: allSuperiors.value, limit: DROPDOWN_PAGE_SIZE })
     supervisorOptions.value = toSelectItems(options)
   }
   catch {
@@ -94,7 +94,7 @@ async function load() {
 
     const options = await hierarchyApi.rankOptions({
       excludeUuid: currentRankUuid.value ?? undefined,
-      limit: 200,
+      limit: DROPDOWN_PAGE_SIZE,
     })
     rankOptions.value = toSelectItems(options)
     allRanks.value = await useCatalog('/v1/admin/advisor-ranks').listAll()

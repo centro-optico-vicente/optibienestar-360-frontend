@@ -3,6 +3,7 @@ import { z } from 'zod'
 import type { PaymentDto, OutPaymentCreateRequest, OutPaymentUpdateRequest } from '~/types/payments'
 import { BANK_ACCOUNT_TYPE_OPTIONS } from '~/types/payments'
 import type { CatalogItem } from '~/types/catalogs'
+import type { Option } from '~/types/options'
 import type { PromoterDto, PromoterPayoutAccountDto } from '~/types/promoters'
 
 const props = defineProps<{ open: boolean, payment?: PaymentDto | null }>()
@@ -14,10 +15,10 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const payments = usePayments()
 const promoters = usePromoters()
-const categoriesApi = useCatalog('/v1/admin/payment-categories')
-const methodsApi = useCatalog('/v1/admin/payment-methods')
-const banksApi = useCatalog('/v1/admin/banks')
-const currenciesApi = useCatalog('/v1/admin/currencies')
+const categoriesApi = useCatalogOptions('payment-categories', '/v1/admin')
+// Banks and currencies only need code + label: their `/options` (any session), not the full admin list.
+const bankOptions = useCatalogOptions('banks', '/v1/admin')
+const currencyOptions = useCatalogOptions('currencies', '/v1/admin')
 const toast = useToast()
 const { can } = usePermissions()
 const canViewMethods = computed(() => can('PAYMENT_METHOD_VIEW_ALL'))
@@ -35,23 +36,21 @@ const submitting = ref(false)
 // Each list is fetched the first time its dropdown opens, or as soon as its field
 // gets a value (edit mode, or a value prefilled from the payout account) so the
 // selected label can show — see the `ensureLoaded` watchers below.
-const promoterList = useLazyOptions<{ label: string, value: string, personUuid?: string }>(async () =>
-  ((await promoters.list({ size: 200, sort: ['displayName,asc'] })).content ?? [])
+// Server search over the advisors list endpoint (`q`): the option also needs the advisor's person uuid.
+const promoterList = useLazyOptions<{ label: string, value: string, personUuid?: string }>(async q =>
+  ((await promoters.list({ q, size: DROPDOWN_PAGE_SIZE, sort: ['displayName,asc'] })).content ?? [])
     .filter((promoter: PromoterDto) => promoter.active)
     .map((promoter: PromoterDto) => ({ label: promoter.displayName, value: promoter.uuid, personUuid: promoter.person_Uuid ?? undefined })))
 const promoterOptions = promoterList.items
-const categories = useLazyOptions(async () =>
-  (await categoriesApi.listAll({ filter: 'direction==OUT' }))
-    .filter((category: CatalogItem) => category.active && category.direction === 'OUT')
-    .map((category: CatalogItem) => ({ label: category.name, value: category.uuid })))
+// The direction filter runs on the server (`payment-categories/options?direction=OUT`), together with the search `q`.
+const categories = useLazyOptions(async q =>
+  (await categoriesApi.options({ q, extra: { direction: 'OUT' } })).map(category => ({ label: category.label, value: category.uuid })))
 // Currency dropdown label uses the real `symbol` from the master (ADR 0015)
 // — "USD ($)" — not a hardcoded code -> symbol map. `value` sent to the
 // backend stays the ISO `code`, same contract as before. Loaded when the modal
 // opens (once per instance): the form preselects USD, whose label needs the list.
-const currencies = useLazyOptions(async () =>
-  (await currenciesApi.listAll())
-    .filter((currency: CatalogItem) => currency.active)
-    .map((currency: CatalogItem) => ({ label: `${currency.code} (${currency.symbol})`, value: currency.code! })))
+const currencies = useLazyOptions(async q =>
+  (await currencyOptions.options({ q })).map(c => ({ label: c.label, value: c.code! })))
 
 // The person picker shows the promoter's display name (matches the person's
 // own name in practice) while `state.personUuid` — sent to the backend —
@@ -105,15 +104,14 @@ const state = reactive<FormState>({
   payoutAccountUuid: '',
 })
 
-const methods = useLazyOptions(async () =>
-  (await methodsApi.listAll())
-    .filter((method: CatalogItem) => method.active)
+const methods = useLazyOptions(async q =>
+  ((await useApi<CatalogItem[]>('/v1/me/payment-methods', { query: { ...(q ? { q } : {}), limit: DROPDOWN_PAGE_SIZE } })) ?? [])
     .map((method: CatalogItem) => ({ label: method.name, value: method.uuid })))
-const banksByUuid = ref<Record<string, CatalogItem>>({})
-const banks = useLazyOptions(async () => {
-  const active = (await banksApi.listAll()).filter((bank: CatalogItem) => bank.active)
-  banksByUuid.value = Object.fromEntries(active.map((bank: CatalogItem) => [bank.uuid, bank]))
-  return active.map((bank: CatalogItem) => ({ label: bankOptionLabel(bank), value: bank.uuid }))
+const banksByUuid = ref<Record<string, Option>>({})
+const banks = useLazyOptions(async q => {
+  const items = await bankOptions.options({ q })
+  banksByUuid.value = Object.fromEntries(items.map(b => [b.uuid, b]))
+  return items.map(b => ({ label: b.label, value: b.uuid }))
 })
 // A preset value (edit, payout-account prefill) needs its list for the label.
 watch(() => state.promoterUuid, v => v && promoterList.ensureLoaded())
@@ -362,7 +360,7 @@ function submitForm() {
       <UForm data-out-payment-form :schema="schema" :state="state" class="space-y-5" @submit="onSubmit">
         <div class="rounded-xl border border-prohealth-100 bg-prohealth-50/40 p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
         <UFormField :label="t('payments.payouts.fields.promoter')" name="promoterUuid" required>
-          <USelectMenu clear class="w-full" v-model="state.promoterUuid" :items="promoterOptions" label-key="label" value-key="value" :loading="promoterList.loading.value" :placeholder="t('payments.payouts.promoterPlaceholder')" @update:open="promoterList.onOpen" />
+          <USelectMenu clear class="w-full" v-model="state.promoterUuid" :items="promoterOptions" label-key="label" value-key="value" :loading="promoterList.loading.value" v-model:search-term="promoterList.searchTerm.value" ignore-filter :placeholder="t('payments.payouts.promoterPlaceholder')" @update:open="promoterList.onOpen" @update:model-value="promoterList.remember($event)" />
         </UFormField>
         <UFormField :label="t('payments.payouts.fields.person')" name="personUuid" required>
           <UInput class="w-full" :model-value="personDisplayName" readonly :placeholder="t('payments.payouts.personPlaceholder')" />
@@ -397,7 +395,7 @@ function submitForm() {
         </UFormField>
         <UFormField class="sm:col-span-1" :label="t('payments.payouts.fields.currency')" name="currency" required>
           <div class="flex items-center gap-1">
-            <USelectMenu clear class="w-full" v-model="state.currency" :items="currencies.items.value" label-key="label" value-key="value" :loading="currencies.loading.value" :placeholder="t('payments.form.placeholders.currency')" />
+            <USelectMenu clear class="w-full" v-model="state.currency" :items="currencies.items.value" v-model:search-term="currencies.searchTerm.value" ignore-filter label-key="label" value-key="value" :loading="currencies.loading.value" :placeholder="t('payments.form.placeholders.currency')" @update:model-value="currencies.remember($event)" />
             <CommonEntityQuickLinkButton :to="'/dashboard/catalogs/currencies'" :can="canViewCurrencies" @navigate="openCatalog" />
           </div>
         </UFormField>
@@ -408,7 +406,7 @@ function submitForm() {
         </UFormField>
         <UFormField :label="t('payments.payouts.columns.method')" name="paymentMethodUuid" required>
           <div class="flex items-center gap-1">
-            <USelectMenu clear class="w-full" v-model="state.paymentMethodUuid" :items="methods.items.value" :loading="methods.loading.value" label-key="label" value-key="value" :placeholder="t('payments.form.placeholders.method')" @update:open="methods.onOpen" />
+            <USelectMenu clear class="w-full" v-model="state.paymentMethodUuid" :items="methods.items.value" v-model:search-term="methods.searchTerm.value" ignore-filter :loading="methods.loading.value" label-key="label" value-key="value" :placeholder="t('payments.form.placeholders.method')" @update:open="methods.onOpen" @update:model-value="methods.remember($event)" />
             <CommonEntityQuickLinkButton :to="'/dashboard/catalogs/payment-methods'" :can="canViewMethods" @navigate="openCatalog" />
           </div>
         </UFormField>
@@ -417,7 +415,7 @@ function submitForm() {
         <UFormField v-if="selectedMethod?.mandatoryIdentification" :label="t('payments.payouts.fields.identification')" name="identification" required><UInput class="w-full" v-model="state.identification" /></UFormField>
         <UFormField v-if="selectedMethod?.mandatoryBank" :label="t('payments.payouts.fields.bank')" name="bankUuid" required>
           <div class="flex items-center gap-1">
-            <USelectMenu clear class="w-full" v-model="state.bankUuid" :items="banks.items.value" :loading="banks.loading.value" label-key="label" value-key="value" :placeholder="t('common.select')" @update:open="banks.onOpen" />
+            <USelectMenu clear class="w-full" v-model="state.bankUuid" :items="banks.items.value" v-model:search-term="banks.searchTerm.value" ignore-filter :loading="banks.loading.value" label-key="label" value-key="value" :placeholder="t('common.select')" @update:open="banks.onOpen" @update:model-value="banks.remember($event)" />
             <CommonEntityQuickLinkButton :to="'/dashboard/catalogs/banks'" :can="canViewBanks" @navigate="openCatalog" />
           </div>
         </UFormField>
@@ -446,7 +444,7 @@ function submitForm() {
           </div>
           <p class="text-xs text-prohealth-500 mt-1">{{ t('payments.payouts.fields.supportHint') }}</p>
         </UFormField>
-        <UFormField :label="t('payments.payouts.fields.category')" name="paymentCategoryUuid" required><USelectMenu clear class="w-full" v-model="state.paymentCategoryUuid" :items="categories.items.value" label-key="label" value-key="value" :loading="categories.loading.value" :placeholder="t('payments.payouts.categoryPlaceholder')" @update:open="categories.onOpen" /></UFormField>
+        <UFormField :label="t('payments.payouts.fields.category')" name="paymentCategoryUuid" required><USelectMenu clear class="w-full" v-model="state.paymentCategoryUuid" :items="categories.items.value" v-model:search-term="categories.searchTerm.value" ignore-filter label-key="label" value-key="value" :loading="categories.loading.value" :placeholder="t('payments.payouts.categoryPlaceholder')" @update:open="categories.onOpen" @update:model-value="categories.remember($event)" /></UFormField>
         <button type="submit" class="hidden" />
       </UForm>
     </template>

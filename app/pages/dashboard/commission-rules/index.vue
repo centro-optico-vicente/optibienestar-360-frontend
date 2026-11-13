@@ -62,8 +62,8 @@ const pageSizeItems = buildPageSizeItems(t)
 
 // ---- Promoter-type quick filter (shared catalog for all 3 tabs, fetched the first time any of them opens) ----
 const promoterTypeOptions = useCatalogOptions('advisor-types')
-const promoterTypes = useLazyOptions(async () =>
-  (await promoterTypeOptions.options({ limit: 100 })).map(o => ({ label: o.label, value: o.uuid })))
+const promoterTypes = useLazyOptions(async q =>
+  (await promoterTypeOptions.options({ q })).map(o => ({ label: o.label, value: o.uuid })))
 const promoterTypeFilterItems = computed(() => [
   { label: t('commissionRules.filters.allPromoterTypes'), value: undefined },
   ...promoterTypes.items.value,
@@ -79,8 +79,8 @@ const appliesToFilterItems = computed(() => [
 
 // ---- Rank quick filter (Supervisor/Coordinador catalog, tab 4 only; fetched on first open) ----
 const hierarchyApi = usePromoterHierarchy()
-const ranks = useLazyOptions(async () =>
-  (await hierarchyApi.rankOptions({ limit: 100 })).map(o => ({ label: o.label, value: o.uuid })))
+const ranks = useLazyOptions(async q =>
+  (await hierarchyApi.rankOptions({ q })).map(o => ({ label: o.label, value: o.uuid })))
 const rankFilterItems = computed(() => [
   { label: t('hierarchyOverrideTiers.filters.allRanks'), value: undefined },
   ...ranks.items.value,
@@ -665,8 +665,8 @@ function overrideReward(tier: HierarchyOverrideTierDto): string {
 // selected campaign)
 // =========================================================
 async function searchCampaignsForFilter(q: string): Promise<SelectItem[]> {
-  const res = await campaignsApi.list({ q, size: 20 })
-  return (res.content ?? []).map(c => ({ label: c.name, value: c.uuid }))
+  const res = await campaignsApi.options({ q, limit: DROPDOWN_PAGE_SIZE })
+  return res.map(c => ({ label: c.label, value: c.uuid }))
 }
 const campaignsApi = useCampaigns()
 const crCampaignUuid = ref<string | undefined>(undefined)
@@ -1076,14 +1076,16 @@ onMounted(() => {
             />
             <UTooltip :text="$t('catalogs.pageSizeLabel')">
               <USelectMenu
+                clear
                 v-model="tierSize"
                 :items="pageSizeItems"
                 label-key="label"
                 value-key="value"
                 icon="i-lucide-list"
-                :search-input="false"
                 :aria-label="$t('catalogs.pageSizeLabel')"
                 class="w-40"
+                :reset-model-value-on-clear="false"
+                @clear="tierSize = DEFAULT_PAGE_SIZE"
               />
             </UTooltip>
           </div>
@@ -1234,14 +1236,16 @@ onMounted(() => {
             />
             <UTooltip :text="$t('catalogs.pageSizeLabel')">
               <USelectMenu
+                clear
                 v-model="bonusSize"
                 :items="pageSizeItems"
                 label-key="label"
                 value-key="value"
                 icon="i-lucide-list"
-                :search-input="false"
                 :aria-label="$t('catalogs.pageSizeLabel')"
                 class="w-40"
+                :reset-model-value-on-clear="false"
+                @clear="bonusSize = DEFAULT_PAGE_SIZE"
               />
             </UTooltip>
           </div>
@@ -1372,14 +1376,16 @@ onMounted(() => {
             />
             <UTooltip :text="$t('catalogs.pageSizeLabel')">
               <USelectMenu
+                clear
                 v-model="collectionSize"
                 :items="pageSizeItems"
                 label-key="label"
                 value-key="value"
                 icon="i-lucide-list"
-                :search-input="false"
                 :aria-label="$t('catalogs.pageSizeLabel')"
                 class="w-40"
+                :reset-model-value-on-clear="false"
+                @clear="collectionSize = DEFAULT_PAGE_SIZE"
               />
             </UTooltip>
           </div>
@@ -1524,14 +1530,16 @@ onMounted(() => {
             />
             <UTooltip :text="$t('catalogs.pageSizeLabel')">
               <USelectMenu
+                clear
                 v-model="overrideSize"
                 :items="pageSizeItems"
                 label-key="label"
                 value-key="value"
                 icon="i-lucide-list"
-                :search-input="false"
                 :aria-label="$t('catalogs.pageSizeLabel')"
                 class="w-40"
+                :reset-model-value-on-clear="false"
+                @clear="overrideSize = DEFAULT_PAGE_SIZE"
               />
             </UTooltip>
           </div>

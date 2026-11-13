@@ -9,7 +9,7 @@ import type { Option } from '~/types/options'
 export const useCurrencies = () => {
   const options = (q?: string) =>
     useApi<Option[]>('/v1/admin/currencies/options', {
-      query: { ...(q ? { q } : {}), limit: 50 },
+      query: { ...(q ? { q } : {}), limit: DROPDOWN_PAGE_SIZE },
     })
 
   return { options }

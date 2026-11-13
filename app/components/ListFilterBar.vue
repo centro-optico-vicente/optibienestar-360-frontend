@@ -52,12 +52,15 @@ function patch(key: string, value: unknown) {
         clear
         :items="f.lazy ? f.lazy.items.value : (f.items ?? [])"
         :loading="f.lazy?.loading.value"
+        :search-term="f.lazy?.searchTerm.value"
+        :ignore-filter="!!f.lazy"
         label-key="label"
         value-key="value"
         :icon="f.icon"
         :placeholder="f.label"
         :class="f.class ?? 'w-48'"
-        @update:model-value="patch(f.key, $event)"
+        @update:model-value="patch(f.key, $event); f.lazy?.remember($event)"
+        @update:search-term="f.lazy && (f.lazy.searchTerm.value = $event)"
         @update:open="f.lazy?.onOpen($event)"
       />
     </template>

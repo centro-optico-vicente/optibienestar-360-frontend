@@ -53,13 +53,13 @@ const includeInactive = ref(false)
 // ---- Master-table filters (advisor, gender, city, occupation, confirmation) ----
 const promotersApi = usePromoters()
 // Gender/occupation lists are fetched the first time their dropdown opens.
-const genders = useLazyOptions(async () =>
-  (await useCatalogOptions('genders').options({ limit: 100 })).map(o => ({ label: o.label, value: o.uuid })))
-const occupations = useLazyOptions(async () =>
-  (await useCatalogOptions('occupations').options({ limit: 200 })).map(o => ({ label: o.label, value: o.uuid })))
+const genders = useLazyOptions(async q =>
+  (await useCatalogOptions('genders').options({ q })).map(o => ({ label: o.label, value: o.uuid })))
+const occupations = useLazyOptions(async q =>
+  (await useCatalogOptions('occupations').options({ q })).map(o => ({ label: o.label, value: o.uuid })))
 
 async function searchCities(q: string): Promise<SelectItem[]> {
-  const res = await useCatalogOptions('cities').options({ ...(q ? { q } : {}), limit: 15 })
+  const res = await useCatalogOptions('cities').options({ ...(q ? { q } : {}), limit: DROPDOWN_PAGE_SIZE })
   return res.map(o => ({ label: o.label, value: o.uuid }))
 }
 
@@ -496,14 +496,16 @@ function displayName(m: MemberListItemDto): string {
           />
           <UTooltip :text="$t('catalogs.pageSizeLabel')">
             <USelectMenu
+              clear
               v-model="size"
               :items="pageSizeItems"
               label-key="label"
               value-key="value"
               icon="i-lucide-list"
-              :search-input="false"
               :aria-label="$t('catalogs.pageSizeLabel')"
               class="w-40"
+              :reset-model-value-on-clear="false"
+              @clear="size = DEFAULT_PAGE_SIZE"
             />
           </UTooltip>
         </div>

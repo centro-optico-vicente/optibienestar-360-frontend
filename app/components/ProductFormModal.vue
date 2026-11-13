@@ -31,7 +31,6 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const productsApi = useProducts()
 const allies = useAllies()
-const { can } = usePermissions()
 const toast = useToast()
 
 const isOpen = computed({
@@ -91,28 +90,24 @@ const schema = computed(() => z.object({
 const typeOptions = computed(() => PRODUCT_TYPE_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
 // Fetched the first time the dropdown opens; on edit the detail's category label is
 // seeded so it shows without loading the whole list.
-const categories = useLazyOptions(async () =>
-  (await usePublicCatalog('product-categories').list())
-    .filter(i => i.active !== false)
-    .map(i => ({ label: i.name, value: i.uuid })))
+const categories = useLazyOptions(async q =>
+  (await useCatalogOptions('product-categories').options({ q })).map(i => ({ label: i.label, value: i.uuid })))
 const seededCategory = ref<SelectItem[]>([])
 const categoryOptions = computed<SelectItem[]>(() => {
   const seen = new Set(categories.items.value.map(i => i.value))
   return [...seededCategory.value.filter(i => !seen.has(i.value)), ...categories.items.value]
 })
 
-// ---- Owner ally (server-side search; needs ALLY_VIEW_ALL) ----
-const canSearchAllies = computed(() => can('ALLY_VIEW_ALL'))
+// ---- Owner ally (server-side search over the allies `/options`, any session) ----
 const allySearchTerm = ref('')
 const allyOptions = ref<SelectItem[]>([])
 const allySearching = ref(false)
 
 async function searchAllies(q?: string) {
-  if (!canSearchAllies.value) return
   allySearching.value = true
   try {
-    const res = await allies.list({ q, size: 20 })
-    const found = (res.content ?? []).map(a => ({ label: a.name, value: a.uuid }))
+    const res = await allies.options({ q, limit: DROPDOWN_PAGE_SIZE })
+    const found = res.map(a => ({ label: a.label, value: a.uuid }))
     // Keep the current owner selectable even when it's not in the result page.
     const current = allyOptions.value.find(o => o.value === state.ownerAllyUuid)
     allyOptions.value = current && !found.some(o => o.value === current.value) ? [current, ...found] : found
@@ -280,6 +275,8 @@ function requestDelete() {
               v-model="state.productCategoryUuid"
               :items="categoryOptions"
               :loading="categories.loading.value"
+              v-model:search-term="categories.searchTerm.value"
+              ignore-filter
               label-key="label"
               value-key="value"
               :placeholder="t('common.select')"
@@ -296,7 +293,7 @@ function requestDelete() {
         <UFormField
           :label="t('products.form.fields.ownerAlly')"
           name="ownerAllyUuid"
-          :help="canSearchAllies ? t('products.form.ownerAllyHelp') : t('products.form.ownerAllyNoPermission')"
+          :help="t('products.form.ownerAllyHelp')"
         >
           <USelectMenu
             clear
@@ -308,7 +305,6 @@ function requestDelete() {
             ignore-filter
             icon="i-lucide-handshake"
             :loading="allySearching"
-            :disabled="!canSearchAllies"
             :placeholder="t('products.form.generalPlaceholder')"
             :search-input="{ placeholder: t('products.form.allySearchPlaceholder'), icon: 'i-lucide-search' }"
             class="w-full"

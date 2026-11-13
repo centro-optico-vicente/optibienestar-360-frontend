@@ -61,8 +61,8 @@ const isMultiSort = computed(() => sort.orders.value.length > 1)
 // ---- Master-table filters (role) ----
 const rolesApi = useRoles()
 // Fetched the first time the role dropdown opens.
-const roles = useLazyOptions(async () =>
-  (await rolesApi.options({ limit: 100 })).map(o => ({ label: o.label, value: o.uuid })))
+const roles = useLazyOptions(async q =>
+  (await rolesApi.options({ q })).map(o => ({ label: o.label, value: o.uuid })))
 const filterFields = computed<ListFilterField[]>(() => [
   { key: 'roleUuid', label: t('security.users.filters.role'), icon: 'i-lucide-shield', lazy: roles },
   // Account creation date range (sent as dateFrom/dateTo).
@@ -447,14 +447,16 @@ async function confirmDelete() {
           />
           <UTooltip :text="$t('catalogs.pageSizeLabel')">
             <USelectMenu
+              clear
               v-model="size"
               :items="pageSizeItems"
               label-key="label"
               value-key="value"
               icon="i-lucide-list"
-              :search-input="false"
               :aria-label="$t('catalogs.pageSizeLabel')"
               class="w-40"
+              :reset-model-value-on-clear="false"
+              @clear="size = DEFAULT_PAGE_SIZE"
             />
           </UTooltip>
         </div>

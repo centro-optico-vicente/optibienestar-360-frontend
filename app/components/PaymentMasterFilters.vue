@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import type { CatalogItem } from '~/types/catalogs'
 import type { SelectItem } from '~/types/options'
 import { memberOptionLabel } from '~/types/members'
-import { bankOptionLabel } from '~/utils/bankLabel'
 import type { PaymentMasterFilterState } from '~/utils/paymentFilters'
 
 // Master-table filters shared by every payments list (Movimientos, Cobros, Pagos):
@@ -14,24 +12,24 @@ const model = defineModel<PaymentMasterFilterState>({ required: true })
 const { t } = useI18n()
 const membersApi = useMembers()
 const promotersApi = usePromoters()
-const methodsApi = useCatalog('/v1/admin/payment-methods')
-const banksApi = useCatalog('/v1/admin/banks')
-const categoriesApi = useCatalog('/v1/admin/payment-categories')
-const currenciesApi = useCatalog('/v1/admin/currencies')
+// Filters only need code + label: each entity's `/options` (any session), not the full admin list.
+const methodsApi = useCatalogOptions('payment-methods', '/v1/admin')
+const banksApi = useCatalogOptions('banks', '/v1/admin')
+const categoriesApi = useCatalogOptions('payment-categories', '/v1/admin')
+const currenciesApi = useCatalogOptions('currencies', '/v1/admin')
 
 // Each dropdown fetches its list the first time it is opened, not when the list mounts.
-const activeItems = (items: CatalogItem[]) => items.filter(i => i.active)
-const methods = useLazyOptions(async () =>
-  activeItems(await methodsApi.listAll()).map(m => ({ label: m.name, value: m.uuid })))
-const banks = useLazyOptions(async () =>
-  activeItems(await banksApi.listAll()).map(b => ({ label: bankOptionLabel(b), value: b.uuid })))
-const categories = useLazyOptions(async () =>
-  activeItems(await categoriesApi.listAll()).map(c => ({ label: c.name, value: c.uuid })))
-const currencies = useLazyOptions(async () =>
-  activeItems(await currenciesApi.listAll()).map(c => ({ label: `${c.code} (${c.symbol})`, value: c.code! })))
+const methods = useLazyOptions(async q =>
+  (await methodsApi.options({ q })).map(m => ({ label: m.label, value: m.uuid })))
+const banks = useLazyOptions(async q =>
+  (await banksApi.options({ q })).map(b => ({ label: b.label, value: b.uuid })))
+const categories = useLazyOptions(async q =>
+  (await categoriesApi.options({ q })).map(c => ({ label: c.label, value: c.uuid })))
+const currencies = useLazyOptions(async q =>
+  (await currenciesApi.options({ q })).map(c => ({ label: c.label, value: c.code! })))
 
 async function searchMembers(q: string): Promise<SelectItem[]> {
-  const res = await membersApi.options({ ...(q ? { q } : {}), limit: 10 })
+  const res = await membersApi.options({ ...(q ? { q } : {}), limit: DROPDOWN_PAGE_SIZE })
   return res.map(o => ({ label: memberOptionLabel(o), value: o.uuid }))
 }
 
@@ -54,6 +52,8 @@ function patch(partial: Partial<PaymentMasterFilterState>) {
       :model-value="model.paymentMethodUuid || undefined"
       clear
       :items="methods.items.value"
+      v-model:search-term="methods.searchTerm.value"
+      ignore-filter
       :loading="methods.loading.value"
       @update:open="methods.onOpen"
       label-key="label"
@@ -67,6 +67,8 @@ function patch(partial: Partial<PaymentMasterFilterState>) {
       :model-value="model.bankUuid || undefined"
       clear
       :items="banks.items.value"
+      v-model:search-term="banks.searchTerm.value"
+      ignore-filter
       :loading="banks.loading.value"
       @update:open="banks.onOpen"
       label-key="label"
@@ -80,6 +82,8 @@ function patch(partial: Partial<PaymentMasterFilterState>) {
       :model-value="model.categoryUuid || undefined"
       clear
       :items="categories.items.value"
+      v-model:search-term="categories.searchTerm.value"
+      ignore-filter
       :loading="categories.loading.value"
       @update:open="categories.onOpen"
       label-key="label"
@@ -101,6 +105,8 @@ function patch(partial: Partial<PaymentMasterFilterState>) {
       :model-value="model.currency || undefined"
       clear
       :items="currencies.items.value"
+      v-model:search-term="currencies.searchTerm.value"
+      ignore-filter
       :loading="currencies.loading.value"
       @update:open="currencies.onOpen"
       label-key="label"

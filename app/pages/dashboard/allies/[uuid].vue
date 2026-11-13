@@ -484,7 +484,7 @@ async function loadAllyTypes() {
 
 async function loadAllAllyTypes() {
   try {
-    const items = await useCatalogOptions('ally-types').options({ limit: 200 })
+    const items = await useCatalogOptions('ally-types').options()
     allAllyTypeOptions.value = toSelectItems(items)
   }
   catch {

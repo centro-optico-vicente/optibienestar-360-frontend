@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { SelectItem } from '~/types/options'
 import type { EntityReferenceKey } from '~/utils/entity-references'
+import type { LazySelectOptions } from '~/utils/listFilters'
 import { resolveEntityReference } from '~/utils/entity-references'
 import { DEFAULT_DEBOUNCE_MS } from '~/utils/debounce-config'
 
@@ -26,6 +27,8 @@ import { DEFAULT_DEBOUNCE_MS } from '~/utils/debounce-config'
 const props = withDefaults(defineProps<{
   modelValue?: string
   items?: SelectItem[]
+  /** Lazy options (`useLazyOptions`): loaded when the dropdown opens and searched on the server with `q`. */
+  lazy?: LazySelectOptions
   search?: (q: string) => Promise<SelectItem[]>
   /** Minimum characters before `search` fires. Defaults to 0 — no minimum,
    *  so opening the dropdown with an empty query lists the first results. */
@@ -47,6 +50,7 @@ const props = withDefaults(defineProps<{
 }>(), {
   modelValue: undefined,
   items: undefined,
+  lazy: undefined,
   search: undefined,
   minSearchLength: 0,
   debounceMs: DEFAULT_DEBOUNCE_MS,
@@ -72,7 +76,10 @@ const { can: hasPermission } = usePermissions()
 
 const value = computed({
   get: () => props.modelValue,
-  set: (v: string | undefined) => emit('update:modelValue', v),
+  set: (v: string | undefined) => {
+    props.lazy?.remember(v)
+    emit('update:modelValue', v)
+  },
 })
 
 const resolvedLink = computed(() => (props.entity ? resolveEntityReference(props.entity, value.value) : null))
@@ -118,6 +125,7 @@ watch(searchTerm, (q) => {
 
 function onOpenChange(open: boolean) {
   emit('open', open)
+  props.lazy?.onOpen(open)
   if (!open || !isServerSearch.value || searchedOnce.value) return
   const term = searchTerm.value.trim()
   if (term.length < props.minSearchLength) return
@@ -130,8 +138,17 @@ watch(() => props.modelValue, (v) => {
   if (v && isServerSearch.value && !searchedOnce.value && props.minSearchLength === 0) searchNow('')
 }, { immediate: true })
 
-const displayItems = computed(() => (isServerSearch.value ? searchResults.value : (props.items ?? [])))
-const isLoading = computed(() => props.loading || searching.value)
+// `lazy` options are searched on the server by `useLazyOptions` itself: the select only mirrors its search
+// term and never filters locally.
+watch(searchTerm, (q) => {
+  if (props.lazy) props.lazy.searchTerm.value = q
+})
+
+const displayItems = computed(() => {
+  if (props.lazy) return props.lazy.items.value
+  return isServerSearch.value ? searchResults.value : (props.items ?? [])
+})
+const isLoading = computed(() => props.loading || searching.value || (props.lazy?.loading.value ?? false))
 </script>
 
 <template>
@@ -142,7 +159,7 @@ const isLoading = computed(() => props.loading || searching.value)
       :items="displayItems"
       label-key="label"
       value-key="value"
-      :ignore-filter="isServerSearch"
+      :ignore-filter="isServerSearch || !!lazy"
       clear
       :icon="icon"
       :loading="isLoading"

@@ -138,7 +138,7 @@ async function downloadTemplate(format: 'xlsx' | 'csv') {
             >
           </UFormField>
           <UFormField :label="t('allyRequests.import.delimiter')" :help="t('allyRequests.import.delimiterHelp')">
-            <USelectMenu value-key="value" v-model="delimiter" :items="delimiterItems" :disabled="!isTextFile" class="w-full" />
+            <USelectMenu clear value-key="value" v-model="delimiter" :items="delimiterItems" :disabled="!isTextFile" class="w-full" :reset-model-value-on-clear="false" @clear="delimiter = 'auto'" />
           </UFormField>
         </div>
 

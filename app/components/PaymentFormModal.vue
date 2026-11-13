@@ -7,6 +7,7 @@ import type { SelectItem } from '~/types/options'
 import type { PaymentCreateRequest, PaymentDto } from '~/types/payments'
 import { BANK_ACCOUNT_TYPE_OPTIONS } from '~/types/payments'
 import type { CatalogItem } from '~/types/catalogs'
+import type { Option } from '~/types/options'
 
 // Register a manual payment (POST /v1/admin/payments, multipart). There is no edit:
 // a payment is registered and then approved/rejected. The flow is a cascade —
@@ -23,9 +24,9 @@ const { t } = useI18n()
 const payments = usePayments()
 const members = useMembers()
 const memberships = useMemberships()
-const methodsApi = useCatalog('/v1/admin/payment-methods')
-const banksApi = useCatalog('/v1/admin/banks')
-const currenciesApi = useCatalog('/v1/admin/currencies')
+// Banks and currencies only need code + label: their `/options` (any session), not the full admin list.
+const bankOptions = useCatalogOptions('banks', '/v1/admin')
+const currencyOptions = useCatalogOptions('currencies', '/v1/admin')
 const toast = useToast()
 const { can } = usePermissions()
 
@@ -63,26 +64,25 @@ const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 // line — no per-row admin lookup needed. A method/bank can only be chosen after
 // its dropdown opened, so the lookups below always find the loaded list.
 const methodsByUuid = ref<Record<string, CatalogItem>>({})
-const methods = useLazyOptions(async () => {
-  const active = (await methodsApi.listAll()).filter((method: CatalogItem) => method.active)
-  methodsByUuid.value = Object.fromEntries(active.map((method: CatalogItem) => [method.uuid, method]))
-  return active.map((method: CatalogItem) => ({ label: method.name, value: method.uuid }))
+const methods = useLazyOptions(async (q) => {
+  // Searched on the server over the self-service list (any session): the DTO carries the mandatory-field flags.
+  const found = (await useApi<CatalogItem[]>('/v1/me/payment-methods', { query: { ...(q ? { q } : {}), limit: DROPDOWN_PAGE_SIZE } })) ?? []
+  methodsByUuid.value = { ...methodsByUuid.value, ...Object.fromEntries(found.map((method: CatalogItem) => [method.uuid, method])) }
+  return found.map((method: CatalogItem) => ({ label: method.name, value: method.uuid }))
 })
-const banksByUuid = ref<Record<string, CatalogItem>>({})
-const banks = useLazyOptions(async () => {
-  const active = (await banksApi.listAll()).filter((bank: CatalogItem) => bank.active)
-  banksByUuid.value = Object.fromEntries(active.map((bank: CatalogItem) => [bank.uuid, bank]))
-  return active.map((bank: CatalogItem) => ({ label: bankOptionLabel(bank), value: bank.uuid }))
+const banksByUuid = ref<Record<string, Option>>({})
+const banks = useLazyOptions(async q => {
+  const items = await bankOptions.options({ q })
+  banksByUuid.value = Object.fromEntries(items.map(b => [b.uuid, b]))
+  return items.map(b => ({ label: b.label, value: b.uuid }))
 })
 const selectedMethod = ref<CatalogItem | null>(null)
 // Currency dropdown label uses the real `symbol` from the master (ADR 0015)
 // — "USD ($)" — not a hardcoded code -> symbol map. `value` sent to the
 // backend stays the ISO `code`, same contract as before. Loaded when the modal
 // opens (once per instance): the form preselects USD, whose label needs the list.
-const currencies = useLazyOptions(async () =>
-  (await currenciesApi.listAll())
-    .filter((currency: CatalogItem) => currency.active)
-    .map((currency: CatalogItem) => ({ label: `${currency.code} (${currency.symbol})`, value: currency.code! })))
+const currencies = useLazyOptions(async q =>
+  (await currencyOptions.options({ q })).map(c => ({ label: c.label, value: c.code! })))
 
 // ---- Additional payment lines (V117 lines feature) — see usePaymentLinesEditor.
 // The form's own fields above stay the flat "first line"; this editor only
@@ -114,7 +114,7 @@ function datetimeLocalToIso(value: string): string {
 
 // ---- Member search (server-side, debounced via CommonEntityReferenceSelect) ----
 async function searchMembers(q: string) {
-  const res = await members.options({ q, limit: 10 })
+  const res = await members.options({ q, limit: DROPDOWN_PAGE_SIZE })
   return res.map(o => ({ label: memberOptionLabel(o), value: o.uuid }))
 }
 
@@ -448,6 +448,8 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
                 clear
                 v-model="state.currency"
                 :items="currencies.items.value"
+                v-model:search-term="currencies.searchTerm.value"
+                ignore-filter
                 label-key="label"
                 value-key="value"
                 :loading="currencies.loading.value"
@@ -468,6 +470,8 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
                 clear
                 v-model="state.paymentMethodUuid"
                 :items="methods.items.value"
+                v-model:search-term="methods.searchTerm.value"
+                ignore-filter
                 label-key="label"
                 value-key="value"
                 :loading="methods.loading.value"
@@ -486,7 +490,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           <UFormField v-if="selectedMethod?.mandatoryIdentification" :label="t('payments.payouts.fields.identification')" name="identification" required><UInput class="w-full" v-model="state.identification" /></UFormField>
           <UFormField v-if="selectedMethod?.mandatoryBank" :label="t('payments.payouts.fields.bank')" name="bankUuid" required>
             <div class="flex items-center gap-1">
-              <USelectMenu clear class="w-full" v-model="state.bankUuid" :items="banks.items.value" :loading="banks.loading.value" label-key="label" value-key="value" :placeholder="t('common.select')" @update:open="banks.onOpen" />
+              <USelectMenu clear class="w-full" v-model="state.bankUuid" :items="banks.items.value" v-model:search-term="banks.searchTerm.value" ignore-filter :loading="banks.loading.value" label-key="label" value-key="value" :placeholder="t('common.select')" @update:open="banks.onOpen" @update:model-value="banks.remember($event)" />
               <CommonEntityQuickLinkButton :to="'/dashboard/catalogs/banks'" :can="canViewBanks" @navigate="openCatalog" />
             </div>
           </UFormField>
@@ -514,7 +518,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           <div v-for="(line, index) in linesEditor.lines.value" :key="index" class="rounded-lg bg-prohealth-50/60 p-3 space-y-3">
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
               <UFormField class="sm:col-span-1" :label="t('payments.form.fields.lineMethod')">
-                <USelectMenu clear v-model="line.paymentMethodUuid" :items="methods.items.value" :loading="methods.loading.value" label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" @update:open="methods.onOpen" />
+                <USelectMenu clear v-model="line.paymentMethodUuid" :items="methods.items.value" v-model:search-term="methods.searchTerm.value" ignore-filter :loading="methods.loading.value" label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" @update:open="methods.onOpen" @update:model-value="methods.remember($event)" />
               </UFormField>
               <UFormField class="sm:col-span-1" :label="t('payments.form.fields.lineAmount')">
                 <UInput v-model="line.amount" placeholder="10.00" class="w-full text-right" />
@@ -529,7 +533,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
               <UFormField v-if="methodForLine(line.paymentMethodUuid)?.mandatoryReferenceNumber" :label="t('payments.form.fields.reference')"><UInput class="w-full" v-model="line.referenceNumber" /></UFormField>
               <UFormField v-if="methodForLine(line.paymentMethodUuid)?.mandatoryIdentification" :label="t('payments.payouts.fields.identification')"><UInput class="w-full" v-model="line.identification" /></UFormField>
               <UFormField v-if="methodForLine(line.paymentMethodUuid)?.mandatoryBank" :label="t('payments.payouts.fields.bank')">
-                <USelectMenu clear class="w-full" v-model="line.bankUuid" :items="banks.items.value" :loading="banks.loading.value" label-key="label" value-key="value" :placeholder="t('common.select')" @update:open="banks.onOpen" />
+                <USelectMenu clear class="w-full" v-model="line.bankUuid" :items="banks.items.value" v-model:search-term="banks.searchTerm.value" ignore-filter :loading="banks.loading.value" label-key="label" value-key="value" :placeholder="t('common.select')" @update:open="banks.onOpen" @update:model-value="banks.remember($event)" />
               </UFormField>
               <UFormField v-if="methodForLine(line.paymentMethodUuid)?.mandatoryBankAccount" :label="t('payments.payouts.fields.accountIdentifier')"><UInput class="w-full" v-model="line.bankAccountIdentifier" /></UFormField>
               <UFormField v-if="methodForLine(line.paymentMethodUuid)?.mandatoryAccountType" :label="t('payments.payouts.fields.accountType')"><USelectMenu clear class="w-full" v-model="line.bankAccountType" :items="BANK_ACCOUNT_TYPE_OPTIONS" label-key="label" value-key="value" :placeholder="t('common.select')" /></UFormField>

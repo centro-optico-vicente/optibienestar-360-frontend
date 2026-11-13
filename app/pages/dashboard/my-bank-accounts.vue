@@ -46,11 +46,12 @@ async function load() {
 }
 
 // Fetched the first time the bank filter or the create/edit form opens, not when the page mounts.
-const banks = useLazyOptions(async () =>
-  ((await useApi<CatalogItem[]>('/v1/me/banks')) ?? []).filter(b => b.active).map(b => ({ label: bankOptionLabel(b), value: b.uuid })))
+const bankLookup = useCatalogOptions('banks', '/v1/admin')
+const banks = useLazyOptions(async q =>
+  (await bankLookup.options({ q })).map(b => ({ label: b.label, value: b.uuid })))
 // The self-service method list already carries the `mandatory*` flags the form needs.
-const methods = useLazyOptions(async () =>
-  ((await useApi<CatalogItem[]>('/v1/me/payment-methods')) ?? []).map(m => ({ label: m.name, value: m.uuid, item: m })))
+const methods = useLazyOptions(async q =>
+  ((await useApi<CatalogItem[]>('/v1/me/payment-methods', { query: { ...(q ? { q } : {}), limit: DROPDOWN_PAGE_SIZE } })) ?? []).map(m => ({ label: m.name, value: m.uuid, item: m })))
 const methodItems = computed(() => methods.items.value.map(m => m.item))
 const methodOptions = computed(() => methodItems.value.filter(m => m.active).map(m => ({ label: m.name, value: m.uuid })))
 
@@ -222,6 +223,8 @@ async function confirmDelete() {
         v-model="bankFilter"
         clear
         :items="banks.items.value"
+        v-model:search-term="banks.searchTerm.value"
+        ignore-filter
         :loading="banks.loading.value"
         label-key="label"
         value-key="value"
@@ -288,13 +291,13 @@ async function confirmDelete() {
       <template #body>
         <div class="space-y-4">
           <UFormField :label="t('myBankAccounts.fields.paymentMethods')" required :error="showError('method')">
-            <USelectMenu clear v-model="state.paymentMethodUuids" multiple :items="methodOptions" :loading="methods.loading.value" label-key="label" value-key="value" class="w-full" :placeholder="t('common.select')" @update:open="methods.onOpen" />
+            <USelectMenu clear v-model="state.paymentMethodUuids" multiple :items="methodOptions" :loading="methods.loading.value" v-model:search-term="methods.searchTerm.value" ignore-filter label-key="label" value-key="value" class="w-full" :placeholder="t('common.select')" @update:open="methods.onOpen" @update:model-value="methods.remember($event)" />
           </UFormField>
 
           <template v-if="selectedMethods.length">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <UFormField v-if="required.bank" :label="t('myBankAccounts.fields.bank')" required :error="showError('bank')">
-                <USelectMenu clear v-model="state.bankUuid" :items="banks.items.value" :loading="banks.loading.value" label-key="label" value-key="value" class="w-full" :placeholder="t('common.select')" @update:open="banks.onOpen" />
+                <USelectMenu clear v-model="state.bankUuid" :items="banks.items.value" v-model:search-term="banks.searchTerm.value" ignore-filter :loading="banks.loading.value" label-key="label" value-key="value" class="w-full" :placeholder="t('common.select')" @update:open="banks.onOpen" @update:model-value="banks.remember($event)" />
               </UFormField>
               <UFormField v-if="required.accountType" :label="t('myBankAccounts.fields.accountType')" required :error="showError('accountType')">
                 <USelectMenu clear v-model="state.accountType" :items="BANK_ACCOUNT_TYPE_OPTIONS" label-key="label" value-key="value" class="w-full" :placeholder="t('common.select')" />

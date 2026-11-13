@@ -60,7 +60,7 @@ async function loadBodies() {
   try {
     bodyOptions.value = isPortal.value
       ? (await licensesApi.bodies(props.allyUuid)).map(b => ({ label: b.name ?? b.code ?? '', value: b.uuid }))
-      : toSelectItems(await useCatalogOptions('licensing-bodies').options({ limit: 200 }))
+      : toSelectItems(await useCatalogOptions('licensing-bodies').options())
   }
   catch {
     bodyOptions.value = []

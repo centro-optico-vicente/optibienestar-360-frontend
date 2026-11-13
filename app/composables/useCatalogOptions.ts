@@ -6,6 +6,8 @@ interface CatalogOptionsParams {
   currentValues?: string[]
   /** `states/options` acepta `countryUuid`; `cities/options` acepta `stateUuid`. */
   parentUuid?: string
+  /** Extra server-side filters of one `/options` (`ally-types?segment=`, `payment-categories?direction=`). */
+  extra?: Record<string, string | undefined>
 }
 
 /** How long a fetched options list is reused before asking the backend again. */
@@ -39,25 +41,32 @@ export const clearCatalogOptionsCache = () => cache.clear()
  * localized). Searches always hit the backend. Callers get their own array copy,
  * so mutating the result never alters the cache.
  *
+ * `base` is the path before the resource: `/v1/admin/catalogs` for the administrable
+ * catalogs (default) or `/v1/admin` for entities with their own controller
+ * (`useCatalogOptions('banks', '/v1/admin')` → `/v1/admin/banks/options`). Any `/options`
+ * only needs a valid session (backend ADR LOC-0013, rule 3), so it works for roles
+ * without the screen permission.
+ *
  * @example
  * const stateOptions = useCatalogOptions('states')
  * const items = await stateOptions.options({ parentUuid: countryUuid })
  */
-export const useCatalogOptions = (resource: string) => {
+export const useCatalogOptions = (resource: string, base = '/v1/admin/catalogs') => {
   const { $i18n } = useNuxtApp()
 
   const options = async (params: CatalogOptionsParams = {}): Promise<Option[]> => {
     const query = {
       ...(params.q ? { q: params.q } : {}),
-      ...(params.limit ? { limit: params.limit } : {}),
+      limit: params.limit ?? DROPDOWN_PAGE_SIZE,
       ...(params.currentValues?.length ? { currentValues: params.currentValues } : {}),
       ...(params.parentUuid ? { [resource === 'cities' ? 'stateUuid' : 'countryUuid']: params.parentUuid } : {}),
+      ...Object.fromEntries(Object.entries(params.extra ?? {}).filter(([, v]) => v)),
     }
-    const fetchOptions = () => useApi<Option[]>(`/v1/admin/catalogs/${resource}/options`, { query })
+    const fetchOptions = () => useApi<Option[]>(`${base}/${resource}/options`, { query })
 
     if (params.q || params.currentValues?.length) return fetchOptions()
 
-    const key = `${String(unref($i18n.locale))}|${resource}|${JSON.stringify(query)}`
+    const key = `${String(unref($i18n.locale))}|${base}|${resource}|${JSON.stringify(query)}`
     const now = Date.now()
     let entry = cache.get(key)
     if (!entry || entry.expiresAt <= now) {

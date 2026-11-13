@@ -54,10 +54,9 @@ const sourceOptions = computed(() => EXCHANGE_RATE_SOURCE_OPTIONS.map(o => ({ la
 
 // Currency master for the base/quote dropdowns (value = ISO code, the contract of `base`/`quote`).
 // Shared by both selects and fetched the first time either one opens.
-const currencies = useLazyOptions(async () =>
-  (await useCatalog('/v1/admin/currencies').listAll())
-    .filter(c => c.active)
-    .map(c => ({ label: `${c.code} - ${c.name}`, value: c.code! })))
+const currencies = useLazyOptions(async q =>
+  (await useCatalogOptions('currencies', '/v1/admin').options({ q }))
+    .map(c => ({ label: c.label, value: c.code! })))
 // Empty by default: no `sort=` is sent until the user clicks a column, so the
 // backend's own default (validFrom DESC) applies.
 const sort = useTableSort([])
@@ -307,6 +306,8 @@ async function confirmDelete() {
             v-model="base"
             clear
             :items="currencies.items.value"
+            v-model:search-term="currencies.searchTerm.value"
+            ignore-filter
             :loading="currencies.loading.value"
             label-key="label"
             value-key="value"
@@ -319,6 +320,8 @@ async function confirmDelete() {
             v-model="quote"
             clear
             :items="currencies.items.value"
+            v-model:search-term="currencies.searchTerm.value"
+            ignore-filter
             :loading="currencies.loading.value"
             label-key="label"
             value-key="value"
@@ -448,14 +451,16 @@ async function confirmDelete() {
           />
           <UTooltip :text="$t('catalogs.pageSizeLabel')">
             <USelectMenu
+              clear
               v-model="size"
               :items="pageSizeItems"
               label-key="label"
               value-key="value"
               icon="i-lucide-list"
-              :search-input="false"
               :aria-label="$t('catalogs.pageSizeLabel')"
               class="w-40"
+              :reset-model-value-on-clear="false"
+              @clear="size = DEFAULT_PAGE_SIZE"
             />
           </UTooltip>
         </div>

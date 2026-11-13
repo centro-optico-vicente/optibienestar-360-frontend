@@ -83,7 +83,7 @@ const schema = computed(() => z.object({
 
 /** Server-side advisor search for the target select: active advisors only, never the current one. */
 async function searchPromoterTargets(q: string) {
-  const res = await promoters.options({ ...(q ? { q } : {}), limit: 20 })
+  const res = await promoters.options({ ...(q ? { q } : {}), limit: DROPDOWN_PAGE_SIZE })
   return res
     .filter(o => o.active && o.uuid !== props.currentPromoterUuid)
     .map(o => ({ label: o.label, value: o.uuid }))

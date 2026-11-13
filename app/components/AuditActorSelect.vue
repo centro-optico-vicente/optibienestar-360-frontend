@@ -16,7 +16,7 @@ const { t } = useI18n()
 const users = useUsers()
 
 async function searchUsers(q: string) {
-  const res = await users.options({ q, limit: 10 })
+  const res = await users.options({ q, limit: DROPDOWN_PAGE_SIZE })
   return res.map(o => ({ label: o.label, value: o.uuid }))
 }
 

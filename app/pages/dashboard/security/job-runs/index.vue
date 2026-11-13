@@ -276,14 +276,16 @@ onMounted(load)
           />
           <UTooltip :text="$t('catalogs.pageSizeLabel')">
             <USelectMenu
+              clear
               v-model="size"
               :items="pageSizeItems"
               label-key="label"
               value-key="value"
               icon="i-lucide-list"
-              :search-input="false"
               :aria-label="$t('catalogs.pageSizeLabel')"
               class="w-40"
+              :reset-model-value-on-clear="false"
+              @clear="size = DEFAULT_PAGE_SIZE"
             />
           </UTooltip>
         </div>

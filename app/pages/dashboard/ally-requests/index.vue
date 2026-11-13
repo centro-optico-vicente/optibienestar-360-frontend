@@ -23,10 +23,7 @@ useSeoMeta({ title: () => t('common.seoTitle', { page: t('nav.items.allyRequests
 const api = useAllyRequests()
 const advisors = useAdvisorOptions()
 // The advisor list is fetched the first time the filter opens.
-const advisorItems = useLazyOptions(async () => {
-  await advisors.load()
-  return advisors.options.value
-})
+const advisorItems = useLazyOptions(q => advisors.search(q))
 
 const items = ref<AllyRequestListItemDto[]>([])
 const total = ref(0)
@@ -240,10 +237,11 @@ onMounted(() => {
         <div class="flex flex-wrap items-center gap-3">
           <USelectMenu clear value-key="value" v-model="channel" :items="channelItems" :aria-label="t('allyRequests.columns.channel')" size="lg" class="w-48" />
           <USelectMenu
-            v-if="advisors.available.value"
             v-model="promoterUuid"
             clear
             :items="advisorItems.items.value"
+            v-model:search-term="advisorItems.searchTerm.value"
+            ignore-filter
             :loading="advisorItems.loading.value"
             value-key="value"
             label-key="label"
@@ -346,14 +344,16 @@ onMounted(() => {
           />
           <UTooltip :text="t('catalogs.pageSizeLabel')">
             <USelectMenu
+              clear
               v-model="pageSize"
               :items="pageSizeItems"
               label-key="label"
               value-key="value"
               icon="i-lucide-list"
-              :search-input="false"
               :aria-label="t('catalogs.pageSizeLabel')"
               class="w-40"
+              :reset-model-value-on-clear="false"
+              @clear="pageSize = DEFAULT_PAGE_SIZE"
             />
           </UTooltip>
         </div>

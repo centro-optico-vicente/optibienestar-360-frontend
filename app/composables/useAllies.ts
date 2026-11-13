@@ -1,4 +1,5 @@
 import type { Page } from '~/types/admin'
+import type { Option } from '~/types/options'
 import type { CatalogRef } from '~/types/members'
 import type {
   AllyAgreementDto,
@@ -56,6 +57,16 @@ interface ListParams {
  * - proposeProduct → isAuthenticated() con membresía OWNER/STAFF en el ally
  */
 export const useAllies = () => {
+  /** Lightweight projection for selects (`GET /v1/admin/allies/options`) — any session, no ALLY_VIEW_ALL needed. */
+  const options = (params: { q?: string, limit?: number, currentValues?: string[] } = {}) =>
+    useApi<Option[]>('/v1/admin/allies/options', {
+      query: {
+        ...(params.q ? { q: params.q } : {}),
+        limit: params.limit ?? DROPDOWN_PAGE_SIZE,
+        ...(params.currentValues?.length ? { currentValues: params.currentValues } : {}),
+      },
+    })
+
   const list = (params: ListParams = {}) =>
     useApi<Page<AllyListItemDto>>('/v1/admin/allies', {
       query: {
@@ -253,6 +264,7 @@ export const useAllies = () => {
     })
 
   return {
+    options,
     list,
     get,
     create,

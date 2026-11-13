@@ -22,8 +22,9 @@ const props = defineProps<{
 
 const { t } = useI18n()
 const promoters = usePromoters()
-const methodsApi = useCatalog('/v1/admin/payment-methods')
-const banksApi = useCatalog('/v1/admin/banks')
+// The selects only need code + label: `/options` (any session). The method DETAIL (mandatory flags) is read below.
+const methodsApi = useCatalogOptions('payment-methods', '/v1/admin')
+const banksApi = useCatalogOptions('banks', '/v1/admin')
 const toast = useToast()
 
 const accounts = ref<PromoterPayoutAccountDto[]>([])
@@ -53,13 +54,9 @@ const bankOptions = ref<{ label: string, value: string }[]>([])
 async function loadOptions() {
   if (methodOptions.value.length && bankOptions.value.length) return
   try {
-    const [methods, banks] = await Promise.all([methodsApi.listAll(), banksApi.listAll()])
-    methodOptions.value = methods
-      .filter((method: CatalogItem) => method.active)
-      .map((method: CatalogItem) => ({ label: method.name, value: method.uuid }))
-    bankOptions.value = banks
-      .filter((bank: CatalogItem) => bank.active)
-      .map((bank: CatalogItem) => ({ label: bankOptionLabel(bank), value: bank.uuid }))
+    const [methods, banks] = await Promise.all([methodsApi.options(), banksApi.options()])
+    methodOptions.value = methods.map(method => ({ label: method.label, value: method.uuid }))
+    bankOptions.value = banks.map(bank => ({ label: bank.label, value: bank.uuid }))
   }
   catch {
     // useApi already reported the API error; the selects stay empty.

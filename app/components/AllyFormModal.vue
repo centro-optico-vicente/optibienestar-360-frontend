@@ -44,7 +44,6 @@ const { t } = useI18n()
 const allies = useAllies()
 const toast = useToast()
 const promotersApi = usePromoters()
-const { can } = usePermissions()
 
 const isOpen = computed({
   get: () => props.open,
@@ -74,9 +73,9 @@ function withSeed<T extends { value: unknown }>(seed: T[], items: T[]): T[] {
 const toSeed = (refs?: { uuid: string, name: string }[] | null): SelectItem[] =>
   (refs ?? []).map(r => ({ label: r.name, value: r.uuid }))
 
-const safeCatalogOptions = async (resource: string) => {
+const safeCatalogOptions = async (resource: string, q = '') => {
   try {
-    return toSelectItems(await useCatalogOptions(resource).options({ limit: 200 }))
+    return toSelectItems(await useCatalogOptions(resource).options({ q }))
   }
   catch {
     return []
@@ -86,34 +85,30 @@ const safeCatalogOptions = async (resource: string) => {
 // Ally types carry their segment (V179) so the select only offers the types of
 // the ally's segment (hub ADR 0031: an ally never mixes B2B and B2P types).
 interface AllyTypeItem extends SelectItem { segment?: AllySegment }
-const allyTypes = useLazyOptions<AllyTypeItem>(async () => {
+const safeCatalogOptionsWith = async (resource: string, q: string, extra: Record<string, string | undefined>) => {
   try {
-    const items = await useCatalog('/v1/admin/catalogs/ally-types').listAll()
-    return items.map(i => ({
-      label: i.active ? i.name : `${i.name} (${t('catalogs.status.inactive')})`,
-      value: i.uuid,
-      segment: i.segment,
-    }))
+    return toSelectItems(await useCatalogOptions(resource).options({ q, extra }))
   }
   catch {
-    // Without the full catalog the segment is unknown: offer every type.
-    return safeCatalogOptions('ally-types')
+    return []
   }
-})
+}
+// The segment filter runs on the server (`/ally-types/options?segment=`), together with the search `q`.
+const allyTypes = useLazyOptions<AllyTypeItem>(async q =>
+  safeCatalogOptionsWith('ally-types', q, { segment: state.segment }))
 const seededAllyTypes = ref<AllyTypeItem[]>([])
-// Seeded types have no segment, so they always pass the filter (they are the ally's own).
-const allyTypeOptions = computed<SelectItem[]>(() =>
-  withSeed(seededAllyTypes.value, allyTypes.items.value).filter(i => !i.segment || i.segment === state.segment))
+// Seeded types (the ally's own, from the detail) are always listed.
+const allyTypeOptions = computed<SelectItem[]>(() => withSeed(seededAllyTypes.value, allyTypes.items.value))
 // B2P host clinic: another commercial (B2B) ally.
 const hostAllyOptions = ref<SelectItem[]>([])
 // In-flight/settled request for the B2B host list: opening a B2P ally calls
 // loadHostAllies twice in the same tick (populateEditForm + the segment watcher),
 // and both must share one request.
 let hostAlliesRequest: Promise<void> | null = null
-const professions = useLazyOptions(() => safeCatalogOptions('professions'))
+const professions = useLazyOptions(q => safeCatalogOptions('professions', q))
 const seededProfessions = ref<SelectItem[]>([])
 const professionOptions = computed(() => withSeed(seededProfessions.value, professions.items.value))
-const states = useLazyOptions(() => safeCatalogOptions('states'))
+const states = useLazyOptions(q => safeCatalogOptions('states', q))
 const seededState = ref<SelectItem[]>([])
 const stateOptions = computed(() => withSeed(seededState.value, states.items.value))
 // useState-cached for the whole session: loaded on open, or on edit when a value is set.
@@ -121,16 +116,11 @@ const { options: documentTypeOptions, load: loadDocumentTypes } = useDocumentTyp
 function onDocumentTypesOpen(open: boolean) {
   if (open) void loadDocumentTypes()
 }
-// "Asesor que lo captó" (create only): the promoter list needs PROMOTER_VIEW_ALL;
-// without it the select stays empty.
-const canListPromoters = computed(() => can('PROMOTER_VIEW_ALL'))
-const promoters = useLazyOptions(async () => {
-  if (!canListPromoters.value) return []
+// "Asesor que lo captó" (create only): `/options` of the advisors (any session, no PROMOTER_VIEW_ALL).
+const promoters = useLazyOptions(async q => {
   try {
-    const res = await promotersApi.list({ size: 200, sort: ['displayName,asc'] })
-    return (res.content ?? [])
-      .filter(p => !p.system)
-      .map(p => ({ label: `${p.displayName} (${p.referralCode || t('common.noCode')})`, value: p.uuid }))
+    const res = await promotersApi.options({ q })
+    return res.map(p => ({ label: `${p.label} (${p.code || t('common.noCode')})`, value: p.uuid }))
   }
   catch {
     return []
@@ -175,7 +165,7 @@ async function onCitiesOpen(open: boolean) {
   if (!open || !stateUuid || citiesLoadedFor === stateUuid) return
   citiesLoading.value = true
   try {
-    const cities = toSelectItems(await useCatalogOptions('cities').options({ parentUuid: stateUuid, limit: 200 }))
+    const cities = toSelectItems(await useCatalogOptions('cities').options({ parentUuid: stateUuid, limit: DROPDOWN_PAGE_SIZE }))
     // The state may have changed while the request was in flight.
     if (selectedStateUuid.value !== stateUuid) return
     cityOptions.value = withSeed(cityOptions.value.filter(c => c.value === state.cityUuid), cities)
@@ -284,6 +274,8 @@ const state = reactive<FormState>({
   professionUuids: [],
   capturedByPromoterUuid: undefined,
 })
+// The ally types are filtered by segment on the server: switching segment drops the loaded list.
+watch(() => state.segment, () => allyTypes.reset())
 
 // Holder loaded with the ally: while its cédula is unchanged the person is
 // already linked, so its name fields are read-only (they belong to the person,
@@ -752,6 +744,8 @@ function requestDelete() {
               v-model="state.allyTypeUuids"
               :items="allyTypeOptions"
               :loading="allyTypes.loading.value"
+              v-model:search-term="allyTypes.searchTerm.value"
+              ignore-filter
               label-key="label"
               value-key="value"
               multiple
@@ -896,6 +890,8 @@ function requestDelete() {
             v-model="state.capturedByPromoterUuid"
             clear
             :items="promoters.items.value"
+            v-model:search-term="promoters.searchTerm.value"
+            ignore-filter
             :loading="promoters.loading.value"
             label-key="label"
             value-key="value"
@@ -979,6 +975,8 @@ function requestDelete() {
             v-model="state.professionUuids"
             :items="professionOptions"
             :loading="professions.loading.value"
+            v-model:search-term="professions.searchTerm.value"
+            ignore-filter
             label-key="label"
             value-key="value"
             multiple

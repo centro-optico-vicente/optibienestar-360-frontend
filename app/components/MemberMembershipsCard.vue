@@ -203,7 +203,7 @@ const plansLoaded = ref(false)
 async function loadPlans() {
   if (plansLoaded.value) return
   try {
-    const res = await plans.options({ limit: 200 })
+    const res = await plans.options()
     planOptions.value = toSelectItems(res)
     plansLoaded.value = true
   }

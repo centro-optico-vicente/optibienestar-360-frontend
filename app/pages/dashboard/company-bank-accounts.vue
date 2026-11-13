@@ -76,13 +76,15 @@ watch(page, load)
 
 // ---- Bank / currency options (self-service read-only catalogs: no admin catalog permission needed) ----
 // Fetched the first time a filter opens or the create/edit form opens, not when the page mounts.
-const banks = useLazyOptions(async () =>
-  ((await useApi<CatalogItem[]>('/v1/me/banks')) ?? []).filter(b => b.active).map(b => ({ label: bankOptionLabel(b), value: b.uuid })))
-const currencies = useLazyOptions(async () =>
-  ((await useApi<CatalogItem[]>('/v1/me/currencies')) ?? []).filter(c => c.active).map(c => ({ label: `${c.code} (${c.symbol})`, value: c.code! })))
+const bankLookup = useCatalogOptions('banks', '/v1/admin')
+const banks = useLazyOptions(async q =>
+  (await bankLookup.options({ q })).map(b => ({ label: b.label, value: b.uuid })))
+const currencyLookup = useCatalogOptions('currencies', '/v1/admin')
+const currencies = useLazyOptions(async q =>
+  (await currencyLookup.options({ q })).map(c => ({ label: c.label, value: c.code! })))
 // The self-service method list already carries the `mandatory*` flags the form needs.
-const methods = useLazyOptions(async () =>
-  ((await useApi<CatalogItem[]>('/v1/me/payment-methods')) ?? []).map(m => ({ label: m.name, value: m.uuid, item: m })))
+const methods = useLazyOptions(async q =>
+  ((await useApi<CatalogItem[]>('/v1/me/payment-methods', { query: { ...(q ? { q } : {}), limit: DROPDOWN_PAGE_SIZE } })) ?? []).map(m => ({ label: m.name, value: m.uuid, item: m })))
 const methodItems = computed(() => methods.items.value.map(m => m.item))
 const methodOptions = computed(() => methodItems.value.filter(m => m.active).map(m => ({ label: m.name, value: m.uuid })))
 
@@ -279,6 +281,8 @@ async function confirmDelete() {
         v-model="bankFilter"
         clear
         :items="banks.items.value"
+        v-model:search-term="banks.searchTerm.value"
+        ignore-filter
         :loading="banks.loading.value"
         label-key="label"
         value-key="value"
@@ -291,6 +295,8 @@ async function confirmDelete() {
         v-model="currencyFilter"
         clear
         :items="currencies.items.value"
+        v-model:search-term="currencies.searchTerm.value"
+        ignore-filter
         :loading="currencies.loading.value"
         label-key="label"
         value-key="value"
@@ -372,16 +378,16 @@ async function confirmDelete() {
         <UForm ref="formRef" :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <UFormField :label="t('payments.companyAccounts.fields.methods')" name="paymentMethodUuids" required>
-              <USelectMenu clear v-model="state.paymentMethodUuids" multiple :items="methodOptions" :loading="methods.loading.value" label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" @update:open="methods.onOpen" />
+              <USelectMenu clear v-model="state.paymentMethodUuids" multiple :items="methodOptions" :loading="methods.loading.value" v-model:search-term="methods.searchTerm.value" ignore-filter label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" @update:open="methods.onOpen" @update:model-value="methods.remember($event)" />
             </UFormField>
             <UFormField :label="t('payments.companyAccounts.fields.currency')" name="currency" required>
-              <USelectMenu clear v-model="state.currency" :items="currencies.items.value" :loading="currencies.loading.value" label-key="label" value-key="value" class="w-full font-mono" @update:open="currencies.onOpen" />
+              <USelectMenu clear v-model="state.currency" :items="currencies.items.value" v-model:search-term="currencies.searchTerm.value" ignore-filter :loading="currencies.loading.value" label-key="label" value-key="value" class="w-full font-mono" @update:open="currencies.onOpen" @update:model-value="currencies.remember($event)" />
             </UFormField>
           </div>
           <template v-if="selectedMethods.length">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <UFormField v-if="required.bank" :label="t('payments.companyAccounts.fields.bank')" name="bankUuid" required>
-                <USelectMenu clear v-model="state.bankUuid" :items="banks.items.value" :loading="banks.loading.value" label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" @update:open="banks.onOpen" />
+                <USelectMenu clear v-model="state.bankUuid" :items="banks.items.value" v-model:search-term="banks.searchTerm.value" ignore-filter :loading="banks.loading.value" label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" @update:open="banks.onOpen" @update:model-value="banks.remember($event)" />
               </UFormField>
               <UFormField v-if="required.accountType" :label="t('payments.companyAccounts.fields.accountType')" name="accountType" required>
                 <USelectMenu clear v-model="state.accountType" :items="BANK_ACCOUNT_TYPE_OPTIONS" label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" />
