@@ -35,7 +35,6 @@ const segmentItems = computed(() => [
   { value: 'B2B', label: t('allyRequestForm.segmentB2B'), description: t('allyRequestForm.segmentB2BHint') },
   { value: 'B2P', label: t('allyRequestForm.segmentB2P'), description: t('allyRequestForm.segmentB2PHint') },
 ])
-const docTypes = [{ value: 'V', label: 'V' }, { value: 'E', label: 'E' }]
 
 const state = reactive({
   segment: 'B2B' as AllySegment,
@@ -235,7 +234,7 @@ async function submit() {
                 <!-- Nested field: UFormField hands its id to every control inside, so the V/E select gets its own and
                      the "Cédula de identidad" label points to the number only (#323). -->
                 <UFormField class="w-20 shrink-0">
-                  <USelect v-model="state.documentType" :items="docTypes" :aria-label="t('allyRequestForm.fields.documentType')" class="w-full" />
+                  <DocumentTypePrefixSelect v-model="state.documentType" :aria-label="t('allyRequestForm.fields.documentType')" class="w-full" />
                 </UFormField>
                 <UInput v-model="state.documentNumber" name="ally-request-documentNumber" class="flex-1" maxlength="9" inputmode="numeric" autocomplete="off" placeholder="12345678" @beforeinput="onlyDigits" />
               </div>

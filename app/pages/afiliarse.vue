@@ -23,7 +23,6 @@ const { isAccountExists, openSession } = useRegistrationStart()
 useSeoMeta({ title: () => t('affiliationRequest.seoTitle') })
 
 const referralCode = computed(() => String(route.query.ref ?? '').trim().toUpperCase().slice(0, 20))
-const docTypes = [{ value: 'V', label: 'V' }, { value: 'E', label: 'E' }]
 
 const state = reactive({
   firstName: '', lastName: '', documentType: 'V', documentNumber: '', phone: '', email: '',
@@ -129,7 +128,7 @@ async function submit() {
           </UFormField>
           <UFormField :label="t('affiliationRequest.document')" required>
             <div class="flex gap-2">
-              <USelect v-model="state.documentType" :items="docTypes" class="w-20" />
+              <DocumentTypePrefixSelect v-model="state.documentType" class="w-20" />
               <UInput v-model="state.documentNumber" class="flex-1" maxlength="9" inputmode="numeric" placeholder="12345678" />
             </div>
           </UFormField>

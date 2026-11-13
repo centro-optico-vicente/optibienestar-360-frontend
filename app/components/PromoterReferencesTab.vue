@@ -52,10 +52,7 @@ interface FormState {
 
 const state = reactive<FormState>({ firstName: '', lastName: '', documentType: undefined, documentNumber: '', phone: '' })
 
-const documentTypeOptions = computed(() => [
-  { label: t('promoters.dossier.documentTypes.V'), value: 'V' },
-  { label: t('promoters.dossier.documentTypes.E'), value: 'E' },
-])
+const documentTypeOptions = computed(() => documentTypeItems(t))
 
 const schema = computed(() => z.object({
   firstName: z.string().min(1, t('validation.required')).max(50, t('validation.maxChars', { n: 50 })),

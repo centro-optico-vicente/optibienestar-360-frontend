@@ -22,7 +22,6 @@ const state = reactive({
   documentNumber: props.request.documentNumber ?? '',
   email: props.request.email ?? '',
 })
-const docTypes = [{ value: 'V', label: 'V' }, { value: 'E', label: 'E' }]
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const saving = ref(false)
 
@@ -80,7 +79,7 @@ async function finish(mode: StepExit) {
       </UFormField>
       <UFormField :label="t('affiliationRequest.document')" :required="api.editableIdentity">
         <div v-if="api.editableIdentity" class="flex gap-2">
-          <USelect v-model="state.documentType" :items="docTypes" class="w-20" />
+          <DocumentTypePrefixSelect v-model="state.documentType" class="w-20" />
           <UInput v-model="state.documentNumber" class="flex-1" maxlength="9" inputmode="numeric" />
         </div>
         <UInput v-else :model-value="`${request.documentType}${request.documentNumber}`" class="w-full" disabled />

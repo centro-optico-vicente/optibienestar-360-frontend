@@ -25,7 +25,6 @@ const draftUuid = computed(() => typeof route.query.draft === 'string' ? route.q
 const done = ref<{ email: string, approved: boolean } | null>(null)
 
 // ---- Start a new draft ----
-const docTypes = [{ value: 'V', label: 'V' }, { value: 'E', label: 'E' }]
 const state = reactive({ firstName: '', lastName: '', documentType: 'V', documentNumber: '', email: '', phone: '' })
 const starting = ref(false)
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -243,7 +242,7 @@ function another() {
         </UFormField>
         <UFormField :label="t('affiliationRequest.document')" required>
           <div class="flex gap-2">
-            <USelect v-model="state.documentType" :items="docTypes" class="w-20" />
+            <DocumentTypePrefixSelect v-model="state.documentType" class="w-20" />
             <UInput v-model="state.documentNumber" class="flex-1" maxlength="9" inputmode="numeric" placeholder="12345678" />
           </div>
         </UFormField>

@@ -217,7 +217,6 @@ async function reopen() {
 // ---- Invite to the portal ----
 const inviteOpen = ref(false)
 const inviting = ref(false)
-const docTypes = [{ value: 'V', label: 'V' }, { value: 'E', label: 'E' }]
 const inviteForm = reactive({ documentType: 'V', documentNumber: '', email: '' })
 // Without a holder person the backend needs the contact's cédula to create the user.
 const inviteNeedsDocument = computed(() => !request.value?.holder?.documentNumber)
@@ -493,7 +492,7 @@ async function confirmInvite() {
           <p class="text-sm text-prohealth-700">{{ t('allyRequests.detail.invite.notice') }}</p>
           <UFormField v-if="inviteNeedsDocument" :label="t('allyRequests.detail.invite.document')" :help="t('allyRequests.detail.invite.documentHelp')" required>
             <div class="flex gap-2">
-              <USelect v-model="inviteForm.documentType" :items="docTypes" class="w-20" />
+              <DocumentTypePrefixSelect v-model="inviteForm.documentType" class="w-20" />
               <UInput v-model="inviteForm.documentNumber" class="flex-1" maxlength="9" inputmode="numeric" placeholder="12345678" />
             </div>
           </UFormField>

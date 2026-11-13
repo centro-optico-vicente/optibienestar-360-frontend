@@ -300,10 +300,7 @@ const segmentItems = computed(() => [
   { label: t('allies.segments.B2B'), value: 'B2B' },
   { label: t('allies.segments.B2P'), value: 'B2P' },
 ])
-const personDocumentTypeItems = [
-  { label: 'V', value: 'V' },
-  { label: 'E', value: 'E' },
-]
+const personDocumentTypeItems = computed(() => documentTypeItems(t))
 
 // Segment of the ally loaded for edit: its types already match it, so populating the
 // form needs no type list. null on create.
