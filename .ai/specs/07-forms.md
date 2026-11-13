@@ -282,6 +282,28 @@ private static String labelOf(Currency c) {
 
 El frontend consume `option.label` directamente (ver `CommissionTierFormModal.vue`, `currencyItems`), sin concatenar código/nombre por su cuenta.
 
+## Código en selects
+
+Todo dropdown (`USelect`, `USelectMenu`, `CommonEntityReferenceSelect`…) cuyas opciones vengan de una entidad/tabla **con código** muestra cada opción como:
+
+```
+<código> — <nombre>
+```
+
+Ejemplos: `V — Cédula de identidad venezolana`, `0156 — 100% Banco`, `J — RIF jurídico`. El separador es la raya `—` (U+2014) con un espacio a cada lado, igual que el backend. **Nunca** el código solo (`V`, `E`): no se entiende. La única excepción es la moneda (sección anterior, `USD ($)`).
+
+- **Origen preferido: backend.** Los endpoints `*/options` ya arman el label en el service (`labelOf`: `DocumentTypeService`, `BankService`, `GenderService`, `StateService`, `PlansService`…). El frontend usa `option.label` tal cual (`toSelectItems`, `useDocumentTypes`, `bankOptionLabel`), sin reconcatenar. Si una entidad con código no lo trae en el label, se corrige en el `labelOf` del backend, no en el frontend.
+- **Listas fijas en el frontend** (páginas públicas sin acceso al catálogo admin, o enums que replican un `CHECK`): usar el helper compartido, no un array a mano. Para tipos de documento: `documentTypeItems(t, codes?)` de `app/utils/documentTypes.ts` (nombres en `common.documentTypes.*`, los mismos del seed del backend).
+- **Select compacto de prefijo** (tipo de documento delante del número, `w-20`/`w-28`): usar `DocumentTypePrefixSelect` (`codes` = `PERSON_DOCUMENT_TYPE_CODES` por defecto, o `DOCUMENT_TYPE_CODES` / `TAX_DOCUMENT_TYPES` para fiscal). El **menú** muestra `V — Cédula de identidad venezolana` y se ensancha (`ui.content: min-w-72`); el **trigger** muestra solo el código para no desbordar el campo angosto. El valor enviado sigue siendo el código.
+- En un select **ancho** (`w-full`) el trigger muestra el label completo.
+
+```ts
+// ❌ Anti-pattern
+const docTypes = ['V', 'E'].map(v => ({ label: v, value: v }))
+// ✅
+const docTypes = computed(() => documentTypeItems(t))
+```
+
 ## Atajos de fecha/hora (`AppDateTimePicker`, `AuditDateRangePicker`)
 
 Todo selector de fecha/fecha-hora con panel de atajos agrupa los shortcuts en 3 secciones, en este orden, separadas por `USeparator`:

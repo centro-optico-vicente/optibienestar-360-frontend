@@ -15,7 +15,6 @@ const api = useMemberRegistrationApi()
 
 const MAX_ROWS = 10
 const relationshipOptions = computed(() => RELATIONSHIP_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
-const docTypes = [{ value: 'V', label: 'V' }, { value: 'E', label: 'E' }]
 
 interface Row extends Omit<MyAffiliationFamilyMember, 'relationship'> {
   key: number
@@ -94,7 +93,7 @@ async function finish(mode: StepExit) {
         </UFormField>
         <UFormField :label="t('affiliationRequest.document')" required>
           <div class="flex gap-2">
-            <USelect v-model="r.documentType" :items="docTypes" class="w-20" />
+            <DocumentTypePrefixSelect v-model="r.documentType" class="w-20" />
             <UInput v-model="r.documentNumber" class="flex-1" maxlength="9" inputmode="numeric" />
           </div>
         </UFormField>

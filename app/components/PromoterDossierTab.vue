@@ -26,10 +26,7 @@ const toast = useToast()
 const educationLevelOptions = computed(() =>
   EDUCATION_LEVEL_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })),
 )
-const documentTypeOptions = computed(() => [
-  { label: t('promoters.dossier.documentTypes.V'), value: 'V' },
-  { label: t('promoters.dossier.documentTypes.E'), value: 'E' },
-])
+const documentTypeOptions = computed(() => documentTypeItems(t))
 
 const maritalStatusOptions = ref<SelectItem[]>([])
 async function loadMaritalStatuses() {

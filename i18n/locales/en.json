@@ -100,6 +100,13 @@
     "filters": {
       "toggle": "Filters",
       "clear": "Clear filters"
+    },
+    "documentTypes": {
+      "V": "Venezuelan identity card",
+      "E": "Foreign resident identity card",
+      "J": "Legal entity RIF",
+      "G": "Government RIF",
+      "P": "Passport"
     }
   },
   "locale": {
@@ -3019,10 +3026,6 @@
       "validation": {
         "documentMin": "At least 5 digits",
         "adult": "The holder must be 18 or older"
-      },
-      "documentTypes": {
-        "V": "V — Venezuelan",
-        "E": "E — Foreigner"
       }
     },
     "delete": {
@@ -3802,10 +3805,6 @@
         "TECHNICAL": "Technical",
         "UNIVERSITY": "University",
         "POSTGRADUATE": "Postgraduate"
-      },
-      "documentTypes": {
-        "V": "V — Venezuelan",
-        "E": "E — Foreigner"
       },
       "validation": {
         "documentNumber": "The ID number must have 1 to 9 digits"

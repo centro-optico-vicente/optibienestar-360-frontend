@@ -35,14 +35,14 @@ const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 // Document types come from the public catalog (the admin one is not readable by an advisor). The backend
 // only accepts V / E for a new member, so the list is narrowed to those codes; if the request fails we fall back to them.
 const ALLOWED_DOCUMENT_TYPES = ['V', 'E']
-const documentTypeOptions = ref(ALLOWED_DOCUMENT_TYPES.map(code => ({ label: t(`members.form.documentTypes.${code}`), value: code })))
+const documentTypeOptions = ref<{ label: string, value: string }[]>(documentTypeItems(t, ALLOWED_DOCUMENT_TYPES))
 
 onMounted(async () => {
   try {
     const items = await usePublicCatalog('document-types').list()
     const loaded = items
       .filter(item => item.code && ALLOWED_DOCUMENT_TYPES.includes(item.code))
-      .map(item => ({ label: t(`members.form.documentTypes.${item.code}`, item.name), value: item.code as string }))
+      .map(item => ({ label: `${item.code} — ${item.name}`, value: item.code as string }))
     if (loaded.length) documentTypeOptions.value = loaded
   }
   catch {

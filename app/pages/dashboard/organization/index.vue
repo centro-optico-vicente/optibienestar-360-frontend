@@ -56,8 +56,6 @@ const state = reactive({
   signatoryPosition: '',
 })
 
-const signatoryDocumentTypeItems = ['V', 'E', 'J', 'G', 'P'].map(value => ({ label: value, value }))
-
 const schema = computed(() =>
   z.object({
     name: z.string().min(1, t('validation.required')),
@@ -854,9 +852,9 @@ onMounted(() => {
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <UFormField :label="t('organization.fields.signatoryDocument')" name="signatoryDocumentNumber">
               <div class="flex gap-2">
-                <USelect
+                <DocumentTypePrefixSelect
                   v-model="state.signatoryDocumentType"
-                  :items="signatoryDocumentTypeItems"
+                  :codes="DOCUMENT_TYPE_CODES"
                   :placeholder="t('organization.fields.signatoryDocumentType')"
                   class="w-28"
                   :disabled="!canUpdate || isSubmitting"

@@ -27,7 +27,6 @@ const draftUuid = computed(() => typeof route.query.draft === 'string' ? route.q
 const done = ref<{ email: string | null } | null>(null)
 
 // ---- Start a new draft ----
-const docTypes = [{ value: 'V', label: 'V' }, { value: 'E', label: 'E' }]
 const segments = computed(() => [
   { value: 'B2B', label: t('allyRequestForm.segmentB2B'), hint: t('allyRequestForm.segmentB2BHint') },
   { value: 'B2P', label: t('allyRequestForm.segmentB2P'), hint: t('allyRequestForm.segmentB2PHint') },
@@ -282,7 +281,7 @@ async function discardDraft() {
         </UFormField>
         <UFormField :label="t('allyRequestForm.fields.document')" required>
           <div class="flex gap-2">
-            <USelect v-model="state.documentType" :items="docTypes" class="w-20" />
+            <DocumentTypePrefixSelect v-model="state.documentType" class="w-20" />
             <UInput v-model="state.documentNumber" class="flex-1" maxlength="9" inputmode="numeric" placeholder="12345678" />
           </div>
         </UFormField>

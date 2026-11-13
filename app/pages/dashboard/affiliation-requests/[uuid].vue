@@ -84,7 +84,6 @@ const planItems = computed(() => {
   }
   return items
 })
-const docTypes = [{ value: 'V', label: 'V' }, { value: 'E', label: 'E' }]
 
 const form = reactive({
   firstName: '', lastName: '', documentType: 'V', documentNumber: '', birthDate: '',
@@ -339,7 +338,7 @@ function statusLabel(r: AffiliationRequestDetailDto): string {
             </UFormField>
             <UFormField :label="t('affiliationRequests.fields.documentNumber')" required>
               <div class="flex gap-2">
-                <USelect v-model="form.documentType" :items="docTypes" class="w-20" :disabled="!editable" />
+                <DocumentTypePrefixSelect v-model="form.documentType" class="w-20" :disabled="!editable" />
                 <UInput v-model="form.documentNumber" class="flex-1" maxlength="9" inputmode="numeric" :disabled="!editable" />
               </div>
             </UFormField>

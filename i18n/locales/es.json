@@ -100,6 +100,13 @@
     "filters": {
       "toggle": "Filtros",
       "clear": "Limpiar filtros"
+    },
+    "documentTypes": {
+      "V": "Cédula de identidad venezolana",
+      "E": "Cédula de identidad de extranjero",
+      "J": "RIF jurídico",
+      "G": "RIF gubernamental",
+      "P": "Pasaporte"
     }
   },
   "locale": {
@@ -3019,10 +3026,6 @@
       "validation": {
         "documentMin": "Mínimo 5 dígitos",
         "adult": "El titular debe ser mayor de 18 años"
-      },
-      "documentTypes": {
-        "V": "V — Venezolano",
-        "E": "E — Extranjero"
       }
     },
     "delete": {
@@ -3802,10 +3805,6 @@
         "TECHNICAL": "Técnico",
         "UNIVERSITY": "Universitario",
         "POSTGRADUATE": "Postgrado"
-      },
-      "documentTypes": {
-        "V": "V — Venezolano",
-        "E": "E — Extranjero"
       },
       "validation": {
         "documentNumber": "La cédula debe tener entre 1 y 9 dígitos"

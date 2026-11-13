@@ -66,8 +66,6 @@ async function loadOptions() {
   }
 }
 
-const holderDocumentTypeOptions = ['V', 'E', 'J', 'G', 'P'].map(v => ({ label: v, value: v }))
-
 function accountTypeLabel(value?: string | null): string {
   return BANK_ACCOUNT_TYPE_OPTIONS.find(option => option.value === value)?.label ?? ''
 }
@@ -368,7 +366,7 @@ async function confirmDelete() {
             </UFormField>
             <div class="grid grid-cols-[6rem_1fr] gap-2">
               <UFormField :label="t('promoters.payoutAccounts.fields.holderDocumentType')" name="holderDocumentType" :required="required.identification">
-                <USelect v-model="state.holderDocumentType" :items="holderDocumentTypeOptions" class="w-full" :placeholder="t('common.select')" />
+                <DocumentTypePrefixSelect v-model="state.holderDocumentType" :codes="DOCUMENT_TYPE_CODES" class="w-full" :placeholder="t('common.select')" />
               </UFormField>
               <UFormField :label="t('promoters.payoutAccounts.fields.holderDocumentNumber')" name="holderDocumentNumber" :required="required.identification">
                 <UInput v-model="state.holderDocumentNumber" inputmode="numeric" class="w-full" />

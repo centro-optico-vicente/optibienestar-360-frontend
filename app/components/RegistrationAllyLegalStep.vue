@@ -25,7 +25,6 @@ const state = reactive({
 const allyTypes = ref<CatalogItem[]>([])
 const professions = ref<CatalogItem[]>([])
 const saving = ref(false)
-const taxDocTypes = TAX_DOCUMENT_TYPES.map(v => ({ value: v, label: v }))
 
 // A type without segment fits both (same rule as the admin ally form).
 const allyTypeItems = computed(() => allyTypes.value
@@ -96,7 +95,7 @@ async function finish(mode: StepExit) {
       </UFormField>
       <UFormField v-if="isB2B" :label="t('allyRequestForm.fields.taxDocument')" required class="sm:col-span-2">
         <div class="flex gap-2">
-          <USelect v-model="state.taxDocumentType" :items="taxDocTypes" class="w-20" />
+          <DocumentTypePrefixSelect v-model="state.taxDocumentType" :codes="TAX_DOCUMENT_TYPES" class="w-20" />
           <UInput v-model="state.taxDocumentNumber" class="flex-1" maxlength="15" placeholder="12345678-9" />
         </div>
       </UFormField>
