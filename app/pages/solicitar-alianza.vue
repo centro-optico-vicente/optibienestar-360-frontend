@@ -7,7 +7,7 @@
 // `homepage` is a honeypot.
 import type { ApiError } from '~/types/auth'
 import type { AllySegment } from '~/types/allies'
-import type { AllyRequestCreateRequest } from '~/types/allyRequests'
+import { TAX_DOCUMENT_TYPES, type AllyRequestCreateRequest } from '~/types/allyRequests'
 import type { RegistrationStartResponse } from '~/types/affiliationRequests'
 import { ALLY_WIZARD_STEPS } from '~/types/registration'
 import { isValidPhone } from '~/utils/contactValidation'
@@ -39,6 +39,9 @@ const segmentItems = computed(() => [
 const state = reactive({
   segment: 'B2B' as AllySegment,
   name: '',
+  // B2B only: the business RIF, sent with step 1 so step 2 shows it prefilled.
+  taxDocumentType: 'J' as (typeof TAX_DOCUMENT_TYPES)[number],
+  taxDocumentNumber: '',
   firstName: '',
   lastName: '',
   documentType: 'V' as 'V' | 'E',
@@ -79,20 +82,31 @@ watch(() => state.documentNumber, (value) => {
   if (digits !== value) state.documentNumber = digits
 }, { immediate: true })
 
-type FieldKey = 'name' | 'firstName' | 'lastName' | 'documentNumber' | 'mobile' | 'email' | 'password'
+// The RIF is typed as the placeholder suggests ("12345678-9") but the backend stores digits only (#310): hyphens and
+// spaces are dropped before validating and sending (same rule as the step 2 legal form).
+const taxDigits = computed(() => state.taxDocumentNumber.replace(/[\s-]/g, ''))
+
+type FieldKey = 'name' | 'taxDocumentNumber' | 'firstName' | 'lastName' | 'documentNumber' | 'mobile' | 'email' | 'password'
 /** Field order on screen: the first one with an error gets the focus. */
-const FIELD_ORDER: readonly FieldKey[] = ['name', 'firstName', 'lastName', 'documentNumber', 'mobile', 'email', 'password']
+const FIELD_ORDER: readonly FieldKey[] = ['name', 'taxDocumentNumber', 'firstName', 'lastName', 'documentNumber', 'mobile', 'email', 'password']
 
 // Errors under each field (#319) instead of a single toast, one at a time, that did not say where.
 const errors = reactive<Partial<Record<FieldKey, string>>>({})
 for (const key of FIELD_ORDER) watch(() => state[key], () => { delete errors[key] })
-// The business name is only required for a commercial ally: switching to professional drops its error.
-watch(segment, () => { delete errors.name })
+// The business name and RIF are only required for a commercial ally: switching to professional drops their errors.
+watch(segment, () => {
+  delete errors.name
+  delete errors.taxDocumentNumber
+})
 
 function validate(): Partial<Record<FieldKey, string>> {
   const found: Partial<Record<FieldKey, string>> = {}
   const required = t('allyRequestForm.requiredField')
-  if (segment.value === 'B2B' && !state.name.trim()) found.name = required
+  if (segment.value === 'B2B') {
+    if (!state.name.trim()) found.name = required
+    if (!state.taxDocumentNumber.trim()) found.taxDocumentNumber = required
+    else if (!/^[\d\s-]+$/.test(state.taxDocumentNumber.trim()) || !/^\d{5,15}$/.test(taxDigits.value)) found.taxDocumentNumber = t('allyRequestForm.badTaxDocument')
+  }
   if (!state.firstName.trim()) found.firstName = required
   if (!state.lastName.trim()) found.lastName = required
   if (!state.documentNumber.trim()) found.documentNumber = required
@@ -127,6 +141,8 @@ function buildRequest(): AllyRequestCreateRequest {
     segment: segment.value,
     // B2P: the name is optional (the backend derives "firstName lastName").
     name: state.name.trim() || undefined,
+    taxDocumentType: segment.value === 'B2B' ? state.taxDocumentType : undefined,
+    taxDocumentNumber: segment.value === 'B2B' ? taxDigits.value : undefined,
     firstName: state.firstName.trim(),
     lastName: state.lastName.trim(),
     documentType: state.documentType,
@@ -216,6 +232,15 @@ async function submit() {
               class="sm:col-span-2"
             >
               <UInput v-model="state.name" name="ally-request-name" class="w-full" maxlength="150" autocomplete="organization" />
+            </UFormField>
+            <UFormField v-if="segment === 'B2B'" :label="t('allyRequestForm.fields.taxDocument')" required :error="errors.taxDocumentNumber">
+              <div class="flex gap-2">
+                <!-- Nested field: the J/G/V/E/P select gets its own id, so the "RIF" label points to the number (#323). -->
+                <UFormField class="w-20 shrink-0">
+                  <DocumentTypePrefixSelect v-model="state.taxDocumentType" :codes="TAX_DOCUMENT_TYPES" :aria-label="t('allyRequestForm.fields.taxDocument')" class="w-full" />
+                </UFormField>
+                <UInput v-model="state.taxDocumentNumber" name="ally-request-taxDocumentNumber" class="flex-1" maxlength="15" autocomplete="off" placeholder="12345678-9" />
+              </div>
             </UFormField>
           </fieldset>
 

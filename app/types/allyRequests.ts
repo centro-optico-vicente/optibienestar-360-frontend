@@ -30,6 +30,9 @@ export const TAX_DOCUMENT_TYPES = ['J', 'V', 'E', 'G', 'P'] as const
 export interface AllyRequestCreateRequest {
   segment: AllySegment
   name?: string
+  /** B2B only: the business RIF (prefix + digits only). The backend ignores it for B2P. */
+  taxDocumentType?: (typeof TAX_DOCUMENT_TYPES)[number]
+  taxDocumentNumber?: string
   firstName: string
   lastName: string
   documentType: 'V' | 'E'
