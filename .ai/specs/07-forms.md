@@ -303,6 +303,21 @@ Todo dropdown del sistema debe poder **filtrarse escribiendo** y **limpiarse** (
 <USelectMenu v-model="status" :items="statusItems" value-key="value" clear />
 ```
 
+## Selects: siempre por `/options`, búsqueda en el servidor
+
+- Todo dropdown se alimenta del `/options` de su entidad (sesión válida; no depende de `*_VIEW_ALL`), nunca del listado completo. Tope `DROPDOWN_PAGE_SIZE` (50), distinto del tamaño de página de las tablas.
+- La búsqueda va siempre al servidor con `q` (insensible a mayúsculas y diacríticos); el frontend no filtra localmente. Usar `useLazyOptions`, `useCatalogOptions` o `CommonEntityReferenceSelect :lazy`.
+
+**Pendientes (a 2026-11-13):**
+
+- **Métodos de pago** (decisión abierta: lista con atributos vs `/options` + detalle del seleccionado; ver ADR backend LOC-0013). Dos endpoints afectados:
+  - Sesión, `GET /v1/me/payment-methods?q`: `MyPaymentFormModal`, `DownlinePaymentFormModal`, `my-bank-accounts`, `company-bank-accounts`.
+  - Admin, `GET /v1/admin/payment-methods` vía `useCatalog` (lista completa, sin `q`): `PaymentFormModal`, `PaymentMasterFilters`, `PromoterPayoutAccountsTab`, `CommissionPayoutBySelectionModal`, `affiliation-requests/index`. Los que solo filtran (sin `mandatory*`) pueden pasar a `/options` sin esperar la decisión.
+  - `/v1/public/payment-methods` (registro público) no se toca.
+- **Selects sin búsqueda en servidor**: árbol de profesiones (`allies/[uuid]`), `PromoterChangeRankModal` (rangos y supervisores), padres en `catalogs/[resource]`, `BenefitUsageModal` (monedas `/v1/me/currencies` y categorías públicas), tipos de documento estáticos (`useDocumentTypes`).
+- **Fase 2**: permisos `<X>_LOOKUP` para entidades sensibles (pagos, asesores, usuarios, aliados, afiliados, consumos).
+- **Backend**: `/options` de `marital-statuses`, `professions` y `ally-types` aún muestra solo el nombre; `/v1/me/allies/options` existe pero ningún portal lo consume; la lista de asesores ya no excluye al asesor de sistema (INSTITUCION).
+
 ## Código en selects
 
 Todo dropdown (`USelect`, `USelectMenu`, `CommonEntityReferenceSelect`…) cuyas opciones vengan de una entidad/tabla **con código legible** muestra cada opción como:
