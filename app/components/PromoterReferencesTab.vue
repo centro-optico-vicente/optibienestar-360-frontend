@@ -196,7 +196,7 @@ async function confirmDelete() {
               <UInput v-model="state.lastName" class="w-full" />
             </UFormField>
             <UFormField :label="t('promoters.dossier.fields.documentType')" name="documentType">
-              <USelect v-model="state.documentType" :items="documentTypeOptions" class="w-full" :placeholder="t('common.select')" />
+              <USelectMenu clear value-key="value" v-model="state.documentType" :items="documentTypeOptions" class="w-full" :placeholder="t('common.select')" />
             </UFormField>
             <UFormField :label="t('promoters.dossier.fields.documentNumber')" name="documentNumber">
               <UInput v-model="state.documentNumber" inputmode="numeric" class="w-full" />

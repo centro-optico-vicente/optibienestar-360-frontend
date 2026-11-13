@@ -78,10 +78,11 @@ async function finish(mode: StepExit) {
   <div class="space-y-4">
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <UFormField :label="t('allyRequestForm.fields.state')" required>
-        <USelectMenu v-model="state.stateUuid" :items="stateItems" label-key="label" value-key="value" :placeholder="t('allyRequestForm.fields.statePlaceholder')" class="w-full" />
+        <USelectMenu clear v-model="state.stateUuid" :items="stateItems" label-key="label" value-key="value" :placeholder="t('allyRequestForm.fields.statePlaceholder')" class="w-full" />
       </UFormField>
       <UFormField :label="t('allyRequestForm.fields.city')" required>
         <USelectMenu
+          clear
           v-model="state.cityUuid"
           :items="cityItems"
           label-key="label"

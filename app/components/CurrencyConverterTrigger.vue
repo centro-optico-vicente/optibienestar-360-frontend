@@ -142,7 +142,9 @@ watch(
       <div class="p-4 w-80 text-sm space-y-2">
         <div class="flex justify-between items-center gap-3">
           <span class="text-prohealth-400">{{ t('common.currencyConverter.targetCurrency') }}</span>
-          <USelect
+          <USelectMenu
+            clear
+            value-key="value"
             v-model="targetModel"
             :items="targetOptions"
             size="xs"

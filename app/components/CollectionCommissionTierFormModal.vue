@@ -414,7 +414,7 @@ async function restoreTier() {
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('commissionRules.collectionTiers.form.basis')" name="basis" required>
-            <USelectMenu v-model="state.basis" :items="basisOptions" label-key="label" value-key="value" class="w-full" />
+            <USelectMenu clear v-model="state.basis" :items="basisOptions" label-key="label" value-key="value" class="w-full" />
           </UFormField>
           <UFormField v-if="state.basis === 'DAYS'" :label="t('commissionRules.collectionTiers.form.maxDays')" name="maxDays" required :help="t('commissionRules.collectionTiers.form.maxDaysHelp')">
             <UInput v-model="state.maxDays" inputmode="numeric" placeholder="5" class="w-full" />
@@ -508,7 +508,7 @@ async function restoreTier() {
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('commissionRules.tiers.form.rewardKind')" name="rewardKind" required>
-            <USelectMenu v-model="state.rewardKind" :items="rewardKindOptions" label-key="label" value-key="value" class="w-full" />
+            <USelectMenu clear v-model="state.rewardKind" :items="rewardKindOptions" label-key="label" value-key="value" class="w-full" />
           </UFormField>
           <UFormField v-if="state.rewardKind === 'PCT'" :label="t('commissionRules.collectionTiers.form.commissionPct')" name="commissionPct" required>
             <UInput v-model="state.commissionPct" placeholder="35.00" class="w-full">

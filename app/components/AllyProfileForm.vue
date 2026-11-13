@@ -231,6 +231,7 @@ async function save() {
       </UFormField>
       <UFormField :label="t('allies.form.fields.state')">
         <USelectMenu
+          clear
           v-model="form.stateUuid"
           :items="stateItems"
           label-key="label"
@@ -242,6 +243,7 @@ async function save() {
       </UFormField>
       <UFormField :label="t('allies.form.fields.city')">
         <USelectMenu
+          clear
           v-model="form.cityUuid"
           :items="cityItems"
           label-key="label"

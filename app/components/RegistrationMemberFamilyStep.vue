@@ -89,7 +89,7 @@ async function finish(mode: StepExit) {
           <UInput v-model="r.lastName" class="w-full" maxlength="50" />
         </UFormField>
         <UFormField :label="t('registration.family.relationship')" required>
-          <USelectMenu v-model="r.relationship" :items="relationshipOptions" label-key="label" value-key="value" class="w-full" />
+          <USelectMenu clear v-model="r.relationship" :items="relationshipOptions" label-key="label" value-key="value" class="w-full" />
         </UFormField>
         <UFormField :label="t('affiliationRequest.document')" required>
           <div class="flex gap-2">

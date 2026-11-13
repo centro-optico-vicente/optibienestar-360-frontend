@@ -275,6 +275,7 @@ async function confirmDelete() {
         <UForm ref="formRef" :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
           <UFormField :label="t('allies.licenses.form.body')" name="licensingBodyUuid" required>
             <USelectMenu
+              clear
               v-model="state.licensingBodyUuid"
               :items="bodyOptions"
               label-key="label"

@@ -91,7 +91,7 @@ async function finish(mode: StepExit) {
   <div class="space-y-4">
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <UFormField :label="t('allyRequestForm.fields.allyType')" required class="sm:col-span-2">
-        <USelectMenu v-model="state.allyTypeUuid" :items="allyTypeItems" label-key="label" value-key="value" :placeholder="t('allyRequestForm.fields.allyTypePlaceholder')" class="w-full" />
+        <USelectMenu clear v-model="state.allyTypeUuid" :items="allyTypeItems" label-key="label" value-key="value" :placeholder="t('allyRequestForm.fields.allyTypePlaceholder')" class="w-full" />
       </UFormField>
       <UFormField v-if="isB2B" :label="t('allyRequestForm.fields.taxDocument')" required class="sm:col-span-2">
         <div class="flex gap-2">
@@ -101,6 +101,7 @@ async function finish(mode: StepExit) {
       </UFormField>
       <UFormField v-else :label="t('allyRequestForm.fields.profession')" required class="sm:col-span-2">
         <USelectMenu
+          clear
           v-model="state.professionUuid"
           :items="professionItems"
           label-key="label"

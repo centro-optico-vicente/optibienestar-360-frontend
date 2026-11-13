@@ -90,7 +90,7 @@ function statusLabel(r: AffiliationRequestListItemDto): string {
           icon="i-lucide-search"
           class="w-64"
         />
-        <USelect v-model="status" :items="statusItems" :aria-label="t('affiliationRequests.columns.status')" class="w-48" />
+        <USelectMenu clear value-key="value" v-model="status" :items="statusItems" :aria-label="t('affiliationRequests.columns.status')" class="w-48" />
         <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" :from-label="t('affiliationRequests.filters.dateFrom')" :to-label="t('affiliationRequests.filters.dateTo')" />
       </div>
     </div>

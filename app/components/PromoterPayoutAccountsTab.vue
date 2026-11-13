@@ -335,7 +335,7 @@ async function confirmDelete() {
         <UForm data-promoter-payout-account-form :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <UFormField :label="t('promoters.payoutAccounts.fields.methods')" name="paymentMethodUuids" required>
-              <USelectMenu v-model="state.paymentMethodUuids" multiple class="w-full" :items="methodOptions" label-key="label" value-key="value" :placeholder="t('common.select')" />
+              <USelectMenu clear v-model="state.paymentMethodUuids" multiple class="w-full" :items="methodOptions" label-key="label" value-key="value" :placeholder="t('common.select')" />
             </UFormField>
             <UFormField :label="t('promoters.payoutAccounts.fields.label')" name="label" :help="t('promoters.payoutAccounts.labelHelp')">
               <UInput v-model="state.label" class="w-full" maxlength="60" />
@@ -347,7 +347,7 @@ async function confirmDelete() {
               <CommonEntityReferenceSelect v-model="state.bankUuid" :items="bankOptions" :placeholder="t('common.select')" />
             </UFormField>
             <UFormField v-if="required.accountType" :label="t('promoters.payoutAccounts.fields.accountType')" name="accountType" required>
-              <USelectMenu v-model="state.accountType" class="w-full" :items="BANK_ACCOUNT_TYPE_OPTIONS" label-key="label" value-key="value" :placeholder="t('common.select')" />
+              <USelectMenu clear v-model="state.accountType" class="w-full" :items="BANK_ACCOUNT_TYPE_OPTIONS" label-key="label" value-key="value" :placeholder="t('common.select')" />
             </UFormField>
             <UFormField v-if="required.accountCode" :label="t('promoters.payoutAccounts.fields.accountNumber')" name="accountNumber" :help="t('promoters.payoutAccounts.accountNumberHelp')" required>
               <UInput v-model="state.accountNumber" inputmode="numeric" maxlength="20" class="w-full font-mono" />

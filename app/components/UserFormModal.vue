@@ -410,7 +410,6 @@ function requestDelete() {
             label-key="label"
             value-key="value"
             icon="i-lucide-languages"
-            :search-input="false"
             class="w-full"
           />
         </UFormField>
@@ -451,7 +450,7 @@ function requestDelete() {
           <USwitch v-model="state.alsoAdvisor" :label="t('security.users.fields.alsoAdvisor')" />
           <p class="text-xs text-prohealth-500">{{ t('security.users.fields.alsoAdvisorHelp') }}</p>
           <UFormField v-if="state.alsoAdvisor" :label="t('security.users.fields.advisorType')" name="promoterTypeUuid">
-            <USelectMenu v-model="state.promoterTypeUuid" :items="promoterTypes.items.value" :loading="promoterTypes.loading.value" label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" @update:open="promoterTypes.onOpen" />
+            <USelectMenu clear v-model="state.promoterTypeUuid" :items="promoterTypes.items.value" :loading="promoterTypes.loading.value" label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" @update:open="promoterTypes.onOpen" />
           </UFormField>
         </div>
       </UForm>

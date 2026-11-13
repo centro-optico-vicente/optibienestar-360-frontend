@@ -211,7 +211,7 @@ async function onSubmit() {
             <UInput v-model="state.lastName" class="w-full" />
           </UFormField>
           <UFormField :label="t('promoters.dossier.fields.documentType')" name="documentType">
-            <USelect v-model="state.documentType" :items="documentTypeOptions" class="w-full" />
+            <USelectMenu clear value-key="value" v-model="state.documentType" :items="documentTypeOptions" class="w-full" />
           </UFormField>
           <UFormField :label="t('promoters.dossier.fields.documentNumber')" name="documentNumber">
             <UInput v-model="state.documentNumber" inputmode="numeric" class="w-full" />
@@ -258,7 +258,7 @@ async function onSubmit() {
         <h3 class="text-sm font-semibold text-prohealth-800">{{ t('promoters.dossier.sections.profile') }}</h3>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <UFormField :label="t('promoters.dossier.fields.educationLevel')" name="educationLevel">
-            <USelect v-model="state.educationLevel" :items="educationLevelOptions" class="w-full" :placeholder="t('common.select')" />
+            <USelectMenu clear value-key="value" v-model="state.educationLevel" :items="educationLevelOptions" class="w-full" :placeholder="t('common.select')" />
           </UFormField>
           <UFormField :label="t('promoters.dossier.fields.profession')" name="profession">
             <UInput v-model="state.profession" class="w-full" />

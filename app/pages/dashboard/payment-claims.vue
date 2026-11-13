@@ -247,7 +247,7 @@ async function confirmResolve() {
           </p>
 
           <UFormField :label="t('paymentClaims.actionLabel')">
-            <USelectMenu v-model="action" :items="actionOptions" label-key="label" value-key="value" class="w-full" />
+            <USelectMenu clear v-model="action" :items="actionOptions" label-key="label" value-key="value" class="w-full" />
           </UFormField>
           <p class="text-xs text-prohealth-500 -mt-2">{{ t(`paymentClaims.actionHelp.${action}`) }}</p>
 

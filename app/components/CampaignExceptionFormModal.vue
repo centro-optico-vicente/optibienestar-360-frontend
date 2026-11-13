@@ -146,6 +146,7 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
         <template v-if="!referenceLocked">
           <UFormField :label="t('campaigns.exceptions.type')" name="referenceType" required>
             <USelectMenu
+              clear
               v-model="state.referenceType"
               :items="referenceTypeOptions"
               label-key="label"
@@ -169,6 +170,7 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
 
         <UFormField :label="t('campaigns.exceptions.type')" name="action" required>
           <USelectMenu
+            clear
             v-model="state.action"
             :items="actionOptions"
             label-key="label"

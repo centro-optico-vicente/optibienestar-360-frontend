@@ -150,6 +150,7 @@ async function confirm() {
 
         <UFormField :label="t('payments.assignMembership.membership')" required>
           <USelectMenu
+            clear
             v-model="membershipUuid"
             :items="membershipOptions"
             label-key="label"

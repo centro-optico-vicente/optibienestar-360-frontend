@@ -368,6 +368,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     <template v-if="selectedAlly">
       <!-- The ally picker lives in the offers form; without that form (not approved) it shows here. -->
       <USelectMenu
+        clear
         v-if="!isApproved && allyOptions.length > 1"
         v-model="state.allyUuid"
         :items="allyOptions"
@@ -590,11 +591,11 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <UFormField :label="t('allies.portal.fields.type')" name="productType" required>
               <USelectMenu
+                clear
                 v-model="state.productType"
                 :items="typeOptions"
                 label-key="label"
                 value-key="value"
-                :search-input="false"
                 class="w-full"
               />
             </UFormField>

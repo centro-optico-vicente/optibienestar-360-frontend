@@ -73,7 +73,7 @@ async function save() {
         </p>
 
         <UFormField :label="t('payments.claim.reasonLabel')">
-          <USelectMenu v-model="reason" :items="reasonOptions" label-key="label" value-key="value" class="w-full" />
+          <USelectMenu clear v-model="reason" :items="reasonOptions" label-key="label" value-key="value" class="w-full" />
         </UFormField>
 
         <UFormField

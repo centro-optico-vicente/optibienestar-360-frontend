@@ -716,12 +716,12 @@ onMounted(() => {
             name="officialCurrencyUuid"
           >
             <USelectMenu
+              clear
               v-model="state.officialCurrencyUuid"
               :items="currencyItems"
               label-key="label"
               value-key="value"
               :loading="loadingCurrencies"
-              :search-input="false"
               class="w-full"
               :disabled="!canUpdate || isSubmitting"
             />
@@ -733,12 +733,12 @@ onMounted(() => {
             name="referenceCurrencyUuid"
           >
             <USelectMenu
+              clear
               v-model="state.referenceCurrencyUuid"
               :items="currencyItems"
               label-key="label"
               value-key="value"
               :loading="loadingCurrencies"
-              :search-input="false"
               class="w-full"
               :disabled="!canUpdate || isSubmitting"
             />
@@ -966,7 +966,6 @@ onMounted(() => {
                 :items="segmentItems"
                 label-key="label"
                 value-key="value"
-                :search-input="false"
                 :placeholder="t('organization.terms.scope.any')"
                 :disabled="!canManageTerms"
                 class="w-full"

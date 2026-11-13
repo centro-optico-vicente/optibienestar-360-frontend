@@ -282,6 +282,27 @@ private static String labelOf(Currency c) {
 
 El frontend consume `option.label` directamente (ver `CommissionTierFormModal.vue`, `currencyItems`), sin concatenar código/nombre por su cuenta.
 
+## Selects: filtrables y limpiables
+
+Todo dropdown del sistema debe poder **filtrarse escribiendo** y **limpiarse** (volver a "sin valor"):
+
+- Usar **`USelectMenu`** (o `CommonEntityReferenceSelect`, que ya lo envuelve) con **`clear`**. **Nunca `USelect`**: no filtra ni se limpia. Con `USelectMenu` hay que pasar `value-key="value"` (y `label-key="label"` si aplica) cuando los `items` son `{ label, value }`.
+- La búsqueda queda **activa siempre** (el `search-input` por defecto): no usar `:search-input="false"`, ni en listas cortas — la regla es uniforme.
+- Listas grandes o paginadas en servidor: `CommonEntityReferenceSelect` modo `search` (ver playbook `new-form.md`).
+- El valor limpio es `undefined`; el formulario lo valida como cualquier campo vacío (`required` en el esquema zod), no se quita `clear` por ser obligatorio.
+
+**Excepciones** (no son campos de datos, o un valor vacío no tiene sentido):
+- Selector de **tamaño de página** de tablas (`size`/`pageSize`): sin `clear` ni búsqueda.
+- Opción **siempre definida**: idioma del usuario (`state.locale`), delimitador de importación CSV: filtrables pero sin `clear`.
+- **Prefijo compacto de documento** (`DocumentTypePrefixSelect`): filtrable, sin `clear` (la X no cabe en el campo angosto).
+
+```vue
+<!-- ❌ -->
+<USelect v-model="status" :items="statusItems" />
+<!-- ✅ -->
+<USelectMenu v-model="status" :items="statusItems" value-key="value" clear />
+```
+
 ## Código en selects
 
 Todo dropdown (`USelect`, `USelectMenu`, `CommonEntityReferenceSelect`…) cuyas opciones vengan de una entidad/tabla **con código legible** muestra cada opción como:
