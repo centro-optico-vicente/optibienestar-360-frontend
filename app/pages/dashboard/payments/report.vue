@@ -26,46 +26,28 @@ const generatingPdf = ref(false)
 const generatingXlsx = ref(false)
 
 // Each parameter dropdown fetches its list the first time it is opened, not on mount.
-const plans = useLazyOptions(async () => {
-  const plansRes = await plansApi.list({ size: 100, sort: ['name,asc'] })
-  return (plansRes.content ?? []).map(pl => ({
-    label: `${pl.name} (${pl.code})`,
-    value: pl.uuid,
-  }))
-})
+const plans = useLazyOptions(async q =>
+  (await plansApi.options({ q })).map(pl => ({ label: pl.label, value: pl.uuid })))
 
 const defaultCurrencyOptions = computed(() => [
   { label: t('common.currencies.usd'), value: 'USD' },
   { label: t('common.currencies.ves'), value: 'VES' },
   { label: t('common.currencies.eur'), value: 'EUR' },
 ])
-// Until loaded (or if the user lacks access to currencies/options or it fails) the
+// Until loaded (or if it fails) the
 // defaults above keep the 'USD' label visible.
-const currencies = useLazyOptions(async () => {
-  const curRes = await useApi<Array<{ uuid?: string; code: string; label: string; active?: boolean }>>('/v1/admin/currencies/options')
-  return (curRes ?? [])
-    .filter(c => c.active !== false)
-    .map(c => ({
-      label: c.label || `${c.code}`,
-      value: c.code,
-    }))
-})
-const currencyOptions = computed(() => (currencies.items.value.length > 0 ? currencies.items.value : defaultCurrencyOptions.value))
+const currencies = useLazyOptions(async q =>
+  (await useCatalogOptions('currencies', '/v1/admin').options({ q })).map(c => ({ label: c.label, value: c.code ?? '' })))
+const currencyOptions = computed(() => (currencies.loaded.value ? currencies.items.value : defaultCurrencyOptions.value))
 
 function currencyLink(code: string | null | undefined): string | null {
   return code ? `/dashboard/catalogs/currencies?code=${encodeURIComponent(code)}` : null
 }
 // Until loaded (or on failure) the method dropdown falls back to PAYMENT_METHOD_OPTIONS.
-const paymentMethods = useLazyOptions(async () => {
-  const pmRes = await useApi<Array<{ uuid?: string; code?: string; value?: string; label?: string; active?: boolean }>>('/v1/admin/payment-methods/options')
-  return (pmRes ?? [])
-    .filter(m => m.active !== false)
-    .map(m => ({
-      label: m.label || m.code || m.value || '',
-      value: m.code || m.value || '',
-    }))
-    .filter(m => m.value !== '')
-})
+const paymentMethods = useLazyOptions(async q =>
+  (await useCatalogOptions('payment-methods', '/v1/admin').options({ q }))
+    .map(m => ({ label: m.label, value: m.code ?? '' }))
+    .filter(m => m.value !== ''))
 
 const ALL_VALUE = 'ALL'
 
@@ -93,7 +75,7 @@ const payStatusOptions = computed(() => [
 ])
 
 const payMethodOptions = computed(() => {
-  if (paymentMethods.items.value.length > 0) {
+  if (paymentMethods.loaded.value) {
     return [
       { label: t('payments.collectionsReport.methodAll'), value: ALL_VALUE },
       ...paymentMethods.items.value,
@@ -346,6 +328,8 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
             v-model="payFilters.paymentMethod"
             :items="payMethodOptions"
             :loading="paymentMethods.loading.value"
+            v-model:search-term="paymentMethods.searchTerm.value"
+            ignore-filter
             @update:open="paymentMethods.onOpen"
             label-key="label"
             value-key="value"
@@ -369,6 +353,8 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
               v-model="payFilters.plan"
               :items="planOptions"
               :loading="plans.loading.value"
+              v-model:search-term="plans.searchTerm.value"
+              ignore-filter
               @update:open="plans.onOpen"
               label-key="label"
               value-key="value"
@@ -417,6 +403,8 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
               v-model="payFilters.targetCurrency"
               :items="currencyOptions"
               :loading="currencies.loading.value"
+              v-model:search-term="currencies.searchTerm.value"
+              ignore-filter
               @update:open="currencies.onOpen"
               label-key="label"
               value-key="value"

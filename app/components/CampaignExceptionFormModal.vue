@@ -73,7 +73,7 @@ const referenceTypeOptions = computed(() => [
 ])
 
 async function searchCampaigns(q: string): Promise<SelectItem[]> {
-  const res = await campaignsApi.options({ q, limit: 20 })
+  const res = await campaignsApi.options({ q, limit: DROPDOWN_PAGE_SIZE })
   return res.map(c => ({ label: c.label, value: c.uuid }))
 }
 

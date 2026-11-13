@@ -48,10 +48,10 @@ const plansApi = usePlans()
 const promotersApi = usePromoters()
 const methodsApi = useCatalogOptions('payment-methods', '/v1/admin')
 // Plan/payment-method lists are fetched the first time their dropdown opens.
-const plans = useLazyOptions(async () =>
-  (await plansApi.options({ limit: 100 })).map(p => ({ label: p.label, value: p.uuid })))
-const methods = useLazyOptions(async () =>
-  (await methodsApi.options({ limit: 200 })).map(m => ({ label: m.label, value: m.uuid })))
+const plans = useLazyOptions(async q =>
+  (await plansApi.options({ q })).map(p => ({ label: p.label, value: p.uuid })))
+const methods = useLazyOptions(async q =>
+  (await methodsApi.options({ q })).map(m => ({ label: m.label, value: m.uuid })))
 
 const filterFields = computed<ListFilterField[]>(() => [
   { key: 'planUuid', label: t('affiliationRequests.filters.plan'), icon: 'i-lucide-layers', lazy: plans },
@@ -273,14 +273,16 @@ onMounted(load)
           />
           <UTooltip :text="t('catalogs.pageSizeLabel')">
             <USelectMenu
+              clear
               v-model="pageSize"
               :items="pageSizeItems"
               label-key="label"
               value-key="value"
               icon="i-lucide-list"
-              :search-input="false"
               :aria-label="t('catalogs.pageSizeLabel')"
               class="w-40"
+              :reset-model-value-on-clear="false"
+              @clear="pageSize = DEFAULT_PAGE_SIZE"
             />
           </UTooltip>
         </div>

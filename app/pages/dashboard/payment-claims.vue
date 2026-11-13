@@ -35,7 +35,7 @@ const dateFrom = ref('')
 const dateTo = ref('')
 
 async function searchMembers(q: string): Promise<SelectItem[]> {
-  const res = await membersApi.options({ ...(q ? { q } : {}), limit: 10 })
+  const res = await membersApi.options({ ...(q ? { q } : {}), limit: DROPDOWN_PAGE_SIZE })
   return res.map(o => ({ label: memberOptionLabel(o), value: o.uuid }))
 }
 

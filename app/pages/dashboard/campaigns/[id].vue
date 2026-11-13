@@ -830,7 +830,7 @@ async function confirmRemoveException() {
           <p class="text-xs text-prohealth-500">{{ t('campaigns.paginationSummary', { shown: txItems.length, total: txTotal }) }}</p>
           <div class="flex items-center gap-3">
             <UPagination v-if="txSize !== UNPAGED_PAGE_SIZE" v-model:page="txPage" :total="txTotal" :items-per-page="txSize" />
-            <USelectMenu v-model="txSize" :items="pageSizeItems" label-key="label" value-key="value" icon="i-lucide-list" :search-input="false" class="w-40" />
+            <USelectMenu clear v-model="txSize" :items="pageSizeItems" label-key="label" value-key="value" icon="i-lucide-list" class="w-40" :reset-model-value-on-clear="false" @clear="txSize = DEFAULT_PAGE_SIZE" />
           </div>
         </div>
       </div>
@@ -890,7 +890,7 @@ async function confirmRemoveException() {
           <p class="text-xs text-prohealth-500">{{ t('campaigns.paginationSummary', { shown: exItems.length, total: exTotal }) }}</p>
           <div class="flex items-center gap-3">
             <UPagination v-if="exSize !== UNPAGED_PAGE_SIZE" v-model:page="exPage" :total="exTotal" :items-per-page="exSize" />
-            <USelectMenu v-model="exSize" :items="pageSizeItems" label-key="label" value-key="value" icon="i-lucide-list" :search-input="false" class="w-40" />
+            <USelectMenu clear v-model="exSize" :items="pageSizeItems" label-key="label" value-key="value" icon="i-lucide-list" class="w-40" :reset-model-value-on-clear="false" @clear="exSize = DEFAULT_PAGE_SIZE" />
           </div>
         </div>
       </div>

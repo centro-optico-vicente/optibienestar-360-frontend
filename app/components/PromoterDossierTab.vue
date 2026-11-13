@@ -31,7 +31,7 @@ const documentTypeOptions = computed(() => documentTypeItems(t))
 const maritalStatusOptions = ref<SelectItem[]>([])
 async function loadMaritalStatuses() {
   try {
-    maritalStatusOptions.value = toSelectItems(await useCatalogOptions('marital-statuses').options({ limit: 100 }))
+    maritalStatusOptions.value = toSelectItems(await useCatalogOptions('marital-statuses').options())
   }
   catch {
     maritalStatusOptions.value = []
@@ -43,7 +43,7 @@ async function loadMaritalStatuses() {
 async function searchCities(q: string): Promise<SelectItem[]> {
   const res = await useCatalogOptions('cities').options({
     q,
-    limit: 20,
+    limit: DROPDOWN_PAGE_SIZE,
     currentValues: state.cityUuid ? [state.cityUuid] : undefined,
   })
   return toSelectItems(res)

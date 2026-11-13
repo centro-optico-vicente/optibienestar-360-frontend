@@ -209,7 +209,7 @@ async function resetFilters() {
 // One entry per parent field (`value` = field name). Fetched the first time the
 // parent filter or the create/edit form opens, not when the page mounts; reset
 // when the route switches to another catalog.
-const parents = useLazyOptions<{ value: string, items: SelectItem[] }>(async () => {
+const parents = useLazyOptions<{ value: string, items: SelectItem[] }>(async q => {
   if (!def.value) return []
   // Self-referencing FKs (parentKey === this catalog's own key, e.g.
   // advisor-ranks.parentRankUuid) aren't under `/v1/admin/catalogs/*` like the
@@ -224,7 +224,7 @@ const parents = useLazyOptions<{ value: string, items: SelectItem[] }>(async () 
     const pdef = getCatalogDef(f.parentKey!)
     if (!pdef) return { value: f.name, items: [] }
     try {
-      return { value: f.name, items: toSelectItems(await useCatalogOptions(pdef.key).options({ limit: 200 })) }
+      return { value: f.name, items: toSelectItems(await useCatalogOptions(pdef.key).options({ q })) }
     }
     catch {
       return { value: f.name, items: [] }
@@ -864,14 +864,16 @@ async function confirmDelete() {
           />
           <UTooltip :text="$t('catalogs.pageSizeLabel')">
             <USelectMenu
+              clear
               v-model="pageSize"
               :items="pageSizeItems"
               label-key="label"
               value-key="value"
               icon="i-lucide-list"
-              :search-input="false"
               :aria-label="$t('catalogs.pageSizeLabel')"
               class="w-40"
+              :reset-model-value-on-clear="false"
+              @clear="pageSize = DEFAULT_PAGE_SIZE"
             />
           </UTooltip>
         </div>

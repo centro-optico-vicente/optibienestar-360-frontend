@@ -35,7 +35,7 @@ const memberUuid = ref('')
 async function searchMembers(term: string) {
   searching.value = true
   try {
-    const res = await members.options({ q: term, limit: 10 })
+    const res = await members.options({ q: term, limit: DROPDOWN_PAGE_SIZE })
     const merged = new Map(memberOptions.value.map(o => [String(o.value), o]))
     for (const o of res) merged.set(o.uuid, { label: memberOptionLabel(o), value: o.uuid })
     memberOptions.value = [...merged.values()]

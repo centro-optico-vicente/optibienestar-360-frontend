@@ -55,14 +55,14 @@ export const usePromoters = () => {
     useApi<Option[]>('/v1/admin/advisors/options', {
       query: {
         ...(params.q ? { q: params.q } : {}),
-        ...(params.limit ? { limit: params.limit } : {}),
+        limit: params.limit ?? DROPDOWN_PAGE_SIZE,
         ...(params.currentValues?.length ? { currentValues: params.currentValues } : {}),
       },
     })
 
   /** Server-side search function for `CommonEntityReferenceSelect :search` (debounced by the select itself). */
   const searchOptions = async (q: string): Promise<SelectItem[]> => {
-    const res = await options({ ...(q ? { q } : {}), limit: 20 })
+    const res = await options({ ...(q ? { q } : {}), limit: DROPDOWN_PAGE_SIZE })
     return res.map(o => ({ label: o.label, value: o.uuid }))
   }
 
@@ -118,7 +118,7 @@ export const usePromoters = () => {
    */
   const searchCandidates = (q: string) =>
     useApi<{ uuid: string, documentNumber: string, fullName: string, inPortfolio: boolean }[]>(
-      '/v1/advisors/me/portfolio/candidates', { query: { q, limit: 10 } })
+      '/v1/advisors/me/portfolio/candidates', { query: { q, limit: DROPDOWN_PAGE_SIZE } })
 
   // ---- Advisor dossier (backend V180) — same PROMOTER_VIEW_ALL / PROMOTER_UPDATE permissions ----
 

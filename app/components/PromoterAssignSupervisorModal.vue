@@ -59,7 +59,7 @@ async function loadSupervisorOptions() {
   if (!currentRankUuid.value) return
   loadingSupervisors.value = true
   try {
-    const options = await hierarchyApi.eligibleSupervisors(currentRankUuid.value, { allSuperiors: allSuperiors.value, limit: 200 })
+    const options = await hierarchyApi.eligibleSupervisors(currentRankUuid.value, { allSuperiors: allSuperiors.value, limit: DROPDOWN_PAGE_SIZE })
     supervisorOptions.value = toSelectItems(options)
   }
   catch {

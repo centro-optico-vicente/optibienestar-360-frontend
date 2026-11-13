@@ -9,8 +9,8 @@ const model = defineModel<AllyMasterFilterState>({ required: true })
 const { t } = useI18n()
 
 // Each dropdown fetches its list the first time it is opened, not when the list mounts.
-const lazyCatalog = (resource: string) => useLazyOptions(async () =>
-  (await useCatalogOptions(resource).options({ limit: 200 })).map(o => ({ label: o.label, value: o.uuid })))
+const lazyCatalog = (resource: string) => useLazyOptions(async q =>
+  (await useCatalogOptions(resource).options({ q })).map(o => ({ label: o.label, value: o.uuid })))
 const types = lazyCatalog('ally-types')
 const professions = lazyCatalog('professions')
 const states = lazyCatalog('states')
@@ -20,7 +20,7 @@ async function searchCities(q: string): Promise<SelectItem[]> {
   if (!model.value.stateUuid) return []
   const res = await useCatalogOptions('cities').options({
     ...(q ? { q } : {}),
-    limit: 20,
+    limit: DROPDOWN_PAGE_SIZE,
     parentUuid: model.value.stateUuid,
   })
   return res.map(o => ({ label: o.label, value: o.uuid }))

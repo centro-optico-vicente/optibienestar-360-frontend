@@ -86,7 +86,7 @@ watch(() => props.open, async (open) => {
     planUuids: (p?.plans ?? []).map(pl => pl.uuid),
   })
   try {
-    const options = await plansApi.options({ limit: 100 })
+    const options = await plansApi.options()
     planItems.value = options.map(o => ({ label: o.label, value: o.uuid }))
   }
   catch {

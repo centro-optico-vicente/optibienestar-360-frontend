@@ -75,7 +75,7 @@ const loadingPromoterTypes = ref(false)
 async function loadPromoterTypeOptions() {
   loadingPromoterTypes.value = true
   try {
-    const options = await promoterTypeOptions.options({ limit: 100 })
+    const options = await promoterTypeOptions.options()
     promoterTypeItems.value = options.map(o => ({ label: o.label, value: o.uuid }))
   }
   catch { promoterTypeItems.value = [] }
@@ -85,7 +85,7 @@ function onPromoterTypesOpen(open: boolean) {
   if (open && !promoterTypeItems.value.length && !loadingPromoterTypes.value) void loadPromoterTypeOptions()
 }
 async function searchCampaigns(q: string): Promise<SelectItem[]> {
-  const res = await campaignsApi.options({ q, limit: 20 })
+  const res = await campaignsApi.options({ q, limit: DROPDOWN_PAGE_SIZE })
   return res.map(c => ({ label: c.label, value: c.uuid }))
 }
 function goToCurrency(to: string) {

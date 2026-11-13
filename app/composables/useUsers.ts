@@ -48,7 +48,7 @@ export const useUsers = () => {
     useApi<Option[]>('/v1/admin/users/options', {
       query: {
         ...(params.q ? { q: params.q } : {}),
-        ...(params.limit ? { limit: params.limit } : {}),
+        limit: params.limit ?? DROPDOWN_PAGE_SIZE,
         ...(params.currentValues?.length ? { currentValues: params.currentValues } : {}),
       },
     })

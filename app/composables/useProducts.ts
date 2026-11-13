@@ -42,7 +42,7 @@ export const useProducts = () => {
     useApi<Option[]>('/v1/admin/products/options', {
       query: {
         ...(params.q ? { q: params.q } : {}),
-        ...(params.limit ? { limit: params.limit } : {}),
+        limit: params.limit ?? DROPDOWN_PAGE_SIZE,
         ...(params.exclusive !== undefined ? { exclusive: String(params.exclusive) } : {}),
         ...(params.currentValues?.length ? { currentValues: params.currentValues } : {}),
       },

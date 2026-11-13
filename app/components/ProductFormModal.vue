@@ -90,10 +90,8 @@ const schema = computed(() => z.object({
 const typeOptions = computed(() => PRODUCT_TYPE_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
 // Fetched the first time the dropdown opens; on edit the detail's category label is
 // seeded so it shows without loading the whole list.
-const categories = useLazyOptions(async () =>
-  (await usePublicCatalog('product-categories').list())
-    .filter(i => i.active !== false)
-    .map(i => ({ label: i.name, value: i.uuid })))
+const categories = useLazyOptions(async q =>
+  (await useCatalogOptions('product-categories').options({ q })).map(i => ({ label: i.label, value: i.uuid })))
 const seededCategory = ref<SelectItem[]>([])
 const categoryOptions = computed<SelectItem[]>(() => {
   const seen = new Set(categories.items.value.map(i => i.value))
@@ -108,7 +106,7 @@ const allySearching = ref(false)
 async function searchAllies(q?: string) {
   allySearching.value = true
   try {
-    const res = await allies.options({ q, limit: 20 })
+    const res = await allies.options({ q, limit: DROPDOWN_PAGE_SIZE })
     const found = res.map(a => ({ label: a.label, value: a.uuid }))
     // Keep the current owner selectable even when it's not in the result page.
     const current = allyOptions.value.find(o => o.value === state.ownerAllyUuid)
@@ -277,6 +275,8 @@ function requestDelete() {
               v-model="state.productCategoryUuid"
               :items="categoryOptions"
               :loading="categories.loading.value"
+              v-model:search-term="categories.searchTerm.value"
+              ignore-filter
               label-key="label"
               value-key="value"
               :placeholder="t('common.select')"

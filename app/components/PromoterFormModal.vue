@@ -129,7 +129,7 @@ async function onSupervisorsOpen(open: boolean) {
   if (!open || !rankUuid || supervisorsLoaded || loadingSupervisors.value) return
   loadingSupervisors.value = true
   try {
-    const options = toSelectItems(await hierarchyApi.eligibleSupervisors(rankUuid, { allSuperiors: false, limit: 200 }))
+    const options = toSelectItems(await hierarchyApi.eligibleSupervisors(rankUuid, { allSuperiors: false, limit: DROPDOWN_PAGE_SIZE }))
     if (supervisorRankUuid !== rankUuid) return
     // The current supervisor might fall outside the eligible-list limit — keep
     // it selectable regardless, same defensive idea as `currentValues` elsewhere.
@@ -151,8 +151,8 @@ const originalSupervisorUuid = ref<string | null>(null)
 
 // Small fixed catalog, fetched the first time its dropdown opens. On edit the
 // detail's `promoterType_Display` seeds the current type so its label shows.
-const promoterTypes = useLazyOptions(async () =>
-  (await promoterTypeOptions.options({ limit: 100 })).map(o => ({ label: o.label, value: o.uuid })))
+const promoterTypes = useLazyOptions(async q =>
+  (await promoterTypeOptions.options({ q })).map(o => ({ label: o.label, value: o.uuid })))
 const seededPromoterType = ref<SelectItem[]>([])
 const promoterTypeItems = computed<SelectItem[]>(() => {
   const seen = new Set(promoterTypes.items.value.map(i => i.value))
@@ -162,7 +162,7 @@ const promoterTypeItems = computed<SelectItem[]>(() => {
 // ---- User search (create-only; server-side, debounced via CommonEntityReferenceSelect) ----
 // Feeds state.userUuid directly — the select's value IS the user's uuid.
 async function searchUsers(q: string) {
-  const res = await users.options({ q, limit: 10 })
+  const res = await users.options({ q, limit: DROPDOWN_PAGE_SIZE })
   return res.map(o => ({ label: o.label, value: o.uuid }))
 }
 

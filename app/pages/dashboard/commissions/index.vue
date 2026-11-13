@@ -69,12 +69,12 @@ const promotersApi = usePromoters()
 const membersApi = useMembers()
 const currenciesApi = useCurrencies()
 // Fetched the first time the currency dropdown opens, not when the list mounts.
-const currencies = useLazyOptions(async () =>
-  (await currenciesApi.options()).filter(c => c.active).map(c => ({ label: c.label, value: c.code ?? c.label })))
+const currencies = useLazyOptions(async q =>
+  (await currenciesApi.options({ q })).filter(c => c.active).map(c => ({ label: c.label, value: c.code ?? c.label })))
 const statusOptions = computed(() => COMMISSION_STATUS_OPTIONS.map(o => ({ label: t(o.labelKey), value: String(o.value) })))
 
 async function searchMembers(q: string): Promise<SelectItem[]> {
-  const res = await membersApi.options({ ...(q ? { q } : {}), limit: 10 })
+  const res = await membersApi.options({ ...(q ? { q } : {}), limit: DROPDOWN_PAGE_SIZE })
   return res.map(o => ({ label: memberOptionLabel(o), value: o.uuid }))
 }
 
@@ -459,6 +459,8 @@ async function confirmVoid() {
             v-model="currencyFilter"
             clear
             :items="currencies.items.value"
+            v-model:search-term="currencies.searchTerm.value"
+            ignore-filter
             :loading="currencies.loading.value"
             label-key="label"
             value-key="value"
@@ -599,14 +601,16 @@ async function confirmVoid() {
           />
           <UTooltip :text="$t('catalogs.pageSizeLabel')">
             <USelectMenu
+              clear
               v-model="size"
               :items="pageSizeItems"
               label-key="label"
               value-key="value"
               icon="i-lucide-list"
-              :search-input="false"
               :aria-label="$t('catalogs.pageSizeLabel')"
               class="w-40"
+              :reset-model-value-on-clear="false"
+              @clear="size = DEFAULT_PAGE_SIZE"
             />
           </UTooltip>
         </div>

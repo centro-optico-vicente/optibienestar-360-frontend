@@ -19,19 +19,21 @@ const isOpen = computed({
 const selected = ref<string | undefined>(undefined)
 const saving = ref(false)
 
-watch(() => props.open, async (open) => {
+// Searched on the server (`q`), loaded when the dropdown opens.
+const advisorItems = useLazyOptions(q => advisors.search(q))
+
+watch(() => props.open, (open) => {
   if (!open) return
   selected.value = props.ally?.capturedByPromoter_Uuid ?? undefined
-  await advisors.load()
 })
 
-// Keep the current advisor selectable even when the advisors list is unavailable or does not include it.
+// Keep the current advisor selectable even when it is not in the loaded page.
 const items = computed(() => {
   const current = props.ally?.capturedByPromoter_Uuid
-  if (current && !advisors.options.value.some(o => o.value === current)) {
-    return [...advisors.options.value, { label: props.ally?.capturedByPromoter_Display ?? current, value: current }]
+  if (current && !advisorItems.items.value.some(o => o.value === current)) {
+    return [{ label: props.ally?.capturedByPromoter_Display ?? current, value: current }, ...advisorItems.items.value]
   }
-  return advisors.options.value
+  return advisorItems.items.value
 })
 
 async function save() {
@@ -60,11 +62,16 @@ async function save() {
           v-model="selected"
           clear
           :items="items"
+          :loading="advisorItems.loading.value"
+          v-model:search-term="advisorItems.searchTerm.value"
+          ignore-filter
           label-key="label"
           value-key="value"
           icon="i-lucide-user-check"
           :placeholder="t('allies.advisor.none')"
           class="w-full"
+          @update:open="advisorItems.onOpen"
+          @update:model-value="advisorItems.remember($event)"
         />
       </UFormField>
     </template>

@@ -68,7 +68,7 @@ const loadingCatalogs = ref(false)
 async function loadCatalogs() {
   loadingCatalogs.value = true
   try {
-    const [methods, currencies] = await Promise.all([methodsApi.options({ limit: 200 }), currenciesApi.options({ limit: 200 })])
+    const [methods, currencies] = await Promise.all([methodsApi.options(), currenciesApi.options()])
     methodOptions.value = methods.map(m => ({ label: m.label, value: m.uuid }))
     currencyOptions.value = currencies.map(c => ({ label: c.label, value: c.uuid }))
   }

@@ -4,6 +4,7 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 import type { DownlinePaymentCreateRequest, PaymentDto, PaymentFormPrefill } from '~/types/payments'
 import { BANK_ACCOUNT_TYPE_OPTIONS } from '~/types/payments'
 import type { CatalogItem } from '~/types/catalogs'
+import type { Option } from '~/types/options'
 import type { MemberDto } from '~/types/members'
 
 // Promoter self-service registration on behalf of a downline affiliate
@@ -45,9 +46,11 @@ const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 // {label,value}) so `selectedMethod` can be derived locally without a
 // per-uuid admin lookup.
 const methodItems = ref<CatalogItem[]>([])
-const bankItems = ref<CatalogItem[]>([])
-const methodOptions = computed(() => methodItems.value.map(m => ({ label: m.name, value: m.uuid })))
-const bankOptions = computed(() => bankItems.value.map(b => ({ label: bankOptionLabel(b), value: b.uuid })))
+const bankItems = ref<Option[]>([])
+// What each dropdown lists is the last server search (`useLazyOptions` below); `methodItems`/`bankItems` accumulate
+// everything seen so `selectedMethod`/`selectedBank` keep resolving after the list narrows.
+const methodOptions = computed(() => methods.items.value)
+const bankOptions = computed(() => banks.items.value)
 const selectedMethod = computed(() => methodItems.value.find(m => m.uuid === state.paymentMethodUuid) ?? null)
 const selectedBank = computed(() => bankItems.value.find(b => b.uuid === state.bankUuid) ?? null)
 
@@ -70,28 +73,30 @@ const firstLineAmount = computed(() => {
 const linesExceedDeclaredAmount = computed(() =>
   state.amount.trim() !== '' && linesEditor.lines.value.length > 0 && firstLineAmount.value < 0.01
 )
-const currencyItems = ref<CatalogItem[]>([])
-const currencyOptions = computed(() => currencyItems.value.map(c => ({ label: `${c.code} (${c.symbol})`, value: c.code! })))
+const currencyOptions = computed(() => currencies.items.value)
+const bankLookup = useCatalogOptions('banks', '/v1/admin')
+const currencyLookup = useCatalogOptions('currencies', '/v1/admin')
 
 // Methods and banks are fetched the first time their dropdown opens (a method/bank
 // can only be chosen after that, so `selectedMethod`/`selectedBank` always find it).
-const methods = useLazyOptions(async () => {
-  methodItems.value = ((await useApi<CatalogItem[]>('/v1/me/payment-methods')) ?? []).filter(m => m.active)
-  return methodOptions.value
+const methods = useLazyOptions(async (q) => {
+  // Searched on the server; the DTO carries the mandatory-field flags the form needs.
+  const found = (await useApi<CatalogItem[]>('/v1/me/payment-methods', { query: { ...(q ? { q } : {}), limit: DROPDOWN_PAGE_SIZE } })) ?? []
+  methodItems.value = mergeByUuid(methodItems.value, found)
+  return found.map(m => ({ label: m.name, value: m.uuid }))
 })
-const banks = useLazyOptions(async () => {
-  bankItems.value = ((await useApi<CatalogItem[]>('/v1/me/banks')) ?? []).filter(b => b.active)
-  return bankOptions.value
+const banks = useLazyOptions(async (q) => {
+  const found = await bankLookup.options({ q })
+  bankItems.value = mergeByUuid(bankItems.value, found)
+  return found.map(b => ({ label: b.label, value: b.uuid }))
 })
 
 // Currency dropdown label uses the real `symbol` from the master (ADR 0015)
 // — "USD ($)" — not a hardcoded code -> symbol map. `value` sent to the
 // backend stays the ISO `code`, same contract as before. Loaded when the modal
 // opens (once per instance): the form preselects USD, whose label needs the list.
-const currencies = useLazyOptions(async () => {
-  currencyItems.value = ((await useApi<CatalogItem[]>('/v1/me/currencies')) ?? []).filter(c => c.active)
-  return currencyOptions.value
-})
+const currencies = useLazyOptions(async q =>
+  (await currencyLookup.options({ q })).map(c => ({ label: c.label, value: c.code! })))
 
 // ---- Own portfolio (member picker) ----
 const memberOptions = ref<{ label: string, value: string }[]>([])
@@ -438,6 +443,8 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
                 label-key="label"
                 value-key="value"
                 :loading="methods.loading.value"
+                v-model:search-term="methods.searchTerm.value"
+                ignore-filter
                 :placeholder="t('common.select')"
                 class="w-full"
                 @update:open="methods.onOpen"
@@ -453,7 +460,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           <UFormField v-if="selectedMethod?.mandatoryIdentification" :label="t('payments.payouts.fields.identification')" name="identification" required><UInput class="w-full" v-model="state.identification" /></UFormField>
           <UFormField v-if="selectedMethod?.mandatoryBank" :label="t('payments.payouts.fields.bank')" name="bankUuid" required>
             <div class="flex items-center gap-1">
-              <USelectMenu clear class="w-full" v-model="state.bankUuid" :items="bankOptions" :loading="banks.loading.value" label-key="label" value-key="value" :placeholder="t('common.select')" @update:open="banks.onOpen" />
+              <USelectMenu clear class="w-full" v-model="state.bankUuid" :items="bankOptions" :loading="banks.loading.value" v-model:search-term="banks.searchTerm.value" ignore-filter label-key="label" value-key="value" :placeholder="t('common.select')" @update:open="banks.onOpen" @update:model-value="banks.remember($event)" />
               <CommonEntityQuickLinkButton :to="'/dashboard/catalogs/banks'" :can="canViewBanks" @navigate="openCatalog" />
             </div>
           </UFormField>
@@ -481,7 +488,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
           <div v-for="(line, index) in linesEditor.lines.value" :key="index" class="rounded-lg bg-prohealth-50/60 p-3 space-y-3">
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
               <UFormField class="sm:col-span-1" :label="t('payments.form.fields.lineMethod')">
-                <USelectMenu clear v-model="line.paymentMethodUuid" :items="methodOptions" :loading="methods.loading.value" label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" @update:open="methods.onOpen" />
+                <USelectMenu clear v-model="line.paymentMethodUuid" :items="methodOptions" :loading="methods.loading.value" v-model:search-term="methods.searchTerm.value" ignore-filter label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" @update:open="methods.onOpen" @update:model-value="methods.remember($event)" />
               </UFormField>
               <UFormField class="sm:col-span-1" :label="t('payments.form.fields.lineAmount')">
                 <UInput v-model="line.amount" placeholder="10.00" class="w-full text-right" />
@@ -496,7 +503,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
               <UFormField v-if="methodForLine(line.paymentMethodUuid)?.mandatoryReferenceNumber" :label="t('payments.form.fields.reference')"><UInput class="w-full" v-model="line.referenceNumber" /></UFormField>
               <UFormField v-if="methodForLine(line.paymentMethodUuid)?.mandatoryIdentification" :label="t('payments.payouts.fields.identification')"><UInput class="w-full" v-model="line.identification" /></UFormField>
               <UFormField v-if="methodForLine(line.paymentMethodUuid)?.mandatoryBank" :label="t('payments.payouts.fields.bank')">
-                <USelectMenu clear class="w-full" v-model="line.bankUuid" :items="bankOptions" :loading="banks.loading.value" label-key="label" value-key="value" :placeholder="t('common.select')" @update:open="banks.onOpen" />
+                <USelectMenu clear class="w-full" v-model="line.bankUuid" :items="bankOptions" :loading="banks.loading.value" v-model:search-term="banks.searchTerm.value" ignore-filter label-key="label" value-key="value" :placeholder="t('common.select')" @update:open="banks.onOpen" @update:model-value="banks.remember($event)" />
               </UFormField>
               <UFormField v-if="methodForLine(line.paymentMethodUuid)?.mandatoryBankAccount" :label="t('payments.payouts.fields.accountIdentifier')"><UInput class="w-full" v-model="line.bankAccountIdentifier" /></UFormField>
               <UFormField v-if="methodForLine(line.paymentMethodUuid)?.mandatoryAccountType" :label="t('payments.payouts.fields.accountType')"><USelectMenu clear class="w-full" v-model="line.bankAccountType" :items="BANK_ACCOUNT_TYPE_OPTIONS" label-key="label" value-key="value" :placeholder="t('common.select')" /></UFormField>

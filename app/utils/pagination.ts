@@ -12,6 +12,14 @@ export const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const
 export const DEFAULT_PAGE_SIZE = 25
 export const UNPAGED_PAGE_SIZE = -1
 
+/**
+ * Max options per request for DROPDOWN (select) lists — the `limit` of every `/options` call and of
+ * every server-side select search. Separate from the table page size (`DEFAULT_PAGE_SIZE` /
+ * `PAGE_SIZE_OPTIONS`): a dropdown never paginates, it narrows with `q` (searched on the server so
+ * no record is left out). Matches the backend `/options` default; its hard cap is 200.
+ */
+export const DROPDOWN_PAGE_SIZE = 50
+
 export type PageSize = typeof PAGE_SIZE_OPTIONS[number] | typeof UNPAGED_PAGE_SIZE
 
 /**

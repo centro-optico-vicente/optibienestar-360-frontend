@@ -6,6 +6,8 @@ interface CatalogOptionsParams {
   currentValues?: string[]
   /** `states/options` acepta `countryUuid`; `cities/options` acepta `stateUuid`. */
   parentUuid?: string
+  /** Extra server-side filters of one `/options` (`ally-types?segment=`, `payment-categories?direction=`). */
+  extra?: Record<string, string | undefined>
 }
 
 /** How long a fetched options list is reused before asking the backend again. */
@@ -55,9 +57,10 @@ export const useCatalogOptions = (resource: string, base = '/v1/admin/catalogs')
   const options = async (params: CatalogOptionsParams = {}): Promise<Option[]> => {
     const query = {
       ...(params.q ? { q: params.q } : {}),
-      ...(params.limit ? { limit: params.limit } : {}),
+      limit: params.limit ?? DROPDOWN_PAGE_SIZE,
       ...(params.currentValues?.length ? { currentValues: params.currentValues } : {}),
       ...(params.parentUuid ? { [resource === 'cities' ? 'stateUuid' : 'countryUuid']: params.parentUuid } : {}),
+      ...Object.fromEntries(Object.entries(params.extra ?? {}).filter(([, v]) => v)),
     }
     const fetchOptions = () => useApi<Option[]>(`${base}/${resource}/options`, { query })
 

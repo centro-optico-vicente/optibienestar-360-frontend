@@ -129,10 +129,8 @@ const schema = computed(() => {
 const typeOptions = computed(() => PRODUCT_TYPE_OPTIONS.map(o => ({ label: t(o.labelKey), value: o.value })))
 // Fetched the first time the dropdown opens; on edit the offer's category label is
 // seeded so it shows without loading the whole list.
-const categories = useLazyOptions(async () =>
-  (await usePublicCatalog('product-categories').list())
-    .filter(i => i.active !== false)
-    .map(i => ({ label: i.name, value: i.uuid })))
+const categories = useLazyOptions(async q =>
+  (await useCatalogOptions('product-categories').options({ q })).map(i => ({ label: i.label, value: i.uuid })))
 const seededCategory = ref<SelectItem[]>([])
 const categoryOptions = computed<SelectItem[]>(() => {
   const seen = new Set(categories.items.value.map(i => i.value))
@@ -148,7 +146,7 @@ async function searchProducts(q?: string) {
   productSearching.value = true
   try {
     // `/options` (any session): picking a product must not require the products screen permission.
-    const res = await productsApi.options({ q, exclusive: false, limit: 20 })
+    const res = await productsApi.options({ q, exclusive: false, limit: DROPDOWN_PAGE_SIZE })
     productOptions.value = res.map(p => ({ label: p.label, value: p.uuid }))
   }
   catch {
@@ -364,6 +362,8 @@ function requestDelete() {
                 v-model="state.productCategoryUuid"
                 :items="categoryOptions"
                 :loading="categories.loading.value"
+                v-model:search-term="categories.searchTerm.value"
+                ignore-filter
                 label-key="label"
                 value-key="value"
                 :placeholder="t('common.select')"

@@ -52,10 +52,7 @@ const search = ref('')
 const includeInactive = ref(false)
 const advisors = useAdvisorOptions()
 // The advisor list is fetched the first time the filter opens.
-const advisorItems = useLazyOptions(async () => {
-  await advisors.load()
-  return advisors.options.value
-})
+const advisorItems = useLazyOptions(q => advisors.search(q))
 // Advisor who brought the ally in (promoter uuid); only offered with PROMOTER_VIEW_ALL.
 const promoterUuid = ref<string | undefined>(undefined)
 // B2B / B2P (hub ADR 0031) — RSQL `segment==…` on the admin list.
@@ -328,6 +325,8 @@ async function confirmDelete() {
             v-model="promoterUuid"
             clear
             :items="advisorItems.items.value"
+            v-model:search-term="advisorItems.searchTerm.value"
+            ignore-filter
             :loading="advisorItems.loading.value"
             value-key="value"
             label-key="label"
@@ -526,14 +525,16 @@ async function confirmDelete() {
           />
           <UTooltip :text="$t('catalogs.pageSizeLabel')">
             <USelectMenu
+              clear
               v-model="size"
               :items="pageSizeItems"
               label-key="label"
               value-key="value"
               icon="i-lucide-list"
-              :search-input="false"
               :aria-label="$t('catalogs.pageSizeLabel')"
               class="w-40"
+              :reset-model-value-on-clear="false"
+              @clear="size = DEFAULT_PAGE_SIZE"
             />
           </UTooltip>
         </div>

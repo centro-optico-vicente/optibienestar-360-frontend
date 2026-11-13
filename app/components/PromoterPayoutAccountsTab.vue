@@ -54,7 +54,7 @@ const bankOptions = ref<{ label: string, value: string }[]>([])
 async function loadOptions() {
   if (methodOptions.value.length && bankOptions.value.length) return
   try {
-    const [methods, banks] = await Promise.all([methodsApi.options({ limit: 200 }), banksApi.options({ limit: 200 })])
+    const [methods, banks] = await Promise.all([methodsApi.options(), banksApi.options()])
     methodOptions.value = methods.map(method => ({ label: method.label, value: method.uuid }))
     bankOptions.value = banks.map(bank => ({ label: bank.label, value: bank.uuid }))
   }

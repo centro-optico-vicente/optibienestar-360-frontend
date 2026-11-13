@@ -30,8 +30,8 @@ const search = ref('')
 const allyFilter = ref<string | undefined>(undefined)
 const categoryFilter = ref<string | undefined>(undefined)
 // Fetched the first time the category filter opens.
-const categories = useLazyOptions(async () =>
-  (await usePublicCatalog('product-categories').list()).map(i => ({ label: i.name, value: i.uuid })))
+const categories = useLazyOptions(async q =>
+  (await useCatalogOptions('product-categories').options({ q })).map(i => ({ label: i.label, value: i.uuid })))
 
 // Ally picker: server-side search (needs ALLY_VIEW_ALL; otherwise hidden).
 const allySearchTerm = ref('')
@@ -266,6 +266,8 @@ onMounted(load)
             v-model="categoryFilter"
             clear
             :items="categories.items.value"
+            v-model:search-term="categories.searchTerm.value"
+            ignore-filter
             :loading="categories.loading.value"
             label-key="label"
             value-key="value"

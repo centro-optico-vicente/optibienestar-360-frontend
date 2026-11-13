@@ -43,7 +43,7 @@ const reasonError = computed(() =>
 
 /** Server-side advisor search for the target select: active advisors only, never the source one. */
 async function searchPromoterTargets(q: string) {
-  const res = await promoters.options({ ...(q ? { q } : {}), limit: 20 })
+  const res = await promoters.options({ ...(q ? { q } : {}), limit: DROPDOWN_PAGE_SIZE })
   return res
     .filter(o => o.active && o.uuid !== props.sourcePromoterUuid)
     .map(o => ({ label: o.label, value: o.uuid }))

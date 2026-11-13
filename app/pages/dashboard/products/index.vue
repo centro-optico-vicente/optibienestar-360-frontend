@@ -43,8 +43,8 @@ const scopeOptions = computed(() => [
   { label: t('products.filters.exclusive'), value: 'exclusive' },
 ])
 // Fetched the first time the category filter opens.
-const categories = useLazyOptions(async () =>
-  (await usePublicCatalog('product-categories').list()).map(i => ({ label: i.name, value: i.uuid })))
+const categories = useLazyOptions(async q =>
+  (await useCatalogOptions('product-categories').options({ q })).map(i => ({ label: i.label, value: i.uuid })))
 
 // ---- List + pagination + search ----
 const data = ref<ProductListItemDto[]>([])
@@ -286,6 +286,8 @@ onMounted(async () => {
             clear
             v-model="categoryFilter"
             :items="categories.items.value"
+            v-model:search-term="categories.searchTerm.value"
+            ignore-filter
             :loading="categories.loading.value"
             label-key="label"
             value-key="value"
@@ -448,14 +450,16 @@ onMounted(async () => {
           />
           <UTooltip :text="$t('catalogs.pageSizeLabel')">
             <USelectMenu
+              clear
               v-model="size"
               :items="pageSizeItems"
               label-key="label"
               value-key="value"
               icon="i-lucide-list"
-              :search-input="false"
               :aria-label="$t('catalogs.pageSizeLabel')"
               class="w-40"
+              :reset-model-value-on-clear="false"
+              @clear="size = DEFAULT_PAGE_SIZE"
             />
           </UTooltip>
         </div>

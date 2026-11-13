@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { SelectItem } from '~/types/options'
 import { memberOptionLabel } from '~/types/members'
-import { bankOptionLabel } from '~/utils/bankLabel'
 import type { PaymentMasterFilterState } from '~/utils/paymentFilters'
 
 // Master-table filters shared by every payments list (Movimientos, Cobros, Pagos):
@@ -20,17 +19,17 @@ const categoriesApi = useCatalogOptions('payment-categories', '/v1/admin')
 const currenciesApi = useCatalogOptions('currencies', '/v1/admin')
 
 // Each dropdown fetches its list the first time it is opened, not when the list mounts.
-const methods = useLazyOptions(async () =>
-  (await methodsApi.options({ limit: 200 })).map(m => ({ label: m.label, value: m.uuid })))
-const banks = useLazyOptions(async () =>
-  (await banksApi.options({ limit: 200 })).map(b => ({ label: b.label, value: b.uuid })))
-const categories = useLazyOptions(async () =>
-  (await categoriesApi.options({ limit: 200 })).map(c => ({ label: c.label, value: c.uuid })))
-const currencies = useLazyOptions(async () =>
-  (await currenciesApi.options({ limit: 200 })).map(c => ({ label: c.label, value: c.code! })))
+const methods = useLazyOptions(async q =>
+  (await methodsApi.options({ q })).map(m => ({ label: m.label, value: m.uuid })))
+const banks = useLazyOptions(async q =>
+  (await banksApi.options({ q })).map(b => ({ label: b.label, value: b.uuid })))
+const categories = useLazyOptions(async q =>
+  (await categoriesApi.options({ q })).map(c => ({ label: c.label, value: c.uuid })))
+const currencies = useLazyOptions(async q =>
+  (await currenciesApi.options({ q })).map(c => ({ label: c.label, value: c.code! })))
 
 async function searchMembers(q: string): Promise<SelectItem[]> {
-  const res = await membersApi.options({ ...(q ? { q } : {}), limit: 10 })
+  const res = await membersApi.options({ ...(q ? { q } : {}), limit: DROPDOWN_PAGE_SIZE })
   return res.map(o => ({ label: memberOptionLabel(o), value: o.uuid }))
 }
 
@@ -53,6 +52,8 @@ function patch(partial: Partial<PaymentMasterFilterState>) {
       :model-value="model.paymentMethodUuid || undefined"
       clear
       :items="methods.items.value"
+      v-model:search-term="methods.searchTerm.value"
+      ignore-filter
       :loading="methods.loading.value"
       @update:open="methods.onOpen"
       label-key="label"
@@ -66,6 +67,8 @@ function patch(partial: Partial<PaymentMasterFilterState>) {
       :model-value="model.bankUuid || undefined"
       clear
       :items="banks.items.value"
+      v-model:search-term="banks.searchTerm.value"
+      ignore-filter
       :loading="banks.loading.value"
       @update:open="banks.onOpen"
       label-key="label"
@@ -79,6 +82,8 @@ function patch(partial: Partial<PaymentMasterFilterState>) {
       :model-value="model.categoryUuid || undefined"
       clear
       :items="categories.items.value"
+      v-model:search-term="categories.searchTerm.value"
+      ignore-filter
       :loading="categories.loading.value"
       @update:open="categories.onOpen"
       label-key="label"
@@ -100,6 +105,8 @@ function patch(partial: Partial<PaymentMasterFilterState>) {
       :model-value="model.currency || undefined"
       clear
       :items="currencies.items.value"
+      v-model:search-term="currencies.searchTerm.value"
+      ignore-filter
       :loading="currencies.loading.value"
       @update:open="currencies.onOpen"
       label-key="label"

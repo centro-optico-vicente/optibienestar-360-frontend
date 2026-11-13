@@ -29,17 +29,10 @@ const defaultCurrencyOptions = computed(() => [
   { label: t('common.currencies.eur'), value: 'EUR' },
 ])
 // Fetched the first time the currency dropdown opens; until then (or if the user lacks
-// access to currencies/options or it fails) the defaults above keep the 'USD' label visible.
-const currencies = useLazyOptions(async () => {
-  const curRes = await useApi<Array<{ uuid?: string; code: string; label: string; active?: boolean }>>('/v1/admin/currencies/options')
-  return (curRes ?? [])
-    .filter(c => c.active !== false)
-    .map(c => ({
-      label: c.label || `${c.code}`,
-      value: c.code,
-    }))
-})
-const currencyOptions = computed(() => (currencies.items.value.length > 0 ? currencies.items.value : defaultCurrencyOptions.value))
+// it fails) the defaults above keep the 'USD' label visible.
+const currencies = useLazyOptions(async q =>
+  (await useCatalogOptions('currencies', '/v1/admin').options({ q })).map(c => ({ label: c.label, value: c.code ?? '' })))
+const currencyOptions = computed(() => (currencies.loaded.value ? currencies.items.value : defaultCurrencyOptions.value))
 
 function currencyLink(code: string | null | undefined): string | null {
   return code ? `/dashboard/catalogs/currencies?code=${encodeURIComponent(code)}` : null
@@ -308,6 +301,8 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
               v-model="payoutFilters.targetCurrency"
               :items="currencyOptions"
               :loading="currencies.loading.value"
+              v-model:search-term="currencies.searchTerm.value"
+              ignore-filter
               @update:open="currencies.onOpen"
               label-key="label"
               value-key="value"

@@ -21,7 +21,7 @@ export const useDocumentTypes = () => {
     try {
       const res = await useApi<Option[]>('/v1/admin/catalogs/document-types/options', {
         silent: true,
-        query: { limit: 200 },
+        query: { limit: DROPDOWN_PAGE_SIZE },
       })
       options.value = res.map(o => ({ label: o.label, value: o.code ?? o.uuid }))
       loaded.value = true

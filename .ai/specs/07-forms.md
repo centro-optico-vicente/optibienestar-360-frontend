@@ -291,7 +291,16 @@ Toda lista desplegable se alimenta del endpoint **`/options`** de su entidad, nu
 - Helpers: `useCatalogOptions(resource, base?)` (catálogos → `/v1/admin/catalogs/<resource>`; con `base = '/v1/admin'` entidades con controller propio, p. ej. `useCatalogOptions('banks', '/v1/admin')`), y `usePlans()`, `useProducts()`, `useCampaigns()`, `useAllies()`, `usePromoters()`, `useMembers()` → `.options({ q, limit, currentValues })`. Listas cortas → `useLazyOptions`; listas grandes o con búsqueda → `CommonEntityReferenceSelect` modo `search`.
 - Todo master con listado tiene su `/options` y su `GET /{uuid}`; si falta, se agrega en el backend, no se rodea con el listado.
 
-**Excepción (pendiente de decisión):** cuando el formulario necesita atributos del registro elegido, el select sigue leyendo el catálogo completo o el detalle: método de pago (banderas `mandatory*` que deciden los campos), tipo de aliado (`segment`), profesiones (árbol de sub-especialidades), categoría de pago de egreso (`direction`) y rangos de asesor en `PromoterChangeRankModal`. Se listan en el PR; al resolverse se retira la excepción.
+### La búsqueda siempre va al servidor
+
+Un desplegable muestra a lo sumo **`DROPDOWN_PAGE_SIZE` (50)** opciones (`app/utils/pagination.ts`, aparte del tamaño de página de las tablas) y toda búsqueda se hace en el servidor con `q`, nunca con un filtro local: filtrar solo esas 50 ocultaría el resto.
+
+- Se usa `useLazyOptions(async q => (await x.options({ q })).map(...))`: carga al abrir, vuelve a consultar al escribir (con el debounce global `DEFAULT_DEBOUNCE_MS`) y descarta respuestas viejas. El `limit` por defecto de cada `.options()` ya es `DROPDOWN_PAGE_SIZE`: no se escribe un número suelto.
+- El `USelectMenu` se conecta con `:items`, `:loading`, `v-model:search-term="x.searchTerm.value"`, **`ignore-filter`**, `@update:open="x.onOpen"` y `@update:model-value="x.remember($event)"` (`remember` mantiene visible la opción elegida aunque la lista recargada ya no la traiga). `CommonEntityReferenceSelect` y `ListFilterBar` reciben la lista completa con `:lazy="x"` / `lazy: x`.
+- Si el formulario necesita acotar por un hecho de la entidad, el `/options` recibe el filtro (`ally-types/options?segment=`, `payment-categories/options?direction=`), no se filtra en el cliente.
+- Un valor ya guardado que cae fuera de las primeras 50 opciones se resuelve con `currentValues`, no ampliando el `limit`.
+
+**Excepción (pendiente de decisión):** cuando el formulario necesita atributos del registro elegido (las banderas `mandatory*` del método de pago), el select lee `GET /v1/me/payment-methods?q=` (búsqueda en el servidor, DTO completo) en vez de `/options`. Sigue pendiente decidir si pasa a `/options` + detalle del seleccionado. Profesiones (árbol de sub-especialidades) y los rangos de `PromoterChangeRankModal` siguen leyendo el catálogo completo.
 
 ```ts
 // ❌ lista completa, exige permiso de pantalla
@@ -310,10 +319,9 @@ Todo dropdown del sistema debe poder **filtrarse escribiendo** y **limpiarse** (
 - Listas grandes o paginadas en servidor: `CommonEntityReferenceSelect` modo `search` (ver playbook `new-form.md`).
 - El valor limpio es `undefined`; el formulario lo valida como cualquier campo vacío (`required` en el esquema zod), no se quita `clear` por ser obligatorio.
 
-**Excepciones** (no son campos de datos, o un valor vacío no tiene sentido):
-- Selector de **tamaño de página** de tablas (`size`/`pageSize`): sin `clear` ni búsqueda.
-- Opción **siempre definida**: idioma del usuario (`state.locale`), delimitador de importación CSV: filtrables pero sin `clear`.
-- **Prefijo compacto de documento** (`DocumentTypePrefixSelect`): filtrable, sin `clear` (la X no cabe en el campo angosto).
+**Sin excepciones: toda lista desplegable es filtrable y limpiable**, incluidas las que parecen fijas:
+- Tamaño de página de las tablas, idioma del usuario, delimitador de importación y el prefijo de tipo de documento llevan `clear` y búsqueda como cualquier otra.
+- Cuando un valor vacío no es válido, limpiar **vuelve al valor por defecto** en vez de dejar `undefined`: `:reset-model-value-on-clear="false"` + `@clear="<modelo> = <default>"` (tamaño de página → `DEFAULT_PAGE_SIZE`; idioma → `toLocaleCode(null)`; delimitador → `'auto'`).
 
 ```vue
 <!-- ❌ -->

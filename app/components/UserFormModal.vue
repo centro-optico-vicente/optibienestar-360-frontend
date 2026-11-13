@@ -35,8 +35,8 @@ const { can } = usePermissions()
 // "Create the advisor profile too" (hub ADR 0037 §5): only for who may create advisors.
 const canCreateAdvisor = computed(() => props.mode === 'create' && can('PROMOTER_CREATE'))
 // Advisor types: only listed when the advisor block shows; fetched when its dropdown opens.
-const promoterTypes = useLazyOptions(async () => canCreateAdvisor.value
-  ? (await promoterTypeOptions.options({ limit: 100 })).map(o => ({ label: o.label, value: o.uuid }))
+const promoterTypes = useLazyOptions(async q => canCreateAdvisor.value
+  ? (await promoterTypeOptions.options({ q })).map(o => ({ label: o.label, value: o.uuid }))
   : [])
 
 const isOpen = computed({
@@ -57,8 +57,8 @@ const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 // ---- Lazy catalogs: each list is fetched the first time its dropdown opens ----
 // "Nuevo" requests nothing up front. On edit the user already brings its roles
 // (uuid + name), so they are seeded instead of loading the full role list.
-const roleList = useLazyOptions(async () =>
-  (await roles.options({ limit: 200 })).map(o => ({ label: o.label, value: o.uuid })))
+const roleList = useLazyOptions(async q =>
+  (await roles.options({ q })).map(o => ({ label: o.label, value: o.uuid })))
 const seededRoles = ref<{ label: string, value: string }[]>([])
 const roleOptions = computed(() => {
   const seen = new Set(roleList.items.value.map(i => i.value))
@@ -405,12 +405,15 @@ function requestDelete() {
           name="locale"
         >
           <USelectMenu
+            clear
             v-model="state.locale"
             :items="localeOptions"
             label-key="label"
             value-key="value"
             icon="i-lucide-languages"
             class="w-full"
+            :reset-model-value-on-clear="false"
+            @clear="state.locale = toLocaleCode(null)"
           />
         </UFormField>
 
@@ -436,6 +439,8 @@ function requestDelete() {
             v-model="state.roleIds"
             :items="roleOptions"
             :loading="roleList.loading.value"
+            v-model:search-term="roleList.searchTerm.value"
+            ignore-filter
             label-key="label"
             value-key="value"
             multiple
@@ -450,7 +455,7 @@ function requestDelete() {
           <USwitch v-model="state.alsoAdvisor" :label="t('security.users.fields.alsoAdvisor')" />
           <p class="text-xs text-prohealth-500">{{ t('security.users.fields.alsoAdvisorHelp') }}</p>
           <UFormField v-if="state.alsoAdvisor" :label="t('security.users.fields.advisorType')" name="promoterTypeUuid">
-            <USelectMenu clear v-model="state.promoterTypeUuid" :items="promoterTypes.items.value" :loading="promoterTypes.loading.value" label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" @update:open="promoterTypes.onOpen" />
+            <USelectMenu clear v-model="state.promoterTypeUuid" :items="promoterTypes.items.value" v-model:search-term="promoterTypes.searchTerm.value" ignore-filter :loading="promoterTypes.loading.value" label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" @update:open="promoterTypes.onOpen" @update:model-value="promoterTypes.remember($event)" />
           </UFormField>
         </div>
       </UForm>
