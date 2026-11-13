@@ -30,7 +30,7 @@ const commissions = useCommissions()
 const promotersApi = usePromoters()
 const campaignsApi = useCampaigns()
 const promoterTypeOptions = useCatalogOptions('advisor-types')
-const rankCatalog = useCatalog('/v1/admin/advisor-ranks')
+const hierarchyApi = usePromoterHierarchy()
 const { can } = usePermissions()
 
 const canViewPromoter = computed(() => can('PROMOTER_VIEW_ALL'))
@@ -119,7 +119,7 @@ function goToLinkedRecord(to: string) {
 const promoterTypes = useLazyOptions(async () =>
   (await promoterTypeOptions.options({ limit: 100 })).map(o => ({ label: o.label, value: o.uuid })))
 const ranks = useLazyOptions(async () =>
-  (await rankCatalog.listAll()).map(r => ({ label: r.name, value: r.uuid })))
+  (await hierarchyApi.rankOptions({ limit: 100 })).map(o => ({ label: o.label, value: o.uuid })))
 
 function clearPeriod() {
   periodRange.value = emptyDateRange()
