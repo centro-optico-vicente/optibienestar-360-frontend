@@ -284,13 +284,15 @@ El frontend consume `option.label` directamente (ver `CommissionTierFormModal.vu
 
 ## Código en selects
 
-Todo dropdown (`USelect`, `USelectMenu`, `CommonEntityReferenceSelect`…) cuyas opciones vengan de una entidad/tabla **con código** muestra cada opción como:
+Todo dropdown (`USelect`, `USelectMenu`, `CommonEntityReferenceSelect`…) cuyas opciones vengan de una entidad/tabla **con código legible** muestra cada opción como:
 
 ```
 <código> — <nombre>
 ```
 
-Ejemplos: `V — Cédula de identidad venezolana`, `0156 — 100% Banco`, `J — RIF jurídico`. El separador es la raya `—` (U+2014) con un espacio a cada lado, igual que el backend. **Nunca** el código solo (`V`, `E`): no se entiende. La única excepción es la moneda (sección anterior, `USD ($)`).
+Ejemplos: `V — Cédula de identidad venezolana`, `0156 — 100% Banco`, `J — RIF jurídico`. El separador es la raya `—` (U+2014) con un espacio a cada lado, igual que el backend. **Nunca** el código solo (`V`, `E`): no se entiende. Excepciones: la moneda (sección anterior, `USD ($)`) y los **identificadores técnicos** (ver abajo).
+
+**Código legible vs. identificador técnico.** El código se muestra cuando es algo que el usuario reconoce o usa para distinguir opciones: `V`, `E`, `J`, `0156` (banco), código de plan o de rango y, **siempre, producto/servicio** (distingue ítems de nombre parecido). Los identificadores técnicos en `SNAKE_CASE` (`BANK_TRANSFER`, `PAGO_MOVIL`, `MEMBERSHIP_FEE`, `MPPS`: métodos de pago, categorías de pago, entes de registro) **no** se muestran en el select — ensucian y no aportan; el label es solo el nombre. Esa decisión se toma en el `labelOf` del backend (ADR LOC-0013, Reglas 4 y 5), el frontend no la reimplementa.
 
 - **Origen preferido: backend.** Los endpoints `*/options` ya arman el label en el service (`labelOf`: `DocumentTypeService`, `BankService`, `GenderService`, `StateService`, `PlansService`…). El frontend usa `option.label` tal cual (`toSelectItems`, `useDocumentTypes`, `bankOptionLabel`), sin reconcatenar. Si una entidad con código no lo trae en el label, se corrige en el `labelOf` del backend, no en el frontend.
 - **Listas fijas en el frontend** (páginas públicas sin acceso al catálogo admin, o enums que replican un `CHECK`): usar el helper compartido, no un array a mano. Para tipos de documento: `documentTypeItems(t, codes?)` de `app/utils/documentTypes.ts` (nombres en `common.documentTypes.*`, los mismos del seed del backend).
