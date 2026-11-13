@@ -18,12 +18,17 @@ const model = defineModel<C | null | undefined>()
 
 const { t } = useI18n()
 const items = computed(() => documentTypeItems(t, props.codes))
+// USelect types its model from the items (plain string); bridge it to the caller's code union.
+const selected = computed<string | undefined>({
+  get: () => model.value ?? undefined,
+  set: (v) => { model.value = v as C | undefined },
+})
 </script>
 
 <template>
-  <USelect v-model="model" :items="items" :placeholder="placeholder" :ui="{ content: 'min-w-72' }">
-    <template #default="{ modelValue }">
-      {{ modelValue || placeholder || ' ' }}
+  <USelect v-model="selected" :items="items" :placeholder="placeholder" :ui="{ content: 'min-w-72' }">
+    <template #default>
+      {{ selected || placeholder || ' ' }}
     </template>
   </USelect>
 </template>

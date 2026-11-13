@@ -15,9 +15,9 @@ export type DocumentTypeCode = (typeof DOCUMENT_TYPE_CODES)[number]
  * const docTypes = documentTypeItems(t)            // V, E
  * const taxDocTypes = documentTypeItems(t, DOCUMENT_TYPE_CODES)
  */
-export function documentTypeItems<C extends string = DocumentTypeCode>(
+export function documentTypeItems(
   t: (key: string) => string,
-  codes: readonly C[] = PERSON_DOCUMENT_TYPE_CODES as unknown as readonly C[],
-): { label: string, value: C }[] {
+  codes: readonly string[] = PERSON_DOCUMENT_TYPE_CODES,
+): { label: string, value: string }[] {
   return codes.map(code => ({ label: `${code} — ${t(`common.documentTypes.${code}`)}`, value: code }))
 }
