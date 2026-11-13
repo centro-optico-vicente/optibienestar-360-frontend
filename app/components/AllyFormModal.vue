@@ -790,7 +790,7 @@ function requestDelete() {
           </p>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <UFormField :label="t('allies.form.fields.holderDocumentType')" name="holderDocumentType">
-              <USelect v-model="state.holderDocumentType" :items="personDocumentTypeItems" class="w-full" />
+              <USelectMenu clear value-key="value" v-model="state.holderDocumentType" :items="personDocumentTypeItems" class="w-full" />
             </UFormField>
             <UFormField
               class="sm:col-span-2"

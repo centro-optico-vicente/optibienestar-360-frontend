@@ -352,13 +352,13 @@ function statusLabel(r: AffiliationRequestDetailDto): string {
               <UInput v-model="form.phone" class="w-full" maxlength="30" :disabled="!editable" />
             </UFormField>
             <UFormField :label="t('affiliationRequests.fields.plan')" required class="sm:col-span-2">
-              <USelect v-model="form.planUuid" :items="planItems" class="w-full" :disabled="!editable" />
+              <USelectMenu clear value-key="value" v-model="form.planUuid" :items="planItems" class="w-full" :disabled="!editable" />
             </UFormField>
             <UFormField :label="t('affiliationRequests.fields.expiresAt')" :help="t('affiliationRequests.detail.expiresAtHelp')">
               <UInput v-model="form.expiresAt" type="date" class="w-full" :disabled="!editable" />
             </UFormField>
             <UFormField :label="t('affiliationRequests.fields.reinscriptionRequired')" :help="t('affiliationRequests.detail.reinscriptionHelp')">
-              <USelect v-model="form.reinscription" :items="reinscriptionItems" class="w-full" :disabled="!editable" />
+              <USelectMenu clear value-key="value" v-model="form.reinscription" :items="reinscriptionItems" class="w-full" :disabled="!editable" />
             </UFormField>
             <template v-if="editable">
               <UFormField :label="t('affiliationRequests.detail.comment')" class="sm:col-span-2">

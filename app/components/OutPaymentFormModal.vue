@@ -362,7 +362,7 @@ function submitForm() {
       <UForm data-out-payment-form :schema="schema" :state="state" class="space-y-5" @submit="onSubmit">
         <div class="rounded-xl border border-prohealth-100 bg-prohealth-50/40 p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
         <UFormField :label="t('payments.payouts.fields.promoter')" name="promoterUuid" required>
-          <USelectMenu class="w-full" v-model="state.promoterUuid" :items="promoterOptions" label-key="label" value-key="value" :loading="promoterList.loading.value" :placeholder="t('payments.payouts.promoterPlaceholder')" @update:open="promoterList.onOpen" />
+          <USelectMenu clear class="w-full" v-model="state.promoterUuid" :items="promoterOptions" label-key="label" value-key="value" :loading="promoterList.loading.value" :placeholder="t('payments.payouts.promoterPlaceholder')" @update:open="promoterList.onOpen" />
         </UFormField>
         <UFormField :label="t('payments.payouts.fields.person')" name="personUuid" required>
           <UInput class="w-full" :model-value="personDisplayName" readonly :placeholder="t('payments.payouts.personPlaceholder')" />
@@ -397,7 +397,7 @@ function submitForm() {
         </UFormField>
         <UFormField class="sm:col-span-1" :label="t('payments.payouts.fields.currency')" name="currency" required>
           <div class="flex items-center gap-1">
-            <USelectMenu class="w-full" v-model="state.currency" :items="currencies.items.value" label-key="label" value-key="value" :loading="currencies.loading.value" :placeholder="t('payments.form.placeholders.currency')" />
+            <USelectMenu clear class="w-full" v-model="state.currency" :items="currencies.items.value" label-key="label" value-key="value" :loading="currencies.loading.value" :placeholder="t('payments.form.placeholders.currency')" />
             <CommonEntityQuickLinkButton :to="'/dashboard/catalogs/currencies'" :can="canViewCurrencies" @navigate="openCatalog" />
           </div>
         </UFormField>
@@ -408,7 +408,7 @@ function submitForm() {
         </UFormField>
         <UFormField :label="t('payments.payouts.columns.method')" name="paymentMethodUuid" required>
           <div class="flex items-center gap-1">
-            <USelectMenu class="w-full" v-model="state.paymentMethodUuid" :items="methods.items.value" :loading="methods.loading.value" label-key="label" value-key="value" :placeholder="t('payments.form.placeholders.method')" @update:open="methods.onOpen" />
+            <USelectMenu clear class="w-full" v-model="state.paymentMethodUuid" :items="methods.items.value" :loading="methods.loading.value" label-key="label" value-key="value" :placeholder="t('payments.form.placeholders.method')" @update:open="methods.onOpen" />
             <CommonEntityQuickLinkButton :to="'/dashboard/catalogs/payment-methods'" :can="canViewMethods" @navigate="openCatalog" />
           </div>
         </UFormField>
@@ -417,12 +417,12 @@ function submitForm() {
         <UFormField v-if="selectedMethod?.mandatoryIdentification" :label="t('payments.payouts.fields.identification')" name="identification" required><UInput class="w-full" v-model="state.identification" /></UFormField>
         <UFormField v-if="selectedMethod?.mandatoryBank" :label="t('payments.payouts.fields.bank')" name="bankUuid" required>
           <div class="flex items-center gap-1">
-            <USelectMenu class="w-full" v-model="state.bankUuid" :items="banks.items.value" :loading="banks.loading.value" label-key="label" value-key="value" :placeholder="t('common.select')" @update:open="banks.onOpen" />
+            <USelectMenu clear class="w-full" v-model="state.bankUuid" :items="banks.items.value" :loading="banks.loading.value" label-key="label" value-key="value" :placeholder="t('common.select')" @update:open="banks.onOpen" />
             <CommonEntityQuickLinkButton :to="'/dashboard/catalogs/banks'" :can="canViewBanks" @navigate="openCatalog" />
           </div>
         </UFormField>
         <UFormField v-if="selectedMethod?.mandatoryBankAccount" :label="t('payments.payouts.fields.accountIdentifier')" name="bankAccountIdentifier" required><UInput class="w-full" v-model="state.bankAccountIdentifier" /></UFormField>
-        <UFormField v-if="selectedMethod?.mandatoryAccountType" :label="t('payments.payouts.fields.accountType')" name="bankAccountType" required><USelectMenu class="w-full" v-model="state.bankAccountType" :items="BANK_ACCOUNT_TYPE_OPTIONS" label-key="label" value-key="value" :placeholder="t('common.select')" /></UFormField>
+        <UFormField v-if="selectedMethod?.mandatoryAccountType" :label="t('payments.payouts.fields.accountType')" name="bankAccountType" required><USelectMenu clear class="w-full" v-model="state.bankAccountType" :items="BANK_ACCOUNT_TYPE_OPTIONS" label-key="label" value-key="value" :placeholder="t('common.select')" /></UFormField>
         <UFormField v-if="selectedMethod?.mandatoryAccountCode" :label="t('payments.payouts.fields.accountCode')" name="bankAccountCode" required><UInput class="w-full" v-model="state.bankAccountCode" /></UFormField>
         <UFormField v-if="selectedMethod?.mandatoryPhone" :label="t('payments.payouts.fields.phone')" name="phone" required><UInput class="w-full" v-model="state.phone" /></UFormField>
         <UFormField v-if="selectedMethod?.mandatoryEmail" :label="t('payments.payouts.fields.email')" name="email" required><UInput class="w-full" v-model="state.email" type="email" /></UFormField>
@@ -446,7 +446,7 @@ function submitForm() {
           </div>
           <p class="text-xs text-prohealth-500 mt-1">{{ t('payments.payouts.fields.supportHint') }}</p>
         </UFormField>
-        <UFormField :label="t('payments.payouts.fields.category')" name="paymentCategoryUuid" required><USelectMenu class="w-full" v-model="state.paymentCategoryUuid" :items="categories.items.value" label-key="label" value-key="value" :loading="categories.loading.value" :placeholder="t('payments.payouts.categoryPlaceholder')" @update:open="categories.onOpen" /></UFormField>
+        <UFormField :label="t('payments.payouts.fields.category')" name="paymentCategoryUuid" required><USelectMenu clear class="w-full" v-model="state.paymentCategoryUuid" :items="categories.items.value" label-key="label" value-key="value" :loading="categories.loading.value" :placeholder="t('payments.payouts.categoryPlaceholder')" @update:open="categories.onOpen" /></UFormField>
         <button type="submit" class="hidden" />
       </UForm>
     </template>

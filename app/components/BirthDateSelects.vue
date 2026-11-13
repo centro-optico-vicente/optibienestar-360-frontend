@@ -50,9 +50,9 @@ const impossible = computed(() => Boolean(parts.day && parts.month && parts.year
 <template>
   <div class="space-y-1">
     <div class="grid grid-cols-[4.5rem_1fr_5.5rem] gap-2">
-      <USelectMenu v-model="parts.day" :items="days" value-key="value" label-key="label" :placeholder="t('registration.birthDate.day')" class="w-full" />
-      <USelectMenu v-model="parts.month" :items="months" value-key="value" label-key="label" :placeholder="t('registration.birthDate.month')" class="w-full" />
-      <USelectMenu v-model="parts.year" :items="years" value-key="value" label-key="label" :placeholder="t('registration.birthDate.year')" class="w-full" />
+      <USelectMenu clear v-model="parts.day" :items="days" value-key="value" label-key="label" :placeholder="t('registration.birthDate.day')" class="w-full" />
+      <USelectMenu clear v-model="parts.month" :items="months" value-key="value" label-key="label" :placeholder="t('registration.birthDate.month')" class="w-full" />
+      <USelectMenu clear v-model="parts.year" :items="years" value-key="value" label-key="label" :placeholder="t('registration.birthDate.year')" class="w-full" />
     </div>
     <p v-if="impossible" class="text-xs text-red-600">{{ t('registration.birthDate.invalid') }}</p>
   </div>

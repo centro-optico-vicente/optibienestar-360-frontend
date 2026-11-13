@@ -148,7 +148,7 @@ async function finish(mode: StepExit) {
 <template>
   <div class="space-y-4">
     <UFormField :label="t('affiliationRequest.plan')" required>
-      <USelect v-model="planUuid" :items="planItems" :placeholder="t('affiliationRequest.planPlaceholder')" class="w-full" />
+      <USelectMenu clear value-key="value" v-model="planUuid" :items="planItems" :placeholder="t('affiliationRequest.planPlaceholder')" class="w-full" />
     </UFormField>
     <div v-if="selectedPlan && (selectedPlan.inscriptionFee != null || selectedPlan.monthlyFee != null)" class="flex flex-wrap gap-x-6 gap-y-1 text-sm text-prohealth-700">
       <CurrencyConverterDisplay v-if="selectedPlan.inscriptionFee != null" :amount="selectedPlan.inscriptionFee" :currency="selectedPlan.currency_Code || 'USD'" v-slot="{ result }">

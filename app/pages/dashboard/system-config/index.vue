@@ -273,11 +273,11 @@ onMounted(load)
 
             <UFormField :label="t('systemConfig.audit.auditCreateMode')" name="auditCreateMode">
               <USelectMenu
+                clear
                 v-model="state.auditCreateMode"
                 :items="AUDIT_MODE_OPTIONS"
                 label-key="label"
                 value-key="value"
-                :search-input="false"
                 class="w-full"
                 :disabled="isSubmitting"
               />
@@ -285,11 +285,11 @@ onMounted(load)
 
             <UFormField :label="t('systemConfig.audit.auditUpdateMode')" name="auditUpdateMode">
               <USelectMenu
+                clear
                 v-model="state.auditUpdateMode"
                 :items="AUDIT_MODE_OPTIONS"
                 label-key="label"
                 value-key="value"
-                :search-input="false"
                 class="w-full"
                 :disabled="isSubmitting"
               />
@@ -297,11 +297,11 @@ onMounted(load)
 
             <UFormField :label="t('systemConfig.audit.auditDeleteMode')" name="auditDeleteMode">
               <USelectMenu
+                clear
                 v-model="state.auditDeleteMode"
                 :items="AUDIT_MODE_OPTIONS"
                 label-key="label"
                 value-key="value"
-                :search-input="false"
                 class="w-full"
                 :disabled="isSubmitting"
               />
@@ -313,11 +313,11 @@ onMounted(load)
               name="captureBeforeAfterMode"
             >
               <USelectMenu
+                clear
                 v-model="state.captureBeforeAfterMode"
                 :items="AUDIT_MODE_OPTIONS"
                 label-key="label"
                 value-key="value"
-                :search-input="false"
                 class="w-full"
                 :disabled="isSubmitting"
               />
@@ -332,11 +332,11 @@ onMounted(load)
               name="reportAuditMode"
             >
               <USelectMenu
+                clear
                 v-model="state.reportAuditMode"
                 :items="AUDIT_MODE_OPTIONS"
                 label-key="label"
                 value-key="value"
-                :search-input="false"
                 class="w-full"
                 :disabled="isSubmitting"
               />
@@ -427,22 +427,22 @@ onMounted(load)
               class="flex flex-wrap items-center gap-2"
             >
               <USelectMenu
+                clear
                 v-model="row.field"
                 :items="SORT_FIELD_OPTIONS"
                 label-key="label"
                 value-key="value"
-                :search-input="false"
                 :aria-label="t('systemConfig.defaultSort.field')"
                 class="w-full sm:w-56"
                 :disabled="isSubmitting"
               />
               <USelectMenu
+                clear
                 v-model="row.direction"
                 :items="SORT_DIRECTION_OPTIONS"
                 label-key="label"
                 value-key="value"
                 :icon="row.direction === 'ASC' ? 'i-lucide-list-sort-ascending' : 'i-lucide-list-sort-descending'"
-                :search-input="false"
                 :aria-label="t('systemConfig.defaultSort.direction')"
                 class="w-full sm:w-44"
                 :disabled="isSubmitting"

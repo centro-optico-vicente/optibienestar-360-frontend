@@ -175,7 +175,7 @@ async function finish(mode: StepExit) {
         />
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('affiliationRequest.payment.method')" required>
-            <USelectMenu v-model="payment.paymentMethodUuid" :items="methodOptions" label-key="label" value-key="value" :loading="loadingMethods" :placeholder="t('affiliationRequest.payment.methodPlaceholder')" class="w-full" />
+            <USelectMenu clear v-model="payment.paymentMethodUuid" :items="methodOptions" label-key="label" value-key="value" :loading="loadingMethods" :placeholder="t('affiliationRequest.payment.methodPlaceholder')" class="w-full" />
           </UFormField>
           <UFormField :label="t('affiliationRequest.payment.date')" required>
             <UInput v-model="payment.paymentDate" type="date" :max="today" class="w-full" />
@@ -184,13 +184,13 @@ async function finish(mode: StepExit) {
             <UInput v-model="payment.identification" class="w-full" maxlength="30" />
           </UFormField>
           <UFormField v-if="selectedMethod?.mandatoryBank" :label="t('affiliationRequest.payment.bank')" required>
-            <USelectMenu v-model="payment.bankUuid" :items="bankOptions" label-key="label" value-key="value" :placeholder="t('affiliationRequest.payment.bankPlaceholder')" class="w-full" />
+            <USelectMenu clear v-model="payment.bankUuid" :items="bankOptions" label-key="label" value-key="value" :placeholder="t('affiliationRequest.payment.bankPlaceholder')" class="w-full" />
           </UFormField>
           <UFormField v-if="selectedMethod?.mandatoryBankAccount" :label="t('affiliationRequest.payment.accountIdentifier')" required>
             <UInput v-model="payment.bankAccountIdentifier" class="w-full" />
           </UFormField>
           <UFormField v-if="selectedMethod?.mandatoryAccountType" :label="t('affiliationRequest.payment.accountType')" required>
-            <USelectMenu v-model="payment.bankAccountType" :items="BANK_ACCOUNT_TYPE_OPTIONS" label-key="label" value-key="value" :placeholder="t('affiliationRequest.payment.accountTypePlaceholder')" class="w-full" />
+            <USelectMenu clear v-model="payment.bankAccountType" :items="BANK_ACCOUNT_TYPE_OPTIONS" label-key="label" value-key="value" :placeholder="t('affiliationRequest.payment.accountTypePlaceholder')" class="w-full" />
           </UFormField>
           <UFormField v-if="selectedMethod?.mandatoryAccountCode" :label="t('affiliationRequest.payment.accountCode')" required>
             <UInput v-model="payment.bankAccountCode" class="w-full" />

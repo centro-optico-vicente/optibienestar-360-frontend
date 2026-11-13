@@ -462,7 +462,7 @@ async function restoreTier() {
             <USelectMenu clear v-model="state.planType" :items="planTypeOptions" label-key="label" value-key="value" class="w-full" />
           </UFormField>
           <UFormField :label="t('commissionRules.tiers.form.basis')" name="basis" required>
-            <USelectMenu v-model="state.basis" :items="basisOptions" label-key="label" value-key="value" class="w-full" />
+            <USelectMenu clear v-model="state.basis" :items="basisOptions" label-key="label" value-key="value" class="w-full" />
           </UFormField>
         </div>
 

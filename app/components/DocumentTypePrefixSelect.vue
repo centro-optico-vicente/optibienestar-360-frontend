@@ -3,6 +3,7 @@ import { PERSON_DOCUMENT_TYPE_CODES, documentTypeItems } from '~/utils/documentT
 
 /**
  * Narrow document type select that sits in front of the document number ("V" | 12345678).
+ * Filterable (USelectMenu search) but not clearable: the X does not fit in the narrow field.
  * The menu lists `<code> — <name>` ("V — Cédula de identidad venezolana", spec 07-forms
  * "Código en selects"); the trigger keeps only the code so the narrow field does not overflow.
  * class / disabled / aria-label fall through to the USelect.
@@ -18,7 +19,7 @@ const model = defineModel<C | null | undefined>()
 
 const { t } = useI18n()
 const items = computed(() => documentTypeItems(t, props.codes))
-// USelect types its model from the items (plain string); bridge it to the caller's code union.
+// USelectMenu types its model from the items (plain string); bridge it to the caller's code union.
 const selected = computed<string | undefined>({
   get: () => model.value ?? undefined,
   set: (v) => { model.value = v as C | undefined },
@@ -26,9 +27,9 @@ const selected = computed<string | undefined>({
 </script>
 
 <template>
-  <USelect v-model="selected" :items="items" :placeholder="placeholder" :ui="{ content: 'min-w-72' }">
+  <USelectMenu v-model="selected" :items="items" value-key="value" :placeholder="placeholder" :ui="{ content: 'min-w-72' }">
     <template #default>
       {{ selected || placeholder || ' ' }}
     </template>
-  </USelect>
+  </USelectMenu>
 </template>

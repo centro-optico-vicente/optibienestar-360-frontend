@@ -173,7 +173,9 @@ onMounted(load)
         size="lg"
         class="w-full max-w-md"
       />
-      <USelect
+      <USelectMenu
+        clear
+        value-key="value"
         v-model="status"
         :items="statusItems"
         :aria-label="t('affiliationRequests.columns.status')"

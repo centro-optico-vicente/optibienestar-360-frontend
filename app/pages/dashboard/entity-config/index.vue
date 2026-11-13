@@ -543,12 +543,12 @@ async function confirmDelete() {
                 class="w-full sm:w-56"
               />
               <USelectMenu
+                clear
                 v-model="row.direction"
                 :items="SORT_DIRECTION_OPTIONS"
                 label-key="label"
                 value-key="value"
                 :icon="row.direction === 'ASC' ? 'i-lucide-list-sort-ascending' : 'i-lucide-list-sort-descending'"
-                :search-input="false"
                 :aria-label="t('entityConfig.fields.defaultSortDirection')"
                 class="w-full sm:w-44"
               />

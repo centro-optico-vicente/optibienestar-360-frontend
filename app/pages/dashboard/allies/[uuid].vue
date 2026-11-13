@@ -1317,7 +1317,6 @@ onMounted(async () => {
             :items="productTypeOptions"
             label-key="label"
             value-key="value"
-            :search-input="false"
             :placeholder="t('products.filters.allTypes')"
             size="sm"
             class="w-44"

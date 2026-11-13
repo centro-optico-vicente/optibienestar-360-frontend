@@ -166,6 +166,7 @@ function subjectDisplay(p: PaymentDto): string {
       <template #filters>
         <div class="flex flex-wrap items-center gap-3">
           <USelectMenu
+            clear
             v-model="directionFilter"
             :items="directionFilterOptions"
             label-key="label"

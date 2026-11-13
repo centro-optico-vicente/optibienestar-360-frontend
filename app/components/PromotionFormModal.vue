@@ -169,15 +169,15 @@ function numberOrUndefined(v: string | number | null | undefined): number | unde
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('promotions.fields.kind')" :help="t(`promotions.kindHelp.${state.kind}`)">
-            <USelectMenu v-model="state.kind" :items="kindItems" label-key="label" value-key="value" :search-input="false" class="w-full" />
+            <USelectMenu clear v-model="state.kind" :items="kindItems" label-key="label" value-key="value" class="w-full" />
           </UFormField>
           <UFormField :label="t('promotions.fields.appliesTo')">
             <USelectMenu
+              clear
               v-model="state.appliesTo"
               :items="appliesToItems"
               label-key="label"
               value-key="value"
-              :search-input="false"
               :disabled="state.kind === 'RECOVERY'"
               class="w-full"
             />
@@ -215,6 +215,7 @@ function numberOrUndefined(v: string | number | null | undefined): number | unde
           </UFormField>
           <UFormField :label="t('promotions.fields.plans')" :help="t('promotions.form.plansHelp')">
             <USelectMenu
+              clear
               v-model="state.planUuids"
               :items="planItems"
               label-key="label"

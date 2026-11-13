@@ -137,7 +137,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('members.form.fields.documentType')" name="documentType" required>
-            <USelectMenu v-model="state.documentType" :items="documentTypeOptions" label-key="label" value-key="value" class="w-full" />
+            <USelectMenu clear v-model="state.documentType" :items="documentTypeOptions" label-key="label" value-key="value" class="w-full" />
           </UFormField>
           <UFormField :label="t('members.form.fields.documentNumber')" name="documentNumber" required>
             <UInput v-model="state.documentNumber" class="w-full" />

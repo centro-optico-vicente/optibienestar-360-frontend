@@ -24,6 +24,7 @@ const relationshipItems = computed(() =>
     </div>
     <UFormField :label="t('members.emergencyContact.fields.relationship')">
       <USelectMenu
+        clear
         v-model="model.relationship"
         :items="relationshipItems"
         label-key="label"

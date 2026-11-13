@@ -556,7 +556,7 @@ async function confirmLifecycle() {
           </div>
 
           <UFormField :label="t('memberships.enrollForm.reinscription')" name="reinscription" :help="t('memberships.enrollForm.reinscriptionHelp')">
-            <USelect v-model="enrollState.reinscription" :items="reinscriptionItems" class="w-full" />
+            <USelectMenu clear value-key="value" v-model="enrollState.reinscription" :items="reinscriptionItems" class="w-full" />
           </UFormField>
 
           <UFormField
@@ -667,6 +667,7 @@ async function confirmLifecycle() {
           <template v-else>
             <UFormField :label="t('promotions.membership.promotion')" required :help="assignSelected?.description || undefined">
               <USelectMenu
+                clear
                 v-model="assignPromotionUuid"
                 :items="assignPromotionItems"
                 label-key="name"

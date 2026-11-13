@@ -476,7 +476,7 @@ async function restoreTier() {
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('hierarchyOverrideTiers.form.basis')" name="basis" required>
-            <USelectMenu v-model="state.basis" :items="basisOptions" label-key="label" value-key="value" class="w-full" />
+            <USelectMenu clear v-model="state.basis" :items="basisOptions" label-key="label" value-key="value" class="w-full" />
           </UFormField>
           <UFormField v-if="state.basis === 'COUNT'" :label="t('hierarchyOverrideTiers.form.thresholdCount')" name="thresholdCount" required :help="t('hierarchyOverrideTiers.form.thresholdHelp')">
             <UInput v-model="state.thresholdCount" inputmode="numeric" class="w-full" />

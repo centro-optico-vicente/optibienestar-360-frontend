@@ -288,16 +288,16 @@ async function confirmDelete() {
       <template #body>
         <div class="space-y-4">
           <UFormField :label="t('myBankAccounts.fields.paymentMethods')" required :error="showError('method')">
-            <USelectMenu v-model="state.paymentMethodUuids" multiple :items="methodOptions" :loading="methods.loading.value" label-key="label" value-key="value" class="w-full" :placeholder="t('common.select')" @update:open="methods.onOpen" />
+            <USelectMenu clear v-model="state.paymentMethodUuids" multiple :items="methodOptions" :loading="methods.loading.value" label-key="label" value-key="value" class="w-full" :placeholder="t('common.select')" @update:open="methods.onOpen" />
           </UFormField>
 
           <template v-if="selectedMethods.length">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <UFormField v-if="required.bank" :label="t('myBankAccounts.fields.bank')" required :error="showError('bank')">
-                <USelectMenu v-model="state.bankUuid" :items="banks.items.value" :loading="banks.loading.value" label-key="label" value-key="value" class="w-full" :placeholder="t('common.select')" @update:open="banks.onOpen" />
+                <USelectMenu clear v-model="state.bankUuid" :items="banks.items.value" :loading="banks.loading.value" label-key="label" value-key="value" class="w-full" :placeholder="t('common.select')" @update:open="banks.onOpen" />
               </UFormField>
               <UFormField v-if="required.accountType" :label="t('myBankAccounts.fields.accountType')" required :error="showError('accountType')">
-                <USelectMenu v-model="state.accountType" :items="BANK_ACCOUNT_TYPE_OPTIONS" label-key="label" value-key="value" class="w-full" :placeholder="t('common.select')" />
+                <USelectMenu clear v-model="state.accountType" :items="BANK_ACCOUNT_TYPE_OPTIONS" label-key="label" value-key="value" class="w-full" :placeholder="t('common.select')" />
               </UFormField>
               <UFormField v-if="required.accountCode" :label="t('myBankAccounts.fields.accountCode')">
                 <UInput v-model="state.accountCode" class="w-full" maxlength="40" />

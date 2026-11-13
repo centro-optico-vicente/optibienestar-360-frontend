@@ -224,7 +224,7 @@ onMounted(() => {
         size="lg"
         class="w-full max-w-md"
       />
-      <USelect v-model="status" :items="statusItems" :aria-label="t('allyRequests.columns.status')" size="lg" class="w-44" />
+      <USelectMenu clear value-key="value" v-model="status" :items="statusItems" :aria-label="t('allyRequests.columns.status')" size="lg" class="w-44" />
       <UButton
         v-if="hasActiveSort"
         variant="link"
@@ -238,7 +238,7 @@ onMounted(() => {
       </UButton>
       <template #filters>
         <div class="flex flex-wrap items-center gap-3">
-          <USelect v-model="channel" :items="channelItems" :aria-label="t('allyRequests.columns.channel')" size="lg" class="w-48" />
+          <USelectMenu clear value-key="value" v-model="channel" :items="channelItems" :aria-label="t('allyRequests.columns.channel')" size="lg" class="w-48" />
           <USelectMenu
             v-if="advisors.available.value"
             v-model="promoterUuid"

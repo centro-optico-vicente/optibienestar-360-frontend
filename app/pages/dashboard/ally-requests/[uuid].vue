@@ -431,7 +431,7 @@ async function confirmInvite() {
             <p class="text-sm font-semibold text-prohealth-900">{{ t('allyRequests.detail.approve.agreementTitle') }}</p>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <UFormField :label="t('allyRequests.detail.approve.agreementType')" required class="sm:col-span-2">
-                <USelect v-model="approveForm.agreementType" :items="agreementTypeItems" class="w-full" />
+                <USelectMenu clear value-key="value" v-model="approveForm.agreementType" :items="agreementTypeItems" class="w-full" />
               </UFormField>
               <UFormField :label="t('allyRequests.detail.approve.startDate')" required>
                 <UInput v-model="approveForm.startDate" type="date" class="w-full" />

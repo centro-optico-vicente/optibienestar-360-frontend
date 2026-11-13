@@ -279,7 +279,6 @@ onMounted(async () => {
             :items="typeOptions"
             label-key="label"
             value-key="value"
-            :search-input="false"
             :placeholder="t('products.filters.allTypes')"
             class="w-40"
           />
@@ -300,7 +299,6 @@ onMounted(async () => {
             :items="scopeOptions"
             label-key="label"
             value-key="value"
-            :search-input="false"
             :placeholder="t('products.filters.allScopes')"
             class="w-48"
           />
@@ -310,7 +308,6 @@ onMounted(async () => {
             :items="publishedOptions"
             label-key="label"
             value-key="value"
-            :search-input="false"
             :placeholder="t('products.filters.allPublication')"
             class="w-52"
           />

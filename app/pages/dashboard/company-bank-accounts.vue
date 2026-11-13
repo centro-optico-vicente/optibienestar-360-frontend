@@ -372,19 +372,19 @@ async function confirmDelete() {
         <UForm ref="formRef" :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <UFormField :label="t('payments.companyAccounts.fields.methods')" name="paymentMethodUuids" required>
-              <USelectMenu v-model="state.paymentMethodUuids" multiple :items="methodOptions" :loading="methods.loading.value" label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" @update:open="methods.onOpen" />
+              <USelectMenu clear v-model="state.paymentMethodUuids" multiple :items="methodOptions" :loading="methods.loading.value" label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" @update:open="methods.onOpen" />
             </UFormField>
             <UFormField :label="t('payments.companyAccounts.fields.currency')" name="currency" required>
-              <USelectMenu v-model="state.currency" :items="currencies.items.value" :loading="currencies.loading.value" label-key="label" value-key="value" class="w-full font-mono" @update:open="currencies.onOpen" />
+              <USelectMenu clear v-model="state.currency" :items="currencies.items.value" :loading="currencies.loading.value" label-key="label" value-key="value" class="w-full font-mono" @update:open="currencies.onOpen" />
             </UFormField>
           </div>
           <template v-if="selectedMethods.length">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <UFormField v-if="required.bank" :label="t('payments.companyAccounts.fields.bank')" name="bankUuid" required>
-                <USelectMenu v-model="state.bankUuid" :items="banks.items.value" :loading="banks.loading.value" label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" @update:open="banks.onOpen" />
+                <USelectMenu clear v-model="state.bankUuid" :items="banks.items.value" :loading="banks.loading.value" label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" @update:open="banks.onOpen" />
               </UFormField>
               <UFormField v-if="required.accountType" :label="t('payments.companyAccounts.fields.accountType')" name="accountType" required>
-                <USelectMenu v-model="state.accountType" :items="BANK_ACCOUNT_TYPE_OPTIONS" label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" />
+                <USelectMenu clear v-model="state.accountType" :items="BANK_ACCOUNT_TYPE_OPTIONS" label-key="label" value-key="value" :placeholder="t('common.select')" class="w-full" />
               </UFormField>
               <UFormField v-if="required.accountNumber" :label="t('payments.companyAccounts.fields.accountNumber')" name="accountNumber" required>
                 <UInput v-model="state.accountNumber" class="w-full font-mono" maxlength="40" />

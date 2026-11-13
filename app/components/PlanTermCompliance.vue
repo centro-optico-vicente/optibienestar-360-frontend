@@ -175,6 +175,7 @@ function ruleLabel(row: MembershipTermRowDto): string {
     <!-- Filters -->
     <div class="flex flex-wrap items-center gap-3">
       <USelectMenu
+        clear
         v-model="compliance"
         :items="complianceOptions"
         label-key="label"

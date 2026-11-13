@@ -356,11 +356,11 @@ function requestDelete() {
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <UFormField :label="t('allies.products.form.fields.type')" name="productType" required>
               <USelectMenu
+                clear
                 v-model="state.productType"
                 :items="typeOptions"
                 label-key="label"
                 value-key="value"
-                :search-input="false"
                 class="w-full"
               />
             </UFormField>

@@ -126,6 +126,7 @@ function openRecord(link: AllyPatientLinkDto) {
 
     <UFormField v-if="allyOptions.length > 1" :label="t('validator.fields.ally')" class="max-w-sm">
       <USelectMenu
+        clear
         v-model="selectedAllyUuid"
         :items="allyOptions"
         label-key="label"

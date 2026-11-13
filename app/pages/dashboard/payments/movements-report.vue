@@ -263,6 +263,7 @@ async function executeDownload(format: 'PDF' | 'XLSX') {
           {{ t('payments.movementsReport.direction') }}
         </label>
         <USelectMenu
+          clear
           v-model="movementFilters.direction"
           :items="directionOptions"
           label-key="label"

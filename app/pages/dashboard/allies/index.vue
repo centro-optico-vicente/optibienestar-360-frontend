@@ -320,7 +320,6 @@ async function confirmDelete() {
             :items="segmentFilterOptions"
             value-key="value"
             label-key="label"
-            :search-input="false"
             :placeholder="t('allies.form.fields.segment')"
             icon="i-lucide-layers"
             class="w-56"

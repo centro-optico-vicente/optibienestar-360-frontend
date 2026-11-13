@@ -115,6 +115,7 @@ async function onSubmit() {
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('members.form.fields.documentType')" name="documentType" required>
             <USelectMenu
+              clear
               v-model="state.documentType"
               :items="documentTypeOptions"
               label-key="label"
@@ -134,6 +135,7 @@ async function onSubmit() {
           </UFormField>
           <UFormField :label="t('members.beneficiaries.form.relationship')" name="relationship" required>
             <USelectMenu
+              clear
               v-model="state.relationship"
               :items="relationshipOptions"
               label-key="label"

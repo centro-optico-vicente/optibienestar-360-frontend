@@ -433,6 +433,7 @@ function openDeleteFromEdit() {
           <template v-if="state.reinscriptionRequired">
             <UFormField :label="t('plans.form.termMode')" name="termMode" required>
               <USelectMenu
+                clear
                 v-model="state.termMode"
                 :items="termModeOptions"
                 label-key="label"
