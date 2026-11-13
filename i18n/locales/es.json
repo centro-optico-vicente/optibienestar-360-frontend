@@ -6435,7 +6435,7 @@
     },
     "accountExists": {
       "title": "Ya existe una cuenta con esa cédula o ese correo",
-      "description": "Inicia sesión o recupera tu acceso; también puedes pedir un enlace de acceso por correo.",
+      "description": "Inicia sesión y continúa desde tu cuenta: con la misma cuenta puedes afiliarte o registrar un aliado. Si no recuerdas tu clave, recupera tu acceso.",
       "signIn": "Iniciar sesión",
       "recover": "Recuperar mi acceso"
     },
@@ -6555,7 +6555,16 @@
       "doneBody": "Cuando quieras, puedes empezar un registro nuevo con los mismos datos.",
       "bodyMember": "Se borra lo que llevas de tu registro y se cierra tu sesión. Tu cédula y tu correo quedan libres para registrarte de nuevo. Esta acción no se puede deshacer.",
       "bodyAlly": "Se borra lo que llevas de la solicitud y se cierra tu sesión. Tu cédula, el RIF y tu correo quedan libres para registrarte de nuevo. Esta acción no se puede deshacer.",
-      "bodyAssisted": "Se borra este borrador. La cédula y el correo de la persona quedan libres para empezar de nuevo. Esta acción no se puede deshacer."
+      "bodyAssisted": "Se borra este borrador. La cédula y el correo de la persona quedan libres para empezar de nuevo. Esta acción no se puede deshacer.",
+      "doneBodyKeepsAccount": "Tu cuenta y tus otros accesos siguen activos."
+    },
+    "withAccount": {
+      "signedInAs": "Ya iniciaste sesión como {name}.",
+      "memberBody": "Puedes afiliarte con la misma cuenta: usaremos tus datos y seguirás con el plan, el contrato y el pago. Conservas tu acceso actual.",
+      "memberAction": "Afiliarme con mi cuenta",
+      "continue": "Continuar mi registro",
+      "allyBody": "Registraremos el aliado con tu cuenta: tus datos de contacto, cédula y correo salen de ella. Conservas tu acceso actual.",
+      "mobileHelp": "Opcional: si lo dejas vacío usamos el teléfono de tu cuenta."
     }
   },
   "assistedAffiliation": {

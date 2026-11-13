@@ -133,8 +133,10 @@ function goToStep(step: string) {
 }
 
 // Discard the registration in progress (AFFILIATION_REGISTRATION_DISCARD_OWN / ALLY_REGISTRATION_DISCARD_OWN): it is
-// deleted and the login closed (its national ID and email are free again), so the person leaves the portal.
+// deleted and the login closed (its national ID and email are free again), so the person leaves the portal — unless
+// the account has other roles (it joined from another segment): then only the pending role goes.
 const { can } = usePermissions()
+const join = useJoinWithAccount()
 const canDiscard = computed(() => !alreadySubmitted.value && !submittedResult.value
   && can(isAlly.value ? 'ALLY_REGISTRATION_DISCARD_OWN' : 'AFFILIATION_REGISTRATION_DISCARD_OWN'))
 const discardOpen = ref(false)
@@ -146,6 +148,14 @@ async function discardRegistration() {
     if (isAlly.value && ally.value) await myAllies.discardRegistration(ally.value.uuid)
     else await memberApi.discard()
     discardOpen.value = false
+    // An account that joined from another segment (backend#438) keeps its other roles: the session moves to one of
+    // them. Otherwise the login was closed and the person leaves the portal.
+    const home = await join.leavePendingRole()
+    if (home) {
+      toast.add({ title: t('registration.discard.done'), description: t('registration.discard.doneBodyKeepsAccount'), color: 'success', icon: 'i-lucide-check-circle' })
+      await navigateTo(home)
+      return
+    }
     toast.add({ title: t('registration.discard.done'), description: t('registration.discard.doneBody'), color: 'success', icon: 'i-lucide-check-circle' })
     await logout()
   }

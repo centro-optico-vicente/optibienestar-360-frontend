@@ -1,5 +1,5 @@
 import type { ApiError, LoginResponse } from '~/types/auth'
-import { ACCOUNT_EXISTS_CODE } from '~/types/affiliationRequests'
+import { ACCOUNT_EXISTS_CODE, ALLY_ACCOUNT_EXISTS_CODES } from '~/types/affiliationRequests'
 import { COMPLETE_REGISTRATION_PATH } from '~/utils/roleHome'
 
 /**
@@ -11,10 +11,16 @@ export const useRegistrationStart = () => {
   const { login, requestMagicLink } = useAuth()
   const auth = useAuthStore()
 
-  /** `true` when the backend answered 422 with `code = ACCOUNT_EXISTS` (national ID or email already registered). */
+  /**
+   * `true` when the backend answered 422 "already has an account" (national ID or email already registered):
+   * `code = ACCOUNT_EXISTS` on the member form, `ally_request.email.taken` / `ally_request.document.has_account` on
+   * the ally form. The person then signs in and goes on from their own account (useJoinWithAccount).
+   */
   const isAccountExists = (err: unknown): boolean => {
     const e = err as ApiError | null
-    return e?.status === 422 && e.problem?.code === ACCOUNT_EXISTS_CODE
+    const code = e?.problem?.code
+    return e?.status === 422 && typeof code === 'string'
+      && (code === ACCOUNT_EXISTS_CODE || ALLY_ACCOUNT_EXISTS_CODES.includes(code))
   }
 
   /**
