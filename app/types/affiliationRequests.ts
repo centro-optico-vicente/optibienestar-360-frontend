@@ -189,6 +189,9 @@ export interface AssistedAffiliationOverrides {
 /** Code of the 422 answered when the national ID or the email already has an account. */
 export const ACCOUNT_EXISTS_CODE = 'ACCOUNT_EXISTS'
 
+/** The same "already has an account" answer of the public ally form (backend `ally_request.*` codes). */
+export const ALLY_ACCOUNT_EXISTS_CODES: readonly string[] = ['ally_request.email.taken', 'ally_request.document.has_account']
+
 /** Steps of PATCH /v1/me/affiliation-request/{step}. */
 export const MEMBER_REGISTRATION_STEPS = ['personal', 'plan', 'payment', 'family'] as const
 export type MemberRegistrationStep = typeof MEMBER_REGISTRATION_STEPS[number]

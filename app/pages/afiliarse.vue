@@ -5,8 +5,12 @@
 // and returns the session, so the person lands on /completar-registro (birth date, plan + contract, payment,
 // family, send). What is typed here lives in localStorage until it is sent (no identity yet). Without a password the
 // person later signs in with the emailed access link.
-import type { ApiError } from '~/types/auth'
+// Someone already signed in (an advisor or ally who affiliates, backend#438) is not asked for their data again: the
+// page offers to go on with their account (POST /v1/me/affiliation-request), which switches the session to the
+// pending member role and opens the same wizard.
+import { ROLES, type ApiError } from '~/types/auth'
 import { MEMBER_WIZARD_STEPS } from '~/types/registration'
+import { COMPLETE_REGISTRATION_PATH } from '~/utils/roleHome'
 
 // English pair of this public screen (hub URL convention); the fixed `key` keeps the half-filled form when the
 // switcher jumps between the two URLs.
@@ -19,6 +23,8 @@ const router = useRouter()
 const toast = useToast()
 const api = useMyAffiliationRequest()
 const { isAccountExists, openSession } = useRegistrationStart()
+const auth = useAuthStore()
+const join = useJoinWithAccount()
 
 useSeoMeta({ title: () => t('affiliationRequest.seoTitle') })
 
@@ -46,6 +52,28 @@ function invalid(): string | null {
   if (state.password && state.password.length < 8) return t('affiliationRequest.shortPassword')
   if (!state.acceptedPortalTerms) return t('registration.step1.termsRequired')
   return null
+}
+
+const joining = ref(false)
+// Already on the pending member role: the registration exists, the wizard is where it goes on.
+const registrationInProgress = computed(() => auth.activeRole === ROLES.MEMBER_PENDING)
+
+/** Signed in: the affiliation starts on the account the person already has. */
+async function joinWithAccount() {
+  joining.value = true
+  try {
+    await join.startAffiliation(referralCode.value || undefined)
+    draft.clear()
+    const plan = typeof route.query.plan === 'string' && route.query.plan ? { plan: route.query.plan } : undefined
+    await router.push({ path: COMPLETE_REGISTRATION_PATH, query: plan })
+  }
+  catch (err) {
+    if (await redirectIfSelfRegistrationClosed(err, 'member')) return
+    toast.add({ title: (err as ApiError)?.message || t('affiliationRequest.errorFallback'), color: 'error', icon: 'i-lucide-circle-alert' })
+  }
+  finally {
+    joining.value = false
+  }
 }
 
 async function submit() {
@@ -100,6 +128,26 @@ async function submit() {
           <h1 class="text-2xl font-extrabold text-prohealth-900">{{ t('registration.step1.checkEmailTitle') }}</h1>
           <p class="text-sm text-prohealth-600">{{ t('registration.step1.checkEmailBody', { email: checkEmail }) }}</p>
           <UButton :to="publicPath('/')" color="primary" variant="outline" icon="i-lucide-house" class="mt-2">{{ t('affiliationRequest.backHome') }}</UButton>
+        </div>
+      </template>
+
+      <template v-else-if="auth.isAuthenticated">
+        <RegistrationProgressBar :current="1" :total="MEMBER_WIZARD_STEPS.length + 1" :label="t('registration.step1.label')" class="mb-5" />
+        <h1 class="text-2xl font-extrabold text-prohealth-900">{{ t('affiliationRequest.title') }}</h1>
+        <div v-if="referralCode" class="mt-4 rounded-xl bg-cyan-50 border border-cyan-200 px-4 py-3 text-sm text-prohealth-800">
+          {{ t('affiliationRequest.referredBy') }} <span class="font-mono font-bold">{{ referralCode }}</span>
+        </div>
+        <div class="mt-4 rounded-2xl border border-prohealth-100 bg-prohealth-50/50 p-5 space-y-3">
+          <p class="text-sm text-prohealth-700">
+            {{ t('registration.withAccount.signedInAs', { name: auth.user?.fullName || auth.user?.email }) }}
+          </p>
+          <p class="text-sm text-prohealth-600">{{ t('registration.withAccount.memberBody') }}</p>
+          <UButton v-if="registrationInProgress" block color="primary" :to="COMPLETE_REGISTRATION_PATH" icon="i-lucide-arrow-right" trailing>
+            {{ t('registration.withAccount.continue') }}
+          </UButton>
+          <UButton v-else block color="primary" :loading="joining" icon="i-lucide-arrow-right" trailing @click="joinWithAccount">
+            {{ t('registration.withAccount.memberAction') }}
+          </UButton>
         </div>
       </template>
 

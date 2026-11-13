@@ -5,12 +5,16 @@
 // send). Only the minimum is asked here: segment, business name, contact, phone, email, optional password and the
 // terms. The draft lives in localStorage until it is sent. ?ref=<advisor code> preselects the advisor.
 // `homepage` is a honeypot.
+// Someone already signed in (a member with a business or practice, backend#438) is not asked for the contact person,
+// ID, email or password again: they come from the account, and POST /v1/me/ally-requests switches the session to the
+// pending ally role and opens the same wizard. The mobile is then optional (the account's phone is used).
 import type { ApiError } from '~/types/auth'
 import type { AllySegment } from '~/types/allies'
-import { TAX_DOCUMENT_TYPES, type AllyRequestCreateRequest } from '~/types/allyRequests'
+import { TAX_DOCUMENT_TYPES, type AllyRequestCreateRequest, type MyAllyRequestCreateRequest } from '~/types/allyRequests'
 import type { RegistrationStartResponse } from '~/types/affiliationRequests'
 import { ALLY_WIZARD_STEPS } from '~/types/registration'
 import { isValidPhone } from '~/utils/contactValidation'
+import { COMPLETE_REGISTRATION_PATH } from '~/utils/roleHome'
 
 // English pair of this public screen (hub URL convention); the fixed `key`
 // keeps the half-filled form when the switcher jumps between the two URLs.
@@ -22,6 +26,10 @@ const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 const { isAccountExists, openSession } = useRegistrationStart()
+const auth = useAuthStore()
+const join = useJoinWithAccount()
+/** Signed in: the ally is registered on the account the person already has. */
+const withAccount = computed(() => auth.isAuthenticated)
 
 useSeoMeta({
   title: () => t('allyRequestForm.seoTitle'),
@@ -107,6 +115,11 @@ function validate(): Partial<Record<FieldKey, string>> {
     if (!state.taxDocumentNumber.trim()) found.taxDocumentNumber = required
     else if (!/^[\d\s-]+$/.test(state.taxDocumentNumber.trim()) || !/^\d{5,15}$/.test(taxDigits.value)) found.taxDocumentNumber = t('allyRequestForm.badTaxDocument')
   }
+  if (withAccount.value) {
+    // The person, ID and email come from the account; the mobile is optional (the account's phone).
+    if (state.mobile.trim() && !isValidPhone(state.mobile)) found.mobile = t('allyRequestForm.badMobile')
+    return found
+  }
   if (!state.firstName.trim()) found.firstName = required
   if (!state.lastName.trim()) found.lastName = required
   if (!state.documentNumber.trim()) found.documentNumber = required
@@ -156,6 +169,18 @@ function buildRequest(): AllyRequestCreateRequest {
   }
 }
 
+function buildAccountRequest(): Omit<MyAllyRequestCreateRequest, 'refreshToken'> {
+  return {
+    segment: segment.value,
+    name: state.name.trim() || undefined,
+    taxDocumentType: segment.value === 'B2B' ? state.taxDocumentType : undefined,
+    taxDocumentNumber: segment.value === 'B2B' ? taxDigits.value : undefined,
+    mobile: state.mobile.trim() || undefined,
+    referralCode: referralCode.value || undefined,
+    acceptedPortalTerms: true,
+  }
+}
+
 const sending = ref(false)
 const accountExists = ref<string | null>(null)
 const checkEmail = ref<string | null>(null)
@@ -165,6 +190,12 @@ async function submit() {
   if (!checkForm()) return
   sending.value = true
   try {
+    if (withAccount.value) {
+      await join.startAlly(buildAccountRequest())
+      draft.clear()
+      await router.push(COMPLETE_REGISTRATION_PATH)
+      return
+    }
     const res = await useApi<RegistrationStartResponse>('/v1/public/ally-requests', {
       method: 'POST',
       skipAuth: true,
@@ -211,6 +242,11 @@ async function submit() {
 
         <RegistrationAccountExists v-if="accountExists" class="mt-4" :message="accountExists" />
 
+        <div v-if="withAccount" class="mt-4 rounded-xl bg-prohealth-50 border border-prohealth-100 px-4 py-3 text-sm text-prohealth-700">
+          {{ t('registration.withAccount.signedInAs', { name: auth.user?.fullName || auth.user?.email }) }}
+          {{ t('registration.withAccount.allyBody') }}
+        </div>
+
         <form class="mt-6 space-y-6" novalidate @submit.prevent="submit">
           <!-- Honeypot: off-screen, out of the tab order, never autofilled. -->
           <div class="absolute -left-[10000px] top-auto w-px h-px overflow-hidden" aria-hidden="true">
@@ -244,7 +280,13 @@ async function submit() {
             </UFormField>
           </fieldset>
 
-          <fieldset class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <fieldset v-if="withAccount" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <UFormField :label="t('allyRequestForm.fields.mobile')" :help="t('registration.withAccount.mobileHelp')" :error="errors.mobile">
+              <UInput v-model="state.mobile" name="ally-request-mobile" type="tel" class="w-full" maxlength="30" autocomplete="tel" placeholder="0414-1234567" />
+            </UFormField>
+          </fieldset>
+
+          <fieldset v-else class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <legend class="text-sm font-semibold text-prohealth-900 mb-2">
               {{ segment === 'B2B' ? t('allyRequestForm.sections.contactB2B') : t('allyRequestForm.sections.contactB2P') }}
             </legend>

@@ -6435,7 +6435,7 @@
     },
     "accountExists": {
       "title": "An account with that national ID or email already exists",
-      "description": "Sign in or recover your access; you can also ask for an access link by email.",
+      "description": "Sign in and continue from your account: with the same account you can affiliate or register an ally. If you do not remember your password, recover your access.",
       "signIn": "Sign in",
       "recover": "Recover my access"
     },
@@ -6555,7 +6555,16 @@
       "doneBody": "Whenever you want, you can start a new registration with the same details.",
       "bodyMember": "What you have filled in so far is deleted and you are signed out. Your national ID and email become free to register again. This cannot be undone.",
       "bodyAlly": "What you have filled in so far is deleted and you are signed out. Your national ID, tax ID and email become free to register again. This cannot be undone.",
-      "bodyAssisted": "This draft is deleted. The person's national ID and email become free to start over. This cannot be undone."
+      "bodyAssisted": "This draft is deleted. The person's national ID and email become free to start over. This cannot be undone.",
+      "doneBodyKeepsAccount": "Your account and your other accesses remain active."
+    },
+    "withAccount": {
+      "signedInAs": "You are signed in as {name}.",
+      "memberBody": "You can affiliate with the same account: we use your data and you go on with the plan, the contract and the payment. You keep your current access.",
+      "memberAction": "Affiliate with my account",
+      "continue": "Continue my registration",
+      "allyBody": "We will register the ally with your account: the contact data, ID and email come from it. You keep your current access.",
+      "mobileHelp": "Optional: if left empty we use your account phone."
     }
   },
   "assistedAffiliation": {

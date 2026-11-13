@@ -47,6 +47,22 @@ export interface AllyRequestCreateRequest {
 }
 
 /**
+ * POST /v1/me/ally-requests — step 1 for someone who already has an account (a member with a business, an advisor
+ * with a practice): the contact person, ID, email and password come from the account. `mobile` is optional when the
+ * account already has a phone. `refreshToken` is revoked when the session switches to the pending ally role.
+ */
+export interface MyAllyRequestCreateRequest {
+  segment: AllySegment
+  name?: string
+  taxDocumentType?: (typeof TAX_DOCUMENT_TYPES)[number]
+  taxDocumentNumber?: string
+  mobile?: string
+  referralCode?: string
+  acceptedPortalTerms: true
+  refreshToken?: string | null
+}
+
+/**
  * Body of POST /v1/me/advisor/ally-requests/drafts (hub ADR 0037 §5): who the business or professional is and the
  * contact person. B2B needs `name`; B2P uses the person's name. The email is required: the contact person's
  * "create your password" link goes there when the advisor submits.
