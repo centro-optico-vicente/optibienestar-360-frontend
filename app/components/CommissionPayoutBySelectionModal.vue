@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
-import type { CatalogItem } from '~/types/catalogs'
 import type { CommissionApprovalRowDto, CommissionPayoutResponse } from '~/types/promoters'
 
 // Ad-hoc payout for a hand-picked set of APPROVED commission rows (E.2) —
@@ -27,8 +26,8 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const { formatCurrency, formatDate } = useFormatters()
 const commissions = useCommissions()
-const methodsApi = useCatalog('/v1/admin/payment-methods')
-const currenciesApi = useCatalog('/v1/admin/currencies')
+const methodsApi = useCatalogOptions('payment-methods', '/v1/admin')
+const currenciesApi = useCatalogOptions('currencies', '/v1/admin')
 const toast = useToast()
 const { can } = usePermissions()
 const canViewPromoter = computed(() => can('PROMOTER_VIEW_ALL'))
@@ -58,8 +57,8 @@ const schema = computed(() =>
   }),
 )
 
-// Method/currency catalogs, same pattern as PaymentFormModal — `listAll()`
-// resolves every active record for the select, value keyed by `uuid` (ADR
+// Method/currency catalogs via each entity's `/options` (any session): active records only,
+// value keyed by `uuid` (ADR
 // 0014 `_Uuid` FK convention, matching the backend's `paymentMethodUuid`/
 // `currencyUuid` fields).
 const methodOptions = ref<{ label: string, value: string }[]>([])
@@ -69,13 +68,9 @@ const loadingCatalogs = ref(false)
 async function loadCatalogs() {
   loadingCatalogs.value = true
   try {
-    const [methods, currencies] = await Promise.all([methodsApi.listAll(), currenciesApi.listAll()])
-    methodOptions.value = methods
-      .filter((m: CatalogItem) => m.active)
-      .map((m: CatalogItem) => ({ label: m.name, value: m.uuid }))
-    currencyOptions.value = currencies
-      .filter((c: CatalogItem) => c.active)
-      .map((c: CatalogItem) => ({ label: c.symbol ? `${c.code} (${c.symbol})` : (c.code ?? c.name), value: c.uuid }))
+    const [methods, currencies] = await Promise.all([methodsApi.options({ limit: 200 }), currenciesApi.options({ limit: 200 })])
+    methodOptions.value = methods.map(m => ({ label: m.label, value: m.uuid }))
+    currencyOptions.value = currencies.map(c => ({ label: c.label, value: c.uuid }))
   }
   catch {
     methodOptions.value = []

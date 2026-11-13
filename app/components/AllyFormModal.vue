@@ -44,7 +44,6 @@ const { t } = useI18n()
 const allies = useAllies()
 const toast = useToast()
 const promotersApi = usePromoters()
-const { can } = usePermissions()
 
 const isOpen = computed({
   get: () => props.open,
@@ -121,16 +120,11 @@ const { options: documentTypeOptions, load: loadDocumentTypes } = useDocumentTyp
 function onDocumentTypesOpen(open: boolean) {
   if (open) void loadDocumentTypes()
 }
-// "Asesor que lo captó" (create only): the promoter list needs PROMOTER_VIEW_ALL;
-// without it the select stays empty.
-const canListPromoters = computed(() => can('PROMOTER_VIEW_ALL'))
+// "Asesor que lo captó" (create only): `/options` of the advisors (any session, no PROMOTER_VIEW_ALL).
 const promoters = useLazyOptions(async () => {
-  if (!canListPromoters.value) return []
   try {
-    const res = await promotersApi.list({ size: 200, sort: ['displayName,asc'] })
-    return (res.content ?? [])
-      .filter(p => !p.system)
-      .map(p => ({ label: `${p.displayName} (${p.referralCode || t('common.noCode')})`, value: p.uuid }))
+    const res = await promotersApi.options({ limit: 200 })
+    return res.map(p => ({ label: `${p.label} (${p.code || t('common.noCode')})`, value: p.uuid }))
   }
   catch {
     return []

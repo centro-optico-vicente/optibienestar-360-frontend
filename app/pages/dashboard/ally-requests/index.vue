@@ -240,7 +240,6 @@ onMounted(() => {
         <div class="flex flex-wrap items-center gap-3">
           <USelectMenu clear value-key="value" v-model="channel" :items="channelItems" :aria-label="t('allyRequests.columns.channel')" size="lg" class="w-48" />
           <USelectMenu
-            v-if="advisors.available.value"
             v-model="promoterUuid"
             clear
             :items="advisorItems.items.value"

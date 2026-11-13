@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { CatalogItem } from '~/types/catalogs'
 import type { SelectItem } from '~/types/options'
 import { memberOptionLabel } from '~/types/members'
 import { bankOptionLabel } from '~/utils/bankLabel'
@@ -14,21 +13,21 @@ const model = defineModel<PaymentMasterFilterState>({ required: true })
 const { t } = useI18n()
 const membersApi = useMembers()
 const promotersApi = usePromoters()
-const methodsApi = useCatalog('/v1/admin/payment-methods')
-const banksApi = useCatalog('/v1/admin/banks')
-const categoriesApi = useCatalog('/v1/admin/payment-categories')
-const currenciesApi = useCatalog('/v1/admin/currencies')
+// Filters only need code + label: each entity's `/options` (any session), not the full admin list.
+const methodsApi = useCatalogOptions('payment-methods', '/v1/admin')
+const banksApi = useCatalogOptions('banks', '/v1/admin')
+const categoriesApi = useCatalogOptions('payment-categories', '/v1/admin')
+const currenciesApi = useCatalogOptions('currencies', '/v1/admin')
 
 // Each dropdown fetches its list the first time it is opened, not when the list mounts.
-const activeItems = (items: CatalogItem[]) => items.filter(i => i.active)
 const methods = useLazyOptions(async () =>
-  activeItems(await methodsApi.listAll()).map(m => ({ label: m.name, value: m.uuid })))
+  (await methodsApi.options({ limit: 200 })).map(m => ({ label: m.label, value: m.uuid })))
 const banks = useLazyOptions(async () =>
-  activeItems(await banksApi.listAll()).map(b => ({ label: bankOptionLabel(b), value: b.uuid })))
+  (await banksApi.options({ limit: 200 })).map(b => ({ label: b.label, value: b.uuid })))
 const categories = useLazyOptions(async () =>
-  activeItems(await categoriesApi.listAll()).map(c => ({ label: c.name, value: c.uuid })))
+  (await categoriesApi.options({ limit: 200 })).map(c => ({ label: c.label, value: c.uuid })))
 const currencies = useLazyOptions(async () =>
-  activeItems(await currenciesApi.listAll()).map(c => ({ label: `${c.code} (${c.symbol})`, value: c.code! })))
+  (await currenciesApi.options({ limit: 200 })).map(c => ({ label: c.label, value: c.code! })))
 
 async function searchMembers(q: string): Promise<SelectItem[]> {
   const res = await membersApi.options({ ...(q ? { q } : {}), limit: 10 })

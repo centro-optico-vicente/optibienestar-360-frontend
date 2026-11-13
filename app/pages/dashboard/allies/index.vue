@@ -325,7 +325,6 @@ async function confirmDelete() {
             class="w-56"
           />
           <USelectMenu
-            v-if="advisors.available.value"
             v-model="promoterUuid"
             clear
             :items="advisorItems.items.value"

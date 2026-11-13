@@ -1,29 +1,25 @@
 import type { SelectItem } from '~/types/options'
 
 /**
- * The advisors as select items, for the "Asesor" filters and the ally advisor modal. The list needs
- * PROMOTER_VIEW_ALL (`GET /v1/admin/advisors`); without it `available` is false and `options` stays empty, so the
- * callers hide the control. The system row (INSTITUCION) is left out: it is not a person who brings allies in.
+ * The advisors as select items, for the "Asesor" filters and the ally advisor modal. Fed by
+ * `GET /v1/admin/advisors/options` (any session): it does NOT need PROMOTER_VIEW_ALL, which also opens the
+ * advisors screen, so whoever manages allies can pick an advisor without seeing that screen.
  */
 export const useAdvisorOptions = () => {
   const { t } = useI18n()
-  const { can } = usePermissions()
   const promotersApi = usePromoters()
   const options = ref<SelectItem[]>([])
-  const available = computed(() => can('PROMOTER_VIEW_ALL'))
 
   async function load() {
-    if (!available.value || options.value.length > 0) return
+    if (options.value.length > 0) return
     try {
-      const res = await promotersApi.list({ size: 200, sort: ['displayName,asc'] })
-      options.value = (res.content ?? [])
-        .filter(p => !p.system)
-        .map(p => ({ label: `${p.displayName} (${p.referralCode || t('common.noCode')})`, value: p.uuid }))
+      const res = await promotersApi.options({ limit: 200 })
+      options.value = res.map(p => ({ label: `${p.label} (${p.code || t('common.noCode')})`, value: p.uuid }))
     }
     catch {
       options.value = []
     }
   }
 
-  return { options, available, load }
+  return { options, load }
 }

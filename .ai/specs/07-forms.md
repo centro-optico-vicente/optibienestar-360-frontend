@@ -282,6 +282,25 @@ private static String labelOf(Currency c) {
 
 El frontend consume `option.label` directamente (ver `CommissionTierFormModal.vue`, `currencyItems`), sin concatenar código/nombre por su cuenta.
 
+## Selects: siempre por `/options`
+
+Toda lista desplegable se alimenta del endpoint **`/options`** de su entidad, nunca del listado completo (`/v1/admin/<x>`, `listAll()`, `GET` paginado):
+
+- `/options` devuelve `{ uuid, code, label, active }`, acepta `q` (búsqueda libre insensible a mayúsculas, tildes y `ñ`), `limit` y `currentValues`, y **solo exige sesión válida** (ADR backend LOC-0013, regla 3). El permiso `<X>_VIEW_ALL` abre la pantalla en el menú; no debe condicionar un select. Un afiliado que paga ve bancos y monedas sin tener la pantalla de Bancos.
+- **Nunca** ocultar ni deshabilitar un select con `can('<X>_VIEW_ALL')`.
+- Helpers: `useCatalogOptions(resource, base?)` (catálogos → `/v1/admin/catalogs/<resource>`; con `base = '/v1/admin'` entidades con controller propio, p. ej. `useCatalogOptions('banks', '/v1/admin')`), y `usePlans()`, `useProducts()`, `useCampaigns()`, `useAllies()`, `usePromoters()`, `useMembers()` → `.options({ q, limit, currentValues })`. Listas cortas → `useLazyOptions`; listas grandes o con búsqueda → `CommonEntityReferenceSelect` modo `search`.
+- Todo master con listado tiene su `/options` y su `GET /{uuid}`; si falta, se agrega en el backend, no se rodea con el listado.
+
+**Excepción (pendiente de decisión):** cuando el formulario necesita atributos del registro elegido, el select sigue leyendo el catálogo completo o el detalle: método de pago (banderas `mandatory*` que deciden los campos), tipo de aliado (`segment`), profesiones (árbol de sub-especialidades), categoría de pago de egreso (`direction`) y rangos de asesor en `PromoterChangeRankModal`. Se listan en el PR; al resolverse se retira la excepción.
+
+```ts
+// ❌ lista completa, exige permiso de pantalla
+const banks = useLazyOptions(async () => (await useCatalog('/v1/admin/banks').listAll()).map(...))
+// ✅ /options, solo sesión
+const bankOptions = useCatalogOptions('banks', '/v1/admin')
+const banks = useLazyOptions(async () => (await bankOptions.options({ limit: 200 })).map(b => ({ label: b.label, value: b.uuid })))
+```
+
 ## Selects: filtrables y limpiables
 
 Todo dropdown del sistema debe poder **filtrarse escribiendo** y **limpiarse** (volver a "sin valor"):

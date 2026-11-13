@@ -31,7 +31,6 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const productsApi = useProducts()
 const allies = useAllies()
-const { can } = usePermissions()
 const toast = useToast()
 
 const isOpen = computed({
@@ -101,18 +100,16 @@ const categoryOptions = computed<SelectItem[]>(() => {
   return [...seededCategory.value.filter(i => !seen.has(i.value)), ...categories.items.value]
 })
 
-// ---- Owner ally (server-side search; needs ALLY_VIEW_ALL) ----
-const canSearchAllies = computed(() => can('ALLY_VIEW_ALL'))
+// ---- Owner ally (server-side search over the allies `/options`, any session) ----
 const allySearchTerm = ref('')
 const allyOptions = ref<SelectItem[]>([])
 const allySearching = ref(false)
 
 async function searchAllies(q?: string) {
-  if (!canSearchAllies.value) return
   allySearching.value = true
   try {
-    const res = await allies.list({ q, size: 20 })
-    const found = (res.content ?? []).map(a => ({ label: a.name, value: a.uuid }))
+    const res = await allies.options({ q, limit: 20 })
+    const found = res.map(a => ({ label: a.label, value: a.uuid }))
     // Keep the current owner selectable even when it's not in the result page.
     const current = allyOptions.value.find(o => o.value === state.ownerAllyUuid)
     allyOptions.value = current && !found.some(o => o.value === current.value) ? [current, ...found] : found
@@ -296,7 +293,7 @@ function requestDelete() {
         <UFormField
           :label="t('products.form.fields.ownerAlly')"
           name="ownerAllyUuid"
-          :help="canSearchAllies ? t('products.form.ownerAllyHelp') : t('products.form.ownerAllyNoPermission')"
+          :help="t('products.form.ownerAllyHelp')"
         >
           <USelectMenu
             clear
@@ -308,7 +305,6 @@ function requestDelete() {
             ignore-filter
             icon="i-lucide-handshake"
             :loading="allySearching"
-            :disabled="!canSearchAllies"
             :placeholder="t('products.form.generalPlaceholder')"
             :search-input="{ placeholder: t('products.form.allySearchPlaceholder'), icon: 'i-lucide-search' }"
             class="w-full"

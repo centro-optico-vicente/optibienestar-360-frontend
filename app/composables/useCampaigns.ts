@@ -1,3 +1,4 @@
+import type { Option } from '~/types/options'
 import type { Page } from '~/types/admin'
 import type {
   CampaignAudienceDto,
@@ -34,6 +35,16 @@ interface ListParams {
  * (AdminCampaignController, optibienestar-360-backend modules/campaign).
  */
 export const useCampaigns = () => {
+  /** Lightweight projection for selects (`GET /v1/admin/campaigns/options`) — any session, no CAMPAIGN_VIEW_ALL needed. */
+  const options = (params: { q?: string, limit?: number, currentValues?: string[] } = {}) =>
+    useApi<Option[]>('/v1/admin/campaigns/options', {
+      query: {
+        ...(params.q ? { q: params.q } : {}),
+        ...(params.limit ? { limit: params.limit } : {}),
+        ...(params.currentValues?.length ? { currentValues: params.currentValues } : {}),
+      },
+    })
+
   const list = (params: ListParams = {}) =>
     useApi<Page<CampaignDto>>('/v1/admin/campaigns', {
       query: {
@@ -102,6 +113,7 @@ export const useCampaigns = () => {
     useApi<null>(`/v1/admin/campaigns/${uuid}/exceptions/${exceptionUuid}`, { method: 'DELETE' })
 
   return {
+    options,
     list,
     get,
     create,

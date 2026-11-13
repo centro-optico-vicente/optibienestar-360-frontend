@@ -7,6 +7,7 @@ import type { SelectItem } from '~/types/options'
 import type { PaymentCreateRequest, PaymentDto } from '~/types/payments'
 import { BANK_ACCOUNT_TYPE_OPTIONS } from '~/types/payments'
 import type { CatalogItem } from '~/types/catalogs'
+import type { Option } from '~/types/options'
 
 // Register a manual payment (POST /v1/admin/payments, multipart). There is no edit:
 // a payment is registered and then approved/rejected. The flow is a cascade —
@@ -24,8 +25,9 @@ const payments = usePayments()
 const members = useMembers()
 const memberships = useMemberships()
 const methodsApi = useCatalog('/v1/admin/payment-methods')
-const banksApi = useCatalog('/v1/admin/banks')
-const currenciesApi = useCatalog('/v1/admin/currencies')
+// Banks and currencies only need code + label: their `/options` (any session), not the full admin list.
+const bankOptions = useCatalogOptions('banks', '/v1/admin')
+const currencyOptions = useCatalogOptions('currencies', '/v1/admin')
 const toast = useToast()
 const { can } = usePermissions()
 
@@ -68,11 +70,11 @@ const methods = useLazyOptions(async () => {
   methodsByUuid.value = Object.fromEntries(active.map((method: CatalogItem) => [method.uuid, method]))
   return active.map((method: CatalogItem) => ({ label: method.name, value: method.uuid }))
 })
-const banksByUuid = ref<Record<string, CatalogItem>>({})
+const banksByUuid = ref<Record<string, Option>>({})
 const banks = useLazyOptions(async () => {
-  const active = (await banksApi.listAll()).filter((bank: CatalogItem) => bank.active)
-  banksByUuid.value = Object.fromEntries(active.map((bank: CatalogItem) => [bank.uuid, bank]))
-  return active.map((bank: CatalogItem) => ({ label: bankOptionLabel(bank), value: bank.uuid }))
+  const items = await bankOptions.options({ limit: 200 })
+  banksByUuid.value = Object.fromEntries(items.map(b => [b.uuid, b]))
+  return items.map(b => ({ label: b.label, value: b.uuid }))
 })
 const selectedMethod = ref<CatalogItem | null>(null)
 // Currency dropdown label uses the real `symbol` from the master (ADR 0015)
@@ -80,9 +82,7 @@ const selectedMethod = ref<CatalogItem | null>(null)
 // backend stays the ISO `code`, same contract as before. Loaded when the modal
 // opens (once per instance): the form preselects USD, whose label needs the list.
 const currencies = useLazyOptions(async () =>
-  (await currenciesApi.listAll())
-    .filter((currency: CatalogItem) => currency.active)
-    .map((currency: CatalogItem) => ({ label: `${currency.code} (${currency.symbol})`, value: currency.code! })))
+  (await currencyOptions.options({ limit: 200 })).map(c => ({ label: c.label, value: c.code! })))
 
 // ---- Additional payment lines (V117 lines feature) — see usePaymentLinesEditor.
 // The form's own fields above stay the flat "first line"; this editor only

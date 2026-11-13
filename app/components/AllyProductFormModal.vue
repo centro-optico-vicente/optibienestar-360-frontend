@@ -51,11 +51,9 @@ const editing = ref<AllyProductDto | null>(null)
 // so it can't use type="submit"; it triggers validation via this instead.
 const formRef = ref<{ submit: () => Promise<void> } | null>(null)
 
-/** Picking a general product needs read access to the products master. */
-const canPickGeneral = computed(() => can('PRODUCT_VIEW_ALL'))
 const source = ref<'general' | 'exclusive'>('general')
 const sourceItems = computed(() => [
-  { label: t('allies.products.form.sourceGeneral'), value: 'general', disabled: !canPickGeneral.value },
+  { label: t('allies.products.form.sourceGeneral'), value: 'general' },
   { label: t('allies.products.form.sourceExclusive'), value: 'exclusive' },
 ])
 
@@ -147,14 +145,11 @@ const productOptions = ref<SelectItem[]>([])
 const productSearching = ref(false)
 
 async function searchProducts(q?: string) {
-  if (!canPickGeneral.value) return
   productSearching.value = true
   try {
-    const res = await productsApi.list({ q, exclusive: false, size: 20, sort: ['name,asc'] })
-    productOptions.value = (res.content ?? []).map(p => ({
-      label: p.productCategory_Display ? `${p.name} · ${p.productCategory_Display}` : p.name,
-      value: p.uuid,
-    }))
+    // `/options` (any session): picking a product must not require the products screen permission.
+    const res = await productsApi.options({ q, exclusive: false, limit: 20 })
+    productOptions.value = res.map(p => ({ label: p.label, value: p.uuid }))
   }
   catch {
     productOptions.value = []
@@ -186,7 +181,7 @@ watch(() => props.open, async (open) => {
   if (!open) return
   resetState()
   editing.value = null
-  source.value = canPickGeneral.value ? 'general' : 'exclusive'
+  source.value = 'general'
   productSearchTerm.value = ''
   productsSearched = false
   seededCategory.value = []
@@ -308,7 +303,6 @@ function requestDelete() {
         <UFormField
           v-if="mode === 'create'"
           :label="t('allies.products.form.source')"
-          :help="canPickGeneral ? undefined : t('allies.products.form.sourceGeneralNoPermission')"
         >
           <URadioGroup v-model="source" :items="sourceItems" orientation="horizontal" />
         </UFormField>

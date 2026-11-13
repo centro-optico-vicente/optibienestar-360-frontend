@@ -55,9 +55,8 @@ const sourceOptions = computed(() => EXCHANGE_RATE_SOURCE_OPTIONS.map(o => ({ la
 // Currency master for the base/quote dropdowns (value = ISO code, the contract of `base`/`quote`).
 // Shared by both selects and fetched the first time either one opens.
 const currencies = useLazyOptions(async () =>
-  (await useCatalog('/v1/admin/currencies').listAll())
-    .filter(c => c.active)
-    .map(c => ({ label: `${c.code} - ${c.name}`, value: c.code! })))
+  (await useCatalogOptions('currencies', '/v1/admin').options({ limit: 200 }))
+    .map(c => ({ label: c.label, value: c.code! })))
 // Empty by default: no `sort=` is sent until the user clicks a column, so the
 // backend's own default (validFrom DESC) applies.
 const sort = useTableSort([])

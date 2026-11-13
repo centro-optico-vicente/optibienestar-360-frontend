@@ -99,8 +99,8 @@ function onCurrenciesOpen(open: boolean) {
 }
 
 async function searchCampaigns(q: string): Promise<SelectItem[]> {
-  const res = await campaignsApi.list({ q, size: 20 })
-  return (res.content ?? []).map(c => ({ label: c.name, value: c.uuid }))
+  const res = await campaignsApi.options({ q, limit: 20 })
+  return res.map(c => ({ label: c.label, value: c.uuid }))
 }
 function goToCampaign(to: string) {
   isOpen.value = false

@@ -665,8 +665,8 @@ function overrideReward(tier: HierarchyOverrideTierDto): string {
 // selected campaign)
 // =========================================================
 async function searchCampaignsForFilter(q: string): Promise<SelectItem[]> {
-  const res = await campaignsApi.list({ q, size: 20 })
-  return (res.content ?? []).map(c => ({ label: c.name, value: c.uuid }))
+  const res = await campaignsApi.options({ q, limit: 20 })
+  return res.map(c => ({ label: c.label, value: c.uuid }))
 }
 const campaignsApi = useCampaigns()
 const crCampaignUuid = ref<string | undefined>(undefined)

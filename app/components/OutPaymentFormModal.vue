@@ -3,6 +3,7 @@ import { z } from 'zod'
 import type { PaymentDto, OutPaymentCreateRequest, OutPaymentUpdateRequest } from '~/types/payments'
 import { BANK_ACCOUNT_TYPE_OPTIONS } from '~/types/payments'
 import type { CatalogItem } from '~/types/catalogs'
+import type { Option } from '~/types/options'
 import type { PromoterDto, PromoterPayoutAccountDto } from '~/types/promoters'
 
 const props = defineProps<{ open: boolean, payment?: PaymentDto | null }>()
@@ -16,8 +17,9 @@ const payments = usePayments()
 const promoters = usePromoters()
 const categoriesApi = useCatalog('/v1/admin/payment-categories')
 const methodsApi = useCatalog('/v1/admin/payment-methods')
-const banksApi = useCatalog('/v1/admin/banks')
-const currenciesApi = useCatalog('/v1/admin/currencies')
+// Banks and currencies only need code + label: their `/options` (any session), not the full admin list.
+const bankOptions = useCatalogOptions('banks', '/v1/admin')
+const currencyOptions = useCatalogOptions('currencies', '/v1/admin')
 const toast = useToast()
 const { can } = usePermissions()
 const canViewMethods = computed(() => can('PAYMENT_METHOD_VIEW_ALL'))
@@ -49,9 +51,7 @@ const categories = useLazyOptions(async () =>
 // backend stays the ISO `code`, same contract as before. Loaded when the modal
 // opens (once per instance): the form preselects USD, whose label needs the list.
 const currencies = useLazyOptions(async () =>
-  (await currenciesApi.listAll())
-    .filter((currency: CatalogItem) => currency.active)
-    .map((currency: CatalogItem) => ({ label: `${currency.code} (${currency.symbol})`, value: currency.code! })))
+  (await currencyOptions.options({ limit: 200 })).map(c => ({ label: c.label, value: c.code! })))
 
 // The person picker shows the promoter's display name (matches the person's
 // own name in practice) while `state.personUuid` — sent to the backend —
@@ -109,11 +109,11 @@ const methods = useLazyOptions(async () =>
   (await methodsApi.listAll())
     .filter((method: CatalogItem) => method.active)
     .map((method: CatalogItem) => ({ label: method.name, value: method.uuid })))
-const banksByUuid = ref<Record<string, CatalogItem>>({})
+const banksByUuid = ref<Record<string, Option>>({})
 const banks = useLazyOptions(async () => {
-  const active = (await banksApi.listAll()).filter((bank: CatalogItem) => bank.active)
-  banksByUuid.value = Object.fromEntries(active.map((bank: CatalogItem) => [bank.uuid, bank]))
-  return active.map((bank: CatalogItem) => ({ label: bankOptionLabel(bank), value: bank.uuid }))
+  const items = await bankOptions.options({ limit: 200 })
+  banksByUuid.value = Object.fromEntries(items.map(b => [b.uuid, b]))
+  return items.map(b => ({ label: b.label, value: b.uuid }))
 })
 // A preset value (edit, payout-account prefill) needs its list for the label.
 watch(() => state.promoterUuid, v => v && promoterList.ensureLoaded())

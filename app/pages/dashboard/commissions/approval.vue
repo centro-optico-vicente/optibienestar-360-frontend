@@ -31,7 +31,7 @@ const toast = useToast()
 const promotersApi = usePromoters()
 const campaignsApi = useCampaigns()
 const promoterTypeOptions = useCatalogOptions('advisor-types')
-const rankCatalog = useCatalog('/v1/admin/advisor-ranks')
+const rankOptions = useCatalogOptions('advisor-ranks', '/v1/admin')
 const { can } = usePermissions()
 
 const canViewPromoter = computed(() => can('PROMOTER_VIEW_ALL'))
@@ -108,8 +108,8 @@ async function searchPromoters(q: string): Promise<SelectItem[]> {
 }
 
 async function searchCampaigns(q: string): Promise<SelectItem[]> {
-  const res = await campaignsApi.list({ q, size: 20 })
-  return (res.content ?? []).map(c => ({ label: c.name, value: c.uuid }))
+  const res = await campaignsApi.options({ q, limit: 20 })
+  return res.map(c => ({ label: c.label, value: c.uuid }))
 }
 
 function goToLinkedRecord(to: string) {
@@ -121,7 +121,7 @@ function goToLinkedRecord(to: string) {
 const promoterTypes = useLazyOptions(async () =>
   (await promoterTypeOptions.options({ limit: 100 })).map(o => ({ label: o.label, value: o.uuid })))
 const ranks = useLazyOptions(async () =>
-  (await rankCatalog.listAll()).map(r => ({ label: r.name, value: r.uuid })))
+  (await rankOptions.options({ limit: 200 })).map(r => ({ label: r.label, value: r.uuid })))
 
 function clearPeriod() {
   periodRange.value = emptyDateRange()

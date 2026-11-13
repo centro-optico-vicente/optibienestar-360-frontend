@@ -1,4 +1,5 @@
 import type { Page } from '~/types/admin'
+import type { Option } from '~/types/options'
 import type { AllyProductDto } from '~/types/allies'
 import type {
   ProductCreateRequest,
@@ -32,6 +33,21 @@ interface ProductListParams {
  * - offers (every ally offering the product) → ALLY_PRODUCT_VIEW_ALL
  */
 export const useProducts = () => {
+  /**
+   * Lightweight projection for selects (`GET /v1/admin/products/options`, label `<code> — <name>`),
+   * any session — it does NOT need PRODUCT_VIEW_ALL, which also opens the products screen.
+   * `exclusive: false` → only general products (the ones an ally can adopt).
+   */
+  const options = (params: { q?: string, limit?: number, exclusive?: boolean, currentValues?: string[] } = {}) =>
+    useApi<Option[]>('/v1/admin/products/options', {
+      query: {
+        ...(params.q ? { q: params.q } : {}),
+        ...(params.limit ? { limit: params.limit } : {}),
+        ...(params.exclusive !== undefined ? { exclusive: String(params.exclusive) } : {}),
+        ...(params.currentValues?.length ? { currentValues: params.currentValues } : {}),
+      },
+    })
+
   const list = (params: ProductListParams = {}) =>
     useApi<Page<ProductListItemDto>>('/v1/admin/products', {
       query: {
@@ -67,6 +83,7 @@ export const useProducts = () => {
     })
 
   return {
+    options,
     list,
     get,
     create,

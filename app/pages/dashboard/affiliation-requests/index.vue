@@ -46,12 +46,12 @@ const resetting = ref(false)
 // ---- Master-table filters (plan, advisor, payment method, creation date range) ----
 const plansApi = usePlans()
 const promotersApi = usePromoters()
-const methodsApi = useCatalog('/v1/admin/payment-methods')
+const methodsApi = useCatalogOptions('payment-methods', '/v1/admin')
 // Plan/payment-method lists are fetched the first time their dropdown opens.
 const plans = useLazyOptions(async () =>
   (await plansApi.options({ limit: 100 })).map(p => ({ label: p.label, value: p.uuid })))
 const methods = useLazyOptions(async () =>
-  (await methodsApi.listAll()).filter(m => m.active).map(m => ({ label: m.name, value: m.uuid })))
+  (await methodsApi.options({ limit: 200 })).map(m => ({ label: m.label, value: m.uuid })))
 
 const filterFields = computed<ListFilterField[]>(() => [
   { key: 'planUuid', label: t('affiliationRequests.filters.plan'), icon: 'i-lucide-layers', lazy: plans },
