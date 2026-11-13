@@ -39,23 +39,16 @@ const toast = useToast()
 const { can } = usePermissions()
 
 // ---- Currency options (flat-amount reward) ----
-const currencyItems = ref<SelectItem[]>([])
 const currencyCodeByUuid = ref<Record<string, string>>({})
-const loadingCurrencies = ref(false)
-async function loadCurrencyOptions() {
-  loadingCurrencies.value = true
-  try {
-    const options = await currencies.options()
-    const withCode = options.filter(o => o.code)
-    currencyItems.value = withCode.map(o => ({ label: o.label, value: o.uuid }))
-    currencyCodeByUuid.value = Object.fromEntries(withCode.map(o => [o.uuid, o.code as string]))
-  }
-  catch { currencyItems.value = [] }
-  finally { loadingCurrencies.value = false }
-}
-function onCurrenciesOpen(open: boolean) {
-  if (open && !currencyItems.value.length && !loadingCurrencies.value) void loadCurrencyOptions()
-}
+// Searched on the server (`q`) when the dropdown opens and while typing; what was seen stays in the maps above.
+const currencyLazy = useLazyOptions(async (q) => {
+  const options = await currencies.options({ q })
+  const withCode = options.filter(o => o.code)
+  const found = withCode.map(o => ({ label: o.label, value: o.uuid }))
+  currencyCodeByUuid.value = { ...currencyCodeByUuid.value, ...Object.fromEntries(withCode.map(o => [o.uuid, o.code as string])) }
+  return found
+})
+const onCurrenciesOpen = currencyLazy.onOpen
 
 /** Resolves `flatAmountCurrencyUuid` to its ISO code for `CurrencyConverterDisplay`. */
 const flatAmountCurrencyCode = computed(() => currencyCodeByUuid.value[state.flatAmountCurrencyUuid] ?? null)
@@ -70,20 +63,15 @@ const thresholdAmountCurrencyCode = computed(() => currencyCodeByUuid.value[stat
 const flatAmountConversionDate = computed(() => clampTodayToRange(state.startsAt, state.endsAt))
 
 // ---- Promoter-type scope (M:N, hub plan Part F) — empty selection = applies to every type ----
-const promoterTypeItems = ref<SelectItem[]>([])
-const loadingPromoterTypes = ref(false)
-async function loadPromoterTypeOptions() {
-  loadingPromoterTypes.value = true
-  try {
-    const options = await promoterTypeOptions.options()
-    promoterTypeItems.value = options.map(o => ({ label: o.label, value: o.uuid }))
-  }
-  catch { promoterTypeItems.value = [] }
-  finally { loadingPromoterTypes.value = false }
-}
-function onPromoterTypesOpen(open: boolean) {
-  if (open && !promoterTypeItems.value.length && !loadingPromoterTypes.value) void loadPromoterTypeOptions()
-}
+// Searched on the server (`q`) when the dropdown opens and while typing; what was seen stays in the maps above.
+const promoterTypeLazy = useLazyOptions(async (q) => {
+  const options = await promoterTypeOptions.options({ q })
+  const found = options.map(o => ({ label: o.label, value: o.uuid }))
+  return found
+})
+const promoterTypeItems = computed(() => promoterTypeLazy.items.value)
+const loadingPromoterTypes = computed(() => promoterTypeLazy.loading.value)
+const onPromoterTypesOpen = promoterTypeLazy.onOpen
 
 // ---- Campaign selector (async search) + date autofill ----
 async function searchCampaigns(q: string): Promise<SelectItem[]> {
@@ -483,13 +471,11 @@ async function restoreTier() {
         <UFormField v-if="state.basis === 'AMOUNT'" :label="t('commissionRules.tiers.form.thresholdAmountCurrency')" name="thresholdAmountCurrencyUuid" required :help="t('commissionRules.tiers.form.thresholdAmountCurrencyHelp')">
           <CommonEntityReferenceSelect
             v-model="state.thresholdAmountCurrencyUuid"
-            :items="currencyItems"
             entity="currency"
-            :loading="loadingCurrencies"
             :placeholder="t('common.select')"
             class="w-full"
-            @open="onCurrenciesOpen"
             @navigate="goToCurrency"
+            :lazy="currencyLazy"
           />
         </UFormField>
 
@@ -584,13 +570,11 @@ async function restoreTier() {
         <UFormField v-if="state.rewardKind === 'FLAT'" :label="t('commissionRules.tiers.form.flatAmountCurrency')" name="flatAmountCurrencyUuid" required :help="t('commissionRules.tiers.form.flatAmountCurrencyHelp')">
           <CommonEntityReferenceSelect
             v-model="state.flatAmountCurrencyUuid"
-            :items="currencyItems"
             entity="currency"
-            :loading="loadingCurrencies"
             :placeholder="t('common.select')"
             icon="i-lucide-coins"
-            @open="onCurrenciesOpen"
             @navigate="goToCurrency"
+            :lazy="currencyLazy"
           />
         </UFormField>
 
@@ -599,6 +583,8 @@ async function restoreTier() {
             clear
             v-model="state.promoterTypeUuids"
             :items="promoterTypeItems"
+            v-model:search-term="promoterTypeLazy.searchTerm.value"
+            ignore-filter
             label-key="label"
             value-key="value"
             multiple
@@ -607,6 +593,7 @@ async function restoreTier() {
             :placeholder="t('commissionRules.form.promoterTypesPlaceholder')"
             class="w-full"
             @update:open="onPromoterTypesOpen"
+            @update:model-value="promoterTypeLazy.remember($event)"
           />
         </UFormField>
 

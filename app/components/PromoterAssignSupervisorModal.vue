@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { SelectItem } from '~/types/options'
 import { toSelectItems } from '~/types/options'
 
 /**
@@ -42,32 +41,27 @@ const touched = ref(false)
 const promoterName = ref('')
 const currentRankUuid = ref<string | null>(null)
 const currentRankDisplay = ref('')
-const supervisorOptions = ref<SelectItem[]>([])
+// Eligible supervisors searched on the server (`q`); the loader reads the current rank and scope when it runs.
+const supervisorLazy = useLazyOptions(async (q) => {
+  if (!currentRankUuid.value) return []
+  return toSelectItems(await hierarchyApi.eligibleSupervisors(currentRankUuid.value, { allSuperiors: allSuperiors.value, q }))
+})
+const supervisorOptions = computed(() => supervisorLazy.items.value)
 const selectedSupervisor = ref<string>('')
 const detachSupervisor = ref(false)
 const reason = ref('')
 // Default: only the immediate-next rank, same default as the change-rank
 // flow — "ampliar a todos los superiores" is the advanced/opt-in case.
 const allSuperiors = ref(false)
-const loadingSupervisors = ref(false)
+const loadingSupervisors = computed(() => supervisorLazy.loading.value)
 
 const reasonError = computed(() =>
   touched.value && !reason.value.trim() ? t('validation.required') : undefined)
 
 async function loadSupervisorOptions() {
-  supervisorOptions.value = []
+  supervisorLazy.reset()
   if (!currentRankUuid.value) return
-  loadingSupervisors.value = true
-  try {
-    const options = await hierarchyApi.eligibleSupervisors(currentRankUuid.value, { allSuperiors: allSuperiors.value, limit: DROPDOWN_PAGE_SIZE })
-    supervisorOptions.value = toSelectItems(options)
-  }
-  catch {
-    // useApi ya notificó el error
-  }
-  finally {
-    loadingSupervisors.value = false
-  }
+  await supervisorLazy.ensureLoaded()
 }
 
 watch(allSuperiors, loadSupervisorOptions)
@@ -75,7 +69,7 @@ watch(allSuperiors, loadSupervisorOptions)
 async function load() {
   if (!props.promoterUuid) return
   loading.value = true
-  supervisorOptions.value = []
+  supervisorLazy.reset()
   try {
     const promoter = await promotersApi.get(props.promoterUuid)
     promoterName.value = promoter.displayName
@@ -168,13 +162,12 @@ async function confirm() {
           >
             <CommonEntityReferenceSelect
               v-model="selectedSupervisor"
-              :items="supervisorOptions"
-              :loading="loadingSupervisors"
               entity="promoter"
               :placeholder="t('promoters.hierarchy.supervisorPlaceholder')"
               @navigate="goToSupervisor"
+              :lazy="supervisorLazy"
             />
-            <p v-if="!loadingSupervisors && supervisorOptions.length === 0" class="text-xs text-amber-600 mt-1">
+            <p v-if="!loadingSupervisors && supervisorOptions.length === 0 && !supervisorLazy.searchTerm.value" class="text-xs text-amber-600 mt-1">
               {{ t('promoters.hierarchy.noEligibleSupervisors') }}
             </p>
           </UFormField>

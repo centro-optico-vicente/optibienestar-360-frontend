@@ -111,39 +111,29 @@ const state = reactive<FormState>({
 // (`allSuperiors: false`), keyed off the promoter's current rank. Fetched the first
 // time the dropdown opens; until then only the current supervisor (from the detail)
 // is listed so its label shows.
-const supervisorOptions = ref<SelectItem[]>([])
-const loadingSupervisors = ref(false)
 let supervisorRankUuid: string | null = null
-let supervisorsLoaded = false
+// Searched on the server (`q`) when the dropdown opens and while typing; the current supervisor (from the
+// detail) stays listed through its seed even if it falls outside the page.
+const supervisorLazy = useLazyOptions(async (q) => {
+  const rankUuid = supervisorRankUuid
+  if (!rankUuid) return []
+  return toSelectItems(await hierarchyApi.eligibleSupervisors(rankUuid, { allSuperiors: false, q }))
+})
+const supervisorSeed = ref<SelectItem[]>([])
+const supervisorOptions = computed(() => {
+  const seen = new Set(supervisorLazy.items.value.map(o => o.value))
+  return [...supervisorSeed.value.filter(o => !seen.has(o.value)), ...supervisorLazy.items.value]
+})
+const loadingSupervisors = computed(() => supervisorLazy.loading.value)
 
 function seedSupervisorOptions(rankUuid: string | null | undefined, currentSupervisorUuid?: string | null, currentSupervisorDisplay?: string | null) {
   supervisorRankUuid = rankUuid ?? null
-  supervisorsLoaded = false
-  supervisorOptions.value = currentSupervisorUuid
+  supervisorLazy.reset()
+  supervisorSeed.value = currentSupervisorUuid
     ? [{ label: currentSupervisorDisplay || currentSupervisorUuid, value: currentSupervisorUuid }]
     : []
 }
-
-async function onSupervisorsOpen(open: boolean) {
-  const rankUuid = supervisorRankUuid
-  if (!open || !rankUuid || supervisorsLoaded || loadingSupervisors.value) return
-  loadingSupervisors.value = true
-  try {
-    const options = toSelectItems(await hierarchyApi.eligibleSupervisors(rankUuid, { allSuperiors: false, limit: DROPDOWN_PAGE_SIZE }))
-    if (supervisorRankUuid !== rankUuid) return
-    // The current supervisor might fall outside the eligible-list limit — keep
-    // it selectable regardless, same defensive idea as `currentValues` elsewhere.
-    const seen = new Set(options.map(o => o.value))
-    supervisorOptions.value = [...supervisorOptions.value.filter(o => !seen.has(o.value)), ...options]
-    supervisorsLoaded = true
-  }
-  catch {
-    // useApi already notified; the next open retries.
-  }
-  finally {
-    loadingSupervisors.value = false
-  }
-}
+const onSupervisorsOpen = supervisorLazy.onOpen
 
 // Snapshot of the supervisor at load time — only reassigned on save if it
 // actually changed, same "diff before writing" idea as `isEditDirty` below.
@@ -517,12 +507,15 @@ async function restorePromoter() {
                 clear
                 v-model="state.supervisorUuid"
                 :items="supervisorOptions"
+                v-model:search-term="supervisorLazy.searchTerm.value"
+                ignore-filter
                 :loading="loadingSupervisors"
                 label-key="label"
                 value-key="value"
                 :placeholder="t('promoters.hierarchy.supervisorPlaceholder')"
                 class="w-full"
                 @update:open="onSupervisorsOpen"
+                @update:model-value="supervisorLazy.remember($event)"
               />
               <CommonEntityQuickLinkButton
                 :to="supervisorLink"

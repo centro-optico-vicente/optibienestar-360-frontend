@@ -115,47 +115,25 @@ const weekdayOptions = computed(() => [
 const showAdvanced = ref(false)
 
 // ---- Rank options (Supervisor/Coordinador catalog, advisor-ranks) ----
-const rankItems = ref<SelectItem[]>([])
-const loadingRanks = ref(false)
-async function loadRankOptions() {
-  loadingRanks.value = true
-  try {
-    const options = await hierarchy.rankOptions()
-    rankItems.value = options.map(o => ({ label: o.label, value: o.uuid }))
-  }
-  catch {
-    rankItems.value = []
-  }
-  finally {
-    loadingRanks.value = false
-  }
-}
-function onRanksOpen(open: boolean) {
-  if (open && !rankItems.value.length && !loadingRanks.value) void loadRankOptions()
-}
+// Searched on the server (`q`) when the dropdown opens and while typing; what was seen stays in the maps above.
+const rankLazy = useLazyOptions(async (q) => {
+  const options = await hierarchy.rankOptions({ q })
+  const found = options.map(o => ({ label: o.label, value: o.uuid }))
+  return found
+})
+const onRanksOpen = rankLazy.onOpen
 
 // ---- Currency options (flatAmount's own currency FK, ADR 0015) ----
-const currencyItems = ref<SelectItem[]>([])
 const currencyCodeByUuid = ref<Record<string, string>>({})
-const loadingCurrencies = ref(false)
-async function loadCurrencyOptions() {
-  loadingCurrencies.value = true
-  try {
-    const options = await currencies.options()
-    const withCode = options.filter(o => o.code)
-    currencyItems.value = withCode.map(o => ({ label: o.label, value: o.uuid }))
-    currencyCodeByUuid.value = Object.fromEntries(withCode.map(o => [o.uuid, o.code as string]))
-  }
-  catch {
-    currencyItems.value = []
-  }
-  finally {
-    loadingCurrencies.value = false
-  }
-}
-function onCurrenciesOpen(open: boolean) {
-  if (open && !currencyItems.value.length && !loadingCurrencies.value) void loadCurrencyOptions()
-}
+// Searched on the server (`q`) when the dropdown opens and while typing; what was seen stays in the maps above.
+const currencyLazy = useLazyOptions(async (q) => {
+  const options = await currencies.options({ q })
+  const withCode = options.filter(o => o.code)
+  const found = withCode.map(o => ({ label: o.label, value: o.uuid }))
+  currencyCodeByUuid.value = { ...currencyCodeByUuid.value, ...Object.fromEntries(withCode.map(o => [o.uuid, o.code as string])) }
+  return found
+})
+const onCurrenciesOpen = currencyLazy.onOpen
 /** Resolves `flatAmountCurrencyUuid` to its ISO code for `CurrencyConverterDisplay`. */
 const flatAmountCurrencyCode = computed(() => currencyCodeByUuid.value[state.flatAmountCurrencyUuid] ?? null)
 /** Resolves `thresholdAmountCurrencyUuid` (basis=AMOUNT threshold) to its ISO code. */
@@ -461,12 +439,10 @@ async function restoreTier() {
           <UFormField :label="t('hierarchyOverrideTiers.form.rank')" name="rankUuid" required>
             <CommonEntityReferenceSelect
               v-model="state.rankUuid"
-              :items="rankItems"
-              :loading="loadingRanks"
               entity="promoter_rank"
               :placeholder="t('common.select')"
-              @open="onRanksOpen"
               @navigate="goToRank"
+              :lazy="rankLazy"
             />
           </UFormField>
           <UFormField :label="t('hierarchyOverrideTiers.form.category')" name="category" required>
@@ -494,13 +470,11 @@ async function restoreTier() {
         <UFormField v-if="state.basis === 'AMOUNT'" :label="t('hierarchyOverrideTiers.form.thresholdAmountCurrency')" name="thresholdAmountCurrencyUuid" required :help="t('hierarchyOverrideTiers.form.thresholdAmountCurrencyHelp')">
           <CommonEntityReferenceSelect
             v-model="state.thresholdAmountCurrencyUuid"
-            :items="currencyItems"
             entity="currency"
-            :loading="loadingCurrencies"
             :placeholder="t('common.select')"
             class="w-full"
-            @open="onCurrenciesOpen"
             @navigate="goToCurrency"
+            :lazy="currencyLazy"
           />
         </UFormField>
 
@@ -590,13 +564,11 @@ async function restoreTier() {
         <UFormField v-if="state.rewardKind === 'FLAT'" :label="t('hierarchyOverrideTiers.form.flatAmountCurrency')" name="flatAmountCurrencyUuid" required :help="t('hierarchyOverrideTiers.form.flatAmountCurrencyHelp')">
           <CommonEntityReferenceSelect
             v-model="state.flatAmountCurrencyUuid"
-            :items="currencyItems"
             entity="currency"
-            :loading="loadingCurrencies"
             :placeholder="t('common.select')"
             icon="i-lucide-coins"
-            @open="onCurrenciesOpen"
             @navigate="goToCurrency"
+            :lazy="currencyLazy"
           />
         </UFormField>
 

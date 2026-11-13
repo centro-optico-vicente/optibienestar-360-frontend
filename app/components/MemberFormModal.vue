@@ -135,34 +135,28 @@ function onDocumentTypesOpen(open: boolean) {
 // value the instant `selectedStateUuid` is set.
 const selectedStateUuid = ref<string | undefined>(undefined)
 const pendingCity = ref<SelectItem | undefined>(undefined)
-const cityOptions = ref<SelectItem[]>([])
-let citiesLoadedFor: string | undefined
-const citiesLoading = ref(false)
+// Searched on the server (`q`) within the selected state; the member's own city stays listed through its seed.
+const cities = (() => {
+  const lazy = useLazyOptions(async (q) => {
+    const stateUuid = selectedStateUuid.value
+    if (!stateUuid) return []
+    try {
+      return toSelectItems(await useCatalogOptions('cities').options({ q, parentUuid: stateUuid }))
+    }
+    catch {
+      return []
+    }
+  })
+  const seed = ref<SelectItem[]>([])
+  return { ...lazy, seed, items: computed(() => withSeed(seed.value, lazy.items.value)) }
+})()
 watch(selectedStateUuid, (stateUuid) => {
   const keepCity = pendingCity.value
   pendingCity.value = undefined
-  citiesLoadedFor = undefined
-  cityOptions.value = keepCity && stateUuid ? [keepCity] : []
+  cities.reset()
+  cities.seed.value = keepCity && stateUuid ? [keepCity] : []
   state.cityUuid = keepCity && stateUuid ? keepCity.value as string : undefined
 })
-async function onCitiesOpen(open: boolean) {
-  const stateUuid = selectedStateUuid.value
-  if (!open || !stateUuid || citiesLoadedFor === stateUuid) return
-  citiesLoading.value = true
-  try {
-    const cities = toSelectItems(await useCatalogOptions('cities').options({ parentUuid: stateUuid, limit: DROPDOWN_PAGE_SIZE }))
-    // The state may have changed while the request was in flight.
-    if (selectedStateUuid.value !== stateUuid) return
-    cityOptions.value = withSeed(cityOptions.value.filter(c => c.value === state.cityUuid), cities)
-    citiesLoadedFor = stateUuid
-  }
-  catch {
-    // useApi already notified; the next open retries.
-  }
-  finally {
-    citiesLoading.value = false
-  }
-}
 
 function statusLabel(s?: string | null): string {
   return s ? t(`members.status.${s}`, s) : t('common.empty')
@@ -326,7 +320,7 @@ function populateEditForm(full: MemberDto) {
   const cityItem = city?.uuid ? { label: city.name, value: city.uuid } : undefined
   if (selectedStateUuid.value === stateUuid) {
     // Same state (a refresh): the watcher won't run, so seed the city here.
-    if (cityItem) cityOptions.value = withSeed([cityItem], cityOptions.value)
+    if (cityItem) cities.seed.value = [cityItem]
   }
   else {
     pendingCity.value = cityItem
@@ -556,23 +550,19 @@ function requestDelete() {
           <UFormField :label="t('members.form.fields.gender')" name="genderUuid">
             <CommonEntityReferenceSelect
               v-model="state.genderUuid"
-              :items="genders.items.value"
-              :loading="genders.loading.value"
               entity="gender"
               :placeholder="t('common.select')"
               @navigate="goToCatalogRecord"
-              @open="genders.onOpen"
+              :lazy="genders"
             />
           </UFormField>
           <UFormField :label="t('members.form.fields.maritalStatus')" name="maritalStatusUuid">
             <CommonEntityReferenceSelect
               v-model="state.maritalStatusUuid"
-              :items="maritalStatuses.items.value"
-              :loading="maritalStatuses.loading.value"
               entity="marital_status"
               :placeholder="t('common.select')"
               @navigate="goToCatalogRecord"
-              @open="maritalStatuses.onOpen"
+              :lazy="maritalStatuses"
             />
           </UFormField>
         </div>
@@ -593,12 +583,10 @@ function requestDelete() {
         <UFormField :label="t('members.form.fields.occupation')" name="occupationUuid">
           <CommonEntityReferenceSelect
             v-model="state.occupationUuid"
-            :items="occupations.items.value"
-            :loading="occupations.loading.value"
             entity="occupation"
             :placeholder="t('common.select')"
             @navigate="goToCatalogRecord"
-            @open="occupations.onOpen"
+            :lazy="occupations"
           />
         </UFormField>
 
@@ -632,24 +620,20 @@ function requestDelete() {
           <UFormField :label="t('members.form.fields.state')" name="stateUuid">
             <CommonEntityReferenceSelect
               v-model="selectedStateUuid"
-              :items="states.items.value"
-              :loading="states.loading.value"
               entity="state"
               :placeholder="t('common.select')"
               @navigate="goToCatalogRecord"
-              @open="states.onOpen"
+              :lazy="states"
             />
           </UFormField>
           <UFormField :label="t('members.form.fields.city')" name="cityUuid">
             <CommonEntityReferenceSelect
               v-model="state.cityUuid"
-              :items="cityOptions"
-              :loading="citiesLoading"
+              :lazy="cities"
               :disabled="!selectedStateUuid"
               entity="city"
               :placeholder="t('members.form.selectCityFirst')"
               @navigate="goToCatalogRecord"
-              @open="onCitiesOpen"
             />
           </UFormField>
         </div>

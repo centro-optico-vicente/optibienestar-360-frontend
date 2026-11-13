@@ -41,7 +41,10 @@ function canDeleteRow(license: AllyLicenseDto): boolean {
 
 const licenses = ref<AllyLicenseDto[]>([])
 const loading = ref(false)
-const bodyOptions = ref<{ label: string, value: string }[]>([])
+// Issuing bodies searched on the server (`q`) — the same `/options` serves the admin and the ally portal.
+const bodyLazy = useLazyOptions(async q =>
+  toSelectItems(await useCatalogOptions('licensing-bodies').options({ q })))
+const bodyOptions = computed(() => bodyLazy.items.value)
 
 async function load() {
   loading.value = true
@@ -56,20 +59,10 @@ async function load() {
   }
 }
 
-async function loadBodies() {
-  try {
-    bodyOptions.value = isPortal.value
-      ? (await licensesApi.bodies(props.allyUuid)).map(b => ({ label: b.name ?? b.code ?? '', value: b.uuid }))
-      : toSelectItems(await useCatalogOptions('licensing-bodies').options())
-  }
-  catch {
-    bodyOptions.value = []
-  }
-}
 
 onMounted(() => {
   load()
-  if (canCreate.value || canUpdate.value) loadBodies()
+  if (canCreate.value || canUpdate.value) void bodyLazy.ensureLoaded()
 })
 watch(() => props.allyUuid, () => load())
 
@@ -278,10 +271,13 @@ async function confirmDelete() {
               clear
               v-model="state.licensingBodyUuid"
               :items="bodyOptions"
+              v-model:search-term="bodyLazy.searchTerm.value"
+              ignore-filter
               label-key="label"
               value-key="value"
               :placeholder="t('common.select')"
               class="w-full"
+              @update:model-value="bodyLazy.remember($event)"
             />
           </UFormField>
           <UFormField :label="t('allies.licenses.form.number')" name="licenseNumber" required>

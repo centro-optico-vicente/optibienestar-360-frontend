@@ -48,19 +48,13 @@ onMounted(load)
 defineExpose({ load })
 
 // ---- Catalog options (loaded lazily when the modal opens) ----
-const methodOptions = ref<{ label: string, value: string }[]>([])
-const bankOptions = ref<{ label: string, value: string }[]>([])
+const methodLazy = useLazyOptions(async q => (await methodsApi.options({ q })).map(method => ({ label: method.label, value: method.uuid })))
+const bankLazy = useLazyOptions(async q => (await banksApi.options({ q })).map(bank => ({ label: bank.label, value: bank.uuid })))
+const methodOptions = computed(() => methodLazy.items.value)
 
-async function loadOptions() {
-  if (methodOptions.value.length && bankOptions.value.length) return
-  try {
-    const [methods, banks] = await Promise.all([methodsApi.options(), banksApi.options()])
-    methodOptions.value = methods.map(method => ({ label: method.label, value: method.uuid }))
-    bankOptions.value = banks.map(bank => ({ label: bank.label, value: bank.uuid }))
-  }
-  catch {
-    // useApi already reported the API error; the selects stay empty.
-  }
+function loadOptions() {
+  void methodLazy.ensureLoaded()
+  void bankLazy.ensureLoaded()
 }
 
 function accountTypeLabel(value?: string | null): string {
@@ -332,7 +326,7 @@ async function confirmDelete() {
         <UForm data-promoter-payout-account-form :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <UFormField :label="t('promoters.payoutAccounts.fields.methods')" name="paymentMethodUuids" required>
-              <USelectMenu clear v-model="state.paymentMethodUuids" multiple class="w-full" :items="methodOptions" label-key="label" value-key="value" :placeholder="t('common.select')" />
+              <USelectMenu clear v-model="state.paymentMethodUuids" multiple class="w-full" :items="methodOptions" v-model:search-term="methodLazy.searchTerm.value" ignore-filter label-key="label" value-key="value" :placeholder="t('common.select')" @update:model-value="methodLazy.remember($event)" />
             </UFormField>
             <UFormField :label="t('promoters.payoutAccounts.fields.label')" name="label" :help="t('promoters.payoutAccounts.labelHelp')">
               <UInput v-model="state.label" class="w-full" maxlength="60" />
@@ -341,7 +335,7 @@ async function confirmDelete() {
 
           <div v-if="selectedMethods.length" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <UFormField v-if="required.bank" :label="t('promoters.payoutAccounts.fields.bank')" name="bankUuid" required>
-              <CommonEntityReferenceSelect v-model="state.bankUuid" :items="bankOptions" :placeholder="t('common.select')" />
+              <CommonEntityReferenceSelect v-model="state.bankUuid" :placeholder="t('common.select')" :lazy="bankLazy" />
             </UFormField>
             <UFormField v-if="required.accountType" :label="t('promoters.payoutAccounts.fields.accountType')" name="accountType" required>
               <USelectMenu clear v-model="state.accountType" class="w-full" :items="BANK_ACCOUNT_TYPE_OPTIONS" label-key="label" value-key="value" :placeholder="t('common.select')" />

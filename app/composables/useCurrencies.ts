@@ -7,9 +7,13 @@ import type { Option } from '~/types/options'
  * free-text ISO code input (typo-prone: a bad code just 404s the request).
  */
 export const useCurrencies = () => {
-  const options = (q?: string) =>
+  const options = (params: { q?: string, limit?: number, currentValues?: string[] } = {}) =>
     useApi<Option[]>('/v1/admin/currencies/options', {
-      query: { ...(q ? { q } : {}), limit: DROPDOWN_PAGE_SIZE },
+      query: {
+        ...(params.q ? { q: params.q } : {}),
+        limit: params.limit ?? DROPDOWN_PAGE_SIZE,
+        ...(params.currentValues?.length ? { currentValues: params.currentValues } : {}),
+      },
     })
 
   return { options }

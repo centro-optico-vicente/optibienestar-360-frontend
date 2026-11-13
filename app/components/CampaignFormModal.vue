@@ -9,7 +9,6 @@ import type {
   UpdateCampaignRequest,
 } from '~/types/campaign'
 import { CAMPAIGN_MODE_OPTIONS, CAMPAIGN_SCOPE_OPTIONS } from '~/types/campaign'
-import type { SelectItem } from '~/types/options'
 import { todayInCaracas } from '~/utils/date'
 
 // Create/edit form for a commission campaign. Used both as the standalone
@@ -42,25 +41,16 @@ const currencies = useCurrencies()
 const toast = useToast()
 
 // ---- Currency options (goal amount) — same pattern as CommissionTierFormModal ----
-const currencyItems = ref<SelectItem[]>([])
 const currencyCodeByUuid = ref<Record<string, string>>({})
-const loadingCurrencies = ref(false)
-async function loadCurrencyOptions() {
-  loadingCurrencies.value = true
-  try {
-    const options = await currencies.options()
-    const withCode = options.filter(o => o.code)
-    currencyItems.value = withCode.map(o => ({ label: o.label, value: o.uuid }))
-    currencyCodeByUuid.value = Object.fromEntries(withCode.map(o => [o.uuid, o.code as string]))
-  }
-  catch { currencyItems.value = [] }
-  finally { loadingCurrencies.value = false }
-}
-// Fetched the first time the dropdown opens, or on open when the goal already has a
-// currency (its label and ISO code for the conversion preview need the list).
-function onCurrenciesOpen(open: boolean) {
-  if (open && !currencyItems.value.length && !loadingCurrencies.value) void loadCurrencyOptions()
-}
+// Searched on the server (`q`) when the dropdown opens and while typing; what was seen stays in the maps above.
+const currencyLazy = useLazyOptions(async (q) => {
+  const options = await currencies.options({ q })
+  const withCode = options.filter(o => o.code)
+  const found = withCode.map(o => ({ label: o.label, value: o.uuid }))
+  currencyCodeByUuid.value = { ...currencyCodeByUuid.value, ...Object.fromEntries(withCode.map(o => [o.uuid, o.code as string])) }
+  return found
+})
+const onCurrenciesOpen = currencyLazy.onOpen
 
 /** Resolves `targetAmountCurrencyUuid` to its ISO code for `CurrencyConverterDisplay`. */
 const targetAmountCurrencyCode = computed(() => currencyCodeByUuid.value[state.targetAmountCurrencyUuid] ?? null)
@@ -343,13 +333,11 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
         >
           <CommonEntityReferenceSelect
             v-model="state.targetAmountCurrencyUuid"
-            :items="currencyItems"
             entity="currency"
-            :loading="loadingCurrencies"
             :placeholder="t('common.select')"
             icon="i-lucide-coins"
-            @open="onCurrenciesOpen"
             @navigate="goToCurrency"
+            :lazy="currencyLazy"
           />
         </UFormField>
 

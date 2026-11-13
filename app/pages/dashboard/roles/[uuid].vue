@@ -151,21 +151,9 @@ async function loadRoleUsers() {
 watch(roleUsersSort.orders, () => loadRoleUsers(), { deep: true })
 
 // System users for the assignment selector.
-const userOptions = ref<{ label: string, value: string }[]>([])
-
-async function loadUserOptions() {
-  if (!canViewUsers.value) return
-  try {
-    const res = await useUsers().list({ size: 100, sort: ['createdAt,desc'] })
-    userOptions.value = (res.content ?? []).map(u => ({
-      label: `${u.fullName} (${u.email})`,
-      value: u.uuid,
-    }))
-  }
-  catch {
-    userOptions.value = []
-  }
-}
+// Users searched on the server (`q`) when the dropdown opens and while typing.
+const userLazy = useLazyOptions(async q => (await useUsers().options({ q })).map(u => ({ label: u.label, value: u.uuid })))
+const userOptions = computed(() => userLazy.items.value)
 
 /** Only the users not yet assigned to this role. */
 const availableUserOptions = computed(() => {
@@ -339,7 +327,6 @@ onMounted(async () => {
     loadPermissionsCatalog(),
     loadGrantedPermissions(),
     loadRoleUsers(),
-    loadUserOptions(),
   ])
 })
 
@@ -573,11 +560,15 @@ function discardAndRefreshRole() {
               clear
               v-model="userToAdd"
               :items="availableUserOptions"
+              v-model:search-term="userLazy.searchTerm.value"
+              ignore-filter
               label-key="label"
               value-key="value"
               :placeholder="t('security.roles.detail.usersTab.selectUser')"
               :disabled="!canAssignUsers"
               class="w-48"
+              @update:open="userLazy.onOpen"
+              @update:model-value="userLazy.remember($event)"
             />
             <UTooltip :text="canAssignUsers ? t('security.roles.detail.usersTab.addTooltip') : t('security.roles.noPermission')">
               <UButton

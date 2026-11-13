@@ -300,7 +300,7 @@ Un desplegable muestra a lo sumo **`DROPDOWN_PAGE_SIZE` (50)** opciones (`app/ut
 - Si el formulario necesita acotar por un hecho de la entidad, el `/options` recibe el filtro (`ally-types/options?segment=`, `payment-categories/options?direction=`), no se filtra en el cliente.
 - Un valor ya guardado que cae fuera de las primeras 50 opciones se resuelve con `currentValues`, no ampliando el `limit`.
 
-**Excepción (pendiente de decisión):** cuando el formulario necesita atributos del registro elegido (las banderas `mandatory*` del método de pago), el select lee `GET /v1/me/payment-methods?q=` (búsqueda en el servidor, DTO completo) en vez de `/options`. Sigue pendiente decidir si pasa a `/options` + detalle del seleccionado. Profesiones (árbol de sub-especialidades) y los rangos de `PromoterChangeRankModal` siguen leyendo el catálogo completo.
+**Excepción (pendiente de decisión):** cuando el formulario necesita atributos del registro elegido (las banderas `mandatory*` del método de pago), el select lee `GET /v1/me/payment-methods?q=` (búsqueda en el servidor, DTO completo) en vez de `/options`. Sigue pendiente decidir si pasa a `/options` + detalle del seleccionado. Siguen con carga única al abrir y filtro local, pendientes de pasar a búsqueda en el servidor: profesiones (árbol de sub-especialidades), los rangos de `PromoterChangeRankModal`, los padres de `catalogs/[resource]`, las monedas y categorías de `BenefitUsageModal` (conversor del portal de aliados y catálogo público) y los tipos de documento (lista estática en memoria).
 
 ```ts
 // ❌ lista completa, exige permiso de pantalla

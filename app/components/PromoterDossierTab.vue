@@ -28,15 +28,8 @@ const educationLevelOptions = computed(() =>
 )
 const documentTypeOptions = computed(() => documentTypeItems(t))
 
-const maritalStatusOptions = ref<SelectItem[]>([])
-async function loadMaritalStatuses() {
-  try {
-    maritalStatusOptions.value = toSelectItems(await useCatalogOptions('marital-statuses').options())
-  }
-  catch {
-    maritalStatusOptions.value = []
-  }
-}
+// Marital statuses searched on the server (`q`) when the dropdown opens and while typing.
+const maritalStatusLazy = useLazyOptions(async q => toSelectItems(await useCatalogOptions('marital-statuses').options({ q })))
 
 // City is searched server-side (no state cascade here: the identity block only
 // carries the city); `currentValues` keeps the saved city selectable.
@@ -113,7 +106,7 @@ function populate(p: PromoterDto) {
 }
 
 watch(() => props.promoter, p => populate(p), { immediate: true })
-onMounted(loadMaritalStatuses)
+onMounted(() => { void maritalStatusLazy.ensureLoaded() })
 
 const schema = computed(() => z.object({
   assignedZone: z.string().max(120, t('validation.maxChars', { n: 120 })).optional(),
@@ -222,10 +215,10 @@ async function onSubmit() {
           <UFormField :label="t('promoters.dossier.fields.maritalStatus')" name="maritalStatusUuid">
             <CommonEntityReferenceSelect
               v-model="state.maritalStatusUuid"
-              :items="maritalStatusOptions"
               entity="marital_status"
               :disabled="!canEdit"
               :placeholder="t('common.select')"
+              :lazy="maritalStatusLazy"
             />
           </UFormField>
           <UFormField :label="t('promoters.dossier.fields.mobilePhone')">
