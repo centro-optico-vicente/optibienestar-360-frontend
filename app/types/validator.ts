@@ -11,6 +11,8 @@
 // confirm the human in front of them), and plan/membership fields only when a
 // membership row exists.
 
+import type { BenefitGrantDto } from '~/types/benefitGrants'
+
 /** Headline answer. Only ACTIVE authorizes applying the benefit. */
 export type ValidationStatus =
   | 'NOT_FOUND'
@@ -65,6 +67,9 @@ export interface ValidationResultDto {
 
   /** Everyone the membership covers besides the holder: the "who consumes" choices. */
   beneficiaries?: CoveredPerson[] | null
+
+  /** AVAILABLE campaign vouchers of the calling ally for the covered memberships (hub ADR 0038). */
+  benefitGrants?: BenefitGrantDto[] | null
 
   /** Diagnostic only: whether the answer came from Redis. Never gate UI on this. */
   cached?: boolean

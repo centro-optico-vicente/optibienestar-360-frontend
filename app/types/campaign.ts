@@ -93,6 +93,13 @@ export interface CampaignDto {
   usageWindow_Display?: string | null
   usageWindowDays?: number | null
   pendingCount?: number | null
+  // ---- Ally benefits (hub ADR 0038, phase 3) ----
+  /** Ally-exclusive campaign: every promotion belongs to this ally. */
+  ally_Uuid?: string | null
+  ally_Display?: string | null
+  ally_Code?: string | null
+  /** Allies may add their own benefits while the campaign is active. */
+  allowsAllyPartnership?: boolean | null
   createdAt?: string
   updatedAt?: string
   /** Client-only: populated locally after fetching the audience list, not returned by the backend. */
@@ -128,6 +135,38 @@ export interface CreateCampaignRequest {
   usageWindow?: CampaignUsageWindow | null
   /** Required when usageWindow = DAYS_AFTER_CONFIRMATION. */
   usageWindowDays?: number | null
+  /** Ally-exclusive campaign; can only change while the campaign has no promotions. */
+  allyUuid?: string | null
+  allowsAllyPartnership?: boolean
+}
+
+/** Item of GET /v1/me/allies/campaigns — campaigns the calling ally may join with its own benefits. */
+export interface AllyPartnershipCampaignDto {
+  uuid: string
+  name: string
+  description?: string | null
+  startsAt: string
+  endsAt?: string | null
+  lifecycleStatus?: CampaignLifecycleStatus | null
+  lifecycleStatus_Display?: string | null
+  maxRedemptions?: number | null
+  freeSlots?: number | null
+  /** The campaign is exclusive to the calling ally. */
+  exclusive: boolean
+}
+
+/** Row of GET /v1/admin/campaigns/{uuid}/ally-benefits — reconciliation per ally and promotion. */
+export interface CampaignAllyBenefitRowDto {
+  ally_Uuid?: string | null
+  ally_Display?: string | null
+  promotion_Uuid?: string | null
+  promotion_Display?: string | null
+  granted: number
+  available: number
+  redeemed: number
+  expired: number
+  canceled: number
+  redeemedUnits: number
 }
 
 export type UpdateCampaignRequest = CreateCampaignRequest

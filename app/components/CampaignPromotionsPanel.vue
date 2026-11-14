@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import type { PromotionDto } from '~/types/promotions'
-import { promotionDiscountText } from '~/utils/promotionDiscount'
+import { allyBenefitValueText, promotionDiscountText } from '~/utils/promotionDiscount'
 
 /** "Promociones" tab of the campaign detail (hub ADR 0018/0038): the discounts this campaign offers members. */
-const props = defineProps<{ campaignUuid: string }>()
+const props = defineProps<{
+  campaignUuid: string
+  /** Ally of an ally-exclusive campaign (hub ADR 0038): forced on its ally-benefit lines. */
+  campaignAllyUuid?: string | null
+  campaignAllyDisplay?: string | null
+}>()
 
 const { t } = useI18n()
 const { can } = usePermissions()
@@ -67,9 +72,21 @@ async function confirmDelete() {
   }
 }
 
+function isAllyBenefit(p: PromotionDto): boolean {
+  return p.benefitKind === 'ALLY_BENEFIT'
+}
+
+/** Ally benefit line: "Óptica X · Consulta · Gratis × 2". */
+function allyBenefitLabel(p: PromotionDto): string {
+  const value = allyBenefitValueText(p, formatCurrency, t('promotions.benefitType.FREE'))
+  const qty = p.benefitQuantity && p.benefitQuantity > 1 ? ` × ${p.benefitQuantity}` : ''
+  return [p.ally_Display, p.allyProduct_Display, `${value}${qty}`].filter(Boolean).join(' · ')
+}
+
 function discountLabel(p: PromotionDto): string {
+  if (isAllyBenefit(p)) return allyBenefitLabel(p)
   const pct = promotionDiscountText(p, formatCurrency)
-  const what = p.appliesTo_Display ?? t(`promotions.appliesTo.${p.appliesTo}`)
+  const what = p.appliesTo_Display ?? (p.appliesTo ? t(`promotions.appliesTo.${p.appliesTo}`) : '')
   const cycles = p.appliesTo !== 'INSCRIPTION' && p.cycles ? ` · ${t('promotions.cyclesCount', { n: p.cycles })}` : ''
   return `${pct} · ${what}${cycles}`
 }
@@ -123,8 +140,14 @@ function codeLabel(p: PromotionDto): string {
               <p v-if="p.plans.length" class="text-xs text-prohealth-500">{{ p.plans.map(pl => pl.name).join(', ') }}</p>
             </td>
             <td class="px-6 py-3">
-              <UBadge :color="p.kind === 'RECOVERY' ? 'warning' : 'primary'" variant="subtle" size="sm">
+              <UBadge v-if="isAllyBenefit(p)" color="info" variant="subtle" size="sm" icon="i-lucide-gift">
+                {{ p.benefitKind_Display ?? t('promotions.benefitKind.ALLY_BENEFIT') }}
+              </UBadge>
+              <UBadge v-else :color="p.kind === 'RECOVERY' ? 'warning' : 'primary'" variant="subtle" size="sm">
                 {{ p.kind_Display ?? t(`promotions.kind.${p.kind}`) }}
+              </UBadge>
+              <UBadge v-if="p.createdByAlly" color="neutral" variant="outline" size="sm" class="ms-1">
+                {{ t('promotions.proposedByAlly') }}
               </UBadge>
             </td>
             <td class="px-6 py-3 text-prohealth-800">{{ discountLabel(p) }}</td>
@@ -144,7 +167,14 @@ function codeLabel(p: PromotionDto): string {
       </table>
     </div>
 
-    <PromotionFormModal v-model:open="formOpen" :campaign-uuid="campaignUuid" :promotion="editing" @saved="load" />
+    <PromotionFormModal
+      v-model:open="formOpen"
+      :campaign-uuid="campaignUuid"
+      :promotion="editing"
+      :campaign-ally-uuid="campaignAllyUuid"
+      :campaign-ally-display="campaignAllyDisplay"
+      @saved="load"
+    />
 
     <UModal v-model:open="deleteOpen" :title="t('promotions.deleteTitle')">
       <template #body>

@@ -4,6 +4,7 @@ import type { BenefitUsageDto } from '~/types/benefits'
 import type { ValidationResultDto } from '~/types/validator'
 import { appTimeZone } from '~/utils/timezone'
 import { toSelectItems } from '~/types/options'
+import { allyBenefitValueText } from '~/utils/promotionDiscount'
 
 // Registers a consumed benefit at the counter. Opened from the validator page only
 // after an ACTIVE result, so `membershipUuid` is always the one the backend just
@@ -23,6 +24,7 @@ const { t } = useI18n()
 const benefitUsage = useBenefitUsage()
 const publicAllies = usePublicAllies()
 const toast = useToast()
+const { formatCurrency, formatDate } = useFormatters()
 
 const isOpen = computed({
   get: () => props.open,
@@ -42,6 +44,8 @@ const copayCurrency = ref('USD')
 const consumptionAmount = ref('')
 const consumptionCurrency = ref('USD')
 const notes = ref('')
+// Campaign voucher redeemed by this usage (hub ADR 0038): picking one fixes the offer.
+const benefitGrantUuid = ref<string | undefined>(undefined)
 const submitting = ref(false)
 const touched = ref(false)
 
@@ -88,6 +92,31 @@ function todayInCaracas(): string {
 const productOptions = ref<{ label: string, value: string }[]>([])
 const productsUnavailable = ref(false)
 
+// ---- Campaign vouchers (hub ADR 0038): the AVAILABLE grants the validator returned for this ally ----
+const grants = computed(() => props.validation?.benefitGrants ?? [])
+const selectedGrant = computed(() => grants.value.find(g => g.uuid === benefitGrantUuid.value) ?? null)
+const grantItems = computed(() => grants.value.map((g) => {
+  const value = allyBenefitValueText(g, formatCurrency, t('promotions.benefitType.FREE'))
+  return {
+    value: g.uuid,
+    label: [g.allyProduct_Display, value].filter(Boolean).join(' · '),
+    description: [
+      g.promotion_Display,
+      t('validator.grants.remaining', { n: g.remainingQty, total: g.quantity }),
+      g.expiresAt ? t('validator.grants.expires', { date: g.expiresAt_Display ?? formatDate(g.expiresAt) }) : null,
+    ].filter(Boolean).join(' · '),
+  }
+}))
+// The voucher's offer must be the usage's: prefill it (listed even if the public catalog lacks it).
+watch(selectedGrant, (grant) => {
+  if (!grant?.allyProduct_Uuid) return
+  if (!productOptions.value.some(o => o.value === grant.allyProduct_Uuid)) {
+    productOptions.value = [{ label: grant.allyProduct_Display ?? grant.allyProduct_Uuid, value: grant.allyProduct_Uuid }, ...productOptions.value]
+    productsUnavailable.value = false
+  }
+  allyProductUuid.value = grant.allyProduct_Uuid
+})
+
 async function loadProducts(allyUuid: string) {
   productOptions.value = []
   productsUnavailable.value = false
@@ -96,6 +125,11 @@ async function loadProducts(allyUuid: string) {
     // `products` replaces the deprecated `services` (hub ADR 0026); same offer uuids.
     const offers = detail.products ?? detail.services ?? []
     productOptions.value = offers.map(s => ({ label: s.name, value: s.uuid }))
+    // A voucher picked while the catalog was loading keeps its offer listed.
+    const grant = selectedGrant.value
+    if (grant?.allyProduct_Uuid && !productOptions.value.some(o => o.value === grant.allyProduct_Uuid)) {
+      productOptions.value.unshift({ label: grant.allyProduct_Display ?? grant.allyProduct_Uuid, value: grant.allyProduct_Uuid })
+    }
     productsUnavailable.value = productOptions.value.length === 0
   }
   catch {
@@ -127,6 +161,7 @@ watch(() => props.open, (open) => {
   consumptionAmount.value = ''
   consumptionCurrency.value = 'USD'
   notes.value = ''
+  benefitGrantUuid.value = undefined
   touched.value = false
   consumer.value = props.validation?.beneficiaryUuid ?? HOLDER
   if (props.ally) loadProducts(props.ally.uuid)
@@ -192,6 +227,7 @@ async function confirm() {
       ...(consumed ? { consumptionAmount: consumed, consumptionCurrency: consumptionCurrency.value.trim().toUpperCase() } : {}),
       ...(notes.value.trim() ? { notes: notes.value.trim() } : {}),
       ...(consumer.value !== HOLDER ? { beneficiaryUuid: consumer.value } : {}),
+      ...(benefitGrantUuid.value ? { benefitGrantUuid: benefitGrantUuid.value } : {}),
     })
     toast.add({
       title: t('validator.usage.registeredToast'),
@@ -250,6 +286,23 @@ async function confirm() {
           />
         </UFormField>
 
+        <UFormField
+          v-if="grants.length"
+          :label="t('validator.usage.fields.grant')"
+          :help="selectedGrant ? t('validator.usage.fields.grantSelectedHelp') : t('validator.usage.fields.grantHelp')"
+        >
+          <USelectMenu
+            clear
+            v-model="benefitGrantUuid"
+            :items="grantItems"
+            label-key="label"
+            value-key="value"
+            description-key="description"
+            :placeholder="t('validator.usage.fields.noGrant')"
+            class="w-full"
+          />
+        </UFormField>
+
         <UFormField :label="t('validator.usage.fields.product')" :help="t('validator.usage.fields.productHelp')">
           <USelectMenu
             clear
@@ -257,7 +310,7 @@ async function confirm() {
             :items="productOptions"
             label-key="label"
             value-key="value"
-            :disabled="productsUnavailable"
+            :disabled="productsUnavailable || !!selectedGrant"
             :placeholder="productsUnavailable ? t('validator.usage.noProducts') : t('common.select')"
             class="w-full"
           />

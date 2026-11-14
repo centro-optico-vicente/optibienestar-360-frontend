@@ -75,6 +75,7 @@ const detailTabs = computed(() => [
   { label: t('campaigns.detail.tabs.transactions'), value: 'transactions', icon: 'i-lucide-receipt' },
   { label: t('campaigns.detail.tabs.exceptions'), value: 'exceptions', icon: 'i-lucide-triangle-alert' },
   ...(can('PROMOTION_VIEW_ALL') ? [{ label: t('campaigns.detail.tabs.promotions'), value: 'promotions', icon: 'i-lucide-badge-percent' }] : []),
+  { label: t('campaigns.detail.tabs.allyBenefits'), value: 'allyBenefits', icon: 'i-lucide-gift' },
 ])
 const activeDetailTab = ref('rules')
 const auditOpen = ref(false)
@@ -679,6 +680,15 @@ async function confirmRemoveException() {
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('campaigns.form.grace.label') }}</dt>
             <dd class="text-prohealth-800 mt-0.5">{{ graceLabel(campaign) }}</dd>
           </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('campaigns.form.ally') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">
+              {{ campaign.ally_Display || t('campaigns.form.anyAlly') }}
+              <UBadge v-if="campaign.allowsAllyPartnership" color="info" variant="subtle" size="sm" class="ms-1">
+                {{ t('campaigns.detail.partnershipOpen') }}
+              </UBadge>
+            </dd>
+          </div>
           <div v-if="campaign.closedAt">
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('campaigns.detail.fields.closedAt') }}</dt>
             <dd class="text-prohealth-800 mt-0.5">
@@ -984,7 +994,11 @@ async function confirmRemoveException() {
         v-if="can('PROMOTION_VIEW_ALL')"
         v-show="activeDetailTab === 'promotions'"
         :campaign-uuid="campaignUuid"
+        :campaign-ally-uuid="campaign.ally_Uuid"
+        :campaign-ally-display="campaign.ally_Display"
       />
+
+      <CampaignAllyBenefitsPanel v-show="activeDetailTab === 'allyBenefits'" :campaign-uuid="campaignUuid" />
     </template>
 
     <!-- Edit modal (shared) -->

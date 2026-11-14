@@ -13,6 +13,7 @@ import type {
 } from '~/types/campaign'
 import { CAMPAIGN_MODE_OPTIONS, CAMPAIGN_SCOPE_OPTIONS } from '~/types/campaign'
 import { todayInCaracas } from '~/utils/date'
+import { toSelectItems } from '~/types/options'
 
 // Create/edit form for a commission campaign. Used both as the standalone
 // "quick edit" modal from the list and as the base for the "Relanzar campaña"
@@ -41,6 +42,7 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const campaigns = useCampaigns()
 const currencies = useCurrencies()
+const alliesApi = useAllies()
 const toast = useToast()
 
 // ---- Currency options (goal amount) — same pattern as CommissionTierFormModal ----
@@ -122,6 +124,10 @@ interface FormState {
   pendingTtlDays: string
   usageWindow: CampaignUsageWindow
   usageWindowDays: string
+  // ---- Ally benefits (hub ADR 0038, phase 3) ----
+  /** Ally-exclusive campaign; empty ⇒ any ally (each benefit names its own). */
+  allyUuid: string
+  allowsAllyPartnership: boolean
 }
 
 function isoToDatetimeLocal(iso: string): string {
@@ -160,7 +166,14 @@ const state = reactive<FormState>({
   pendingTtlDays: '',
   usageWindow: 'CAMPAIGN_DATES',
   usageWindowDays: '',
+  allyUuid: '',
+  allowsAllyPartnership: false,
 })
+// Exclusive ally, searched on the server; the saved one is always listed.
+const allyLazy = useLazyOptions(async q => toSelectItems(await alliesApi.options({
+  q,
+  currentValues: state.allyUuid ? [state.allyUuid] : undefined,
+})))
 const quotaTriggerItems = computed(() => (['ON_ENROLLMENT', 'ON_PAYMENT_REGISTERED', 'ON_PAYMENT_CONFIRMED'] as const)
   .map(value => ({ label: t(`campaigns.quotaTrigger.${value}`), value })))
 const usageWindowItems = computed(() => (['CAMPAIGN_DATES', 'DAYS_AFTER_CONFIRMATION'] as const)
@@ -229,6 +242,8 @@ function resetForm() {
   state.pendingTtlDays = ''
   state.usageWindow = 'CAMPAIGN_DATES'
   state.usageWindowDays = ''
+  state.allyUuid = ''
+  state.allowsAllyPartnership = false
   enabled.value = true
 }
 
@@ -262,6 +277,8 @@ function populateFrom(campaign: CampaignDto | null, blankDates: boolean) {
   state.pendingTtlDays = campaign.pendingTtlDays != null ? String(campaign.pendingTtlDays) : ''
   state.usageWindow = campaign.usageWindow ?? 'CAMPAIGN_DATES'
   state.usageWindowDays = campaign.usageWindowDays != null ? String(campaign.usageWindowDays) : ''
+  state.allyUuid = campaign.ally_Uuid ?? ''
+  state.allowsAllyPartnership = campaign.allowsAllyPartnership ?? false
   enabled.value = campaign.enabled ?? true
 }
 
@@ -289,6 +306,7 @@ watch(() => props.open, (open) => {
   if (!open) return
   populateFrom(props.campaign ?? null, props.forceCreate === true)
   if (state.targetAmountCurrencyUuid) onCurrenciesOpen(true)
+  if (state.allyUuid) allyLazy.ensureLoaded()
 })
 
 function submitForm(draft: boolean) {
@@ -326,6 +344,8 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
       pendingTtlDays: state.quotaTrigger !== 'ON_ENROLLMENT' && state.pendingTtlDays.trim() ? Number(state.pendingTtlDays) : null,
       usageWindow: state.usageWindow,
       usageWindowDays: state.usageWindow === 'DAYS_AFTER_CONFIRMATION' ? Number(state.usageWindowDays) : null,
+      allyUuid: state.allyUuid || null,
+      allowsAllyPartnership: state.allowsAllyPartnership,
     }
     let result: CampaignDto
     if (props.relaunchOf) {
@@ -489,6 +509,24 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
             :lazy="currencyLazy"
           />
         </UFormField>
+
+        <!-- Ally benefits (hub ADR 0038, phase 3) -->
+        <div class="rounded-xl border border-prohealth-100 p-4 space-y-3">
+          <UFormField :label="t('campaigns.form.ally')" :help="t('campaigns.form.allyHelp')">
+            <CommonEntityReferenceSelect
+              v-model="state.allyUuid"
+              entity="ally"
+              icon="i-lucide-handshake"
+              :placeholder="t('campaigns.form.anyAlly')"
+              :lazy="allyLazy"
+            />
+          </UFormField>
+          <UCheckbox
+            v-model="state.allowsAllyPartnership"
+            :label="t('campaigns.form.allowsAllyPartnership')"
+            :description="t('campaigns.form.allowsAllyPartnershipHelp')"
+          />
+        </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField :label="t('campaigns.form.exclusivityGroup')" name="exclusivityGroup" :help="t('campaigns.form.exclusivityGroupHelp')">

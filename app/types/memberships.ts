@@ -145,6 +145,8 @@ export interface MembershipCreateRequest {
   promotionUuid?: string
   /** Promoter / referring member / ally code, when the promotion takes one. */
   promotionCode?: string
+  /** Ally-benefit promotions granted together with the discount one (hub ADR 0038, phase 3). */
+  allyBenefitPromotionUuids?: string[]
 }
 
 /**

@@ -1,3 +1,4 @@
+import type { MembershipBenefitGrantDto } from '~/types/benefitGrants'
 import type {
   AssignPromotionRequest,
   MembershipPromotionDto,
@@ -10,7 +11,7 @@ import type {
  * Promotions (hub ADR 0018). Backend permissions per action:
  * - campaign promotions: list/get → PROMOTION_VIEW_ALL · create/update/delete → PROMOTION_CREATE/UPDATE/DELETE
  * - membership promotion: current → MEMBERSHIP_VIEW_ALL or PROMOTION_VIEW_ALL · options/assign/cancel → PROMOTION_ASSIGN
- * - offeredForEnrollment → MEMBERSHIP_CREATE or PROMOTION_ASSIGN · mine → MEMBER_VIEW_OWN
+ * - offeredForEnrollment → MEMBERSHIP_CREATE or PROMOTION_ASSIGN · mine / myBenefitGrants → MEMBER_VIEW_OWN
  */
 export function usePromotions() {
   const listForCampaign = (campaignUuid: string) =>
@@ -25,7 +26,7 @@ export function usePromotions() {
   const remove = (uuid: string) =>
     useApi<void>(`/v1/admin/promotions/${uuid}`, { method: 'DELETE' })
 
-  /** ACQUISITION promotions currently offered for a new enrollment on the plan. */
+  /** ACQUISITION promotions currently offered for a new enrollment on the plan — both kinds (`benefitKind`). */
   const offeredForEnrollment = (planUuid: string) =>
     useApi<PromotionDto[]>('/v1/admin/promotions/offered', { query: { planUuid } })
 
@@ -44,5 +45,9 @@ export function usePromotions() {
   const mine = () =>
     useApi<MembershipPromotionStatusDto>('/v1/me/promotion')
 
-  return { listForCampaign, create, update, remove, offeredForEnrollment, currentForMembership, optionsForMembership, assign, cancel, mine }
+  /** The member's ally-benefit vouchers in every status (hub ADR 0038). */
+  const myBenefitGrants = () =>
+    useApi<MembershipBenefitGrantDto[]>('/v1/me/benefit-grants')
+
+  return { listForCampaign, create, update, remove, offeredForEnrollment, currentForMembership, optionsForMembership, assign, cancel, mine, myBenefitGrants }
 }
