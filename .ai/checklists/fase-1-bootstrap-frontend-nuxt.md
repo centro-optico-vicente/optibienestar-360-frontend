@@ -22,7 +22,7 @@
 ## Auth e infraestructura de cliente
 
 - [ ] [P0/C2] Composable `useApi.ts` wrapper `$fetch` con interceptor JWT
-- [ ] [P0/C3] Composable `useAuth.ts` con login/logout/refresh + cookies httpOnly
+- [ ] [P0/C3] Composable `useAuth.ts` con login/logout/refresh (tokens en `sessionStorage`/`localStorage`, sin cookies — [ADR 0024 del hub](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0024-jwt-token-storage.md))
 - [ ] [P0/C2] Store `auth.ts` (Pinia) con user, token, refreshToken, permissions
 - [ ] [P0/C2] Middleware `auth.global.ts` (redirect `/login` si no auth + refresh silencioso)
 - [ ] [P0/C2] Middleware `permission.ts` (verifica permission por ruta)
