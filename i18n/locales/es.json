@@ -1358,9 +1358,12 @@
         "yesterday": "Ayer",
         "tomorrow": "Mañana",
         "lastWeek": "Semana pasada",
-        "thisWeek": "Esta semana",
+        "thisBusinessWeek": "Semana laboral (lun–vie)",
+        "thisWeek": "Esta semana (lun–dom)",
         "nextWeek": "Semana siguiente",
         "lastMonth": "Mes pasado",
+        "firstFortnight": "1ª quincena (1–15)",
+        "secondFortnight": "2ª quincena (16–fin)",
         "thisMonth": "Este mes",
         "nextMonth": "Mes siguiente"
       }

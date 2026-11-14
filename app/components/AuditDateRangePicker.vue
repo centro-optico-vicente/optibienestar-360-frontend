@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { CalendarDate, startOfMonth, endOfMonth } from '@internationalized/date'
-import { todayInCaracas, withCaracasOffset } from '~/utils/date'
-import { appTimeZone } from '~/utils/timezone'
+import { CalendarDate } from '@internationalized/date'
+import { withCaracasOffset } from '~/utils/date'
+import { DATE_RANGE_SHORTCUTS, type DateRangeShortcut } from '~/utils/dateShortcuts'
 import type { DateTimeRange } from '~/utils/date'
 
 // `UCalendar`'s range model is typed against reka-ui's `DateValue` union (CalendarDate |
@@ -46,44 +46,9 @@ const startTime = ref(parseTimePart(props.modelValue.from))
 const endTime = ref(parseTimePart(props.modelValue.to))
 const open = ref(false)
 
-function todayCalendarDate(): CalendarDate {
-  // todayInCaracas() always yields a well-formed yyyy-MM-dd, so this never falls back to undefined.
-  return parseDatePart(todayInCaracas())!
-}
+const shortcuts = DATE_RANGE_SHORTCUTS
 
-/**
- * Monday-first week, Venezuela business convention (lunes a domingo) — NOT
- * derived from `startOfWeek(date, 'es-VE')`, whose CLDR week data starts on
- * Sunday for `es-VE` and silently gave the wrong "first day of week".
- * `toDate().getDay()` is plain Gregorian (0=Sun…6=Sat), locale-independent.
- */
-function mondayOfWeek(d: CalendarDate): CalendarDate {
-  const jsDay = d.toDate(appTimeZone()).getDay()
-  const offsetFromMonday = (jsDay + 6) % 7
-  return d.subtract({ days: offsetFromMonday })
-}
-
-interface Shortcut { key: string, range: () => { start: CalendarDate, end: CalendarDate } }
-
-const shortcuts: Shortcut[][] = [
-  [
-    { key: 'today', range: () => { const d = todayCalendarDate(); return { start: d, end: d } } },
-    { key: 'yesterday', range: () => { const d = todayCalendarDate().subtract({ days: 1 }); return { start: d, end: d } } },
-    { key: 'tomorrow', range: () => { const d = todayCalendarDate().add({ days: 1 }); return { start: d, end: d } } },
-  ],
-  [
-    { key: 'lastWeek', range: () => { const w = mondayOfWeek(todayCalendarDate()).subtract({ weeks: 1 }); return { start: w, end: w.add({ days: 6 }) } } },
-    { key: 'thisWeek', range: () => { const w = mondayOfWeek(todayCalendarDate()); return { start: w, end: w.add({ days: 6 }) } } },
-    { key: 'nextWeek', range: () => { const w = mondayOfWeek(todayCalendarDate()).add({ weeks: 1 }); return { start: w, end: w.add({ days: 6 }) } } },
-  ],
-  [
-    { key: 'lastMonth', range: () => { const m = startOfMonth(todayCalendarDate()).subtract({ months: 1 }); return { start: m, end: endOfMonth(m) } } },
-    { key: 'thisMonth', range: () => { const m = startOfMonth(todayCalendarDate()); return { start: m, end: endOfMonth(m) } } },
-    { key: 'nextMonth', range: () => { const m = startOfMonth(todayCalendarDate()).add({ months: 1 }); return { start: m, end: endOfMonth(m) } } },
-  ],
-]
-
-function applyShortcut(shortcut: Shortcut) {
+function applyShortcut(shortcut: DateRangeShortcut) {
   const { start, end } = shortcut.range()
   range.value = { start, end }
   startTime.value = '00:00'
@@ -145,7 +110,7 @@ const label = computed(() => {
 
     <template #content>
       <div class="flex">
-        <div class="w-40 shrink-0 border-r border-default p-2 flex flex-col">
+        <div class="w-48 shrink-0 border-r border-default p-2 flex flex-col">
           <template v-for="(group, i) in shortcuts" :key="i">
             <UButton
               v-for="shortcut in group"
