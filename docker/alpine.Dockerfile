@@ -55,7 +55,15 @@ ENV NUXT_PUBLIC_API_BASE_URL="https://api-test.centroopticovicente.com"
 # the new image's ENV and keep reporting the previous release.
 RUN printf 'version=%s\nbuildDate=%s\n' "${BUILD_VERSION}" "${BUILD_DATE}" > /etc/app-build-info
 
+# Optional same-origin API proxy (/api/ -> backend). Off unless set: the
+# entrypoint then writes /etc/nginx/api-proxy/api.conf (included by default.conf)
+# and points the SPA at /api, which removes the CORS preflight before each call.
+# Use the backend's address on the Docker network when it shares one, e.g.
+# `-e API_PROXY_UPSTREAM=http://optibienestar_backend:8080`.
+ENV API_PROXY_UPSTREAM=""
+
 COPY docker/default.conf /etc/nginx/conf.d/default.conf
+RUN mkdir -p /etc/nginx/api-proxy
 # Runtime config renderer: writes /usr/share/nginx/html/config.js from env vars
 # before Nginx starts (Nginx official images run /docker-entrypoint.d/*.sh).
 COPY docker/docker-entrypoint.d/40-render-runtime-config.sh /docker-entrypoint.d/40-render-runtime-config.sh
