@@ -4631,7 +4631,17 @@
         "untilLabel": "Confirmar hasta",
         "daysLabel": "Días tras el cierre",
         "daysCount": "{n} día(s) tras el cierre"
-      }
+      },
+      "quotaTrigger": "El cupo se confirma",
+      "quotaTriggerHelp": "Hasta ese momento el cupo queda pendiente: ocupa lugar, pero todavía puede vencerse o liberarse.",
+      "pendingTtlDays": "Días para confirmar",
+      "pendingTtlDaysHelp": "Vacío = el cupo pendiente no se vence solo.",
+      "pendingTtlDaysCount": "{n} día(s) para confirmar",
+      "usageWindow": "Uso del beneficio",
+      "usageWindowHelp": "Hasta cuándo puede usarse la promoción una vez confirmada.",
+      "usageWindowDays": "Días de uso desde la confirmación",
+      "usageWindowDaysRequired": "Indica los días (un número entero mayor a 0)",
+      "usageWindowDaysCount": "{n} día(s) desde la confirmación"
     },
     "detail": {
       "generalData": "Datos generales",
@@ -4759,7 +4769,8 @@
       "usedOfMax": "{used} / {max} ocupados",
       "usedUnlimited": "{used} ocupados (sin tope)",
       "free": "{n} libres",
-      "unlimited": "Sin tope"
+      "unlimited": "Sin tope",
+      "pending": "{n} pendientes"
     },
     "lifecycleActions": {
       "activate": "Activar",
@@ -4786,6 +4797,27 @@
       "reopenMaxInvalid": "El nuevo cupo debe ser mayor que el actual",
       "reopenEndsAtInvalid": "La nueva fecha de fin debe ser posterior a hoy y a la actual",
       "reopenNothingEnlarged": "Amplía el cupo o la fecha de fin para poder reabrir"
+    },
+    "quotaTrigger": {
+      "ON_ENROLLMENT": "Al inscribir",
+      "ON_PAYMENT_REGISTERED": "Al registrar el pago",
+      "ON_PAYMENT_CONFIRMED": "Al confirmar el pago"
+    },
+    "usageWindow": {
+      "CAMPAIGN_DATES": "Durante las fechas de la campaña",
+      "DAYS_AFTER_CONFIRMATION": "N días desde la confirmación"
+    },
+    "quotaCard": {
+      "title": "Cupos",
+      "hint": "Los pendientes ocupan cupo hasta que se confirman, se vencen o se liberan.",
+      "total": "Cupo total",
+      "confirmed": "Confirmados",
+      "pending": "Pendientes",
+      "free": "Libres",
+      "expired": "Vencidos",
+      "released": "Liberados",
+      "promotion": "Promoción",
+      "max": "Cupo propio"
     }
   },
   "commissionRules": {
@@ -5861,20 +5893,31 @@
       "cancelNotice": "La membresía dejará de recibir el descuento desde el próximo cargo.",
       "reason": "Motivo",
       "cancelButton": "Cancelar promoción",
-      "canceledToast": "Promoción cancelada"
+      "canceledToast": "Promoción cancelada",
+      "confirmBy": "confirmar antes del {date}",
+      "usableUntil": "vigente hasta el {date}"
     },
     "portal": {
       "title": "Tu promoción: {name}",
       "discount": "{pct} de descuento en {what}.",
       "cyclesLeft": "Te quedan {n} mensualidad(es) con descuento.",
       "keepOnTime": "Paga a tiempo: si un pago se atrasa, la promoción se pierde.",
-      "paymentSaving": "Ahorraste {amount} · {reason}"
+      "paymentSaving": "Ahorraste {amount} · {reason}",
+      "pending": "Tu cupo está reservado: se confirma con tu pago.",
+      "pendingUntil": "Tu cupo está reservado hasta el {date}: se confirma con tu pago.",
+      "usableUntil": "Puedes usarla hasta el {date}."
     },
     "discountType": {
       "PERCENTAGE": "Porcentaje",
       "FLAT": "Monto fijo"
     },
-    "campaignQuotaOnly": "Usa el cupo de la campaña"
+    "campaignQuotaOnly": "Usa el cupo de la campaña",
+    "redemptionStatus": {
+      "PENDING": "Cupo pendiente",
+      "CONFIRMED": "Cupo confirmado",
+      "EXPIRED": "Cupo vencido",
+      "RELEASED": "Cupo liberado"
+    }
   },
   "profilePhoto": {
     "title": "Foto de perfil",

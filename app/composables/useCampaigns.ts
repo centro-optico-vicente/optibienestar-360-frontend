@@ -7,6 +7,7 @@ import type {
   CampaignEffectivenessDto,
   CampaignExceptionDto,
   CampaignExceptionRequest,
+  CampaignQuotaDto,
   CampaignRelaunchRequest,
   CampaignReopenRequest,
   CampaignTransactionLinkDto,
@@ -100,6 +101,10 @@ export const useCampaigns = () => {
   const reopen = (uuid: string, body: CampaignReopenRequest) =>
     useApi<CampaignDto>(`/v1/admin/campaigns/${uuid}/reopen`, { method: 'POST', body })
 
+  /** Slot counters of the campaign and each promotion (CAMPAIGN_VIEW_ALL). */
+  const quota = (uuid: string) =>
+    useApi<CampaignQuotaDto>(`/v1/admin/campaigns/${uuid}/quota`)
+
   /** JSON effectiveness summary (GET /{uuid}/effectiveness) — NOT a file download. */
   const getEffectiveness = (uuid: string) =>
     useApi<CampaignEffectivenessDto>(`/v1/admin/campaigns/${uuid}/effectiveness`)
@@ -148,6 +153,7 @@ export const useCampaigns = () => {
     resume,
     close,
     reopen,
+    quota,
     getEffectiveness,
     audience,
     addAudienceMember,

@@ -200,8 +200,22 @@ const quotaPct = computed(() => {
   if (!c || c.maxRedemptions == null || c.maxRedemptions <= 0) return null
   return Math.min(100, Math.round(((c.redemptionsCount ?? 0) / c.maxRedemptions) * 100))
 })
+// Slot counters card (GET /quota, phase 2b): reloaded after a lifecycle change (closing may release pending slots).
+const quotaCardRef = ref<{ load: () => Promise<void> } | null>(null)
 function onLifecycleUpdated(updated: CampaignDto) {
   campaign.value = updated
+  quotaCardRef.value?.load()
+}
+function slotRulesLabel(c: CampaignDto): string {
+  const trigger = c.quotaTrigger_Display ?? t(`campaigns.quotaTrigger.${c.quotaTrigger ?? 'ON_ENROLLMENT'}`)
+  const ttl = c.quotaTrigger && c.quotaTrigger !== 'ON_ENROLLMENT' && c.pendingTtlDays != null
+    ? ` · ${t('campaigns.form.pendingTtlDaysCount', { n: c.pendingTtlDays })}`
+    : ''
+  return `${trigger}${ttl}`
+}
+function usageWindowLabel(c: CampaignDto): string {
+  if (c.usageWindow === 'DAYS_AFTER_CONFIRMATION') return t('campaigns.form.usageWindowDaysCount', { n: c.usageWindowDays ?? 0 })
+  return c.usageWindow_Display ?? t('campaigns.usageWindow.CAMPAIGN_DATES')
 }
 
 // =========================================================
@@ -649,8 +663,17 @@ async function confirmRemoveException() {
             <dd class="text-prohealth-800 mt-0.5">
               <span>{{ quotaLabel(campaign) }}</span>
               <span v-if="campaign.freeSlots != null" class="text-xs text-prohealth-500"> · {{ t('campaigns.quota.free', { n: campaign.freeSlots }) }}</span>
+              <span v-if="campaign.pendingCount" class="text-xs text-amber-600"> · {{ t('campaigns.quota.pending', { n: campaign.pendingCount }) }}</span>
               <UProgress v-if="quotaPct !== null" :model-value="quotaPct" :max="100" size="xs" class="mt-1 max-w-48" :color="quotaPct >= 100 ? 'error' : 'primary'" />
             </dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('campaigns.form.quotaTrigger') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ slotRulesLabel(campaign) }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('campaigns.form.usageWindow') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ usageWindowLabel(campaign) }}</dd>
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('campaigns.form.grace.label') }}</dt>
@@ -752,6 +775,9 @@ async function confirmRemoveException() {
         <p v-else-if="effectivenessLoading" class="text-sm text-prohealth-500">{{ t('common.loading') }}</p>
         <p v-else class="text-sm text-prohealth-500">{{ t('common.error') }}</p>
       </div>
+      <!-- 1c. Slot counters (hub ADR 0038, phase 2b) -->
+      <CampaignQuotaCard ref="quotaCardRef" :campaign-uuid="campaignUuid" />
+
       <UTabs v-model="activeDetailTab" :items="detailTabs" :content="false" />
 
       <!-- 2. Audiencia -->
