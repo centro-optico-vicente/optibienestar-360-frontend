@@ -6998,5 +6998,17 @@
       "editTitle": "Editar beneficio",
       "noProducts": "No tienes ofertas aprobadas"
     }
+  },
+  "notifications": {
+    "fallbackTitle": "Nueva notificación",
+    "open": "Ver",
+    "types": {
+      "REGISTRATION_APPROVED": {
+        "title": "¡Ya eres parte de OptiBienestar!",
+        "bodyAlly": "Aprobamos el registro de {name}. Ya tienes acceso completo a tu portal de aliado.",
+        "bodyMember": "Aprobamos tu afiliación. Ya puedes usar tu carnet digital y tus beneficios.",
+        "action": "Ir a mi portal"
+      }
+    }
   }
 }
