@@ -37,9 +37,11 @@ const submitting = ref(false)
 // gets a value (edit mode, or a value prefilled from the payout account) so the
 // selected label can show — see the `ensureLoaded` watchers below.
 // Server search over the advisors list endpoint (`q`): the option also needs the advisor's person uuid.
+// The system advisor (INSTITUCION) is never a payee — it has no person and its commissions are booked
+// to the institution — so it's left out, except as the saved value of an older payment being edited.
 const promoterList = useLazyOptions<{ label: string, value: string, personUuid?: string }>(async q =>
   ((await promoters.list({ q, size: DROPDOWN_PAGE_SIZE, sort: ['displayName,asc'] })).content ?? [])
-    .filter((promoter: PromoterDto) => promoter.active)
+    .filter((promoter: PromoterDto) => promoter.active && (!promoter.system || promoter.uuid === state.promoterUuid))
     .map((promoter: PromoterDto) => ({ label: promoter.displayName, value: promoter.uuid, personUuid: promoter.person_Uuid ?? undefined })))
 const promoterOptions = promoterList.items
 // The direction filter runs on the server (`payment-categories/options?direction=OUT`), together with the search `q`.
