@@ -17,7 +17,9 @@ export default defineNuxtPlugin((nuxtApp) => {
   const notifications = useNotifications()
   const toast = useToast()
   const router = useRouter()
-  const t = (key: string, params?: Record<string, unknown>) => nuxtApp.$i18n.t(key, params ?? {}) as string
+  // The plugin's `nuxtApp` argument is untyped for module injections; `useNuxtApp()` carries `$i18n`.
+  const { $i18n } = useNuxtApp()
+  const t = $i18n.t as unknown as (key: string, params?: Record<string, unknown>) => string
 
   /** Uuids already on screen in this tab (a toast left open is not added twice). */
   const shown = new Set<string>()
