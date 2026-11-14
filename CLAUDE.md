@@ -1,59 +1,47 @@
 # optibienestar-360-frontend
 
-Frontend admin/multi-rol del ecosistema **OptiBienestar 360**. Nuxt 4 (SPA, `ssr: false`) + Nuxt UI + Tailwind CSS + Pinia.
+Panel admin y portales de **OptiBienestar 360**: Nuxt 4 **SPA** (`ssr: false`) + Vue 3 + Nuxt UI v4 + Tailwind v4 + Pinia + VueUse + `@nuxtjs/i18n` (es/en) + vee-validate/zod. Imagen Docker con Nginx y config en runtime. Docs del repo en `.ai/` (español); visión cross-stack en el hub [`../centro-optico-vicente`](https://github.com/fenix-core/centro-optico-vicente/tree/main/.ai) (ADR sin prefijo = del hub; `LOC-` = de este repo).
 
-**Parte del ecosistema:** [centro-optico-vicente](https://github.com/fenix-core/centro-optico-vicente) (hub maestro)
+Código en `app/{pages,components,composables,stores,middleware,plugins,layouts,types,utils}`; traducciones en `i18n/locales/{es,en}.json`.
 
-## Documentación
+**Roles** (`ROLES` en `app/types/auth.ts`): `SYSTEM`/`ADMINISTRADOR`/`OPERADOR` → `/dashboard/*`; `ALIADO` → `/allies/*`; `AFILIADO` → `/members/*`; `ASESOR` → `/advisors/*`. Públicas en español (`/aliados`, `/afiliarse`, `/solicitar-alianza`…), con par en inglés bajo `/en/*`.
 
-Toda la documentación para asistencia IA vive en [`.ai/`](.ai/). **Empezar por [`.ai/CLAUDE.md`](.ai/CLAUDE.md)**.
+## Reglas duras
 
-Para decisiones cross-stack (infraestructura, modelo de datos, contracts REST con backend), ver el **hub maestro**: [centro-optico-vicente/.ai](https://github.com/fenix-core/centro-optico-vicente/tree/main/.ai).
+1. **Sin lógica de negocio** (precios, comisiones, solvencia): eso lo calcula el backend. El frontend valida formato y muestra.
+2. **API solo vía `useApi()`** (`$fetch` + JWT); nunca axios. Listados usan el DTO compacto; los formularios de editar **cargan el detalle** con `GET /{uuid}`, nunca reutilizan la fila del listado.
+3. **Permisos:** `usePermissions()`, directiva `v-can` y middleware (`auth.global`, `can`, `role`). Permisos granulares por acción.
+4. **Sesión:** access token en `sessionStorage`, refresh en `localStorage` ([ADR 0024 del hub](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0024-jwt-token-storage.md)); no cookies httpOnly.
+5. **Textos:** nada literal en plantillas; todo por clave i18n en **es y en**. Código, comentarios y commits en inglés. Términos del glosario (ASESOR/`advisor`, nunca "promotor" en UI ni URL).
+6. **Selects** alimentados por catálogo/`/options` del backend, no listas fijas ([LOC-0005](.ai/decisions/loc-0005-catalog-backed-selects.md)).
+7. **Git:** nunca commit a `main`; rama `<tipo>/<kebab>` con `--no-track`; sin `Co-Authored-By`. Requiere **Node ≥ 20** (`nvm use 20`).
 
-| Necesito | Archivo |
+## Archivos que NO se leen enteros
+
+| Archivo | Usar en su lugar |
 |---|---|
-| Brief de entrada al frontend | [`.ai/CLAUDE.md`](.ai/CLAUDE.md) |
-| Checklist (tareas frontend) | [`.ai/checklist.md`](.ai/checklist.md) |
-| Estructura del proyecto | [`.ai/specs/01-project-structure.md`](.ai/specs/01-project-structure.md) |
-| Cliente API y auth | [`.ai/specs/04-api-client.md`](.ai/specs/04-api-client.md) |
-| Sistema de permisos | [`.ai/specs/09-permissions.md`](.ai/specs/09-permissions.md) |
-| Playbooks (nueva página, form, tabla) | [`.ai/playbooks/`](.ai/playbooks/) |
-| CI/CD + Docker + config en runtime | [`.ai/decisions/0006-ci-cd-docker-runtime-config.md`](.ai/decisions/0006-ci-cd-docker-runtime-config.md) · [`docker/`](docker/) |
-| Skills + MCP de Claude Code | [`.ai/skills.md`](.ai/skills.md) · [`.ai/playbooks/install-skills.md`](.ai/playbooks/install-skills.md) |
-| Agente Nuxt experto | [`.claude/agents/nuxt-expert.md`](.claude/agents/nuxt-expert.md) |
+| `i18n/locales/{es,en}.json` (~300 KB c/u) | `node scripts/i18n-tool.mjs get/keys/find/set/rm/mv …` |
+| `app/types/api.d.ts` (generado desde OpenAPI) | `grep -n 'NombreDto' app/types/api.d.ts` y leer solo ese rango |
+| `pnpm-lock.yaml` | `grep` del paquete |
+| Páginas muy grandes (ej. `dashboard/commission-rules/index.vue`, ~100 KB) | `grep -n` y leer por rangos |
 
-## Stack
+## Qué leer según la tarea
 
-- **Vue 3** + **Nuxt 4** — **SPA** (`ssr: false`, [ADR 0003](.ai/decisions/0003-spa-mode.md))
-- **Nuxt UI** (componentes accesibles, Tailwind incluido)
-- **Pinia** (state management) + **VueUse**
-- **@nuxtjs/i18n** (español default, [ADR 0010](.ai/decisions/0010-localization-venezuela.md))
-- **vee-validate + zod** (forms)
-- **$fetch** nativo con interceptor JWT (`composables/useApi.ts`)
-- **Despliegue:** imagen Docker (Nginx sirviendo SPA estático) + config en runtime ([ADR 0006](.ai/decisions/0006-ci-cd-docker-runtime-config.md))
+| Tarea | Leer / usar |
+|---|---|
+| Nueva página, formulario, tabla, vistas de rol | skills `new-page`, `new-form`, `new-table` |
+| Convención de un área | `.ai/specs/NN-*.md`: estructura 01, rutas/layouts 02, estado 03, API 04, auth 05, i18n 06, forms 07, tablas 08, permisos 09, diseño 10, búsqueda 14 |
+| ¿Ya está decidido? | `.ai/decisions/README.md` (locales) y el índice del hub `../centro-optico-vicente/.ai/decisions/README.md` |
+| Forma de un DTO / endpoint | `app/types/api.d.ts` (grep) o el controller en `../optibienestar-360-backend` |
+| Qué existe / qué falta | `.ai/context/current-state.md` · `.ai/checklist.md` → `.ai/checklists/` |
 
-## Multi-rol
+Reglas extra que se cargan solas al tocar `pages/`, `i18n/` o composables/stores: `.claude/rules/`. Para dudas de Nuxt/Vue complejas: subagente `nuxt-expert`.
 
-El mismo app sirve a varios roles (`SYSTEM`, `ADMINISTRADOR`, `OPERADOR`, `ALIADO`, `AFILIADO`, `ASESOR`; constantes en inglés `ROLES` de `app/types/auth.ts`):
-
-- `SYSTEM`, `ADMINISTRADOR`, `OPERADOR` → panel administrativo (`/dashboard/*`: usuarios, roles, catálogos…)
-- `ALIADO` → validador y registro de uso (portal aliado `/allies/*`)
-- `AFILIADO` → portal propio + carnet digital (`/members/*`)
-- `ASESOR` (antes `PROMOTOR`, backend V185) → dashboard de ventas (`/advisors/*`)
-
-Convención de URLs: rutas autenticadas en **inglés y plural** (`/dashboard/*`, `/allies/*`, `/members/*`, `/advisors/*`); solo las públicas en español (`/aliados`, `/afiliarse`, `/recuperar-clave`, `/restablecer-clave`), cada una con su par en inglés que muestra la misma página en inglés: `/en` (login), `/en/allies`, `/en/join`, `/en/forgot-password`, `/en/reset-password` (alias de ruta + `hreflang`, ver [`.ai/specs/06-i18n.md`](.ai/specs/06-i18n.md)). Las viejas `/aliado/**`, `/afiliado/**`, `/promotor/**` hacen 301 a las nuevas (`nuxt.config.ts` `routeRules` + `docker/default.conf`). "promoter/promotor" no aparece en ninguna URL (término del glosario: **Asesor** / `advisor`): las pantallas admin viven en `/dashboard/advisors/**` y `/dashboard/catalogs/advisor-{types,ranks}`, con 301 desde `/dashboard/promoters/**` y `/dashboard/catalogs/promoter-{types,ranks}`; la API se consume en `/v1/admin/advisors`, `/v1/admin/advisor-ranks`, `/v1/admin/catalogs/advisor-types` y `/v1/advisors/me/*`. El portal aliado consume `/v1/allies/me/*` (`services`, `validations/{document}`, `benefit-usages`, `usage-history`), antes `/v1/aliado/services` y `/v1/ally/*`.
-
-Navegación condicional por rol/permiso. Layout `dashboard.vue` adapta el sidebar; el control de acceso se hace con middleware (`auth.global`, `can`, `role`), el composable `usePermissions()` y la directiva `v-can`.
-
-## Cómo correr
+## Comandos
 
 ```bash
-pnpm install
-pnpm dev          # http://localhost:3000
+pnpm install && pnpm dev       # http://localhost:3000 (API: NUXT_PUBLIC_API_BASE_URL)
+pnpm typecheck                 # vue-tsc
+pnpm i18n:check                # paridad es/en
+pnpm api:generate              # regenerar app/types/api.d.ts
 ```
-
-API backend vía `NUXT_PUBLIC_API_BASE_URL` (ver [`README.md`](README.md) → Environment variables).
-
-## Estado actual
-
-Bootstrap completo: auth (login/recuperación), RBAC editable (usuarios + roles + permisos), catálogos, layouts, middleware, i18n, imagen Docker y CI/CD ya construidos. También existen los portales autenticados (`/allies/*` aliado con validador, `/members/*` afiliado, `/advisors/*` asesor), las páginas públicas (`/aliados`, `/afiliarse`) y los módulos del panel admin (`/dashboard/*`: afiliados, membresías, planes, aliados, asesores, pagos, cobranzas, comisiones, campañas, reportes). Lo que falta está en el checklist. Ver [`.ai/context/current-state.md`](.ai/context/current-state.md) y [`.ai/checklist.md`](.ai/checklist.md).
