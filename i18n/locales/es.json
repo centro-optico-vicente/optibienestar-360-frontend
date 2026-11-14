@@ -216,6 +216,11 @@
       "signingIn": "Estamos validando tu enlace…",
       "invalidTitle": "El enlace no es válido o ya venció",
       "invalidDescription": "Los enlaces de acceso duran 15 minutos y solo se pueden usar una vez. Pide uno nuevo desde la pantalla de ingreso."
+    },
+    "defaultRole": {
+      "badge": "Rol de inicio",
+      "makeActiveDefault": "Iniciar siempre con este rol",
+      "savedToast": "Desde tu próximo inicio de sesión entrarás como {role}"
     }
   },
   "security": {
@@ -309,7 +314,10 @@
           "columns": {
             "role": "Rol",
             "description": "Descripción"
-          }
+          },
+          "defaultTooltip": "Rol con el que inicia sesión",
+          "makeDefaultTooltip": "Usar como rol de inicio",
+          "defaultToast": "Rol de inicio actualizado"
         },
         "alliesTab": {
           "title": "Aliados asociados",

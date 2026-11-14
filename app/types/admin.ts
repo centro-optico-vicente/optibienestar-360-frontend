@@ -58,6 +58,8 @@ export interface UserDto {
   lastLoginAt?: string | null
   lastLoginAt_Display?: string | null
   roles: RoleDto[]
+  /** Role every session starts with; null = the oldest effective role. */
+  defaultRoleUuid?: string | null
 }
 
 // v2 breaking change: fullName replaced by the 4 atomic name parts.
@@ -93,6 +95,8 @@ export interface AdminUpdateUserRequest {
   status?: string
   active?: boolean
   roleIds?: string[]
+  /** Role the user signs in with; must be one they hold (the backend assigns it otherwise). */
+  defaultRoleUuid?: string
 }
 
 // --- Roles / Permisos ---
