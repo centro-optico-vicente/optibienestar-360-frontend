@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { offerDiscountText } from '~/utils/offerDiscount'
-import { professionLabel, professionTreeItems } from '~/utils/professionLabel'
+import { professionLabel } from '~/utils/professionLabel'
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { ApiError } from '~/types/auth'
@@ -411,14 +411,12 @@ async function loadProfessions() {
   }
 }
 
-// Searched on the server (`q`, first `DROPDOWN_PAGE_SIZE` matches) when the dropdown opens
-// and while typing. It reads the paged list (not `/options`) because the tree needs each row's
-// `parent_Uuid`/`parent_Display`: the matches are grouped under their general profession and a
-// sub-specialty whose parent isn't among them keeps the "General › Sub" label.
-const professionLazy = useLazyOptions(async (q) => {
-  const page = await useCatalog('/v1/admin/catalogs/professions').list({ q: q || undefined, page: 0, size: DROPDOWN_PAGE_SIZE })
-  return professionTreeItems(page.content ?? [])
-})
+// Searched on the server (`q`) through `/options`, which only needs a session: adding a
+// profession takes `ALLY_UPDATE`, and the paged catalog list (`PROFESSION_VIEW_ALL`) left the
+// select empty for a role without the professions screen. The label is the profession's name;
+// showing the general profession for sub-specialties is pending (see 07-forms.md).
+const professionOptions = useCatalogOptions('professions')
+const professionLazy = useLazyOptions(async q => toSelectItems(await professionOptions.options({ q })))
 
 /** Only the professions not yet assigned. */
 const availableProfessionOptions = computed(() => {
