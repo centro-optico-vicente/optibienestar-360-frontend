@@ -154,6 +154,8 @@ export interface RoleUserDto {
   status_Display?: string | null
   active: boolean
   active_Display?: string | null
+  /** True when the user signs in with this role (users.default_role). */
+  isDefault?: boolean
 }
 
 /** Normaliza una respuesta que puede venir como Page<T> o como T[] plano. */

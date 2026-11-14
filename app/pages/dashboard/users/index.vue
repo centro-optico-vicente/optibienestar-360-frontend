@@ -357,13 +357,18 @@ async function confirmDelete() {
               <td class="px-5 py-3">
                 <div class="flex flex-wrap gap-1">
                   <template v-for="r in u.roles" :key="r.uuid">
-                    <NuxtLink v-if="canViewRole" :to="`/dashboard/roles/${r.uuid}`">
+                    <!-- The star marks the role the user signs in with (users.default_role). -->
+                    <NuxtLink v-if="canViewRole" :to="`/dashboard/roles/${r.uuid}`" :title="r.uuid === u.defaultRoleUuid ? $t('security.users.detail.rolesTab.defaultTooltip') : undefined">
                       <UBadge color="primary" variant="subtle" size="sm" class="inline-flex items-center gap-1">
+                        <UIcon v-if="r.uuid === u.defaultRoleUuid" name="i-lucide-star" class="w-3 h-3 shrink-0 text-warning" />
                         {{ r.name }}
                         <UIcon name="i-lucide-external-link" class="w-3 h-3 shrink-0" />
                       </UBadge>
                     </NuxtLink>
-                    <UBadge v-else color="primary" variant="subtle" size="sm">{{ r.name }}</UBadge>
+                    <UBadge v-else color="primary" variant="subtle" size="sm" class="inline-flex items-center gap-1" :title="r.uuid === u.defaultRoleUuid ? $t('security.users.detail.rolesTab.defaultTooltip') : undefined">
+                      <UIcon v-if="r.uuid === u.defaultRoleUuid" name="i-lucide-star" class="w-3 h-3 shrink-0 text-warning" />
+                      {{ r.name }}
+                    </UBadge>
                   </template>
                   <span v-if="!u.roles?.length" class="text-prohealth-400">—</span>
                 </div>
