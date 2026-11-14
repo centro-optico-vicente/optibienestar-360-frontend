@@ -216,6 +216,11 @@
       "signingIn": "Validating your link…",
       "invalidTitle": "The link is invalid or has expired",
       "invalidDescription": "Sign-in links last 15 minutes and can be used only once. Request a new one from the sign-in screen."
+    },
+    "defaultRole": {
+      "badge": "Sign-in role",
+      "makeActiveDefault": "Always start with this role",
+      "savedToast": "From your next sign-in you will start as {role}"
     }
   },
   "security": {
@@ -309,7 +314,10 @@
           "columns": {
             "role": "Role",
             "description": "Description"
-          }
+          },
+          "defaultTooltip": "Role this user signs in with",
+          "makeDefaultTooltip": "Use as sign-in role",
+          "defaultToast": "Sign-in role updated"
         },
         "alliesTab": {
           "title": "Associated allies",

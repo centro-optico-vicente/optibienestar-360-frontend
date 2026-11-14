@@ -112,6 +112,14 @@ export const useAuth = () => {
   }
 
   /**
+   * Sets the role the caller's next sessions start with (only one they already
+   * hold). The current session keeps its active role. Returns the updated list.
+   */
+  const setDefaultRole = async (roleUuid: string): Promise<MyRole[]> => {
+    return useApi<MyRole[]>('/v1/me/default-role', { method: 'PUT', body: { roleUuid } })
+  }
+
+  /**
    * Switches the current session's active role: closes the current session
    * and opens a new one (fresh access + refresh, same backend as a login
    * without a password). `permissions`/`activeRole` in the store end up
@@ -181,6 +189,7 @@ export const useAuth = () => {
     refreshSession,
     updateLocale,
     fetchMyRoles,
+    setDefaultRole,
     switchActiveRole,
     recoverPassword,
     resetPassword,

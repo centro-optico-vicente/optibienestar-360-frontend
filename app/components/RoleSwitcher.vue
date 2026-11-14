@@ -1,16 +1,22 @@
 <script setup lang="ts">
+import type { DropdownMenuItem } from '@nuxt/ui'
 import type { MyRole } from '~/types/auth'
+import { roleHome } from '~/utils/roleHome'
 
 /**
  * Active-role selector in the sidebar footer. Only shown when the user has
  * more than one effective role — with just one, the caller keeps showing the
  * current plain text (less UI noise in the majority case). After switching,
  * useNav()/usePermissions() are already reactive to the store and recompute
- * the menu without a page reload.
+ * the menu without a page reload, and the person lands on that role's home.
+ *
+ * The role every session starts with (the default) is marked under its name,
+ * and the active role can be made the default from the same menu.
  */
 const { t } = useI18n()
+const toast = useToast()
 const auth = useAuthStore()
-const { fetchMyRoles, switchActiveRole } = useAuth()
+const { fetchMyRoles, setDefaultRole, switchActiveRole } = useAuth()
 const roleLabel = useRoleLabel()
 
 const roles = ref<MyRole[]>([])
@@ -27,20 +33,50 @@ async function select(role: MyRole): Promise<void> {
   pending.value = true
   try {
     await switchActiveRole(role.uuid)
-    await navigateTo('/dashboard')
+    await navigateTo(roleHome(role.name))
   }
   finally {
     pending.value = false
   }
 }
 
-const items = computed(() => [
-  roles.value.map(role => ({
-    label: roleLabel(role.name, role.description),
-    icon: role.name === auth.activeRole ? 'i-lucide-check' : undefined,
-    onSelect: () => select(role),
-  })),
-])
+const activeMyRole = computed(() => roles.value.find(r => r.name === auth.activeRole) ?? null)
+
+async function makeActiveDefault(): Promise<void> {
+  const role = activeMyRole.value
+  if (pending.value || !role || role.isDefault) return
+  pending.value = true
+  try {
+    roles.value = await setDefaultRole(role.uuid)
+    toast.add({
+      title: t('auth.defaultRole.savedToast', { role: roleLabel(role.name, role.description) }),
+      color: 'success',
+      icon: 'i-lucide-check-circle',
+    })
+  }
+  finally {
+    pending.value = false
+  }
+}
+
+const items = computed<DropdownMenuItem[][]>(() => {
+  const groups: DropdownMenuItem[][] = [
+    roles.value.map(role => ({
+      label: roleLabel(role.name, role.description),
+      icon: role.name === auth.activeRole ? 'i-lucide-check' : undefined,
+      description: role.isDefault ? t('auth.defaultRole.badge') : undefined,
+      onSelect: () => select(role),
+    })),
+  ]
+  if (activeMyRole.value && !activeMyRole.value.isDefault) {
+    groups.push([{
+      label: t('auth.defaultRole.makeActiveDefault'),
+      icon: 'i-lucide-star',
+      onSelect: () => makeActiveDefault(),
+    }])
+  }
+  return groups
+})
 </script>
 
 <template>

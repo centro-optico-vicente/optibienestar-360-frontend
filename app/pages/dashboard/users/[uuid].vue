@@ -141,6 +141,28 @@ async function addUserRole() {
 
 const roleDeleteOpen = ref(false)
 const roleDeleting = ref(false)
+// Role the user signs in with (users.default_role). On one's own account it goes
+// through /v1/me/default-role: the admin endpoint rejects self role changes.
+const authStore = useAuthStore()
+const { setDefaultRole: setMyDefaultRole } = useAuth()
+const isSelf = computed(() => authStore.user?.uuid === userUuid)
+const canSetDefaultRole = computed(() => isSelf.value || canUpdate.value)
+const settingDefaultRole = ref(false)
+
+async function makeDefaultRole(r: RoleDto) {
+  if (settingDefaultRole.value || r.uuid === user.value?.defaultRoleUuid) return
+  settingDefaultRole.value = true
+  try {
+    if (isSelf.value) await setMyDefaultRole(r.uuid)
+    else await usersApi.update(userUuid, { defaultRoleUuid: r.uuid })
+    toast.add({ title: t('security.users.detail.rolesTab.defaultToast'), color: 'success', icon: 'i-lucide-check-circle' })
+    await loadUser()
+  }
+  finally {
+    settingDefaultRole.value = false
+  }
+}
+
 const roleTarget = ref<RoleDto | null>(null)
 
 function openRoleDelete(r: RoleDto) {
@@ -506,6 +528,27 @@ async function refreshAll() {
                   <td class="px-6 py-3 text-prohealth-600">{{ r.description || t('common.empty') }}</td>
                   <td class="px-6 py-3">
                     <div class="flex items-center justify-end gap-1">
+                      <UTooltip v-if="r.uuid === user?.defaultRoleUuid" :text="t('security.users.detail.rolesTab.defaultTooltip')">
+                        <UButton
+                          color="warning"
+                          variant="ghost"
+                          icon="i-lucide-star"
+                          size="sm"
+                          class="pointer-events-none"
+                          :aria-label="t('security.users.detail.rolesTab.defaultTooltip')"
+                        />
+                      </UTooltip>
+                      <UTooltip v-else :text="canSetDefaultRole ? t('security.users.detail.rolesTab.makeDefaultTooltip') : t('security.roles.noPermission')">
+                        <UButton
+                          color="neutral"
+                          variant="ghost"
+                          icon="i-lucide-star"
+                          size="sm"
+                          :disabled="!canSetDefaultRole || settingDefaultRole"
+                          :aria-label="t('security.users.detail.rolesTab.makeDefaultTooltip')"
+                          @click="makeDefaultRole(r)"
+                        />
+                      </UTooltip>
                       <UTooltip :text="canRemoveRoles ? t('security.users.detail.rolesTab.unlinkTooltip') : t('security.roles.noPermission')">
                         <UButton
                           color="error"
