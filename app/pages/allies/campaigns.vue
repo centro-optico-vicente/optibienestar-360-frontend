@@ -39,7 +39,7 @@ const loading = ref(false)
 async function load() {
   loading.value = true
   try {
-    campaigns.value = await allyCampaigns.list()
+    campaigns.value = await allyCampaigns.list(selectedAllyUuid.value)
     await Promise.all(Object.keys(promotionsByCampaign.value).map(loadPromotions))
   }
   catch {
@@ -61,6 +61,14 @@ onMounted(async () => {
   await load()
 })
 
+// Another ally picked: its campaigns and benefits replace the previous ones.
+watch(selectedAllyUuid, async (next, prev) => {
+  if (!prev || next === prev) return
+  promotionsByCampaign.value = {}
+  expanded.value = {}
+  await load()
+})
+
 // ---- My benefits per campaign (loaded when the campaign is expanded) ----
 const expanded = ref<Record<string, boolean>>({})
 const promotionsByCampaign = ref<Record<string, PromotionDto[]>>({})
@@ -69,7 +77,7 @@ const promotionsLoading = ref<Record<string, boolean>>({})
 async function loadPromotions(campaignUuid: string) {
   promotionsLoading.value = { ...promotionsLoading.value, [campaignUuid]: true }
   try {
-    const list = await allyCampaigns.promotions(campaignUuid)
+    const list = await allyCampaigns.promotions(campaignUuid, selectedAllyUuid.value)
     promotionsByCampaign.value = { ...promotionsByCampaign.value, [campaignUuid]: list }
   }
   catch {
@@ -130,7 +138,7 @@ async function confirmDelete() {
   if (!target) return
   deleting.value = true
   try {
-    await allyCampaigns.removePromotion(target.promotion.uuid)
+    await allyCampaigns.removePromotion(target.promotion.uuid, selectedAllyUuid.value)
     toast.add({ title: t('allyCampaigns.deletedToast'), color: 'success', icon: 'i-lucide-trash-2' })
     deleteOpen.value = false
     await loadPromotions(target.campaign.uuid)

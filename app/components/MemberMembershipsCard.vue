@@ -145,7 +145,11 @@ async function openAssign(m: MembershipDto) {
   assignOptions.value = []
   assignOpen.value = true
   try {
-    assignOptions.value = await promotionsApi.optionsForMembership(m.uuid)
+    const options = await promotionsApi.optionsForMembership(m.uuid)
+    // A membership holds one fee discount at a time (hub ADR 0018/0038): with one active, only ally vouchers can be added.
+    assignOptions.value = promotionByMembership.value[m.uuid]
+      ? options.filter(p => p.benefitKind === 'ALLY_BENEFIT')
+      : options
   }
   catch {
     assignOptions.value = []

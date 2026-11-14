@@ -149,8 +149,8 @@ async function submit() {
   submitting.value = true
   try {
     const saved = isEdit.value
-      ? await allyCampaigns.updatePromotion(props.promotion!.uuid, body)
-      : await allyCampaigns.createPromotion(props.campaign.uuid, body)
+      ? await allyCampaigns.updatePromotion(props.promotion!.uuid, body, props.allyUuid)
+      : await allyCampaigns.createPromotion(props.campaign.uuid, body, props.allyUuid)
     toast.add({ title: t('allyCampaigns.savedToast'), color: 'success', icon: 'i-lucide-check-circle' })
     emit('saved', saved)
     isOpen.value = false
