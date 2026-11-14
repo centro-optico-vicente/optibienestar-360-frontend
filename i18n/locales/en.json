@@ -5744,7 +5744,10 @@
       "coversExtraBeneficiaries": "Includes extra beneficiaries' enrollment fee",
       "requiresCode": "Requires a code",
       "referrerRewardPct": "Referrer reward (%)",
-      "referrerRewardCycles": "Reward months"
+      "referrerRewardCycles": "Reward months",
+      "discountType": "Discount type",
+      "discountAmount": "Discount amount",
+      "discountCurrency": "Discount currency"
     },
     "form": {
       "createTitle": "New promotion",
@@ -5757,7 +5760,9 @@
       "maxRedemptionsHelp": "Empty = no cap",
       "plansHelp": "Empty = every plan",
       "codeOwnersHelp": "Which codes are accepted in the \"Code\" field when applying the promotion. The benefit goes to whoever uses the code.",
-      "rewardHelp": "Optional: a separate benefit for the referring member, as a discount on their own monthly fee, when the referred member makes their first payment."
+      "rewardHelp": "Optional: a separate benefit for the referring member, as a discount on their own monthly fee, when the referred member makes their first payment.",
+      "amountMin": "Enter an amount greater than 0",
+      "amountHelp": "Converted to the charge currency at the payment date rate and never exceeds the amount due."
     },
     "membership": {
       "promotion": "Promotion",
@@ -5786,6 +5791,10 @@
       "cyclesLeft": "{n} discounted monthly fee(s) left.",
       "keepOnTime": "Pay on time: a late payment cancels the promotion.",
       "paymentSaving": "You saved {amount} · {reason}"
+    },
+    "discountType": {
+      "PERCENTAGE": "Percentage",
+      "FLAT": "Fixed amount"
     }
   },
   "profilePhoto": {

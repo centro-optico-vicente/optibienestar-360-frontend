@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import type { PromotionDto } from '~/types/promotions'
+import { promotionDiscountText } from '~/utils/promotionDiscount'
 
-/** "Promociones" tab of the campaign detail (hub ADR 0018): the % discounts this campaign offers members. */
+/** "Promociones" tab of the campaign detail (hub ADR 0018/0038): the discounts this campaign offers members. */
 const props = defineProps<{ campaignUuid: string }>()
 
 const { t } = useI18n()
 const { can } = usePermissions()
 const promotionsApi = usePromotions()
 const toast = useToast()
+const { formatCurrency } = useFormatters()
 
 const canCreate = computed(() => can('PROMOTION_CREATE'))
 const canUpdate = computed(() => can('PROMOTION_UPDATE'))
@@ -66,7 +68,7 @@ async function confirmDelete() {
 }
 
 function discountLabel(p: PromotionDto): string {
-  const pct = p.discountPct_Display ?? `${Number(p.discountPct)}%`
+  const pct = promotionDiscountText(p, formatCurrency)
   const what = p.appliesTo_Display ?? t(`promotions.appliesTo.${p.appliesTo}`)
   const cycles = p.appliesTo !== 'INSCRIPTION' && p.cycles ? ` · ${t('promotions.cyclesCount', { n: p.cycles })}` : ''
   return `${pct} · ${what}${cycles}`
