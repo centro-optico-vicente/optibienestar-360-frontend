@@ -95,7 +95,8 @@
     "dateRange": {
       "from": "Desde",
       "to": "Hasta",
-      "clear": "Limpiar fecha"
+      "clear": "Limpiar fecha",
+      "shortcuts": "Atajos de fecha"
     },
     "filters": {
       "toggle": "Filtros",

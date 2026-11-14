@@ -95,7 +95,8 @@
     "dateRange": {
       "from": "From",
       "to": "To",
-      "clear": "Clear date"
+      "clear": "Clear date",
+      "shortcuts": "Date shortcuts"
     },
     "filters": {
       "toggle": "Filters",

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { CalendarDate } from '@internationalized/date'
 import { es, en } from '@nuxt/ui/locale'
+import { DATE_SHORTCUTS, todayCalendarDate, type DateShortcut } from '~/utils/dateShortcuts'
 
 const props = withDefaults(
   defineProps<{
@@ -10,6 +11,8 @@ const props = withDefaults(
     clearable?: boolean
     icon?: string
     size?: 'sm' | 'md' | 'lg'
+    /** Shared shortcut panel (07-forms.md); off for fields where it makes no sense, e.g. a birth date. */
+    shortcuts?: boolean
   }>(),
   {
     modelValue: '',
@@ -18,6 +21,7 @@ const props = withDefaults(
     clearable: true,
     icon: 'i-lucide-calendar',
     size: 'md',
+    shortcuts: true,
   }
 )
 
@@ -187,14 +191,11 @@ function onDateSelect(val: any) {
 }
 
 function selectToday() {
-  const now = new Date()
-  const y = now.getFullYear()
-  const m = String(now.getMonth() + 1).padStart(2, '0')
-  const d = String(now.getDate()).padStart(2, '0')
-  const iso = `${y}-${m}-${d}`
-  emit('update:modelValue', iso)
-  inputValue.value = formatIsoToDisplay(iso)
-  open.value = false
+  onDateSelect(todayCalendarDate())
+}
+
+function applyShortcut(shortcut: DateShortcut) {
+  onDateSelect(shortcut.date())
 }
 
 function clear() {
@@ -248,31 +249,51 @@ function clear() {
             </button>
 
             <template #content>
-              <div class="p-3 space-y-3 bg-white">
-                <UCalendar
-                  :model-value="calendarValue"
-                  @update:model-value="onDateSelect"
-                />
-                <div class="flex items-center justify-between pt-2 border-t border-prohealth-100">
-                  <UButton
-                    size="xs"
-                    color="neutral"
-                    variant="ghost"
-                    icon="i-lucide-calendar-days"
-                    @click="selectToday"
-                  >
-                    {{ t('common.today') }}
-                  </UButton>
-                  <UButton
-                    v-if="modelValue"
-                    size="xs"
-                    color="neutral"
-                    variant="ghost"
-                    icon="i-lucide-x"
-                    @click="clear"
-                  >
-                    {{ t('common.clear') }}
-                  </UButton>
+              <div class="flex bg-white">
+                <div v-if="shortcuts" class="w-44 shrink-0 border-r border-default p-2 flex flex-col">
+                  <template v-for="(group, i) in DATE_SHORTCUTS" :key="i">
+                    <UButton
+                      v-for="shortcut in group"
+                      :key="shortcut.key"
+                      color="neutral"
+                      variant="ghost"
+                      size="sm"
+                      class="justify-start"
+                      @click="applyShortcut(shortcut)"
+                    >
+                      {{ t(`common.dateTimePicker.shortcuts.${shortcut.key}`) }}
+                    </UButton>
+                    <USeparator v-if="i < DATE_SHORTCUTS.length - 1" class="my-1" />
+                  </template>
+                </div>
+                <div class="p-3 space-y-3">
+                  <UCalendar
+                    :model-value="calendarValue"
+                    @update:model-value="onDateSelect"
+                  />
+                  <div class="flex items-center justify-between pt-2 border-t border-prohealth-100">
+                    <UButton
+                      v-if="!shortcuts"
+                      size="xs"
+                      color="neutral"
+                      variant="ghost"
+                      icon="i-lucide-calendar-days"
+                      @click="selectToday"
+                    >
+                      {{ t('common.today') }}
+                    </UButton>
+                    <span v-else />
+                    <UButton
+                      v-if="modelValue"
+                      size="xs"
+                      color="neutral"
+                      variant="ghost"
+                      icon="i-lucide-x"
+                      @click="clear"
+                    >
+                      {{ t('common.clear') }}
+                    </UButton>
+                  </div>
                 </div>
               </div>
             </template>

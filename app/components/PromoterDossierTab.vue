@@ -210,7 +210,7 @@ async function onSubmit() {
             <UInput v-model="state.documentNumber" inputmode="numeric" class="w-full" />
           </UFormField>
           <UFormField :label="t('promoters.dossier.fields.birthDate')" name="birthDate">
-            <AppDatePicker v-model="state.birthDate" :disabled="!canEdit" />
+            <AppDatePicker v-model="state.birthDate" :disabled="!canEdit" :shortcuts="false" />
           </UFormField>
           <UFormField :label="t('promoters.dossier.fields.maritalStatus')" name="maritalStatusUuid">
             <CommonEntityReferenceSelect
