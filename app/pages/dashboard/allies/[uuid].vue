@@ -395,7 +395,6 @@ function reviewStatusColor(s?: string): 'success' | 'warning' | 'error' | 'info'
 // =========================================================
 const professions = ref<(CatalogRef & { parent_Uuid?: string | null, parent_Display?: string | null })[]>([])
 const professionsLoading = ref(false)
-const allProfessionOptions = ref<{ label: string, value: string }[]>([])
 const professionToAdd = ref<string | undefined>(undefined)
 const professionMutating = ref(false)
 
@@ -412,22 +411,19 @@ async function loadProfessions() {
   }
 }
 
-async function loadAllProfessions() {
-  try {
-    // Full list (not the flat options) so sub-specialties (V213) show under
-    // their general profession.
-    const items = await useCatalog('/v1/admin/catalogs/professions').listAll()
-    allProfessionOptions.value = professionTreeItems(items)
-  }
-  catch {
-    allProfessionOptions.value = []
-  }
-}
+// Searched on the server (`q`, first `DROPDOWN_PAGE_SIZE` matches) when the dropdown opens
+// and while typing. It reads the paged list (not `/options`) because the tree needs each row's
+// `parent_Uuid`/`parent_Display`: the matches are grouped under their general profession and a
+// sub-specialty whose parent isn't among them keeps the "General › Sub" label.
+const professionLazy = useLazyOptions(async (q) => {
+  const page = await useCatalog('/v1/admin/catalogs/professions').list({ q: q || undefined, page: 0, size: DROPDOWN_PAGE_SIZE })
+  return professionTreeItems(page.content ?? [])
+})
 
 /** Only the professions not yet assigned. */
 const availableProfessionOptions = computed(() => {
   const assigned = new Set(professions.value.map(s => s.uuid))
-  return allProfessionOptions.value.filter(o => !assigned.has(o.value))
+  return professionLazy.items.value.filter(o => !assigned.has(o.value))
 })
 
 async function addProfession() {
@@ -956,7 +952,6 @@ onMounted(async () => {
     loadAllyTypes(),
     loadAgreements(),
     loadStaff(),
-    loadAllProfessions(),
   ])
 })
 </script>
@@ -1493,11 +1488,16 @@ onMounted(async () => {
               clear
               v-model="professionToAdd"
               :items="availableProfessionOptions"
+              :loading="professionLazy.loading.value"
+              v-model:search-term="professionLazy.searchTerm.value"
+              ignore-filter
               label-key="label"
               value-key="value"
               :placeholder="t('common.select')"
               :disabled="!canUpdate"
               class="w-64"
+              @update:open="professionLazy.onOpen"
+              @update:model-value="professionLazy.remember($event)"
             />
             <UButton
               color="primary"

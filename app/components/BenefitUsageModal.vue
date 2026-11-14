@@ -3,7 +3,7 @@ import type { MyAllyDto } from '~/types/allies'
 import type { BenefitUsageDto } from '~/types/benefits'
 import type { ValidationResultDto } from '~/types/validator'
 import { appTimeZone } from '~/utils/timezone'
-import { loadConvertibleCurrencies } from '~/composables/useCurrencyConverter'
+import { toSelectItems } from '~/types/options'
 
 // Registers a consumed benefit at the counter. Opened from the validator page only
 // after an ACTIVE result, so `membershipUuid` is always the one the backend just
@@ -103,35 +103,19 @@ async function loadProducts(allyUuid: string) {
   }
 }
 
-// Currencies the caller may convert between (GET /v1/me/currencies — open to
-// the ally portal, unlike the admin catalog). "USD ($)" label, ISO code value.
-const currencyOptions = ref<{ label: string, value: string }[]>([])
+// Currencies searched on the server (`q`) through `/v1/admin/currencies/options`, which
+// only needs a session (ADR LOC-0013, rule 3), so the ally portal can use it.
+// "USD ($)" label (built by the backend), ISO code value. USD is always listed:
+// both selects start on it before the dropdown is ever opened.
+const currencyApi = useCurrencies()
+const currencyLazy = useLazyOptions(
+  async q => (await currencyApi.options({ q })).filter(o => o.code).map(o => ({ label: o.label, value: o.code! })),
+  [{ label: 'USD ($)', value: 'USD' }],
+)
 
-async function loadCurrencyOptions() {
-  if (currencyOptions.value.length) return
-  const currencies = await loadConvertibleCurrencies()
-  currencyOptions.value = currencies.map(c => ({
-    label: c.symbol ? `${c.code} (${c.symbol})` : c.code!,
-    value: c.code!,
-  }))
-  if (!currencyOptions.value.length) currencyOptions.value = [{ label: 'USD ($)', value: 'USD' }]
-}
-
-// Category fallback for a non-catalogued usage (public catalog: no admin key needed).
-const categoryOptions = ref<{ label: string, value: string }[]>([])
-
-async function loadCategories() {
-  if (categoryOptions.value.length) return
-  try {
-    const items = await usePublicCatalog('product-categories').list()
-    categoryOptions.value = items
-      .filter(i => i.active !== false)
-      .map(i => ({ label: i.name, value: i.uuid }))
-  }
-  catch {
-    categoryOptions.value = []
-  }
-}
+// Category fallback for a non-catalogued usage, searched on the server (`q`):
+// `/options` only needs a session, no admin screen permission.
+const categoryLazy = useLazyOptions(async q => toSelectItems(await useCatalogOptions('product-categories').options({ q })))
 
 watch(() => props.open, (open) => {
   if (!open) return
@@ -146,8 +130,6 @@ watch(() => props.open, (open) => {
   touched.value = false
   consumer.value = props.validation?.beneficiaryUuid ?? HOLDER
   if (props.ally) loadProducts(props.ally.uuid)
-  loadCategories()
-  loadCurrencyOptions()
 })
 
 // ---- Validation ----
@@ -291,11 +273,16 @@ async function confirm() {
           <USelectMenu
             clear
             v-model="productCategoryUuid"
-            :items="categoryOptions"
+            :items="categoryLazy.items.value"
+            :loading="categoryLazy.loading.value"
+            v-model:search-term="categoryLazy.searchTerm.value"
+            ignore-filter
             label-key="label"
             value-key="value"
             :placeholder="t('common.select')"
             class="w-full"
+            @update:open="categoryLazy.onOpen"
+            @update:model-value="categoryLazy.remember($event)"
           />
         </UFormField>
 
@@ -324,10 +311,15 @@ async function confirm() {
             <USelectMenu
               clear
               v-model="consumptionCurrency"
-              :items="currencyOptions"
+              :items="currencyLazy.items.value"
+              :loading="currencyLazy.loading.value"
+              v-model:search-term="currencyLazy.searchTerm.value"
+              ignore-filter
               label-key="label"
               value-key="value"
               class="w-full"
+              @update:open="currencyLazy.onOpen"
+              @update:model-value="currencyLazy.remember($event)"
             />
           </UFormField>
         </div>
@@ -351,10 +343,15 @@ async function confirm() {
             <USelectMenu
               clear
               v-model="copayCurrency"
-              :items="currencyOptions"
+              :items="currencyLazy.items.value"
+              :loading="currencyLazy.loading.value"
+              v-model:search-term="currencyLazy.searchTerm.value"
+              ignore-filter
               label-key="label"
               value-key="value"
               class="w-full"
+              @update:open="currencyLazy.onOpen"
+              @update:model-value="currencyLazy.remember($event)"
             />
           </UFormField>
         </div>

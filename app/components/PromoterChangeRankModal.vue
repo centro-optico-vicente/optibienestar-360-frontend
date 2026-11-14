@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { CatalogItem } from '~/types/catalogs'
-import type { SelectItem } from '~/types/options'
 import { toSelectItems } from '~/types/options'
 
 /**
@@ -38,7 +37,6 @@ function goToLinkedRecord(to: string) {
 }
 
 const loading = ref(false)
-const loadingSupervisors = ref(false)
 const submitting = ref(false)
 const touched = ref(false)
 
@@ -46,44 +44,62 @@ const promoterName = ref('')
 const currentRankUuid = ref<string | null>(null)
 const currentRankDisplay = ref('')
 
-const rankOptions = ref<SelectItem[]>([])
-// Full rank records (with `parentRankUuid`) backing `rankOptions`' lightweight
-// `Option[]` — needed to answer "is the selected rank the top of the
-// hierarchy" directly instead of inferring it from an empty options list.
-const allRanks = ref<CatalogItem[]>([])
+// Ranks searched on the server (`q`), excluding the promoter's current rank.
+const rankLazy = useLazyOptions(async q =>
+  toSelectItems(await hierarchyApi.rankOptions({ q, excludeUuid: currentRankUuid.value ?? undefined })))
 const selectedRank = ref('')
-const supervisorOptions = ref<SelectItem[]>([])
-const selectedSupervisor = ref('')
+// Detail of the selected rank (`GET /v1/admin/advisor-ranks/{uuid}`): its `parentRankUuid`
+// answers "is it the top of the hierarchy" without loading every rank.
+const selectedRankItem = ref<CatalogItem | null>(null)
+const loadingRank = ref(false)
 const allSuperiors = ref(false)
+// Eligible supervisors for the selected rank, searched on the server (`q`).
+const supervisorLazy = useLazyOptions(async (q) => {
+  if (!selectedRank.value) return []
+  return toSelectItems(await hierarchyApi.eligibleSupervisors(selectedRank.value, { allSuperiors: allSuperiors.value, q }))
+})
+const supervisorOptions = computed(() => supervisorLazy.items.value)
+const loadingSupervisors = computed(() => supervisorLazy.loading.value)
+const selectedSupervisor = ref('')
 const reason = ref('')
 
 const reasonError = computed(() =>
   touched.value && !reason.value.trim() ? t('validation.required') : undefined)
 
 async function loadSupervisors() {
-  supervisorOptions.value = []
+  supervisorLazy.reset()
   selectedSupervisor.value = ''
   if (!selectedRank.value) return
-  loadingSupervisors.value = true
+  await supervisorLazy.ensureLoaded()
+}
+
+async function loadSelectedRank() {
+  selectedRankItem.value = null
+  const uuid = selectedRank.value
+  if (!uuid) return
+  loadingRank.value = true
   try {
-    const options = await hierarchyApi.eligibleSupervisors(selectedRank.value, { allSuperiors: allSuperiors.value, limit: DROPDOWN_PAGE_SIZE })
-    supervisorOptions.value = toSelectItems(options)
+    const rank = await useCatalog('/v1/admin/advisor-ranks').get(uuid)
+    if (selectedRank.value === uuid) selectedRankItem.value = rank
   }
   catch {
     // useApi ya notificó el error
   }
   finally {
-    loadingSupervisors.value = false
+    loadingRank.value = false
   }
 }
 
-watch(selectedRank, loadSupervisors)
+watch(selectedRank, () => {
+  void loadSelectedRank()
+  void loadSupervisors()
+})
 watch(allSuperiors, loadSupervisors)
 
 async function load() {
   if (!props.promoterUuid) return
   loading.value = true
-  rankOptions.value = []
+  rankLazy.reset()
   selectedRank.value = ''
   allSuperiors.value = false
   try {
@@ -91,13 +107,6 @@ async function load() {
     promoterName.value = promoter.displayName
     currentRankUuid.value = promoter.rank_Uuid ?? null
     currentRankDisplay.value = promoter.rank_Display ?? ''
-
-    const options = await hierarchyApi.rankOptions({
-      excludeUuid: currentRankUuid.value ?? undefined,
-      limit: DROPDOWN_PAGE_SIZE,
-    })
-    rankOptions.value = toSelectItems(options)
-    allRanks.value = await useCatalog('/v1/admin/advisor-ranks').listAll()
   }
   catch {
     // useApi ya notificó el error
@@ -115,11 +124,10 @@ watch([() => props.open, () => props.promoterUuid], ([open]) => {
 })
 
 // El backend exige supervisor salvo que el rango nuevo sea el más alto de la
-// jerarquía — ahora se determina directamente por el `parentRankUuid` real
-// del rango elegido (`null` = tope), en vez de inferirlo de una lista de
-// candidatos vacía (heurística previa, ambigua con "nadie califica todavía").
-const selectedRankItem = computed(() => allRanks.value.find(r => r.uuid === selectedRank.value) ?? null)
-const supervisorLooksOptional = computed(() => selectedRankItem.value?.parentRankUuid == null)
+// jerarquía — se determina directamente por el `parentRankUuid` real del rango
+// elegido (`null` = tope), en vez de inferirlo de una lista de candidatos vacía
+// (heurística previa, ambigua con "nadie califica todavía").
+const supervisorLooksOptional = computed(() => !!selectedRankItem.value && selectedRankItem.value.parentRankUuid == null)
 
 async function confirm() {
   if (!props.promoterUuid || !selectedRank.value) return
@@ -162,7 +170,7 @@ async function confirm() {
         <UFormField :label="t('promoters.hierarchy.changeRank.newRankLabel')" required>
           <CommonEntityReferenceSelect
             v-model="selectedRank"
-            :items="rankOptions"
+            :lazy="rankLazy"
             entity="promoter_rank"
             :placeholder="t('promoters.hierarchy.changeRank.newRankPlaceholder')"
             @navigate="goToLinkedRecord"
@@ -178,13 +186,12 @@ async function confirm() {
           <UFormField :label="t('promoters.hierarchy.supervisorLabel')" :required="!supervisorLooksOptional">
             <CommonEntityReferenceSelect
               v-model="selectedSupervisor"
-              :items="supervisorOptions"
-              :loading="loadingSupervisors"
+              :lazy="supervisorLazy"
               entity="promoter"
               :placeholder="t('promoters.hierarchy.supervisorPlaceholder')"
               @navigate="goToLinkedRecord"
             />
-            <p v-if="!loadingSupervisors && supervisorOptions.length === 0" class="text-xs text-amber-600 mt-1">
+            <p v-if="!loadingSupervisors && !loadingRank && supervisorLazy.loaded.value && supervisorOptions.length === 0 && !supervisorLazy.searchTerm.value" class="text-xs text-amber-600 mt-1">
               {{ supervisorLooksOptional
                 ? t('promoters.hierarchy.changeRank.topRankHint')
                 : t('promoters.hierarchy.noEligibleSupervisors') }}
