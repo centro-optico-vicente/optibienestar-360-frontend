@@ -2,6 +2,7 @@
 import { buildPageSizeItems, DEFAULT_PAGE_SIZE, UNPAGED_PAGE_SIZE } from '~/utils/pagination'
 import type { SortDirection } from '~/composables/useTableSort'
 import { allyFilterQuery, emptyAllyMasterFilters } from '~/utils/allyFilters'
+import { advisorFilterParams, unassignedAdvisorItem } from '~/utils/advisorFilters'
 import type { AllyRegistrationStatus } from '~/types/allies'
 import type { AllyRegistrationChannel, AllyRequestListItemDto, AllyRequestStatusFilter } from '~/types/allyRequests'
 import { ALLY_REGISTRATION_CHANNELS, ALLY_REGISTRATION_STATUSES, allyRegistrationStatusColor } from '~/types/allyRequests'
@@ -22,8 +23,9 @@ useSeoMeta({ title: () => t('common.seoTitle', { page: t('nav.items.allyRequests
 
 const api = useAllyRequests()
 const advisors = useAdvisorOptions()
-// The advisor list is fetched the first time the filter opens.
-const advisorItems = useLazyOptions(q => advisors.search(q))
+// The advisor list is fetched the first time the filter opens. "Sin asesor" is listed first and sent
+// as `unassigned=true` (no advisor or the INSTITUCION system advisor).
+const advisorItems = useLazyOptions(q => advisors.search(q), [unassignedAdvisorItem(t)])
 
 const items = ref<AllyRequestListItemDto[]>([])
 const total = ref(0)
@@ -89,7 +91,7 @@ async function load() {
       q: search.value.trim() || undefined,
       status: status.value === 'ALL' ? undefined : status.value as AllyRequestStatusFilter,
       channel: channel.value === 'ALL' ? undefined : channel.value as AllyRegistrationChannel,
-      promoterUuid: promoterUuid.value,
+      ...advisorFilterParams(promoterUuid.value),
       ...allyFilterQuery(masterFilters.value),
       dateFrom: dateFrom.value || undefined,
       dateTo: dateTo.value || undefined,

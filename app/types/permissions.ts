@@ -62,6 +62,8 @@ export const PERMISSIONS = [
   // Rate own benefit usages (ally + product stars), granted to AFILIADO.
   'MEMBER_RATE_USAGE',
   'MEMBER_BENEFICIARY_CREATE_OWN',
+  // Assign / reassign a member's advisor: one by one, in bulk and the portfolio distribution page.
+  'MEMBER_ASSIGN_PROMOTER',
   'BENEFICIARY_ACCESS_GRANT_OWN',
   'BENEFICIARY_ACCESS_REVOKE_OWN',
   // Affiliation requests (backend V188) — review of the public /afiliarse requests.
@@ -82,6 +84,8 @@ export const PERMISSIONS = [
   'AFFILIATION_REQUEST_UPDATE',
   'AFFILIATION_REQUEST_APPROVE',
   'AFFILIATION_REQUEST_REJECT',
+  // Change the advisor of a request that is not final yet (portfolio distribution).
+  'AFFILIATION_REQUEST_ASSIGN_PROMOTER',
   'MEDICAL_RECORD_VIEW',
   'MEDICAL_RECORD_UPDATE',
   // Patient medical history for medical allies (backend V215, hub ADR 0032).

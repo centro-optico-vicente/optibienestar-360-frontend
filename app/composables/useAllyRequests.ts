@@ -21,6 +21,8 @@ interface ListParams {
   channel?: AllyRegistrationChannel
   /** Only the requests this advisor (promoter uuid) brought in. */
   promoterUuid?: string
+  /** Only the requests with no advisor (or the INSTITUCION system advisor). */
+  unassigned?: boolean
   /** Master-table filters (see `utils/allyFilters.ts`). */
   allyTypeUuid?: string
   professionUuid?: string
@@ -49,6 +51,7 @@ export const useAllyRequests = () => {
         ...(params.status ? { status: params.status } : {}),
         ...(params.channel ? { channel: params.channel } : {}),
         ...(params.promoterUuid ? { promoterUuid: params.promoterUuid } : {}),
+        ...(params.unassigned ? { unassigned: 'true' } : {}),
         ...(params.allyTypeUuid ? { allyTypeUuid: params.allyTypeUuid } : {}),
         ...(params.professionUuid ? { professionUuid: params.professionUuid } : {}),
         ...(params.stateUuid ? { stateUuid: params.stateUuid } : {}),

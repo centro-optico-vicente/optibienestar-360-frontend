@@ -1,6 +1,12 @@
 import type { Page } from '~/types/admin'
 import type { Option } from '~/types/options'
 import type {
+  DistributeRequest,
+  DistributionCandidateDto,
+  DistributionCandidatesParams,
+  DistributionResultDto,
+} from '~/types/portfolioDistribution'
+import type {
   AssignPromoterRequest,
   BeneficiaryDto,
   BulkAssignPromoterRequest,
@@ -152,6 +158,30 @@ export const useMembers = () => {
   const bulkAssignPromoter = (body: BulkAssignPromoterRequest) =>
     useApi<MemberPromoterAssignmentDto[]>('/v1/admin/members/advisor/bulk-assign', { method: 'POST', body })
 
+  // ---- Portfolio distribution (MEMBER_ASSIGN_PROMOTER), page /dashboard/advisors/portfolio-distribution ----
+  /** Members that can be distributed: nobody's (null or system advisor) or one advisor's (inactive allowed). */
+  const distributionCandidates = (params: DistributionCandidatesParams) =>
+    useApi<Page<DistributionCandidateDto>>('/v1/admin/members/advisor/candidates', {
+      query: {
+        page: params.page ?? 0,
+        size: params.size ?? 25,
+        ...(params.sort?.length ? { sort: params.sort } : {}),
+        source: params.source,
+        ...(params.sourcePromoterUuid ? { sourcePromoterUuid: params.sourcePromoterUuid } : {}),
+        ...(params.q ? { q: params.q } : {}),
+        ...(params.planUuid ? { planUuid: params.planUuid } : {}),
+        ...(params.status ? { status: params.status } : {}),
+      },
+    })
+
+  /** How many members each target would get (and how many are skipped), without writing anything. */
+  const distributePreview = (body: DistributeRequest) =>
+    useApi<DistributionResultDto>('/v1/admin/members/advisor/distribute/preview', { method: 'POST', body })
+
+  /** Distributes the selection among the targets in one transaction (all or nothing). */
+  const distribute = (body: DistributeRequest) =>
+    useApi<DistributionResultDto>('/v1/admin/members/advisor/distribute', { method: 'POST', body })
+
   /** Pasa toda la cartera de un promotor a su supervisor activo más cercano (o a INSTITUCION si no tiene). */
   const portfolioToSupervisor = (body: PortfolioToSupervisorRequest) =>
     useApi<MemberPromoterAssignmentDto[]>('/v1/admin/members/advisor/portfolio-to-supervisor', { method: 'POST', body })
@@ -190,6 +220,9 @@ export const useMembers = () => {
     assignPromoter,
     bulkAssignPromoter,
     portfolioToSupervisor,
+    distributionCandidates,
+    distributePreview,
+    distribute,
     promoterHistory,
     confirm,
     setCreditHold,

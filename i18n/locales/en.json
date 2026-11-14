@@ -657,6 +657,10 @@
         "label": "Advisor org chart",
         "description": "Supervision hierarchy and ranks."
       },
+      "portfolioDistribution": {
+        "label": "Distribute portfolio",
+        "description": "Split unassigned members or an advisor's portfolio among one or several advisors."
+      },
       "allies": {
         "label": "Partners",
         "description": "Network businesses and providers."
@@ -2162,6 +2166,18 @@
       "modalHelp": "The advisor who brought the ally into OptiBienestar 360. The change is recorded in the ally change log.",
       "none": "No advisor",
       "savedToast": "Advisor updated"
+    },
+    "bulkAdvisor": {
+      "assign": "Assign advisor ({count})",
+      "modalTitle": "Assign advisor to allies",
+      "notice": "The advisor will be assigned to {count} selected ally(ies).",
+      "placeholder": "Select the advisor",
+      "confirm": "Assign",
+      "maxWarning": "You can assign up to {max} allies at a time; narrow the selection.",
+      "doneToast": "Advisor assigned to {total} ally(ies)",
+      "skipped": "{skipped} ally(ies) already had that advisor.",
+      "selectPage": "Select page",
+      "clearSelection": "Clear selection"
     },
     "filters": {
       "allyType": "Ally type",
@@ -3881,6 +3897,85 @@
         "accountNumber": "The account number must be exactly 20 digits",
         "holderPair": "Enter both holder type and number, or leave both empty"
       }
+    }
+  },
+  "portfolioDistribution": {
+    "title": "Distribute portfolio",
+    "subtitle": "Split the members with no advisor, or an advisor's portfolio, among one or several advisors.",
+    "action": "Distribute portfolio",
+    "actionTooltip": "Split unassigned members or an advisor's portfolio among several advisors",
+    "unassigned": "No advisor",
+    "inactive": "inactive",
+    "origin": {
+      "title": "1. Origin",
+      "unassigned": "No advisor",
+      "unassignedHelp": "Members with no advisor or with the system advisor (INSTITUCION).",
+      "advisor": "One advisor",
+      "advisorHelp": "An advisor's portfolio, even if the advisor is inactive.",
+      "advisorLabel": "Origin advisor",
+      "advisorPlaceholder": "Select the origin advisor",
+      "pickAdvisor": "Select the origin advisor to see their portfolio."
+    },
+    "members": {
+      "title": "2. Members",
+      "searchPlaceholder": "Search by name or document",
+      "filters": {
+        "plan": "Plan",
+        "status": "Status"
+      },
+      "columns": {
+        "member": "Member",
+        "document": "Document",
+        "plan": "Plan",
+        "status": "Status",
+        "advisor": "Current advisor",
+        "createdAt": "Created"
+      },
+      "empty": "No members for this origin and these filters.",
+      "selectPage": "Select page",
+      "selectedCount": "{count} member(s) selected",
+      "selectAll": "Select all {total} results",
+      "allSelected": "All {count} results of the filter are selected.",
+      "clearSelection": "Clear selection",
+      "paginationSummary": "{shown} of {total} member(s)",
+      "maxWarning": "You can distribute up to {max} members at a time; narrow the selection."
+    },
+    "targets": {
+      "title": "3. Target",
+      "advisors": "Target advisors",
+      "advisorsPlaceholder": "Select one or several advisors",
+      "mode": "Split",
+      "modes": {
+        "EQUAL": "Equal parts",
+        "COUNT": "By count"
+      },
+      "modeHelp": {
+        "EQUAL": "Dealt in turns: advisors differ by one member at most.",
+        "COUNT": "You set how many members each advisor gets; the total cannot exceed the selection."
+      },
+      "count": "Count",
+      "countsTotal": "{sum} of {selected} selected assigned",
+      "reason": "Reason",
+      "reasonPlaceholder": "E.g. advisor left, portfolio rebalancing, self-enrolled members with no advisor"
+    },
+    "preview": {
+      "button": "Preview",
+      "title": "Distribution preview",
+      "notice": "{total} member(s) will move as follows:",
+      "columns": {
+        "advisor": "Advisor",
+        "count": "Members"
+      },
+      "confirm": "Confirm"
+    },
+    "doneToast": "{total} member(s) distributed among {targets} advisor(s)",
+    "doneSkipped": "{skipped} member(s) are skipped because they already belong to that advisor.",
+    "errors": {
+      "noSelection": "Select at least one member.",
+      "targetsRequired": "Select at least one target advisor.",
+      "targetsMax": "At most {n} target advisors.",
+      "countMin": "Enter a count of 1 or more.",
+      "countSum": "The counts add up to {sum}, more than the {selected} selected members."
     }
   },
   "commissions": {
@@ -5892,6 +5987,15 @@
       "paymentMethod": "Payment method",
       "dateFrom": "Created from",
       "dateTo": "Created to"
+    },
+    "advisor": {
+      "change": "Change advisor",
+      "modalTitle": "Change the request's advisor",
+      "notice": "Current advisor: {name}. The approved member keeps the new advisor.",
+      "target": "New advisor",
+      "targetPlaceholder": "Select the advisor",
+      "reason": "Reason (optional)",
+      "savedToast": "Request advisor updated"
     }
   },
   "securityPolicy": {

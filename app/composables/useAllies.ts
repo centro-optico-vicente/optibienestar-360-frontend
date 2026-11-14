@@ -39,6 +39,8 @@ interface ListParams {
   includeInactive?: boolean
   /** Only the allies this advisor (promoter uuid) brought in. */
   promoterUuid?: string
+  /** Only the allies with no advisor (or the INSTITUCION system advisor). */
+  unassigned?: boolean
   /** Master-table filters (see `utils/allyFilters.ts`). */
   allyTypeUuid?: string
   professionUuid?: string
@@ -81,6 +83,7 @@ export const useAllies = () => {
         ...(params.q ? { q: params.q } : {}),
         ...(params.includeInactive ? { includeInactive: 'true' } : {}),
         ...(params.promoterUuid ? { promoterUuid: params.promoterUuid } : {}),
+        ...(params.unassigned ? { unassigned: 'true' } : {}),
         ...(params.allyTypeUuid ? { allyTypeUuid: params.allyTypeUuid } : {}),
         ...(params.professionUuid ? { professionUuid: params.professionUuid } : {}),
         ...(params.stateUuid ? { stateUuid: params.stateUuid } : {}),
@@ -100,6 +103,10 @@ export const useAllies = () => {
   /** Assigns, changes or clears (`null`) the advisor who brought the ally in — ALLY_ASSIGN_PROMOTER. */
   const assignAdvisor = (uuid: string, promoterUuid: string | null) =>
     useApi<AllyDto>(`/v1/admin/allies/${uuid}/advisor`, { method: 'PUT', body: { promoterUuid } })
+
+  /** Sets the same advisor on several allies (≤ 500) — ALLY_ASSIGN_PROMOTER; the ones already with it are skipped. */
+  const bulkAssignAdvisor = (allyUuids: string[], promoterUuid: string) =>
+    useApi<{ total: number, skipped: number }>('/v1/admin/allies/advisor/bulk-assign', { method: 'POST', body: { allyUuids, promoterUuid } })
 
   const remove = (uuid: string, physical = false) =>
     useApi<null>(`/v1/admin/allies/${uuid}`, { method: 'DELETE', query: physical ? { physical: true } : {} })

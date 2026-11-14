@@ -6,6 +6,7 @@ import type {
 } from '~/types/allies'
 import type { SortDirection } from '~/composables/useTableSort'
 import { allyFilterQuery, emptyAllyMasterFilters } from '~/utils/allyFilters'
+import { advisorFilterParams, unassignedAdvisorItem } from '~/utils/advisorFilters'
 
 // The admin table renders AllyListItemDto rows; openEdit / openDelete are also
 // reachable from openFromQuery with a full AllyDto loaded by GET /{uuid}.
@@ -29,6 +30,7 @@ const canCreate = computed(() => can('ALLY_CREATE'))
 const canUpdate = computed(() => can('ALLY_UPDATE'))
 const canDelete = computed(() => can('ALLY_DELETE'))
 const canViewCity = computed(() => can('CITY_VIEW_ALL'))
+const canAssignAdvisor = computed(() => can('ALLY_ASSIGN_PROMOTER'))
 const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('ALLY_RECORD_AUDIT_VIEW'))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('ALLY_REPORT_AUDIT_VIEW'))
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
@@ -51,8 +53,9 @@ const pageSizeItems = buildPageSizeItems(t)
 const search = ref('')
 const includeInactive = ref(false)
 const advisors = useAdvisorOptions()
-// The advisor list is fetched the first time the filter opens.
-const advisorItems = useLazyOptions(q => advisors.search(q))
+// The advisor list is fetched the first time the filter opens. "Sin asesor" is listed first and sent
+// as `unassigned=true` (no advisor or the INSTITUCION system advisor).
+const advisorItems = useLazyOptions(q => advisors.search(q), [unassignedAdvisorItem(t)])
 // Advisor who brought the ally in (promoter uuid); only offered with PROMOTER_VIEW_ALL.
 const promoterUuid = ref<string | undefined>(undefined)
 // B2B / B2P (hub ADR 0031) — RSQL `segment==…` on the admin list.
@@ -82,7 +85,7 @@ async function load() {
       q: search.value.trim() || undefined,
       includeInactive: includeInactive.value,
       filter: segmentFilter.value ? `segment==${segmentFilter.value}` : undefined,
-      promoterUuid: promoterUuid.value,
+      ...advisorFilterParams(promoterUuid.value),
       ...allyFilterQuery(masterFilters.value),
     })
     data.value = res.content ?? []
@@ -127,9 +130,40 @@ watch(search, () => {
 watch([includeInactive, segmentFilter, promoterUuid, masterFilters], () => { if (!resetting.value) { page.value = 1; load() } })
 watch(sort.orders, () => { if (!resetting.value) load() }, { deep: true })
 
+// ---- Row selection → "Asignar asesor" in bulk (ALLY_ASSIGN_PROMOTER) ----
+// Kept across pages so allies of several pages can be assigned at once; cleared after assigning.
+const selectedAllies = ref<Set<string>>(new Set())
+const bulkAdvisorOpen = ref(false)
+
+const pageSelected = computed(() => data.value.length > 0 && data.value.every(a => selectedAllies.value.has(a.uuid)))
+const pageSelectState = computed<boolean | 'indeterminate'>(() =>
+  pageSelected.value ? true : (data.value.some(a => selectedAllies.value.has(a.uuid)) ? 'indeterminate' : false))
+
+function toggleAlly(uuid: string, checked: boolean) {
+  const next = new Set(selectedAllies.value)
+  if (checked) next.add(uuid)
+  else next.delete(uuid)
+  selectedAllies.value = next
+}
+
+function toggleAlliesPage(checked: boolean) {
+  const next = new Set(selectedAllies.value)
+  for (const a of data.value) {
+    if (checked) next.add(a.uuid)
+    else next.delete(a.uuid)
+  }
+  selectedAllies.value = next
+}
+
+async function onBulkAdvisorDone() {
+  selectedAllies.value = new Set()
+  await load()
+}
+
 // "Limpiar filtros y actualizar" from the list refresh menu.
 async function resetFilters() {
   resetting.value = true
+  selectedAllies.value = new Set()
   search.value = ''
   includeInactive.value = false
   segmentFilter.value = undefined
@@ -274,6 +308,26 @@ async function confirmDelete() {
       <div class="flex items-center gap-2">
         <ListRefreshMenu variant="ghost" :loading="loading" @refresh="load" @reset="resetFilters" />
         <ReportPrintButton variant="ghost" :search-query="search" :include-inactive="includeInactive" />
+        <template v-if="canAssignAdvisor">
+          <UButton
+            v-if="selectedAllies.size > 0"
+            color="neutral"
+            variant="link"
+            size="sm"
+            @click="selectedAllies = new Set()"
+          >
+            {{ t('allies.bulkAdvisor.clearSelection') }}
+          </UButton>
+          <UButton
+            color="primary"
+            variant="soft"
+            icon="i-lucide-user-check"
+            :disabled="selectedAllies.size === 0"
+            @click="bulkAdvisorOpen = true"
+          >
+            {{ t('allies.bulkAdvisor.assign', { count: selectedAllies.size }) }}
+          </UButton>
+        </template>
         <UTooltip :text="canCreate ? t('allies.createTooltip') : t('allies.noPermissionCreate')">
           <UButton
             color="primary"
@@ -346,6 +400,15 @@ async function confirmDelete() {
         <table class="w-full text-sm">
           <thead class="sticky top-0 bg-white z-10">
             <tr class="text-left text-xs uppercase tracking-wide text-prohealth-400 border-b border-prohealth-100">
+              <th v-if="canAssignAdvisor" class="pl-5 py-3 w-8">
+                <UCheckbox
+                  :model-value="pageSelectState"
+                  :disabled="data.length === 0"
+                  :aria-label="t('allies.bulkAdvisor.selectPage')"
+                  :title="t('allies.bulkAdvisor.selectPage')"
+                  @update:model-value="toggleAlliesPage($event === true)"
+                />
+              </th>
               <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('name')">
                 {{ t('allies.columns.ally') }}
                 <SortIndicator :state="sort.stateOf('name')" :multi-active="isMultiSort" @clear="sort.remove('name')" />
@@ -377,9 +440,9 @@ async function confirmDelete() {
             </tr>
           </thead>
           <tbody class="divide-y divide-prohealth-100">
-            <TableSkeleton v-if="loading" :rows="8" :cols="8" />
+            <TableSkeleton v-if="loading" :rows="8" :cols="canAssignAdvisor ? 9 : 8" />
             <tr v-else-if="data.length === 0">
-              <td colspan="8" class="px-5 py-12 text-center text-prohealth-500">
+              <td :colspan="canAssignAdvisor ? 9 : 8" class="px-5 py-12 text-center text-prohealth-500">
                 <UIcon name="i-lucide-handshake" class="w-8 h-8 mx-auto mb-2 text-prohealth-300" />
                 {{ t('allies.empty') }}
               </td>
@@ -392,6 +455,13 @@ async function confirmDelete() {
               @click="navigateTo(`/dashboard/allies/${a.uuid}`)"
               @dblclick="navigateTo(`/dashboard/allies/${a.uuid}`)"
             >
+              <td v-if="canAssignAdvisor" class="pl-5 py-3 w-8" @click.stop>
+                <UCheckbox
+                  :model-value="selectedAllies.has(a.uuid)"
+                  :aria-label="a.name"
+                  @update:model-value="toggleAlly(a.uuid, $event === true)"
+                />
+              </td>
               <td class="px-5 py-3">
                 <div class="font-semibold text-prohealth-900">{{ a.name }}</div>
                 <div v-if="a.segment" class="text-[11px] font-semibold uppercase tracking-wide text-cyan-700">
@@ -550,6 +620,13 @@ async function confirmDelete() {
       @saved="onAllySaved"
       @restored="onAllyRestored"
       @delete-requested="onAllyDeleteRequested"
+    />
+
+    <!-- Bulk advisor assignment -->
+    <AllyBulkAdvisorModal
+      v-model:open="bulkAdvisorOpen"
+      :ally-uuids="[...selectedAllies]"
+      @done="onBulkAdvisorDone"
     />
 
     <!-- Delete confirmation modal -->
