@@ -79,6 +79,16 @@ export interface PromotionRequest {
 
 export type MembershipPromotionStatus = 'ACTIVE' | 'CONSUMED' | 'CANCELED'
 
+/** Slot of the campaign quota held by a membership promotion (hub ADR 0038, phase 2b). */
+export type PromotionRedemptionStatus = 'PENDING' | 'CONFIRMED' | 'EXPIRED' | 'RELEASED'
+
+export const REDEMPTION_STATUS_COLORS: Record<PromotionRedemptionStatus, 'warning' | 'success' | 'error' | 'neutral'> = {
+  PENDING: 'warning',
+  CONFIRMED: 'success',
+  EXPIRED: 'error',
+  RELEASED: 'neutral',
+}
+
 export interface MembershipPromotionDto extends PromotionDiscountFields {
   uuid: string
   promotion_Uuid?: string | null
@@ -101,6 +111,14 @@ export interface MembershipPromotionDto extends PromotionDiscountFields {
   assignedAt?: string | null
   endedAt?: string | null
   endedReason?: string | null
+  redemptionStatus?: PromotionRedemptionStatus | null
+  redemptionStatus_Display?: string | null
+  /** Deadline of a PENDING slot. */
+  redemptionExpiresAt?: string | null
+  redemptionExpiresAt_Display?: string | null
+  /** Last day the confirmed promotion can be used; null ⇒ no limit. */
+  usageEndsAt?: string | null
+  usageEndsAt_Display?: string | null
 }
 
 /** 1:1 sub-resource of a membership — always 200 with `exists`. */

@@ -4631,7 +4631,17 @@
         "untilLabel": "Confirm until",
         "daysLabel": "Days after closing",
         "daysCount": "{n} day(s) after closing"
-      }
+      },
+      "quotaTrigger": "Slot is confirmed",
+      "quotaTriggerHelp": "Until then the slot is pending: it takes room, but it can still expire or be released.",
+      "pendingTtlDays": "Days to confirm",
+      "pendingTtlDaysHelp": "Empty = a pending slot never expires by itself.",
+      "pendingTtlDaysCount": "{n} day(s) to confirm",
+      "usageWindow": "Benefit usage",
+      "usageWindowHelp": "Until when the promotion can be used once confirmed.",
+      "usageWindowDays": "Days of use from confirmation",
+      "usageWindowDaysRequired": "Enter the days (a whole number greater than 0)",
+      "usageWindowDaysCount": "{n} day(s) from confirmation"
     },
     "detail": {
       "generalData": "General data",
@@ -4759,7 +4769,8 @@
       "usedOfMax": "{used} / {max} taken",
       "usedUnlimited": "{used} taken (no limit)",
       "free": "{n} free",
-      "unlimited": "No limit"
+      "unlimited": "No limit",
+      "pending": "{n} pending"
     },
     "lifecycleActions": {
       "activate": "Activate",
@@ -4786,6 +4797,27 @@
       "reopenMaxInvalid": "The new quota must be greater than the current one",
       "reopenEndsAtInvalid": "The new end date must be later than today and than the current one",
       "reopenNothingEnlarged": "Raise the quota or the end date to reopen"
+    },
+    "quotaTrigger": {
+      "ON_ENROLLMENT": "On enrollment",
+      "ON_PAYMENT_REGISTERED": "When the payment is registered",
+      "ON_PAYMENT_CONFIRMED": "When the payment is confirmed"
+    },
+    "usageWindow": {
+      "CAMPAIGN_DATES": "During the campaign dates",
+      "DAYS_AFTER_CONFIRMATION": "N days from confirmation"
+    },
+    "quotaCard": {
+      "title": "Slots",
+      "hint": "Pending slots take room until they are confirmed, expire or are released.",
+      "total": "Total quota",
+      "confirmed": "Confirmed",
+      "pending": "Pending",
+      "free": "Free",
+      "expired": "Expired",
+      "released": "Released",
+      "promotion": "Promotion",
+      "max": "Own quota"
     }
   },
   "commissionRules": {
@@ -5861,20 +5893,31 @@
       "cancelNotice": "The membership will stop getting the discount from the next charge.",
       "reason": "Reason",
       "cancelButton": "Cancel promotion",
-      "canceledToast": "Promotion canceled"
+      "canceledToast": "Promotion canceled",
+      "confirmBy": "confirm by {date}",
+      "usableUntil": "valid until {date}"
     },
     "portal": {
       "title": "Your promotion: {name}",
       "discount": "{pct} off your {what}.",
       "cyclesLeft": "{n} discounted monthly fee(s) left.",
       "keepOnTime": "Pay on time: a late payment cancels the promotion.",
-      "paymentSaving": "You saved {amount} · {reason}"
+      "paymentSaving": "You saved {amount} · {reason}",
+      "pending": "Your slot is reserved: your payment confirms it.",
+      "pendingUntil": "Your slot is reserved until {date}: your payment confirms it.",
+      "usableUntil": "You can use it until {date}."
     },
     "discountType": {
       "PERCENTAGE": "Percentage",
       "FLAT": "Fixed amount"
     },
-    "campaignQuotaOnly": "Uses the campaign quota"
+    "campaignQuotaOnly": "Uses the campaign quota",
+    "redemptionStatus": {
+      "PENDING": "Slot pending",
+      "CONFIRMED": "Slot confirmed",
+      "EXPIRED": "Slot expired",
+      "RELEASED": "Slot released"
+    }
   },
   "profilePhoto": {
     "title": "Profile photo",

@@ -4,6 +4,7 @@ import { matchesText } from '~/utils/textSearch'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { MembershipCreateRequest, MembershipDto } from '~/types/memberships'
 import type { MembershipPromotionDto, PromotionDto } from '~/types/promotions'
+import { REDEMPTION_STATUS_COLORS } from '~/types/promotions'
 import { promotionDiscountText } from '~/utils/promotionDiscount'
 import { toSelectItems } from '~/types/options'
 import {
@@ -97,6 +98,19 @@ function promotionSummary(p: MembershipPromotionDto): string {
   const pct = promotionDiscountText(p, formatCurrency)
   const left = p.cyclesRemaining != null ? ` · ${t('promotions.membership.cyclesLeft', { n: p.cyclesRemaining })}` : ''
   return `${p.promotion_Display ?? ''} · ${pct}${left}`
+}
+
+/** Slot state of the promotion (hub ADR 0038): pending until confirmed (with its deadline), then usable until usageEndsAt. */
+function redemptionSummary(p: MembershipPromotionDto): string | null {
+  if (!p.redemptionStatus) return null
+  const status = p.redemptionStatus_Display ?? t(`promotions.redemptionStatus.${p.redemptionStatus}`)
+  if (p.redemptionStatus === 'PENDING' && p.redemptionExpiresAt) {
+    return `${status} · ${t('promotions.membership.confirmBy', { date: p.redemptionExpiresAt_Display ?? formatDate(p.redemptionExpiresAt) })}`
+  }
+  if (p.redemptionStatus === 'CONFIRMED' && p.usageEndsAt) {
+    return `${status} · ${t('promotions.membership.usableUntil', { date: p.usageEndsAt_Display ?? formatDate(p.usageEndsAt) })}`
+  }
+  return status
 }
 
 // Apply a promotion to an existing membership, or cancel the current one.
@@ -427,6 +441,15 @@ async function confirmLifecycle() {
                 :title="promotionByMembership[m.uuid]!.codeUsed ? t('promotions.membership.viaCode', { code: promotionByMembership[m.uuid]!.codeUsed, owner: promotionByMembership[m.uuid]!.codeOwner_Display ?? '' }) : undefined"
               >
                 {{ promotionSummary(promotionByMembership[m.uuid]!) }}
+              </UBadge>
+              <UBadge
+                v-if="promotionByMembership[m.uuid]?.redemptionStatus"
+                :color="REDEMPTION_STATUS_COLORS[promotionByMembership[m.uuid]!.redemptionStatus!]"
+                variant="outline"
+                size="sm"
+                class="mt-1 ms-1"
+              >
+                {{ redemptionSummary(promotionByMembership[m.uuid]!) }}
               </UBadge>
             </td>
             <td class="px-6 py-3 text-prohealth-700">

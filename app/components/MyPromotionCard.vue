@@ -6,7 +6,7 @@ import { promotionDiscountText } from '~/utils/promotionDiscount'
 const { t } = useI18n()
 const { can } = usePermissions()
 const promotionsApi = usePromotions()
-const { formatCurrency } = useFormatters()
+const { formatCurrency, formatDate } = useFormatters()
 
 const promotion = ref<MembershipPromotionDto | null>(null)
 
@@ -22,6 +22,18 @@ onMounted(async () => {
 })
 
 // "10%" or a fixed amount such as "5,00 US$" (hub ADR 0038).
+// Slot lifecycle (hub ADR 0038): a pending slot must be confirmed (by paying) before its deadline.
+const isPending = computed(() => promotion.value?.redemptionStatus === 'PENDING')
+const pendingDeadline = computed(() => {
+  const p = promotion.value
+  if (!p?.redemptionExpiresAt) return null
+  return p.redemptionExpiresAt_Display ?? formatDate(p.redemptionExpiresAt)
+})
+const usableUntil = computed(() => {
+  const p = promotion.value
+  if (!p?.usageEndsAt) return null
+  return p.usageEndsAt_Display ?? formatDate(p.usageEndsAt)
+})
 const pct = computed(() => promotion.value ? promotionDiscountText(promotion.value, formatCurrency) : '')
 </script>
 
@@ -37,6 +49,10 @@ const pct = computed(() => promotion.value ? promotionDiscountText(promotion.val
         <p v-if="promotion.cyclesRemaining != null" class="text-sm text-prohealth-700">
           {{ t('promotions.portal.cyclesLeft', { n: promotion.cyclesRemaining }) }}
         </p>
+        <p v-if="isPending" class="text-sm text-amber-700">
+          {{ pendingDeadline ? t('promotions.portal.pendingUntil', { date: pendingDeadline }) : t('promotions.portal.pending') }}
+        </p>
+        <p v-else-if="usableUntil" class="text-sm text-prohealth-700">{{ t('promotions.portal.usableUntil', { date: usableUntil }) }}</p>
         <p v-if="promotion.kind === 'ACQUISITION'" class="text-xs text-prohealth-500">{{ t('promotions.portal.keepOnTime') }}</p>
       </div>
     </div>

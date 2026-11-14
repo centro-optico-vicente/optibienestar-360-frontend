@@ -30,6 +30,12 @@ export type CampaignCloseCondition = 'END_DATE' | 'QUOTA_FILLED'
 
 export type CampaignClosedReason = 'END_DATE' | 'QUOTA_FILLED' | 'MANUAL'
 
+/** When an assigned promotion takes a confirmed slot (hub ADR 0038, phase 2b); before that it is PENDING. */
+export type CampaignQuotaTrigger = 'ON_ENROLLMENT' | 'ON_PAYMENT_REGISTERED' | 'ON_PAYMENT_CONFIRMED'
+
+/** How long a confirmed promotion can be used: the campaign dates, or N days from its confirmation. */
+export type CampaignUsageWindow = 'CAMPAIGN_DATES' | 'DAYS_AFTER_CONFIRMATION'
+
 /** CampaignTransactionException.ExceptionAction. */
 export type CampaignExceptionAction = 'INCLUDE' | 'EXCLUDE'
 
@@ -78,6 +84,15 @@ export interface CampaignDto {
   /** Grace to confirm pending slots after closing: a fixed date or N days (never both). */
   confirmGraceUntil?: string | null
   confirmGraceDays?: number | null
+  // ---- Slot lifecycle (hub ADR 0038, phase 2b) ----
+  quotaTrigger?: CampaignQuotaTrigger | null
+  quotaTrigger_Display?: string | null
+  /** Days a pending slot waits for its confirmation; null ⇒ it never expires by itself. */
+  pendingTtlDays?: number | null
+  usageWindow?: CampaignUsageWindow | null
+  usageWindow_Display?: string | null
+  usageWindowDays?: number | null
+  pendingCount?: number | null
   createdAt?: string
   updatedAt?: string
   /** Client-only: populated locally after fetching the audience list, not returned by the backend. */
@@ -108,6 +123,11 @@ export interface CreateCampaignRequest {
   confirmGraceDays?: number | null
   /** Create only: true ⇒ the campaign starts as DRAFT. */
   draft?: boolean
+  quotaTrigger?: CampaignQuotaTrigger | null
+  pendingTtlDays?: number | null
+  usageWindow?: CampaignUsageWindow | null
+  /** Required when usageWindow = DAYS_AFTER_CONFIRMATION. */
+  usageWindowDays?: number | null
 }
 
 export type UpdateCampaignRequest = CreateCampaignRequest
@@ -216,6 +236,32 @@ export const CAMPAIGN_MODE_OPTIONS: { value: CampaignMode, labelKey: string }[] 
   { value: 'TARGETED', labelKey: 'campaigns.mode.TARGETED' },
   { value: 'GENERAL', labelKey: 'campaigns.mode.GENERAL' },
 ]
+
+/** Slot counters of one promotion inside GET /v1/admin/campaigns/{uuid}/quota. */
+export interface CampaignPromotionQuotaDto {
+  promotion_Uuid?: string | null
+  promotion_Display?: string | null
+  ownQuota: boolean
+  maxRedemptions?: number | null
+  confirmed: number
+  pending: number
+  /** null when neither the promotion nor the campaign has a max. */
+  free?: number | null
+  expired: number
+  released: number
+}
+
+/** GET /v1/admin/campaigns/{uuid}/quota (hub ADR 0038, phase 2b). */
+export interface CampaignQuotaDto {
+  maxRedemptions?: number | null
+  confirmed: number
+  pending: number
+  /** null when the campaign has no max. */
+  free?: number | null
+  expired: number
+  released: number
+  promotions: CampaignPromotionQuotaDto[]
+}
 
 /** Badge color per lifecycle status. */
 export const CAMPAIGN_LIFECYCLE_COLORS: Record<CampaignLifecycleStatus, 'neutral' | 'success' | 'warning' | 'error' | 'info'> = {

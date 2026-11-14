@@ -5,7 +5,9 @@ import type {
   CampaignCloseCondition,
   CampaignDto,
   CampaignMode,
+  CampaignQuotaTrigger,
   CampaignScope,
+  CampaignUsageWindow,
   CreateCampaignRequest,
   UpdateCampaignRequest,
 } from '~/types/campaign'
@@ -114,6 +116,12 @@ interface FormState {
   graceMode: 'none' | 'date' | 'days'
   confirmGraceUntil: string
   confirmGraceDays: string
+  // ---- Slot lifecycle (hub ADR 0038, phase 2b) ----
+  quotaTrigger: CampaignQuotaTrigger
+  /** Days a pending slot waits; empty ⇒ never expires by itself. */
+  pendingTtlDays: string
+  usageWindow: CampaignUsageWindow
+  usageWindowDays: string
 }
 
 function isoToDatetimeLocal(iso: string): string {
@@ -148,7 +156,15 @@ const state = reactive<FormState>({
   graceMode: 'none',
   confirmGraceUntil: '',
   confirmGraceDays: '',
+  quotaTrigger: 'ON_ENROLLMENT',
+  pendingTtlDays: '',
+  usageWindow: 'CAMPAIGN_DATES',
+  usageWindowDays: '',
 })
+const quotaTriggerItems = computed(() => (['ON_ENROLLMENT', 'ON_PAYMENT_REGISTERED', 'ON_PAYMENT_CONFIRMED'] as const)
+  .map(value => ({ label: t(`campaigns.quotaTrigger.${value}`), value })))
+const usageWindowItems = computed(() => (['CAMPAIGN_DATES', 'DAYS_AFTER_CONFIRMATION'] as const)
+  .map(value => ({ label: t(`campaigns.usageWindow.${value}`), value })))
 /** Create only: the "save as draft" button sends `draft: true` (the campaign starts as DRAFT). */
 const saveAsDraft = ref(false)
 const graceModeItems = computed(() => [
@@ -175,6 +191,10 @@ const schema = computed(() => z.object({
   confirmGraceUntil: state.graceMode === 'date' ? z.string().min(1, t('validation.required')) : z.string().optional(),
   confirmGraceDays: state.graceMode === 'days'
     ? z.string().regex(/^[1-9]\d*$/, t('commissionRules.form.integersOnly'))
+    : z.string().optional(),
+  pendingTtlDays: z.string().regex(/^([1-9]\d*)?$/, t('commissionRules.form.integersOnly')),
+  usageWindowDays: state.usageWindow === 'DAYS_AFTER_CONFIRMATION'
+    ? z.string().regex(/^[1-9]\d*$/, t('campaigns.form.usageWindowDaysRequired'))
     : z.string().optional(),
   scope: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
   mode: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
@@ -205,6 +225,10 @@ function resetForm() {
   state.graceMode = 'none'
   state.confirmGraceUntil = ''
   state.confirmGraceDays = ''
+  state.quotaTrigger = 'ON_ENROLLMENT'
+  state.pendingTtlDays = ''
+  state.usageWindow = 'CAMPAIGN_DATES'
+  state.usageWindowDays = ''
   enabled.value = true
 }
 
@@ -234,6 +258,10 @@ function populateFrom(campaign: CampaignDto | null, blankDates: boolean) {
   state.graceMode = campaign.confirmGraceUntil ? 'date' : (campaign.confirmGraceDays != null ? 'days' : 'none')
   state.confirmGraceUntil = campaign.confirmGraceUntil ? isoToDatetimeLocal(campaign.confirmGraceUntil) : ''
   state.confirmGraceDays = campaign.confirmGraceDays != null ? String(campaign.confirmGraceDays) : ''
+  state.quotaTrigger = campaign.quotaTrigger ?? 'ON_ENROLLMENT'
+  state.pendingTtlDays = campaign.pendingTtlDays != null ? String(campaign.pendingTtlDays) : ''
+  state.usageWindow = campaign.usageWindow ?? 'CAMPAIGN_DATES'
+  state.usageWindowDays = campaign.usageWindowDays != null ? String(campaign.usageWindowDays) : ''
   enabled.value = campaign.enabled ?? true
 }
 
@@ -293,6 +321,11 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
       maxRedemptions: state.maxRedemptions.trim() ? Number(state.maxRedemptions) : null,
       confirmGraceUntil: state.graceMode === 'date' ? (datetimeLocalToIso(state.confirmGraceUntil) ?? null) : null,
       confirmGraceDays: state.graceMode === 'days' && state.confirmGraceDays.trim() ? Number(state.confirmGraceDays) : null,
+      quotaTrigger: state.quotaTrigger,
+      // A slot taken at enrollment is confirmed at once: nothing to expire.
+      pendingTtlDays: state.quotaTrigger !== 'ON_ENROLLMENT' && state.pendingTtlDays.trim() ? Number(state.pendingTtlDays) : null,
+      usageWindow: state.usageWindow,
+      usageWindowDays: state.usageWindow === 'DAYS_AFTER_CONFIRMATION' ? Number(state.usageWindowDays) : null,
     }
     let result: CampaignDto
     if (props.relaunchOf) {
@@ -377,6 +410,32 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
             </UFormField>
             <UFormField v-if="state.graceMode === 'days'" :label="t('campaigns.form.grace.daysLabel')" name="confirmGraceDays" required>
               <UInput v-model="state.confirmGraceDays" inputmode="numeric" class="w-full" />
+            </UFormField>
+          </div>
+
+          <!-- Slot lifecycle (hub ADR 0038, phase 2b) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+            <UFormField :label="t('campaigns.form.quotaTrigger')" :help="t('campaigns.form.quotaTriggerHelp')">
+              <USelectMenu v-model="state.quotaTrigger" :items="quotaTriggerItems" label-key="label" value-key="value" class="w-full" />
+            </UFormField>
+            <UFormField
+              v-if="state.quotaTrigger !== 'ON_ENROLLMENT'"
+              :label="t('campaigns.form.pendingTtlDays')"
+              name="pendingTtlDays"
+              :help="t('campaigns.form.pendingTtlDaysHelp')"
+            >
+              <UInput v-model="state.pendingTtlDays" inputmode="numeric" class="w-full" />
+            </UFormField>
+            <UFormField :label="t('campaigns.form.usageWindow')" :help="t('campaigns.form.usageWindowHelp')">
+              <USelectMenu v-model="state.usageWindow" :items="usageWindowItems" label-key="label" value-key="value" class="w-full" />
+            </UFormField>
+            <UFormField
+              v-if="state.usageWindow === 'DAYS_AFTER_CONFIRMATION'"
+              :label="t('campaigns.form.usageWindowDays')"
+              name="usageWindowDays"
+              required
+            >
+              <UInput v-model="state.usageWindowDays" inputmode="numeric" class="w-full" />
             </UFormField>
           </div>
         </div>
