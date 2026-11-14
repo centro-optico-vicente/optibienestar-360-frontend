@@ -65,6 +65,12 @@ function mondayOfWeek(d: CalendarDate): CalendarDate {
 
 interface Shortcut { key: string, range: () => { start: CalendarDate, end: CalendarDate } }
 
+/**
+ * Same three groups as `AppDateTimePicker` (Día / Semana / Mes, 07-forms.md), as ranges:
+ * the week splits into business week (Mon–Fri) and full week (Mon–Sun), the month into
+ * fortnights (1–15, 16–end) and the full month; previous/next keep their place at the ends.
+ */
+
 const shortcuts: Shortcut[][] = [
   [
     { key: 'today', range: () => { const d = todayCalendarDate(); return { start: d, end: d } } },
@@ -73,11 +79,14 @@ const shortcuts: Shortcut[][] = [
   ],
   [
     { key: 'lastWeek', range: () => { const w = mondayOfWeek(todayCalendarDate()).subtract({ weeks: 1 }); return { start: w, end: w.add({ days: 6 }) } } },
+    { key: 'thisBusinessWeek', range: () => { const w = mondayOfWeek(todayCalendarDate()); return { start: w, end: w.add({ days: 4 }) } } },
     { key: 'thisWeek', range: () => { const w = mondayOfWeek(todayCalendarDate()); return { start: w, end: w.add({ days: 6 }) } } },
     { key: 'nextWeek', range: () => { const w = mondayOfWeek(todayCalendarDate()).add({ weeks: 1 }); return { start: w, end: w.add({ days: 6 }) } } },
   ],
   [
     { key: 'lastMonth', range: () => { const m = startOfMonth(todayCalendarDate()).subtract({ months: 1 }); return { start: m, end: endOfMonth(m) } } },
+    { key: 'firstFortnight', range: () => { const m = startOfMonth(todayCalendarDate()); return { start: m, end: m.set({ day: 15 }) } } },
+    { key: 'secondFortnight', range: () => { const m = startOfMonth(todayCalendarDate()); return { start: m.set({ day: 16 }), end: endOfMonth(m) } } },
     { key: 'thisMonth', range: () => { const m = startOfMonth(todayCalendarDate()); return { start: m, end: endOfMonth(m) } } },
     { key: 'nextMonth', range: () => { const m = startOfMonth(todayCalendarDate()).add({ months: 1 }); return { start: m, end: endOfMonth(m) } } },
   ],
@@ -145,7 +154,7 @@ const label = computed(() => {
 
     <template #content>
       <div class="flex">
-        <div class="w-40 shrink-0 border-r border-default p-2 flex flex-col">
+        <div class="w-48 shrink-0 border-r border-default p-2 flex flex-col">
           <template v-for="(group, i) in shortcuts" :key="i">
             <UButton
               v-for="shortcut in group"

@@ -1358,9 +1358,12 @@
         "yesterday": "Yesterday",
         "tomorrow": "Tomorrow",
         "lastWeek": "Last week",
-        "thisWeek": "This week",
+        "thisBusinessWeek": "Business week (Mon–Fri)",
+        "thisWeek": "This week (Mon–Sun)",
         "nextWeek": "Next week",
         "lastMonth": "Last month",
+        "firstFortnight": "1st fortnight (1–15)",
+        "secondFortnight": "2nd fortnight (16–end)",
         "thisMonth": "This month",
         "nextMonth": "Next month"
       }
