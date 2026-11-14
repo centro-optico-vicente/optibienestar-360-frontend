@@ -206,55 +206,45 @@ async function resetFilters() {
 }
 
 // ---- Parent catalog options (for FK selects and the filter) ----
-// One entry per parent field (`value` = field name). Fetched the first time the
-// parent filter or the create/edit form opens, not when the page mounts; reset
-// when the route switches to another catalog.
-const parents = useLazyOptions<{ value: string, items: SelectItem[] }>(async q => {
-  if (!def.value) return []
-  // Self-referencing FKs (parentKey === this catalog's own key, e.g.
-  // advisor-ranks.parentRankUuid) aren't under `/v1/admin/catalogs/*` like the
-  // rest — `useCatalogOptions` would 404. Those are populated separately from
-  // `allRanks` (see `parentOptions` below), excluding the record being edited.
-  // Self-references of a regular catalog (professions.parentUuid, V213) DO live
-  // under `/v1/admin/catalogs/*`, so they load like any other FK.
-  const isRegularCatalog = def.value.basePath.startsWith('/v1/admin/catalogs/')
-  const parentFields = def.value.fields.filter(f => f.type === 'parent' && f.parentKey
-    && (f.parentKey !== def.value!.key || isRegularCatalog))
-  return Promise.all(parentFields.map(async (f) => {
-    const pdef = getCatalogDef(f.parentKey!)
-    if (!pdef) return { value: f.name, items: [] }
+// A catalog has at most one parent FK (`parentField`). Its options are searched on
+// the server (`q`) when the dropdown opens and while typing — never filtered locally.
+// The form and the list filter get their own instance so picking in one doesn't
+// reset the other; both are reset when the route switches to another catalog.
+// - Regular catalogs (states, cities, professions) → `/v1/admin/catalogs/<parent>/options`.
+// - Self-referencing FKs outside `/v1/admin/catalogs/*` (advisor-ranks.parentRankUuid)
+//   → that entity's own `/options` (`/v1/admin/advisor-ranks/options`), with
+//   `excludeUuid` = the record being edited (a rank can't be its own parent).
+// `current()` is the saved value: sent as `currentValues` so its label shows even when
+// it falls outside the first `DROPDOWN_PAGE_SIZE` matches.
+function parentOptionsLoader(current: () => string | undefined) {
+  return async (q: string): Promise<SelectItem[]> => {
+    const field = parentField.value
+    if (!def.value || !field?.parentKey) return []
+    const selfRef = field.parentKey === def.value.key
+    const currentValues = current() ? [current()!] : undefined
     try {
-      return { value: f.name, items: toSelectItems(await useCatalogOptions(pdef.key).options({ q })) }
+      if (selfRef && !def.value.basePath.startsWith('/v1/admin/catalogs/')) {
+        const base = def.value.basePath.replace(/\/[^/]+$/, '')
+        return toSelectItems(await useCatalogOptions(def.value.key, base).options({
+          q, currentValues, extra: { excludeUuid: editingUuid.value ?? undefined },
+        }))
+      }
+      const pdef = getCatalogDef(field.parentKey)
+      if (!pdef) return []
+      const items = toSelectItems(await useCatalogOptions(pdef.key).options({ q, currentValues }))
+      // Self-referencing regular catalog (professions.parentUuid): not its own parent.
+      return selfRef ? items.filter(i => i.value !== editingUuid.value) : items
     }
     catch {
-      return { value: f.name, items: [] }
+      return []
     }
-  }))
-})
-
-// Options per FK field name. Only advisor-ranks feeds its self-FK from `allRanks`
-// (every other rank: a rank can't be its own parent); regular catalogs
-// (professions) load theirs through `parents`.
-const parentOptions = computed<Record<string, SelectItem[]>>(() => {
-  const out: Record<string, SelectItem[]> = Object.fromEntries(parents.items.value.map(p => [p.value, p.items]))
-  const selfField = def.value?.fields.find(f => f.type === 'parent' && f.parentKey === def.value!.key)
-  if (selfField && !def.value!.basePath.startsWith('/v1/admin/catalogs/')) {
-    out[selfField.name] = allRanks.value
-      .filter(r => r.uuid !== editingUuid.value)
-      .map(r => ({ label: r.name, value: r.uuid }))
   }
-  return out
-})
+}
+const parentLazy = useLazyOptions(parentOptionsLoader(() => (parentField.value ? state[parentField.value.name] || undefined : undefined)))
+const filterLazy = useLazyOptions(parentOptionsLoader(() => filterValue.value || undefined))
 
-// Options for the parent filter select (reuses the FK field's options).
-const filterOptions = computed(() => {
-  const field = def.value?.listFilter?.field
-  return field ? (parentOptions.value[field as string] ?? []) : []
-})
-
-// Full unpaged rank list — feeds the tree panel, the self-referencing
-// parentRankUuid FK select's options, and the reorder up/down buttons'
-// sibling lookup (all three need the whole set, not just the current page).
+// Full unpaged rank list — feeds the tree panel and the reorder up/down buttons'
+// sibling lookup (both need the whole set, not just the current page).
 const allRanks = ref<CatalogItem[]>([])
 
 async function loadAllRanksIfNeeded() {
@@ -335,7 +325,8 @@ async function init() {
   page.value = 1
   await nextTick()
   resetting.value = false
-  parents.reset()
+  parentLazy.reset()
+  filterLazy.reset()
   await Promise.all([load(), loadAllRanksIfNeeded()])
 }
 
@@ -437,6 +428,7 @@ function openCreate() {
   mode.value = 'create'
   editingUuid.value = null
   resetForm()
+  parentLazy.reset()
   formOpen.value = true
 }
 
@@ -467,10 +459,12 @@ function populateEditForm(item: CatalogItem) {
 }
 
 async function openEdit(item: CatalogItem) {
-  // FK selects must show the edited record's labels, not raw uuids.
-  await parents.ensureLoaded()
   mode.value = 'edit'
   populateEditForm(item)
+  // FK selects must show the edited record's labels, not raw uuids: the saved
+  // parent comes back through `currentValues` (and the self-FK excludes this record).
+  parentLazy.reset()
+  await parentLazy.ensureLoaded()
   formOpen.value = true
 }
 
@@ -484,7 +478,11 @@ function goToLinkedRecord(to: string) {
 async function reloadEditForm() {
   if (!def.value || !editingUuid.value) return
   editReloading.value = true
-  try { populateEditForm(await api().get(editingUuid.value)) }
+  try {
+    populateEditForm(await api().get(editingUuid.value))
+    parentLazy.reset()
+    await parentLazy.ensureLoaded()
+  }
   catch { /* useApi already notified */ }
   finally { editReloading.value = false }
 }
@@ -651,13 +649,16 @@ async function confirmDelete() {
         <USelectMenu
           v-model="filterValue"
           clear
-          :items="filterOptions"
-          :loading="parents.loading.value"
+          :items="filterLazy.items.value"
+          :loading="filterLazy.loading.value"
+          v-model:search-term="filterLazy.searchTerm.value"
+          ignore-filter
           label-key="label"
           value-key="value"
           :placeholder="$t('catalogs.filterByParent')"
           class="w-full max-w-xs"
-          @update:open="parents.onOpen"
+          @update:open="filterLazy.onOpen"
+          @update:model-value="filterLazy.remember($event)"
         />
       </template>
     </ListFilterPanel>
@@ -907,14 +908,17 @@ async function confirmDelete() {
               <USelectMenu
                 clear
                 v-model="state[f.name]"
-                :items="parentOptions[f.name] ?? []"
+                :items="parentLazy.items.value"
+                v-model:search-term="parentLazy.searchTerm.value"
+                ignore-filter
                 label-key="label"
                 value-key="value"
                 :placeholder="$t('catalogs.selectPlaceholder', { field: fieldLabel(f).toLowerCase() })"
                 :disabled="mode === 'edit' && f.onlyCreate"
-                :loading="parents.loading.value"
+                :loading="parentLazy.loading.value"
                 class="w-full"
-                @update:open="parents.onOpen"
+                @update:open="parentLazy.onOpen"
+                @update:model-value="parentLazy.remember($event)"
               />
               <CommonEntityQuickLinkButton
                 :to="parentEditLink(state[f.name] || null)"

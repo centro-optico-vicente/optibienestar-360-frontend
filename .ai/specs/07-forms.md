@@ -300,7 +300,11 @@ Un desplegable muestra a lo sumo **`DROPDOWN_PAGE_SIZE` (50)** opciones (`app/ut
 - Si el formulario necesita acotar por un hecho de la entidad, el `/options` recibe el filtro (`ally-types/options?segment=`, `payment-categories/options?direction=`), no se filtra en el cliente.
 - Un valor ya guardado que cae fuera de las primeras 50 opciones se resuelve con `currentValues`, no ampliando el `limit`.
 
-**Excepción (pendiente de decisión):** cuando el formulario necesita atributos del registro elegido (las banderas `mandatory*` del método de pago), el select lee `GET /v1/me/payment-methods?q=` (búsqueda en el servidor, DTO completo) en vez de `/options`. Sigue pendiente decidir si pasa a `/options` + detalle del seleccionado. Siguen con carga única al abrir y filtro local, pendientes de pasar a búsqueda en el servidor: profesiones (árbol de sub-especialidades), los rangos de `PromoterChangeRankModal`, los padres de `catalogs/[resource]`, las monedas y categorías de `BenefitUsageModal` (conversor del portal de aliados y catálogo público) y los tipos de documento (lista estática en memoria).
+**Excepción (pendiente de decisión):** cuando el formulario necesita atributos del registro elegido (las banderas `mandatory*` del método de pago), el select lee `GET /v1/me/payment-methods?q=` (búsqueda en el servidor, DTO completo) en vez de `/options`. Sigue pendiente decidir si pasa a `/options` + detalle del seleccionado. Los selects de método de pago que solo filtran ya usan `useCatalogOptions('payment-methods', '/v1/admin').options({ q })`.
+
+**Casos particulares:**
+- **Profesiones (árbol de sub-especialidades, `allies/[uuid]`):** se busca en el servidor con `q` sobre el listado paginado (`/v1/admin/catalogs/professions?q=&size=50`), no sobre `/options`, porque el árbol necesita `parent_Uuid`/`parent_Display` de cada fila: las coincidencias se agrupan bajo su profesión general y una sub-especialidad cuyo padre no vino conserva la etiqueta `General › Sub`. Pasará a `/options` cuando su `labelOf` traiga el padre.
+- **Tipos de documento (`useDocumentTypes`):** se quedan con carga única por sesión (`useState`) y filtro local, a propósito: es un catálogo de pocas filas (V, E, J…), muy por debajo de `DROPDOWN_PAGE_SIZE`, así que el filtro local no oculta nada y una consulta por tecla solo agregaría peticiones.
 
 ```ts
 // ❌ lista completa, exige permiso de pantalla
@@ -337,11 +341,11 @@ Todo dropdown del sistema debe poder **filtrarse escribiendo** y **limpiarse** (
 
 **Pendientes (a 2026-11-13):**
 
-- **Métodos de pago** (decisión abierta: lista con atributos vs `/options` + detalle del seleccionado; ver ADR backend LOC-0013). Dos endpoints afectados:
-  - Sesión, `GET /v1/me/payment-methods?q`: `MyPaymentFormModal`, `DownlinePaymentFormModal`, `my-bank-accounts`, `company-bank-accounts`.
-  - Admin, `GET /v1/admin/payment-methods` vía `useCatalog` (lista completa, sin `q`): `PaymentFormModal`, `PaymentMasterFilters`, `PromoterPayoutAccountsTab`, `CommissionPayoutBySelectionModal`, `affiliation-requests/index`. Los que solo filtran (sin `mandatory*`) pueden pasar a `/options` sin esperar la decisión.
+- **Métodos de pago** (decisión abierta: lista con atributos vs `/options` + detalle del seleccionado; ver ADR backend LOC-0013). Los selects admin que solo filtran (`PaymentMasterFilters`, `PromoterPayoutAccountsTab`, `CommissionPayoutBySelectionModal`, `affiliation-requests/index`, reportes de pagos) ya usan `useCatalogOptions('payment-methods', '/v1/admin').options({ q })`. Depende de la decisión lo que necesita las banderas `mandatory*`:
+  - Formularios que leen `GET /v1/me/payment-methods?q`: `MyPaymentFormModal`, `DownlinePaymentFormModal`, `PaymentFormModal`, `OutPaymentFormModal`.
+  - Detalle `GET /v1/admin/payment-methods/{uuid}` en `PaymentFormModal`, `OutPaymentFormModal` y `PromoterPayoutAccountsTab`.
+  - `my-bank-accounts` y `company-bank-accounts`.
   - `/v1/public/payment-methods` (registro público) no se toca.
-- **Selects sin búsqueda en servidor**: árbol de profesiones (`allies/[uuid]`), `PromoterChangeRankModal` (rangos y supervisores), padres en `catalogs/[resource]`, `BenefitUsageModal` (monedas `/v1/me/currencies` y categorías públicas), tipos de documento estáticos (`useDocumentTypes`).
 - **Fase 2**: permisos `<X>_LOOKUP` para entidades sensibles (pagos, asesores, usuarios, aliados, afiliados, consumos).
 - **Backend**: `/options` de `marital-statuses`, `professions` y `ally-types` aún muestra solo el nombre; `/v1/me/allies/options` existe pero ningún portal lo consume; la lista de asesores ya no excluye al asesor de sistema (INSTITUCION).
 
