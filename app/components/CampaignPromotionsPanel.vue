@@ -130,7 +130,8 @@ function codeLabel(p: PromotionDto): string {
             <td class="px-6 py-3 text-prohealth-800">{{ discountLabel(p) }}</td>
             <td class="px-6 py-3 text-prohealth-600">{{ codeLabel(p) }}</td>
             <td class="px-6 py-3 text-prohealth-600">
-              {{ p.maxRedemptions ? `${p.redemptionsCount} / ${p.maxRedemptions}` : p.redemptionsCount }}
+              {{ p.ownQuota !== false && p.maxRedemptions ? `${p.redemptionsCount} / ${p.maxRedemptions}` : p.redemptionsCount }}
+              <p v-if="p.ownQuota === false" class="text-xs text-prohealth-400">{{ t('promotions.campaignQuotaOnly') }}</p>
             </td>
             <td class="px-6 py-3">
               <div class="flex items-center justify-end gap-1">

@@ -2,11 +2,13 @@ import type { Option } from '~/types/options'
 import type { Page } from '~/types/admin'
 import type {
   CampaignAudienceDto,
+  CampaignCloseRequest,
   CampaignDto,
   CampaignEffectivenessDto,
   CampaignExceptionDto,
   CampaignExceptionRequest,
   CampaignRelaunchRequest,
+  CampaignReopenRequest,
   CampaignTransactionLinkDto,
   CreateCampaignRequest,
   UpdateCampaignRequest,
@@ -77,6 +79,27 @@ export const useCampaigns = () => {
   const relaunch = (uuid: string, body: CampaignRelaunchRequest) =>
     useApi<CampaignDto>(`/v1/admin/campaigns/${uuid}/relaunch`, { method: 'POST', body })
 
+  // ---- Lifecycle (hub ADR 0038) — every transition returns the updated CampaignDto ----
+  /** DRAFT → ACTIVE (CAMPAIGN_UPDATE). */
+  const activate = (uuid: string) =>
+    useApi<CampaignDto>(`/v1/admin/campaigns/${uuid}/activate`, { method: 'POST' })
+
+  /** ACTIVE | SOLD_OUT → PAUSED (CAMPAIGN_PAUSE). */
+  const pause = (uuid: string) =>
+    useApi<CampaignDto>(`/v1/admin/campaigns/${uuid}/pause`, { method: 'POST' })
+
+  /** PAUSED → ACTIVE, or SOLD_OUT when still full (CAMPAIGN_PAUSE). */
+  const resume = (uuid: string) =>
+    useApi<CampaignDto>(`/v1/admin/campaigns/${uuid}/resume`, { method: 'POST' })
+
+  /** Any non-closed status → CLOSED / MANUAL (CAMPAIGN_CLOSE). */
+  const close = (uuid: string, body: CampaignCloseRequest) =>
+    useApi<CampaignDto>(`/v1/admin/campaigns/${uuid}/close`, { method: 'POST', body })
+
+  /** CLOSED → ACTIVE (or SOLD_OUT) after enlarging the max and/or the end date (CAMPAIGN_REOPEN). */
+  const reopen = (uuid: string, body: CampaignReopenRequest) =>
+    useApi<CampaignDto>(`/v1/admin/campaigns/${uuid}/reopen`, { method: 'POST', body })
+
   /** JSON effectiveness summary (GET /{uuid}/effectiveness) — NOT a file download. */
   const getEffectiveness = (uuid: string) =>
     useApi<CampaignEffectivenessDto>(`/v1/admin/campaigns/${uuid}/effectiveness`)
@@ -120,6 +143,11 @@ export const useCampaigns = () => {
     update,
     remove,
     relaunch,
+    activate,
+    pause,
+    resume,
+    close,
+    reopen,
     getEffectiveness,
     audience,
     addAudienceMember,

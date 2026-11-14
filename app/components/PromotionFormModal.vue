@@ -63,6 +63,7 @@ const state = reactive({
   appliesTo: 'BOTH' as PromotionAppliesTo,
   cycles: undefined as number | undefined,
   coversExtraBeneficiaries: false,
+  ownQuota: false,
   maxRedemptions: undefined as number | undefined,
   requiresCode: false,
   acceptsPromoterCode: false,
@@ -95,6 +96,8 @@ watch(() => props.open, async (open) => {
     appliesTo: p?.appliesTo ?? 'BOTH',
     cycles: p?.cycles ?? undefined,
     coversExtraBeneficiaries: p?.coversExtraBeneficiaries ?? false,
+    // Rows from before ADR 0038 had their own cap whenever maxRedemptions was set.
+    ownQuota: p?.ownQuota ?? (p?.maxRedemptions != null),
     maxRedemptions: p?.maxRedemptions ?? undefined,
     requiresCode: p?.requiresCode ?? false,
     acceptsPromoterCode: p?.acceptsPromoterCode ?? false,
@@ -118,6 +121,9 @@ const errors = computed(() => {
   }
   else if (state.discountPct === undefined || state.discountPct <= 0 || state.discountPct > 100) {
     e.discountPct = t('promotions.form.pctRange')
+  }
+  if (state.ownQuota && (state.maxRedemptions === undefined || state.maxRedemptions < 1 || !Number.isInteger(state.maxRedemptions))) {
+    e.maxRedemptions = t('promotions.form.ownQuotaRequired')
   }
   if (state.requiresCode && !(state.acceptsPromoterCode || state.acceptsMemberCode || state.acceptsAllyCode)) {
     e.codeOwners = t('promotions.form.codeOwnerRequired')
@@ -144,7 +150,8 @@ async function submit() {
     appliesTo: state.appliesTo,
     cycles: state.cycles ?? null,
     coversExtraBeneficiaries: state.coversExtraBeneficiaries,
-    maxRedemptions: state.maxRedemptions ?? null,
+    ownQuota: state.ownQuota,
+    maxRedemptions: state.ownQuota ? state.maxRedemptions ?? null : null,
     requiresCode: state.requiresCode,
     acceptsPromoterCode: state.acceptsPromoterCode,
     acceptsMemberCode: state.acceptsMemberCode,
@@ -251,7 +258,16 @@ function numberOrUndefined(v: string | number | null | undefined): number | unde
               @update:model-value="state.cycles = numberOrUndefined($event)"
             />
           </UFormField>
-          <UFormField :label="t('promotions.fields.maxRedemptions')" :help="t('promotions.form.maxRedemptionsHelp')">
+          <UFormField :label="t('promotions.fields.ownQuota')" :help="t('promotions.form.ownQuotaHelp')">
+            <UCheckbox v-model="state.ownQuota" :label="t('promotions.form.ownQuotaCheck')" />
+          </UFormField>
+          <UFormField
+            v-if="state.ownQuota"
+            :label="t('promotions.fields.maxRedemptions')"
+            required
+            :error="errors.maxRedemptions"
+            :help="t('promotions.form.maxRedemptionsHelp')"
+          >
             <UInput
               :model-value="state.maxRedemptions"
               type="number"

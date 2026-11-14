@@ -4573,7 +4573,9 @@
       "vigency": "Vigency",
       "scope": "Scope",
       "mode": "Mode",
-      "campaign": "Campaign"
+      "campaign": "Campaign",
+      "lifecycle": "Campaign status",
+      "quota": "Quota"
     },
     "scope": {
       "ALL": "All advisors",
@@ -4609,7 +4611,27 @@
       "priorityHelp": "Higher priority wins when multiple campaigns qualify.",
       "active": "Active",
       "campaign": "Campaign",
-      "campaignHelp": "Selecting a campaign autofills the vigency dates below (still editable)."
+      "campaignHelp": "Selecting a campaign autofills the vigency dates below (still editable).",
+      "closeConditions": "Automatic closing",
+      "manualCloseNote": "You can always close the campaign manually from its detail page. If no condition is checked, it only closes manually.",
+      "maxRedemptions": "Campaign total quota",
+      "maxRedemptionsHelp": "Shared by all its promotions. Empty = no limit.",
+      "maxRedemptionsRequired": "Enter the quota: it is needed to close when it is filled",
+      "endsAtRequired": "Enter the end date: closing by date or settling only at the end requires it",
+      "endsAfterStart": "The end date must be after the start date",
+      "endsAtOptionalHelp": "Empty = the campaign has no end date",
+      "saveDraft": "Save as draft",
+      "draftSavedToast": "Campaign saved as draft",
+      "grace": {
+        "label": "Confirmation period after closing",
+        "help": "How long pending slots can still be confirmed after the campaign closes.",
+        "none": "No extra period",
+        "date": "Until a date",
+        "days": "A number of days",
+        "untilLabel": "Confirm until",
+        "daysLabel": "Days after closing",
+        "daysCount": "{n} day(s) after closing"
+      }
     },
     "detail": {
       "generalData": "General data",
@@ -4657,7 +4679,8 @@
         "active": "Active",
         "createdAt": "Created at",
         "updatedAt": "Updated at",
-        "uuid": "UUID"
+        "uuid": "UUID",
+        "closedAt": "Closed on"
       },
       "audiencePlaceholder": "Search advisor by name...",
       "audienceRemoveConfirm": "Remove this advisor from the campaign audience?",
@@ -4712,6 +4735,57 @@
       "mode": "Mode",
       "dateFrom": "Active from",
       "dateTo": "Active to"
+    },
+    "openEnded": "No end date",
+    "lifecycle": {
+      "DRAFT": "Draft",
+      "ACTIVE": "Active",
+      "PAUSED": "Paused",
+      "SOLD_OUT": "Sold out",
+      "CLOSED": "Closed"
+    },
+    "closeCondition": {
+      "END_DATE": "When the end date arrives",
+      "QUOTA_FILLED": "When the quota is filled",
+      "MANUAL": "Manual close"
+    },
+    "closedReason": {
+      "END_DATE": "End date reached",
+      "QUOTA_FILLED": "Quota filled",
+      "MANUAL": "Manual close"
+    },
+    "quota": {
+      "title": "Quota",
+      "usedOfMax": "{used} / {max} taken",
+      "usedUnlimited": "{used} taken (no limit)",
+      "free": "{n} free",
+      "unlimited": "No limit"
+    },
+    "lifecycleActions": {
+      "activate": "Activate",
+      "pause": "Pause",
+      "resume": "Resume",
+      "close": "Close campaign",
+      "reopen": "Reopen",
+      "activateToast": "Campaign activated",
+      "pauseToast": "Campaign paused",
+      "resumeToast": "Campaign resumed",
+      "closeToast": "Campaign closed",
+      "reopenToast": "Campaign reopened",
+      "closeTitle": "Close campaign",
+      "closeNotice": "The campaign {name} will stop offering its promotions. Memberships that already have them keep them.",
+      "cancelPending": "Release the slots pending confirmation",
+      "cancelPendingHelp": "If unchecked, pending slots can still be confirmed within the configured period.",
+      "note": "Note",
+      "reopenTitle": "Reopen campaign",
+      "reopenNotice": "To reopen it, raise the quota, move the end date later, or both.",
+      "newMax": "New quota",
+      "newEndsAt": "New end date",
+      "currentMax": "Current quota: {n}",
+      "currentEndsAt": "Current end: {date}",
+      "reopenMaxInvalid": "The new quota must be greater than the current one",
+      "reopenEndsAtInvalid": "The new end date must be later than today and than the current one",
+      "reopenNothingEnlarged": "Raise the quota or the end date to reopen"
     }
   },
   "commissionRules": {
@@ -5747,7 +5821,8 @@
       "referrerRewardCycles": "Reward months",
       "discountType": "Discount type",
       "discountAmount": "Discount amount",
-      "discountCurrency": "Discount currency"
+      "discountCurrency": "Discount currency",
+      "ownQuota": "Own quota"
     },
     "form": {
       "createTitle": "New promotion",
@@ -5757,12 +5832,15 @@
       "codeOwnerRequired": "Choose which codes the promotion accepts",
       "rewardIncomplete": "Enter both the reward percentage and months",
       "cyclesHelp": "Empty = while the campaign runs",
-      "maxRedemptionsHelp": "Empty = no cap",
+      "maxRedemptionsHelp": "Never exceeds the campaign quota.",
       "plansHelp": "Empty = every plan",
       "codeOwnersHelp": "Which codes are accepted in the \"Code\" field when applying the promotion. The benefit goes to whoever uses the code.",
       "rewardHelp": "Optional: a separate benefit for the referring member, as a discount on their own monthly fee, when the referred member makes their first payment.",
       "amountMin": "Enter an amount greater than 0",
-      "amountHelp": "Converted to the charge currency at the payment date rate and never exceeds the amount due."
+      "amountHelp": "Converted to the charge currency at the payment date rate and never exceeds the amount due.",
+      "ownQuotaCheck": "This promotion has its own quota",
+      "ownQuotaHelp": "Without its own quota, it only consumes the campaign quota.",
+      "ownQuotaRequired": "Enter its own quota (a whole number greater than 0)"
     },
     "membership": {
       "promotion": "Promotion",
@@ -5795,7 +5873,8 @@
     "discountType": {
       "PERCENTAGE": "Percentage",
       "FLAT": "Fixed amount"
-    }
+    },
+    "campaignQuotaOnly": "Uses the campaign quota"
   },
   "profilePhoto": {
     "title": "Profile photo",

@@ -122,7 +122,15 @@ function modeLabel(c: CampaignDto): string {
 }
 
 function vigencyLabel(c: CampaignDto): string {
-  return `${formatDate(c.startsAt)} — ${formatDate(c.endsAt)}`
+  return `${formatDate(c.startsAt)} — ${c.endsAt ? formatDate(c.endsAt) : t('campaigns.openEnded')}`
+}
+
+/** Shared campaign quota (hub ADR 0038): "used / max · N free", or the bare count without a max. */
+function quotaLabel(c: CampaignDto): string {
+  const used = c.redemptionsCount ?? 0
+  if (c.maxRedemptions == null) return t('campaigns.quota.usedUnlimited', { used })
+  const base = t('campaigns.quota.usedOfMax', { used, max: c.maxRedemptions })
+  return c.freeSlots != null ? `${base} · ${t('campaigns.quota.free', { n: c.freeSlots })}` : base
 }
 
 // ---- Quick create/edit modal ----
@@ -251,6 +259,8 @@ onMounted(load)
             </th>
             <th class="px-5 py-3 font-semibold">{{ t('campaigns.columns.scope') }}</th>
             <th class="px-5 py-3 font-semibold">{{ t('campaigns.columns.mode') }}</th>
+            <th class="px-5 py-3 font-semibold">{{ t('campaigns.columns.lifecycle') }}</th>
+            <th class="px-5 py-3 font-semibold">{{ t('campaigns.columns.quota') }}</th>
             <th class="px-5 py-3 font-semibold cursor-pointer select-none" @click="sort.toggle('active')">
               {{ t('catalogs.columns.status') }}
               <SortIndicator :state="sort.stateOf('active')" :multi-active="isMultiSort" @clear="sort.remove('active')" />
@@ -259,9 +269,9 @@ onMounted(load)
           </tr>
         </thead>
         <tbody class="divide-y divide-prohealth-100">
-          <TableSkeleton v-if="loading" :rows="4" :cols="6" />
+          <TableSkeleton v-if="loading" :rows="4" :cols="8" />
           <tr v-else-if="items.length === 0">
-            <td colspan="6" class="px-5 py-10 text-center text-prohealth-500">{{ t('campaigns.empty') }}</td>
+            <td colspan="8" class="px-5 py-10 text-center text-prohealth-500">{{ t('campaigns.empty') }}</td>
           </tr>
           <tr
             v-for="c in items"
@@ -279,6 +289,10 @@ onMounted(load)
             <td class="px-5 py-3">
               <UBadge :color="c.mode === 'TARGETED' ? 'primary' : 'neutral'" variant="subtle" size="sm">{{ modeLabel(c) }}</UBadge>
             </td>
+            <td class="px-5 py-3">
+              <CampaignLifecycleBadge :status="c.lifecycleStatus" :display="c.lifecycleStatus_Display" />
+            </td>
+            <td class="px-5 py-3 text-prohealth-600 whitespace-nowrap">{{ quotaLabel(c) }}</td>
             <td class="px-5 py-3">
               <UBadge :color="c.active ? 'success' : 'neutral'" variant="subtle" size="sm">
                 {{ c.active ? t('catalogs.status.active') : t('catalogs.status.inactive') }}
