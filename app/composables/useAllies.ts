@@ -277,6 +277,7 @@ export const useAllies = () => {
     create,
     update,
     assignAdvisor,
+    bulkAssignAdvisor,
     remove,
     restore,
     usage,
