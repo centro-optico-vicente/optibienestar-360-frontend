@@ -11,7 +11,7 @@
 // confirm the human in front of them), and plan/membership fields only when a
 // membership row exists.
 
-import type { BenefitGrantDto } from '~/types/benefitGrants'
+import type { BenefitGrantDto, PendingBenefitDto } from '~/types/benefitGrants'
 
 /** Headline answer. Only ACTIVE authorizes applying the benefit. */
 export type ValidationStatus =
@@ -70,6 +70,9 @@ export interface ValidationResultDto {
 
   /** AVAILABLE campaign vouchers of the calling ally for the covered memberships (hub ADR 0038). */
   benefitGrants?: BenefitGrantDto[] | null
+
+  /** Ally benefits whose slot is not confirmed yet: shown as "pending confirmation", never redeemable. */
+  pendingBenefits?: PendingBenefitDto[] | null
 
   /** Diagnostic only: whether the answer came from Redis. Never gate UI on this. */
   cached?: boolean

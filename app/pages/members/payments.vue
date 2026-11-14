@@ -294,6 +294,7 @@ async function confirmDelete() {
                 <UBadge :color="paymentStatusColor(p.status)" variant="subtle" size="sm">
                   {{ p.status_Display ?? statusLabel(p.status) }}
                 </UBadge>
+                <PaymentSlotBadge :promotion-slot="p.promotionSlot" member size="xs" class="mt-1 block w-fit" />
                 <UBadge v-if="p.openClaim" color="warning" variant="subtle" size="sm" class="ml-1">
                   {{ t('payments.claim.badge', { amount: p.openClaim.claimedAmount_Display ?? p.openClaim.claimedAmount }) }}
                 </UBadge>

@@ -362,6 +362,7 @@ async function confirmDelete() {
                 <UBadge :color="paymentStatusColor(p.status)" variant="subtle" size="sm">
                   {{ p.status_Display ?? statusLabel(p.status) }}
                 </UBadge>
+                <PaymentSlotBadge :promotion-slot="p.promotionSlot" size="xs" class="mt-1 block w-fit" />
               </td>
               <td class="px-5 py-3" @click.stop>
                 <div class="flex items-center justify-end gap-1">

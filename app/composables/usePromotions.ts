@@ -45,9 +45,14 @@ export function usePromotions() {
   const mine = () =>
     useApi<MembershipPromotionStatusDto>('/v1/me/promotion')
 
-  /** The member's ally-benefit vouchers in every status (hub ADR 0038). */
-  const myBenefitGrants = () =>
-    useApi<MembershipBenefitGrantDto[]>('/v1/me/benefit-grants')
+  /**
+   * The member's ally-benefit vouchers in every status (hub ADR 0038). `includePending` adds
+   * PENDING_CONFIRMATION pseudo-entries for slots not confirmed yet (point 9).
+   */
+  const myBenefitGrants = (params: { includePending?: boolean } = {}) =>
+    useApi<MembershipBenefitGrantDto[]>('/v1/me/benefit-grants', {
+      query: params.includePending ? { includePending: 'true' } : undefined,
+    })
 
   return { listForCampaign, create, update, remove, offeredForEnrollment, currentForMembership, optionsForMembership, assign, cancel, mine, myBenefitGrants }
 }

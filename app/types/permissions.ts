@@ -264,6 +264,12 @@ export const PERMISSIONS = [
   'CAMPAIGN_PAUSE',
   'CAMPAIGN_CLOSE',
   'CAMPAIGN_REOPEN',
+  // Campaign "Pagos" section: which payments confirmed their slot, plus internal reminders (hub ADR 0038 point 9).
+  'CAMPAIGN_PAYMENT_VIEW',
+  'CAMPAIGN_PAYMENT_REMIND',
+  // Manual slot confirm/release with a note (hub ADR 0038 point 9).
+  'PROMOTION_SLOT_CONFIRM',
+  'PROMOTION_SLOT_RELEASE',
   // Promotions inside campaigns (hub ADR 0018).
   'PROMOTION_VIEW_ALL',
   'PROMOTION_CREATE',

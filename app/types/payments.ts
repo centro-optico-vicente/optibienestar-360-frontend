@@ -8,6 +8,29 @@
 // string depending on the ObjectMapper; typed as `number | string` and always
 // formatted through `Number()`.
 
+/**
+ * Campaign slot linked to a payment (hub ADR 0038 point 9). `confirmsOnApproval` = the payment is PENDING,
+ * the slot is PENDING, the campaign confirms on ON_PAYMENT_CONFIRMED and this payment qualifies:
+ * approving it confirms the slot. DisplayRefs arrive flattened (ADR 0014).
+ */
+export interface PaymentPromotionSlotDto {
+  slotUuid: string
+  promotion_Uuid?: string | null
+  promotion_Display?: string | null
+  promotion_Code?: string | null
+  campaign_Uuid?: string | null
+  campaign_Display?: string | null
+  campaign_Code?: string | null
+  redemptionStatus: 'PENDING' | 'CONFIRMED' | 'EXPIRED' | 'RELEASED'
+  redemptionStatus_Display?: string | null
+  quotaTrigger?: 'ON_ENROLLMENT' | 'ON_PAYMENT_REGISTERED' | 'ON_PAYMENT_CONFIRMED' | null
+  quotaTrigger_Display?: string | null
+  confirmsOnApproval: boolean
+  effectiveDeadline?: string | null
+  effectiveDeadline_Display?: string | null
+  deadlineFrozen: boolean
+}
+
 // ---- Payment method (7 values, mirror of the V23 CHECK / PaymentMethod enum) ----
 export type PaymentMethod =
   | 'BANK_TRANSFER'
@@ -86,6 +109,8 @@ export interface PaymentDto {
   beneficiaryContractNumber?: string | null
   /** Open claim on this payment's remaining credit (hub ADR 0029); `null` when there is none. */
   openClaim?: PaymentClaimDto | null
+  /** Campaign slot this payment confirms or relates to (hub ADR 0038 point 9); `null` when there is none. */
+  promotionSlot?: PaymentPromotionSlotDto | null
   /** Credit of this payment not yet applied to a membership; `null` when it is not credit. */
   creditRemaining?: number | string | null
   creditRemaining_Display?: string | null

@@ -2985,6 +2985,12 @@
       "currency": "Moneda",
       "dateFrom": "Fecha desde",
       "dateTo": "Fecha hasta"
+    },
+    "slot": {
+      "confirmsOnApproval": "Aprobar este pago confirma el cupo de {promotion}",
+      "confirmsOnApprovalMember": "Cuando se apruebe este pago se confirma tu cupo de {promotion}",
+      "frozen": "congelado",
+      "until": "hasta el {date}"
     }
   },
   "members": {
@@ -3627,6 +3633,14 @@
       "title": "Beneficios de campaña disponibles",
       "remaining": "{n} de {total} disponibles",
       "expires": "vence el {date}"
+    },
+    "pendingBenefits": {
+      "title": "Beneficios pendientes de confirmación",
+      "hint": "El cupo del afiliado todavía no está confirmado: no se pueden canjear.",
+      "badge": "Pendiente de confirmación",
+      "quantity": "{n} unidad(es)",
+      "frozen": "pago en revisión",
+      "confirmBy": "se confirma antes del {date}"
     }
   },
   "promoters": {
@@ -4700,7 +4714,9 @@
         "transactions": "Transacciones",
         "exceptions": "Excepciones",
         "promotions": "Promociones",
-        "allyBenefits": "Beneficios de aliados"
+        "allyBenefits": "Beneficios de aliados",
+        "slots": "Cupos",
+        "payments": "Pagos"
       },
       "seoPage": "Detalle de campaña",
       "notFoundTitle": "Campaña no encontrada",
@@ -4865,6 +4881,92 @@
       "expired": "Vencidos",
       "canceled": "Anulados",
       "empty": "Esta campaña todavía no ha entregado beneficios de aliados."
+    },
+    "slots": {
+      "title": "Cupos de la campaña",
+      "hint": "Cada cupo con su estado y su plazo. Un pago en revisión registrado a tiempo congela el plazo hasta que se revise.",
+      "allStatuses": "Todos los estados",
+      "columns": {
+        "member": "Afiliado",
+        "promotion": "Promoción",
+        "status": "Estado",
+        "deadline": "Plazo",
+        "payment": "Pago que lo confirmó",
+        "note": "Nota manual"
+      },
+      "empty": "No hay cupos con este filtro.",
+      "advisor": "Asesor",
+      "frozen": "Plazo congelado: pago en revisión",
+      "frozenShort": "Congelado (pago en revisión)",
+      "confirmsWhen": "Se confirma: {trigger}",
+      "noDeadline": "Sin plazo",
+      "confirmedOn": "Confirmado el {date}",
+      "reservedOn": "Reservado el {date}",
+      "confirm": "Confirmar cupo",
+      "release": "Liberar cupo",
+      "confirmTitle": "Confirmar cupo a mano",
+      "releaseTitle": "Liberar cupo",
+      "confirmNotice": "El cupo pasa a confirmado sin esperar el pago. Queda registrado en la bitácora con tu nota.",
+      "releaseNotice": "El cupo queda libre y la promoción se retira de la membresía. Solo se puede si no se aplicó ningún descuento ni se canjeó el bono.",
+      "note": "Nota",
+      "notePlaceholder": "Por qué se hace este cambio",
+      "noteRequired": "Escribe una nota",
+      "confirmedToast": "Cupo confirmado",
+      "releasedToast": "Cupo liberado"
+    },
+    "payments": {
+      "title": "Pagos de la campaña",
+      "hint": "Qué pagos confirmaron su cupo y cuáles no. Los recordatorios llegan al asesor y a quienes aprueban pagos.",
+      "remindAll": "Recordar todos los pendientes",
+      "totals": {
+        "confirmed": "Confirmados",
+        "pendingInReview": "Pendientes con pago en revisión",
+        "pendingWithoutPayment": "Pendientes sin pago",
+        "expired": "Vencidos"
+      },
+      "filters": {
+        "slotStatus": "Estado del cupo",
+        "paymentStatus": "Estado del pago"
+      },
+      "columns": {
+        "member": "Afiliado",
+        "payment": "Pago",
+        "amount": "Monto",
+        "paymentStatus": "Estado del pago",
+        "slot": "Cupo",
+        "deadline": "Plazo",
+        "lastReminded": "Último recordatorio"
+      },
+      "empty": "No hay cupos con este filtro.",
+      "noPayment": "Sin pago",
+      "confirmsOnApproval": "Al aprobarlo se confirma el cupo",
+      "remind": "Recordar",
+      "remindTitle": "Recordar este pago",
+      "remindAllTitle": "Recordar los pagos pendientes",
+      "remindNotice": "Se envía un correo al asesor y a quienes aprueban pagos: este pago confirma el cupo de la campaña. Solo un recordatorio por pago cada hora.",
+      "remindAllNotice": "Se envía un recordatorio por cada cupo pendiente con pago en revisión ({n}). Se omiten los que ya se recordaron en la última hora.",
+      "remindNote": "Nota",
+      "remindNoteHelp": "Opcional. Se agrega al correo.",
+      "send": "Enviar",
+      "remindedToast": "Recordatorio enviado",
+      "remindedAllToast": "Recordatorios enviados: {sent} · omitidos: {skipped}"
+    },
+    "slotIssues": {
+      "title": "Inconsistencias",
+      "hint": "Cupos y pagos que no cuadran. La conciliación de cada hora corrige la mayoría; lo que queda aquí necesita revisión.",
+      "columns": {
+        "type": "Tipo",
+        "member": "Afiliado",
+        "promotion": "Promoción",
+        "payment": "Pago",
+        "since": "Desde"
+      },
+      "none": "No hay inconsistencias.",
+      "type": {
+        "APPROVED_DISCOUNT_WITHOUT_SLOT": "Pago aprobado con descuento sin cupo confirmado",
+        "PENDING_WITH_APPROVED_PAYMENT": "Cupo pendiente con pago aprobado",
+        "FROZEN_TOO_LONG": "Cupo congelado hace más de 7 días"
+      }
     }
   },
   "commissionRules": {
@@ -5957,7 +6059,9 @@
       "usableUntil": "vigente hasta el {date}",
       "allyBenefits": "Beneficios de aliados",
       "allyBenefitsHelp": "Opcional. Puedes elegir varios, además de la promoción de descuento.",
-      "noAllyBenefits": "Sin beneficios de aliados"
+      "noAllyBenefits": "Sin beneficios de aliados",
+      "confirmsWhen": "se confirma: {trigger}",
+      "frozen": "plazo congelado: pago en revisión"
     },
     "portal": {
       "title": "Tu promoción: {name}",
@@ -5967,7 +6071,9 @@
       "paymentSaving": "Ahorraste {amount} · {reason}",
       "pending": "Tu cupo está reservado: se confirma con tu pago.",
       "pendingUntil": "Tu cupo está reservado hasta el {date}: se confirma con tu pago.",
-      "usableUntil": "Puedes usarla hasta el {date}."
+      "usableUntil": "Puedes usarla hasta el {date}.",
+      "pendingFrozen": "Tu cupo está reservado: tu pago está en revisión y el plazo se detiene hasta que lo revisen.",
+      "confirmsWhen": "Se confirma: {trigger}"
     },
     "discountType": {
       "PERCENTAGE": "Porcentaje",
@@ -6004,8 +6110,12 @@
         "AVAILABLE": "Disponible",
         "REDEEMED": "Canjeado",
         "EXPIRED": "Vencido",
-        "CANCELED": "Anulado"
-      }
+        "CANCELED": "Anulado",
+        "PENDING_CONFIRMATION": "Por confirmar"
+      },
+      "pendingTitle": "Por confirmar",
+      "pendingHint": "Estos beneficios se activan cuando se confirme tu cupo. Todavía no se pueden canjear.",
+      "confirmBy": "Se confirma antes del {date}"
     }
   },
   "profilePhoto": {

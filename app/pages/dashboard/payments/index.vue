@@ -337,6 +337,7 @@ async function reviewPayment(p: PaymentDto, approve: boolean) {
                 <UBadge :color="paymentStatusColor(p.status)" variant="subtle" size="sm">
                   {{ p.status_Display ?? statusLabel(p.status) }}
                 </UBadge>
+                <PaymentSlotBadge :promotion-slot="p.promotionSlot" size="xs" class="mt-1 block w-fit" />
               </td>
               <td class="px-5 py-3" @click.stop>
                 <div class="flex items-center justify-end gap-1">
@@ -443,6 +444,7 @@ async function reviewPayment(p: PaymentDto, approve: boolean) {
               <UBadge :color="paymentStatusColor(detail.status)" variant="subtle" size="sm">
                 {{ detail.status_Display ?? statusLabel(detail.status) }}
               </UBadge>
+              <PaymentSlotBadge :promotion-slot="detail.promotionSlot" class="mt-1 block w-fit" />
             </dd>
           </div>
           <div>
