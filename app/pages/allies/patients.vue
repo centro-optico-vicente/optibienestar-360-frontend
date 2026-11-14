@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { MyAllyDto } from '~/types/allies'
+import type { Option } from '~/types/options'
 import type { AllyPatientLinkDto } from '~/types/patientAccess'
 
 // "Mis pacientes" (hub ADR 0032): the patients whose credential QR the doctor —
@@ -20,9 +20,10 @@ const patientAccess = usePatientAccess()
 
 useSeoMeta({ title: () => t('patientAccess.patients.seoTitle') })
 
-const allies = ref<MyAllyDto[]>([])
+// Only the name is needed here, so the light `/v1/me/allies/options` (same allies and order as `/v1/me/allies`).
+const allies = ref<Option[]>([])
 const selectedAllyUuid = ref<string | undefined>(undefined)
-const allyOptions = computed(() => allies.value.map(a => ({ label: a.name, value: a.uuid })))
+const allyOptions = computed(() => allies.value.map(a => ({ label: a.label, value: a.uuid })))
 
 const eligible = ref(false)
 const enabled = ref(true)
@@ -40,7 +41,7 @@ const selected = ref<AllyPatientLinkDto | null>(null)
 
 onMounted(async () => {
   try {
-    allies.value = await myAllies.list()
+    allies.value = await myAllies.options()
     selectedAllyUuid.value = allies.value[0]?.uuid
   }
   catch {

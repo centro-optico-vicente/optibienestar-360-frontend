@@ -369,6 +369,18 @@ export const useMyAllies = () => {
   /** Allies I operate on, primary first then alphabetical (order set by the backend). */
   const list = () => useApi<MyAllyDto[]>('/v1/me/allies')
 
+  /**
+   * The same allies as `{ uuid, label }` (`GET /v1/me/allies/options`, any session), for a select that needs
+   * only the name. The list is per user and short, so the backend cap (200) brings all of them.
+   */
+  const options = (params: { q?: string, limit?: number } = {}) =>
+    useApi<Option[]>('/v1/me/allies/options', {
+      query: {
+        ...(params.q ? { q: params.q } : {}),
+        limit: params.limit ?? 200,
+      },
+    })
+
   /** The ally's OWN offers in every review state (any active member may read). */
   const listProducts = (allyUuid: string, params: { q?: string, type?: string, page?: number, size?: number } = {}) =>
     useApi<Page<AllyProductDto>>(`/v1/me/allies/${allyUuid}/products`, {
@@ -403,5 +415,5 @@ export const useMyAllies = () => {
   const discardRegistration = (allyUuid: string) =>
     useApi<void>(`/v1/me/allies/${allyUuid}/registration`, { method: 'DELETE' })
 
-  return { list, listProducts, getOpeningHours, replaceOpeningHours, getProfile, updateProfile, discardRegistration }
+  return { list, options, listProducts, getOpeningHours, replaceOpeningHours, getProfile, updateProfile, discardRegistration }
 }
