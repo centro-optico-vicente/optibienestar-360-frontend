@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import type { MembershipPromotionDto } from '~/types/promotions'
+import { promotionDiscountText } from '~/utils/promotionDiscount'
 
 /** Affiliate portal: the member's active promotion and what it saves them (hub ADR 0018). Hidden when none. */
 const { t } = useI18n()
 const { can } = usePermissions()
 const promotionsApi = usePromotions()
+const { formatCurrency } = useFormatters()
 
 const promotion = ref<MembershipPromotionDto | null>(null)
 
@@ -19,7 +21,8 @@ onMounted(async () => {
   }
 })
 
-const pct = computed(() => promotion.value ? (promotion.value.discountPct_Display ?? `${Number(promotion.value.discountPct)}%`) : '')
+// "10%" or a fixed amount such as "5,00 US$" (hub ADR 0038).
+const pct = computed(() => promotion.value ? promotionDiscountText(promotion.value, formatCurrency) : '')
 </script>
 
 <template>

@@ -4,6 +4,7 @@ import { matchesText } from '~/utils/textSearch'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { MembershipCreateRequest, MembershipDto } from '~/types/memberships'
 import type { MembershipPromotionDto, PromotionDto } from '~/types/promotions'
+import { promotionDiscountText } from '~/utils/promotionDiscount'
 import { toSelectItems } from '~/types/options'
 import {
   isMembershipCancelable,
@@ -93,7 +94,7 @@ async function loadPromotions() {
 }
 
 function promotionSummary(p: MembershipPromotionDto): string {
-  const pct = p.discountPct_Display ?? `${Number(p.discountPct)}%`
+  const pct = promotionDiscountText(p, formatCurrency)
   const left = p.cyclesRemaining != null ? ` · ${t('promotions.membership.cyclesLeft', { n: p.cyclesRemaining })}` : ''
   return `${p.promotion_Display ?? ''} · ${pct}${left}`
 }
@@ -107,7 +108,12 @@ const assignCode = ref('')
 const assignSubmitting = ref(false)
 const assignSelected = computed(() => assignOptions.value.find(p => p.uuid === assignPromotionUuid.value) ?? null)
 // Nuxt UI v4 types SelectMenuItem.description as `string | undefined` (no null), while the DTO allows null.
-const withoutNullDescription = (list: PromotionDto[]) => list.map(p => ({ ...p, description: p.description ?? undefined }))
+// `label` adds the discount ("10%" or a fixed amount, hub ADR 0038) to the promotion name.
+const withoutNullDescription = (list: PromotionDto[]) => list.map(p => ({
+  ...p,
+  description: p.description ?? undefined,
+  label: `${p.name} · ${promotionDiscountText(p, formatCurrency)}`,
+}))
 const assignPromotionItems = computed(() => withoutNullDescription(assignOptions.value))
 
 async function openAssign(m: MembershipDto) {
@@ -561,7 +567,7 @@ async function confirmLifecycle() {
               clear
               v-model="enrollState.promotionUuid"
               :items="enrollPromotionItems"
-              label-key="name"
+              label-key="label"
               value-key="uuid"
               :placeholder="t('promotions.membership.noPromotion')"
               class="w-full"
@@ -662,7 +668,7 @@ async function confirmLifecycle() {
                 clear
                 v-model="assignPromotionUuid"
                 :items="assignPromotionItems"
-                label-key="name"
+                label-key="label"
                 value-key="uuid"
                 class="w-full"
               />

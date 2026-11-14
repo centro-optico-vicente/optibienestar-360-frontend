@@ -1,11 +1,28 @@
-// Promotions (hub ADR 0018): % discounts defined inside a campaign and applied
-// to a membership at enrollment or later.
+// Promotions (hub ADR 0018): discounts defined inside a campaign and applied
+// to a membership at enrollment or later. A discount is a percentage or a
+// fixed amount in a currency (hub ADR 0038, phase 1).
 import type { DisplayRefItem } from '~/types/options'
 
 export type PromotionKind = 'ACQUISITION' | 'RECOVERY'
 export type PromotionAppliesTo = 'INSCRIPTION' | 'MONTHLY' | 'BOTH'
+/** PERCENTAGE uses `discountPct`; FLAT uses `discountAmount` + its currency. */
+export type PromotionDiscountType = 'PERCENTAGE' | 'FLAT'
 
-export interface PromotionDto {
+/** Discount fields shared by every promotion summary the API exposes. */
+export interface PromotionDiscountFields {
+  /** Missing on rows saved before ADR 0038 ⇒ PERCENTAGE. */
+  discountType?: PromotionDiscountType | null
+  discountType_Display?: string | null
+  discountPct?: number | string | null
+  discountPct_Display?: string | null
+  discountAmount?: number | string | null
+  discountAmount_Display?: string | null
+  discountCurrency_Uuid?: string | null
+  discountCurrency_Display?: string | null
+  discountCurrency_Code?: string | null
+}
+
+export interface PromotionDto extends PromotionDiscountFields {
   uuid: string
   campaign_Uuid?: string | null
   campaign_Display?: string | null
@@ -13,8 +30,6 @@ export interface PromotionDto {
   description?: string | null
   kind: PromotionKind
   kind_Display?: string | null
-  discountPct: number | string
-  discountPct_Display?: string | null
   appliesTo: PromotionAppliesTo
   appliesTo_Display?: string | null
   cycles?: number | null
@@ -36,7 +51,14 @@ export interface PromotionRequest {
   name: string
   description?: string | null
   kind: PromotionKind
-  discountPct: number
+  /** null ⇒ PERCENTAGE. */
+  discountType?: PromotionDiscountType | null
+  /** Required when PERCENTAGE (0.01..100). */
+  discountPct?: number | null
+  /** Required when FLAT (>= 0.01). */
+  discountAmount?: number | null
+  /** Required when FLAT. */
+  discountCurrencyUuid?: string | null
   appliesTo: PromotionAppliesTo
   cycles?: number | null
   coversExtraBeneficiaries: boolean
@@ -52,7 +74,7 @@ export interface PromotionRequest {
 
 export type MembershipPromotionStatus = 'ACTIVE' | 'CONSUMED' | 'CANCELED'
 
-export interface MembershipPromotionDto {
+export interface MembershipPromotionDto extends PromotionDiscountFields {
   uuid: string
   promotion_Uuid?: string | null
   promotion_Display?: string | null
@@ -60,8 +82,6 @@ export interface MembershipPromotionDto {
   campaign_Display?: string | null
   kind: PromotionKind
   kind_Display?: string | null
-  discountPct: number | string
-  discountPct_Display?: string | null
   appliesTo: PromotionAppliesTo
   appliesTo_Display?: string | null
   cyclesRemaining?: number | null

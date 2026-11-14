@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import type { PromotionAppliesTo, PromotionDto, PromotionKind, PromotionRequest } from '~/types/promotions'
+import type { PromotionAppliesTo, PromotionDiscountType, PromotionDto, PromotionKind, PromotionRequest } from '~/types/promotions'
 
 /**
  * Create/edit a campaign promotion (hub ADR 0018). Mirrors the backend rules:
  * RECOVERY only discounts monthly fees, a required code needs at least one
  * accepted owner, and the referrer reward needs member codes plus both values.
+ * The discount is a percentage or a fixed amount in a currency (hub ADR 0038).
  */
 const props = defineProps<{
   open: boolean
@@ -20,6 +21,7 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const promotionsApi = usePromotions()
 const plansApi = usePlans()
+const currenciesApi = useCurrencies()
 const toast = useToast()
 
 const isOpen = computed({
@@ -40,12 +42,24 @@ const appliesToItems = computed(() => [
 // Plans searched on the server (`q`) when the dropdown opens and while typing (the promotion's own plans stay listed).
 const planLazy = useLazyOptions(async q => (await plansApi.options({ q })).map(o => ({ label: o.label, value: o.uuid })))
 const planItems = computed(() => planLazy.items.value)
+const discountTypeItems = computed(() => [
+  { label: t('promotions.discountType.PERCENTAGE'), value: 'PERCENTAGE' },
+  { label: t('promotions.discountType.FLAT'), value: 'FLAT' },
+])
+// Currency of a fixed-amount discount, searched on the server; the saved one is always listed.
+const currencyLazy = useLazyOptions(async q => (await currenciesApi.options({
+  q,
+  currentValues: state.discountCurrencyUuid ? [state.discountCurrencyUuid] : undefined,
+})).map(o => ({ label: o.label, value: o.uuid })))
 
 const state = reactive({
   name: '',
   description: '',
   kind: 'ACQUISITION' as PromotionKind,
+  discountType: 'PERCENTAGE' as PromotionDiscountType,
   discountPct: undefined as number | undefined,
+  discountAmount: undefined as number | undefined,
+  discountCurrencyUuid: undefined as string | undefined,
   appliesTo: 'BOTH' as PromotionAppliesTo,
   cycles: undefined as number | undefined,
   coversExtraBeneficiaries: false,
@@ -74,7 +88,10 @@ watch(() => props.open, async (open) => {
     name: p?.name ?? '',
     description: p?.description ?? '',
     kind: p?.kind ?? 'ACQUISITION',
-    discountPct: p ? Number(p.discountPct) : undefined,
+    discountType: p?.discountType ?? 'PERCENTAGE',
+    discountPct: p?.discountPct != null && p.discountPct !== '' ? Number(p.discountPct) : undefined,
+    discountAmount: p?.discountAmount != null && p.discountAmount !== '' ? Number(p.discountAmount) : undefined,
+    discountCurrencyUuid: p?.discountCurrency_Uuid ?? undefined,
     appliesTo: p?.appliesTo ?? 'BOTH',
     cycles: p?.cycles ?? undefined,
     coversExtraBeneficiaries: p?.coversExtraBeneficiaries ?? false,
@@ -88,13 +105,20 @@ watch(() => props.open, async (open) => {
     planUuids: (p?.plans ?? []).map(pl => pl.uuid),
   })
   await planLazy.ensureLoaded()
+  if (state.discountCurrencyUuid) await currencyLazy.ensureLoaded()
 })
 
 const errors = computed(() => {
   if (!touched.value) return {} as Record<string, string | undefined>
   const e: Record<string, string | undefined> = {}
   if (!state.name.trim()) e.name = t('validation.required')
-  if (state.discountPct === undefined || state.discountPct <= 0 || state.discountPct > 100) e.discountPct = t('promotions.form.pctRange')
+  if (state.discountType === 'FLAT') {
+    if (state.discountAmount === undefined || state.discountAmount < 0.01) e.discountAmount = t('promotions.form.amountMin')
+    if (!state.discountCurrencyUuid) e.discountCurrency = t('validation.required')
+  }
+  else if (state.discountPct === undefined || state.discountPct <= 0 || state.discountPct > 100) {
+    e.discountPct = t('promotions.form.pctRange')
+  }
   if (state.requiresCode && !(state.acceptsPromoterCode || state.acceptsMemberCode || state.acceptsAllyCode)) {
     e.codeOwners = t('promotions.form.codeOwnerRequired')
   }
@@ -113,7 +137,10 @@ async function submit() {
     name: state.name.trim(),
     description: state.description.trim() || null,
     kind: state.kind,
-    discountPct: state.discountPct!,
+    discountType: state.discountType,
+    discountPct: state.discountType === 'PERCENTAGE' ? state.discountPct! : null,
+    discountAmount: state.discountType === 'FLAT' ? state.discountAmount! : null,
+    discountCurrencyUuid: state.discountType === 'FLAT' ? state.discountCurrencyUuid! : null,
     appliesTo: state.appliesTo,
     cycles: state.cycles ?? null,
     coversExtraBeneficiaries: state.coversExtraBeneficiaries,
@@ -178,7 +205,10 @@ function numberOrUndefined(v: string | number | null | undefined): number | unde
               class="w-full"
             />
           </UFormField>
-          <UFormField :label="t('promotions.fields.discountPct')" required :error="errors.discountPct">
+          <UFormField :label="t('promotions.fields.discountType')" class="sm:col-span-2">
+            <URadioGroup v-model="state.discountType" :items="discountTypeItems" orientation="horizontal" />
+          </UFormField>
+          <UFormField v-if="state.discountType === 'PERCENTAGE'" :label="t('promotions.fields.discountPct')" required :error="errors.discountPct">
             <UInput
               :model-value="state.discountPct"
               type="number"
@@ -190,6 +220,27 @@ function numberOrUndefined(v: string | number | null | undefined): number | unde
               @update:model-value="state.discountPct = numberOrUndefined($event)"
             />
           </UFormField>
+          <template v-else>
+            <UFormField :label="t('promotions.fields.discountAmount')" required :error="errors.discountAmount" :help="t('promotions.form.amountHelp')">
+              <UInput
+                :model-value="state.discountAmount"
+                type="number"
+                min="0.01"
+                step="0.01"
+                class="w-full"
+                @update:model-value="state.discountAmount = numberOrUndefined($event)"
+              />
+            </UFormField>
+            <UFormField :label="t('promotions.fields.discountCurrency')" required :error="errors.discountCurrency">
+              <CommonEntityReferenceSelect
+                v-model="state.discountCurrencyUuid"
+                entity="currency"
+                :placeholder="t('common.select')"
+                icon="i-lucide-coins"
+                :lazy="currencyLazy"
+              />
+            </UFormField>
+          </template>
           <UFormField :label="t('promotions.fields.cycles')" :help="t('promotions.form.cyclesHelp')">
             <UInput
               :model-value="state.cycles"

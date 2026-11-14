@@ -5743,7 +5743,10 @@
       "coversExtraBeneficiaries": "Incluye la inscripción de beneficiarios adicionales",
       "requiresCode": "Exige código",
       "referrerRewardPct": "Recompensa para quien recomienda (%)",
-      "referrerRewardCycles": "Meses de recompensa"
+      "referrerRewardCycles": "Meses de recompensa",
+      "discountType": "Tipo de descuento",
+      "discountAmount": "Monto del descuento",
+      "discountCurrency": "Moneda del descuento"
     },
     "form": {
       "createTitle": "Nueva promoción",
@@ -5756,7 +5759,9 @@
       "maxRedemptionsHelp": "Vacío = sin tope",
       "plansHelp": "Vacío = todos los planes",
       "codeOwnersHelp": "Qué códigos se aceptan en el campo \"Código\" al aplicar la promoción. El beneficio es para quien usa el código.",
-      "rewardHelp": "Opcional: beneficio aparte para el afiliado que recomendó, como descuento en su propia mensualidad, cuando el recomendado hace su primer pago."
+      "rewardHelp": "Opcional: beneficio aparte para el afiliado que recomendó, como descuento en su propia mensualidad, cuando el recomendado hace su primer pago.",
+      "amountMin": "Indica un monto mayor a 0",
+      "amountHelp": "Se convierte a la moneda del cobro con la tasa del día del pago y nunca supera el monto a pagar."
     },
     "membership": {
       "promotion": "Promoción",
@@ -5785,6 +5790,10 @@
       "cyclesLeft": "Te quedan {n} mensualidad(es) con descuento.",
       "keepOnTime": "Paga a tiempo: si un pago se atrasa, la promoción se pierde.",
       "paymentSaving": "Ahorraste {amount} · {reason}"
+    },
+    "discountType": {
+      "PERCENTAGE": "Porcentaje",
+      "FLAT": "Monto fijo"
     }
   },
   "profilePhoto": {
