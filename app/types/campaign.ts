@@ -18,6 +18,18 @@ export type CampaignScope = 'ALL' | 'INCLUDE' | 'EXCLUDE'
 /** TARGETED: audience-limited promotion. GENERAL: open to everyone matching the rule criteria. */
 export type CampaignMode = 'TARGETED' | 'GENERAL'
 
+/**
+ * Lifecycle of a campaign (hub ADR 0038). Only ACTIVE campaigns within their
+ * dates offer promotions. SOLD_OUT = every slot occupied; CLOSED = finished
+ * (by end date, by a filled quota, or manually).
+ */
+export type CampaignLifecycleStatus = 'DRAFT' | 'ACTIVE' | 'PAUSED' | 'SOLD_OUT' | 'CLOSED'
+
+/** Automatic closing conditions; a manual close is always available. Empty ⇒ only manual. */
+export type CampaignCloseCondition = 'END_DATE' | 'QUOTA_FILLED'
+
+export type CampaignClosedReason = 'END_DATE' | 'QUOTA_FILLED' | 'MANUAL'
+
 /** CampaignTransactionException.ExceptionAction. */
 export type CampaignExceptionAction = 'INCLUDE' | 'EXCLUDE'
 
@@ -29,7 +41,8 @@ export interface CampaignDto {
   name: string
   description?: string | null
   startsAt: string
-  endsAt: string
+  /** null ⇒ open-ended campaign (hub ADR 0038). */
+  endsAt?: string | null
   /** Raw enabled flag on the entity — `active` below is the resolved effective status. */
   enabled: boolean
   scope: CampaignScope
@@ -45,6 +58,26 @@ export interface CampaignDto {
   priority?: number | null
   active: boolean
   promoterUuids?: string[] | null
+  // ---- Lifecycle and shared quota (hub ADR 0038, phase 2a) ----
+  lifecycleStatus?: CampaignLifecycleStatus | null
+  lifecycleStatus_Display?: string | null
+  closeConditions?: CampaignCloseCondition[] | null
+  /** Slots shared by every promotion of the campaign; null ⇒ no limit. */
+  maxRedemptions?: number | null
+  /** Occupied slots. */
+  redemptionsCount?: number | null
+  confirmedCount?: number | null
+  /** null when there is no max. */
+  freeSlots?: number | null
+  closedAt?: string | null
+  closedAt_Display?: string | null
+  closedReason?: CampaignClosedReason | null
+  closedReason_Display?: string | null
+  closedBy_Uuid?: string | null
+  closedBy_Display?: string | null
+  /** Grace to confirm pending slots after closing: a fixed date or N days (never both). */
+  confirmGraceUntil?: string | null
+  confirmGraceDays?: number | null
   createdAt?: string
   updatedAt?: string
   /** Client-only: populated locally after fetching the audience list, not returned by the backend. */
@@ -56,7 +89,7 @@ export interface CreateCampaignRequest {
   name: string
   description?: string | null
   startsAt: string
-  endsAt: string
+  endsAt?: string | null
   enabled?: boolean | null
   scope: CampaignScope
   mode: CampaignMode
@@ -68,6 +101,13 @@ export interface CreateCampaignRequest {
   exclusivityGroup?: string | null
   priority?: number | null
   promoterUuids?: string[] | null
+  /** null ⇒ ["END_DATE"] when endsAt is set, else []. */
+  closeConditions?: CampaignCloseCondition[] | null
+  maxRedemptions?: number | null
+  confirmGraceUntil?: string | null
+  confirmGraceDays?: number | null
+  /** Create only: true ⇒ the campaign starts as DRAFT. */
+  draft?: boolean
 }
 
 export type UpdateCampaignRequest = CreateCampaignRequest
@@ -75,7 +115,20 @@ export type UpdateCampaignRequest = CreateCampaignRequest
 /** Body of POST /v1/admin/campaigns/{uuid}/relaunch — every other field is cloned from the source campaign. */
 export interface CampaignRelaunchRequest {
   startsAt: string
-  endsAt: string
+  endsAt?: string | null
+}
+
+/** Body of POST /v1/admin/campaigns/{uuid}/close. */
+export interface CampaignCloseRequest {
+  /** Release the slots still pending confirmation (effective from phase 2b). */
+  cancelPending: boolean
+  note?: string | null
+}
+
+/** Body of POST /v1/admin/campaigns/{uuid}/reopen — must enlarge the max and/or move the end date later. */
+export interface CampaignReopenRequest {
+  maxRedemptions?: number | null
+  endsAt?: string | null
 }
 
 /** Body of POST /v1/admin/campaigns/{uuid}/exceptions — exactly one of paymentUuid/membershipUuid must be set. */
@@ -163,6 +216,15 @@ export const CAMPAIGN_MODE_OPTIONS: { value: CampaignMode, labelKey: string }[] 
   { value: 'TARGETED', labelKey: 'campaigns.mode.TARGETED' },
   { value: 'GENERAL', labelKey: 'campaigns.mode.GENERAL' },
 ]
+
+/** Badge color per lifecycle status. */
+export const CAMPAIGN_LIFECYCLE_COLORS: Record<CampaignLifecycleStatus, 'neutral' | 'success' | 'warning' | 'error' | 'info'> = {
+  DRAFT: 'neutral',
+  ACTIVE: 'success',
+  PAUSED: 'warning',
+  SOLD_OUT: 'info',
+  CLOSED: 'error',
+}
 
 export const CAMPAIGN_EXCEPTION_ACTION_OPTIONS: { value: CampaignExceptionAction, labelKey: string }[] = [
   { value: 'INCLUDE', labelKey: 'campaigns.scope.INCLUDE' },

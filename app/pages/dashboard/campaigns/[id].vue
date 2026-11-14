@@ -174,6 +174,36 @@ function modeLabel(c: CampaignDto): string {
   return opt ? t(opt.labelKey) : c.mode
 }
 
+// ---- Lifecycle, closing rules and shared quota (hub ADR 0038) ----
+function endsAtLabel(c: CampaignDto, format: 'short' | 'datetime' = 'short'): string {
+  return c.endsAt ? formatDate(c.endsAt, format) : t('campaigns.openEnded')
+}
+function closeConditionsLabel(c: CampaignDto): string {
+  const conditions = c.closeConditions ?? (c.endsAt ? ['END_DATE'] : [])
+  const auto = conditions.map(cc => t(`campaigns.closeCondition.${cc}`))
+  return [...auto, t('campaigns.closeCondition.MANUAL')].join(' · ')
+}
+function graceLabel(c: CampaignDto): string {
+  if (c.confirmGraceUntil) return formatDate(c.confirmGraceUntil, 'datetime')
+  if (c.confirmGraceDays != null) return t('campaigns.form.grace.daysCount', { n: c.confirmGraceDays })
+  return t('campaigns.form.grace.none')
+}
+/** "used / max" when the campaign has a max, the bare count otherwise. */
+function quotaLabel(c: CampaignDto): string {
+  const used = c.redemptionsCount ?? 0
+  return c.maxRedemptions != null
+    ? t('campaigns.quota.usedOfMax', { used, max: c.maxRedemptions })
+    : t('campaigns.quota.usedUnlimited', { used })
+}
+const quotaPct = computed(() => {
+  const c = campaign.value
+  if (!c || c.maxRedemptions == null || c.maxRedemptions <= 0) return null
+  return Math.min(100, Math.round(((c.redemptionsCount ?? 0) / c.maxRedemptions) * 100))
+})
+function onLifecycleUpdated(updated: CampaignDto) {
+  campaign.value = updated
+}
+
 // =========================================================
 // Edit (shared CampaignFormModal)
 // =========================================================
@@ -570,10 +600,11 @@ async function confirmRemoveException() {
               <UBadge :color="campaign.active ? 'success' : 'neutral'" variant="subtle">
                 {{ campaign.active ? t('catalogs.status.active') : t('catalogs.status.inactive') }}
               </UBadge>
+              <CampaignLifecycleBadge :status="campaign.lifecycleStatus" :display="campaign.lifecycleStatus_Display" size="md" />
               <UBadge color="primary" variant="subtle">{{ scopeLabel(campaign) }}</UBadge>
               <UBadge :color="campaign.mode === 'TARGETED' ? 'primary' : 'neutral'" variant="subtle">{{ modeLabel(campaign) }}</UBadge>
             </div>
-            <p class="text-sm text-prohealth-500 mt-1">{{ formatDate(campaign.startsAt) }} — {{ formatDate(campaign.endsAt) }}</p>
+            <p class="text-sm text-prohealth-500 mt-1">{{ formatDate(campaign.startsAt) }} — {{ endsAtLabel(campaign) }}</p>
           </div>
 
           <div class="flex items-center gap-2 flex-wrap">
@@ -587,6 +618,7 @@ async function confirmRemoveException() {
                 {{ t('campaigns.detail.relaunch') }}
               </UButton>
             </UTooltip>
+            <CampaignLifecycleActions :campaign="campaign" @updated="onLifecycleUpdated" />
             <UButton v-if="canUpdate" color="info" variant="ghost" icon="i-lucide-pencil" @click="openEdit">
               {{ t('common.edit') }}
             </UButton>
@@ -606,7 +638,33 @@ async function confirmRemoveException() {
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('campaigns.detail.fields.endsAt') }}</dt>
-            <dd class="text-prohealth-800 mt-0.5">{{ formatDate(campaign.endsAt, 'datetime') }}</dd>
+            <dd class="text-prohealth-800 mt-0.5">{{ endsAtLabel(campaign, 'datetime') }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('campaigns.form.closeConditions') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ closeConditionsLabel(campaign) }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('campaigns.quota.title') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">
+              <span>{{ quotaLabel(campaign) }}</span>
+              <span v-if="campaign.freeSlots != null" class="text-xs text-prohealth-500"> · {{ t('campaigns.quota.free', { n: campaign.freeSlots }) }}</span>
+              <UProgress v-if="quotaPct !== null" :model-value="quotaPct" :max="100" size="xs" class="mt-1 max-w-48" :color="quotaPct >= 100 ? 'error' : 'primary'" />
+            </dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('campaigns.form.grace.label') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">{{ graceLabel(campaign) }}</dd>
+          </div>
+          <div v-if="campaign.closedAt">
+            <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('campaigns.detail.fields.closedAt') }}</dt>
+            <dd class="text-prohealth-800 mt-0.5">
+              {{ campaign.closedAt_Display ?? formatDate(campaign.closedAt, 'datetime') }}
+              <span v-if="campaign.closedReason" class="text-xs text-prohealth-500">
+                · {{ campaign.closedReason_Display ?? t(`campaigns.closedReason.${campaign.closedReason}`) }}
+              </span>
+              <span v-if="campaign.closedBy_Display" class="text-xs text-prohealth-500"> · {{ campaign.closedBy_Display }}</span>
+            </dd>
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-prohealth-400 font-semibold">{{ t('campaigns.detail.fields.scope') }}</dt>

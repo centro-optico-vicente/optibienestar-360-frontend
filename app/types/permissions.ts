@@ -260,6 +260,10 @@ export const PERMISSIONS = [
   'CAMPAIGN_EXCEPTION_CREATE',
   'CAMPAIGN_EXCEPTION_DELETE',
   'CAMPAIGN_REPORT_GENERATE',
+  // Campaign lifecycle (hub ADR 0038): pause/resume, manual close and reopen.
+  'CAMPAIGN_PAUSE',
+  'CAMPAIGN_CLOSE',
+  'CAMPAIGN_REOPEN',
   // Promotions inside campaigns (hub ADR 0018).
   'PROMOTION_VIEW_ALL',
   'PROMOTION_CREATE',

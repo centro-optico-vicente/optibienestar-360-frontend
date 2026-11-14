@@ -4573,7 +4573,9 @@
       "vigency": "Vigencia",
       "scope": "Alcance",
       "mode": "Modo",
-      "campaign": "Campaña"
+      "campaign": "Campaña",
+      "lifecycle": "Estado de la campaña",
+      "quota": "Cupo"
     },
     "scope": {
       "ALL": "Todos los asesores",
@@ -4609,7 +4611,27 @@
       "priorityHelp": "La mayor prioridad gana cuando varias campañas califican.",
       "active": "Activa",
       "campaign": "Campaña",
-      "campaignHelp": "Al seleccionar una campaña se autocompletan las fechas de vigencia (aún editables)."
+      "campaignHelp": "Al seleccionar una campaña se autocompletan las fechas de vigencia (aún editables).",
+      "closeConditions": "Cierre automático",
+      "manualCloseNote": "Siempre puedes cerrar la campaña a mano desde su ficha. Si no marcas ninguna condición, solo se cierra a mano.",
+      "maxRedemptions": "Cupo total de la campaña",
+      "maxRedemptionsHelp": "Lo comparten todas sus promociones. Vacío = sin tope.",
+      "maxRedemptionsRequired": "Indica el cupo: hace falta para cerrar al completarlo",
+      "endsAtRequired": "Indica la fecha de fin: la exige el cierre por fecha o el cálculo solo al final",
+      "endsAfterStart": "La fecha de fin debe ser posterior a la de inicio",
+      "endsAtOptionalHelp": "Vacío = la campaña no tiene fecha de fin",
+      "saveDraft": "Guardar como borrador",
+      "draftSavedToast": "Campaña guardada como borrador",
+      "grace": {
+        "label": "Plazo para confirmar tras el cierre",
+        "help": "Tiempo que tienen los cupos pendientes para confirmarse después de cerrar la campaña.",
+        "none": "Sin plazo extra",
+        "date": "Hasta una fecha",
+        "days": "Unos días",
+        "untilLabel": "Confirmar hasta",
+        "daysLabel": "Días tras el cierre",
+        "daysCount": "{n} día(s) tras el cierre"
+      }
     },
     "detail": {
       "generalData": "Datos generales",
@@ -4657,7 +4679,8 @@
         "active": "Activa",
         "createdAt": "Creada",
         "updatedAt": "Actualizada",
-        "uuid": "UUID"
+        "uuid": "UUID",
+        "closedAt": "Cerrada el"
       },
       "audiencePlaceholder": "Buscar asesor por nombre...",
       "audienceRemoveConfirm": "¿Quitar a este asesor de la audiencia de la campaña?",
@@ -4712,6 +4735,57 @@
       "mode": "Modalidad",
       "dateFrom": "Vigente desde",
       "dateTo": "Vigente hasta"
+    },
+    "openEnded": "Sin fecha de fin",
+    "lifecycle": {
+      "DRAFT": "Borrador",
+      "ACTIVE": "Activa",
+      "PAUSED": "Pausada",
+      "SOLD_OUT": "Agotada",
+      "CLOSED": "Cerrada"
+    },
+    "closeCondition": {
+      "END_DATE": "Al llegar la fecha de fin",
+      "QUOTA_FILLED": "Al completar el cupo",
+      "MANUAL": "Cierre manual"
+    },
+    "closedReason": {
+      "END_DATE": "Llegó la fecha de fin",
+      "QUOTA_FILLED": "Se completó el cupo",
+      "MANUAL": "Cierre manual"
+    },
+    "quota": {
+      "title": "Cupo",
+      "usedOfMax": "{used} / {max} ocupados",
+      "usedUnlimited": "{used} ocupados (sin tope)",
+      "free": "{n} libres",
+      "unlimited": "Sin tope"
+    },
+    "lifecycleActions": {
+      "activate": "Activar",
+      "pause": "Pausar",
+      "resume": "Reanudar",
+      "close": "Cerrar campaña",
+      "reopen": "Reabrir",
+      "activateToast": "Campaña activada",
+      "pauseToast": "Campaña pausada",
+      "resumeToast": "Campaña reanudada",
+      "closeToast": "Campaña cerrada",
+      "reopenToast": "Campaña reabierta",
+      "closeTitle": "Cerrar campaña",
+      "closeNotice": "La campaña {name} dejará de ofrecer sus promociones. Las membresías que ya las tienen las conservan.",
+      "cancelPending": "Liberar los cupos pendientes por confirmar",
+      "cancelPendingHelp": "Si no lo marcas, los pendientes todavía pueden confirmarse dentro del plazo configurado.",
+      "note": "Nota",
+      "reopenTitle": "Reabrir campaña",
+      "reopenNotice": "Para reabrirla, amplía el cupo, mueve la fecha de fin a una posterior, o ambas cosas.",
+      "newMax": "Nuevo cupo",
+      "newEndsAt": "Nueva fecha de fin",
+      "currentMax": "Cupo actual: {n}",
+      "currentEndsAt": "Fin actual: {date}",
+      "reopenMaxInvalid": "El nuevo cupo debe ser mayor que el actual",
+      "reopenEndsAtInvalid": "La nueva fecha de fin debe ser posterior a hoy y a la actual",
+      "reopenNothingEnlarged": "Amplía el cupo o la fecha de fin para poder reabrir"
     }
   },
   "commissionRules": {
@@ -5747,7 +5821,8 @@
       "referrerRewardCycles": "Meses de recompensa",
       "discountType": "Tipo de descuento",
       "discountAmount": "Monto del descuento",
-      "discountCurrency": "Moneda del descuento"
+      "discountCurrency": "Moneda del descuento",
+      "ownQuota": "Cupo propio"
     },
     "form": {
       "createTitle": "Nueva promoción",
@@ -5757,12 +5832,15 @@
       "codeOwnerRequired": "Elige qué códigos acepta la promoción",
       "rewardIncomplete": "Indica el porcentaje y los meses de la recompensa",
       "cyclesHelp": "Vacío = mientras dure la campaña",
-      "maxRedemptionsHelp": "Vacío = sin tope",
+      "maxRedemptionsHelp": "Nunca supera el cupo de la campaña.",
       "plansHelp": "Vacío = todos los planes",
       "codeOwnersHelp": "Qué códigos se aceptan en el campo \"Código\" al aplicar la promoción. El beneficio es para quien usa el código.",
       "rewardHelp": "Opcional: beneficio aparte para el afiliado que recomendó, como descuento en su propia mensualidad, cuando el recomendado hace su primer pago.",
       "amountMin": "Indica un monto mayor a 0",
-      "amountHelp": "Se convierte a la moneda del cobro con la tasa del día del pago y nunca supera el monto a pagar."
+      "amountHelp": "Se convierte a la moneda del cobro con la tasa del día del pago y nunca supera el monto a pagar.",
+      "ownQuotaCheck": "Esta promoción tiene su propio cupo",
+      "ownQuotaHelp": "Sin cupo propio, consume solo el cupo de la campaña.",
+      "ownQuotaRequired": "Indica el cupo propio (un número entero mayor a 0)"
     },
     "membership": {
       "promotion": "Promoción",
@@ -5795,7 +5873,8 @@
     "discountType": {
       "PERCENTAGE": "Porcentaje",
       "FLAT": "Monto fijo"
-    }
+    },
+    "campaignQuotaOnly": "Usa el cupo de la campaña"
   },
   "profilePhoto": {
     "title": "Foto de perfil",

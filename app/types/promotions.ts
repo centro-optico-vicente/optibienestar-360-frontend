@@ -34,8 +34,11 @@ export interface PromotionDto extends PromotionDiscountFields {
   appliesTo_Display?: string | null
   cycles?: number | null
   coversExtraBeneficiaries: boolean
+  /** true ⇒ `maxRedemptions` is this promotion's own limit (still within the campaign's). */
+  ownQuota?: boolean | null
   maxRedemptions?: number | null
   redemptionsCount: number
+  confirmedCount?: number | null
   requiresCode: boolean
   acceptsPromoterCode: boolean
   acceptsMemberCode: boolean
@@ -62,6 +65,8 @@ export interface PromotionRequest {
   appliesTo: PromotionAppliesTo
   cycles?: number | null
   coversExtraBeneficiaries: boolean
+  /** false ⇒ consumes only the campaign quota; `maxRedemptions` must be null. */
+  ownQuota: boolean
   maxRedemptions?: number | null
   requiresCode: boolean
   acceptsPromoterCode: boolean

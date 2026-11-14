@@ -241,7 +241,7 @@ watch(() => state.campaignUuid, async (uuid) => {
   try {
     const campaign = await campaignsApi.get(uuid)
     state.startsAt = isoToDatetimeLocal(campaign.startsAt)
-    state.endsAt = isoToDatetimeLocal(campaign.endsAt)
+    state.endsAt = isoToDatetimeLocal(campaign.endsAt ?? '')
   }
   catch { /* useApi already notified */ }
 })

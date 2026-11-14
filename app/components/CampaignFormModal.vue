@@ -2,6 +2,7 @@
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type {
+  CampaignCloseCondition,
   CampaignDto,
   CampaignMode,
   CampaignScope,
@@ -104,6 +105,15 @@ interface FormState {
   targetCount: string
   exclusivityGroup: string
   priority: string
+  // ---- Closing rules and shared quota (hub ADR 0038) ----
+  closeOnEndDate: boolean
+  closeOnQuotaFilled: boolean
+  /** Slots shared by every promotion; empty ⇒ no limit. */
+  maxRedemptions: string
+  /** Grace to confirm pending slots after closing: none, a fixed date, or N days. */
+  graceMode: 'none' | 'date' | 'days'
+  confirmGraceUntil: string
+  confirmGraceDays: string
 }
 
 function isoToDatetimeLocal(iso: string): string {
@@ -132,7 +142,22 @@ const state = reactive<FormState>({
   targetCount: '',
   exclusivityGroup: '',
   priority: '',
+  closeOnEndDate: true,
+  closeOnQuotaFilled: false,
+  maxRedemptions: '',
+  graceMode: 'none',
+  confirmGraceUntil: '',
+  confirmGraceDays: '',
 })
+/** Create only: the "save as draft" button sends `draft: true` (the campaign starts as DRAFT). */
+const saveAsDraft = ref(false)
+const graceModeItems = computed(() => [
+  { label: t('campaigns.form.grace.none'), value: 'none' },
+  { label: t('campaigns.form.grace.date'), value: 'date' },
+  { label: t('campaigns.form.grace.days'), value: 'days' },
+])
+/** The end date is needed by the END_DATE condition and by the "only at the end" commission switches. */
+const endsAtRequired = computed(() => state.closeOnEndDate || state.evaluateOnlyAtEnd || state.payOnlyAtEnd)
 /** Maps to CampaignRequest.enabled — the campaign's active/inactive editable flag on the entity.
  * NOT the same as CampaignDto.active (soft-delete status, only ever flipped by DELETE). */
 const enabled = ref(true)
@@ -141,7 +166,16 @@ const schema = computed(() => z.object({
   name: z.string().min(3, t('validation.minChars', { n: 3 })).max(120, t('validation.maxChars', { n: 120 })),
   description: z.string().max(500, t('validation.maxChars', { n: 500 })).optional().or(z.literal('')),
   startsAt: z.string().min(1, t('validation.required')),
-  endsAt: z.string().min(1, t('validation.required')),
+  endsAt: endsAtRequired.value
+    ? z.string().min(1, t('campaigns.form.endsAtRequired')).refine(v => !state.startsAt || v > state.startsAt, t('campaigns.form.endsAfterStart'))
+    : z.string().refine(v => !v || !state.startsAt || v > state.startsAt, t('campaigns.form.endsAfterStart')),
+  maxRedemptions: state.closeOnQuotaFilled
+    ? z.string().regex(/^[1-9]\d*$/, t('campaigns.form.maxRedemptionsRequired'))
+    : z.string().regex(/^([1-9]\d*)?$/, t('commissionRules.form.integersOnly')),
+  confirmGraceUntil: state.graceMode === 'date' ? z.string().min(1, t('validation.required')) : z.string().optional(),
+  confirmGraceDays: state.graceMode === 'days'
+    ? z.string().regex(/^[1-9]\d*$/, t('commissionRules.form.integersOnly'))
+    : z.string().optional(),
   scope: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
   mode: z.string({ message: t('validation.required') }).min(1, t('validation.required')),
   targetAmount: z.string().optional().or(z.literal('')),
@@ -165,6 +199,12 @@ function resetForm() {
   state.targetCount = ''
   state.exclusivityGroup = ''
   state.priority = ''
+  state.closeOnEndDate = true
+  state.closeOnQuotaFilled = false
+  state.maxRedemptions = ''
+  state.graceMode = 'none'
+  state.confirmGraceUntil = ''
+  state.confirmGraceDays = ''
   enabled.value = true
 }
 
@@ -176,7 +216,7 @@ function populateFrom(campaign: CampaignDto | null, blankDates: boolean) {
   state.name = campaign.name
   state.description = campaign.description ?? ''
   state.startsAt = blankDates ? '' : isoToDatetimeLocal(campaign.startsAt)
-  state.endsAt = blankDates ? '' : isoToDatetimeLocal(campaign.endsAt)
+  state.endsAt = blankDates ? '' : isoToDatetimeLocal(campaign.endsAt ?? '')
   state.scope = campaign.scope
   state.mode = campaign.mode
   state.evaluateOnlyAtEnd = campaign.evaluateOnlyAtEnd
@@ -186,6 +226,14 @@ function populateFrom(campaign: CampaignDto | null, blankDates: boolean) {
   state.targetCount = campaign.targetCount != null ? String(campaign.targetCount) : ''
   state.exclusivityGroup = campaign.exclusivityGroup ?? ''
   state.priority = campaign.priority != null ? String(campaign.priority) : ''
+  // Rows saved before the closing rules existed: they closed on their end date.
+  const conditions: CampaignCloseCondition[] = campaign.closeConditions ?? (campaign.endsAt ? ['END_DATE'] : [])
+  state.closeOnEndDate = conditions.includes('END_DATE')
+  state.closeOnQuotaFilled = conditions.includes('QUOTA_FILLED')
+  state.maxRedemptions = campaign.maxRedemptions != null ? String(campaign.maxRedemptions) : ''
+  state.graceMode = campaign.confirmGraceUntil ? 'date' : (campaign.confirmGraceDays != null ? 'days' : 'none')
+  state.confirmGraceUntil = campaign.confirmGraceUntil ? isoToDatetimeLocal(campaign.confirmGraceUntil) : ''
+  state.confirmGraceDays = campaign.confirmGraceDays != null ? String(campaign.confirmGraceDays) : ''
   enabled.value = campaign.enabled ?? true
 }
 
@@ -215,14 +263,23 @@ watch(() => props.open, (open) => {
   if (state.targetAmountCurrencyUuid) onCurrenciesOpen(true)
 })
 
+function submitForm(draft: boolean) {
+  saveAsDraft.value = draft
+  formRef.value?.submit()
+}
+
 async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
   isSubmitting.value = true
   try {
+    const closeConditions: CampaignCloseCondition[] = [
+      ...(state.closeOnEndDate ? ['END_DATE' as const] : []),
+      ...(state.closeOnQuotaFilled ? ['QUOTA_FILLED' as const] : []),
+    ]
     const base = {
       name: state.name.trim(),
       description: state.description.trim() || null,
       startsAt: datetimeLocalToIso(state.startsAt)!,
-      endsAt: datetimeLocalToIso(state.endsAt)!,
+      endsAt: datetimeLocalToIso(state.endsAt) ?? null,
       scope: state.scope!,
       mode: state.mode!,
       evaluateOnlyAtEnd: state.evaluateOnlyAtEnd,
@@ -232,6 +289,10 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
       targetCount: state.targetCount.trim() ? Number(state.targetCount) : null,
       exclusivityGroup: state.exclusivityGroup.trim() || null,
       priority: state.priority.trim() ? Number(state.priority) : null,
+      closeConditions,
+      maxRedemptions: state.maxRedemptions.trim() ? Number(state.maxRedemptions) : null,
+      confirmGraceUntil: state.graceMode === 'date' ? (datetimeLocalToIso(state.confirmGraceUntil) ?? null) : null,
+      confirmGraceDays: state.graceMode === 'days' && state.confirmGraceDays.trim() ? Number(state.confirmGraceDays) : null,
     }
     let result: CampaignDto
     if (props.relaunchOf) {
@@ -244,8 +305,8 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
       toast.add({ title: t('campaigns.detail.relaunchToast'), color: 'success', icon: 'i-lucide-check-circle' })
     }
     else if (mode.value === 'create') {
-      result = await campaigns.create({ ...base, enabled: enabled.value } as CreateCampaignRequest)
-      toast.add({ title: t('campaigns.createdToast'), color: 'success', icon: 'i-lucide-check-circle' })
+      result = await campaigns.create({ ...base, enabled: enabled.value, draft: saveAsDraft.value } as CreateCampaignRequest)
+      toast.add({ title: saveAsDraft.value ? t('campaigns.form.draftSavedToast') : t('campaigns.createdToast'), color: 'success', icon: 'i-lucide-check-circle' })
     }
     else {
       // CampaignRequest is a full replace (PUT) — `active` isn't a request field
@@ -286,9 +347,38 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
           <UFormField :label="t('campaigns.form.startsAt')" name="startsAt" required>
             <UInput v-model="state.startsAt" type="datetime-local" class="w-full" />
           </UFormField>
-          <UFormField :label="t('campaigns.form.endsAt')" name="endsAt" required>
+          <UFormField :label="t('campaigns.form.endsAt')" name="endsAt" :required="endsAtRequired" :help="endsAtRequired ? undefined : t('campaigns.form.endsAtOptionalHelp')">
             <UInput v-model="state.endsAt" type="datetime-local" class="w-full" />
           </UFormField>
+        </div>
+
+        <!-- Closing rules and shared quota (hub ADR 0038) -->
+        <div class="rounded-xl border border-prohealth-100 p-4 space-y-3">
+          <p class="text-sm font-semibold text-prohealth-900">{{ t('campaigns.form.closeConditions') }}</p>
+          <div class="flex flex-wrap gap-4">
+            <UCheckbox v-model="state.closeOnEndDate" :label="t('campaigns.closeCondition.END_DATE')" />
+            <UCheckbox v-model="state.closeOnQuotaFilled" :label="t('campaigns.closeCondition.QUOTA_FILLED')" />
+          </div>
+          <p class="text-xs text-prohealth-500">{{ t('campaigns.form.manualCloseNote') }}</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <UFormField
+              :label="t('campaigns.form.maxRedemptions')"
+              name="maxRedemptions"
+              :required="state.closeOnQuotaFilled"
+              :help="t('campaigns.form.maxRedemptionsHelp')"
+            >
+              <UInput v-model="state.maxRedemptions" inputmode="numeric" class="w-full" />
+            </UFormField>
+            <UFormField :label="t('campaigns.form.grace.label')" :help="t('campaigns.form.grace.help')">
+              <USelectMenu v-model="state.graceMode" :items="graceModeItems" label-key="label" value-key="value" class="w-full" />
+            </UFormField>
+            <UFormField v-if="state.graceMode === 'date'" :label="t('campaigns.form.grace.untilLabel')" name="confirmGraceUntil" required>
+              <UInput v-model="state.confirmGraceUntil" type="datetime-local" class="w-full" />
+            </UFormField>
+            <UFormField v-if="state.graceMode === 'days'" :label="t('campaigns.form.grace.daysLabel')" name="confirmGraceDays" required>
+              <UInput v-model="state.confirmGraceDays" inputmode="numeric" class="w-full" />
+            </UFormField>
+          </div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -368,7 +458,18 @@ async function onSubmit(_e: FormSubmitEvent<Record<string, unknown>>) {
           <div class="flex items-center gap-3">
             <RefreshButton v-if="mode === 'edit'" :icon-only="false" :label="t('common.refresh')" :title="t('common.refresh')" :loading="reloading" :disabled="isSubmitting" @refresh="reloadForm" />
             <UButton color="neutral" variant="ghost" :disabled="isSubmitting" @click="isOpen = false">{{ t('common.cancel') }}</UButton>
-            <UButton :color="mode === 'create' ? 'primary' : 'info'" variant="outline" :loading="isSubmitting" icon="i-lucide-save" @click="formRef?.submit()">
+            <UButton
+              v-if="mode === 'create' && !relaunchOf"
+              color="neutral"
+              variant="outline"
+              :loading="isSubmitting && saveAsDraft"
+              :disabled="isSubmitting"
+              icon="i-lucide-file-pen-line"
+              @click="submitForm(true)"
+            >
+              {{ t('campaigns.form.saveDraft') }}
+            </UButton>
+            <UButton :color="mode === 'create' ? 'primary' : 'info'" variant="outline" :loading="isSubmitting && !saveAsDraft" :disabled="isSubmitting" icon="i-lucide-save" @click="submitForm(false)">
               {{ mode === 'create' ? t('common.saveNew') : t('common.saveChanges') }}
             </UButton>
           </div>
