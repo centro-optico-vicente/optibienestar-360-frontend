@@ -120,6 +120,10 @@ async function confirm() {
             <span class="text-prohealth-500">{{ t('payments.detail.fields.plan') }}</span>
             <span class="text-prohealth-800 font-mono">{{ payment.plan_Code }}</span>
           </div>
+          <!-- Campaign slot this payment confirms (hub ADR 0038 point 9) -->
+          <div v-if="payment.promotionSlot" class="pt-1">
+            <PaymentSlotBadge :promotion-slot="payment.promotionSlot" />
+          </div>
         </div>
 
         <p class="text-sm text-prohealth-700">

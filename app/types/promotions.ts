@@ -2,6 +2,7 @@
 // to a membership at enrollment or later. A discount is a percentage or a
 // fixed amount in a currency (hub ADR 0038, phase 1).
 import type { DisplayRefItem } from '~/types/options'
+import type { CampaignQuotaTrigger } from '~/types/campaign'
 
 export type PromotionKind = 'ACQUISITION' | 'RECOVERY'
 export type PromotionAppliesTo = 'INSCRIPTION' | 'MONTHLY' | 'BOTH'
@@ -181,6 +182,11 @@ export interface MembershipPromotionDto extends PromotionDiscountFields {
   /** Last day the confirmed promotion can be used; null ⇒ no limit. */
   usageEndsAt?: string | null
   usageEndsAt_Display?: string | null
+  /** What confirms the slot (the campaign's quota trigger, hub ADR 0038 point 9). */
+  quotaTrigger?: CampaignQuotaTrigger | null
+  quotaTrigger_Display?: string | null
+  /** A payment in review was registered before the deadline: the slot does not expire until it is reviewed. */
+  deadlineFrozen?: boolean | null
 }
 
 /** 1:1 sub-resource of a membership — always 200 with `exists`. */

@@ -100,12 +100,23 @@ function promotionSummary(p: MembershipPromotionDto): string {
   return `${p.promotion_Display ?? ''} · ${pct}${left}`
 }
 
-/** Slot state of the promotion (hub ADR 0038): pending until confirmed (with its deadline), then usable until usageEndsAt. */
+/**
+ * Slot state of the promotion (hub ADR 0038): pending until confirmed (with what confirms it and its
+ * deadline, or "frozen" while a payment registered in time is in review — point 9), then usable until usageEndsAt.
+ */
 function redemptionSummary(p: MembershipPromotionDto): string | null {
   if (!p.redemptionStatus) return null
   const status = p.redemptionStatus_Display ?? t(`promotions.redemptionStatus.${p.redemptionStatus}`)
-  if (p.redemptionStatus === 'PENDING' && p.redemptionExpiresAt) {
-    return `${status} · ${t('promotions.membership.confirmBy', { date: p.redemptionExpiresAt_Display ?? formatDate(p.redemptionExpiresAt) })}`
+  if (p.redemptionStatus === 'PENDING') {
+    const parts = [status]
+    if (p.quotaTrigger) {
+      parts.push(t('promotions.membership.confirmsWhen', { trigger: p.quotaTrigger_Display ?? t(`campaigns.quotaTrigger.${p.quotaTrigger}`) }))
+    }
+    if (p.deadlineFrozen) parts.push(t('promotions.membership.frozen'))
+    else if (p.redemptionExpiresAt) {
+      parts.push(t('promotions.membership.confirmBy', { date: p.redemptionExpiresAt_Display ?? formatDate(p.redemptionExpiresAt) }))
+    }
+    return parts.join(' · ')
   }
   if (p.redemptionStatus === 'CONFIRMED' && p.usageEndsAt) {
     return `${status} · ${t('promotions.membership.usableUntil', { date: p.usageEndsAt_Display ?? formatDate(p.usageEndsAt) })}`

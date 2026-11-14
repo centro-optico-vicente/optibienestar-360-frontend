@@ -8,9 +8,14 @@ import type {
   CampaignEffectivenessDto,
   CampaignExceptionDto,
   CampaignExceptionRequest,
+  CampaignPaymentsDto,
   CampaignQuotaDto,
   CampaignRelaunchRequest,
+  CampaignRemindPendingResultDto,
   CampaignReopenRequest,
+  CampaignSlotDto,
+  CampaignSlotIssueDto,
+  CampaignSlotStatus,
   CampaignTransactionLinkDto,
   CreateCampaignRequest,
   UpdateCampaignRequest,
@@ -114,6 +119,48 @@ export const useCampaigns = () => {
   const getEffectiveness = (uuid: string) =>
     useApi<CampaignEffectivenessDto>(`/v1/admin/campaigns/${uuid}/effectiveness`)
 
+  // ---- Slot reconciliation with payments (hub ADR 0038 point 9) ----
+  /** Slots of the campaign, filterable by status (CAMPAIGN_VIEW_ALL). */
+  const slots = (uuid: string, params: { status?: CampaignSlotStatus | null, page?: number, size?: number } = {}) =>
+    useApi<Page<CampaignSlotDto>>(`/v1/admin/campaigns/${uuid}/slots`, {
+      query: {
+        page: params.page ?? 0,
+        size: params.size ?? 25,
+        ...(params.status ? { status: params.status } : {}),
+      },
+    })
+
+  /** PENDING → CONFIRMED by hand, with a required note (PROMOTION_SLOT_CONFIRM). 422 when not PENDING. */
+  const confirmSlot = (uuid: string, slotUuid: string, note: string) =>
+    useApi<CampaignSlotDto>(`/v1/admin/campaigns/${uuid}/slots/${slotUuid}/confirm`, { method: 'POST', body: { note } })
+
+  /** Frees a PENDING slot, or a CONFIRMED one not used yet, with a required note (PROMOTION_SLOT_RELEASE). */
+  const releaseSlot = (uuid: string, slotUuid: string, note: string) =>
+    useApi<CampaignSlotDto>(`/v1/admin/campaigns/${uuid}/slots/${slotUuid}/release`, { method: 'POST', body: { note } })
+
+  /** Inconsistencies between slots and payments (CAMPAIGN_VIEW_ALL). */
+  const slotIssues = (uuid: string) =>
+    useApi<CampaignSlotIssueDto[]>(`/v1/admin/campaigns/${uuid}/slot-issues`)
+
+  /** "Pagos" section: totals + one row per slot (CAMPAIGN_PAYMENT_VIEW). */
+  const payments = (uuid: string, params: { slotStatus?: CampaignSlotStatus | null, paymentStatus?: string | null, page?: number, size?: number } = {}) =>
+    useApi<CampaignPaymentsDto>(`/v1/admin/campaigns/${uuid}/payments`, {
+      query: {
+        page: params.page ?? 0,
+        size: params.size ?? 25,
+        ...(params.slotStatus ? { slotStatus: params.slotStatus } : {}),
+        ...(params.paymentStatus ? { paymentStatus: params.paymentStatus } : {}),
+      },
+    })
+
+  /** Emails the advisor and the payment approvers (CAMPAIGN_PAYMENT_REMIND). 422 when reminded less than 1 h ago. */
+  const remindPayment = (uuid: string, paymentUuid: string, note?: string | null) =>
+    useApi<null>(`/v1/admin/campaigns/${uuid}/payments/${paymentUuid}/remind`, { method: 'POST', body: { note: note || null } })
+
+  /** Reminds every PENDING slot with a payment in review; skips those reminded less than 1 h ago. */
+  const remindPending = (uuid: string, note?: string | null) =>
+    useApi<CampaignRemindPendingResultDto>(`/v1/admin/campaigns/${uuid}/payments/remind-pending`, { method: 'POST', body: { note: note || null } })
+
   // ---- Audience (scope INCLUDE/EXCLUDE) ----
   const audience = (uuid: string, params: { page?: number, size?: number } = {}) =>
     useApi<Page<CampaignAudienceDto>>(`/v1/admin/campaigns/${uuid}/audience`, {
@@ -160,6 +207,13 @@ export const useCampaigns = () => {
     reopen,
     quota,
     allyBenefits,
+    slots,
+    confirmSlot,
+    releaseSlot,
+    slotIssues,
+    payments,
+    remindPayment,
+    remindPending,
     getEffectiveness,
     audience,
     addAudienceMember,

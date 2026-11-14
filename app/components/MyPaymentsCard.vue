@@ -105,9 +105,12 @@ function allocationLabel(p: PaymentDto): string {
             {{ methodLabel(p.paymentMethod) }} · {{ formatDate(p.paymentDate, 'datetime') }} · {{ allocationLabel(p) }}
           </p>
         </div>
-        <UBadge :color="paymentStatusColor(p.status)" variant="subtle" size="sm">
-          {{ statusLabel(p.status) }}
-        </UBadge>
+        <div class="flex flex-col items-end gap-1">
+          <UBadge :color="paymentStatusColor(p.status)" variant="subtle" size="sm">
+            {{ statusLabel(p.status) }}
+          </UBadge>
+          <PaymentSlotBadge :promotion-slot="p.promotionSlot" member size="xs" />
+        </div>
       </li>
     </ul>
 

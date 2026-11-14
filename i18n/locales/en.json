@@ -2985,6 +2985,12 @@
       "currency": "Currency",
       "dateFrom": "Date from",
       "dateTo": "Date to"
+    },
+    "slot": {
+      "confirmsOnApproval": "Approving this payment confirms the slot of {promotion}",
+      "confirmsOnApprovalMember": "Your slot of {promotion} is confirmed when this payment is approved",
+      "frozen": "frozen",
+      "until": "until {date}"
     }
   },
   "members": {
@@ -3627,6 +3633,14 @@
       "title": "Campaign benefits available",
       "remaining": "{n} of {total} available",
       "expires": "expires on {date}"
+    },
+    "pendingBenefits": {
+      "title": "Benefits pending confirmation",
+      "hint": "The member's slot is not confirmed yet: they cannot be redeemed.",
+      "badge": "Pending confirmation",
+      "quantity": "{n} unit(s)",
+      "frozen": "payment in review",
+      "confirmBy": "confirmed by {date}"
     }
   },
   "promoters": {
@@ -4700,7 +4714,9 @@
         "transactions": "Transactions",
         "exceptions": "Exceptions",
         "promotions": "Promotions",
-        "allyBenefits": "Ally benefits"
+        "allyBenefits": "Ally benefits",
+        "slots": "Slots",
+        "payments": "Payments"
       },
       "seoPage": "Campaign detail",
       "notFoundTitle": "Campaign not found",
@@ -4865,6 +4881,92 @@
       "expired": "Expired",
       "canceled": "Canceled",
       "empty": "This campaign has not granted ally benefits yet."
+    },
+    "slots": {
+      "title": "Campaign slots",
+      "hint": "Each slot with its status and deadline. A payment in review registered on time freezes the deadline until it is reviewed.",
+      "allStatuses": "All statuses",
+      "columns": {
+        "member": "Member",
+        "promotion": "Promotion",
+        "status": "Status",
+        "deadline": "Deadline",
+        "payment": "Confirming payment",
+        "note": "Manual note"
+      },
+      "empty": "No slots match this filter.",
+      "advisor": "Advisor",
+      "frozen": "Deadline frozen: payment in review",
+      "frozenShort": "Frozen (payment in review)",
+      "confirmsWhen": "Confirmed: {trigger}",
+      "noDeadline": "No deadline",
+      "confirmedOn": "Confirmed on {date}",
+      "reservedOn": "Reserved on {date}",
+      "confirm": "Confirm slot",
+      "release": "Release slot",
+      "confirmTitle": "Confirm slot manually",
+      "releaseTitle": "Release slot",
+      "confirmNotice": "The slot becomes confirmed without waiting for the payment. It is recorded in the audit log with your note.",
+      "releaseNotice": "The slot becomes free and the promotion is removed from the membership. Only possible if no discount was applied and no voucher was redeemed.",
+      "note": "Note",
+      "notePlaceholder": "Why this change is made",
+      "noteRequired": "Write a note",
+      "confirmedToast": "Slot confirmed",
+      "releasedToast": "Slot released"
+    },
+    "payments": {
+      "title": "Campaign payments",
+      "hint": "Which payments confirmed their slot and which did not. Reminders go to the advisor and to the payment approvers.",
+      "remindAll": "Remind all pending",
+      "totals": {
+        "confirmed": "Confirmed",
+        "pendingInReview": "Pending with payment in review",
+        "pendingWithoutPayment": "Pending without payment",
+        "expired": "Expired"
+      },
+      "filters": {
+        "slotStatus": "Slot status",
+        "paymentStatus": "Payment status"
+      },
+      "columns": {
+        "member": "Member",
+        "payment": "Payment",
+        "amount": "Amount",
+        "paymentStatus": "Payment status",
+        "slot": "Slot",
+        "deadline": "Deadline",
+        "lastReminded": "Last reminder"
+      },
+      "empty": "No slots match this filter.",
+      "noPayment": "No payment",
+      "confirmsOnApproval": "Approving it confirms the slot",
+      "remind": "Remind",
+      "remindTitle": "Remind this payment",
+      "remindAllTitle": "Remind pending payments",
+      "remindNotice": "An email goes to the advisor and to the payment approvers: this payment confirms the campaign slot. Only one reminder per payment per hour.",
+      "remindAllNotice": "A reminder is sent for each pending slot with a payment in review ({n}). Those reminded in the last hour are skipped.",
+      "remindNote": "Note",
+      "remindNoteHelp": "Optional. Added to the email.",
+      "send": "Send",
+      "remindedToast": "Reminder sent",
+      "remindedAllToast": "Reminders sent: {sent} · skipped: {skipped}"
+    },
+    "slotIssues": {
+      "title": "Inconsistencies",
+      "hint": "Slots and payments that do not match. The hourly reconciliation fixes most of them; what remains here needs a review.",
+      "columns": {
+        "type": "Type",
+        "member": "Member",
+        "promotion": "Promotion",
+        "payment": "Payment",
+        "since": "Since"
+      },
+      "none": "No inconsistencies.",
+      "type": {
+        "APPROVED_DISCOUNT_WITHOUT_SLOT": "Approved payment with discount and no confirmed slot",
+        "PENDING_WITH_APPROVED_PAYMENT": "Pending slot with an approved payment",
+        "FROZEN_TOO_LONG": "Slot frozen for more than 7 days"
+      }
     }
   },
   "commissionRules": {
@@ -5957,7 +6059,9 @@
       "usableUntil": "valid until {date}",
       "allyBenefits": "Ally benefits",
       "allyBenefitsHelp": "Optional. You can pick several, besides the discount promotion.",
-      "noAllyBenefits": "No ally benefits"
+      "noAllyBenefits": "No ally benefits",
+      "confirmsWhen": "confirmed: {trigger}",
+      "frozen": "deadline frozen: payment in review"
     },
     "portal": {
       "title": "Your promotion: {name}",
@@ -5967,7 +6071,9 @@
       "paymentSaving": "You saved {amount} · {reason}",
       "pending": "Your slot is reserved: your payment confirms it.",
       "pendingUntil": "Your slot is reserved until {date}: your payment confirms it.",
-      "usableUntil": "You can use it until {date}."
+      "usableUntil": "You can use it until {date}.",
+      "pendingFrozen": "Your slot is reserved: your payment is in review and the deadline is on hold until it is reviewed.",
+      "confirmsWhen": "Confirmed: {trigger}"
     },
     "discountType": {
       "PERCENTAGE": "Percentage",
@@ -6004,8 +6110,12 @@
         "AVAILABLE": "Available",
         "REDEEMED": "Redeemed",
         "EXPIRED": "Expired",
-        "CANCELED": "Canceled"
-      }
+        "CANCELED": "Canceled",
+        "PENDING_CONFIRMATION": "To be confirmed"
+      },
+      "pendingTitle": "To be confirmed",
+      "pendingHint": "These benefits become active once your slot is confirmed. They cannot be redeemed yet.",
+      "confirmBy": "To be confirmed by {date}"
     }
   },
   "profilePhoto": {

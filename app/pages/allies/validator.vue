@@ -4,7 +4,7 @@ import type { BenefitUsageDto } from '~/types/benefits'
 import type { ValidationResultDto } from '~/types/validator'
 import { canOperateAtCounter } from '~/types/allies'
 import { isValidationActionable, validationStatusColor, validationStatusIcon } from '~/types/validator'
-import type { BenefitGrantDto } from '~/types/benefitGrants'
+import type { BenefitGrantDto, PendingBenefitDto } from '~/types/benefitGrants'
 import { allyBenefitValueText } from '~/utils/promotionDiscount'
 
 // Realtime validator — the counter screen. Type the affiliate's document, get the
@@ -182,7 +182,7 @@ const canRegisterUsage = computed(() =>
   && can('ALLY_REGISTER_USAGE'))
 
 // ---- Campaign vouchers of this ally for the member (hub ADR 0038) ----
-function grantLabel(g: BenefitGrantDto): string {
+function grantLabel(g: BenefitGrantDto | PendingBenefitDto): string {
   return [g.allyProduct_Display, allyBenefitValueText(g, formatCurrency, t('promotions.benefitType.FREE'))].filter(Boolean).join(' · ')
 }
 
@@ -379,6 +379,25 @@ function onRegistered(usage: BenefitUsageDto) {
               <span v-if="g.campaign_Display" class="text-xs text-prohealth-500">{{ g.campaign_Display }}</span>
               <span v-if="g.beneficiary_Display" class="text-xs text-prohealth-500">· {{ g.beneficiary_Display }}</span>
               <span v-if="g.expiresAt" class="text-xs text-prohealth-500">· {{ t('validator.grants.expires', { date: g.expiresAt_Display ?? formatDate(g.expiresAt) }) }}</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Ally benefits whose campaign slot is not confirmed yet (hub ADR 0038 point 9): information only, no redeem -->
+        <div v-if="result.pendingBenefits?.length" class="pt-2 border-t border-prohealth-900/5 space-y-2">
+          <p class="text-sm font-semibold text-prohealth-500">{{ t('validator.pendingBenefits.title') }}</p>
+          <p class="text-xs text-prohealth-500">{{ t('validator.pendingBenefits.hint') }}</p>
+          <ul class="space-y-1.5">
+            <li v-for="(b, i) in result.pendingBenefits" :key="`${b.promotion_Uuid ?? 'pending'}-${i}`" class="flex flex-wrap items-center gap-2 text-sm opacity-60">
+              <UIcon name="i-lucide-hourglass" class="w-4 h-4 text-prohealth-400" />
+              <span class="font-medium text-prohealth-700">{{ grantLabel(b) }}</span>
+              <UBadge color="neutral" variant="subtle" size="sm">{{ t('validator.pendingBenefits.badge') }}</UBadge>
+              <span v-if="b.campaign_Display" class="text-xs text-prohealth-500">{{ b.campaign_Display }}</span>
+              <span v-if="b.quantity" class="text-xs text-prohealth-500">· {{ t('validator.pendingBenefits.quantity', { n: b.quantity }) }}</span>
+              <span v-if="b.deadlineFrozen" class="text-xs text-prohealth-500">· {{ t('validator.pendingBenefits.frozen') }}</span>
+              <span v-else-if="b.effectiveDeadline" class="text-xs text-prohealth-500">
+                · {{ t('validator.pendingBenefits.confirmBy', { date: b.effectiveDeadline_Display ?? formatDate(b.effectiveDeadline) }) }}
+              </span>
             </li>
           </ul>
         </div>

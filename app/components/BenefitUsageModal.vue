@@ -93,6 +93,7 @@ const productOptions = ref<{ label: string, value: string }[]>([])
 const productsUnavailable = ref(false)
 
 // ---- Campaign vouchers (hub ADR 0038): the AVAILABLE grants the validator returned for this ally ----
+// Only confirmed vouchers (`benefitGrants`) are offered; `pendingBenefits` (slot not confirmed yet, point 9) never are.
 const grants = computed(() => props.validation?.benefitGrants ?? [])
 const selectedGrant = computed(() => grants.value.find(g => g.uuid === benefitGrantUuid.value) ?? null)
 const grantItems = computed(() => grants.value.map((g) => {

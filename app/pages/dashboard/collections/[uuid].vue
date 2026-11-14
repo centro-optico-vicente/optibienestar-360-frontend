@@ -235,6 +235,8 @@ function onReviewed(updated: PaymentDto) {
                 {{ payment.status_Display ?? statusLabel(payment.status) }}
               </UBadge>
               <UBadge v-if="payment.inscription" color="primary" variant="subtle">{{ t('payments.allocation.inscription') }}</UBadge>
+              <!-- Campaign slot this payment confirms (hub ADR 0038 point 9) -->
+              <PaymentSlotBadge :promotion-slot="payment.promotionSlot" size="md" />
             </div>
             <p class="text-sm text-prohealth-500 mt-1">
               {{ payment.paymentMethod_Display ?? methodLabel(payment.paymentMethod) }} · {{ payment.paymentDate_Display ?? formatDate(payment.paymentDate, 'datetime') }}

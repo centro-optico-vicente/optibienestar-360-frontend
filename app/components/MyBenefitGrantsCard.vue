@@ -14,12 +14,16 @@ const grants = ref<MembershipBenefitGrantDto[]>([])
 onMounted(async () => {
   if (!can('MEMBER_VIEW_OWN')) return
   try {
-    grants.value = await promotionsApi.myBenefitGrants()
+    grants.value = await promotionsApi.myBenefitGrants({ includePending: true })
   }
   catch {
     grants.value = []
   }
 })
+
+// Slots not confirmed yet come as PENDING_CONFIRMATION pseudo-entries (hub ADR 0038 point 9): shown apart, not redeemable.
+const pendingGrants = computed(() => grants.value.filter(g => g.grantStatus === 'PENDING_CONFIRMATION'))
+const confirmedGrants = computed(() => grants.value.filter(g => g.grantStatus !== 'PENDING_CONFIRMATION'))
 
 function valueLabel(g: MembershipBenefitGrantDto): string {
   return allyBenefitValueText(g, formatCurrency, t('promotions.benefitType.FREE'))
@@ -35,8 +39,8 @@ function valueLabel(g: MembershipBenefitGrantDto): string {
         <p class="text-xs text-prohealth-500">{{ t('promotions.grants.hint') }}</p>
       </div>
     </div>
-    <ul class="divide-y divide-prohealth-100">
-      <li v-for="g in grants" :key="g.uuid" class="py-3 flex flex-wrap items-start justify-between gap-3">
+    <ul v-if="confirmedGrants.length" class="divide-y divide-prohealth-100">
+      <li v-for="(g, i) in confirmedGrants" :key="g.uuid ?? `grant-${i}`" class="py-3 flex flex-wrap items-start justify-between gap-3">
         <div class="min-w-0 space-y-0.5">
           <p class="font-medium text-prohealth-900">
             {{ g.allyProduct_Display ?? t('common.empty') }} · {{ valueLabel(g) }}
@@ -62,5 +66,31 @@ function valueLabel(g: MembershipBenefitGrantDto): string {
         </div>
       </li>
     </ul>
+
+    <div v-if="pendingGrants.length" class="space-y-2" :class="{ 'pt-3 border-t border-prohealth-100': confirmedGrants.length }">
+      <div>
+        <h3 class="text-sm font-semibold text-prohealth-900">{{ t('promotions.grants.pendingTitle') }}</h3>
+        <p class="text-xs text-prohealth-500">{{ t('promotions.grants.pendingHint') }}</p>
+      </div>
+      <ul class="divide-y divide-prohealth-100">
+        <li v-for="(g, i) in pendingGrants" :key="`pending-${g.promotion_Uuid ?? i}-${i}`" class="py-3 flex flex-wrap items-start justify-between gap-3 opacity-75">
+          <div class="min-w-0 space-y-0.5">
+            <p class="font-medium text-prohealth-900">
+              {{ g.allyProduct_Display ?? t('common.empty') }} · {{ valueLabel(g) }}
+            </p>
+            <p class="text-sm text-prohealth-700">{{ g.ally_Display }}</p>
+            <p class="text-xs text-prohealth-500">
+              {{ [g.campaign_Display, g.beneficiary_Display].filter(Boolean).join(' · ') }}
+            </p>
+            <p v-if="g.expiresAt" class="text-xs text-amber-700">
+              {{ t('promotions.grants.confirmBy', { date: g.expiresAt_Display ?? formatDate(g.expiresAt) }) }}
+            </p>
+          </div>
+          <UBadge :color="BENEFIT_GRANT_STATUS_COLORS.PENDING_CONFIRMATION" variant="subtle" size="sm" icon="i-lucide-hourglass">
+            {{ g.grantStatus_Display ?? t('promotions.grants.status.PENDING_CONFIRMATION') }}
+          </UBadge>
+        </li>
+      </ul>
+    </div>
   </div>
 </template>

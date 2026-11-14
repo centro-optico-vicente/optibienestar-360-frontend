@@ -29,6 +29,12 @@ const pendingDeadline = computed(() => {
   if (!p?.redemptionExpiresAt) return null
   return p.redemptionExpiresAt_Display ?? formatDate(p.redemptionExpiresAt)
 })
+// What confirms the slot (hub ADR 0038 point 9): enrolling, registering the payment or its approval.
+const confirmsWhen = computed(() => {
+  const p = promotion.value
+  if (!p?.quotaTrigger) return null
+  return p.quotaTrigger_Display ?? t(`campaigns.quotaTrigger.${p.quotaTrigger}`)
+})
 const usableUntil = computed(() => {
   const p = promotion.value
   if (!p?.usageEndsAt) return null
@@ -49,9 +55,13 @@ const pct = computed(() => promotion.value ? promotionDiscountText(promotion.val
         <p v-if="promotion.cyclesRemaining != null" class="text-sm text-prohealth-700">
           {{ t('promotions.portal.cyclesLeft', { n: promotion.cyclesRemaining }) }}
         </p>
-        <p v-if="isPending" class="text-sm text-amber-700">
-          {{ pendingDeadline ? t('promotions.portal.pendingUntil', { date: pendingDeadline }) : t('promotions.portal.pending') }}
-        </p>
+        <template v-if="isPending">
+          <p v-if="promotion.deadlineFrozen" class="text-sm text-sky-700">{{ t('promotions.portal.pendingFrozen') }}</p>
+          <p v-else class="text-sm text-amber-700">
+            {{ pendingDeadline ? t('promotions.portal.pendingUntil', { date: pendingDeadline }) : t('promotions.portal.pending') }}
+          </p>
+          <p v-if="confirmsWhen" class="text-xs text-prohealth-500">{{ t('promotions.portal.confirmsWhen', { trigger: confirmsWhen }) }}</p>
+        </template>
         <p v-else-if="usableUntil" class="text-sm text-prohealth-700">{{ t('promotions.portal.usableUntil', { date: usableUntil }) }}</p>
         <p v-if="promotion.kind === 'ACQUISITION'" class="text-xs text-prohealth-500">{{ t('promotions.portal.keepOnTime') }}</p>
       </div>

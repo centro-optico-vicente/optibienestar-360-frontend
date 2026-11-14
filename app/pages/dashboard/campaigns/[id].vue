@@ -76,6 +76,9 @@ const detailTabs = computed(() => [
   { label: t('campaigns.detail.tabs.exceptions'), value: 'exceptions', icon: 'i-lucide-triangle-alert' },
   ...(can('PROMOTION_VIEW_ALL') ? [{ label: t('campaigns.detail.tabs.promotions'), value: 'promotions', icon: 'i-lucide-badge-percent' }] : []),
   { label: t('campaigns.detail.tabs.allyBenefits'), value: 'allyBenefits', icon: 'i-lucide-gift' },
+  // Slot reconciliation with payments (hub ADR 0038 point 9).
+  { label: t('campaigns.detail.tabs.slots'), value: 'slots', icon: 'i-lucide-ticket' },
+  ...(can('CAMPAIGN_PAYMENT_VIEW') ? [{ label: t('campaigns.detail.tabs.payments'), value: 'payments', icon: 'i-lucide-wallet' }] : []),
 ])
 const activeDetailTab = ref('rules')
 const auditOpen = ref(false)
@@ -206,6 +209,14 @@ const quotaCardRef = ref<{ load: () => Promise<void> } | null>(null)
 function onLifecycleUpdated(updated: CampaignDto) {
   campaign.value = updated
   quotaCardRef.value?.load()
+}
+// A slot confirmed/released by hand changes the counters, the issue report and the "Pagos" rows.
+const slotIssuesRef = ref<{ load: () => Promise<void> } | null>(null)
+const paymentsPanelRef = ref<{ load: () => Promise<void> } | null>(null)
+function onSlotsChanged() {
+  quotaCardRef.value?.load()
+  slotIssuesRef.value?.load()
+  paymentsPanelRef.value?.load()
 }
 function slotRulesLabel(c: CampaignDto): string {
   const trigger = c.quotaTrigger_Display ?? t(`campaigns.quotaTrigger.${c.quotaTrigger ?? 'ON_ENROLLMENT'}`)
@@ -787,6 +798,8 @@ async function confirmRemoveException() {
       </div>
       <!-- 1c. Slot counters (hub ADR 0038, phase 2b) -->
       <CampaignQuotaCard ref="quotaCardRef" :campaign-uuid="campaignUuid" />
+      <!-- 1d. Slot ⇄ payment inconsistencies (hub ADR 0038 point 9) -->
+      <CampaignSlotIssuesCard ref="slotIssuesRef" :campaign-uuid="campaignUuid" />
 
       <UTabs v-model="activeDetailTab" :items="detailTabs" :content="false" />
 
@@ -999,6 +1012,15 @@ async function confirmRemoveException() {
       />
 
       <CampaignAllyBenefitsPanel v-show="activeDetailTab === 'allyBenefits'" :campaign-uuid="campaignUuid" />
+
+      <!-- 7. Cupos y pagos (hub ADR 0038 point 9) -->
+      <CampaignSlotsPanel v-show="activeDetailTab === 'slots'" :campaign-uuid="campaignUuid" @changed="onSlotsChanged" />
+      <CampaignPaymentsPanel
+        v-if="can('CAMPAIGN_PAYMENT_VIEW')"
+        v-show="activeDetailTab === 'payments'"
+        ref="paymentsPanelRef"
+        :campaign-uuid="campaignUuid"
+      />
     </template>
 
     <!-- Edit modal (shared) -->

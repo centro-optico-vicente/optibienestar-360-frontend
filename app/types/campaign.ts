@@ -1,3 +1,5 @@
+import type { Page } from '~/types/admin'
+
 // Types for the commission-campaigns vertical (/v1/admin/campaigns — hub plan
 // "commission campaigns"). A Campaign is a time-boxed promotion that can scope
 // which promoters/rules it applies to and pre-fill the 4 commission-rule
@@ -315,3 +317,142 @@ export const CAMPAIGN_EXCEPTION_ACTION_OPTIONS: { value: CampaignExceptionAction
   { value: 'INCLUDE', labelKey: 'campaigns.scope.INCLUDE' },
   { value: 'EXCLUDE', labelKey: 'campaigns.scope.EXCLUDE' },
 ]
+
+// ---- Slot reconciliation with payments (hub ADR 0038 point 9, phase 4) ----
+
+/** Slot status of a membership promotion; same values as `PromotionRedemptionStatus` in types/promotions. */
+export type CampaignSlotStatus = 'PENDING' | 'CONFIRMED' | 'EXPIRED' | 'RELEASED'
+
+/**
+ * Row of GET /v1/admin/campaigns/{uuid}/slots — one slot of the campaign quota.
+ * `deadlineFrozen`: a qualifying payment is in review and was registered before the deadline, so the
+ * slot does not expire until that payment is approved (confirms it) or rejected.
+ */
+export interface CampaignSlotDto {
+  uuid: string
+  member_Uuid?: string | null
+  member_Display?: string | null
+  member_Code?: string | null
+  membership_Uuid?: string | null
+  membership_Display?: string | null
+  membership_Code?: string | null
+  promotion_Uuid?: string | null
+  promotion_Display?: string | null
+  promotion_Code?: string | null
+  advisor_Uuid?: string | null
+  advisor_Display?: string | null
+  advisor_Code?: string | null
+  benefitKind?: 'DISCOUNT' | 'ALLY_BENEFIT' | null
+  benefitKind_Display?: string | null
+  redemptionStatus: CampaignSlotStatus
+  redemptionStatus_Display?: string | null
+  quotaTrigger?: CampaignQuotaTrigger | null
+  quotaTrigger_Display?: string | null
+  reservedAt?: string | null
+  reservedAt_Display?: string | null
+  confirmedAt?: string | null
+  confirmedAt_Display?: string | null
+  effectiveDeadline?: string | null
+  effectiveDeadline_Display?: string | null
+  deadlineFrozen: boolean
+  confirmedByPayment_Uuid?: string | null
+  confirmedByPayment_Display?: string | null
+  confirmedByPayment_Code?: string | null
+  manualNote?: string | null
+  manualBy_Uuid?: string | null
+  manualBy_Display?: string | null
+  manualBy_Code?: string | null
+}
+
+/** Body of POST /slots/{slotUuid}/confirm and /release — the note is required (non-blank). */
+export interface CampaignSlotActionRequest {
+  note: string
+}
+
+export type CampaignSlotIssueType = 'APPROVED_DISCOUNT_WITHOUT_SLOT' | 'PENDING_WITH_APPROVED_PAYMENT' | 'FROZEN_TOO_LONG'
+
+/** Item of GET /v1/admin/campaigns/{uuid}/slot-issues. FROZEN_TOO_LONG = frozen for more than 7 days. */
+export interface CampaignSlotIssueDto {
+  type: CampaignSlotIssueType
+  type_Display?: string | null
+  member_Uuid?: string | null
+  member_Display?: string | null
+  member_Code?: string | null
+  membership_Uuid?: string | null
+  membership_Display?: string | null
+  membership_Code?: string | null
+  promotion_Uuid?: string | null
+  promotion_Display?: string | null
+  promotion_Code?: string | null
+  payment_Uuid?: string | null
+  payment_Display?: string | null
+  payment_Code?: string | null
+  slotUuid?: string | null
+  redemptionStatus?: CampaignSlotStatus | null
+  redemptionStatus_Display?: string | null
+  since?: string | null
+  since_Display?: string | null
+}
+
+/** Row of the campaign "Pagos" section: one per slot; `payment_*` is null while the slot has no payment yet. */
+export interface CampaignPaymentRowDto {
+  payment_Uuid?: string | null
+  payment_Display?: string | null
+  payment_Code?: string | null
+  paymentReference?: string | null
+  amount?: number | string | null
+  amount_Display?: string | null
+  amountCurrency_Code?: string | null
+  paymentDate?: string | null
+  paymentDate_Display?: string | null
+  paymentStatus?: string | null
+  paymentStatus_Display?: string | null
+  member_Uuid?: string | null
+  member_Display?: string | null
+  member_Code?: string | null
+  membership_Uuid?: string | null
+  membership_Display?: string | null
+  membership_Code?: string | null
+  advisor_Uuid?: string | null
+  advisor_Display?: string | null
+  advisor_Code?: string | null
+  promotion_Uuid?: string | null
+  promotion_Display?: string | null
+  promotion_Code?: string | null
+  slotUuid: string
+  redemptionStatus: CampaignSlotStatus
+  redemptionStatus_Display?: string | null
+  effectiveDeadline?: string | null
+  effectiveDeadline_Display?: string | null
+  deadlineFrozen: boolean
+  /** Approving this payment confirms the slot. */
+  confirmsOnApproval: boolean
+  lastRemindedAt?: string | null
+  lastRemindedAt_Display?: string | null
+}
+
+export interface CampaignPaymentTotalsDto {
+  confirmed: number
+  pendingInReview: number
+  pendingWithoutPayment: number
+  expired: number
+}
+
+/** GET /v1/admin/campaigns/{uuid}/payments (CAMPAIGN_PAYMENT_VIEW). */
+export interface CampaignPaymentsDto {
+  totals: CampaignPaymentTotalsDto
+  page: Page<CampaignPaymentRowDto>
+}
+
+/** Body of the remind endpoints — the note is optional. */
+export interface CampaignPaymentRemindRequest {
+  note?: string | null
+}
+
+/** Response of POST /v1/admin/campaigns/{uuid}/payments/remind-pending. */
+export interface CampaignRemindPendingResultDto {
+  sent: number
+  skipped: number
+}
+
+export const CAMPAIGN_SLOT_STATUSES: CampaignSlotStatus[] = ['PENDING', 'CONFIRMED', 'EXPIRED', 'RELEASED']
