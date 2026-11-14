@@ -391,6 +391,8 @@ En el selector de **rango** los mismos 3 grupos se expresan como rangos (más an
 
 **Fuente única:** los atajos (y `mondayOfWeek` / `todayCalendarDate`) viven en `app/utils/dateShortcuts.ts` — `DATE_SHORTCUTS` (fecha única) y `DATE_RANGE_SHORTCUTS` (rango). Ningún componente define sus propios atajos: un picker nuevo con panel de atajos importa esas listas, y una corrección se hace solo ahí.
 
+Quién los usa: `AppDateTimePicker` y `AppDatePicker` (fecha única, panel a la izquierda del calendario; `:shortcuts="false"` en campos donde no aplican, p. ej. fecha de nacimiento), `AuditDateRangePicker` (rango, panel) y `DateRangeFilter` (rango de los listados, menú desplegable junto a los dos inputs).
+
 Componente de referencia para un campo de fecha-hora **único**: `app/components/AppDateTimePicker.vue`. Para un **rango**: `app/components/AuditDateRangePicker.vue`.
 
 i18n: claves bajo `common.dateTimePicker.shortcuts.*` (picker único) / `audit.dateRange.shortcuts.*` (rango).

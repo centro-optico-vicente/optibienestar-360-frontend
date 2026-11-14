@@ -5,8 +5,14 @@
 // debounce). If the user picks a range whose start is after its end, the two
 // ends are swapped so the query is never empty by mistake.
 //
+// Shortcuts: the shared range list (`DATE_RANGE_SHORTCUTS`, 07-forms.md) in a dropdown
+// next to the inputs — the same shortcuts as the audit range picker.
+//
 // Usage: <DateRangeFilter v-model:from="dateFrom" v-model:to="dateTo" />
 // Bound to an object: v-model:from="filters.dateFrom" v-model:to="filters.dateTo"
+import type { DropdownMenuItem } from '@nuxt/ui'
+import { DATE_RANGE_SHORTCUTS } from '~/utils/dateShortcuts'
+
 const from = defineModel<string>('from', { default: '' })
 const to = defineModel<string>('to', { default: '' })
 
@@ -30,6 +36,14 @@ function normalize(nextFrom: string, nextTo: string) {
   emit('change', { from: nextFrom, to: nextTo })
 }
 
+const shortcutItems = computed<DropdownMenuItem[][]>(() => DATE_RANGE_SHORTCUTS.map(group => group.map(shortcut => ({
+  label: t(`audit.dateRange.shortcuts.${shortcut.key}`),
+  onSelect: () => {
+    const { start, end } = shortcut.range()
+    normalize(start.toString(), end.toString())
+  },
+}))))
+
 function onFrom(v: unknown) {
   normalize(v == null ? '' : String(v), to.value)
 }
@@ -41,6 +55,15 @@ function onTo(v: unknown) {
 
 <template>
   <div class="inline-flex flex-wrap items-center gap-2">
+    <UDropdownMenu :items="shortcutItems" :content="{ align: 'start' }">
+      <UButton
+        color="neutral"
+        variant="outline"
+        icon="i-lucide-calendar-range"
+        :aria-label="t('common.dateRange.shortcuts')"
+        :title="t('common.dateRange.shortcuts')"
+      />
+    </UDropdownMenu>
     <UInput
       :model-value="from"
       type="date"
