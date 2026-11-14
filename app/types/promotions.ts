@@ -5,6 +5,24 @@ import type { DisplayRefItem } from '~/types/options'
 
 export type PromotionKind = 'ACQUISITION' | 'RECOVERY'
 export type PromotionAppliesTo = 'INSCRIPTION' | 'MONTHLY' | 'BOTH'
+/** DISCOUNT lowers the membership fees; ALLY_BENEFIT grants a voucher redeemable at an ally (hub ADR 0038, phase 3). */
+export type PromotionBenefitKind = 'DISCOUNT' | 'ALLY_BENEFIT'
+/** Value of an ally benefit: free, a percentage off, or a fixed amount off the ally's product. */
+export type AllyBenefitType = 'FREE' | 'PERCENTAGE' | 'FLAT'
+
+/** Ally-benefit fields shared by promotions and benefit grants. */
+export interface AllyBenefitValueFields {
+  benefitType?: AllyBenefitType | null
+  benefitType_Display?: string | null
+  benefitPct?: number | string | null
+  benefitPct_Display?: string | null
+  benefitAmount?: number | string | null
+  benefitAmount_Display?: string | null
+  benefitCurrency_Uuid?: string | null
+  benefitCurrency_Display?: string | null
+  benefitCurrency_Code?: string | null
+}
+
 /** PERCENTAGE uses `discountPct`; FLAT uses `discountAmount` + its currency. */
 export type PromotionDiscountType = 'PERCENTAGE' | 'FLAT'
 
@@ -22,7 +40,7 @@ export interface PromotionDiscountFields {
   discountCurrency_Code?: string | null
 }
 
-export interface PromotionDto extends PromotionDiscountFields {
+export interface PromotionDto extends PromotionDiscountFields, AllyBenefitValueFields {
   uuid: string
   campaign_Uuid?: string | null
   campaign_Display?: string | null
@@ -30,7 +48,8 @@ export interface PromotionDto extends PromotionDiscountFields {
   description?: string | null
   kind: PromotionKind
   kind_Display?: string | null
-  appliesTo: PromotionAppliesTo
+  /** Only DISCOUNT promotions have it (null for ALLY_BENEFIT). */
+  appliesTo?: PromotionAppliesTo | null
   appliesTo_Display?: string | null
   cycles?: number | null
   coversExtraBeneficiaries: boolean
@@ -48,6 +67,18 @@ export interface PromotionDto extends PromotionDiscountFields {
   plans: DisplayRefItem[]
   active: boolean
   createdAt?: string
+  // ---- Ally benefits (hub ADR 0038, phase 3) ----
+  /** Missing on rows from before phase 3 ⇒ DISCOUNT. */
+  benefitKind?: PromotionBenefitKind | null
+  benefitKind_Display?: string | null
+  ally_Uuid?: string | null
+  ally_Display?: string | null
+  /** The ally's offer (ally_products) the voucher is redeemed on. */
+  allyProduct_Uuid?: string | null
+  allyProduct_Display?: string | null
+  benefitQuantity?: number | null
+  /** Proposed by the ally from its portal (campaign partnership). */
+  createdByAlly?: boolean | null
 }
 
 export interface PromotionRequest {
@@ -62,7 +93,8 @@ export interface PromotionRequest {
   discountAmount?: number | null
   /** Required when FLAT. */
   discountCurrencyUuid?: string | null
-  appliesTo: PromotionAppliesTo
+  /** Required for DISCOUNT, null for ALLY_BENEFIT. */
+  appliesTo: PromotionAppliesTo | null
   cycles?: number | null
   coversExtraBeneficiaries: boolean
   /** false ⇒ consumes only the campaign quota; `maxRedemptions` must be null. */
@@ -74,6 +106,35 @@ export interface PromotionRequest {
   acceptsAllyCode: boolean
   referrerRewardPct?: number | null
   referrerRewardCycles?: number | null
+  planUuids?: string[]
+  // ---- Ally benefits (hub ADR 0038, phase 3) ----
+  /** null ⇒ DISCOUNT. */
+  benefitKind?: PromotionBenefitKind | null
+  /** Forced to the campaign's ally when the campaign is ally-exclusive. */
+  allyUuid?: string | null
+  allyProductUuid?: string | null
+  benefitType?: AllyBenefitType | null
+  benefitPct?: number | null
+  benefitAmount?: number | null
+  benefitCurrencyUuid?: string | null
+  benefitQuantity?: number | null
+}
+
+/**
+ * Body of POST /v1/me/allies/campaigns/{uuid}/promotions and PUT /v1/me/allies/promotions/{uuid}:
+ * an ALLY_BENEFIT proposed by the calling ally (ally resolved from the session).
+ */
+export interface AllyPromotionRequest {
+  name: string
+  description?: string | null
+  allyProductUuid: string
+  benefitType: AllyBenefitType
+  benefitPct?: number | null
+  benefitAmount?: number | null
+  benefitCurrencyUuid?: string | null
+  benefitQuantity: number
+  ownQuota: boolean
+  maxRedemptions?: number | null
   planUuids?: string[]
 }
 
@@ -111,6 +172,7 @@ export interface MembershipPromotionDto extends PromotionDiscountFields {
   assignedAt?: string | null
   endedAt?: string | null
   endedReason?: string | null
+  benefitKind?: PromotionBenefitKind | null
   redemptionStatus?: PromotionRedemptionStatus | null
   redemptionStatus_Display?: string | null
   /** Deadline of a PENDING slot. */

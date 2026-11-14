@@ -894,6 +894,10 @@
       "captureAlly": {
         "label": "Captar aliado",
         "description": "Registra un negocio o profesional como aliado desde tu dispositivo."
+      },
+      "allyCampaigns": {
+        "label": "Campañas",
+        "description": "Campañas donde puedes ofrecer tus propios beneficios."
       }
     },
     "other": {
@@ -3574,7 +3578,11 @@
         "copayCurrency": "Moneda",
         "notes": "Notas",
         "consumer": "¿Quién consume?",
-        "consumerHelp": "El titular o uno de los beneficiarios de su plan. Así cada persona ve sus propios consumos."
+        "consumerHelp": "El titular o uno de los beneficiarios de su plan. Así cada persona ve sus propios consumos.",
+        "grant": "Beneficio de campaña",
+        "grantHelp": "Opcional. Elige el bono que el afiliado está canjeando.",
+        "grantSelectedHelp": "El producto queda fijado por el beneficio.",
+        "noGrant": "Sin beneficio de campaña"
       },
       "holder": "Titular"
     },
@@ -3600,6 +3608,11 @@
       "noCamera": "No se encontró una cámara disponible.",
       "failed": "No se pudo iniciar la cámara.",
       "fallback": "Escribe la cédula del afiliado en el campo de búsqueda."
+    },
+    "grants": {
+      "title": "Beneficios de campaña disponibles",
+      "remaining": "{n} de {total} disponibles",
+      "expires": "vence el {date}"
     }
   },
   "promoters": {
@@ -4641,7 +4654,12 @@
       "usageWindowHelp": "Hasta cuándo puede usarse la promoción una vez confirmada.",
       "usageWindowDays": "Días de uso desde la confirmación",
       "usageWindowDaysRequired": "Indica los días (un número entero mayor a 0)",
-      "usageWindowDaysCount": "{n} día(s) desde la confirmación"
+      "usageWindowDaysCount": "{n} día(s) desde la confirmación",
+      "ally": "Aliado exclusivo",
+      "allyHelp": "Opcional. Si eliges un aliado, todos los beneficios de la campaña son de ese aliado. Solo se puede cambiar mientras la campaña no tenga promociones.",
+      "anyAlly": "Cualquier aliado",
+      "allowsAllyPartnership": "Permite alianza",
+      "allowsAllyPartnershipHelp": "Mientras la campaña esté activa, los aliados pueden agregar sus propios beneficios desde su portal."
     },
     "detail": {
       "generalData": "Datos generales",
@@ -4667,7 +4685,8 @@
         "rules": "Reglas de comisión",
         "transactions": "Transacciones",
         "exceptions": "Excepciones",
-        "promotions": "Promociones"
+        "promotions": "Promociones",
+        "allyBenefits": "Beneficios de aliados"
       },
       "seoPage": "Detalle de campaña",
       "notFoundTitle": "Campaña no encontrada",
@@ -4725,7 +4744,8 @@
         "transactionCount": "Transacciones",
         "amountAchievedPct": "% de meta de monto",
         "countAchievedPct": "% de meta de cantidad"
-      }
+      },
+      "partnershipOpen": "Abierta a alianzas"
     },
     "exceptions": {
       "addTitle": "Agregar a campaña",
@@ -4818,6 +4838,19 @@
       "released": "Liberados",
       "promotion": "Promoción",
       "max": "Cupo propio"
+    },
+    "allyBenefits": {
+      "title": "Beneficios de aliados",
+      "hint": "Bonos entregados por aliado y promoción, para conciliar con cada aliado lo que se canjeó.",
+      "ally": "Aliado",
+      "promotion": "Promoción",
+      "granted": "Entregados",
+      "available": "Disponibles",
+      "redeemed": "Canjeados",
+      "redeemedUnits": "Unidades canjeadas",
+      "expired": "Vencidos",
+      "canceled": "Anulados",
+      "empty": "Esta campaña todavía no ha entregado beneficios de aliados."
     }
   },
   "commissionRules": {
@@ -5854,7 +5887,15 @@
       "discountType": "Tipo de descuento",
       "discountAmount": "Monto del descuento",
       "discountCurrency": "Moneda del descuento",
-      "ownQuota": "Cupo propio"
+      "ownQuota": "Cupo propio",
+      "benefitKind": "Tipo de beneficio",
+      "ally": "Aliado",
+      "allyProduct": "Producto o servicio del aliado",
+      "benefitType": "Valor del beneficio",
+      "benefitPct": "Descuento en el aliado (%)",
+      "benefitAmount": "Monto de descuento en el aliado",
+      "benefitCurrency": "Moneda del descuento",
+      "benefitQuantity": "Cantidad por afiliado"
     },
     "form": {
       "createTitle": "Nueva promoción",
@@ -5872,7 +5913,11 @@
       "amountHelp": "Se convierte a la moneda del cobro con la tasa del día del pago y nunca supera el monto a pagar.",
       "ownQuotaCheck": "Esta promoción tiene su propio cupo",
       "ownQuotaHelp": "Sin cupo propio, consume solo el cupo de la campaña.",
-      "ownQuotaRequired": "Indica el cupo propio (un número entero mayor a 0)"
+      "ownQuotaRequired": "Indica el cupo propio (un número entero mayor a 0)",
+      "allyLockedHelp": "La campaña es exclusiva de este aliado.",
+      "pickAllyFirst": "Elige primero el aliado",
+      "quantityMin": "Indica una cantidad entera mayor a 0",
+      "quantityHelp": "Cuántas veces puede canjearlo cada afiliado."
     },
     "membership": {
       "promotion": "Promoción",
@@ -5895,7 +5940,10 @@
       "cancelButton": "Cancelar promoción",
       "canceledToast": "Promoción cancelada",
       "confirmBy": "confirmar antes del {date}",
-      "usableUntil": "vigente hasta el {date}"
+      "usableUntil": "vigente hasta el {date}",
+      "allyBenefits": "Beneficios de aliados",
+      "allyBenefitsHelp": "Opcional. Puedes elegir varios, además de la promoción de descuento.",
+      "noAllyBenefits": "Sin beneficios de aliados"
     },
     "portal": {
       "title": "Tu promoción: {name}",
@@ -5917,6 +5965,33 @@
       "CONFIRMED": "Cupo confirmado",
       "EXPIRED": "Cupo vencido",
       "RELEASED": "Cupo liberado"
+    },
+    "proposedByAlly": "Propuesta por el aliado",
+    "benefitKind": {
+      "DISCOUNT": "Descuento",
+      "ALLY_BENEFIT": "Beneficio de aliado"
+    },
+    "benefitKindHelp": {
+      "DISCOUNT": "Rebaja la inscripción o las mensualidades del afiliado.",
+      "ALLY_BENEFIT": "Le da al afiliado un bono para canjear en un aliado: un producto o servicio gratis o con descuento."
+    },
+    "benefitType": {
+      "FREE": "Gratis",
+      "PERCENTAGE": "Porcentaje",
+      "FLAT": "Monto fijo"
+    },
+    "grants": {
+      "title": "Mis beneficios",
+      "hint": "Bonos de campañas que puedes canjear en los aliados. Muestra tu carnet al usarlos.",
+      "expires": "Vence el {date}",
+      "redeemedOn": "Canjeado el {date}",
+      "remaining": "Te quedan {n} de {total}",
+      "status": {
+        "AVAILABLE": "Disponible",
+        "REDEEMED": "Canjeado",
+        "EXPIRED": "Vencido",
+        "CANCELED": "Anulado"
+      }
     }
   },
   "profilePhoto": {
@@ -6901,6 +6976,27 @@
     "filters": {
       "dateFrom": "Enviada desde",
       "dateTo": "Enviada hasta"
+    }
+  },
+  "allyCampaigns": {
+    "title": "Campañas",
+    "subtitle": "Campañas activas que aceptan aliados. Agrega tus propios beneficios para atraer afiliados.",
+    "emptyTitle": "No hay campañas abiertas a alianzas",
+    "emptyBody": "Cuando una campaña acepte aliados, aparecerá aquí.",
+    "exclusive": "Exclusiva para ti",
+    "slots": "{free} de {max} cupos libres",
+    "addBenefit": "Agregar beneficio",
+    "myBenefits": "Mis beneficios",
+    "benefit": "Beneficio",
+    "noBenefits": "Todavía no tienes beneficios en esta campaña.",
+    "savedToast": "Beneficio guardado",
+    "deletedToast": "Beneficio eliminado",
+    "deleteTitle": "Eliminar beneficio",
+    "deleteConfirm": "Se eliminará el beneficio {name} de la campaña.",
+    "form": {
+      "createTitle": "Nuevo beneficio",
+      "editTitle": "Editar beneficio",
+      "noProducts": "No tienes ofertas aprobadas"
     }
   }
 }

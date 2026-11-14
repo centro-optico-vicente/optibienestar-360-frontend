@@ -399,6 +399,9 @@ const initials = computed(() => (displayName.value || '').split(/\s+/).filter(Bo
           <!-- My active promotion (self-gated by MEMBER_VIEW_OWN; hidden when none) -->
           <MyPromotionCard />
 
+          <!-- My ally-benefit vouchers (self-gated by MEMBER_VIEW_OWN; hidden when none) -->
+          <MyBenefitGrantsCard />
+
           <!-- My payments (self-gated by COLLECTION_VIEW_OWN) -->
           <MyPaymentsCard />
 

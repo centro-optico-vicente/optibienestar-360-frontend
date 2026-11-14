@@ -4,6 +4,8 @@ import type { BenefitUsageDto } from '~/types/benefits'
 import type { ValidationResultDto } from '~/types/validator'
 import { canOperateAtCounter } from '~/types/allies'
 import { isValidationActionable, validationStatusColor, validationStatusIcon } from '~/types/validator'
+import type { BenefitGrantDto } from '~/types/benefitGrants'
+import { allyBenefitValueText } from '~/utils/promotionDiscount'
 
 // Realtime validator — the counter screen. Type the affiliate's document, get the
 // solvency answer, and (only when ACTIVE) register the consumed benefit.
@@ -18,7 +20,7 @@ definePageMeta({
 })
 
 const { t } = useI18n()
-const { formatDate } = useFormatters()
+const { formatDate, formatCurrency } = useFormatters()
 const { can } = usePermissions()
 const myAllies = useMyAllies()
 const validator = useValidator()
@@ -178,6 +180,11 @@ const canRegisterUsage = computed(() =>
   && !!selectedAlly.value
   && canOperateAtCounter(selectedAlly.value?.allyRole)
   && can('ALLY_REGISTER_USAGE'))
+
+// ---- Campaign vouchers of this ally for the member (hub ADR 0038) ----
+function grantLabel(g: BenefitGrantDto): string {
+  return [g.allyProduct_Display, allyBenefitValueText(g, formatCurrency, t('promotions.benefitType.FREE'))].filter(Boolean).join(' · ')
+}
 
 function onRegistered(usage: BenefitUsageDto) {
   lastUsage.value = usage
@@ -360,6 +367,21 @@ function onRegistered(usage: BenefitUsageDto) {
             <dd class="text-prohealth-800">{{ result.nextDueDate_Display ?? formatDate(result.nextDueDate) }}</dd>
           </div>
         </dl>
+
+        <!-- Campaign vouchers redeemable here (AVAILABLE only) -->
+        <div v-if="result.benefitGrants?.length" class="pt-2 border-t border-prohealth-900/5 space-y-2">
+          <p class="text-sm font-semibold text-prohealth-900">{{ t('validator.grants.title') }}</p>
+          <ul class="space-y-1.5">
+            <li v-for="g in result.benefitGrants" :key="g.uuid" class="flex flex-wrap items-center gap-2 text-sm">
+              <UIcon name="i-lucide-gift" class="w-4 h-4 text-primary-500" />
+              <span class="font-medium text-prohealth-900">{{ grantLabel(g) }}</span>
+              <UBadge color="success" variant="subtle" size="sm">{{ t('validator.grants.remaining', { n: g.remainingQty, total: g.quantity }) }}</UBadge>
+              <span v-if="g.campaign_Display" class="text-xs text-prohealth-500">{{ g.campaign_Display }}</span>
+              <span v-if="g.beneficiary_Display" class="text-xs text-prohealth-500">· {{ g.beneficiary_Display }}</span>
+              <span v-if="g.expiresAt" class="text-xs text-prohealth-500">· {{ t('validator.grants.expires', { date: g.expiresAt_Display ?? formatDate(g.expiresAt) }) }}</span>
+            </li>
+          </ul>
+        </div>
 
         <div v-if="canRegisterUsage || result.memberFullName || canViewMedicalRecord" class="pt-2 flex flex-wrap items-center gap-3">
           <UButton v-if="canRegisterUsage" color="primary" size="lg" icon="i-lucide-clipboard-check" @click="usageModalOpen = true">

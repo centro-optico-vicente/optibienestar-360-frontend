@@ -5,7 +5,7 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 import type { MembershipCreateRequest, MembershipDto } from '~/types/memberships'
 import type { MembershipPromotionDto, PromotionDto } from '~/types/promotions'
 import { REDEMPTION_STATUS_COLORS } from '~/types/promotions'
-import { promotionDiscountText } from '~/utils/promotionDiscount'
+import { allyBenefitValueText, promotionDiscountText } from '~/utils/promotionDiscount'
 import { toSelectItems } from '~/types/options'
 import {
   isMembershipCancelable,
@@ -122,11 +122,19 @@ const assignCode = ref('')
 const assignSubmitting = ref(false)
 const assignSelected = computed(() => assignOptions.value.find(p => p.uuid === assignPromotionUuid.value) ?? null)
 // Nuxt UI v4 types SelectMenuItem.description as `string | undefined` (no null), while the DTO allows null.
-// `label` adds the discount ("10%" or a fixed amount, hub ADR 0038) to the promotion name.
+// `label` adds the discount ("10%" or a fixed amount) or the ally benefit to the promotion name (hub ADR 0038).
+function promotionOptionLabel(p: PromotionDto): string {
+  if (p.benefitKind === 'ALLY_BENEFIT') {
+    const value = allyBenefitValueText(p, formatCurrency, t('promotions.benefitType.FREE'))
+    const qty = p.benefitQuantity && p.benefitQuantity > 1 ? ` × ${p.benefitQuantity}` : ''
+    return [p.name, p.ally_Display, p.allyProduct_Display, `${value}${qty}`].filter(Boolean).join(' · ')
+  }
+  return `${p.name} · ${promotionDiscountText(p, formatCurrency)}`
+}
 const withoutNullDescription = (list: PromotionDto[]) => list.map(p => ({
   ...p,
   description: p.description ?? undefined,
-  label: `${p.name} · ${promotionDiscountText(p, formatCurrency)}`,
+  label: promotionOptionLabel(p),
 }))
 const assignPromotionItems = computed(() => withoutNullDescription(assignOptions.value))
 
@@ -229,6 +237,8 @@ interface EnrollState {
   reinscription: 'inherit' | 'yes' | 'no'
   promotionUuid: string | undefined
   promotionCode: string
+  /** Ally-benefit promotions granted alongside the discount one (hub ADR 0038, phase 3). */
+  allyBenefitUuids: string[]
 }
 
 const enrollState = reactive<EnrollState>({
@@ -238,6 +248,7 @@ const enrollState = reactive<EnrollState>({
   reinscription: 'inherit',
   promotionUuid: undefined,
   promotionCode: '',
+  allyBenefitUuids: [],
 })
 
 const reinscriptionItems = computed(() => [
@@ -247,12 +258,17 @@ const reinscriptionItems = computed(() => [
 ])
 
 // Promotions offered for the chosen plan (ACQUISITION, campaign running, cap available).
+// One discount promotion at most, plus any number of ally benefits (hub ADR 0038, phase 3).
 const enrollPromotions = ref<PromotionDto[]>([])
-const enrollPromotion = computed(() => enrollPromotions.value.find(p => p.uuid === enrollState.promotionUuid) ?? null)
-const enrollPromotionItems = computed(() => withoutNullDescription(enrollPromotions.value))
+const enrollDiscountPromotions = computed(() => enrollPromotions.value.filter(p => p.benefitKind !== 'ALLY_BENEFIT'))
+const enrollAllyBenefits = computed(() => enrollPromotions.value.filter(p => p.benefitKind === 'ALLY_BENEFIT'))
+const enrollPromotion = computed(() => enrollDiscountPromotions.value.find(p => p.uuid === enrollState.promotionUuid) ?? null)
+const enrollPromotionItems = computed(() => withoutNullDescription(enrollDiscountPromotions.value))
+const enrollAllyBenefitItems = computed(() => withoutNullDescription(enrollAllyBenefits.value))
 watch(() => enrollState.planUuid, async (planUuid) => {
   enrollState.promotionUuid = undefined
   enrollState.promotionCode = ''
+  enrollState.allyBenefitUuids = []
   enrollPromotions.value = []
   if (!planUuid) return
   try {
@@ -280,6 +296,7 @@ async function openEnroll() {
   enrollState.reinscription = 'inherit'
   enrollState.promotionUuid = undefined
   enrollState.promotionCode = ''
+  enrollState.allyBenefitUuids = []
   enrollOpen.value = true
   await planLazy.ensureLoaded()
 }
@@ -294,6 +311,7 @@ async function onEnrollSubmit(_event: FormSubmitEvent<Record<string, unknown>>) 
       reinscriptionRequired: enrollState.reinscription === 'inherit' ? undefined : enrollState.reinscription === 'yes',
       promotionUuid: enrollState.promotionUuid || undefined,
       promotionCode: enrollState.promotionCode.trim() || undefined,
+      allyBenefitPromotionUuids: enrollState.allyBenefitUuids.length ? [...enrollState.allyBenefitUuids] : undefined,
     }
     await memberships.enroll(props.memberUuid, body)
     toast.add({ title: t('memberships.enrolledToast'), color: 'success', icon: 'i-lucide-check-circle' })
@@ -522,7 +540,8 @@ async function confirmLifecycle() {
                   <UTooltip v-if="promotionByMembership[m.uuid]" :text="t('promotions.membership.cancelTooltip')">
                     <UButton color="warning" variant="ghost" icon="i-lucide-badge-x" size="sm" @click="openCancelPromotion(m)" />
                   </UTooltip>
-                  <UTooltip v-else :text="t('promotions.membership.assignTooltip')">
+                  <!-- Always offered: ally benefits can be added next to the discount promotion (hub ADR 0038). -->
+                  <UTooltip :text="t('promotions.membership.assignTooltip')">
                     <UButton color="primary" variant="ghost" icon="i-lucide-badge-percent" size="sm" @click="openAssign(m)" />
                   </UTooltip>
                 </template>
@@ -581,7 +600,7 @@ async function confirmLifecycle() {
           </UFormField>
 
           <UFormField
-            v-if="enrollPromotions.length"
+            v-if="enrollDiscountPromotions.length"
             :label="t('promotions.membership.promotion')"
             name="promotionUuid"
             :help="enrollPromotion?.description || t('promotions.membership.promotionHelp')"
@@ -604,6 +623,22 @@ async function confirmLifecycle() {
             :help="t('promotions.membership.codeHelp')"
           >
             <UInput v-model="enrollState.promotionCode" icon="i-lucide-ticket" class="w-full font-mono uppercase" />
+          </UFormField>
+          <UFormField
+            v-if="enrollAllyBenefits.length"
+            :label="t('promotions.membership.allyBenefits')"
+            name="allyBenefitUuids"
+            :help="t('promotions.membership.allyBenefitsHelp')"
+          >
+            <USelectMenu
+              v-model="enrollState.allyBenefitUuids"
+              :items="enrollAllyBenefitItems"
+              label-key="label"
+              value-key="uuid"
+              multiple
+              :placeholder="t('promotions.membership.noAllyBenefits')"
+              class="w-full"
+            />
           </UFormField>
         </UForm>
       </template>

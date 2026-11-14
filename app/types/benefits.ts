@@ -123,6 +123,8 @@ export interface BenefitUsageRegisterRequest {
   notes?: string
   /** Who consumed (V195): one of the membership's beneficiaries; omitted = the holder. */
   beneficiaryUuid?: string
+  /** Campaign voucher redeemed by this usage (hub ADR 0038); its product must match `allyProductUuid`. */
+  benefitGrantUuid?: string
 }
 
 /** Only REGISTERED usages can be rated (reversed / disputed ones answer 422). */

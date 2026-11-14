@@ -270,6 +270,11 @@ export const PERMISSIONS = [
   'PROMOTION_UPDATE',
   'PROMOTION_DELETE',
   'PROMOTION_ASSIGN',
+  // Ally portal: campaigns open to partnership and the ally's own benefits in them (hub ADR 0038).
+  'ALLY_CAMPAIGN_VIEW',
+  'ALLY_CAMPAIGN_PROMOTION_CREATE',
+  'ALLY_CAMPAIGN_PROMOTION_UPDATE',
+  'ALLY_CAMPAIGN_PROMOTION_DELETE',
 
   // COMMISSIONS
   'COMMISSION_VIEW_ALL',

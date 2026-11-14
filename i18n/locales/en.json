@@ -894,6 +894,10 @@
       "captureAlly": {
         "label": "Capture an ally",
         "description": "Register a business or professional as an ally from your device."
+      },
+      "allyCampaigns": {
+        "label": "Campaigns",
+        "description": "Campaigns where you can offer your own benefits."
       }
     },
     "other": {
@@ -3574,7 +3578,11 @@
         "copayCurrency": "Currency",
         "notes": "Notes",
         "consumer": "Who is consuming?",
-        "consumerHelp": "The holder or one of the beneficiaries on their plan, so each person sees their own usage."
+        "consumerHelp": "The holder or one of the beneficiaries on their plan, so each person sees their own usage.",
+        "grant": "Campaign benefit",
+        "grantHelp": "Optional. Pick the voucher the member is redeeming.",
+        "grantSelectedHelp": "The product is fixed by the benefit.",
+        "noGrant": "No campaign benefit"
       },
       "holder": "Holder"
     },
@@ -3600,6 +3608,11 @@
       "noCamera": "No camera was found.",
       "failed": "The camera could not be started.",
       "fallback": "Type the affiliate's ID number in the search field."
+    },
+    "grants": {
+      "title": "Campaign benefits available",
+      "remaining": "{n} of {total} available",
+      "expires": "expires on {date}"
     }
   },
   "promoters": {
@@ -4641,7 +4654,12 @@
       "usageWindowHelp": "Until when the promotion can be used once confirmed.",
       "usageWindowDays": "Days of use from confirmation",
       "usageWindowDaysRequired": "Enter the days (a whole number greater than 0)",
-      "usageWindowDaysCount": "{n} day(s) from confirmation"
+      "usageWindowDaysCount": "{n} day(s) from confirmation",
+      "ally": "Exclusive ally",
+      "allyHelp": "Optional. If you pick an ally, every benefit of the campaign belongs to that ally. It can only change while the campaign has no promotions.",
+      "anyAlly": "Any ally",
+      "allowsAllyPartnership": "Allows partnership",
+      "allowsAllyPartnershipHelp": "While the campaign is active, allies can add their own benefits from their portal."
     },
     "detail": {
       "generalData": "General data",
@@ -4667,7 +4685,8 @@
         "rules": "Commission rules",
         "transactions": "Transactions",
         "exceptions": "Exceptions",
-        "promotions": "Promotions"
+        "promotions": "Promotions",
+        "allyBenefits": "Ally benefits"
       },
       "seoPage": "Campaign detail",
       "notFoundTitle": "Campaign not found",
@@ -4725,7 +4744,8 @@
         "transactionCount": "Transactions",
         "amountAchievedPct": "Amount target %",
         "countAchievedPct": "Count target %"
-      }
+      },
+      "partnershipOpen": "Open to partnership"
     },
     "exceptions": {
       "addTitle": "Add to campaign",
@@ -4818,6 +4838,19 @@
       "released": "Released",
       "promotion": "Promotion",
       "max": "Own quota"
+    },
+    "allyBenefits": {
+      "title": "Ally benefits",
+      "hint": "Vouchers granted per ally and promotion, to reconcile with each ally what was redeemed.",
+      "ally": "Ally",
+      "promotion": "Promotion",
+      "granted": "Granted",
+      "available": "Available",
+      "redeemed": "Redeemed",
+      "redeemedUnits": "Units redeemed",
+      "expired": "Expired",
+      "canceled": "Canceled",
+      "empty": "This campaign has not granted ally benefits yet."
     }
   },
   "commissionRules": {
@@ -5854,7 +5887,15 @@
       "discountType": "Discount type",
       "discountAmount": "Discount amount",
       "discountCurrency": "Discount currency",
-      "ownQuota": "Own quota"
+      "ownQuota": "Own quota",
+      "benefitKind": "Benefit kind",
+      "ally": "Ally",
+      "allyProduct": "Ally product or service",
+      "benefitType": "Benefit value",
+      "benefitPct": "Discount at the ally (%)",
+      "benefitAmount": "Discount amount at the ally",
+      "benefitCurrency": "Discount currency",
+      "benefitQuantity": "Quantity per member"
     },
     "form": {
       "createTitle": "New promotion",
@@ -5872,7 +5913,11 @@
       "amountHelp": "Converted to the charge currency at the payment date rate and never exceeds the amount due.",
       "ownQuotaCheck": "This promotion has its own quota",
       "ownQuotaHelp": "Without its own quota, it only consumes the campaign quota.",
-      "ownQuotaRequired": "Enter its own quota (a whole number greater than 0)"
+      "ownQuotaRequired": "Enter its own quota (a whole number greater than 0)",
+      "allyLockedHelp": "The campaign is exclusive to this ally.",
+      "pickAllyFirst": "Pick the ally first",
+      "quantityMin": "Enter a whole quantity greater than 0",
+      "quantityHelp": "How many times each member can redeem it."
     },
     "membership": {
       "promotion": "Promotion",
@@ -5895,7 +5940,10 @@
       "cancelButton": "Cancel promotion",
       "canceledToast": "Promotion canceled",
       "confirmBy": "confirm by {date}",
-      "usableUntil": "valid until {date}"
+      "usableUntil": "valid until {date}",
+      "allyBenefits": "Ally benefits",
+      "allyBenefitsHelp": "Optional. You can pick several, besides the discount promotion.",
+      "noAllyBenefits": "No ally benefits"
     },
     "portal": {
       "title": "Your promotion: {name}",
@@ -5917,6 +5965,33 @@
       "CONFIRMED": "Slot confirmed",
       "EXPIRED": "Slot expired",
       "RELEASED": "Slot released"
+    },
+    "proposedByAlly": "Proposed by the ally",
+    "benefitKind": {
+      "DISCOUNT": "Discount",
+      "ALLY_BENEFIT": "Ally benefit"
+    },
+    "benefitKindHelp": {
+      "DISCOUNT": "Lowers the member's enrollment or monthly fees.",
+      "ALLY_BENEFIT": "Gives the member a voucher to redeem at an ally: a product or service free or discounted."
+    },
+    "benefitType": {
+      "FREE": "Free",
+      "PERCENTAGE": "Percentage",
+      "FLAT": "Fixed amount"
+    },
+    "grants": {
+      "title": "My benefits",
+      "hint": "Campaign vouchers you can redeem at allies. Show your card when using them.",
+      "expires": "Expires on {date}",
+      "redeemedOn": "Redeemed on {date}",
+      "remaining": "{n} of {total} left",
+      "status": {
+        "AVAILABLE": "Available",
+        "REDEEMED": "Redeemed",
+        "EXPIRED": "Expired",
+        "CANCELED": "Canceled"
+      }
     }
   },
   "profilePhoto": {
@@ -6901,6 +6976,27 @@
     "filters": {
       "dateFrom": "Submitted from",
       "dateTo": "Submitted to"
+    }
+  },
+  "allyCampaigns": {
+    "title": "Campaigns",
+    "subtitle": "Active campaigns that accept allies. Add your own benefits to attract members.",
+    "emptyTitle": "No campaigns open to partnership",
+    "emptyBody": "When a campaign accepts allies, it will show up here.",
+    "exclusive": "Exclusive to you",
+    "slots": "{free} of {max} slots free",
+    "addBenefit": "Add benefit",
+    "myBenefits": "My benefits",
+    "benefit": "Benefit",
+    "noBenefits": "You have no benefits in this campaign yet.",
+    "savedToast": "Benefit saved",
+    "deletedToast": "Benefit deleted",
+    "deleteTitle": "Delete benefit",
+    "deleteConfirm": "The benefit {name} will be removed from the campaign.",
+    "form": {
+      "createTitle": "New benefit",
+      "editTitle": "Edit benefit",
+      "noProducts": "You have no approved offers"
     }
   }
 }

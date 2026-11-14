@@ -1,6 +1,7 @@
 import type { Option } from '~/types/options'
 import type { Page } from '~/types/admin'
 import type {
+  CampaignAllyBenefitRowDto,
   CampaignAudienceDto,
   CampaignCloseRequest,
   CampaignDto,
@@ -105,6 +106,10 @@ export const useCampaigns = () => {
   const quota = (uuid: string) =>
     useApi<CampaignQuotaDto>(`/v1/admin/campaigns/${uuid}/quota`)
 
+  /** Ally-benefit vouchers per ally and promotion, for reconciliation (CAMPAIGN_VIEW_ALL). */
+  const allyBenefits = (uuid: string) =>
+    useApi<CampaignAllyBenefitRowDto[]>(`/v1/admin/campaigns/${uuid}/ally-benefits`)
+
   /** JSON effectiveness summary (GET /{uuid}/effectiveness) — NOT a file download. */
   const getEffectiveness = (uuid: string) =>
     useApi<CampaignEffectivenessDto>(`/v1/admin/campaigns/${uuid}/effectiveness`)
@@ -154,6 +159,7 @@ export const useCampaigns = () => {
     close,
     reopen,
     quota,
+    allyBenefits,
     getEffectiveness,
     audience,
     addAudienceMember,
