@@ -50,19 +50,27 @@ export const usePromoters = () => {
       },
     })
 
-  /** Lightweight projection for selects/typeahead (`GET /v1/admin/advisors/options`), not paginated. */
-  const options = (params: { q?: string, limit?: number, currentValues?: string[] } = {}) =>
+  /**
+   * Lightweight projection for selects/typeahead (`GET /v1/admin/advisors/options`), not paginated.
+   * The backend leaves the INSTITUCION system advisor out (it is not a person to assign);
+   * `includeSystem` brings it back for filters.
+   */
+  const options = (params: { q?: string, limit?: number, currentValues?: string[], includeSystem?: boolean } = {}) =>
     useApi<Option[]>('/v1/admin/advisors/options', {
       query: {
         ...(params.q ? { q: params.q } : {}),
         limit: params.limit ?? DROPDOWN_PAGE_SIZE,
         ...(params.currentValues?.length ? { currentValues: params.currentValues } : {}),
+        ...(params.includeSystem ? { includeSystem: 'true' } : {}),
       },
     })
 
-  /** Server-side search function for `CommonEntityReferenceSelect :search` (debounced by the select itself). */
+  /**
+   * Server-side search for the "Asesor" filters of lists and reports (`CommonEntityReferenceSelect :search`,
+   * debounced by the select itself). Includes the system advisor: filtering by it finds what nobody brought in.
+   */
   const searchOptions = async (q: string): Promise<SelectItem[]> => {
-    const res = await options({ ...(q ? { q } : {}), limit: DROPDOWN_PAGE_SIZE })
+    const res = await options({ ...(q ? { q } : {}), limit: DROPDOWN_PAGE_SIZE, includeSystem: true })
     return res.map(o => ({ label: o.label, value: o.uuid }))
   }
 

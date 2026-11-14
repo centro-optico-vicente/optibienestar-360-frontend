@@ -334,6 +334,7 @@ Todo dropdown del sistema debe poder **filtrarse escribiendo** y **limpiarse** (
 
 - Todo dropdown se alimenta del `/options` de su entidad (sesión válida; no depende de `*_VIEW_ALL`), nunca del listado completo. Tope `DROPDOWN_PAGE_SIZE` (50), distinto del tamaño de página de las tablas.
 - La búsqueda va siempre al servidor con `q` (insensible a mayúsculas y diacríticos); el frontend no filtra localmente. Usar `useLazyOptions`, `useCatalogOptions` o `CommonEntityReferenceSelect :lazy`.
+- **Asesor de sistema (INSTITUCION)**: `/v1/admin/advisors/options` lo deja fuera por defecto (no es una persona que se asigne: asesor de un aliado, destino de una reasignación). Los filtros de listados y reportes lo piden con `includeSystem: true` (`usePromoters().searchOptions`), porque filtrar por él muestra lo que nadie trajo. Supervisores elegibles nunca lo incluyen.
 
 **Pendientes (a 2026-11-13):**
 
@@ -343,7 +344,6 @@ Todo dropdown del sistema debe poder **filtrarse escribiendo** y **limpiarse** (
   - `/v1/public/payment-methods` (registro público) no se toca.
 - **Selects sin búsqueda en servidor**: árbol de profesiones (`allies/[uuid]`), `PromoterChangeRankModal` (rangos y supervisores), padres en `catalogs/[resource]`, `BenefitUsageModal` (monedas `/v1/me/currencies` y categorías públicas), tipos de documento estáticos (`useDocumentTypes`).
 - **Fase 2**: permisos `<X>_LOOKUP` para entidades sensibles (pagos, asesores, usuarios, aliados, afiliados, consumos).
-- **Backend**: `/options` de `marital-statuses`, `professions` y `ally-types` aún muestra solo el nombre; `/v1/me/allies/options` existe pero ningún portal lo consume; la lista de asesores ya no excluye al asesor de sistema (INSTITUCION).
 
 ## Código en selects
 
