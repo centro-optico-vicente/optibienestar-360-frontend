@@ -236,6 +236,33 @@ jobs:
               || { echo "::error::/$path must not redirect"; exit 1; }
           done
 
+      # Same-origin API proxy (ADR 0006 §4): a second container proxies /api/* to
+      # the first one over a user-defined network, so Docker's embedded DNS
+      # (which the generated `resolver` points at) resolves `spa`. Proves Nginx
+      # accepts the rendered api.conf, strips the /api prefix and forwards.
+      - name: Smoke test — API proxy (API_PROXY_UPSTREAM)
+        run: |
+          docker network create spa-ci
+          docker network connect spa-ci spa
+          docker run -d --name spa-proxy --network spa-ci \
+            -e NUXT_PUBLIC_API_BASE_URL=https://api.example.test \
+            -e API_PROXY_UPSTREAM=http://spa:80/ \
+            -p 18081:80 optibienestar-360-frontend:ci-${{ matrix.flavor }}
+          for i in {1..15}; do
+            if curl -sf http://127.0.0.1:18081/ > /dev/null; then break; fi
+            sleep 1
+          done
+          docker logs spa-proxy 2>&1 | grep -F 'api-proxy' \
+            || { echo "::error::entrypoint did not render the API proxy"; docker logs spa-proxy; exit 1; }
+          curl -sf http://127.0.0.1:18081/config.js | grep -qF 'API_BASE_URL: "/api"' \
+            || { echo "::error::/config.js must point the SPA at /api when API_PROXY_UPSTREAM is set"; exit 1; }
+          proxied=$(curl -sf http://127.0.0.1:18081/api/config.js)
+          echo "$proxied"
+          echo "$proxied" | grep -qF 'https://api.example.test' \
+            || { echo "::error::/api/config.js was not proxied to the upstream's /config.js"; exit 1; }
+
       - name: Stop container
         if: always()
-        run: docker rm -f spa || true
+        run: |
+          docker rm -f spa spa-proxy || true
+          docker network rm spa-ci || true

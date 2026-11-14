@@ -46,6 +46,7 @@ env vars in production. The backend API base URL is resolved in two ways:
 | Variable | Default | Description |
 |---|---|---|
 | `NUXT_PUBLIC_API_BASE_URL` | `https://api.centroopticovicente.com` (`.env.example`) · `https://api-test.centroopticovicente.com` (Docker image) | Base URL of the backend REST API (no trailing slash). Override per environment with `-e NUXT_PUBLIC_API_BASE_URL=...`. The image default points to **test** so an unconfigured container never hits production. |
+| `API_PROXY_UPSTREAM` | *(empty: no proxy)* | Docker image only. When set (`scheme://host[:port]`, no path — e.g. `http://optibienestar_backend:8080` on the Docker network), Nginx proxies `/api/*` to it and the SPA calls `/api`, which overrides `NUXT_PUBLIC_API_BASE_URL`. Same origin removes the CORS preflight before each request. See [ADR 0006](.ai/decisions/loc-0006-ci-cd-docker-runtime-config.md) §4. |
 
 ## Docker image
 
