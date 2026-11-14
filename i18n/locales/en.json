@@ -2439,7 +2439,21 @@
         "description": "Log that you reminded {name} to pay their Maintenance Fee.",
         "noteHelp": "Optional: channel used, affiliate's answer, etc.",
         "submit": "Log reminder",
-        "savedToast": "Reminder logged"
+        "savedToast": "Reminder logged",
+        "whatsapp": {
+          "send": "Send by WhatsApp",
+          "preview": "Message to send by WhatsApp",
+          "noPhone": "The affiliate has no phone on file: WhatsApp will ask you to pick the contact.",
+          "greeting": "Hi {name}, this is a reminder to pay your Maintenance Fee",
+          "feeWithPlan": "for the {plan} plan: {amount}.",
+          "fee": "of {amount}.",
+          "feeNoAmount": "for your plan.",
+          "overdue": "It is {days} days overdue (due on {date}).",
+          "due": "It is due on {date}.",
+          "inscription": "Your enrollment fee is also pending.",
+          "report": "You can report your payment at {url}",
+          "signature": "— {advisor}, your advisor."
+        }
       },
       "promise": {
         "action": "Log payment promise",

@@ -2439,7 +2439,21 @@
         "description": "Registra que le recordaste a {name} el pago de su Cuota de Mantenimiento.",
         "noteHelp": "Opcional: canal usado, respuesta del afiliado, etc.",
         "submit": "Registrar recordatorio",
-        "savedToast": "Recordatorio registrado"
+        "savedToast": "Recordatorio registrado",
+        "whatsapp": {
+          "send": "Enviar por WhatsApp",
+          "preview": "Mensaje que se enviará por WhatsApp",
+          "noPhone": "El afiliado no tiene teléfono registrado: WhatsApp te pedirá elegir el contacto.",
+          "greeting": "Hola {name}, te recordamos el pago de tu Cuota de Mantenimiento",
+          "feeWithPlan": "del plan {plan}: {amount}.",
+          "fee": "de {amount}.",
+          "feeNoAmount": "de tu plan.",
+          "overdue": "Tiene {days} días de atraso (venció el {date}).",
+          "due": "Vence el {date}.",
+          "inscription": "También tienes pendiente la inscripción.",
+          "report": "Puedes reportar tu pago en {url}",
+          "signature": "— {advisor}, tu asesor."
+        }
       },
       "promise": {
         "action": "Registrar promesa de pago",

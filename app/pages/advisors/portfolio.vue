@@ -187,11 +187,39 @@ function openReminder(row: PromoterMemberRow) {
   reminderOpen.value = true
 }
 
-async function confirmReminder() {
+// Billing notice by WhatsApp: a short message built from the row, opened in wa.me (free) and logged as a reminder.
+const reminderMessage = computed(() => {
+  const row = reminderTarget.value
+  if (!row) return ''
+  const k = 'promoterSelf.portfolio.reminder.whatsapp'
+  const date = row.nextDueDate_Display ?? (row.nextDueDate ? formatDate(row.nextDueDate, 'short') : null)
+  const days = row.daysOverdue ?? 0
+  const parts: string[] = [t(`${k}.greeting`, { name: row.memberName })]
+  if (row.monthlyFee != null && row.planName) parts.push(t(`${k}.feeWithPlan`, { plan: row.planName, amount: money(row.monthlyFee) }))
+  else if (row.monthlyFee != null) parts.push(t(`${k}.fee`, { amount: money(row.monthlyFee) }))
+  else parts.push(t(`${k}.feeNoAmount`))
+  if (date && days > 0) parts.push(t(`${k}.overdue`, { days, date }))
+  else if (date) parts.push(t(`${k}.due`, { date }))
+  if (row.inscriptionDue) parts.push(t(`${k}.inscription`))
+  parts.push(t(`${k}.report`, { url: `${window.location.origin}/members/payments` }))
+  const advisor = dashboard.value?.promoterName
+  if (advisor) parts.push(t(`${k}.signature`, { advisor }))
+  return parts.join(' ')
+})
+
+function sendReminderByWhatsapp() {
+  if (!reminderTarget.value || reminderNote.value.length > NOTE_MAX) return
+  // Open synchronously inside the click, or the popup blocker stops it.
+  window.open(whatsappUrl(reminderMessage.value, reminderTarget.value.phone), '_blank', 'noopener')
+  const extra = reminderNote.value.trim()
+  confirmReminder(extra ? `WhatsApp — ${extra}` : 'WhatsApp')
+}
+
+async function confirmReminder(noteOverride?: string) {
   if (!reminderTarget.value || reminderNote.value.length > NOTE_MAX) return
   reminderSaving.value = true
   try {
-    const note = reminderNote.value.trim()
+    const note = (noteOverride ?? reminderNote.value).trim().slice(0, NOTE_MAX)
     await promoters.registerReminder(reminderTarget.value.memberUuid, note ? { note } : {})
     toast.add({ title: t('promoterSelf.portfolio.reminder.savedToast'), color: 'success', icon: 'i-lucide-check-circle' })
     reminderOpen.value = false
@@ -524,12 +552,22 @@ function contactTypeIcon(type: PromoterContactType): string {
         >
           <UTextarea v-model="reminderNote" :rows="3" class="w-full" />
         </UFormField>
-        <div class="flex items-center justify-end gap-3 pt-5">
+        <div class="mt-4 rounded-lg border border-green-200 bg-green-50 p-3">
+          <p class="text-xs font-semibold text-green-800 mb-1">{{ t('promoterSelf.portfolio.reminder.whatsapp.preview') }}</p>
+          <p class="text-sm text-prohealth-800 whitespace-pre-line">{{ reminderMessage }}</p>
+          <p v-if="!whatsappPhone(reminderTarget?.phone)" class="text-xs text-prohealth-500 mt-2">
+            {{ t('promoterSelf.portfolio.reminder.whatsapp.noPhone') }}
+          </p>
+        </div>
+        <div class="flex flex-wrap items-center justify-end gap-3 pt-5">
           <UButton color="neutral" variant="ghost" :disabled="reminderSaving" @click="reminderOpen = false">
             {{ t('common.cancel') }}
           </UButton>
-          <UButton color="primary" :loading="reminderSaving" :disabled="reminderNote.length > NOTE_MAX" icon="i-lucide-bell-ring" @click="confirmReminder">
+          <UButton color="neutral" variant="outline" :loading="reminderSaving" :disabled="reminderNote.length > NOTE_MAX" icon="i-lucide-bell-ring" @click="confirmReminder()">
             {{ t('promoterSelf.portfolio.reminder.submit') }}
+          </UButton>
+          <UButton color="success" :loading="reminderSaving" :disabled="reminderNote.length > NOTE_MAX" icon="i-simple-icons-whatsapp" @click="sendReminderByWhatsapp">
+            {{ t('promoterSelf.portfolio.reminder.whatsapp.send') }}
           </UButton>
         </div>
       </template>
