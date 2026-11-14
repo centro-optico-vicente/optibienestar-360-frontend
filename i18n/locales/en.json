@@ -3972,6 +3972,7 @@
       "button": "Preview",
       "title": "Distribution preview",
       "notice": "{total} member(s) will move as follows:",
+      "untouched": "{count} selected member(s) stay where they are: the counts add up to less than the selection (members are dealt in alphabetical order).",
       "columns": {
         "advisor": "Advisor",
         "count": "Members"

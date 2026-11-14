@@ -290,6 +290,12 @@ const pendingBody = ref<DistributeRequest | null>(null)
 const previewing = ref(false)
 const distributing = ref(false)
 
+// The backend's `total` counts every dealt member, including the `skipped` ones already on their
+// advisor; what really moves is the difference. In COUNT mode the members past the sum of the
+// counts are not dealt at all: they stay where they are.
+const previewMoved = computed(() => (preview.value ? preview.value.total - preview.value.skipped : 0))
+const previewUntouched = computed(() => (preview.value ? Math.max(selectedCount.value - preview.value.total, 0) : 0))
+
 function buildBody(v: { targets: TargetRow[], mode: DistributionMode, reason: string }): DistributeRequest {
   const selection: Pick<DistributeRequest, 'memberUuids' | 'filter' | 'excludeMemberUuids'> = allMatching.value
     ? { filter: currentFilter(), ...(picked.value.size ? { excludeMemberUuids: [...picked.value] } : {}) }
@@ -334,7 +340,10 @@ async function confirmDistribute() {
   try {
     const res = await members.distribute(pendingBody.value)
     toast.add({
-      title: t('portfolioDistribution.doneToast', { total: res.total, targets: res.targets.length }),
+      title: t('portfolioDistribution.doneToast', {
+        total: res.total - res.skipped,
+        targets: res.targets.filter(target => target.count > 0).length,
+      }),
       description: res.skipped ? t('portfolioDistribution.doneSkipped', { skipped: res.skipped }) : undefined,
       color: 'success',
       icon: 'i-lucide-check-circle',
@@ -652,7 +661,10 @@ onMounted(async () => {
       <template #body>
         <div v-if="preview" class="space-y-4">
           <p class="text-sm text-prohealth-700">
-            {{ t('portfolioDistribution.preview.notice', { total: preview.total }) }}
+            {{ t('portfolioDistribution.preview.notice', { total: previewMoved }) }}
+          </p>
+          <p v-if="previewUntouched" class="text-sm text-prohealth-700/80">
+            {{ t('portfolioDistribution.preview.untouched', { count: previewUntouched }) }}
           </p>
           <p v-if="preview.skipped" class="text-sm text-amber-700">
             {{ t('portfolioDistribution.doneSkipped', { skipped: preview.skipped }) }}
@@ -679,7 +691,7 @@ onMounted(async () => {
               color="primary"
               icon="i-lucide-check"
               :loading="distributing"
-              :disabled="preview.total === 0"
+              :disabled="previewMoved === 0"
               @click="confirmDistribute"
             >
               {{ t('portfolioDistribution.preview.confirm') }}
