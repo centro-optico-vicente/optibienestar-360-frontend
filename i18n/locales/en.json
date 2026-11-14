@@ -441,7 +441,9 @@
           "delete": {
             "title": "Remove user from role",
             "confirm": "Are you sure you want to remove {name} from this role?"
-          }
+          },
+          "defaultTooltip": "Signs in with this role",
+          "makeDefaultTooltip": "Make this their sign-in role"
         }
       }
     },

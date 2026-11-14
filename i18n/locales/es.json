@@ -441,7 +441,9 @@
           "delete": {
             "title": "Quitar usuario del rol",
             "confirm": "¿Seguro que deseas quitar a {name} de este rol?"
-          }
+          },
+          "defaultTooltip": "Inicia sesión con este rol",
+          "makeDefaultTooltip": "Que inicie sesión con este rol"
         }
       }
     },
