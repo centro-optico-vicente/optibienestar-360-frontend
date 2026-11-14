@@ -53,15 +53,17 @@ export const usePromoters = () => {
   /**
    * Lightweight projection for selects/typeahead (`GET /v1/admin/advisors/options`), not paginated.
    * The backend leaves the INSTITUCION system advisor out (it is not a person to assign);
-   * `includeSystem` brings it back for filters.
+   * `includeSystem` brings it back for filters; `includeInactive` lists deactivated advisors too
+   * (origin of a portfolio distribution: an advisor who left still has members to hand over).
    */
-  const options = (params: { q?: string, limit?: number, currentValues?: string[], includeSystem?: boolean } = {}) =>
+  const options = (params: { q?: string, limit?: number, currentValues?: string[], includeSystem?: boolean, includeInactive?: boolean } = {}) =>
     useApi<Option[]>('/v1/admin/advisors/options', {
       query: {
         ...(params.q ? { q: params.q } : {}),
         limit: params.limit ?? DROPDOWN_PAGE_SIZE,
         ...(params.currentValues?.length ? { currentValues: params.currentValues } : {}),
         ...(params.includeSystem ? { includeSystem: 'true' } : {}),
+        ...(params.includeInactive ? { includeInactive: 'true' } : {}),
       },
     })
 

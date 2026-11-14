@@ -180,6 +180,16 @@ Ver detalle completo en [backend `05-roles-permissions.md`](https://github.com/f
 | AFILIADO | MEMBER_VIEW_OWN + MEMBERSHIP_VIEW_OWN + PAYMENT_VIEW_OWN |
 | PROMOTOR | MEMBER_CREATE + COMMISSION_VIEW_OWN + REFERRAL_CODE_VIEW_OWN |
 
+## Asignación de asesor (cartera)
+
+| Permiso | Pantalla / acción |
+|---|---|
+| `MEMBER_ASSIGN_PROMOTER` | `/dashboard/advisors/portfolio-distribution` (menú y middleware `can`), botón «Distribuir cartera» del listado de afiliados y de la pestaña Cartera del asesor, reasignación desde el detalle del afiliado |
+| `ALLY_ASSIGN_PROMOTER` | Selección de filas + «Asignar asesor» en bloque en `/dashboard/allies` (`POST /v1/admin/allies/advisor/bulk-assign`, ≤ 500) y el cambio individual en el detalle del aliado |
+| `AFFILIATION_REQUEST_ASSIGN_PROMOTER` | «Cambiar asesor» en `/dashboard/affiliation-requests/{uuid}` mientras la solicitud no es final (`PUT .../advisor`; aprobada o rechazada → 422) |
+
+Los tres están en `PERMISSIONS` (`app/types/permissions.ts`).
+
 ## Cambios de permisos en vivo
 
 Cuando admin cambia el rol de un usuario:

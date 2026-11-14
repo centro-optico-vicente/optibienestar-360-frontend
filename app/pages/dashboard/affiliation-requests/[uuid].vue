@@ -212,6 +212,47 @@ async function confirmReject() {
   finally { rejecting.value = false }
 }
 
+// ---- Change advisor (AFFILIATION_REQUEST_ASSIGN_PROMOTER), only while the request is not final ----
+const promotersApi = usePromoters()
+const isFinal = computed(() => request.value?.status === 'APPROVED' || request.value?.status === 'REJECTED')
+const canAssignAdvisor = computed(() => can('AFFILIATION_REQUEST_ASSIGN_PROMOTER') && !isFinal.value)
+const advisorOpen = ref(false)
+const advisorTarget = ref<string | undefined>(undefined)
+const advisorReason = ref('')
+const advisorTouched = ref(false)
+const assigningAdvisor = ref(false)
+const advisorError = computed(() =>
+  advisorTouched.value && !advisorTarget.value ? t('validation.required') : undefined)
+
+/** Active, non-system advisors (the `/options` default) other than the current one, searched on the server. */
+async function searchAdvisorTargets(q: string) {
+  const res = await promotersApi.options({ ...(q ? { q } : {}) })
+  return res
+    .filter(o => o.active && o.uuid !== request.value?.advisor_Uuid)
+    .map(o => ({ label: o.label, value: o.uuid }))
+}
+
+function openAdvisor() {
+  advisorTarget.value = undefined
+  advisorReason.value = ''
+  advisorTouched.value = false
+  advisorOpen.value = true
+}
+
+async function confirmAdvisor() {
+  advisorTouched.value = true
+  if (!request.value || !advisorTarget.value) return
+  assigningAdvisor.value = true
+  try {
+    // Only the advisor changes: keep the unsaved edits of the data form (no resetForm()).
+    request.value = await api.assignAdvisor(request.value.uuid, advisorTarget.value, advisorReason.value)
+    advisorOpen.value = false
+    toast.add({ title: t('affiliationRequests.advisor.savedToast'), color: 'success', icon: 'i-lucide-check-circle' })
+  }
+  catch { /* toast handled by useApi (422 once final) */ }
+  finally { assigningAdvisor.value = false }
+}
+
 // ---- Reported inscription payment ----
 const paymentRows = computed(() => {
   const p = request.value?.payment
@@ -289,15 +330,18 @@ function statusLabel(r: AffiliationRequestDetailDto): string {
               {{ t('affiliationRequests.detail.reviewedBy', { name: request.reviewedBy_Display ?? t('common.empty'), date: request.reviewedAt_Display ?? formatDate(request.reviewedAt, 'datetime') }) }}
             </p>
           </div>
-          <div v-if="isPending" class="flex items-center gap-2">
-            <UButton v-can="'AFFILIATION_REQUEST_REJECT'" color="error" variant="outline" icon="i-lucide-x" @click="openReject">
+          <div v-if="isPending || canAssignAdvisor" class="flex items-center gap-2">
+            <UButton v-if="canAssignAdvisor" color="neutral" variant="outline" icon="i-lucide-user-round-cog" @click="openAdvisor">
+              {{ t('affiliationRequests.advisor.change') }}
+            </UButton>
+            <UButton v-if="isPending" v-can="'AFFILIATION_REQUEST_REJECT'" color="error" variant="outline" icon="i-lucide-x" @click="openReject">
               {{ t('affiliationRequests.detail.reject') }}
             </UButton>
-            <UButton v-can="'AFFILIATION_REQUEST_APPROVE'" color="success" icon="i-lucide-check" :disabled="dirty" @click="openApprove">
+            <UButton v-if="isPending" v-can="'AFFILIATION_REQUEST_APPROVE'" color="success" icon="i-lucide-check" :disabled="dirty" @click="openApprove">
               {{ t('affiliationRequests.detail.approve') }}
             </UButton>
           </div>
-          <div v-else-if="request.status === 'APPROVED' && request.member_Uuid">
+          <div v-if="request.status === 'APPROVED' && request.member_Uuid">
             <UButton v-can="'MEMBER_VIEW_ALL'" color="neutral" variant="outline" icon="i-lucide-user" :to="`/dashboard/members/${request.member_Uuid}`">
               {{ t('affiliationRequests.detail.viewMember') }}
             </UButton>
@@ -469,6 +513,32 @@ function statusLabel(r: AffiliationRequestDetailDto): string {
           <div class="flex items-center justify-end gap-3 pt-1">
             <UButton color="neutral" variant="ghost" :disabled="approving" @click="approveOpen = false">{{ t('common.cancel') }}</UButton>
             <UButton color="success" icon="i-lucide-check" :loading="approving" @click="confirmApprove">{{ t('affiliationRequests.detail.approve') }}</UButton>
+          </div>
+        </div>
+      </template>
+    </UModal>
+
+    <UModal v-model:open="advisorOpen" :title="t('affiliationRequests.advisor.modalTitle')">
+      <template #body>
+        <div class="space-y-4">
+          <p class="text-sm text-prohealth-700">
+            {{ t('affiliationRequests.advisor.notice', { name: request?.advisor_Display ?? t('portfolioDistribution.unassigned') }) }}
+          </p>
+          <UFormField :label="t('affiliationRequests.advisor.target')" required :error="advisorError">
+            <CommonEntityReferenceSelect
+              v-model="advisorTarget"
+              :search="searchAdvisorTargets"
+              entity="promoter"
+              :placeholder="t('affiliationRequests.advisor.targetPlaceholder')"
+              class="w-full"
+            />
+          </UFormField>
+          <UFormField :label="t('affiliationRequests.advisor.reason')">
+            <UTextarea v-model="advisorReason" :rows="2" :maxlength="500" class="w-full" />
+          </UFormField>
+          <div class="flex items-center justify-end gap-3 pt-1">
+            <UButton color="neutral" variant="ghost" :disabled="assigningAdvisor" @click="advisorOpen = false">{{ t('common.cancel') }}</UButton>
+            <UButton color="primary" icon="i-lucide-check" :loading="assigningAdvisor" @click="confirmAdvisor">{{ t('common.save') }}</UButton>
           </div>
         </div>
       </template>

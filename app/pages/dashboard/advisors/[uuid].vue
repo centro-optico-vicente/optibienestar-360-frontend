@@ -306,6 +306,15 @@ function openReassign(mode: 'selected' | 'supervisor') {
   reassignOpen.value = true
 }
 
+// "Distribuir cartera": the distribution page with this advisor as origin (and the ticked members,
+// when the list fits in a URL) — splits the portfolio among several advisors at once.
+const DISTRIBUTE_LINK_MAX_MEMBERS = 50
+const distributeLink = computed(() => {
+  const base = `/dashboard/advisors/portfolio-distribution?source=ADVISOR&advisor=${promoterUuid}`
+  const picked = [...selectedMembers.value]
+  return picked.length > 0 && picked.length <= DISTRIBUTE_LINK_MAX_MEMBERS ? `${base}&members=${picked.join(',')}` : base
+})
+
 async function onReassigned() {
   selectedMembers.value = new Set()
   await loadPortfolio()
@@ -608,6 +617,15 @@ async function loadCommissionsSummary() {
                 @click="openReassign('supervisor')"
               >
                 {{ t('promoters.portfolio.toSupervisor') }}
+              </UButton>
+              <UButton
+                size="xs"
+                color="neutral"
+                variant="soft"
+                icon="i-lucide-split"
+                :to="distributeLink"
+              >
+                {{ t('portfolioDistribution.action') }}
               </UButton>
             </template>
             <UButton

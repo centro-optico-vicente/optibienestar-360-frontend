@@ -62,6 +62,16 @@ export const useAffiliationRequests = () => {
   const paymentSupportUrl = (uuid: string) =>
     useApi<PaymentSupportUrlDto>(`/v1/admin/affiliation-requests/${uuid}/payment-support`)
 
+  /**
+   * Changes the advisor of a request that is not final yet (AFFILIATION_REQUEST_ASSIGN_PROMOTER;
+   * 422 once approved or rejected). The approved member keeps that advisor.
+   */
+  const assignAdvisor = (uuid: string, promoterUuid: string, reason?: string) =>
+    useApi<AffiliationRequestDetailDto>(`/v1/admin/affiliation-requests/${uuid}/advisor`, {
+      method: 'PUT',
+      body: { promoterUuid, reason: reason?.trim() || undefined },
+    })
+
   /** Advisor portal: the requests that came through the caller's own QR. */
   const mine = (params: { page?: number, size?: number, status?: AffiliationRequestStatus, q?: string, dateFrom?: string, dateTo?: string } = {}) =>
     useApi<Page<AffiliationRequestListItemDto>>('/v1/advisors/me/affiliation-requests', {
@@ -89,5 +99,5 @@ export const useAffiliationRequests = () => {
       body: { retain: retainIt, note: note?.trim() || undefined },
     })
 
-  return { list, get, update, approve, reject, paymentSupportUrl, mine, createAssisted, retain }
+  return { list, get, update, approve, reject, assignAdvisor, paymentSupportUrl, mine, createAssisted, retain }
 }

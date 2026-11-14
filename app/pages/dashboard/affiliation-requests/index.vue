@@ -5,6 +5,8 @@ import type { ListFilterField } from '~/utils/listFilters'
 import { countActiveFilters, emptyListFilters, listFilterQuery } from '~/utils/listFilters'
 import type { AffiliationRequestListItemDto, AffiliationRequestStatus } from '~/types/affiliationRequests'
 import { AFFILIATION_REQUEST_STATUSES, affiliationRequestStatusColor } from '~/types/affiliationRequests'
+import type { SelectItem } from '~/types/options'
+import { unassignedAdvisorItem, withUnassignedAdvisor } from '~/utils/advisorFilters'
 
 // Review queue of the public affiliation requests (backend V188,
 // GET /v1/admin/affiliation-requests). Defaults to PENDING, newest first.
@@ -53,9 +55,15 @@ const plans = useLazyOptions(async q =>
 const methods = useLazyOptions(async q =>
   (await methodsApi.options({ q })).map(m => ({ label: m.label, value: m.uuid })))
 
+// Advisor filter: "Sin asesor" first (sent as `unassigned=true`: no advisor or the INSTITUCION
+// system advisor), then the server search, which includes the system advisor.
+async function searchAdvisorFilter(q: string): Promise<SelectItem[]> {
+  return [unassignedAdvisorItem(t), ...await promotersApi.searchOptions(q)]
+}
+
 const filterFields = computed<ListFilterField[]>(() => [
   { key: 'planUuid', label: t('affiliationRequests.filters.plan'), icon: 'i-lucide-layers', lazy: plans },
-  { key: 'promoterUuid', label: t('affiliationRequests.filters.advisor'), icon: 'i-lucide-users', search: promotersApi.searchOptions },
+  { key: 'promoterUuid', label: t('affiliationRequests.filters.advisor'), icon: 'i-lucide-users', search: searchAdvisorFilter },
   { key: 'paymentMethodUuid', label: t('affiliationRequests.filters.paymentMethod'), icon: 'i-lucide-credit-card', lazy: methods },
   { key: 'dateFrom', toKey: 'dateTo', label: t('affiliationRequests.filters.dateFrom'), toLabel: t('affiliationRequests.filters.dateTo'), type: 'dateRange' },
 ])
@@ -71,7 +79,7 @@ async function load() {
       sort: sort.sortParam.value,
       q: search.value.trim() || undefined,
       status: status.value === 'ALL' ? undefined : status.value as AffiliationRequestStatus,
-      extra: listFilterQuery(masterFilters.value),
+      extra: withUnassignedAdvisor(listFilterQuery(masterFilters.value)),
     })
     items.value = res.content ?? []
     total.value = res.totalElements ?? 0

@@ -665,6 +665,10 @@
         "label": "Organigrama de asesores",
         "description": "Jerarquía de supervisión y cargos."
       },
+      "portfolioDistribution": {
+        "label": "Distribuir cartera",
+        "description": "Repartir afiliados sin asesor o la cartera de un asesor entre uno o varios asesores."
+      },
       "allies": {
         "label": "Aliados",
         "description": "Comercios y prestadores de la red."
@@ -2170,6 +2174,18 @@
       "modalHelp": "El asesor que trajo al aliado a OptiBienestar 360. El cambio queda en la bitácora del aliado.",
       "none": "Sin asesor",
       "savedToast": "Asesor actualizado"
+    },
+    "bulkAdvisor": {
+      "assign": "Asignar asesor ({count})",
+      "modalTitle": "Asignar asesor a aliados",
+      "notice": "Se asignará el asesor a {count} aliado(s) seleccionado(s).",
+      "placeholder": "Selecciona el asesor",
+      "confirm": "Asignar",
+      "maxWarning": "Puedes asignar hasta {max} aliados por vez; reduce la selección.",
+      "doneToast": "Asesor asignado a {total} aliado(s)",
+      "skipped": "{skipped} aliado(s) ya tenían ese asesor.",
+      "selectPage": "Seleccionar página",
+      "clearSelection": "Limpiar selección"
     },
     "filters": {
       "allyType": "Tipo de aliado",
@@ -3889,6 +3905,85 @@
         "accountNumber": "El número de cuenta debe tener exactamente 20 dígitos",
         "holderPair": "Indica tipo y número del titular, o deja ambos vacíos"
       }
+    }
+  },
+  "portfolioDistribution": {
+    "title": "Distribuir cartera",
+    "subtitle": "Reparte los afiliados sin asesor o la cartera de un asesor entre uno o varios asesores.",
+    "action": "Distribuir cartera",
+    "actionTooltip": "Repartir afiliados sin asesor o la cartera de un asesor entre varios asesores",
+    "unassigned": "Sin asesor",
+    "inactive": "inactivo",
+    "origin": {
+      "title": "1. Origen",
+      "unassigned": "Sin asesor",
+      "unassignedHelp": "Afiliados sin asesor o con el asesor de sistema (INSTITUCION).",
+      "advisor": "Un asesor",
+      "advisorHelp": "La cartera de un asesor, aunque esté inactivo.",
+      "advisorLabel": "Asesor de origen",
+      "advisorPlaceholder": "Selecciona el asesor de origen",
+      "pickAdvisor": "Selecciona el asesor de origen para ver su cartera."
+    },
+    "members": {
+      "title": "2. Afiliados",
+      "searchPlaceholder": "Buscar por nombre o documento",
+      "filters": {
+        "plan": "Plan",
+        "status": "Estado"
+      },
+      "columns": {
+        "member": "Afiliado",
+        "document": "Documento",
+        "plan": "Plan",
+        "status": "Estado",
+        "advisor": "Asesor actual",
+        "createdAt": "Creado"
+      },
+      "empty": "No hay afiliados para este origen y estos filtros.",
+      "selectPage": "Seleccionar página",
+      "selectedCount": "{count} afiliado(s) seleccionado(s)",
+      "selectAll": "Seleccionar los {total} resultados",
+      "allSelected": "Seleccionados los {count} resultados del filtro.",
+      "clearSelection": "Limpiar selección",
+      "paginationSummary": "{shown} de {total} afiliado(s)",
+      "maxWarning": "Puedes distribuir hasta {max} afiliados por vez; reduce la selección."
+    },
+    "targets": {
+      "title": "3. Destino",
+      "advisors": "Asesores destino",
+      "advisorsPlaceholder": "Selecciona uno o varios asesores",
+      "mode": "Forma de reparto",
+      "modes": {
+        "EQUAL": "Partes iguales",
+        "COUNT": "Por cantidad"
+      },
+      "modeHelp": {
+        "EQUAL": "Se reparten por turnos: la diferencia entre asesores es de un afiliado como máximo.",
+        "COUNT": "Indicas cuántos afiliados recibe cada asesor; la suma no puede superar la selección."
+      },
+      "count": "Cantidad",
+      "countsTotal": "Asignados {sum} de {selected} seleccionados",
+      "reason": "Motivo",
+      "reasonPlaceholder": "Ej. baja del asesor, rebalanceo de cartera, autoafiliados sin asesor"
+    },
+    "preview": {
+      "button": "Vista previa",
+      "title": "Vista previa del reparto",
+      "notice": "Se moverán {total} afiliado(s) así:",
+      "columns": {
+        "advisor": "Asesor",
+        "count": "Afiliados"
+      },
+      "confirm": "Confirmar"
+    },
+    "doneToast": "Se distribuyeron {total} afiliado(s) entre {targets} asesor(es)",
+    "doneSkipped": "{skipped} afiliado(s) se omiten porque ya son de ese asesor.",
+    "errors": {
+      "noSelection": "Selecciona al menos un afiliado.",
+      "targetsRequired": "Selecciona al menos un asesor destino.",
+      "targetsMax": "Máximo {n} asesores destino.",
+      "countMin": "Indica una cantidad de 1 o más.",
+      "countSum": "La suma de cantidades ({sum}) supera los afiliados seleccionados ({selected})."
     }
   },
   "commissions": {
@@ -5900,6 +5995,15 @@
       "paymentMethod": "Método de pago",
       "dateFrom": "Creada desde",
       "dateTo": "Creada hasta"
+    },
+    "advisor": {
+      "change": "Cambiar asesor",
+      "modalTitle": "Cambiar asesor de la solicitud",
+      "notice": "Asesor actual: {name}. El afiliado aprobado queda con el asesor nuevo.",
+      "target": "Asesor nuevo",
+      "targetPlaceholder": "Selecciona el asesor",
+      "reason": "Motivo (opcional)",
+      "savedToast": "Asesor de la solicitud actualizado"
     }
   },
   "securityPolicy": {

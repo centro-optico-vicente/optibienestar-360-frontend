@@ -8,6 +8,7 @@ import type { SortDirection } from '~/composables/useTableSort'
 import type { ListFilterField } from '~/utils/listFilters'
 import { countActiveFilters, emptyListFilters, listFilterQuery } from '~/utils/listFilters'
 import type { SelectItem } from '~/types/options'
+import { UNASSIGNED_ADVISOR, unassignedAdvisorItem, withUnassignedAdvisor } from '~/utils/advisorFilters'
 
 type MemberRow = MemberListItemDto | MemberDto
 
@@ -29,6 +30,7 @@ const canCreate = computed(() => can('MEMBER_CREATE'))
 const canUpdate = computed(() => can('MEMBER_UPDATE'))
 const canDelete = computed(() => can('MEMBER_DELETE'))
 const canViewPromoter = computed(() => can('PROMOTER_VIEW_ALL'))
+const canDistribute = computed(() => can('MEMBER_ASSIGN_PROMOTER'))
 const canViewAuditChanges = computed(() => can('AUDIT_VIEW_ALL') || can('MEMBER_RECORD_AUDIT_VIEW'))
 const canViewAuditReports = computed(() => can('REPORT_AUDIT_VIEW_ALL') || can('MEMBER_REPORT_AUDIT_VIEW'))
 const canViewAudit = computed(() => canViewAuditChanges.value || canViewAuditReports.value)
@@ -58,6 +60,12 @@ const genders = useLazyOptions(async q =>
 const occupations = useLazyOptions(async q =>
   (await useCatalogOptions('occupations').options({ q })).map(o => ({ label: o.label, value: o.uuid })))
 
+// Advisor filter: "Sin asesor" first (sent as `unassigned=true`: no advisor or the INSTITUCION
+// system advisor), then the server search, which includes the system advisor.
+async function searchAdvisorFilter(q: string): Promise<SelectItem[]> {
+  return [unassignedAdvisorItem(t), ...await promotersApi.searchOptions(q)]
+}
+
 async function searchCities(q: string): Promise<SelectItem[]> {
   const res = await useCatalogOptions('cities').options({ ...(q ? { q } : {}), limit: DROPDOWN_PAGE_SIZE })
   return res.map(o => ({ label: o.label, value: o.uuid }))
@@ -65,7 +73,7 @@ async function searchCities(q: string): Promise<SelectItem[]> {
 
 const filterFields = computed<ListFilterField[]>(() => [
   // The advisor list needs PROMOTER_VIEW_ALL; without it the filter is not offered.
-  ...(canViewPromoter.value ? [{ key: 'promoterUuid', label: t('members.filters.advisor'), icon: 'i-lucide-users', search: promotersApi.searchOptions }] : []),
+  ...(canViewPromoter.value ? [{ key: 'promoterUuid', label: t('members.filters.advisor'), icon: 'i-lucide-users', search: searchAdvisorFilter }] : []),
   { key: 'genderUuid', label: t('members.filters.gender'), icon: 'i-lucide-venus-and-mars', lazy: genders, class: 'w-40' },
   { key: 'cityUuid', label: t('members.filters.city'), icon: 'i-lucide-map-pin', search: searchCities },
   { key: 'occupationUuid', label: t('members.filters.occupation'), icon: 'i-lucide-briefcase', lazy: occupations },
@@ -102,7 +110,7 @@ async function load() {
       // The backend exposes free-text search (trigram, accent-insensitive)
       q: search.value.trim() || undefined,
       includeInactive: includeInactive.value,
-      extra: listFilterQuery(masterFilters.value),
+      extra: withUnassignedAdvisor(listFilterQuery(masterFilters.value)),
     })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
@@ -294,6 +302,14 @@ async function confirmDelete() {
   }
 }
 
+// "Distribuir cartera": opens the distribution page with the advisor filter as its origin.
+const distributeLink = computed(() => {
+  const advisor = masterFilters.value.promoterUuid
+  if (advisor === UNASSIGNED_ADVISOR) return '/dashboard/advisors/portfolio-distribution?source=UNASSIGNED'
+  if (advisor) return `/dashboard/advisors/portfolio-distribution?source=ADVISOR&advisor=${advisor}`
+  return '/dashboard/advisors/portfolio-distribution'
+})
+
 // ---- Presentation helpers ----
 function displayName(m: MemberListItemDto): string {
   return m.fullName || t('common.empty')
@@ -313,6 +329,11 @@ function displayName(m: MemberListItemDto): string {
       <div class="flex items-center gap-2">
         <ListRefreshMenu :loading="loading" variant="ghost" @refresh="load" @reset="resetFilters" />
         <ReportPrintButton variant="ghost" />
+        <UTooltip v-if="canDistribute" :text="t('portfolioDistribution.actionTooltip')">
+          <UButton color="neutral" variant="outline" icon="i-lucide-split" :to="distributeLink">
+            {{ t('portfolioDistribution.action') }}
+          </UButton>
+        </UTooltip>
         <UTooltip :text="canCreate ? t('members.createTooltip') : t('members.noPermissionCreate')">
           <UButton
             color="primary"

@@ -339,6 +339,8 @@ Todo dropdown del sistema debe poder **filtrarse escribiendo** y **limpiarse** (
 - Todo dropdown se alimenta del `/options` de su entidad (sesión válida; no depende de `*_VIEW_ALL`), nunca del listado completo. Tope `DROPDOWN_PAGE_SIZE` (50), distinto del tamaño de página de las tablas.
 - La búsqueda va siempre al servidor con `q` (insensible a mayúsculas y diacríticos); el frontend no filtra localmente. Usar `useLazyOptions`, `useCatalogOptions` o `CommonEntityReferenceSelect :lazy`.
 - **Asesor de sistema (INSTITUCION)**: `/v1/admin/advisors/options` lo deja fuera por defecto (no es una persona que se asigne: asesor de un aliado, destino de una reasignación). Los filtros de listados y reportes lo piden con `includeSystem: true` (`usePromoters().searchOptions`), porque filtrar por él muestra lo que nadie trajo. Supervisores elegibles nunca lo incluyen.
+- **«Sin asesor» en los filtros de asesor** (afiliados, aliados, solicitudes de alianza y de afiliación): primera opción con el valor centinela `UNASSIGNED_ADVISOR` (`app/utils/advisorFilters.ts`), que nunca viaja como uuid: la página lo traduce a `unassigned=true` (`advisorFilterParams()` para params sueltos, `withUnassignedAdvisor()` sobre `listFilterQuery()`). El backend lo lee como «sin asesor o con el asesor de sistema». Con `useLazyOptions` va en `initial`; con un `search` se antepone al resultado.
+- **Origen de una distribución de cartera**: `/v1/admin/advisors/options?includeSystem=true&includeInactive=true` (un asesor dado de baja todavía tiene cartera que entregar); la etiqueta marca los inactivos. Los destinos usan el default (activos, sin sistema).
 
 **Pendientes (a 2026-11-13):**
 

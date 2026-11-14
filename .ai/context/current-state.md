@@ -64,6 +64,7 @@ las vistas 1 (Auth/RBAC) y 2 (Catálogos) están completas; siguen 3 (Aliados),
 
 ## Cambios recientes
 
+- **2026-11-14** — Distribuir cartera: página `/dashboard/advisors/portfolio-distribution` (`MEMBER_ASSIGN_PROMOTER`) para repartir afiliados sin asesor o la cartera de un asesor (incluso inactivo) entre varios asesores, en partes iguales o por cantidad, con vista previa; opción «Sin asesor» (`unassigned=true`) en los filtros de asesor de afiliados, aliados, solicitudes de alianza y de afiliación; asignación de asesor en bloque en el listado de aliados (`ALLY_ASSIGN_PROMOTER`); «Cambiar asesor» en el detalle de una solicitud de afiliación no final (`AFFILIATION_REQUEST_ASSIGN_PROMOTER`). Depende de los endpoints del backend «feat: Add portfolio distribution endpoints».
 - **2026-10-21** — Solicitudes de afiliación (backend V188): `/afiliarse` envía una solicitud (`POST /v1/public/affiliation-requests`) con vista previa en vivo del contrato; pantallas admin `/dashboard/affiliation-requests` (listado + detalle con corrección, contrato aceptado, bitácora, aprobar/rechazar con motivo) y portal del asesor `/advisors/affiliation-requests`; composable `useAffiliationRequests`, tipos `types/affiliationRequests.ts`, permisos `AFFILIATION_REQUEST_*` en el menú.
 - **2026-06-01** — Imagen Docker + CI/CD + config en runtime ([ADR 0006](../decisions/loc-0006-ci-cd-docker-runtime-config.md)); `.githooks/`; ADRs locales 0006–0010; checklist separado por fase/vertical.
 - **2026-05-31** — RBAC editable: gestión de usuarios, roles y permisos por dominio.
