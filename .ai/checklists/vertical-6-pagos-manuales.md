@@ -15,6 +15,9 @@
 
 - [x] [P0/C2] "Mis pagos" del afiliado `components/MyPaymentsCard.vue`, incrustado en `pages/members/index.vue` (auto-gateado por `PAYMENT_VIEW_OWN`, consume `GET /v1/me/payments`). _(Se entregó como card dentro del portal en vez de una página `pages/members/payments.vue` aparte.)_
 
+- [x] [P2/C1] "Mis pagos" → "Nuevo" abre con la mensualidad y la moneda del carnet (`monthlyFee`/`currency_Code` de `GET /v1/me/digital-card`) — #372 — 2026-11-14
+- [x] [P2/C2] Estado del cupo de campaña en los pagos (`PaymentSlotBadge`): "Aprobar este pago confirma el cupo" en la revisión, el detalle y las listas del personal, y en "Mis pagos" — #375 — 2026-11-14
+
 ## Base entregada (además de las vistas)
 
 - [x] Composables `composables/usePayments.ts` (`list`/`get`/`register` multipart/`approve`/`reject`/`supportUrl`/`mine`) + `composables/useMemberships.ts` (`listForMember`, para el selector del registro).

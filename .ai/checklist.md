@@ -52,19 +52,19 @@
 
 | # | Vista | Archivo | Tareas | Hechas | Pendientes | Estado |
 |---|---|---|---|---|---|---|
-| 1 | Seguridad y Autenticación | [vertical-1](checklists/vertical-1-seguridad-y-autenticacion.md) | 6 | 6 | 0 | ✅ Completa |
+| 1 | Seguridad y Autenticación | [vertical-1](checklists/vertical-1-seguridad-y-autenticacion.md) | 9 | 9 | 0 | ✅ Completa |
 | 2 | Catálogos | [vertical-2](checklists/vertical-2-catalogos.md) | 3 | 3 | 0 | ✅ Completa |
-| 3 | Aliados | [vertical-3](checklists/vertical-3-aliados.md) | 14 | 0 | 14 | 🔲 (incl. v2+v3) |
+| 3 | Aliados | [vertical-3](checklists/vertical-3-aliados.md) | 37 | 25 | 12 | 🟡 (incl. v2+v3) |
 | 4 | Afiliados y Familia | [vertical-4](checklists/vertical-4-afiliados-y-familia.md) | 13 | 3 | 10 | 🟡 Bugs DTO resueltos (incl. v2) |
 | 5 | Planes y Membresías | [vertical-5](checklists/vertical-5-planes-y-membresias.md) | 11 | 0 | 11 | 🔲 (incl. v2) |
-| 6 | Pagos manuales | [vertical-6](checklists/vertical-6-pagos-manuales.md) | 4 | 0 | 4 | 🔲 |
-| 7 | Validador | [vertical-7](checklists/vertical-7-validador.md) | 4 | 0 | 4 | 🔲 |
-| 8 | Promotores, Comisiones y Referidos | [vertical-8](checklists/vertical-8-promotores-comisiones-referidos.md) | 17 | 0 | 17 | 🔲 (incl. v2+v3) |
-| 9 | Portal afiliado y Carnet digital | [vertical-9](checklists/vertical-9-notificaciones-y-carnet.md) | 5 | 0 | 5 | 🔲 |
-| 10 | Optimización, Reportes, QA, Deps y Rendering SSR | [vertical-10](checklists/vertical-10-optimizacion-reportes-hardening.md) | 9 | 0 | 9 | 🔲 |
-| 11 | Internacionalización (i18n) — `es` + `en`, sync locale con JWT | [vertical-11](checklists/vertical-11-i18n.md) | 16 | 0 | 16 | 🔲 |
+| 6 | Pagos manuales | [vertical-6](checklists/vertical-6-pagos-manuales.md) | 12 | 9 | 3 | 🟡 |
+| 7 | Validador | [vertical-7](checklists/vertical-7-validador.md) | 5 | 3 | 2 | 🟡 |
+| 8 | Promotores, Comisiones y Referidos | [vertical-8](checklists/vertical-8-promotores-comisiones-referidos.md) | 24 | 10 | 14 | 🟡 (incl. v2+v3) |
+| 9 | Portal afiliado y Carnet digital | [vertical-9](checklists/vertical-9-notificaciones-y-carnet.md) | 7 | 1 | 6 | 🟡 |
+| 10 | Optimización, Reportes, QA, Deps y Rendering SSR | [vertical-10](checklists/vertical-10-optimizacion-reportes-hardening.md) | 22 | 3 | 19 | 🟡 |
+| 11 | Internacionalización (i18n) — `es` + `en`, sync locale con JWT | [vertical-11](checklists/vertical-11-i18n.md) | 23 | 20 | 3 | 🟡 |
 | 12 | **[v2]** Subsidios y Exoneraciones | [vertical-12](checklists/vertical-12-subsidios-y-exoneraciones.md) | 10 | 0 | 10 | 🔲 |
-| **TOTAL FASE 5** | | | **109** | **9** | **100** | 🟡 8% |
+| **TOTAL FASE 5** | | | **176** | **86** | **90** | 🟡 49% |
 
 ---
 
