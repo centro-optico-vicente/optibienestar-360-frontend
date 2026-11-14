@@ -33,6 +33,8 @@
 - [ ] [v2] [P0/C2] En el drill-down de un afiliado del promotor: registrar **recordatorio** (`POST /v1/advisors/me/contacts/{memberUuid}/reminder`) y **promesa de pago** (`.../payment-promise` con monto + fecha).
 - [ ] [v2] [P0/C2] Historial de gestiones (`GET /v1/advisors/me/contacts?memberUuid=...`) + **collection-score** (`GET /v1/advisors/me/collection-score`) como indicador % de cartera al día. El promotor solo ve/gestiona sus propios afiliados.
 
+- [x] [P2/C1] "Recordar pago" por WhatsApp desde la cartera del asesor (`wa.me`, mensaje con plan, mensualidad, vencimiento o días de atraso), registrado como recordatorio — #374 — 2026-11-14
+
 ### Comisiones escalonadas y leaderboard (PDF #5)
 
 - [ ] [v2] [P0/C2] Admin: configuración de `commission_tiers` (umbral, % o monto plano, `period_strategy`, `applies_to`) en `pages/admin/commissions/`.
@@ -47,3 +49,13 @@
 - [x] [v3] [P1/C2] Admin: editor de **tiers de cobranza** (`collection_commission_tiers`: días → %), pestaña "Comisión de cobranza" en la misma página, con checkbox "Incluir inactivos". _(PR [#56](https://github.com/fenix-core/optibienestar-360-frontend/pull/56).)_ **Pendiente:** campo **día de corte** (`billing_start_day`) en la ficha de la membresía — el enganche backend en `CommissionService` ya se implementó (PR [#179](https://github.com/fenix-core/optibienestar-360-backend/pull/179), default = día de `enrolled_at`), pero el admin todavía no puede **editarlo** en la UI; queda como el único gap de este ítem.
 - [x] [v3] [P1/C3] Admin (`pages/dashboard/commissions/`): acción **"Re-ratear cierre de mes"** (`POST /v1/admin/commissions/re-rate`, permiso `COMMISSION_RE_RATE`, backend PR [#180](https://github.com/fenix-core/optibienestar-360-backend/pull/180)) — recalcula retroactivamente las comisiones `INSCRIPTION` PENDING del período a la banda más alta alcanzada por cada promotor. _(Implementado 2026-08-10: `CommissionReRatingModal.vue`, mismo flujo de 2 fases preview/confirmar que `CommissionPayoutModal.vue` (dry-run primero, con desglose por promotor y delta señalizado en verde/rojo). `useCommissions().reRate`, tipos `CommissionReRatingRequest/Response` en `types/promoters.ts`, permiso `COMMISSION_RE_RATE` en `types/permissions.ts`.)_
 - [ ] [v3] [P1/C2] Afiliado (`pages/members/referrals.vue`): progreso hacia el **salto de mensualidad** (3 referidos → 1 mes gratis, 9 → 3), con los meses ya ganados (subsidios auto-otorgados, `GET /v1/me/subsidies`) y aviso de que el conteo resetea por mes. _(Reusa la vista de subsidios; ver [vista-12](vertical-12-subsidios-y-exoneraciones.md).)_
+
+## Campañas: cupos, cierre, descuento fijo y beneficios de aliados ([hub ADR 0038](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0038-campaign-quotas-flat-discounts-ally-benefits.md))
+
+> Plan del hub: [`2026-11-14-campaign-quotas-and-ally-benefits.md`](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/plans/2026-11-14-campaign-quotas-and-ally-benefits.md).
+
+- [x] [P1/C2] Descuento fijo o porcentual en `PromotionFormModal` (moneda de la promoción) — #367 — 2026-11-14
+- [x] [P1/C3] Cierre configurable de la campaña (fecha, cupo, manual), estados, reabrir y tope compartido + cupo propio — #368 — 2026-11-14
+- [x] [P1/C2] Cupos pendientes/confirmados en la campaña y en la membresía (`MemberMembershipsCard`, `MyPromotionCard`) — #369 — 2026-11-14
+- [x] [P1/C3] Vales de beneficios de aliados (campañas exclusivas o de varios aliados), "Mis beneficios" y canje en el validador; actuar como el aliado elegido — #370, #371 — 2026-11-14
+- [x] [P1/C3] Controles de cupo: pestaña "Cupos" (confirmar/liberar con nota), pestaña "Pagos" con recordatorios (`CAMPAIGN_PAYMENT_VIEW`/`_REMIND`), tarjeta "Inconsistencias", beneficios pendientes en el validador — #375 — 2026-11-14
