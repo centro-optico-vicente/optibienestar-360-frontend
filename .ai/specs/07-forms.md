@@ -385,6 +385,8 @@ En el selector de **rango** los mismos 3 grupos se expresan como rangos (más an
 2. **Semana** — Semana pasada, Semana laboral (lun–vie, `mondayOfWeek` → `+4 días`), Esta semana (lun–dom, `+6 días`), Semana siguiente
 3. **Mes** — Mes pasado, 1ª quincena (1–15), 2ª quincena (16–fin de mes), Este mes, Mes siguiente
 
+**Fuente única:** los atajos (y `mondayOfWeek` / `todayCalendarDate`) viven en `app/utils/dateShortcuts.ts` — `DATE_SHORTCUTS` (fecha única) y `DATE_RANGE_SHORTCUTS` (rango). Ningún componente define sus propios atajos: un picker nuevo con panel de atajos importa esas listas, y una corrección se hace solo ahí.
+
 Componente de referencia para un campo de fecha-hora **único**: `app/components/AppDateTimePicker.vue`. Para un **rango**: `app/components/AuditDateRangePicker.vue`.
 
 i18n: claves bajo `common.dateTimePicker.shortcuts.*` (picker único) / `audit.dateRange.shortcuts.*` (rango).

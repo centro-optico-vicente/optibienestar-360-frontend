@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { CalendarDate, startOfMonth, endOfMonth } from '@internationalized/date'
-import { todayInCaracas, withCaracasOffset } from '~/utils/date'
-import { appTimeZone } from '~/utils/timezone'
+import { CalendarDate } from '@internationalized/date'
+import { withCaracasOffset } from '~/utils/date'
+import { DATE_SHORTCUTS, type DateShortcut } from '~/utils/dateShortcuts'
 
 type LooseDateValue = { toString(): string } | undefined
 
@@ -38,43 +38,9 @@ const date = ref<LooseDateValue>(parseDatePart(props.modelValue))
 const time = ref(parseTimePart(props.modelValue))
 const open = ref(false)
 
-function todayCalendarDate(): CalendarDate {
-  return parseDatePart(todayInCaracas())!
-}
+const shortcuts = DATE_SHORTCUTS
 
-interface Shortcut { key: string, date: () => CalendarDate }
-
-/**
- * Monday-first week, Venezuela business convention (lunes a viernes) — NOT
- * derived from `startOfWeek(date, 'es-VE')`, whose CLDR week data starts on
- * Sunday for `es-VE` and silently gave the wrong "first day of week".
- * `toDate().getDay()` is plain Gregorian (0=Sun…6=Sat), locale-independent.
- */
-function mondayOfWeek(d: CalendarDate): CalendarDate {
-  const jsDay = d.toDate(appTimeZone()).getDay()
-  const offsetFromMonday = (jsDay + 6) % 7
-  return d.subtract({ days: offsetFromMonday })
-}
-
-const shortcuts: Shortcut[][] = [
-  [
-    { key: 'today', date: () => todayCalendarDate() },
-    { key: 'yesterday', date: () => todayCalendarDate().subtract({ days: 1 }) },
-    { key: 'tomorrow', date: () => todayCalendarDate().add({ days: 1 }) },
-  ],
-  [
-    { key: 'firstDayOfWeek', date: () => mondayOfWeek(todayCalendarDate()) },
-    { key: 'lastBusinessDayOfWeek', date: () => mondayOfWeek(todayCalendarDate()).add({ days: 4 }) },
-    { key: 'lastDayOfWeek', date: () => mondayOfWeek(todayCalendarDate()).add({ days: 6 }) },
-  ],
-  [
-    { key: 'firstDayOfMonth', date: () => startOfMonth(todayCalendarDate()) },
-    { key: 'fortnight', date: () => startOfMonth(todayCalendarDate()).set({ day: 15 }) },
-    { key: 'lastDayOfMonth', date: () => endOfMonth(todayCalendarDate()) },
-  ],
-]
-
-function applyShortcut(shortcut: Shortcut) {
+function applyShortcut(shortcut: DateShortcut) {
   date.value = shortcut.date()
 }
 
