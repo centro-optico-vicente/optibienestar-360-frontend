@@ -25,10 +25,12 @@ export const useValidator = () => {
    * unknown document/UUID — the backend answers 200 with `status: NOT_FOUND`.
    *
    * @param document the affiliate's document number or member UUID, as typed/scanned.
+   * @param allyUuid the ally operating the counter; limits `benefitGrants` to its vouchers.
    */
-  const validate = (document: string) =>
+  const validate = (document: string, allyUuid?: string | null) =>
     useApi<ValidationResultDto>(`/v1/allies/me/validations/${encodeURIComponent(document.trim())}`, {
       silent: true,
+      query: allyUuid ? { allyUuid } : undefined,
     })
 
   return { validate }

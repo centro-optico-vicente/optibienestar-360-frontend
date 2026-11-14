@@ -91,7 +91,7 @@ async function validate(fromScan = false) {
   validating.value = true
   linkedMemberUuid.value = null
   try {
-    result.value = await validator.validate(doc)
+    result.value = await validator.validate(doc, selectedAllyUuid.value)
     validatedDocument.value = doc
     if (fromScan) await openPatientLink()
   }
