@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CreditBalanceDto, PaymentDto } from '~/types/payments'
+import type { CreditBalanceDto, PaymentDto, PaymentFormPrefill } from '~/types/payments'
 import { paymentStatusColor } from '~/types/payments'
 import { countActiveFilters } from '~/utils/listFilters'
 
@@ -111,6 +111,25 @@ function canAssign(p: PaymentDto): boolean {
 
 // ---- Register (modal) ----
 const formOpen = ref(false)
+// The amount and currency come prefilled with the membership's monthly fee, read from the digital card
+// (hub ADR 0037 §5); without a membership, or if the card fails, the form just opens empty.
+const formPrefill = ref<PaymentFormPrefill | undefined>(undefined)
+const openingForm = ref(false)
+async function openForm() {
+  openingForm.value = true
+  try {
+    const card = can('MEMBER_VIEW_OWN')
+      ? await useApi<{ monthlyFee?: number | string | null, currency_Code?: string | null }>('/v1/me/digital-card', { silent: true }).catch(() => null)
+      : null
+    formPrefill.value = Number(card?.monthlyFee) > 0
+      ? { amount: Number(card!.monthlyFee).toFixed(2), currency: card!.currency_Code || 'USD' }
+      : undefined
+  }
+  finally {
+    openingForm.value = false
+  }
+  formOpen.value = true
+}
 
 async function onSaved() {
   page.value = 1
@@ -200,7 +219,8 @@ async function confirmDelete() {
           variant="outline"
           icon="i-lucide-plus"
           :disabled="!canRegister"
-          @click="formOpen = true"
+          :loading="openingForm"
+          @click="openForm"
         >
           {{ t('common.new') }}
         </UButton>
@@ -317,7 +337,7 @@ async function confirmDelete() {
     </div>
 
     <!-- Register modal -->
-    <MyPaymentFormModal v-model:open="formOpen" @saved="onSaved" />
+    <MyPaymentFormModal v-model:open="formOpen" :prefill="formPrefill" @saved="onSaved" />
 
     <PaymentClaimModal v-model:open="claimOpen" :payment="claimTarget" @claimed="onSaved" />
 
