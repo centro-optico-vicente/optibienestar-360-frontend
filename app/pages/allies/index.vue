@@ -94,6 +94,8 @@ const needsRelogin = computed(() =>
 
 // Approved while the session still carries the pending role: refresh the tokens instead of asking
 // for a new login (hub ADR 0037 §5). The banner below stays only if the refresh did not change the role.
+// This covers opening the portal already approved; the approval-watch plugin covers an approval that lands
+// while the portal is open (window focus / polling).
 const { refreshSession } = useAuth()
 const refreshingRole = ref(false)
 watch(needsRelogin, async (stale) => {

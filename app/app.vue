@@ -14,7 +14,8 @@ useIntervalFn(() => { termsNow.value = Date.now() }, 30_000)
 // "a new T&C version was published while the user had no active session"
 // without needing an explicit invalidation, since /v1/me/terms/pending always
 // resolves against whatever is vigente right now.
-watch(() => auth.isAuthenticated, (isAuthenticated) => {
+// The active role too: an approval (AFILIADO_PENDIENTE -> AFILIADO) may bring the new role's contract.
+watch(() => [auth.isAuthenticated, auth.activeRole], ([isAuthenticated]) => {
   if (isAuthenticated) checkPending()
 }, { immediate: true })
 

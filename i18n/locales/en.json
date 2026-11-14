@@ -6998,5 +6998,17 @@
       "editTitle": "Edit benefit",
       "noProducts": "You have no approved offers"
     }
+  },
+  "notifications": {
+    "fallbackTitle": "New notification",
+    "open": "View",
+    "types": {
+      "REGISTRATION_APPROVED": {
+        "title": "You're now part of OptiBienestar!",
+        "bodyAlly": "We approved the registration of {name}. You now have full access to your ally portal.",
+        "bodyMember": "We approved your membership. You can now use your digital card and your benefits.",
+        "action": "Go to my portal"
+      }
+    }
   }
 }
