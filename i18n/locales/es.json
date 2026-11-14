@@ -3972,6 +3972,7 @@
       "button": "Vista previa",
       "title": "Vista previa del reparto",
       "notice": "Se moverán {total} afiliado(s) así:",
+      "untouched": "{count} afiliado(s) seleccionado(s) quedan sin mover: la suma de las cantidades es menor que la selección (se reparten en orden alfabético).",
       "columns": {
         "advisor": "Asesor",
         "count": "Afiliados"
