@@ -8,6 +8,11 @@ on:
       - '**/*.md'
       - '.ai/**'
       - 'LICENSE'
+      - '.claude/**'
+      - '.agents/**'
+      - 'skills-lock.json'
+      - '.gitignore'
+      - 'scripts/i18n-tool.mjs'
   pull_request:
     branches:
       - main
@@ -15,6 +20,11 @@ on:
       - '**/*.md'
       - '.ai/**'
       - 'LICENSE'
+      - '.claude/**'
+      - '.agents/**'
+      - 'skills-lock.json'
+      - '.gitignore'
+      - 'scripts/i18n-tool.mjs'
   workflow_dispatch:
 
 # Cancel in-progress runs for the same branch when a new push arrives
