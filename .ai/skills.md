@@ -66,7 +66,7 @@ App en dev como servidor MCP (routes, auto-imports, runtime config). Endpoint `h
 
 ## 3. Seguridad (🟢 disponibles en el entorno, NO instalados en el repo)
 
-El frontend es 100% auth/RBAC (JWT, cookies httpOnly, refresh, permisos). Usables ya; instalar en el repo solo si se quieren pinear para el equipo.
+El frontend es 100% auth/RBAC (JWT en `sessionStorage`/`localStorage`, refresh, permisos). Usables ya; instalar en el repo solo si se quieren pinear para el equipo.
 
 | Skill | Para qué |
 |---|---|

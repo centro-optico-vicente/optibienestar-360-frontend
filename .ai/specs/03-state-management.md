@@ -159,7 +159,7 @@ Persistencia via `useStorage` de VueUse (localStorage).
 
 ## Persistencia
 
-- **`auth`:** access token en memoria (riesgo XSS), refresh token en cookie httpOnly (manejado por backend).
+- **`auth`:** `accessToken` + `user` en `sessionStorage` (por pestaña), `refreshToken` en `localStorage` (compartido entre pestañas); sin cookies, el backend no las emite. Decisión intencional con CSP como mitigación XSS ([ADR 0024 del hub](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0024-jwt-token-storage.md)).
 - **`catalogs`:** sólo memoria (refresh al recargar app).
 - **`notifications`:** sólo memoria (transient).
 - **`ui`:** localStorage via VueUse `useStorage`.

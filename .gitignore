@@ -148,7 +148,11 @@ vite.config.ts.timestamp-*
 # Claude Code local state (per-dev install)
 .claude/settings.local.json
 .claude/plugins/
-.claude/skills/
+.claude/skills/*
+# Project skills (repo playbooks) are versioned; third-party ones stay ignored.
+!.claude/skills/new-page/
+!.claude/skills/new-form/
+!.claude/skills/new-table/
 .claude/cache/
 .mcp.local.json
 # Installed skill payloads (third-party content). Inventory lives in skills-lock.json.

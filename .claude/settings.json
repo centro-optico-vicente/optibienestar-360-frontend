@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./pnpm-lock.yaml)",
+      "Read(./.output/**)",
+      "Read(./.nuxt/**)",
+      "Read(./node_modules/**)"
+    ]
+  }
+}

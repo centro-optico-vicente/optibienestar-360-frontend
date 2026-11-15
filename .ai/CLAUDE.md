@@ -1,69 +1,15 @@
-# `.ai/` — Brief para asistencia IA (frontend admin)
+# `.ai/` del frontend — mapa de la carpeta
 
-> Brief específico del repo `optibienestar-360-frontend`. Para visión cross-stack, ver el hub maestro [`centro-optico-vicente/.ai/`](https://github.com/fenix-core/centro-optico-vicente/tree/main/.ai).
+> Se carga solo cuando la IA abre algo dentro de `.ai/`; por eso es corto ([ADR 0040 del hub](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0040-ai-context-token-budget.md)). Reglas y ruteo por tarea: [`CLAUDE.md` raíz](../CLAUDE.md).
 
-## Qué es este repo
+| Carpeta / archivo | Contiene | Cuándo abrirlo |
+|---|---|---|
+| `decisions/README.md` | Índice de ADR locales (`LOC-`) | Antes de proponer un diseño |
+| `specs/NN-*.md` | Convenciones por área (índice en `specs/00-overview.md`) | Solo la del área que se toca |
+| `playbooks/` | Pasos para página, formulario, tabla, vistas de rol, entorno local | Vía las skills `new-*` |
+| `context/current-state.md`, `context/design-tokens.md` | Lo que existe HOY; paleta y tokens | Antes de asumir; al tocar estilos |
+| `checklist.md` → `checklists/` (+ `checklist-vertical.md`) | Tabla resumen → tareas por vista | Para elegir o marcar trabajo |
+| `notes/`, `scope-additions-*.md`, `dto-shape-mismatches.md` | Auditorías e históricos | Solo si la tarea los nombra |
+| `skills.md` | Catálogo de skills y MCP | Al instalar skills |
 
-Frontend multi-rol (Vue 3 + Nuxt 4) que sirve a admin, operador, aliados, afiliados y promotores del programa OptiBienestar 360.
-
-## Stack confirmado
-
-- Vue 3 + Nuxt 4 — real: SPA (`ssr: false`, ver [ADR 0003 local](decisions/loc-0003-spa-mode.md))
-- Nuxt UI v4 (componentes accesibles con Tailwind v4; migrado desde v3, ver [ADR LOC-0012](decisions/loc-0012-nuxt-ui-v4-migration.md))
-- Pinia state
-- VueUse, i18n, image, icon
-- vee-validate + zod (forms)
-- Tests: Playwright (E2E)
-
-## Reglas de oro (locales)
-
-1. **Lógica de negocio NO va en frontend.** Cálculos de pricing, comisiones, solvencia → siempre en backend. Frontend hace: UI, navegación, validación de FORMATO.
-2. **Mensajes UI en español** (audiencia 100% hispanohablante). Código en inglés (ADR 0009 cross-stack).
-3. **Permisos por endpoint y por UI:** usar `usePermissions()` + directiva `v-permission` para mostrar/ocultar acciones.
-4. **Sesión:** JWT en cookies httpOnly + access token en memoria. Refresh silencioso en middleware global.
-5. **Paleta heredada del landing:** azul `#245E9E`, lime `#9FD537`, cyan `#1094C5`. Ver [`context/design-tokens.md`](context/design-tokens.md).
-6. **API consumida vía `useApi()` composable** (wrapper `$fetch` con interceptor JWT). Nunca usar `axios` u otra lib.
-
-## Orden de lectura recomendado
-
-1. Este `CLAUDE.md`
-2. [`README.md`](README.md)
-3. [`context/current-state.md`](context/current-state.md)
-4. [`checklist.md`](checklist.md)
-5. [`specs/01-project-structure.md`](specs/01-project-structure.md)
-6. [`specs/04-api-client.md`](specs/04-api-client.md) + [`05-auth-flow.md`](specs/05-auth-flow.md)
-7. Hub: [`specs/06-integration.md`](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/specs/06-integration.md)
-
-## Para tareas comunes
-
-| Tarea | Playbook |
-|---|---|
-| Correr el frontend en local (primera vez) | [`playbooks/local-dev.md`](playbooks/local-dev.md) |
-| Nueva página | [`playbooks/new-page.md`](playbooks/new-page.md) |
-| Nuevo formulario | [`playbooks/new-form.md`](playbooks/new-form.md) |
-| Nueva tabla con filtros | [`playbooks/new-table.md`](playbooks/new-table.md) |
-| Agregar vistas para nuevo rol | [`playbooks/new-role-views.md`](playbooks/new-role-views.md) |
-
-## Decisiones congeladas
-
-**Cross-stack:**
-- [ADR 0001 Stack](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0001-stack.md)
-- [ADR 0003 Infraestructura](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0003-infrastructure.md)
-- [ADR 0004 Only free tools](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0004-only-free-tools.md)
-- [ADR 0009 Code conventions](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0009-code-conventions.md)
-- [ADR 0010 Localización Venezuela](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0010-localization-venezuela.md)
-
-**Locales:**
-- [ADR 0001 Nuxt UI + Tailwind](decisions/loc-0001-nuxt-ui-tailwind.md)
-- [ADR 0002 Pinia state](decisions/loc-0002-pinia-state.md)
-- [ADR 0003 SPA mode](decisions/loc-0003-spa-mode.md)
-- [ADR 0004 Mobile-first](decisions/loc-0004-mobile-first.md)
-- [ADR 0005 Selects alimentados por catálogo](decisions/loc-0005-catalog-backed-selects.md)
-- [ADR 0006 CI/CD + Docker (nginx) + config en runtime](decisions/loc-0006-ci-cd-docker-runtime-config.md)
-- [ADR 0007 Convenciones de PR y ramas (Gitflow)](decisions/loc-0007-pr-and-branch-conventions.md)
-- [ADR 0008 Naming TypeScript/Vue](decisions/loc-0008-typescript-vue-naming-conventions.md)
-- [ADR 0009 Convenciones de código (espejo)](decisions/loc-0009-code-conventions.md)
-- [ADR 0010 Localización Venezuela (espejo)](decisions/loc-0010-localization-venezuela.md)
-- [ADR 0011 Tipos generados desde OpenAPI](decisions/loc-0011-openapi-generated-types.md) — **Aceptado** (Fase 0 superada; contrato disponible desde backend 0.0.121)
-- [ADR 0012 Migración Nuxt UI v3 → v4](decisions/loc-0012-nuxt-ui-v4-migration.md) — **Aceptado e implementado** ([#255](https://github.com/centro-optico-vicente/optibienestar-360-frontend/pull/255))
-- [ADR 0013 Estrategia de rendering: SPA vs SSR/híbrido](decisions/loc-0013-ssr-rendering-strategy.md) — **Aceptado** (mantener SPA; medir antes de producción)
+Al marcar tareas, recalcular totales con `../centro-optico-vicente/scripts/ai/ai_audit.sh checklists .ai`.
