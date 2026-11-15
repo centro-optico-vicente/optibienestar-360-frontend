@@ -18,16 +18,16 @@ Inventario de skills, plugins de Claude Code y servidores MCP que asisten la con
 | Skill | Encaje | Para qué |
 |---|---|---|
 | `ui-ux-pro-max` | 🟢 | Design system: estilos, paletas, font pairings, guidelines UX, charts. |
-| `nuxt-ui` | 🟢 | Componentes `@nuxt/ui`. **Nota:** apunta a v4; el repo está en `@nuxt/ui ^3` (ver tarea de migración v4 en vertical-10). |
+| `nuxt-ui` | 🟢 | Componentes `@nuxt/ui`. Apunta a v4, igual que el repo ([LOC-0012](decisions/loc-0012-nuxt-ui-v4-migration.md)). |
 | `web-design-guidelines` | 🟢 | Auditar UI contra Web Interface Guidelines + accesibilidad. |
 
 ### Vue / Nuxt — código
 
 | Skill | Encaje | Para qué |
 |---|---|---|
+| `nuxt-best-practices` | 🟢 | Nuxt 4: data fetching, estado, rutas, imports y tipos (el mismo que usa la landing). |
 | `vue-best-practices` | 🟢 | Composition API + `<script setup>` + TS + Pinia + Vite. |
 | `vue-debug-guides` | 🟢 | Debugging Vue 3, runtime/async, **SSR/hidratación** (útil para la migración SSR). |
-| `vue` | 🔴 | Renderer de `@json-render/vue` (UIs desde specs JSON). **El repo no usa json-render** → considerar desinstalar. |
 
 ### Infra / deploy
 
@@ -36,8 +36,6 @@ Inventario de skills, plugins de Claude Code y servidores MCP que asisten la con
 | `docker-expert` | 🟢 | Dockerfiles multi-stage, optimización/hardening de la imagen ([ADR 0006](decisions/loc-0006-ci-cd-docker-runtime-config.md)). |
 | `docker-compose-orchestration` | 🟢 | Wiring del servicio frontend en el compose del hub. |
 | `github-actions-docs` | 🟢 | Mantener `.github/workflows/ci.yaml` y `publish.yaml`. |
-| `traefik` | 🟢 | Reverse proxy v3 del hub (labels, routers, TLS). |
-| `wrangler` | 🟡 | CLI de **Cloudflare Workers/Pages**. El deploy es **VPS Contabo + Docker + Traefik** (no Workers), y Cloudflare se usa solo para DNS/R2 → de poco uso salvo que se adopten Workers/Pages. El skill general `cloudflare` sería más apto para DNS/R2 si hiciera falta. |
 
 ### Otros
 
@@ -119,3 +117,5 @@ El bootstrap (FASE 0/1) ya está hecho; el proyecto está en **FASE 5 (vistas po
    - `web-app-testing` (E2E) + `web-design-guidelines` por flujos críticos (login, validador, carnet, pago).
 5. **Documentos (verticales 6 y 9):**
    - `document-skills` para carnet digital y comprobantes PDF.
+
+> **2026-11-15:** se quitaron `vue` (renderer de json-render, no se usa), `traefik` (el edge real es Nginx Proxy Manager y el frontend no lo configura) y `wrangler` (no hay Workers/Pages); se agregó `nuxt-best-practices`. Cada skill instalado ocupa contexto en todos los turnos ([ADR 0040 del hub](https://github.com/fenix-core/centro-optico-vicente/blob/main/.ai/decisions/0040-ai-context-token-budget.md)). Para sincronizar tu instalación local con el lockfile: `npx skills experimental_install` (Node 20).
