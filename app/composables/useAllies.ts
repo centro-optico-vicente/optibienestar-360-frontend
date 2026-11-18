@@ -326,9 +326,16 @@ interface PublicDirectoryParams {
   size?: number
   q?: string
   city?: string
-  category?: string
+  /** Product category names or codes — several keep allies offering ANY of them. */
+  category?: string[]
+  /** Ally types (rubros) by name or code — several keep allies of ANY of them. */
+  allyType?: string[]
+  /** Profession ids — several keep allies with ANY of them. */
+  professionUuid?: string[]
   type?: string
   segment?: string
+  /** Days the ally opens (`lunes`…`domingo`) — several keep allies open on ANY of them. */
+  day?: string[]
   /** Only allies open right now in the business zone (ADR 0031 §7). */
   openNow?: boolean
   /** Only allies with opening hours today. */
@@ -351,11 +358,15 @@ export const usePublicAllies = () => {
         size: params.size ?? 20,
         ...(params.q ? { q: params.q } : {}),
         ...(params.city ? { city: params.city } : {}),
-        ...(params.category ? { category: params.category } : {}),
+        // Several values travel as a repeated key (?category=a&category=b); empty lists are omitted.
+        ...(params.category?.length ? { category: params.category } : {}),
+        ...(params.allyType?.length ? { allyType: params.allyType } : {}),
+        ...(params.professionUuid?.length ? { professionUuid: params.professionUuid } : {}),
         ...(params.type ? { type: params.type } : {}),
         ...(params.segment ? { segment: params.segment } : {}),
         ...(params.openNow ? { openNow: 'true' } : {}),
         ...(params.openToday ? { openToday: 'true' } : {}),
+        ...(params.day?.length ? { day: params.day } : {}),
       },
     })
 

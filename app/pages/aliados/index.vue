@@ -4,8 +4,10 @@ import type { PublicAllyListItemDto } from '~/types/allies'
 // PUBLIC partner directory (no login). Only shows PUBLISHED+ACTIVE partners with
 // data sanitized by the backend (/v1/public/allies). Filters take plain words, as
 // a lead would type them (hub ADR 0026): `q` over name, RIF, ally number, city and
-// state; a city/state name; the "rubro" (product category) by name. They are
-// mirrored to the URL (?q=&ciudad=&categoria=&tipo=&horario=) so a search can be shared.
+// state; a city/state name; names of rubros (ally types), professions and product
+// categories; days of the week. They are mirrored to the URL
+// (?q=&ciudad=&tipo=&horario=&rubro=&profesion=&categoria=&dia=) so a search can be
+// shared; the multi-select ones repeat the key per choice (?rubro=a&rubro=b).
 // English pair of this public screen (hub URL convention): same page, rendered
 // in English by middleware/public-locale.global.ts. The fixed `key` keeps the
 // component (and any typed input) when the switcher jumps between the two URLs.
@@ -34,6 +36,14 @@ function queryString(key: string): string {
   return typeof v === 'string' ? v : ''
 }
 
+/** A multi-select filter from the URL: a repeated key (?rubro=a&rubro=b) or a single one. */
+function queryList(key: string): string[] {
+  const raw = route.query[key]
+  return (Array.isArray(raw) ? raw : [raw])
+    .filter((v): v is string => typeof v === 'string' && v.trim() !== '')
+    .map(v => v.trim())
+}
+
 // ---- List + filters ----
 const data = ref<PublicAllyListItemDto[]>([])
 const total = ref(0)
@@ -42,12 +52,12 @@ const page = ref(1) // UPagination is 1-based; the API is 0-based
 const size = ref(12)
 const search = ref(queryString('q'))
 const city = ref(queryString('ciudad'))
-const category = ref<string | undefined>(queryString('categoria') || undefined)
-// Commercial (B2B) or professional (B2P) allies — `?tipo=comercial|profesional` in the URL.
+// Commercial (B2B) and/or professional (B2P) allies — `?tipo=comercial&tipo=profesional` in the URL.
+// The API takes one segment: both picked is the same as none.
 const SEGMENT_BY_SLUG: Record<string, string> = { comercial: 'B2B', profesional: 'B2P' }
 const SLUG_BY_SEGMENT: Record<string, string> = { B2B: 'comercial', B2P: 'profesional' }
-const segment = ref<string | undefined>(SEGMENT_BY_SLUG[queryString('tipo')] || undefined)
-// Opening hours (hub ADR 0031 §7) — `?horario=ahora|hoy` in the URL.
+const segments = ref<string[]>(queryList('tipo').map(slug => SEGMENT_BY_SLUG[slug]).filter((v): v is string => !!v))
+// Opening hours (hub ADR 0031 §7) — `?horario=ahora|hoy` in the URL. One choice: "now" is part of "today".
 const availability = ref<string | undefined>(['ahora', 'hoy'].includes(queryString('horario')) ? queryString('horario') : undefined)
 const availabilityOptions = computed(() => [
   { label: t('allies.public.filters.openNow'), value: 'ahora' },
@@ -57,29 +67,57 @@ const segmentOptions = computed(() => [
   { label: t('allies.public.filters.segmentB2B'), value: 'B2B' },
   { label: t('allies.public.filters.segmentB2P'), value: 'B2P' },
 ])
+// Days the ally opens — `?dia=lunes&dia=sabado`; the API takes the same words.
+const DAYS = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'] as const
+const days = ref<string[]>(queryList('dia').filter(d => (DAYS as readonly string[]).includes(d)))
+const dayOptions = computed(() => DAYS.map(d => ({ label: t(`allies.public.filters.days.${d}`), value: d as string })))
+// Rubros (ally types), professions and product categories by NAME, several at once.
+const allyTypes = ref<string[]>(queryList('rubro'))
+const professions = ref<string[]>(queryList('profesion'))
+const categories = ref<string[]>(queryList('categoria'))
 
 function syncUrl() {
-  const query: Record<string, string> = {}
+  const query: Record<string, string | string[]> = {}
   if (search.value.trim()) query.q = search.value.trim()
   if (city.value.trim()) query.ciudad = city.value.trim()
-  if (category.value) query.categoria = category.value
-  if (segment.value) query.tipo = SLUG_BY_SEGMENT[segment.value] ?? segment.value
+  if (segments.value.length) query.tipo = segments.value.map(s => SLUG_BY_SEGMENT[s] ?? s)
   if (availability.value) query.horario = availability.value
+  if (allyTypes.value.length) query.rubro = allyTypes.value
+  if (professions.value.length) query.profesion = professions.value
+  if (categories.value.length) query.categoria = categories.value
+  if (days.value.length) query.dia = days.value
   router.replace({ query })
 }
+
+// Dropdown options load the first time they open; typing searches the server (`q`).
+const catalogOptions = (resource: string) => async (q: string) =>
+  (await usePublicCatalog(resource).list({ q: q || undefined }))
+    .filter(i => i.active !== false)
+    .map(i => ({ label: i.name, value: i.name, uuid: i.uuid }))
+const allyTypeOptions = useLazyOptions(catalogOptions('ally-types'))
+const professionOptions = useLazyOptions(catalogOptions('professions'))
+const categoryOptions = useLazyOptions(catalogOptions('product-categories'))
+// The API filters professions by id; the page and the URL speak in names.
+const knownProfessions = new Map<string, string>()
+watch(professionOptions.items, items => items.forEach(i => knownProfessions.set(i.value, i.uuid)), { immediate: true })
 
 async function load() {
   loading.value = true
   try {
+    // A profession preset from the URL needs its id before the first search.
+    if (professions.value.some(name => !knownProfessions.has(name))) await professionOptions.ensureLoaded()
     const res = await publicAllies.list({
       page: page.value - 1,
       size: size.value,
       q: search.value.trim() || undefined,
       city: city.value.trim() || undefined,
-      category: category.value || undefined,
-      segment: segment.value || undefined,
+      category: categories.value,
+      allyType: allyTypes.value,
+      professionUuid: professions.value.map(name => knownProfessions.get(name)).filter((id): id is string => !!id),
+      segment: segments.value.length === 1 ? segments.value[0] : undefined,
       openNow: availability.value === 'ahora',
       openToday: availability.value === 'hoy',
+      day: days.value,
     })
     data.value = res.content ?? []
     total.value = res.totalElements ?? 0
@@ -101,29 +139,26 @@ function reloadFromFirstPage() {
 }
 
 watch(page, load)
-watch([category, segment, availability], reloadFromFirstPage)
+watch([segments, availability, allyTypes, professions, categories, days], reloadFromFirstPage, { deep: true })
 const debouncedSearchLoad = useTableFilterDebounce(reloadFromFirstPage)
 watch([search, city], () => {
   debouncedSearchLoad()
 })
 
-// "Rubro": product categories by NAME (the API takes name or code, never ids here).
-// Fetched the first time the dropdown opens; a preset ?categoria= still shows (value == label).
-const categories = useLazyOptions(async () =>
-  (await usePublicCatalog('product-categories').list())
-    .filter(i => i.active !== false)
-    .map(i => ({ label: i.name, value: i.name })))
-
 function clearFilters() {
   search.value = ''
   city.value = ''
-  category.value = undefined
-  segment.value = undefined
+  segments.value = []
   availability.value = undefined
+  allyTypes.value = []
+  professions.value = []
+  categories.value = []
+  days.value = []
 }
 
 const hasFilters = computed(() =>
-  Boolean(search.value.trim() || city.value.trim() || category.value || segment.value || availability.value),
+  Boolean(search.value.trim() || city.value.trim() || availability.value)
+  || [segments, allyTypes, professions, categories, days].some(list => list.value.length > 0),
 )
 
 onMounted(load)
@@ -151,19 +186,26 @@ onMounted(load)
       </div>
     </section>
 
-    <!-- Filters -->
+    <!-- Filters: every dropdown is typeable and clearable; all but "horario" take several choices -->
     <section class="max-w-7xl mx-auto px-6 lg:px-10 -mt-8 relative z-10">
-      <div class="bg-white rounded-2xl border border-prohealth-100 shadow-sm p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+      <div class="bg-white rounded-2xl border border-prohealth-100 shadow-sm p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <UInput
           v-model="search"
           :placeholder="t('allies.public.filters.search')"
           icon="i-lucide-search"
           size="lg"
-          class="lg:col-span-2"
+          class="sm:col-span-2"
+        />
+        <UInput
+          v-model="city"
+          :placeholder="t('allies.public.filters.cityOrState')"
+          icon="i-lucide-map-pin"
+          size="lg"
         />
         <USelectMenu
+          v-model="segments"
+          multiple
           clear
-          v-model="segment"
           :items="segmentOptions"
           value-key="value"
           label-key="label"
@@ -172,8 +214,56 @@ onMounted(load)
           size="lg"
         />
         <USelectMenu
+          v-model="allyTypes"
+          multiple
           clear
+          :items="allyTypeOptions.items.value"
+          :loading="allyTypeOptions.loading.value"
+          v-model:search-term="allyTypeOptions.searchTerm.value"
+          ignore-filter
+          value-key="value"
+          label-key="label"
+          :placeholder="t('allies.public.filters.allyType')"
+          icon="i-lucide-store"
+          size="lg"
+          @update:open="allyTypeOptions.onOpen"
+          @update:model-value="allyTypeOptions.remember($event)"
+        />
+        <USelectMenu
+          v-model="professions"
+          multiple
+          clear
+          :items="professionOptions.items.value"
+          :loading="professionOptions.loading.value"
+          v-model:search-term="professionOptions.searchTerm.value"
+          ignore-filter
+          value-key="value"
+          label-key="label"
+          :placeholder="t('allies.public.filters.profession')"
+          icon="i-lucide-stethoscope"
+          size="lg"
+          @update:open="professionOptions.onOpen"
+          @update:model-value="professionOptions.remember($event)"
+        />
+        <USelectMenu
+          v-model="categories"
+          multiple
+          clear
+          :items="categoryOptions.items.value"
+          :loading="categoryOptions.loading.value"
+          v-model:search-term="categoryOptions.searchTerm.value"
+          ignore-filter
+          value-key="value"
+          label-key="label"
+          :placeholder="t('allies.public.filters.category')"
+          icon="i-lucide-tag"
+          size="lg"
+          @update:open="categoryOptions.onOpen"
+          @update:model-value="categoryOptions.remember($event)"
+        />
+        <USelectMenu
           v-model="availability"
+          clear
           :items="availabilityOptions"
           value-key="value"
           label-key="label"
@@ -181,23 +271,18 @@ onMounted(load)
           icon="i-lucide-clock"
           size="lg"
         />
-        <UInput
-          v-model="city"
-          :placeholder="t('allies.public.filters.cityOrState')"
-          icon="i-lucide-map-pin"
-          size="lg"
-        />
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 sm:col-span-2 lg:col-span-1">
           <USelectMenu
+            v-model="days"
+            multiple
             clear
-            v-model="category"
-            :items="categories.items.value"
-            :loading="categories.loading.value"
+            :items="dayOptions"
             value-key="value"
-            :placeholder="t('allies.public.filters.category')"
+            label-key="label"
+            :placeholder="t('allies.public.filters.anyDay')"
+            icon="i-lucide-calendar-days"
             size="lg"
-            class="flex-1"
-            @update:open="categories.onOpen"
+            class="flex-1 min-w-0"
           />
           <UTooltip v-if="hasFilters" :text="t('allies.public.filters.clear')">
             <UButton
@@ -206,6 +291,7 @@ onMounted(load)
               icon="i-lucide-x"
               size="lg"
               square
+              :aria-label="t('allies.public.filters.clear')"
               @click="clearFilters"
             />
           </UTooltip>
