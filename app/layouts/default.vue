@@ -8,6 +8,14 @@ const navLinks = [
   { labelKey: 'layout.public.nav.allies', to: '/aliados' },
 ]
 
+// Footer "Producto" links: plans are chosen in the affiliation flow; the card lives in the
+// member portal (the auth middleware sends a signed-out visitor to the login first).
+const footerLinks = computed(() => [
+  { labelKey: 'layout.footer.product.plans', to: publicPath('/afiliarse') },
+  { labelKey: 'layout.footer.product.allies', to: publicPath('/aliados') },
+  { labelKey: 'layout.footer.product.digitalCard', to: '/members' },
+])
+
 const scrolled = ref<boolean>(false)
 if (import.meta.client) {
   useEventListener(window, 'scroll', () => {
@@ -93,16 +101,18 @@ onMounted(async () => {
         <div>
           <h4 class="font-semibold text-white mb-3">{{ $t('layout.footer.productHeading') }}</h4>
           <ul class="space-y-2 text-sm text-prohealth-200/80">
-            <li>{{ $t('layout.footer.product.plans') }}</li>
-            <li>{{ $t('layout.footer.product.allies') }}</li>
-            <li>{{ $t('layout.footer.product.digitalCard') }}</li>
+            <li v-for="link in footerLinks" :key="link.to">
+              <NuxtLink :to="link.to" class="hover:text-white hover:underline transition-colors">
+                {{ $t(link.labelKey) }}
+              </NuxtLink>
+            </li>
           </ul>
         </div>
         <div>
           <h4 class="font-semibold text-white mb-3">{{ $t('layout.footer.contactHeading') }}</h4>
           <ul class="space-y-2 text-sm text-prohealth-200/80">
-            <li>info@optibienestar360.com</li>
-            <li>+58 412 000 0000</li>
+            <li><a href="mailto:info@optibienestar360.com" class="hover:text-white hover:underline transition-colors">info@optibienestar360.com</a></li>
+            <li><a href="tel:+584120000000" class="hover:text-white hover:underline transition-colors">+58 412 000 0000</a></li>
           </ul>
         </div>
       </div>
