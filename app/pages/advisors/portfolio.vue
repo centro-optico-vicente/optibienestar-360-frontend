@@ -339,6 +339,8 @@ function contactTypeIcon(type: PromoterContactType): string {
       </div>
     </div>
 
+    <AdvisorBirthdays />
+
     <!-- Collection score summary -->
     <div class="grid grid-cols-2 lg:grid-cols-5 gap-3">
       <template v-if="loading && !score">
