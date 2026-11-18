@@ -98,7 +98,7 @@ async function finish(mode: StepExit) {
           </div>
         </UFormField>
         <UFormField :label="t('affiliationRequest.birthDate')" required class="sm:col-span-2">
-          <BirthDateSelects v-model="r.birthDate" />
+          <BirthDateInput v-model="r.birthDate" />
         </UFormField>
       </div>
     </div>

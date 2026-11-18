@@ -6891,9 +6891,6 @@
       "recover": "Recuperar mi acceso"
     },
     "birthDate": {
-      "day": "Día",
-      "month": "Mes",
-      "year": "Año",
       "invalid": "Esa fecha no existe.",
       "future": "La fecha de nacimiento no puede ser futura."
     },

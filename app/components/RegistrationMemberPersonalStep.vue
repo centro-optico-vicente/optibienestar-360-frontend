@@ -92,7 +92,7 @@ async function finish(mode: StepExit) {
         <UInput v-model="state.phone" class="w-full" maxlength="30" autocomplete="tel" />
       </UFormField>
       <UFormField :label="t('affiliationRequest.birthDate')" required>
-        <BirthDateSelects v-model="state.birthDate" />
+        <BirthDateInput v-model="state.birthDate" />
       </UFormField>
     </div>
     <RegistrationStepActions :saving="saving" :essential="essential" @next="finish('next')" @later="finish('later')" @skip="finish('skip')" />
