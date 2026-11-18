@@ -25,17 +25,7 @@ const publicPath = usePublicPath()
             {{ $t('layout.auth.lead') }}
           </p>
 
-          <div class="mt-8 flex items-center gap-3 bg-white/10 backdrop-blur rounded-xl px-4 py-3 max-w-sm">
-            <div class="flex -space-x-2">
-              <span class="w-8 h-8 rounded-full bg-lime-400 border-2 border-white/30" />
-              <span class="w-8 h-8 rounded-full bg-cyan-400 border-2 border-white/30" />
-              <span class="w-8 h-8 rounded-full bg-prohealth-300 border-2 border-white/30" />
-            </div>
-            <div class="text-sm">
-              <div class="font-semibold">{{ $t('layout.auth.affiliatesCount') }}</div>
-              <div class="opacity-80">{{ $t('layout.auth.affiliatesTrust') }}</div>
-            </div>
-          </div>
+          <AuthAlliesBadge class="mt-8" />
         </div>
 
         <span class="text-xs opacity-70">{{ $t('layout.copyrightShort', { year: new Date().getFullYear() }) }}</span>

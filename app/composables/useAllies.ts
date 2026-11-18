@@ -333,6 +333,8 @@ interface PublicDirectoryParams {
   openNow?: boolean
   /** Only allies with opening hours today. */
   openToday?: boolean
+  /** No global error toast (decorative widgets, e.g. the login panel badge). */
+  silent?: boolean
 }
 
 /**
@@ -343,6 +345,7 @@ export const usePublicAllies = () => {
   const list = (params: PublicDirectoryParams = {}) =>
     useApi<Page<PublicAllyListItemDto>>('/v1/public/allies', {
       skipAuth: true,
+      silent: params.silent,
       query: {
         page: params.page ?? 0,
         size: params.size ?? 20,

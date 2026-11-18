@@ -912,8 +912,9 @@
     "auth": {
       "tagline": "Cuidamos lo que más amas.",
       "lead": "Accede a tu Credencial Digital, gestiona tus afiliados y descubre la red de aliados del programa OptiBienestar 360.",
-      "affiliatesCount": "+150 mil afiliados",
-      "affiliatesTrust": "confían en nosotros"
+      "alliesCount": "+{count} aliado | +{count} aliados",
+      "alliesTrust": "confían en nosotros",
+      "alliesHint": "Ver la red de aliados"
     },
     "public": {
       "nav": {
