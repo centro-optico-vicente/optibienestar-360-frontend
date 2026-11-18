@@ -179,6 +179,11 @@
         "sentTitle": "Check your email",
         "sentDescription": "If the account exists, we sent you a link to sign in without a password. It expires in 15 minutes and can be used only once.",
         "errorFallback": "Unable to send the link"
+      },
+      "registrationClosedContact": {
+        "button": "Contact the company",
+        "member": "Hello, my name is: \nI tried to sign up online but registration is not active. Can you help me?",
+        "ally": "Hello, my name is: \nI tried to register as an ally online but registration is not active. Can you help me?"
       }
     },
     "recover": {

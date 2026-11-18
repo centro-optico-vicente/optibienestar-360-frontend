@@ -12,7 +12,8 @@ const { t } = useI18n()
 const publicPath = usePublicPath()
 
 // Same WhatsApp as the floating contact button of the public website.
-const CONTACT_WHATSAPP_URL = 'https://wa.me/584122925608'
+const CONTACT_WHATSAPP_PHONE = '584122925608'
+const CONTACT_WHATSAPP_URL = `https://wa.me/${CONTACT_WHATSAPP_PHONE}`
 
 useSeoMeta({
   title: () => t('auth.login.seoTitle'),
@@ -32,6 +33,20 @@ const closedRegistration = computed<'member' | 'ally' | null>(() => {
   return value === 'member' || value === 'ally' ? value : null
 })
 onMounted(() => { void loadOnboardingPolicy() })
+
+// "Contact the company" action of the closed-registration notice: a WhatsApp chat
+// with a short ready-made message (the person fills in their name after "Hola, mi nombre es:").
+const closedRegistrationActions = computed(() => {
+  if (!closedRegistration.value) return []
+  return [{
+    label: t('auth.login.registrationClosedContact.button'),
+    icon: 'i-lucide-message-circle',
+    color: 'neutral' as const,
+    variant: 'outline' as const,
+    to: whatsappUrl(t(`auth.login.registrationClosedContact.${closedRegistration.value}`), CONTACT_WHATSAPP_PHONE),
+    target: '_blank',
+  }]
+})
 
 // "Cédula o correo" (hub ADR 0037 §3): the backend resolves the account from either.
 const identifierSchema = computed(() => z.string().trim().min(3, t('validation.minChars', { n: 3 })))
@@ -136,6 +151,7 @@ const onSendLink = async (): Promise<void> => {
       variant="subtle"
       icon="i-lucide-info"
       :title="$t(`auth.login.registrationClosed.${closedRegistration}`)"
+      :actions="closedRegistrationActions"
     />
 
     <UForm

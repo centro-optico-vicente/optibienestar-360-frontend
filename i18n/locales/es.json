@@ -179,6 +179,11 @@
         "sentTitle": "Revisa tu correo",
         "sentDescription": "Si la cuenta existe, te enviamos un enlace para entrar sin contraseña. Vence en 15 minutos y solo se puede usar una vez.",
         "errorFallback": "No fue posible enviar el enlace"
+      },
+      "registrationClosedContact": {
+        "button": "Contactar a la empresa",
+        "member": "Hola, mi nombre es: \nIntenté afiliarme en línea pero el registro no está activo. ¿Me pueden ayudar?",
+        "ally": "Hola, mi nombre es: \nIntenté registrarme como aliado en línea pero el registro no está activo. ¿Me pueden ayudar?"
       }
     },
     "recover": {
