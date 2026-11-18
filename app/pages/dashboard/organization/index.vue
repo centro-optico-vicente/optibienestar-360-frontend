@@ -56,6 +56,7 @@ const state = reactive({
   signatoryDocumentType: undefined as string | undefined,
   signatoryDocumentNumber: '',
   signatoryPosition: '',
+  publicIdentityVisible: false,
 })
 
 const schema = computed(() =>
@@ -167,6 +168,7 @@ async function load() {
       state.signatoryDocumentType = org.signatoryDocumentType ?? undefined
       state.signatoryDocumentNumber = org.signatoryDocumentNumber ?? ''
       state.signatoryPosition = org.signatoryPosition ?? ''
+      state.publicIdentityVisible = org.publicIdentityVisible
     }
     else {
       toast.add({ title: t('organization.loadError'), color: 'error', icon: 'i-lucide-alert-triangle' })
@@ -213,6 +215,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       signatoryDocumentType: state.signatoryDocumentType || undefined,
       signatoryDocumentNumber: state.signatoryDocumentNumber || undefined,
       signatoryPosition: state.signatoryPosition || undefined,
+      publicIdentityVisible: state.publicIdentityVisible,
     })
     state.name = updated.name
     state.legalName = updated.legalName ?? ''
@@ -234,6 +237,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     state.signatoryDocumentType = updated.signatoryDocumentType ?? undefined
     state.signatoryDocumentNumber = updated.signatoryDocumentNumber ?? ''
     state.signatoryPosition = updated.signatoryPosition ?? ''
+    state.publicIdentityVisible = updated.publicIdentityVisible
     snapshot.value = snapshotState()
     // Served T&C resolve {{org.*}} from these fields, so the previews are now stale.
     for (const type of TERM_TYPE_TABS) termTabs[type].loaded = false
@@ -727,6 +731,18 @@ onMounted(() => {
               :disabled="!canUpdate || isSubmitting"
               @update:model-value="currencyLazy.remember($event)"
             />
+          </UFormField>
+        </div>
+
+        <!-- Identidad pública -->
+        <div class="bg-white rounded-2xl border border-prohealth-100 p-6 shadow-sm space-y-4">
+          <h2 class="text-base font-bold text-prohealth-900">{{ t('organization.sections.publicIdentity') }}</h2>
+
+          <UFormField :label="t('organization.fields.publicIdentityVisible')" name="publicIdentityVisible">
+            <div class="flex items-start gap-3">
+              <USwitch v-model="state.publicIdentityVisible" :disabled="!canUpdate || isSubmitting" />
+              <p class="text-xs text-prohealth-700/70">{{ t('organization.fields.publicIdentityVisibleHelp') }}</p>
+            </div>
           </UFormField>
         </div>
 

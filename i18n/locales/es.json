@@ -5567,7 +5567,9 @@
       "signatoryDocumentNumberPlaceholder": "Número",
       "signatoryPosition": "Cargo",
       "signatoryPositionPlaceholder": "Gerente general",
-      "signatoryDocumentIncomplete": "El documento debe indicar tipo y número"
+      "signatoryDocumentIncomplete": "El documento debe indicar tipo y número",
+      "publicIdentityVisible": "Mostrar identidad en el sitio web",
+      "publicIdentityVisibleHelp": "Publica el nombre comercial, la razón social y el RIF en el endpoint público de la organización. Si está desactivado esos datos salen vacíos; los datos de contacto (dirección, correo, teléfonos y redes sociales) siempre son públicos."
     },
     "sections": {
       "general": "Datos generales",
@@ -5579,7 +5581,8 @@
       "contact": "Contacto institucional",
       "contactHelp": "Dirección, correo y teléfonos que se imprimen al pie de los contratos y términos.",
       "signatory": "Firmante autorizado",
-      "signatoryHelp": "Persona que firma por la empresa en los contratos (nombre, cédula y cargo). Se imprime en el bloque de firmas."
+      "signatoryHelp": "Persona que firma por la empresa en los contratos (nombre, cédula y cargo). Se imprime en el bloque de firmas.",
+      "publicIdentity": "Identidad pública"
     },
     "terms": {
       "help": "Tres tipos de contrato. Cada usuario debe aceptar en su próximo inicio de sesión las versiones vigentes que le correspondan, y de nuevo cuando entre en vigencia una versión nueva.",
