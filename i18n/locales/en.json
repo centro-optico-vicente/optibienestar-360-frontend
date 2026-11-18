@@ -912,8 +912,10 @@
     "auth": {
       "tagline": "We care for what you love most.",
       "lead": "Access your Digital Credential, manage your members and discover the partner network of the OptiBienestar 360 program.",
-      "affiliatesCount": "+150k members",
-      "affiliatesTrust": "trust us"
+      "alliesCount": "+{count} partner | +{count} partners",
+      "alliesTrust": "trust us",
+      "alliesHint": "See the partner network",
+      "alliesNetwork": "A whole network of partners"
     },
     "public": {
       "nav": {
