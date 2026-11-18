@@ -1984,14 +1984,26 @@
       "filters": {
         "search": "Nombre, RIF, número de aliado o ciudad…",
         "cityOrState": "Ciudad o estado",
-        "category": "Rubro",
+        "category": "Qué ofrece",
         "clear": "Limpiar filtros",
         "segment": "Comerciales y profesionales",
         "segmentB2B": "Comercios y empresas",
         "segmentB2P": "Profesionales",
         "anyTime": "Cualquier horario",
         "openNow": "Abierto ahora",
-        "openToday": "Atiende hoy"
+        "openToday": "Atiende hoy",
+        "allyType": "Rubro",
+        "profession": "Profesión",
+        "anyDay": "Cualquier día",
+        "days": {
+          "lunes": "Lunes",
+          "martes": "Martes",
+          "miercoles": "Miércoles",
+          "jueves": "Jueves",
+          "viernes": "Viernes",
+          "sabado": "Sábado",
+          "domingo": "Domingo"
+        }
       },
       "detail": {
         "seoTitle": "{name} — Red de aliados OptiBienestar 360",

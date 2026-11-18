@@ -1984,14 +1984,26 @@
       "filters": {
         "search": "Name, tax ID, partner number or city…",
         "cityOrState": "City or state",
-        "category": "Line of business",
+        "category": "What they offer",
         "clear": "Clear filters",
         "segment": "Commercial and professional",
         "segmentB2B": "Stores and companies",
         "segmentB2P": "Professionals",
         "anyTime": "Any time",
         "openNow": "Open now",
-        "openToday": "Open today"
+        "openToday": "Open today",
+        "allyType": "Line of business",
+        "profession": "Profession",
+        "anyDay": "Any day",
+        "days": {
+          "lunes": "Monday",
+          "martes": "Tuesday",
+          "miercoles": "Wednesday",
+          "jueves": "Thursday",
+          "viernes": "Friday",
+          "sabado": "Saturday",
+          "domingo": "Sunday"
+        }
       },
       "detail": {
         "seoTitle": "{name} — OptiBienestar 360 partner network",
