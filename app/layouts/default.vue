@@ -36,10 +36,10 @@ onMounted(async () => {
   <div class="min-h-screen flex flex-col bg-white">
     <header
       :class="[
-        'sticky top-0 z-30 w-full transition-all duration-300',
-        scrolled
-          ? 'bg-white/90 backdrop-blur border-b border-prohealth-100 shadow-sm'
-          : 'bg-transparent',
+        // Always a light bar: several public pages open with a dark hero, where the dark
+        // logo/nav text on a transparent header was unreadable.
+        'sticky top-0 z-30 w-full backdrop-blur border-b border-prohealth-100 transition-all duration-300',
+        scrolled ? 'bg-white/95 shadow-sm' : 'bg-white/90',
       ]"
     >
       <div class="max-w-7xl mx-auto px-6 lg:px-10 h-16 flex items-center justify-between">
