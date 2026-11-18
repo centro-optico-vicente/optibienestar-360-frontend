@@ -90,3 +90,20 @@ export interface OrganizationUpdateRequest {
   signatoryDocumentNumber?: string
   signatoryPosition?: string
 }
+
+/**
+ * Response of GET /v1/public/organization (no authentication): company identity
+ * and contact data meant for the website. `name` is the commercial name,
+ * `legalName` the registered one (razón social), `taxIdentifier` the RIF.
+ */
+export interface PublicOrganizationDto {
+  name: string | null
+  legalName: string | null
+  taxIdentifier: string | null
+  address: string | null
+  email: string | null
+  phones: string | null
+  whatsapp: string | null
+  instagram: string | null
+  facebook: string | null
+}

@@ -11,9 +11,9 @@ definePageMeta({ layout: 'auth', alias: ['/en'], key: 'public-login' })
 const { t } = useI18n()
 const publicPath = usePublicPath()
 
-// Same WhatsApp as the floating contact button of the public website.
-const CONTACT_WHATSAPP_PHONE = '584122925608'
-const CONTACT_WHATSAPP_URL = `https://wa.me/${CONTACT_WHATSAPP_PHONE}`
+// Company WhatsApp from the organization (falls back to the website's default number).
+const { load: loadOrganization, contactWhatsapp } = usePublicOrganization()
+const CONTACT_WHATSAPP_URL = computed(() => `https://wa.me/${contactWhatsapp.value}`)
 
 useSeoMeta({
   title: () => t('auth.login.seoTitle'),
@@ -32,7 +32,10 @@ const closedRegistration = computed<'member' | 'ally' | null>(() => {
   const value = route.query.registration
   return value === 'member' || value === 'ally' ? value : null
 })
-onMounted(() => { void loadOnboardingPolicy() })
+onMounted(() => {
+  void loadOnboardingPolicy()
+  void loadOrganization()
+})
 
 // "Contact the company" action of the closed-registration notice: a WhatsApp chat
 // with a short ready-made message (the person fills in their name after "Hola, mi nombre es:").
@@ -43,7 +46,7 @@ const closedRegistrationActions = computed(() => {
     icon: 'i-lucide-message-circle',
     color: 'neutral' as const,
     variant: 'outline' as const,
-    to: whatsappUrl(t(`auth.login.registrationClosedContact.${closedRegistration.value}`), CONTACT_WHATSAPP_PHONE),
+    to: whatsappUrl(t(`auth.login.registrationClosedContact.${closedRegistration.value}`), contactWhatsapp.value),
     target: '_blank',
   }]
 })
