@@ -47,6 +47,8 @@ export interface OrganizationDto {
   signatoryDocumentNumber: string | null
   /** Position of the signatory — `{{org.signatoryPosition}}`. */
   signatoryPosition: string | null
+  /** Publishes nombre comercial / razón social / RIF on GET /v1/public/organization (contact data is always public). */
+  publicIdentityVisible: boolean
 }
 
 /** A currency stripped to what an unprivileged caller needs — no uuid, no active flag. */
@@ -89,4 +91,30 @@ export interface OrganizationUpdateRequest {
   signatoryDocumentType?: string
   signatoryDocumentNumber?: string
   signatoryPosition?: string
+  publicIdentityVisible: boolean
+}
+
+/**
+ * Response of GET /v1/public/organization/contact (no authentication), also the
+ * `contact` block of GET /v1/public/organization. Always public.
+ */
+export interface PublicOrganizationContactDto {
+  address: string | null
+  email: string | null
+  phones: string | null
+  whatsapp: string | null
+  instagram: string | null
+  facebook: string | null
+}
+
+/**
+ * Response of GET /v1/public/organization (no authentication). The identity is
+ * `null` unless the admin ticked "public identity": `name` is the commercial
+ * name, `legalName` the registered one (razón social), `taxIdentifier` the RIF.
+ */
+export interface PublicOrganizationDto {
+  name: string | null
+  legalName: string | null
+  taxIdentifier: string | null
+  contact: PublicOrganizationContactDto
 }

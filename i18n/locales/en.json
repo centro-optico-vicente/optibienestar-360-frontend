@@ -179,6 +179,11 @@
         "sentTitle": "Check your email",
         "sentDescription": "If the account exists, we sent you a link to sign in without a password. It expires in 15 minutes and can be used only once.",
         "errorFallback": "Unable to send the link"
+      },
+      "registrationClosedContact": {
+        "button": "Contact the company",
+        "member": "Hello, my name is: \nI tried to sign up online but registration is not active. Can you help me?",
+        "ally": "Hello, my name is: \nI tried to register as an ally online but registration is not active. Can you help me?"
       }
     },
     "recover": {
@@ -5564,7 +5569,9 @@
       "signatoryDocumentNumberPlaceholder": "Number",
       "signatoryPosition": "Position",
       "signatoryPositionPlaceholder": "General manager",
-      "signatoryDocumentIncomplete": "The document must include both type and number"
+      "signatoryDocumentIncomplete": "The document must include both type and number",
+      "publicIdentityVisible": "Show identity on the website",
+      "publicIdentityVisibleHelp": "Publishes the commercial name, legal name and tax ID on the public organization endpoint. When off they are returned empty; contact data (address, email, phones and social networks) is always public."
     },
     "sections": {
       "general": "General information",
@@ -5576,7 +5583,8 @@
       "contact": "Institutional contact",
       "contactHelp": "Address, email and phones printed at the foot of the contracts and terms.",
       "signatory": "Authorized signatory",
-      "signatoryHelp": "Person who signs for the company in the contracts (name, ID and position). Printed in the signature block."
+      "signatoryHelp": "Person who signs for the company in the contracts (name, ID and position). Printed in the signature block.",
+      "publicIdentity": "Public identity"
     },
     "terms": {
       "help": "Three contract kinds. Each user must accept the current versions that apply to them on their next login, and again when a new version takes effect.",
