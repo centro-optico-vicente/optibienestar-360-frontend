@@ -914,7 +914,8 @@
       "lead": "Accede a tu Credencial Digital, gestiona tus afiliados y descubre la red de aliados del programa OptiBienestar 360.",
       "alliesCount": "+{count} aliado | +{count} aliados",
       "alliesTrust": "confían en nosotros",
-      "alliesHint": "Ver la red de aliados"
+      "alliesHint": "Ver la red de aliados",
+      "alliesNetwork": "Toda una red de aliados"
     },
     "public": {
       "nav": {

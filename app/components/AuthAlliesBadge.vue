@@ -10,6 +10,8 @@ const BASE_SIZE = 32
 const MAX_BOOST = 0.8
 const RADIUS = 70
 const MAX_LOGOS = 5
+// Below this the exact figure reads small: show a generic "network" claim instead.
+const MIN_COUNT_SHOWN = 20
 
 const { t, n } = useI18n()
 const publicPath = usePublicPath()
@@ -18,6 +20,10 @@ const reducedMotion = usePreferredReducedMotion()
 const allies = ref<PublicAllyListItemDto[]>([])
 const total = ref(0)
 const loading = ref(true)
+
+const headline = computed(() => total.value >= MIN_COUNT_SHOWN
+  ? t('layout.auth.alliesCount', { count: n(total.value) }, total.value)
+  : t('layout.auth.alliesNetwork'))
 
 const itemRefs: HTMLElement[] = []
 function setItemRef(el: Element | ComponentPublicInstance | null, i: number) {
@@ -122,7 +128,7 @@ onMounted(async () => {
       </UTooltip>
     </div>
     <div class="text-sm pb-1">
-      <div class="font-semibold">{{ t('layout.auth.alliesCount', { count: n(total) }, total) }}</div>
+      <div class="font-semibold">{{ headline }}</div>
       <div class="opacity-80">{{ t('layout.auth.alliesTrust') }}</div>
     </div>
   </NuxtLink>
