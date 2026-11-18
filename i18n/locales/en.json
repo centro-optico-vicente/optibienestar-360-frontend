@@ -7136,5 +7136,31 @@
         "action": "Go to my portal"
       }
     }
+  },
+  "birthdays": {
+    "greeting": {
+      "title": "Happy birthday, {name}!",
+      "short": "Everyone at Grupo OptiBienestar wishes you a wonderful day.",
+      "open": "See message",
+      "modalTitle": "A message for you",
+      "message": "Today we celebrate another year of your life with you. Thank you for trusting us to care for your eye health and well-being. May this new year bring you health, joy and moments to see clearly all the good things still to come.",
+      "signature": "With love, Grupo OptiBienestar 360",
+      "thanks": "Thank you!"
+    },
+    "advisor": {
+      "title": "Birthdays in your portfolio",
+      "todayCount": "{count} person has a birthday today | {count} people have a birthday today",
+      "noneToday": "No birthdays today",
+      "window": "next {days} days",
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "inDays": "In {days} days · {date}",
+      "holder": "Primary affiliate",
+      "beneficiary": "Beneficiary",
+      "beneficiaryOf": "{relationship} of {holder}",
+      "turns": "Turns {age}",
+      "congratulate": "Congratulate",
+      "whatsappMessage": "Happy birthday, {name}! 🎂 Everyone at Grupo OptiBienestar 360 wishes you a day full of joy, health and well-being."
+    }
   }
 }

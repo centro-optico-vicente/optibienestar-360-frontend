@@ -184,6 +184,8 @@ const initials = computed(() => (displayName.value || '').split(/\s+/).filter(Bo
       </p>
     </div>
 
+    <BirthdayGreeting />
+
     <!-- Loading -->
     <div v-if="loading" class="space-y-4">
       <USkeleton class="h-56 w-full max-w-md rounded-3xl" />

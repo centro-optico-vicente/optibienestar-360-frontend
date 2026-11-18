@@ -7136,5 +7136,31 @@
         "action": "Ir a mi portal"
       }
     }
+  },
+  "birthdays": {
+    "greeting": {
+      "title": "¡Feliz cumpleaños, {name}!",
+      "short": "Todo el Grupo OptiBienestar te desea un día maravilloso.",
+      "open": "Ver mensaje",
+      "modalTitle": "Un mensaje para ti",
+      "message": "Hoy celebramos contigo un año más de vida. Gracias por confiar en nosotros para cuidar tu salud visual y tu bienestar. Que este nuevo año venga lleno de salud, alegría y momentos para ver con claridad todo lo bueno que está por venir.",
+      "signature": "Con cariño, Grupo OptiBienestar 360",
+      "thanks": "¡Gracias!"
+    },
+    "advisor": {
+      "title": "Cumpleaños de tu cartera",
+      "todayCount": "Hoy cumple años {count} persona | Hoy cumplen años {count} personas",
+      "noneToday": "Nadie cumple años hoy",
+      "window": "próximos {days} días",
+      "today": "Hoy",
+      "tomorrow": "Mañana",
+      "inDays": "En {days} días · {date}",
+      "holder": "Afiliado titular",
+      "beneficiary": "Beneficiario",
+      "beneficiaryOf": "{relationship} de {holder}",
+      "turns": "Cumple {age} años",
+      "congratulate": "Felicitar",
+      "whatsappMessage": "¡Feliz cumpleaños, {name}! 🎂 De parte de todo el Grupo OptiBienestar 360 te deseamos un día lleno de alegría, salud y bienestar."
+    }
   }
 }

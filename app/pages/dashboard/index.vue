@@ -325,6 +325,9 @@ const greetingKey = computed<'morning' | 'afternoon' | 'evening'>(() => {
       </UButton>
     </div>
 
+    <BirthdayGreeting />
+    <AdvisorBirthdays />
+
     <!-- Loading -->
     <div v-if="loading && !data" class="space-y-4" aria-busy="true">
       <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
