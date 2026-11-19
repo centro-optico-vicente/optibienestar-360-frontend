@@ -103,7 +103,7 @@ onMounted(async () => {
     v-else-if="total > 0"
     :to="publicPath('/aliados')"
     :aria-label="t('layout.auth.alliesHint')"
-    class="flex items-end gap-3 bg-white/10 hover:bg-white/15 backdrop-blur rounded-xl px-4 py-3 max-w-sm transition-colors"
+    class="group flex items-end gap-3 bg-white/10 hover:bg-white/15 backdrop-blur rounded-xl px-4 py-3 max-w-sm transition-colors"
   >
     <div
       class="flex items-end h-[58px] transition-[gap] duration-150"
@@ -130,6 +130,11 @@ onMounted(async () => {
     <div class="text-sm pb-1">
       <div class="font-semibold">{{ headline }}</div>
       <div class="opacity-80">{{ t('layout.auth.alliesTrust') }}</div>
+      <!-- Visible call to action: without it nothing tells the badge is a link. -->
+      <div class="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold underline underline-offset-4 decoration-white/40 group-hover:decoration-white">
+        {{ t('layout.auth.alliesHint') }}
+        <UIcon name="i-lucide-arrow-right" class="size-3.5 transition-transform group-hover:translate-x-0.5" />
+      </div>
     </div>
   </NuxtLink>
 </template>
