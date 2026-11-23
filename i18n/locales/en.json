@@ -3413,6 +3413,22 @@
       "pending": "Pending confirmation",
       "enrolledFrom": "Enrolled from",
       "enrolledTo": "Enrolled to"
+    },
+    "mySubsidies": {
+      "title": "My subsidies and exonerations",
+      "hint": "Benefits the organization granted you; they already apply to your charges.",
+      "monthlyExonerated": "Your monthly fee is exonerated",
+      "monthlySubsidized": "Your monthly fee is subsidized at {value}",
+      "inscriptionExonerated": "Your inscription is exonerated",
+      "inscriptionSubsidized": "Your inscription is subsidized at {value}",
+      "inscriptionAlso": "Inscription covered at {value}",
+      "validSince": "Valid since {from}, no end date",
+      "validRange": "Valid from {from} to {until}",
+      "beneficiaries": "Includes: {names}",
+      "kind": {
+        "exoneration": "Exoneration",
+        "partial": "Partial subsidy"
+      }
     }
   },
   "memberships": {
