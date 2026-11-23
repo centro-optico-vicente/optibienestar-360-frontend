@@ -903,6 +903,10 @@
       "allyCampaigns": {
         "label": "Campaigns",
         "description": "Campaigns where you can offer your own benefits."
+      },
+      "subsidies": {
+        "label": "Subsidies and exonerations",
+        "description": "Monthly fee or inscription covered fully or partially, with a reason and a validity window."
       }
     },
     "other": {
@@ -7178,6 +7182,69 @@
       "turns": "Turns {age}",
       "congratulate": "Congratulate",
       "whatsappMessage": "Happy birthday, {name}! 🎂 Everyone at Grupo OptiBienestar 360 wishes you a day full of joy, health and well-being."
+    }
+  },
+  "subsidies": {
+    "title": "Subsidies and exonerations",
+    "subtitle": "Members whose monthly fee or inscription is covered fully (exoneration) or partially. Every change is kept in the log.",
+    "searchPlaceholder": "Search by member or reason",
+    "filters": {
+      "member": "Member",
+      "dateFrom": "Valid from",
+      "dateTo": "Valid until"
+    },
+    "columns": {
+      "member": "Member",
+      "coverage": "Coverage",
+      "validity": "Validity",
+      "reason": "Reason"
+    },
+    "empty": "There are no live subsidies.",
+    "kind": {
+      "exoneration": "Exoneration",
+      "partial": "Partial subsidy"
+    },
+    "monthlyShort": "Monthly fee: {value}",
+    "inscriptionShort": "Inscription: {value}",
+    "beneficiaryCount": "{count} exonerated beneficiary(ies)",
+    "indefinite": "Indefinite",
+    "viewLog": "View log",
+    "revoke": "Revoke",
+    "createTitle": "New subsidy",
+    "editTitle": "Edit subsidy",
+    "formDescription": "Leave a fee's percentage empty when it is not covered; 100 = full exoneration.",
+    "fields": {
+      "member": "Member",
+      "monthlyPercentage": "% of monthly fee",
+      "inscriptionPercentage": "% of inscription",
+      "maxExoneratedBeneficiaries": "Max exonerated beneficiaries",
+      "reason": "Reason",
+      "validFrom": "Valid from",
+      "validUntil": "Valid until",
+      "active": "Active",
+      "beneficiaryCount": "Exonerated beneficiaries"
+    },
+    "percentHelp": "Between 0 and 100. Empty = not covered.",
+    "maxBeneficiariesHelp": "Empty = the plan's own cap.",
+    "validUntilHelp": "Empty = no end date.",
+    "editHint": "A stored value cannot be cleared here: revoke the subsidy and create a new one instead.",
+    "validation": {
+      "percentRange": "Must be a number between 0 and 100 (max 2 decimals).",
+      "wholeNumber": "Must be a whole number.",
+      "coverageRequired": "Enter at least one percentage (monthly fee or inscription).",
+      "untilBeforeFrom": "Cannot be earlier than the start date.",
+      "cannotClear": "Cannot be cleared: revoke and create a new one."
+    },
+    "savedToast": "Subsidy saved",
+    "revokedToast": "Subsidy revoked",
+    "revokeTitle": "Revoke subsidy",
+    "revokeConfirm": "Revoke {member}'s subsidy? It will stop applying to upcoming charges and will be recorded in the log.",
+    "logTitle": "Subsidy log",
+    "logEmpty": "No recorded changes.",
+    "actions": {
+      "CREATED": "Created",
+      "MODIFIED": "Modified",
+      "REVOKED": "Revoked"
     }
   }
 }
