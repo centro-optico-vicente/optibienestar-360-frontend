@@ -5587,7 +5587,9 @@
       "signatoryPositionPlaceholder": "Gerente general",
       "signatoryDocumentIncomplete": "El documento debe indicar tipo y número",
       "publicIdentityVisible": "Mostrar identidad en el sitio web",
-      "publicIdentityVisibleHelp": "Publica el nombre comercial, la razón social y el RIF en el endpoint público de la organización. Si está desactivado esos datos salen vacíos; los datos de contacto (dirección, correo, teléfonos y redes sociales) siempre son públicos."
+      "publicIdentityVisibleHelp": "Publica el nombre comercial, la razón social y el RIF en el endpoint público de la organización. Si está desactivado esos datos salen vacíos; los datos de contacto (dirección, correo, teléfonos y redes sociales) siempre son públicos.",
+      "subsidyMode": "Subsidios",
+      "subsidyModeHelp": "Define qué cuotas pueden cubrir los subsidios otorgados manualmente. Las recompensas por referido siempre se aplican y se controlan desde la promoción. Cambiar el modo no borra los subsidios guardados: las cuotas apagadas simplemente dejan de descontarse."
     },
     "sections": {
       "general": "Datos generales",
@@ -5600,7 +5602,8 @@
       "contactHelp": "Dirección, correo y teléfonos que se imprimen al pie de los contratos y términos.",
       "signatory": "Firmante autorizado",
       "signatoryHelp": "Persona que firma por la empresa en los contratos (nombre, cédula y cargo). Se imprime en el bloque de firmas.",
-      "publicIdentity": "Identidad pública"
+      "publicIdentity": "Identidad pública",
+      "subsidies": "Subsidios y exoneraciones"
     },
     "terms": {
       "help": "Tres tipos de contrato. Cada usuario debe aceptar en su próximo inicio de sesión las versiones vigentes que le correspondan, y de nuevo cuando entre en vigencia una versión nueva.",
@@ -7245,6 +7248,12 @@
       "CREATED": "Creado",
       "MODIFIED": "Modificado",
       "REVOKED": "Revocado"
+    },
+    "modes": {
+      "DISABLED": "Inactivo",
+      "MONTHLY": "Mensualidad",
+      "INSCRIPTION": "Inscripción",
+      "MONTHLY_AND_INSCRIPTION": "Inscripción + mensualidad"
     }
   }
 }
