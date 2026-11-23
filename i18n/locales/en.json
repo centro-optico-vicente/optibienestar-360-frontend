@@ -636,6 +636,10 @@
         "label": "Plans",
         "description": "Available coverage plans."
       },
+      "corporateContracts": {
+        "label": "Corporate contracts",
+        "description": "Institutions on the Corporate plan: payer mode and enrolled members."
+      },
       "memberships": {
         "label": "Memberships",
         "description": "Membership status and validity."
@@ -1610,6 +1614,50 @@
     },
     "filters": {
       "type": "Plan type"
+    },
+    "corporateContracts": {
+      "title": "Corporate contracts",
+      "subtitle": "Institutions on the Corporate plan: who pays (the institution in bulk or each member) and how many members are enrolled.",
+      "searchPlaceholder": "Search by institution or tax ID",
+      "filters": {
+        "plan": "Plan"
+      },
+      "columns": {
+        "institution": "Institution",
+        "plan": "Plan",
+        "payerMode": "Payer mode",
+        "members": "Members"
+      },
+      "memberCount": "{actual} of {expected}",
+      "empty": "There are no corporate contracts.",
+      "viewMembers": "View enrolled members",
+      "createTitle": "New corporate contract",
+      "editTitle": "Edit corporate contract",
+      "fields": {
+        "institutionName": "Institution",
+        "institutionTaxId": "Tax ID (RIF)",
+        "plan": "Plan",
+        "payerMode": "Payer mode",
+        "expectedMemberCount": "Expected members"
+      },
+      "planHelp": "Must be a Corporate-type plan.",
+      "payerMode": {
+        "INSTITUTION_BULK": "Institution pays in bulk",
+        "INDIVIDUAL_PAYER": "Each member pays"
+      },
+      "payerModeHelp": {
+        "INSTITUTION_BULK": "Charges are billed to the contract.",
+        "INDIVIDUAL_PAYER": "Each member pays their own membership like an individual affiliate."
+      },
+      "validation": {
+        "wholeNumber": "Must be a whole number."
+      },
+      "savedToast": "Contract saved",
+      "deletedToast": "Contract deleted",
+      "deleteTitle": "Delete corporate contract",
+      "deleteConfirm": "Delete the contract of {name}?",
+      "membersTitle": "Enrolled members",
+      "membersEmpty": "This contract has no enrolled members yet."
     }
   },
   "allies": {
