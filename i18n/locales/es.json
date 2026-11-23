@@ -7222,7 +7222,8 @@
       "validFrom": "Vigente desde",
       "validUntil": "Vigente hasta",
       "active": "Activo",
-      "beneficiaryCount": "Beneficiarios exonerados"
+      "beneficiaryCount": "Beneficiarios exonerados",
+      "origin": "Origen"
     },
     "percentHelp": "Entre 0 y 100. Vacío = no cubierto.",
     "maxBeneficiariesHelp": "Vacío = el tope del plan.",
@@ -7233,7 +7234,8 @@
       "wholeNumber": "Debe ser un número entero.",
       "coverageRequired": "Indica al menos un porcentaje (mensualidad o inscripción).",
       "untilBeforeFrom": "No puede ser anterior a la fecha de inicio.",
-      "cannotClear": "No se puede vaciar: revoca y crea uno nuevo."
+      "cannotClear": "No se puede vaciar: revoca y crea uno nuevo.",
+      "exceedsCap": "Supera tu tope de descuento ({cap} %). Solo un usuario con permiso para superar el tope puede otorgar más."
     },
     "savedToast": "Subsidio guardado",
     "revokedToast": "Subsidio revocado",
@@ -7245,6 +7247,32 @@
       "CREATED": "Creado",
       "MODIFIED": "Modificado",
       "REVOKED": "Revocado"
-    }
+    },
+    "disabled": {
+      "title": "Subsidios inactivos en la organización",
+      "body": "El modo de subsidios de la organización está en Inactivo: no se pueden crear ni editar subsidios y los que ya están cargados no descuentan. Las recompensas por referido siguen aplicando, porque se controlan desde la promoción. Para habilitarlos, cambia el modo en Organización.",
+      "action": "Ir a Organización"
+    },
+    "origin": {
+      "MANUAL": "Manual",
+      "REFERRAL_REWARD": "Recompensa por referido"
+    },
+    "capHint": "Tu tope de descuento: {cap} %",
+    "capHintHard": "Cada porcentaje debe ser menor o igual a tu tope.",
+    "capHintCanExceed": "Puedes superarlo: el sistema te pedirá confirmación y lo dejará registrado en la bitácora.",
+    "capConfirm": {
+      "title": "Superar el tope de descuento",
+      "body": "Un porcentaje supera tu tope de descuento ({cap} %). Si continúas, la bitácora del subsidio registrará el tope vigente y que se superó. ¿Deseas continuar?",
+      "confirm": "Superar el tope y guardar"
+    },
+    "errors": {
+      "disabledForOrganization": "Los subsidios están inactivos en la organización: no se pueden crear ni editar.",
+      "feeTypeDisabled": "El modo de subsidios de la organización no permite subsidiar una de las cuotas indicadas. Se actualizó el formulario con las cuotas habilitadas.",
+      "exceedsDiscountCap": "Supera tu tope de descuento ({cap} %) y no tienes permiso para superarlo.",
+      "exceedsDiscountCapGeneric": "Supera tu tope de descuento y no tienes permiso para superarlo.",
+      "exceedsDiscountCapAckRequired": "Un porcentaje supera tu tope de descuento y hace falta confirmarlo de forma explícita."
+    },
+    "disabledFeeStored": "{fee} guardado ({value}) no se aplica mientras el modo de subsidios de la organización no habilite esa cuota.",
+    "beneficiaryLines": "Líneas por beneficiario"
   }
 }

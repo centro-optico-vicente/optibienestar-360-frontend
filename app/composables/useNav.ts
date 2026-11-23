@@ -18,10 +18,12 @@ export const useNav = () => {
   const { can, hasAnyRole } = usePermissions()
   const { t } = useI18n()
   const { showCompletionPortal } = useRegistrationProgress()
+  const { disabled: subsidiesDisabled } = useSubsidySettings()
 
   const isLeafVisible = (leaf: NavLeaf): boolean => {
     if (leaf.hiddenForRoles?.length && hasAnyRole(...leaf.hiddenForRoles)) return false
     if (leaf.registrationPortal) return showCompletionPortal.value
+    if (leaf.hiddenWhenSubsidiesDisabled && subsidiesDisabled.value) return false
     if (leaf.roles?.length) return hasAnyRole(...leaf.roles)
     if (!leaf.requires) return true
     return Array.isArray(leaf.requires) ? leaf.requires.some(can) : can(leaf.requires)
