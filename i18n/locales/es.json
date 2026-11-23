@@ -636,6 +636,10 @@
         "label": "Planes",
         "description": "Planes de cobertura disponibles."
       },
+      "corporateContracts": {
+        "label": "Contratos corporativos",
+        "description": "Instituciones con plan Corporativo: modalidad de pago y miembros inscritos."
+      },
       "memberships": {
         "label": "Membresías",
         "description": "Estado y vigencia de las membresías."
@@ -1610,6 +1614,50 @@
     },
     "filters": {
       "type": "Tipo de plan"
+    },
+    "corporateContracts": {
+      "title": "Contratos corporativos",
+      "subtitle": "Instituciones con plan Corporativo: quién paga (la institución en bloque o cada miembro) y cuántos miembros tiene inscritos.",
+      "searchPlaceholder": "Buscar por institución o RIF",
+      "filters": {
+        "plan": "Plan"
+      },
+      "columns": {
+        "institution": "Institución",
+        "plan": "Plan",
+        "payerMode": "Modalidad de pago",
+        "members": "Miembros"
+      },
+      "memberCount": "{actual} de {expected}",
+      "empty": "No hay contratos corporativos.",
+      "viewMembers": "Ver miembros inscritos",
+      "createTitle": "Nuevo contrato corporativo",
+      "editTitle": "Editar contrato corporativo",
+      "fields": {
+        "institutionName": "Institución",
+        "institutionTaxId": "RIF",
+        "plan": "Plan",
+        "payerMode": "Modalidad de pago",
+        "expectedMemberCount": "Miembros esperados"
+      },
+      "planHelp": "Debe ser un plan de tipo Corporativo.",
+      "payerMode": {
+        "INSTITUTION_BULK": "La institución paga en bloque",
+        "INDIVIDUAL_PAYER": "Cada miembro paga"
+      },
+      "payerModeHelp": {
+        "INSTITUTION_BULK": "Los cobros se hacen al contrato.",
+        "INDIVIDUAL_PAYER": "Cada miembro paga su membresía como un afiliado individual."
+      },
+      "validation": {
+        "wholeNumber": "Debe ser un número entero."
+      },
+      "savedToast": "Contrato guardado",
+      "deletedToast": "Contrato eliminado",
+      "deleteTitle": "Eliminar contrato corporativo",
+      "deleteConfirm": "¿Eliminar el contrato de {name}?",
+      "membersTitle": "Miembros inscritos",
+      "membersEmpty": "Este contrato aún no tiene miembros inscritos."
     }
   },
   "allies": {

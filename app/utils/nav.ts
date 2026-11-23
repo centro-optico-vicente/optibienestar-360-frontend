@@ -91,6 +91,7 @@ export const MAIN_NAV: NavEntry[] = [
     descriptionKey: 'nav.groups.afiliaciones.description',
     children: [
       { label: 'Planes', labelKey: 'nav.items.plans.label', to: '/dashboard/plans', icon: 'i-lucide-package', description: 'Planes de cobertura disponibles.', descriptionKey: 'nav.items.plans.description', requires: 'PLAN_VIEW_ALL' },
+      { label: 'Contratos corporativos', labelKey: 'nav.items.corporateContracts.label', to: '/dashboard/corporate-contracts', icon: 'i-lucide-building', description: 'Instituciones con plan Corporativo: modalidad de pago y miembros inscritos.', descriptionKey: 'nav.items.corporateContracts.description', requires: 'CORPORATE_CONTRACT_VIEW_ALL' },
       { label: 'Membresías', labelKey: 'nav.items.memberships.label', to: '/dashboard/memberships', icon: 'i-lucide-badge-check', description: 'Estado y vigencia de las membresías.', descriptionKey: 'nav.items.memberships.description', requires: 'MEMBERSHIP_VIEW_ALL' },
       { label: 'Afiliados', labelKey: 'nav.items.members.label', to: '/dashboard/members', icon: 'i-lucide-users', description: 'Directorio y expedientes de afiliados.', descriptionKey: 'nav.items.members.description', requires: 'MEMBER_VIEW_ALL' },
       { label: 'Solicitudes de afiliación', labelKey: 'nav.items.affiliationRequests.label', to: '/dashboard/affiliation-requests', icon: 'i-lucide-user-plus', description: 'Revisar, corregir y aprobar las afiliaciones de la página pública.', descriptionKey: 'nav.items.affiliationRequests.description', requires: 'AFFILIATION_REQUEST_VIEW_ALL' },
