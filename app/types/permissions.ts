@@ -110,6 +110,8 @@ export const PERMISSIONS = [
   'SUBSIDY_CREATE',
   'SUBSIDY_UPDATE',
   'SUBSIDY_DELETE',
+  // Go over the advisor's discount cap (up to 100 %) after an explicit confirmation (hub ADR 0041 §5).
+  'SUBSIDY_EXCEED_DISCOUNT_CAP',
 
   // ALLIES
   'ALLY_CREATE',

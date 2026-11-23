@@ -1,6 +1,11 @@
 import type { Page } from '~/types/admin'
 import type { SubsidyAuditLogDto, SubsidyCreateRequest, SubsidyDto, SubsidyUpdateRequest } from '~/types/subsidies'
 
+/** `silent`: the screen maps the 422 codes of hub ADR 0041 itself instead of the global toast. */
+interface WriteOptions {
+  silent?: boolean
+}
+
 interface ListParams {
   page?: number
   size?: number
@@ -34,11 +39,11 @@ export const useSubsidies = () => {
   const get = (uuid: string) =>
     useApi<SubsidyDto>(`/v1/admin/subsidies/${uuid}`)
 
-  const create = (body: SubsidyCreateRequest) =>
-    useApi<SubsidyDto>('/v1/admin/subsidies', { method: 'POST', body })
+  const create = (body: SubsidyCreateRequest, opts: WriteOptions = {}) =>
+    useApi<SubsidyDto>('/v1/admin/subsidies', { method: 'POST', body, silent: opts.silent })
 
-  const update = (uuid: string, body: SubsidyUpdateRequest) =>
-    useApi<SubsidyDto>(`/v1/admin/subsidies/${uuid}`, { method: 'PUT', body })
+  const update = (uuid: string, body: SubsidyUpdateRequest, opts: WriteOptions = {}) =>
+    useApi<SubsidyDto>(`/v1/admin/subsidies/${uuid}`, { method: 'PUT', body, silent: opts.silent })
 
   /** Soft revoke (`active=false`), recorded as REVOKED in the audit log. */
   const revoke = (uuid: string) =>

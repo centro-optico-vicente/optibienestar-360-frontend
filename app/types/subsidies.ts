@@ -7,6 +7,12 @@
 // Money-like BigDecimals may serialize as number or string, so they are typed `number | string`.
 // DisplayRefs arrive flattened as `<name>_Uuid` + `<name>_Display` (hub ADR 0014).
 
+/**
+ * Who created the subsidy (hub ADR 0041 §2): `MANUAL` (a person) or `REFERRAL_REWARD` (created by the
+ * referral reward of a promotion). The organization's subsidy mode only governs `MANUAL` ones.
+ */
+export type SubsidyOrigin = 'MANUAL' | 'REFERRAL_REWARD'
+
 /** Per-beneficiary exoneration line of a subsidy. */
 export interface SubsidyBeneficiaryDto {
   uuid: string
@@ -45,6 +51,9 @@ export interface SubsidyDto {
   updatedAt?: string | null
   updatedAt_Display?: string | null
   beneficiaries: SubsidyBeneficiaryDto[]
+  /** Optional until the backend of hub ADR 0041 ships; absent = `MANUAL`. */
+  origin?: SubsidyOrigin | null
+  origin_Display?: string | null
 }
 
 export interface SubsidyBeneficiaryRequest {
@@ -63,6 +72,8 @@ export interface SubsidyCreateRequest {
   validFrom: string
   validUntil?: string | null
   beneficiaries?: SubsidyBeneficiaryRequest[]
+  /** Explicit confirmation to go over the caller's discount cap (needs `SUBSIDY_EXCEED_DISCOUNT_CAP`, hub ADR 0041 §5). */
+  acknowledgeCapExceeded?: boolean
 }
 
 /**
@@ -78,7 +89,31 @@ export interface SubsidyUpdateRequest {
   validUntil?: string | null
   active?: boolean | null
   beneficiaries?: SubsidyBeneficiaryRequest[] | null
+  /** Explicit confirmation to go over the caller's discount cap (needs `SUBSIDY_EXCEED_DISCOUNT_CAP`, hub ADR 0041 §5). */
+  acknowledgeCapExceeded?: boolean
 }
+
+/**
+ * `GET /v1/admin/subsidies/settings` (hub ADR 0041 §6): the organization's subsidy mode resolved for the
+ * screen plus the current user's discount cap. `mode` takes the same values as `OrganizationDto.subsidyMode`.
+ */
+export interface SubsidySettingsDto {
+  mode: 'DISABLED' | 'MONTHLY' | 'INSCRIPTION' | 'MONTHLY_AND_INSCRIPTION'
+  monthlyEnabled: boolean
+  inscriptionEnabled: boolean
+  /** Current user's cap in % (0–100); `null` = no cap (administrative staff). */
+  discountCapPct: number | string | null
+  /** Whether the current user holds `SUBSIDY_EXCEED_DISCOUNT_CAP` (may go over the cap after confirming). */
+  canExceedCap: boolean
+}
+
+/** 422 `code`s of the subsidy write endpoints (hub ADR 0041 §6), mapped to i18n messages by the screen. */
+export const SUBSIDY_ERROR_CODES = {
+  disabledForOrganization: 'subsidy.disabled_for_organization',
+  feeTypeDisabled: 'subsidy.fee_type_disabled',
+  exceedsDiscountCap: 'subsidy.exceeds_discount_cap',
+  exceedsDiscountCapAckRequired: 'subsidy.exceeds_discount_cap_ack_required',
+} as const
 
 export const SUBSIDY_AUDIT_ACTIONS = ['CREATED', 'MODIFIED', 'REVOKED'] as const
 export type SubsidyAuditAction = typeof SUBSIDY_AUDIT_ACTIONS[number]

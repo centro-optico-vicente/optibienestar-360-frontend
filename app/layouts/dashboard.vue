@@ -23,6 +23,10 @@ const blockedTermType = computed(() => {
 if (can('ORGANIZATION_VIEW')) {
   useOrganization().ensureLoaded()
 }
+// Hides "Subsidios y exoneraciones" from the menu while the organization's subsidy mode is DISABLED (hub ADR 0041).
+if (can('SUBSIDY_VIEW_ALL') || can('SUBSIDY_CREATE')) {
+  useSubsidySettings().load()
+}
 
 // Menú de dos niveles (módulo → vista), filtrado por permisos en useNav().
 const { visibleNav, groupKeyOfPath, navLabel } = useNav()

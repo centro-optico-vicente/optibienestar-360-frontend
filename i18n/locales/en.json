@@ -7222,7 +7222,8 @@
       "validFrom": "Valid from",
       "validUntil": "Valid until",
       "active": "Active",
-      "beneficiaryCount": "Exonerated beneficiaries"
+      "beneficiaryCount": "Exonerated beneficiaries",
+      "origin": "Origin"
     },
     "percentHelp": "Between 0 and 100. Empty = not covered.",
     "maxBeneficiariesHelp": "Empty = the plan's own cap.",
@@ -7233,7 +7234,8 @@
       "wholeNumber": "Must be a whole number.",
       "coverageRequired": "Enter at least one percentage (monthly fee or inscription).",
       "untilBeforeFrom": "Cannot be earlier than the start date.",
-      "cannotClear": "Cannot be cleared: revoke and create a new one."
+      "cannotClear": "Cannot be cleared: revoke and create a new one.",
+      "exceedsCap": "Exceeds your discount cap ({cap} %). Only a user allowed to exceed the cap can grant more."
     },
     "savedToast": "Subsidy saved",
     "revokedToast": "Subsidy revoked",
@@ -7245,6 +7247,32 @@
       "CREATED": "Created",
       "MODIFIED": "Modified",
       "REVOKED": "Revoked"
-    }
+    },
+    "disabled": {
+      "title": "Subsidies are disabled for the organization",
+      "body": "The organization's subsidy mode is set to Disabled: subsidies cannot be created or edited, and the ones already stored are not discounted. Referral rewards still apply, since they are controlled from the promotion. To enable subsidies, change the mode in Organization.",
+      "action": "Go to Organization"
+    },
+    "origin": {
+      "MANUAL": "Manual",
+      "REFERRAL_REWARD": "Referral reward"
+    },
+    "capHint": "Your discount cap: {cap} %",
+    "capHintHard": "Each percentage must be less than or equal to your cap.",
+    "capHintCanExceed": "You may go over it: the system will ask you to confirm and record it in the log.",
+    "capConfirm": {
+      "title": "Exceed the discount cap",
+      "body": "A percentage exceeds your discount cap ({cap} %). If you continue, the subsidy log will record the current cap and that it was exceeded. Do you want to continue?",
+      "confirm": "Exceed the cap and save"
+    },
+    "errors": {
+      "disabledForOrganization": "Subsidies are disabled for the organization: they cannot be created or edited.",
+      "feeTypeDisabled": "The organization's subsidy mode does not allow subsidizing one of the fees entered. The form now shows only the enabled fees.",
+      "exceedsDiscountCap": "Exceeds your discount cap ({cap} %) and you are not allowed to go over it.",
+      "exceedsDiscountCapGeneric": "Exceeds your discount cap and you are not allowed to go over it.",
+      "exceedsDiscountCapAckRequired": "A percentage exceeds your discount cap and it must be explicitly confirmed."
+    },
+    "disabledFeeStored": "Stored {fee} ({value}) is not applied while the organization's subsidy mode does not enable that fee.",
+    "beneficiaryLines": "Beneficiary lines"
   }
 }

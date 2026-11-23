@@ -30,6 +30,8 @@ export interface NavLeaf {
   hiddenForRoles?: UserRole[]
   /** Shown only while the registration progress says `showCompletionPortal` (hub ADR 0037 §3). */
   registrationPortal?: boolean
+  /** Hidden while the organization's subsidy mode is `DISABLED` (hub ADR 0041; `useSubsidySettings`). */
+  hiddenWhenSubsidiesDisabled?: boolean
 }
 
 /** Roles of a registration still under review (hub ADR 0036 / 0037): no panel, no global menu search. */
@@ -93,7 +95,7 @@ export const MAIN_NAV: NavEntry[] = [
       { label: 'Planes', labelKey: 'nav.items.plans.label', to: '/dashboard/plans', icon: 'i-lucide-package', description: 'Planes de cobertura disponibles.', descriptionKey: 'nav.items.plans.description', requires: 'PLAN_VIEW_ALL' },
       { label: 'Membresías', labelKey: 'nav.items.memberships.label', to: '/dashboard/memberships', icon: 'i-lucide-badge-check', description: 'Estado y vigencia de las membresías.', descriptionKey: 'nav.items.memberships.description', requires: 'MEMBERSHIP_VIEW_ALL' },
       { label: 'Afiliados', labelKey: 'nav.items.members.label', to: '/dashboard/members', icon: 'i-lucide-users', description: 'Directorio y expedientes de afiliados.', descriptionKey: 'nav.items.members.description', requires: 'MEMBER_VIEW_ALL' },
-      { label: 'Subsidios y exoneraciones', labelKey: 'nav.items.subsidies.label', to: '/dashboard/subsidies', icon: 'i-lucide-hand-heart', description: 'Mensualidad o inscripción cubierta total o parcialmente, con motivo y vigencia.', descriptionKey: 'nav.items.subsidies.description', requires: 'SUBSIDY_VIEW_ALL' },
+      { label: 'Subsidios y exoneraciones', labelKey: 'nav.items.subsidies.label', to: '/dashboard/subsidies', icon: 'i-lucide-hand-heart', description: 'Mensualidad o inscripción cubierta total o parcialmente, con motivo y vigencia.', descriptionKey: 'nav.items.subsidies.description', requires: 'SUBSIDY_VIEW_ALL', hiddenWhenSubsidiesDisabled: true },
       { label: 'Solicitudes de afiliación', labelKey: 'nav.items.affiliationRequests.label', to: '/dashboard/affiliation-requests', icon: 'i-lucide-user-plus', description: 'Revisar, corregir y aprobar las afiliaciones de la página pública.', descriptionKey: 'nav.items.affiliationRequests.description', requires: 'AFFILIATION_REQUEST_VIEW_ALL' },
       { label: 'Solicitudes de alianza', labelKey: 'nav.items.allyRequests.label', to: '/dashboard/ally-requests', icon: 'i-lucide-handshake', description: 'Revisar y aprobar los aliados que se registraron solos o por la plantilla.', descriptionKey: 'nav.items.allyRequests.description', requires: 'ALLY_REGISTRATION_VIEW_ALL' },
       { label: 'Reporte de cobros de afiliados', labelKey: 'nav.items.paymentsReport.label', to: '/dashboard/payments/report', icon: 'i-lucide-file-spreadsheet', description: 'Reporte de recaudación y cobros de afiliados.', descriptionKey: 'nav.items.paymentsReport.description', requires: ['PAYMENT_REPORT_GENERATE', 'REPORT_REPORT_GENERATE', 'PAYMENT_VIEW_ALL'] },
