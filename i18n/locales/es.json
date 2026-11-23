@@ -903,6 +903,10 @@
       "allyCampaigns": {
         "label": "Campañas",
         "description": "Campañas donde puedes ofrecer tus propios beneficios."
+      },
+      "subsidies": {
+        "label": "Subsidios y exoneraciones",
+        "description": "Mensualidad o inscripción cubierta total o parcialmente, con motivo y vigencia."
       }
     },
     "other": {
@@ -7178,6 +7182,69 @@
       "turns": "Cumple {age} años",
       "congratulate": "Felicitar",
       "whatsappMessage": "¡Feliz cumpleaños, {name}! 🎂 De parte de todo el Grupo OptiBienestar 360 te deseamos un día lleno de alegría, salud y bienestar."
+    }
+  },
+  "subsidies": {
+    "title": "Subsidios y exoneraciones",
+    "subtitle": "Afiliados con la mensualidad o la inscripción cubierta total (exoneración) o parcialmente. Cada cambio queda en la bitácora.",
+    "searchPlaceholder": "Buscar por afiliado o motivo",
+    "filters": {
+      "member": "Afiliado",
+      "dateFrom": "Vigente desde",
+      "dateTo": "Vigente hasta"
+    },
+    "columns": {
+      "member": "Afiliado",
+      "coverage": "Cobertura",
+      "validity": "Vigencia",
+      "reason": "Motivo"
+    },
+    "empty": "No hay subsidios vigentes.",
+    "kind": {
+      "exoneration": "Exoneración",
+      "partial": "Subsidio parcial"
+    },
+    "monthlyShort": "Mensualidad: {value}",
+    "inscriptionShort": "Inscripción: {value}",
+    "beneficiaryCount": "{count} beneficiario(s) exonerado(s)",
+    "indefinite": "Indefinido",
+    "viewLog": "Ver bitácora",
+    "revoke": "Revocar",
+    "createTitle": "Nuevo subsidio",
+    "editTitle": "Editar subsidio",
+    "formDescription": "Deja vacío el porcentaje de un cargo que no se cubre; 100 = exoneración total.",
+    "fields": {
+      "member": "Afiliado",
+      "monthlyPercentage": "% de la mensualidad",
+      "inscriptionPercentage": "% de la inscripción",
+      "maxExoneratedBeneficiaries": "Máx. beneficiarios exonerados",
+      "reason": "Motivo",
+      "validFrom": "Vigente desde",
+      "validUntil": "Vigente hasta",
+      "active": "Activo",
+      "beneficiaryCount": "Beneficiarios exonerados"
+    },
+    "percentHelp": "Entre 0 y 100. Vacío = no cubierto.",
+    "maxBeneficiariesHelp": "Vacío = el tope del plan.",
+    "validUntilHelp": "Vacío = sin fecha de fin.",
+    "editHint": "Un valor ya guardado no puede vaciarse aquí: para eso revoca el subsidio y crea uno nuevo.",
+    "validation": {
+      "percentRange": "Debe ser un número entre 0 y 100 (máx. 2 decimales).",
+      "wholeNumber": "Debe ser un número entero.",
+      "coverageRequired": "Indica al menos un porcentaje (mensualidad o inscripción).",
+      "untilBeforeFrom": "No puede ser anterior a la fecha de inicio.",
+      "cannotClear": "No se puede vaciar: revoca y crea uno nuevo."
+    },
+    "savedToast": "Subsidio guardado",
+    "revokedToast": "Subsidio revocado",
+    "revokeTitle": "Revocar subsidio",
+    "revokeConfirm": "¿Revocar el subsidio de {member}? Dejará de aplicarse a sus próximos cobros y quedará registrado en la bitácora.",
+    "logTitle": "Bitácora del subsidio",
+    "logEmpty": "Sin movimientos registrados.",
+    "actions": {
+      "CREATED": "Creado",
+      "MODIFIED": "Modificado",
+      "REVOKED": "Revocado"
     }
   }
 }
