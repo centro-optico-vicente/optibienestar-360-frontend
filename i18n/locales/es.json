@@ -3413,6 +3413,22 @@
       "pending": "Pendiente de confirmar",
       "enrolledFrom": "Inscrito desde",
       "enrolledTo": "Inscrito hasta"
+    },
+    "mySubsidies": {
+      "title": "Mis subsidios y exoneraciones",
+      "hint": "Beneficios que la organización te otorgó; ya se aplican a tus cobros.",
+      "monthlyExonerated": "Tu mensualidad está exonerada",
+      "monthlySubsidized": "Tu mensualidad está subsidiada al {value}",
+      "inscriptionExonerated": "Tu inscripción está exonerada",
+      "inscriptionSubsidized": "Tu inscripción está subsidiada al {value}",
+      "inscriptionAlso": "Inscripción cubierta al {value}",
+      "validSince": "Vigente desde el {from}, sin fecha de fin",
+      "validRange": "Vigente del {from} al {until}",
+      "beneficiaries": "Incluye a: {names}",
+      "kind": {
+        "exoneration": "Exoneración",
+        "partial": "Subsidio parcial"
+      }
     }
   },
   "memberships": {

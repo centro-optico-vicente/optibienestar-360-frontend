@@ -404,6 +404,9 @@ const initials = computed(() => (displayName.value || '').split(/\s+/).filter(Bo
           <!-- My ally-benefit vouchers (self-gated by MEMBER_VIEW_OWN; hidden when none) -->
           <MyBenefitGrantsCard />
 
+          <!-- My active subsidies / exonerations (self-gated by SUBSIDY_VIEW_OWN; hidden when none) -->
+          <MySubsidiesCard />
+
           <!-- My payments (self-gated by COLLECTION_VIEW_OWN) -->
           <MyPaymentsCard />
 
