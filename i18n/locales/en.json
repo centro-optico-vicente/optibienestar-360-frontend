@@ -5587,7 +5587,9 @@
       "signatoryPositionPlaceholder": "General manager",
       "signatoryDocumentIncomplete": "The document must include both type and number",
       "publicIdentityVisible": "Show identity on the website",
-      "publicIdentityVisibleHelp": "Publishes the commercial name, legal name and tax ID on the public organization endpoint. When off they are returned empty; contact data (address, email, phones and social networks) is always public."
+      "publicIdentityVisibleHelp": "Publishes the commercial name, legal name and tax ID on the public organization endpoint. When off they are returned empty; contact data (address, email, phones and social networks) is always public.",
+      "subsidyMode": "Subsidies",
+      "subsidyModeHelp": "Sets which fees manually granted subsidies may cover. Referral rewards always apply and are controlled from the promotion. Changing the mode does not delete stored subsidies: fees that are turned off simply stop being discounted."
     },
     "sections": {
       "general": "General information",
@@ -5600,7 +5602,8 @@
       "contactHelp": "Address, email and phones printed at the foot of the contracts and terms.",
       "signatory": "Authorized signatory",
       "signatoryHelp": "Person who signs for the company in the contracts (name, ID and position). Printed in the signature block.",
-      "publicIdentity": "Public identity"
+      "publicIdentity": "Public identity",
+      "subsidies": "Subsidies and exonerations"
     },
     "terms": {
       "help": "Three contract kinds. Each user must accept the current versions that apply to them on their next login, and again when a new version takes effect.",
@@ -7245,6 +7248,12 @@
       "CREATED": "Created",
       "MODIFIED": "Modified",
       "REVOKED": "Revoked"
+    },
+    "modes": {
+      "DISABLED": "Disabled",
+      "MONTHLY": "Monthly",
+      "INSCRIPTION": "Inscription",
+      "MONTHLY_AND_INSCRIPTION": "Inscription + monthly"
     }
   }
 }

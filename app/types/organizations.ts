@@ -3,6 +3,13 @@
 // `referenceCurrency` are FK refs serialized as the `_Uuid`/`_Display`/`_Code`
 // flat triple (hub ADR 0014), same convention as `PaymentDto.plan`.
 
+/**
+ * Which fees manually granted subsidies may cover (hub ADR 0041 §1).
+ * Referral-reward subsidies always apply, whatever the mode.
+ */
+export const SUBSIDY_MODES = ['DISABLED', 'MONTHLY', 'INSCRIPTION', 'MONTHLY_AND_INSCRIPTION'] as const
+export type SubsidyMode = typeof SUBSIDY_MODES[number]
+
 export interface OrganizationDto {
   uuid: string
   name: string
@@ -49,6 +56,8 @@ export interface OrganizationDto {
   signatoryPosition: string | null
   /** Publishes nombre comercial / razón social / RIF on GET /v1/public/organization (contact data is always public). */
   publicIdentityVisible: boolean
+  /** Fees that manual subsidies may cover (hub ADR 0041); referral rewards ignore it. */
+  subsidyMode?: SubsidyMode
 }
 
 /** A currency stripped to what an unprivileged caller needs — no uuid, no active flag. */
@@ -92,6 +101,8 @@ export interface OrganizationUpdateRequest {
   signatoryDocumentNumber?: string
   signatoryPosition?: string
   publicIdentityVisible: boolean
+  /** Omitted (undefined) leaves the stored mode unchanged. */
+  subsidyMode?: SubsidyMode
 }
 
 /**

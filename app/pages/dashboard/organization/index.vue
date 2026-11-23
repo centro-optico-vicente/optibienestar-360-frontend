@@ -6,6 +6,7 @@ import MarkdownIt from 'markdown-it'
 import DOMPurify from 'dompurify'
 import { TERM_TYPES, termsVariableToken, type AllySegment, type TermsVariableDto, type TermsVersionDto, type TermType } from '~/types/terms'
 import type { ApiError } from '~/types/auth'
+import { SUBSIDY_MODES, type SubsidyMode } from '~/types/organizations'
 
 definePageMeta({
   layout: 'dashboard',
@@ -57,7 +58,14 @@ const state = reactive({
   signatoryDocumentNumber: '',
   signatoryPosition: '',
   publicIdentityVisible: false,
+  // undefined until loaded (or if the backend predates ADR 0041): omitted on save, so it is left unchanged.
+  subsidyMode: undefined as SubsidyMode | undefined,
 })
+
+// Fixed enum of the backend (hub ADR 0041), not a catalog: labels come from i18n.
+const subsidyModeItems = computed(() =>
+  SUBSIDY_MODES.map(mode => ({ label: t(`subsidies.modes.${mode}`), value: mode })),
+)
 
 const schema = computed(() =>
   z.object({
@@ -169,6 +177,7 @@ async function load() {
       state.signatoryDocumentNumber = org.signatoryDocumentNumber ?? ''
       state.signatoryPosition = org.signatoryPosition ?? ''
       state.publicIdentityVisible = org.publicIdentityVisible
+      state.subsidyMode = org.subsidyMode ?? undefined
     }
     else {
       toast.add({ title: t('organization.loadError'), color: 'error', icon: 'i-lucide-alert-triangle' })
@@ -216,6 +225,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       signatoryDocumentNumber: state.signatoryDocumentNumber || undefined,
       signatoryPosition: state.signatoryPosition || undefined,
       publicIdentityVisible: state.publicIdentityVisible,
+      subsidyMode: state.subsidyMode,
     })
     state.name = updated.name
     state.legalName = updated.legalName ?? ''
@@ -238,6 +248,7 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     state.signatoryDocumentNumber = updated.signatoryDocumentNumber ?? ''
     state.signatoryPosition = updated.signatoryPosition ?? ''
     state.publicIdentityVisible = updated.publicIdentityVisible
+    state.subsidyMode = updated.subsidyMode ?? undefined
     snapshot.value = snapshotState()
     // Served T&C resolve {{org.*}} from these fields, so the previews are now stale.
     for (const type of TERM_TYPE_TABS) termTabs[type].loaded = false
@@ -755,6 +766,27 @@ onMounted(() => {
               <USwitch v-model="state.autoApproveCommissions" :disabled="!canUpdate || isSubmitting" />
               <p class="text-xs text-prohealth-700/70">{{ t('organization.fields.autoApproveCommissionsHelp') }}</p>
             </div>
+          </UFormField>
+        </div>
+
+        <!-- Subsidios (hub ADR 0041) -->
+        <div class="bg-white rounded-2xl border border-prohealth-100 p-6 shadow-sm space-y-4">
+          <h2 class="text-base font-bold text-prohealth-900">{{ t('organization.sections.subsidies') }}</h2>
+
+          <UFormField
+            :label="t('organization.fields.subsidyMode')"
+            :help="t('organization.fields.subsidyModeHelp')"
+            name="subsidyMode"
+          >
+            <USelectMenu
+              v-model="state.subsidyMode"
+              :items="subsidyModeItems"
+              label-key="label"
+              value-key="value"
+              :search-input="false"
+              class="w-full"
+              :disabled="!canUpdate || isSubmitting"
+            />
           </UFormField>
         </div>
 
