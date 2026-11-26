@@ -26,7 +26,7 @@ onMounted(() => load())
 <template>
   <div
     v-if="visible"
-    class="flex items-center gap-3 bg-white/10 backdrop-blur rounded-xl px-4 py-3 max-w-sm"
+    class="flex items-center gap-3 bg-white/10 backdrop-blur rounded-xl px-4 py-3 max-w-md"
   >
     <div class="shrink-0 flex items-center justify-center size-10 rounded-full bg-white text-prohealth-700 ring-2 ring-white/40 shadow">
       <UIcon name="i-lucide-heart-handshake" class="size-5" />

@@ -928,7 +928,11 @@
       "membersGeneric": "Cada vez más familias",
       "membersTrust": "confían en nosotros",
       "membersCount": "+{count} afiliado | +{count} afiliados",
-      "peopleProtectedCount": "+{count} persona protegida | +{count} personas protegidas"
+      "peopleProtectedCount": "+{count} persona protegida | +{count} personas protegidas",
+      "alliesProfessionalCount": "+{count} aliado profesional | +{count} aliados profesionales",
+      "alliesProfessionalNetwork": "Toda una red de aliados profesionales",
+      "alliesCommercialCount": "+{count} aliado comercial | +{count} aliados comerciales",
+      "alliesCommercialNetwork": "Toda una red de aliados comerciales"
     },
     "public": {
       "nav": {
@@ -5636,14 +5640,14 @@
       "signatoryDocumentIncomplete": "El documento debe indicar tipo y número",
       "publicIdentityVisible": "Mostrar identidad en el sitio web",
       "publicIdentityVisibleHelp": "Publica el nombre comercial, la razón social y el RIF en el endpoint público de la organización. Si está desactivado esos datos salen vacíos; los datos de contacto (dirección, correo, teléfonos y redes sociales) siempre son públicos.",
-      "alliesCounterVisible": "Mostrar contador de aliados",
-      "alliesCounterVisibleHelp": "Muestra en el inicio de sesión la tarjeta con los logos de los aliados y su cantidad.",
       "alliesCounterMin": "Mínimo de aliados para mostrar la cifra",
-      "alliesCounterMinHelp": "Por debajo de este número se muestra la frase genérica «Toda una red de aliados» en lugar de la cifra.",
+      "alliesCounterMinHelp": "Por debajo de este número se muestra una frase genérica (p. ej. «Toda una red de aliados») en lugar de la cifra.",
       "membersCounterMode": "Contador de afiliados",
       "membersCounterModeHelp": "Qué se cuenta en la tarjeta de afiliados del inicio de sesión. Solo se publican cifras agregadas, nunca datos personales.",
       "membersCounterMin": "Mínimo para mostrar la cifra",
-      "membersCounterMinHelp": "Por debajo de este número se muestra la frase genérica «Cada vez más familias» en lugar de la cifra."
+      "membersCounterMinHelp": "Por debajo de este número se muestra la frase genérica «Cada vez más familias» en lugar de la cifra.",
+      "alliesCounterMode": "Contador de aliados",
+      "alliesCounterModeHelp": "Qué aliados cuenta la tarjeta del inicio de sesión (con sus logos y la cifra). «Oculto» no muestra la tarjeta."
     },
     "sections": {
       "general": "Datos generales",
@@ -5733,6 +5737,12 @@
       "HIDDEN": "Oculto",
       "MEMBERS": "Afiliados",
       "MEMBERS_AND_BENEFICIARIES": "Afiliados + beneficiarios"
+    },
+    "alliesCounterModes": {
+      "HIDDEN": "Oculto",
+      "PROFESSIONAL": "Aliados profesionales",
+      "COMMERCIAL": "Aliados comerciales",
+      "COMMERCIAL_AND_PROFESSIONAL": "Aliados comerciales + profesionales"
     }
   },
   "systemConfig": {

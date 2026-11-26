@@ -49,8 +49,9 @@ export interface OrganizationDto {
   signatoryPosition: string | null
   /** Publishes nombre comercial / razón social / RIF on GET /v1/public/organization (contact data is always public). */
   publicIdentityVisible: boolean
-  /** Shows the allies card on the login (ADR 0042, V265). */
-  alliesCounterVisible: boolean
+  /** Which public allies the login allies card counts; `HIDDEN` hides it (ADR 0042, V265). */
+  alliesCounterMode: AlliesCounterMode
+  alliesCounterMode_Display?: string | null
   /** Below this number of public allies the login shows a generic phrase instead of the figure. */
   alliesCounterMin: number
   /** What the login members card counts; `HIDDEN` hides it (ADR 0042). */
@@ -59,6 +60,12 @@ export interface OrganizationDto {
   /** Below this count the login shows a generic phrase instead of the figure. */
   membersCounterMin: number
 }
+
+/**
+ * Which public allies the login allies counter counts (ADR 0042): professional (segment
+ * B2P), commercial (B2B) or both.
+ */
+export type AlliesCounterMode = 'HIDDEN' | 'PROFESSIONAL' | 'COMMERCIAL' | 'COMMERCIAL_AND_PROFESSIONAL'
 
 /** What the public members counter of the login counts (ADR 0042). */
 export type MembersCounterMode = 'HIDDEN' | 'MEMBERS' | 'MEMBERS_AND_BENEFICIARIES'
@@ -104,7 +111,7 @@ export interface OrganizationUpdateRequest {
   signatoryDocumentNumber?: string
   signatoryPosition?: string
   publicIdentityVisible: boolean
-  alliesCounterVisible: boolean
+  alliesCounterMode: AlliesCounterMode
   alliesCounterMin: number
   membersCounterMode: MembersCounterMode
   membersCounterMin: number
@@ -145,6 +152,7 @@ export interface PublicOrganizationStatsDto {
   allies: {
     visible: boolean
     count: number | null
+    mode: Exclude<AlliesCounterMode, 'HIDDEN'> | null
   }
   members: {
     visible: boolean

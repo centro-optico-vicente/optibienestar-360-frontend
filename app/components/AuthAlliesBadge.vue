@@ -1,11 +1,14 @@
 <script setup lang="ts">
-import type { PublicAllyListItemDto } from '~/types/allies'
+import type { AllySegment, PublicAllyListItemDto } from '~/types/allies'
+import type { AlliesCounterMode } from '~/types/organizations'
 
 // Brand panel of the auth layout: public allies counter plus the logos of the first
 // allies, magnified like the macOS Dock under the cursor. Visibility and figure come
 // from GET /v1/public/organization/stats (ADR 0042): the backend applies the configured
-// minimum, so `count = null` means "show the generic phrase". Logos still come from the
-// public directory. Decorative: on error or an empty directory it renders nothing.
+// minimum, so `count = null` means "show the generic phrase", and `mode` picks which
+// allies are counted (professional / commercial / both), which the text names. Logos
+// still come from the public directory, filtered by the same segment. Decorative: on
+// error or an empty directory it renders nothing.
 //
 // Dock without reflow: the avatar row has a fixed size reserved for the expanded state,
 // avatars are absolutely placed at their rest slots and hover only changes transforms —
@@ -21,6 +24,17 @@ const MAX_LOGOS = 5
 // Room for the avatar ring/shadow above the largest scaled avatar.
 const HEADROOM = 4
 
+// Per counter mode: directory segment of the logos and the i18n keys of the headline.
+const MODE_SEGMENT: Partial<Record<AlliesCounterMode, AllySegment>> = {
+  PROFESSIONAL: 'B2P',
+  COMMERCIAL: 'B2B',
+}
+const MODE_KEYS: Partial<Record<AlliesCounterMode, { count: string, network: string }>> = {
+  PROFESSIONAL: { count: 'layout.auth.alliesProfessionalCount', network: 'layout.auth.alliesProfessionalNetwork' },
+  COMMERCIAL: { count: 'layout.auth.alliesCommercialCount', network: 'layout.auth.alliesCommercialNetwork' },
+}
+const DEFAULT_KEYS = { count: 'layout.auth.alliesCount', network: 'layout.auth.alliesNetwork' }
+
 const { t, n } = useI18n()
 const publicPath = usePublicPath()
 const reducedMotion = usePreferredReducedMotion()
@@ -32,9 +46,13 @@ const loading = ref(true)
 const count = computed(() => stats.value?.allies.count ?? null)
 const visible = computed(() => !!stats.value?.allies.visible && allies.value.length > 0)
 
-const headline = computed(() => count.value != null
-  ? t('layout.auth.alliesCount', { count: n(count.value) }, count.value)
-  : t('layout.auth.alliesNetwork'))
+const headline = computed(() => {
+  const mode = stats.value?.allies.mode
+  const keys = (mode && MODE_KEYS[mode]) || DEFAULT_KEYS
+  return count.value != null
+    ? t(keys.count, { count: n(count.value) }, count.value)
+    : t(keys.network)
+})
 
 const magnify = computed(() => reducedMotion.value !== 'reduce')
 
@@ -129,10 +147,13 @@ onBeforeUnmount(() => cancelAnimationFrame(frame))
 
 onMounted(async () => {
   try {
-    const [, res] = await Promise.all([
-      loadStats(),
-      usePublicAllies().list({ page: 0, size: MAX_LOGOS, silent: true }).catch(() => null),
-    ])
+    // Sequential: the logos' segment depends on the counter mode, and a hidden card needs no logos.
+    const s = await loadStats()
+    if (!s?.allies.visible) return
+    const segment = s.allies.mode ? MODE_SEGMENT[s.allies.mode] : undefined
+    const res = await usePublicAllies()
+      .list({ page: 0, size: MAX_LOGOS, silent: true, ...(segment ? { segment } : {}) })
+      .catch(() => null)
     allies.value = res?.content ?? []
   }
   finally {
