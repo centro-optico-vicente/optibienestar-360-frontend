@@ -1,17 +1,23 @@
 <script setup lang="ts">
-import type { ComponentPublicInstance } from 'vue'
 import type { PublicAllyListItemDto } from '~/types/allies'
 
 // Brand panel of the auth layout: live count of the public ally directory plus
 // the logos of the first allies, magnified like the macOS Dock under the cursor.
 // Decorative: on error or an empty directory it renders nothing (no made-up number).
-// The magnify is a pure `transform: scale()`: every avatar keeps a fixed BASE_SIZE
-// layout box and the row keeps its spacing, so hovering never reflows the text.
+//
+// Dock without reflow: the avatar row has a fixed size reserved for the expanded state,
+// avatars are absolutely placed at their rest slots and hover only changes transforms —
+// `scale()` from the bottom edge plus a `translateX()` by the growth of their
+// neighbours, anchored at the pointer — so magnified avatars move aside instead of
+// covering each other and the text column never moves.
 
 const BASE_SIZE = 32
-const MAX_BOOST = 0.8
-const RADIUS = 70
+const MAX_BOOST = 0.7
+const RADIUS = 60
+const GAP = 2
 const MAX_LOGOS = 5
+// Room for the avatar ring/shadow above the largest scaled avatar.
+const HEADROOM = 4
 // Below this the exact figure reads small: show a generic "network" claim instead.
 const MIN_COUNT_SHOWN = 20
 
@@ -27,50 +33,93 @@ const headline = computed(() => total.value >= MIN_COUNT_SHOWN
   ? t('layout.auth.alliesCount', { count: n(total.value) }, total.value)
   : t('layout.auth.alliesNetwork'))
 
-const itemRefs: HTMLElement[] = []
-function setItemRef(el: Element | ComponentPublicInstance | null, i: number) {
-  if (el instanceof HTMLElement) itemRefs[i] = el
-}
-const scales = ref<number[]>([])
-let frame = 0
-
 const magnify = computed(() => reducedMotion.value !== 'reduce')
-// Vertical headroom so the largest scaled avatar (grown from its bottom edge) is not clipped.
-const rowHeight = Math.ceil(BASE_SIZE * (1 + MAX_BOOST))
 
-function scaleStyle(i: number) {
-  if (!magnify.value) return undefined
-  return { transform: `scale(${scales.value[i] ?? 1})` }
+interface DockItem { scale: number, dx: number }
+
+/**
+ * Classic dock math for `count` avatars with the pointer at `px` (relative to the left
+ * edge of the first rest slot): each scale falls off linearly with the distance to its
+ * rest center; the expanded row is laid out left to right and shifted so the point under
+ * the pointer stays still, which splits the growth to both sides of the pointer.
+ */
+function dockLayout(count: number, px: number): { items: DockItem[], left: number, right: number } {
+  const step = BASE_SIZE + GAP
+  const scales = Array.from({ length: count }, (_, i) => {
+    const d = Math.abs(px - (i * step + BASE_SIZE / 2))
+    return 1 + MAX_BOOST * Math.max(0, 1 - d / RADIUS)
+  })
+  const shift = scales.reduce((acc, s, i) =>
+    acc + BASE_SIZE * (s - 1) * Math.min(1, Math.max(0, (px - i * step) / BASE_SIZE)), 0)
+  let x = -shift
+  const items = scales.map((s, i) => {
+    const w = BASE_SIZE * s
+    const dx = x + w / 2 - (i * step + BASE_SIZE / 2)
+    x += w + GAP
+    return { scale: s, dx }
+  })
+  const restWidth = count * step - GAP
+  return { items, left: shift, right: x - GAP - restWidth }
 }
+
+const restWidth = computed(() => Math.max(0, allies.value.length * (BASE_SIZE + GAP) - GAP))
+
+// Horizontal room the expanded row can take beyond the rest slots on either side
+// (worst case over every pointer position), reserved up front so hover never reflows.
+const sidePad = computed(() => {
+  const count = allies.value.length
+  if (!magnify.value || count === 0) return 0
+  let max = 0
+  for (let px = -RADIUS; px <= restWidth.value + RADIUS; px++) {
+    const { left, right } = dockLayout(count, px)
+    max = Math.max(max, left, right)
+  }
+  return Math.ceil(max)
+})
+
+const rowStyle = computed(() => ({
+  width: `${restWidth.value + 2 * sidePad.value}px`,
+  height: `${magnify.value ? Math.ceil(BASE_SIZE * (1 + MAX_BOOST)) + HEADROOM : BASE_SIZE + HEADROOM}px`,
+}))
+
+const rowRef = ref<HTMLElement | null>(null)
+const dock = ref<DockItem[]>([])
+let frame = 0
 
 const nearest = computed(() => {
   let best = -1
   let bestScale = 1
-  scales.value.forEach((s, i) => {
-    if (s > bestScale) {
-      bestScale = s
+  dock.value.forEach((d, i) => {
+    if (d.scale > bestScale) {
+      bestScale = d.scale
       best = i
     }
   })
   return best
 })
 
+function itemStyle(i: number) {
+  const d = dock.value[i]
+  return {
+    left: `${sidePad.value + i * (BASE_SIZE + GAP)}px`,
+    width: `${BASE_SIZE}px`,
+    height: `${BASE_SIZE}px`,
+    ...(magnify.value && d ? { transform: `translateX(${d.dx}px) scale(${d.scale})` } : {}),
+  }
+}
+
 function onMove(e: MouseEvent) {
-  if (!magnify.value) return
-  const x = e.clientX
+  if (!magnify.value || !rowRef.value) return
+  const x = e.clientX - rowRef.value.getBoundingClientRect().left - sidePad.value
   cancelAnimationFrame(frame)
   frame = requestAnimationFrame(() => {
-    scales.value = itemRefs.slice(0, allies.value.length).map((el) => {
-      const r = el.getBoundingClientRect()
-      const d = Math.abs(x - (r.left + r.width / 2))
-      return 1 + MAX_BOOST * Math.max(0, 1 - d / RADIUS)
-    })
+    dock.value = dockLayout(allies.value.length, x).items
   })
 }
 
 function onLeave() {
   cancelAnimationFrame(frame)
-  scales.value = []
+  dock.value = []
 }
 
 onBeforeUnmount(() => cancelAnimationFrame(frame))
@@ -91,7 +140,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div v-if="loading" class="flex items-center gap-3 bg-white/10 backdrop-blur rounded-xl px-4 py-3 max-w-sm">
+  <div v-if="loading" class="flex items-center gap-3 bg-white/10 backdrop-blur rounded-xl px-4 py-3 max-w-md">
     <div class="flex -space-x-2">
       <USkeleton v-for="i in 3" :key="i" class="w-8 h-8 rounded-full bg-white/20" />
     </div>
@@ -105,21 +154,21 @@ onMounted(async () => {
     v-else-if="total > 0"
     :to="publicPath('/aliados')"
     :aria-label="t('layout.auth.alliesHint')"
-    class="group flex items-end gap-3 bg-white/10 hover:bg-white/15 backdrop-blur rounded-xl px-4 py-3 max-w-sm transition-colors"
+    class="group flex items-end gap-3 bg-white/10 hover:bg-white/15 backdrop-blur rounded-xl px-4 py-3 max-w-md transition-colors"
   >
-    <!-- Fixed width (shrink-0) and fixed spacing: only the transforms change on hover. -->
+    <!-- Fixed size reserved for the expanded dock: hover only changes transforms. -->
     <div
-      class="flex items-end shrink-0 -space-x-2 pe-2"
-      :style="{ height: `${rowHeight}px` }"
+      ref="rowRef"
+      class="relative shrink-0"
+      :style="rowStyle"
       @mousemove="onMove"
       @mouseleave="onLeave"
     >
       <UTooltip v-for="(a, i) in allies" :key="a.uuid" :text="a.name">
         <div
-          :ref="el => setItemRef(el, i)"
-          class="relative shrink-0 rounded-full origin-bottom transition-transform duration-150 ease-out"
+          class="absolute bottom-0 rounded-full origin-bottom transition-transform duration-150 ease-out"
           :class="[nearest === i ? 'z-10' : '', !magnify ? 'hover:-translate-y-1' : '']"
-          :style="[{ width: `${BASE_SIZE}px`, height: `${BASE_SIZE}px` }, scaleStyle(i)]"
+          :style="itemStyle(i)"
         >
           <UAvatar
             :src="a.logoUrl || undefined"
