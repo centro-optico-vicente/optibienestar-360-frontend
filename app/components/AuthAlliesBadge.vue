@@ -5,6 +5,8 @@ import type { PublicAllyListItemDto } from '~/types/allies'
 // Brand panel of the auth layout: live count of the public ally directory plus
 // the logos of the first allies, magnified like the macOS Dock under the cursor.
 // Decorative: on error or an empty directory it renders nothing (no made-up number).
+// The magnify is a pure `transform: scale()`: every avatar keeps a fixed BASE_SIZE
+// layout box and the row keeps its spacing, so hovering never reflows the text.
 
 const BASE_SIZE = 32
 const MAX_BOOST = 0.8
@@ -30,13 +32,15 @@ function setItemRef(el: Element | ComponentPublicInstance | null, i: number) {
   if (el instanceof HTMLElement) itemRefs[i] = el
 }
 const scales = ref<number[]>([])
-const hovering = ref(false)
 let frame = 0
 
 const magnify = computed(() => reducedMotion.value !== 'reduce')
+// Vertical headroom so the largest scaled avatar (grown from its bottom edge) is not clipped.
+const rowHeight = Math.ceil(BASE_SIZE * (1 + MAX_BOOST))
 
-function sizeOf(i: number) {
-  return Math.round(BASE_SIZE * (scales.value[i] ?? 1))
+function scaleStyle(i: number) {
+  if (!magnify.value) return undefined
+  return { transform: `scale(${scales.value[i] ?? 1})` }
 }
 
 const nearest = computed(() => {
@@ -53,7 +57,6 @@ const nearest = computed(() => {
 
 function onMove(e: MouseEvent) {
   if (!magnify.value) return
-  hovering.value = true
   const x = e.clientX
   cancelAnimationFrame(frame)
   frame = requestAnimationFrame(() => {
@@ -67,7 +70,6 @@ function onMove(e: MouseEvent) {
 
 function onLeave() {
   cancelAnimationFrame(frame)
-  hovering.value = false
   scales.value = []
 }
 
@@ -105,18 +107,19 @@ onMounted(async () => {
     :aria-label="t('layout.auth.alliesHint')"
     class="group flex items-end gap-3 bg-white/10 hover:bg-white/15 backdrop-blur rounded-xl px-4 py-3 max-w-sm transition-colors"
   >
+    <!-- Fixed width (shrink-0) and fixed spacing: only the transforms change on hover. -->
     <div
-      class="flex items-end h-[58px] transition-[gap] duration-150"
-      :class="hovering ? 'gap-1' : '-space-x-2'"
+      class="flex items-end shrink-0 -space-x-2 pe-2"
+      :style="{ height: `${rowHeight}px` }"
       @mousemove="onMove"
       @mouseleave="onLeave"
     >
       <UTooltip v-for="(a, i) in allies" :key="a.uuid" :text="a.name">
         <div
           :ref="el => setItemRef(el, i)"
-          class="relative shrink-0 rounded-full transition-[width,height] duration-150 ease-out"
-          :class="[nearest === i ? 'z-10' : '', !magnify ? 'hover:-translate-y-1 transition-transform' : '']"
-          :style="{ width: `${sizeOf(i)}px`, height: `${sizeOf(i)}px` }"
+          class="relative shrink-0 rounded-full origin-bottom transition-transform duration-150 ease-out"
+          :class="[nearest === i ? 'z-10' : '', !magnify ? 'hover:-translate-y-1' : '']"
+          :style="[{ width: `${BASE_SIZE}px`, height: `${BASE_SIZE}px` }, scaleStyle(i)]"
         >
           <UAvatar
             :src="a.logoUrl || undefined"
@@ -127,7 +130,7 @@ onMounted(async () => {
         </div>
       </UTooltip>
     </div>
-    <div class="text-sm pb-1">
+    <div class="min-w-0 text-sm pb-1">
       <div class="font-semibold">{{ headline }}</div>
       <div class="opacity-80">{{ t('layout.auth.alliesTrust') }}</div>
       <!-- Visible call to action: without it nothing tells the badge is a link. -->
