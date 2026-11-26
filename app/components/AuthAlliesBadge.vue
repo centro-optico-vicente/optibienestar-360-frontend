@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import type { PublicAllyListItemDto } from '~/types/allies'
 
-// Brand panel of the auth layout: live count of the public ally directory plus
-// the logos of the first allies, magnified like the macOS Dock under the cursor.
-// Decorative: on error or an empty directory it renders nothing (no made-up number).
+// Brand panel of the auth layout: public allies counter plus the logos of the first
+// allies, magnified like the macOS Dock under the cursor. Visibility and figure come
+// from GET /v1/public/organization/stats (ADR 0042): the backend applies the configured
+// minimum, so `count = null` means "show the generic phrase". Logos still come from the
+// public directory. Decorative: on error or an empty directory it renders nothing.
 //
 // Dock without reflow: the avatar row has a fixed size reserved for the expanded state,
 // avatars are absolutely placed at their rest slots and hover only changes transforms —
@@ -18,19 +20,20 @@ const GAP = 2
 const MAX_LOGOS = 5
 // Room for the avatar ring/shadow above the largest scaled avatar.
 const HEADROOM = 4
-// Below this the exact figure reads small: show a generic "network" claim instead.
-const MIN_COUNT_SHOWN = 20
 
 const { t, n } = useI18n()
 const publicPath = usePublicPath()
 const reducedMotion = usePreferredReducedMotion()
 
+const { stats, load: loadStats } = usePublicOrganizationStats()
 const allies = ref<PublicAllyListItemDto[]>([])
-const total = ref(0)
 const loading = ref(true)
 
-const headline = computed(() => total.value >= MIN_COUNT_SHOWN
-  ? t('layout.auth.alliesCount', { count: n(total.value) }, total.value)
+const count = computed(() => stats.value?.allies.count ?? null)
+const visible = computed(() => !!stats.value?.allies.visible && allies.value.length > 0)
+
+const headline = computed(() => count.value != null
+  ? t('layout.auth.alliesCount', { count: n(count.value) }, count.value)
   : t('layout.auth.alliesNetwork'))
 
 const magnify = computed(() => reducedMotion.value !== 'reduce')
@@ -126,12 +129,11 @@ onBeforeUnmount(() => cancelAnimationFrame(frame))
 
 onMounted(async () => {
   try {
-    const res = await usePublicAllies().list({ page: 0, size: MAX_LOGOS, silent: true })
-    allies.value = res.content ?? []
-    total.value = res.totalElements ?? 0
-  }
-  catch {
-    total.value = 0
+    const [, res] = await Promise.all([
+      loadStats(),
+      usePublicAllies().list({ page: 0, size: MAX_LOGOS, silent: true }).catch(() => null),
+    ])
+    allies.value = res?.content ?? []
   }
   finally {
     loading.value = false
@@ -151,7 +153,7 @@ onMounted(async () => {
   </div>
 
   <NuxtLink
-    v-else-if="total > 0"
+    v-else-if="visible"
     :to="publicPath('/aliados')"
     :aria-label="t('layout.auth.alliesHint')"
     class="group flex items-end gap-3 bg-white/10 hover:bg-white/15 backdrop-blur rounded-xl px-4 py-3 max-w-md transition-colors"

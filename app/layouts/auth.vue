@@ -25,7 +25,11 @@ const publicPath = usePublicPath()
             {{ $t('layout.auth.lead') }}
           </p>
 
-          <AuthAlliesBadge class="mt-8" />
+          <!-- Public counters (ADR 0042): each card hides itself when disabled in Organización. -->
+          <div class="mt-8 flex flex-col gap-3">
+            <AuthAlliesBadge />
+            <AuthMembersBadge />
+          </div>
         </div>
 
         <span class="text-xs opacity-70">{{ $t('layout.copyrightShort', { year: new Date().getFullYear() }) }}</span>

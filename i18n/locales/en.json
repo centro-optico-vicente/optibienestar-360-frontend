@@ -924,7 +924,11 @@
       "alliesCount": "+{count} partner | +{count} partners",
       "alliesTrust": "trust us",
       "alliesHint": "See the partner network",
-      "alliesNetwork": "A whole network of partners"
+      "alliesNetwork": "A whole network of partners",
+      "membersGeneric": "More and more families",
+      "membersTrust": "trust us",
+      "membersCount": "+{count} member | +{count} members",
+      "peopleProtectedCount": "+{count} person protected | +{count} people protected"
     },
     "public": {
       "nav": {
@@ -5631,7 +5635,15 @@
       "signatoryPositionPlaceholder": "General manager",
       "signatoryDocumentIncomplete": "The document must include both type and number",
       "publicIdentityVisible": "Show identity on the website",
-      "publicIdentityVisibleHelp": "Publishes the commercial name, legal name and tax ID on the public organization endpoint. When off they are returned empty; contact data (address, email, phones and social networks) is always public."
+      "publicIdentityVisibleHelp": "Publishes the commercial name, legal name and tax ID on the public organization endpoint. When off they are returned empty; contact data (address, email, phones and social networks) is always public.",
+      "alliesCounterVisible": "Show partners counter",
+      "alliesCounterVisibleHelp": "Shows on the login page the card with the partners' logos and how many there are.",
+      "alliesCounterMin": "Minimum partners to show the figure",
+      "alliesCounterMinHelp": "Below this number the generic phrase “A whole network of partners” is shown instead of the figure.",
+      "membersCounterMode": "Members counter",
+      "membersCounterModeHelp": "What the members card on the login page counts. Only aggregate figures are published, never personal data.",
+      "membersCounterMin": "Minimum to show the figure",
+      "membersCounterMinHelp": "Below this number the generic phrase “More and more families” is shown instead of the figure."
     },
     "sections": {
       "general": "General information",
@@ -5644,7 +5656,9 @@
       "contactHelp": "Address, email and phones printed at the foot of the contracts and terms.",
       "signatory": "Authorized signatory",
       "signatoryHelp": "Person who signs for the company in the contracts (name, ID and position). Printed in the signature block.",
-      "publicIdentity": "Public identity"
+      "publicIdentity": "Public identity",
+      "publicCounters": "Public counters",
+      "publicCountersHelp": "Cards on the login panel that show how many partners and members trust the organization."
     },
     "terms": {
       "help": "Three contract kinds. Each user must accept the current versions that apply to them on their next login, and again when a new version takes effect.",
@@ -5714,6 +5728,11 @@
           "previous": "Previous"
         }
       }
+    },
+    "membersCounterModes": {
+      "HIDDEN": "Hidden",
+      "MEMBERS": "Members",
+      "MEMBERS_AND_BENEFICIARIES": "Members + beneficiaries"
     }
   },
   "systemConfig": {

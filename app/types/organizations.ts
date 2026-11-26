@@ -49,7 +49,19 @@ export interface OrganizationDto {
   signatoryPosition: string | null
   /** Publishes nombre comercial / razón social / RIF on GET /v1/public/organization (contact data is always public). */
   publicIdentityVisible: boolean
+  /** Shows the allies card on the login (ADR 0042, V265). */
+  alliesCounterVisible: boolean
+  /** Below this number of public allies the login shows a generic phrase instead of the figure. */
+  alliesCounterMin: number
+  /** What the login members card counts; `HIDDEN` hides it (ADR 0042). */
+  membersCounterMode: MembersCounterMode
+  membersCounterMode_Display?: string | null
+  /** Below this count the login shows a generic phrase instead of the figure. */
+  membersCounterMin: number
 }
+
+/** What the public members counter of the login counts (ADR 0042). */
+export type MembersCounterMode = 'HIDDEN' | 'MEMBERS' | 'MEMBERS_AND_BENEFICIARIES'
 
 /** A currency stripped to what an unprivileged caller needs — no uuid, no active flag. */
 export interface OrganizationCurrencyRef {
@@ -92,6 +104,10 @@ export interface OrganizationUpdateRequest {
   signatoryDocumentNumber?: string
   signatoryPosition?: string
   publicIdentityVisible: boolean
+  alliesCounterVisible: boolean
+  alliesCounterMin: number
+  membersCounterMode: MembersCounterMode
+  membersCounterMin: number
 }
 
 /**
@@ -117,4 +133,22 @@ export interface PublicOrganizationDto {
   legalName: string | null
   taxIdentifier: string | null
   contact: PublicOrganizationContactDto
+}
+
+/**
+ * Response of GET /v1/public/organization/stats (no authentication, ADR 0042): the
+ * login counters. The backend applies the configured minimum, so `count` is `null`
+ * while the real figure is below it (show a generic phrase) and also when the card is
+ * hidden (`visible = false`).
+ */
+export interface PublicOrganizationStatsDto {
+  allies: {
+    visible: boolean
+    count: number | null
+  }
+  members: {
+    visible: boolean
+    count: number | null
+    mode: Exclude<MembersCounterMode, 'HIDDEN'> | null
+  }
 }

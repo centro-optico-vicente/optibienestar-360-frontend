@@ -6,6 +6,7 @@ import MarkdownIt from 'markdown-it'
 import DOMPurify from 'dompurify'
 import { TERM_TYPES, termsVariableToken, type AllySegment, type TermsVariableDto, type TermsVersionDto, type TermType } from '~/types/terms'
 import type { ApiError } from '~/types/auth'
+import type { MembersCounterMode } from '~/types/organizations'
 
 definePageMeta({
   layout: 'dashboard',
@@ -57,7 +58,17 @@ const state = reactive({
   signatoryDocumentNumber: '',
   signatoryPosition: '',
   publicIdentityVisible: false,
+  // Public login counters (ADR 0042); defaults match the backend's V265 defaults.
+  alliesCounterVisible: true,
+  alliesCounterMin: 20 as number | null,
+  membersCounterMode: 'HIDDEN' as MembersCounterMode,
+  membersCounterMin: 20 as number | null,
 })
+
+const MEMBERS_COUNTER_MODES: MembersCounterMode[] = ['HIDDEN', 'MEMBERS', 'MEMBERS_AND_BENEFICIARIES']
+const membersCounterModeItems = computed(() =>
+  MEMBERS_COUNTER_MODES.map(value => ({ value, label: t(`organization.membersCounterModes.${value}`) })),
+)
 
 const schema = computed(() =>
   z.object({
@@ -129,6 +140,8 @@ const schema = computed(() =>
       .max(100, t('validation.maxChars', { n: 100 }))
       .optional()
       .or(z.literal('')),
+    alliesCounterMin: z.number({ message: t('validation.required') }).int().min(0),
+    membersCounterMin: z.number({ message: t('validation.required') }).int().min(0),
   }).refine(
     v => !!v.signatoryDocumentType === !!v.signatoryDocumentNumber?.trim(),
     { message: t('organization.fields.signatoryDocumentIncomplete'), path: ['signatoryDocumentNumber'] },
@@ -169,6 +182,10 @@ async function load() {
       state.signatoryDocumentNumber = org.signatoryDocumentNumber ?? ''
       state.signatoryPosition = org.signatoryPosition ?? ''
       state.publicIdentityVisible = org.publicIdentityVisible
+      state.alliesCounterVisible = org.alliesCounterVisible
+      state.alliesCounterMin = org.alliesCounterMin
+      state.membersCounterMode = org.membersCounterMode
+      state.membersCounterMin = org.membersCounterMin
     }
     else {
       toast.add({ title: t('organization.loadError'), color: 'error', icon: 'i-lucide-alert-triangle' })
@@ -216,6 +233,10 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
       signatoryDocumentNumber: state.signatoryDocumentNumber || undefined,
       signatoryPosition: state.signatoryPosition || undefined,
       publicIdentityVisible: state.publicIdentityVisible,
+      alliesCounterVisible: state.alliesCounterVisible,
+      alliesCounterMin: state.alliesCounterMin ?? 0,
+      membersCounterMode: state.membersCounterMode,
+      membersCounterMin: state.membersCounterMin ?? 0,
     })
     state.name = updated.name
     state.legalName = updated.legalName ?? ''
@@ -238,6 +259,10 @@ async function onSubmit(_event: FormSubmitEvent<Record<string, unknown>>) {
     state.signatoryDocumentNumber = updated.signatoryDocumentNumber ?? ''
     state.signatoryPosition = updated.signatoryPosition ?? ''
     state.publicIdentityVisible = updated.publicIdentityVisible
+    state.alliesCounterVisible = updated.alliesCounterVisible
+    state.alliesCounterMin = updated.alliesCounterMin
+    state.membersCounterMode = updated.membersCounterMode
+    state.membersCounterMin = updated.membersCounterMin
     snapshot.value = snapshotState()
     // Served T&C resolve {{org.*}} from these fields, so the previews are now stale.
     for (const type of TERM_TYPE_TABS) termTabs[type].loaded = false
@@ -743,6 +768,63 @@ onMounted(() => {
               <USwitch v-model="state.publicIdentityVisible" :disabled="!canUpdate || isSubmitting" />
               <p class="text-xs text-prohealth-700/70">{{ t('organization.fields.publicIdentityVisibleHelp') }}</p>
             </div>
+          </UFormField>
+        </div>
+
+        <!-- Contadores públicos (login, ADR 0042) -->
+        <div class="bg-white rounded-2xl border border-prohealth-100 p-6 shadow-sm space-y-4">
+          <div>
+            <h2 class="text-base font-bold text-prohealth-900">{{ t('organization.sections.publicCounters') }}</h2>
+            <p class="text-xs text-prohealth-700/70 mt-0.5">{{ t('organization.sections.publicCountersHelp') }}</p>
+          </div>
+
+          <UFormField :label="t('organization.fields.alliesCounterVisible')" name="alliesCounterVisible">
+            <div class="flex items-start gap-3">
+              <USwitch v-model="state.alliesCounterVisible" :disabled="!canUpdate || isSubmitting" />
+              <p class="text-xs text-prohealth-700/70">{{ t('organization.fields.alliesCounterVisibleHelp') }}</p>
+            </div>
+          </UFormField>
+          <UFormField
+            :label="t('organization.fields.alliesCounterMin')"
+            :help="t('organization.fields.alliesCounterMinHelp')"
+            name="alliesCounterMin"
+          >
+            <UInputNumber
+              v-model="state.alliesCounterMin"
+              :min="0"
+              :step="1"
+              class="w-full sm:w-40"
+              :disabled="!canUpdate || isSubmitting || !state.alliesCounterVisible"
+            />
+          </UFormField>
+
+          <UFormField
+            :label="t('organization.fields.membersCounterMode')"
+            :help="t('organization.fields.membersCounterModeHelp')"
+            name="membersCounterMode"
+          >
+            <USelectMenu
+              v-model="state.membersCounterMode"
+              :items="membersCounterModeItems"
+              value-key="value"
+              label-key="label"
+              :search-input="false"
+              class="w-full sm:w-72"
+              :disabled="!canUpdate || isSubmitting"
+            />
+          </UFormField>
+          <UFormField
+            :label="t('organization.fields.membersCounterMin')"
+            :help="t('organization.fields.membersCounterMinHelp')"
+            name="membersCounterMin"
+          >
+            <UInputNumber
+              v-model="state.membersCounterMin"
+              :min="0"
+              :step="1"
+              class="w-full sm:w-40"
+              :disabled="!canUpdate || isSubmitting || state.membersCounterMode === 'HIDDEN'"
+            />
           </UFormField>
         </div>
 

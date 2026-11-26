@@ -924,7 +924,11 @@
       "alliesCount": "+{count} aliado | +{count} aliados",
       "alliesTrust": "confían en nosotros",
       "alliesHint": "Ver la red de aliados",
-      "alliesNetwork": "Toda una red de aliados"
+      "alliesNetwork": "Toda una red de aliados",
+      "membersGeneric": "Cada vez más familias",
+      "membersTrust": "confían en nosotros",
+      "membersCount": "+{count} afiliado | +{count} afiliados",
+      "peopleProtectedCount": "+{count} persona protegida | +{count} personas protegidas"
     },
     "public": {
       "nav": {
@@ -5631,7 +5635,15 @@
       "signatoryPositionPlaceholder": "Gerente general",
       "signatoryDocumentIncomplete": "El documento debe indicar tipo y número",
       "publicIdentityVisible": "Mostrar identidad en el sitio web",
-      "publicIdentityVisibleHelp": "Publica el nombre comercial, la razón social y el RIF en el endpoint público de la organización. Si está desactivado esos datos salen vacíos; los datos de contacto (dirección, correo, teléfonos y redes sociales) siempre son públicos."
+      "publicIdentityVisibleHelp": "Publica el nombre comercial, la razón social y el RIF en el endpoint público de la organización. Si está desactivado esos datos salen vacíos; los datos de contacto (dirección, correo, teléfonos y redes sociales) siempre son públicos.",
+      "alliesCounterVisible": "Mostrar contador de aliados",
+      "alliesCounterVisibleHelp": "Muestra en el inicio de sesión la tarjeta con los logos de los aliados y su cantidad.",
+      "alliesCounterMin": "Mínimo de aliados para mostrar la cifra",
+      "alliesCounterMinHelp": "Por debajo de este número se muestra la frase genérica «Toda una red de aliados» en lugar de la cifra.",
+      "membersCounterMode": "Contador de afiliados",
+      "membersCounterModeHelp": "Qué se cuenta en la tarjeta de afiliados del inicio de sesión. Solo se publican cifras agregadas, nunca datos personales.",
+      "membersCounterMin": "Mínimo para mostrar la cifra",
+      "membersCounterMinHelp": "Por debajo de este número se muestra la frase genérica «Cada vez más familias» en lugar de la cifra."
     },
     "sections": {
       "general": "Datos generales",
@@ -5644,7 +5656,9 @@
       "contactHelp": "Dirección, correo y teléfonos que se imprimen al pie de los contratos y términos.",
       "signatory": "Firmante autorizado",
       "signatoryHelp": "Persona que firma por la empresa en los contratos (nombre, cédula y cargo). Se imprime en el bloque de firmas.",
-      "publicIdentity": "Identidad pública"
+      "publicIdentity": "Identidad pública",
+      "publicCounters": "Contadores públicos",
+      "publicCountersHelp": "Tarjetas del panel de inicio de sesión que muestran cuántos aliados y afiliados confían en la organización."
     },
     "terms": {
       "help": "Tres tipos de contrato. Cada usuario debe aceptar en su próximo inicio de sesión las versiones vigentes que le correspondan, y de nuevo cuando entre en vigencia una versión nueva.",
@@ -5714,6 +5728,11 @@
           "previous": "Anterior"
         }
       }
+    },
+    "membersCounterModes": {
+      "HIDDEN": "Oculto",
+      "MEMBERS": "Afiliados",
+      "MEMBERS_AND_BENEFICIARIES": "Afiliados + beneficiarios"
     }
   },
   "systemConfig": {
