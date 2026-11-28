@@ -4,7 +4,7 @@ import type { RegistrationStartResponse } from '~/types/affiliationRequests'
 import type { MyAllyRequestCreateRequest } from '~/types/allyRequests'
 import { roleHome } from '~/utils/roleHome'
 
-const PENDING_ROLES: readonly string[] = [ROLES.MEMBER_PENDING, ROLES.ALLY_PENDING]
+const PENDING_ROLES: readonly string[] = [ROLES.MEMBER_PENDING, ROLES.ALLY_PENDING, ROLES.ADVISOR_PENDING]
 
 /**
  * One person, one account, several segments (backend#438): someone already signed in — an advisor or ally who

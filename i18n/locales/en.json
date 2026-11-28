@@ -184,7 +184,9 @@
         "button": "Contact the company",
         "member": "Hello, my name is: \nI tried to sign up online but registration is not active. Can you help me?",
         "ally": "Hello, my name is: \nI tried to register as an ally online but registration is not active. Can you help me?"
-      }
+      },
+      "becomeAdvisorPrompt": "Want to sell with us?",
+      "becomeAdvisorLink": "Become an advisor"
     },
     "recover": {
       "seoTitle": "Recover password — OptiBienestar 360",
@@ -577,7 +579,8 @@
       "ALIADO": "Ally",
       "AFILIADO": "Member",
       "ASESOR": "Advisor",
-      "ALIADO_PENDIENTE": "Ally under review"
+      "ALIADO_PENDIENTE": "Ally under review",
+      "ASESOR_PENDIENTE": "Advisor pending verification"
     }
   },
   "nav": {
@@ -907,6 +910,14 @@
       "allyCampaigns": {
         "label": "Campaigns",
         "description": "Campaigns where you can offer your own benefits."
+      },
+      "advisorRequests": {
+        "label": "Advisor requests",
+        "description": "Verify the advisors who signed up themselves."
+      },
+      "myAdvisorRequest": {
+        "label": "My advisor request",
+        "description": "The verification status of your advisor registration."
       }
     },
     "other": {
@@ -952,7 +963,8 @@
       "product": {
         "plans": "Plans",
         "allies": "Partners",
-        "digitalCard": "Digital Credential"
+        "digitalCard": "Digital Credential",
+        "becomeAdvisor": "Become an advisor"
       },
       "contactHeading": "Contact"
     }
@@ -7227,7 +7239,8 @@
         "title": "You're now part of OptiBienestar!",
         "bodyAlly": "We approved the registration of {name}. You now have full access to your ally portal.",
         "bodyMember": "We approved your membership. You can now use your digital card and your benefits.",
-        "action": "Go to my portal"
+        "action": "Go to my portal",
+        "bodyAdvisor": "We verified your advisor registration. You now have your code and QR, and you start earning commissions."
       }
     }
   },
@@ -7255,6 +7268,143 @@
       "turns": "Turns {age}",
       "congratulate": "Congratulate",
       "whatsappMessage": "Happy birthday, {name}! 🎂 Everyone at Grupo OptiBienestar 360 wishes you a day full of joy, health and well-being."
+    }
+  },
+  "advisorRequestForm": {
+    "seoTitle": "Become an advisor — OptiBienestar 360",
+    "title": "Become an advisor",
+    "subtitle": "Sign up as an OptiBienestar 360 sales advisor and enroll members and allies.",
+    "verificationTitle": "An operator will verify your registration",
+    "verificationNotice": "Your QR code and your commissions are enabled only after an operator verifies your details. Meanwhile you can sign in and see the status of your request.",
+    "signedInNotice": "You are already signed in as {name}. The advisor sign-up is for people without an account; to become an advisor with your current account, contact an operator.",
+    "goToPortal": "Go to my portal",
+    "sections": {
+      "personal": "Your details",
+      "profile": "Your sales profile",
+      "profileHelp": "Optional. It helps the operator verify your registration faster."
+    },
+    "fields": {
+      "firstName": "First names",
+      "lastName": "Last names",
+      "document": "National ID",
+      "documentType": "ID type (V or E)",
+      "mobile": "Mobile / WhatsApp",
+      "email": "Email",
+      "emailHelp": "You will sign in to your advisor portal with this email.",
+      "state": "State",
+      "statePlaceholder": "Choose the state",
+      "city": "City",
+      "cityPlaceholder": "Choose the city",
+      "selectStateFirst": "Choose the state first",
+      "assignedZone": "Area where you would sell",
+      "assignedZoneHelp": "For example: Chacao and Altamira.",
+      "educationLevel": "Education level",
+      "profession": "Profession or trade",
+      "yearsOfExperience": "Years of sales experience",
+      "vehicle": "Vehicle",
+      "vehicleHelp": "If you have your own vehicle, tell us (motorbike, car…).",
+      "lastCompany": "Last company",
+      "lastPosition": "Last position",
+      "note": "Anything else you want to tell us",
+      "noteHelp": "Optional. Up to 1000 characters."
+    },
+    "termsAccept": "I agree that OptiBienestar 360 may use these details to verify my registration and contact me.",
+    "submit": "Send registration",
+    "haveAccount": "Already have an account?",
+    "signIn": "Sign in",
+    "requiredField": "This field is required.",
+    "fixFields": "Check the fields marked in red.",
+    "badDocument": "The national ID must contain digits only (up to 9).",
+    "badMobile": "Digits only, 10 to 15 (for example 04141234567).",
+    "badEmail": "The email is not valid.",
+    "shortPassword": "The password must have at least 8 characters.",
+    "badYears": "Enter a number of years between 0 and 80.",
+    "termsRequired": "You must accept the use of your details to send the registration.",
+    "errorFallback": "The registration could not be sent.",
+    "badName": "Letters only: no numbers or symbols.",
+    "emailTaken": "An account with this email already exists. Sign in or use another email.",
+    "documentTaken": "An account with this ID already exists. Sign in with it."
+  },
+  "advisorPending": {
+    "title": "My advisor request",
+    "subtitle": "The verification status of your advisor registration.",
+    "pendingTitle": "Your registration is pending verification",
+    "pendingBody": "An operator will review your details. Once verified you will get your code and your affiliation QR, and you will start earning commissions. We will let you know right here.",
+    "rejectedTitle": "Your registration was not approved",
+    "rejectedBody": "Reason: {reason}",
+    "rejectedNoReason": "Contact an operator to learn the reason.",
+    "approvedTitle": "Your registration was verified!",
+    "approvedBody": "In a few seconds you will move to your advisor portal with your QR. If it does not happen, sign out and sign in again.",
+    "submittedAt": "Sent on {date}",
+    "notFound": "We could not find your advisor request.",
+    "loadError": "Your request could not be loaded.",
+    "retry": "Retry"
+  },
+  "advisorRequests": {
+    "title": "Advisor requests",
+    "subtitle": "Advisors who signed up themselves. Verify them to enable their QR and commissions.",
+    "pendingCount": "{count} pending",
+    "searchPlaceholder": "Search by name, email or code…",
+    "statusAll": "All statuses",
+    "status": {
+      "PENDING": "Pending",
+      "APPROVED": "Verified",
+      "REJECTED": "Rejected"
+    },
+    "columns": {
+      "name": "Advisor",
+      "document": "National ID",
+      "contact": "Contact",
+      "zone": "Area",
+      "note": "Note",
+      "createdAt": "Received",
+      "status": "Status"
+    },
+    "empty": "There are no advisor requests with these filters.",
+    "viewDetail": "View request",
+    "detail": {
+      "seoPage": "Advisor request",
+      "notFoundTitle": "We could not find this advisor request.",
+      "receivedAt": "Received on {date}",
+      "approvedBy": "Verified by {name} on {date}",
+      "rejectedBy": "Rejected by {name} on {date}",
+      "pendingNotice": "Until you verify this advisor, it has no QR and earns no commissions.",
+      "rejectionReason": "Rejection reason",
+      "reopen": "Reopen",
+      "reopenToast": "The request is pending again.",
+      "personTitle": "Advisor details",
+      "profileTitle": "Sales profile",
+      "userTitle": "Portal user",
+      "noUser": "No portal user.",
+      "fields": {
+        "firstName": "First names",
+        "lastName": "Last names",
+        "document": "National ID",
+        "email": "Email",
+        "phone": "Mobile",
+        "city": "City",
+        "referralCode": "Advisor code",
+        "assignedZone": "Area",
+        "educationLevel": "Education level",
+        "profession": "Profession or trade",
+        "yearsOfExperience": "Years of experience",
+        "lastCompany": "Last company",
+        "lastPosition": "Last position",
+        "vehicle": "Vehicle",
+        "note": "Note from the advisor"
+      },
+      "approve": {
+        "button": "Verify",
+        "title": "Verify advisor",
+        "notice": "Once verified, the advisor gets its referral code and affiliation QR, and earns commissions from then on. Its user gets the advisor role.",
+        "doneToast": "Advisor verified."
+      },
+      "reject": {
+        "button": "Reject",
+        "title": "Reject advisor request",
+        "notice": "The advisor will see this reason in its portal. You can reopen the request later.",
+        "doneToast": "Request rejected."
+      }
     }
   }
 }

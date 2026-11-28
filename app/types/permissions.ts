@@ -140,6 +140,11 @@ export const PERMISSIONS = [
   'ALLY_REGISTRATION_REJECT',
   'ALLY_REGISTRATION_INVITE',
   'ALLY_IMPORT',
+  // Advisor requests: self-registered advisors (/quiero-ser-asesor) verified by an operator.
+  'ADVISOR_REGISTRATION_VIEW_OWN',
+  'ADVISOR_REGISTRATION_VIEW_ALL',
+  'ADVISOR_REGISTRATION_APPROVE',
+  'ADVISOR_REGISTRATION_REJECT',
   // Contracts with the ally (V79) — even reads stay off ALLY_VIEW_ALL, since
   // agreements include commercial terms not every ally-viewer role should see.
   'ALLY_AGREEMENT_VIEW_ALL',

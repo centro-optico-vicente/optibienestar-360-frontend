@@ -33,7 +33,7 @@ export interface NavLeaf {
 }
 
 /** Roles of a registration still under review (hub ADR 0036 / 0037): no panel, no global menu search. */
-export const PENDING_ROLES: readonly UserRole[] = [ROLES.ALLY_PENDING, ROLES.MEMBER_PENDING]
+export const PENDING_ROLES: readonly UserRole[] = [ROLES.ALLY_PENDING, ROLES.MEMBER_PENDING, ROLES.ADVISOR_PENDING]
 
 /** Un módulo/vertical: agrupa vistas bajo un encabezado colapsable. */
 export interface NavGroup {
@@ -96,6 +96,8 @@ export const MAIN_NAV: NavEntry[] = [
       { label: 'Afiliados', labelKey: 'nav.items.members.label', to: '/dashboard/members', icon: 'i-lucide-users', description: 'Directorio y expedientes de afiliados.', descriptionKey: 'nav.items.members.description', requires: 'MEMBER_VIEW_ALL' },
       { label: 'Solicitudes de afiliación', labelKey: 'nav.items.affiliationRequests.label', to: '/dashboard/affiliation-requests', icon: 'i-lucide-user-plus', description: 'Revisar, corregir y aprobar las afiliaciones de la página pública.', descriptionKey: 'nav.items.affiliationRequests.description', requires: 'AFFILIATION_REQUEST_VIEW_ALL' },
       { label: 'Solicitudes de alianza', labelKey: 'nav.items.allyRequests.label', to: '/dashboard/ally-requests', icon: 'i-lucide-handshake', description: 'Revisar y aprobar los aliados que se registraron solos o por la plantilla.', descriptionKey: 'nav.items.allyRequests.description', requires: 'ALLY_REGISTRATION_VIEW_ALL' },
+      // Self-registered advisors (/quiero-ser-asesor) waiting for an operator to verify them.
+      { label: 'Solicitudes de asesor', labelKey: 'nav.items.advisorRequests.label', to: '/dashboard/advisor-requests', icon: 'i-lucide-user-round-check', description: 'Verificar a los asesores que se registraron solos.', descriptionKey: 'nav.items.advisorRequests.description', requires: 'ADVISOR_REGISTRATION_VIEW_ALL' },
       { label: 'Reporte de cobros de afiliados', labelKey: 'nav.items.paymentsReport.label', to: '/dashboard/payments/report', icon: 'i-lucide-file-spreadsheet', description: 'Reporte de recaudación y cobros de afiliados.', descriptionKey: 'nav.items.paymentsReport.description', requires: ['PAYMENT_REPORT_GENERATE', 'REPORT_REPORT_GENERATE', 'PAYMENT_VIEW_ALL'] },
     ],
   },
@@ -247,6 +249,9 @@ export const MAIN_NAV: NavEntry[] = [
       { label: 'Mi carnet', labelKey: 'nav.items.myCard.label', to: '/members', icon: 'i-lucide-id-card', description: 'Tu carnet de afiliado.', descriptionKey: 'nav.items.myCard.description', requires: 'MEMBER_VIEW_OWN' },
       { label: 'Mis consumos', labelKey: 'nav.items.myUsage.label', to: '/members/usage', icon: 'i-lucide-clipboard-list', description: 'Tus usos del beneficio en aliados.', descriptionKey: 'nav.items.myUsage.description', requires: 'MEMBER_VIEW_OWN' },
       { label: 'Quién vio mi historia', labelKey: 'nav.items.myMedicalAccess.label', to: '/members/medical-access', icon: 'i-lucide-shield-check', description: 'Médicos aliados con acceso a tu historia médica.', descriptionKey: 'nav.items.myMedicalAccess.description', requires: 'ALLY_PATIENT_LINK_VIEW_OWN' },
+      // Self-registered advisor not verified yet: only the status of its request (no QR, no commissions). Gated by
+      // role, not by ADVISOR_REGISTRATION_VIEW_OWN: SYSTEM holds every permission.
+      { label: 'Mi solicitud de asesor', labelKey: 'nav.items.myAdvisorRequest.label', to: '/advisors/pending', icon: 'i-lucide-hourglass', description: 'El estado de la verificación de tu registro como asesor.', descriptionKey: 'nav.items.myAdvisorRequest.description', roles: [ROLES.ADVISOR_PENDING] },
       { label: 'Mi perfil', labelKey: 'nav.items.promoterProfile.label', to: '/advisors', icon: 'i-lucide-qr-code', description: 'Tu foto y tu QR de afiliación.', descriptionKey: 'nav.items.promoterProfile.description', requires: 'PROMOTER_VIEW_OWN' },
       { label: 'Mi espacio de aliado', labelKey: 'nav.items.myAllyCompany.label', to: '/allies', icon: 'i-lucide-building-2', description: 'Panel de tu espacio como aliado, comercial o profesional.', descriptionKey: 'nav.items.myAllyCompany.description', roles: [ROLES.ALLY, ROLES.ALLY_PENDING] },
       // Hub ADR 0038: campaigns open to allies, where the ally adds its own benefits.

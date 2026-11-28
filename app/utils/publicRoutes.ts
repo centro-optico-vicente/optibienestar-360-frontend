@@ -22,6 +22,7 @@ export const PUBLIC_ROUTE_PAIRS: readonly PublicRoutePair[] = [
   { es: '/catalogo', en: '/en/catalog', prefix: true },
   { es: '/afiliarse', en: '/en/join' },
   { es: '/solicitar-alianza', en: '/en/become-an-ally' },
+  { es: '/quiero-ser-asesor', en: '/en/become-an-advisor' },
   { es: '/cuentas', en: '/en/accounts' },
   { es: '/recuperar-clave', en: '/en/forgot-password' },
   { es: '/restablecer-clave', en: '/en/reset-password' },

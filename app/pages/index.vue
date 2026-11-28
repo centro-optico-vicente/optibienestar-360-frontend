@@ -268,6 +268,10 @@ const onSendLink = async (): Promise<void> => {
         {{ $t('auth.login.becomeAllyPrompt') }}
         <NuxtLink :to="publicPath('/solicitar-alianza')" class="text-cyan-700 font-medium hover:underline">{{ $t('auth.login.becomeAllyLink') }}</NuxtLink>
       </p>
+      <p class="text-center text-sm text-prohealth-700/70">
+        {{ $t('auth.login.becomeAdvisorPrompt') }}
+        <NuxtLink :to="publicPath('/quiero-ser-asesor')" class="text-cyan-700 font-medium hover:underline">{{ $t('auth.login.becomeAdvisorLink') }}</NuxtLink>
+      </p>
     </UForm>
   </div>
 </template>

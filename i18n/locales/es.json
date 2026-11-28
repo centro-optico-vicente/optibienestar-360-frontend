@@ -184,7 +184,9 @@
         "button": "Contactar a la empresa",
         "member": "Hola, mi nombre es: \nIntenté afiliarme en línea pero el registro no está activo. ¿Me pueden ayudar?",
         "ally": "Hola, mi nombre es: \nIntenté registrarme como aliado en línea pero el registro no está activo. ¿Me pueden ayudar?"
-      }
+      },
+      "becomeAdvisorPrompt": "¿Quieres vender con nosotros?",
+      "becomeAdvisorLink": "Quiero ser asesor"
     },
     "recover": {
       "seoTitle": "Recuperar contraseña — OptiBienestar 360",
@@ -577,7 +579,8 @@
       "ALIADO": "Aliado",
       "AFILIADO": "Afiliado",
       "ASESOR": "Asesor",
-      "ALIADO_PENDIENTE": "Aliado en revisión"
+      "ALIADO_PENDIENTE": "Aliado en revisión",
+      "ASESOR_PENDIENTE": "Asesor en verificación"
     }
   },
   "nav": {
@@ -907,6 +910,14 @@
       "allyCampaigns": {
         "label": "Campañas",
         "description": "Campañas donde puedes ofrecer tus propios beneficios."
+      },
+      "advisorRequests": {
+        "label": "Solicitudes de asesor",
+        "description": "Verificar a los asesores que se registraron solos."
+      },
+      "myAdvisorRequest": {
+        "label": "Mi solicitud de asesor",
+        "description": "El estado de la verificación de tu registro como asesor."
       }
     },
     "other": {
@@ -952,7 +963,8 @@
       "product": {
         "plans": "Planes",
         "allies": "Aliados",
-        "digitalCard": "Credencial Digital"
+        "digitalCard": "Credencial Digital",
+        "becomeAdvisor": "Quiero ser asesor"
       },
       "contactHeading": "Contacto"
     }
@@ -7227,7 +7239,8 @@
         "title": "¡Ya eres parte de OptiBienestar!",
         "bodyAlly": "Aprobamos el registro de {name}. Ya tienes acceso completo a tu portal de aliado.",
         "bodyMember": "Aprobamos tu afiliación. Ya puedes usar tu carnet digital y tus beneficios.",
-        "action": "Ir a mi portal"
+        "action": "Ir a mi portal",
+        "bodyAdvisor": "Verificamos tu registro como asesor. Ya tienes tu código, tu QR y empiezas a generar comisiones."
       }
     }
   },
@@ -7255,6 +7268,143 @@
       "turns": "Cumple {age} años",
       "congratulate": "Felicitar",
       "whatsappMessage": "¡Feliz cumpleaños, {name}! 🎂 De parte de todo el Grupo OptiBienestar 360 te deseamos un día lleno de alegría, salud y bienestar."
+    }
+  },
+  "advisorRequestForm": {
+    "seoTitle": "Quiero ser asesor — OptiBienestar 360",
+    "title": "Quiero ser asesor",
+    "subtitle": "Regístrate como asesor comercial de OptiBienestar 360 y afilia personas y aliados.",
+    "verificationTitle": "Un operador verificará tu registro",
+    "verificationNotice": "Tu código QR y tus comisiones se activan solo cuando un operador verifique tus datos. Mientras tanto podrás entrar y ver el estado de tu solicitud.",
+    "signedInNotice": "Ya iniciaste sesión como {name}. El registro de asesor es para personas sin cuenta; si quieres ser asesor con tu cuenta actual, contacta a un operador.",
+    "goToPortal": "Ir a mi portal",
+    "sections": {
+      "personal": "Tus datos",
+      "profile": "Tu perfil comercial",
+      "profileHelp": "Opcional. Ayuda al operador a verificar tu registro más rápido."
+    },
+    "fields": {
+      "firstName": "Nombres",
+      "lastName": "Apellidos",
+      "document": "Cédula de identidad",
+      "documentType": "Tipo de cédula (V o E)",
+      "mobile": "Celular / WhatsApp",
+      "email": "Correo electrónico",
+      "emailHelp": "Con este correo entrarás a tu portal de asesor.",
+      "state": "Estado",
+      "statePlaceholder": "Elige el estado",
+      "city": "Ciudad",
+      "cityPlaceholder": "Elige la ciudad",
+      "selectStateFirst": "Primero elige el estado",
+      "assignedZone": "Zona donde venderías",
+      "assignedZoneHelp": "Por ejemplo: Chacao y Altamira.",
+      "educationLevel": "Nivel académico",
+      "profession": "Profesión u oficio",
+      "yearsOfExperience": "Años de experiencia en ventas",
+      "vehicle": "Vehículo",
+      "vehicleHelp": "Si tienes vehículo propio, indícalo (moto, carro…).",
+      "lastCompany": "Última empresa",
+      "lastPosition": "Último cargo",
+      "note": "Algo más que quieras contarnos",
+      "noteHelp": "Opcional. Hasta 1000 caracteres."
+    },
+    "termsAccept": "Acepto que OptiBienestar 360 use estos datos para verificar mi registro y contactarme.",
+    "submit": "Enviar registro",
+    "haveAccount": "¿Ya tienes una cuenta?",
+    "signIn": "Inicia sesión",
+    "requiredField": "Este campo es obligatorio.",
+    "fixFields": "Revisa los campos marcados en rojo.",
+    "badDocument": "La cédula debe tener solo números (hasta 9 dígitos).",
+    "badMobile": "Escribe solo números, entre 10 y 15 dígitos (por ejemplo 04141234567).",
+    "badEmail": "El correo no es válido.",
+    "shortPassword": "La contraseña debe tener al menos 8 caracteres.",
+    "badYears": "Escribe un número de años entre 0 y 80.",
+    "termsRequired": "Debes aceptar el uso de tus datos para enviar el registro.",
+    "errorFallback": "No fue posible enviar el registro.",
+    "badName": "Solo letras: sin números ni símbolos.",
+    "emailTaken": "Ya existe una cuenta con este correo. Inicia sesión o usa otro correo.",
+    "documentTaken": "Ya existe una cuenta con esta cédula. Inicia sesión con ella."
+  },
+  "advisorPending": {
+    "title": "Mi solicitud de asesor",
+    "subtitle": "El estado de la verificación de tu registro como asesor.",
+    "pendingTitle": "Tu registro está pendiente de verificación",
+    "pendingBody": "Un operador revisará tus datos. Cuando te verifique tendrás tu código, tu QR de afiliación y empezarás a generar comisiones. Te avisaremos aquí mismo.",
+    "rejectedTitle": "Tu registro no fue aprobado",
+    "rejectedBody": "Motivo: {reason}",
+    "rejectedNoReason": "Contacta a un operador para conocer el motivo.",
+    "approvedTitle": "¡Tu registro fue verificado!",
+    "approvedBody": "En unos segundos pasarás a tu portal de asesor con tu QR. Si no ocurre, cierra sesión y vuelve a entrar.",
+    "submittedAt": "Enviado el {date}",
+    "notFound": "No encontramos tu solicitud de asesor.",
+    "loadError": "No fue posible cargar tu solicitud.",
+    "retry": "Reintentar"
+  },
+  "advisorRequests": {
+    "title": "Solicitudes de asesor",
+    "subtitle": "Asesores que se registraron solos. Verifícalos para activar su QR y sus comisiones.",
+    "pendingCount": "{count} pendientes",
+    "searchPlaceholder": "Buscar por nombre, correo o código…",
+    "statusAll": "Todos los estados",
+    "status": {
+      "PENDING": "Pendiente",
+      "APPROVED": "Verificado",
+      "REJECTED": "Rechazado"
+    },
+    "columns": {
+      "name": "Asesor",
+      "document": "Cédula",
+      "contact": "Contacto",
+      "zone": "Zona",
+      "note": "Nota",
+      "createdAt": "Recibida",
+      "status": "Estado"
+    },
+    "empty": "No hay solicitudes de asesor con estos filtros.",
+    "viewDetail": "Ver solicitud",
+    "detail": {
+      "seoPage": "Solicitud de asesor",
+      "notFoundTitle": "No encontramos esta solicitud de asesor.",
+      "receivedAt": "Recibida el {date}",
+      "approvedBy": "Verificada por {name} el {date}",
+      "rejectedBy": "Rechazada por {name} el {date}",
+      "pendingNotice": "Mientras no lo verifiques, este asesor no tiene QR ni genera comisiones.",
+      "rejectionReason": "Motivo del rechazo",
+      "reopen": "Reabrir",
+      "reopenToast": "La solicitud volvió a pendiente.",
+      "personTitle": "Datos del asesor",
+      "profileTitle": "Perfil comercial",
+      "userTitle": "Usuario del portal",
+      "noUser": "Sin usuario del portal.",
+      "fields": {
+        "firstName": "Nombres",
+        "lastName": "Apellidos",
+        "document": "Cédula",
+        "email": "Correo",
+        "phone": "Celular",
+        "city": "Ciudad",
+        "referralCode": "Código de asesor",
+        "assignedZone": "Zona",
+        "educationLevel": "Nivel académico",
+        "profession": "Profesión u oficio",
+        "yearsOfExperience": "Años de experiencia",
+        "lastCompany": "Última empresa",
+        "lastPosition": "Último cargo",
+        "vehicle": "Vehículo",
+        "note": "Nota del asesor"
+      },
+      "approve": {
+        "button": "Verificar",
+        "title": "Verificar asesor",
+        "notice": "Al verificarlo, el asesor recibe su código de referido y su QR de afiliación, y desde ese momento genera comisiones. Su usuario pasa a tener el rol de asesor.",
+        "doneToast": "Asesor verificado."
+      },
+      "reject": {
+        "button": "Rechazar",
+        "title": "Rechazar solicitud de asesor",
+        "notice": "El asesor verá este motivo en su portal. Podrás reabrir la solicitud más adelante.",
+        "doneToast": "Solicitud rechazada."
+      }
     }
   }
 }

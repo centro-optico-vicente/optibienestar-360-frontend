@@ -13,6 +13,7 @@ const navLinks = [
 const footerLinks = computed(() => [
   { labelKey: 'layout.footer.product.plans', to: publicPath('/afiliarse') },
   { labelKey: 'layout.footer.product.allies', to: publicPath('/aliados') },
+  { labelKey: 'layout.footer.product.becomeAdvisor', to: publicPath('/quiero-ser-asesor') },
   { labelKey: 'layout.footer.product.digitalCard', to: '/members' },
 ])
 
