@@ -7268,6 +7268,30 @@
       "turns": "Cumple {age} años",
       "congratulate": "Felicitar",
       "whatsappMessage": "¡Feliz cumpleaños, {name}! 🎂 De parte de todo el Grupo OptiBienestar 360 te deseamos un día lleno de alegría, salud y bienestar."
+    },
+    "card": {
+      "defaultOrganization": "Grupo OptiBienestar 360",
+      "banner": "Todo el equipo de {organization} te desea un día maravilloso.",
+      "dialogLabel": "Tarjeta de cumpleaños",
+      "envelopeEyebrow": "Tienes un mensaje especial",
+      "openEnvelope": "Abrir el sobre de tu tarjeta de cumpleaños",
+      "tapSeal": "Toca el sello para abrir",
+      "to": "Para: {name}",
+      "eyebrow": "En tu día especial",
+      "title": "Feliz cumpleaños",
+      "close": "Cerrar",
+      "closing": "Con todo nuestro cariño,",
+      "signature": "Todo nuestro equipo",
+      "role": {
+        "member": "Afiliado titular",
+        "beneficiary": "Beneficiario",
+        "advisor": "Asesor comercial"
+      },
+      "message": {
+        "member": "En nombre de todo el equipo de {organization}, te deseamos un muy feliz cumpleaños. Gracias por confiarnos tu salud visual y la de tu familia. Que este nuevo año llegue lleno de salud, bienestar y momentos para disfrutar con los tuyos.",
+        "beneficiary": "Hoy celebramos contigo. Todo el equipo de {organization} te desea un feliz cumpleaños y un nuevo año lleno de salud, alegría y bienestar. Nos hace muy felices cuidar de ti y de tu familia.",
+        "advisor": "En nombre de todo el equipo de {organization}, te enviamos un gran abrazo en tu día. Gracias por tu compromiso y por llevar bienestar a cada familia que acompañas. Que este nuevo año te traiga salud, crecimiento y muchos logros."
+      }
     }
   },
   "advisorRequestForm": {
