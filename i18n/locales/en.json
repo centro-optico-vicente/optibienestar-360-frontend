@@ -7268,6 +7268,30 @@
       "turns": "Turns {age}",
       "congratulate": "Congratulate",
       "whatsappMessage": "Happy birthday, {name}! 🎂 Everyone at Grupo OptiBienestar 360 wishes you a day full of joy, health and well-being."
+    },
+    "card": {
+      "defaultOrganization": "Grupo OptiBienestar 360",
+      "banner": "Everyone at {organization} wishes you a wonderful day.",
+      "dialogLabel": "Birthday card",
+      "envelopeEyebrow": "You have a special message",
+      "openEnvelope": "Open your birthday card envelope",
+      "tapSeal": "Tap the seal to open",
+      "to": "To: {name}",
+      "eyebrow": "On your special day",
+      "title": "Happy birthday",
+      "close": "Close",
+      "closing": "With all our affection,",
+      "signature": "Our whole team",
+      "role": {
+        "member": "Plan holder",
+        "beneficiary": "Beneficiary",
+        "advisor": "Sales advisor"
+      },
+      "message": {
+        "member": "On behalf of everyone at {organization}, we wish you a very happy birthday. Thank you for trusting us with your eye health and your family's. May this new year bring you health, well-being and moments to enjoy with your loved ones.",
+        "beneficiary": "Today we celebrate with you. Everyone at {organization} wishes you a happy birthday and a new year full of health, joy and well-being. We are glad to take care of you and your family.",
+        "advisor": "On behalf of everyone at {organization}, we send you a big hug on your day. Thank you for your commitment and for bringing well-being to every family you serve. May this new year bring you health, growth and many achievements."
+      }
     }
   },
   "advisorRequestForm": {

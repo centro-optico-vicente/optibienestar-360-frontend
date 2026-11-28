@@ -323,6 +323,8 @@ function contactTypeIcon(type: PromoterContactType): string {
 
 <template>
   <div class="space-y-5">
+    <!-- The advisor's own birthday card (GET /v1/me/birthdays → self, role ADVISOR). -->
+    <BirthdayGreeting />
     <div class="flex flex-wrap items-end justify-between gap-4">
       <div>
         <h1 class="text-2xl font-extrabold text-prohealth-900">{{ t('promoterSelf.portfolio.title') }}</h1>
