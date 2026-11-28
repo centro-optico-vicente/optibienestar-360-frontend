@@ -27,9 +27,11 @@ export const NOTIFICATION_TYPES: Readonly<Record<string, NotificationTypeView>> 
     title: (_n, t) => t('notifications.types.REGISTRATION_APPROVED.title'),
     body: (n, t) => {
       const name = typeof n.params?.name === 'string' ? n.params.name : ''
-      return String(n.params?.kind ?? '').toUpperCase() === 'ALLY'
-        ? t('notifications.types.REGISTRATION_APPROVED.bodyAlly', { name })
-        : t('notifications.types.REGISTRATION_APPROVED.bodyMember')
+      // kind: MEMBER | ALLY | ADVISOR (the operator verified a self-registered advisor).
+      const kind = String(n.params?.kind ?? '').toUpperCase()
+      if (kind === 'ALLY') return t('notifications.types.REGISTRATION_APPROVED.bodyAlly', { name })
+      if (kind === 'ADVISOR') return t('notifications.types.REGISTRATION_APPROVED.bodyAdvisor')
+      return t('notifications.types.REGISTRATION_APPROVED.bodyMember')
     },
     action: (_n, t) => t('notifications.types.REGISTRATION_APPROVED.action'),
   },

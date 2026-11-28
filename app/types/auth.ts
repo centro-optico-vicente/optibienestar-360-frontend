@@ -19,6 +19,11 @@ export const ROLES = {
   /** Self-registered member whose request is still a draft or under review (hub ADR 0037): only "Completar registro". */
   MEMBER_PENDING: 'AFILIADO_PENDIENTE',
   ADVISOR: 'ASESOR',
+  /**
+   * Self-registered advisor waiting for an operator to verify it (/quiero-ser-asesor): only sees the status of its
+   * own request (ADVISOR_REGISTRATION_VIEW_OWN). No QR and no commissions until approved, when it becomes ASESOR.
+   */
+  ADVISOR_PENDING: 'ASESOR_PENDIENTE',
 } as const
 
 export type UserRole = typeof ROLES[keyof typeof ROLES]

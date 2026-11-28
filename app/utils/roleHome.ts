@@ -3,6 +3,9 @@ import { ROLES, type UserRole } from '~/types/auth'
 /** Route of the "Completar registro" wizard (hub ADR 0037 §3). */
 export const COMPLETE_REGISTRATION_PATH = '/completar-registro'
 
+/** Status page of a self-registered advisor waiting for verification (role ASESOR_PENDIENTE). */
+export const ADVISOR_PENDING_PATH = '/advisors/pending'
+
 /**
  * Where a signed-in person lands: the login screen, a bare `/dashboard` and the
  * "completion portal" closing all send them here. `portalOpen` is the
@@ -20,6 +23,9 @@ export function roleHome(role: UserRole | null | undefined, portalOpen = true): 
       return portalOpen ? COMPLETE_REGISTRATION_PATH : '/members'
     case ROLES.ALLY_PENDING:
       return portalOpen ? COMPLETE_REGISTRATION_PATH : '/allies'
+    // No step wizard for an advisor: only the "pending verification" status page.
+    case ROLES.ADVISOR_PENDING:
+      return ADVISOR_PENDING_PATH
     // Home page per role (hub ADR 0037 §5): the portal each one uses all day.
     case ROLES.MEMBER:
       return '/members'

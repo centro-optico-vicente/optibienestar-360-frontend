@@ -1,6 +1,6 @@
 import type { Pinia } from 'pinia'
 import { ROLES } from '~/types/auth'
-import { COMPLETE_REGISTRATION_PATH, roleHome } from '~/utils/roleHome'
+import { ADVISOR_PENDING_PATH, COMPLETE_REGISTRATION_PATH, roleHome } from '~/utils/roleHome'
 
 const POLL_MS = 60_000
 const MIN_GAP_MS = 15_000
@@ -9,6 +9,7 @@ const MIN_GAP_MS = 15_000
 const APPROVED_ROLE: Readonly<Record<string, string>> = {
   [ROLES.ALLY_PENDING]: ROLES.ALLY,
   [ROLES.MEMBER_PENDING]: ROLES.MEMBER,
+  [ROLES.ADVISOR_PENDING]: ROLES.ADVISOR,
 }
 
 /**
@@ -58,6 +59,10 @@ export default defineNuxtPlugin((nuxtApp) => {
         const onWizard = path === COMPLETE_REGISTRATION_PATH || path === '/complete-registration'
         if (onWizard && !registration.showCompletionPortal.value) {
           await navigateTo(roleHome(auth.activeRole, false), { replace: true })
+        }
+        // A verified advisor leaves its "pending verification" page for its portal (QR, portfolio).
+        else if (path === ADVISOR_PENDING_PATH) {
+          await navigateTo(roleHome(auth.activeRole), { replace: true })
         }
       })
     }
